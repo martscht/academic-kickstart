@@ -1,21 +1,21 @@
 +++
-# A Recent and Upcoming Talks section created with the Pages widget.
-# This section displays recent talks from `content/talk/`.
+# A Recent Blog Posts section created with the Pages widget.
+# This section displays recent blog posts from `content/post/`.
 
 widget = "pages"  # See https://sourcethemes.com/academic/docs/page-builder/
 headless = true  # This file represents a page section.
-active = false  # Activate this widget? true/false
-weight = 70  # Order that this section will appear.
+active = true  # Activate this widget? true/false
+weight = 20  # Order that this section will appear.
 
-title = "Recent & Upcoming Talks"
-subtitle = ""
+title = "Projekt 1"
+subtitle = "Google Trends"
 
 [content]
   # Page type to display. E.g. post, talk, or publication.
-  page_type = "talk"
+  page_type = "post"
 
   # Choose how much pages you would like to display (0 = all pages)
-  count = 5
+  count = 4
 
   # Choose how many pages you would like to offset by
   offset = 0
@@ -26,11 +26,9 @@ subtitle = ""
   # Filter posts by a taxonomy term.
   [content.filters]
     tag = ""
-    category = ""
+    category = "Projekt1"
     publication_type = ""
     exclude_featured = false
-    exclude_past = false
-    exclude_future = false
 
 [design]
   # Toggle between the various page layout types.
@@ -67,3 +65,5 @@ subtitle = ""
  # CSS class.
  css_class = ""
 +++
+
+Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque volutpat mollis elit efficitur ornare. Nunc at sagittis erat. Vestibulum ac elit justo. Integer sit amet nisl neque. Nam eu turpis lobortis, tempor lectus eu, sodales quam. Cras pulvinar pretium mi, vel faucibus urna placerat ac. Nulla justo mi, rutrum nec mauris non, scelerisque tristique ex. Suspendisse molestie eu urna quis condimentum. Mauris euismod at nisi quis gravida. Sed convallis auctor est imperdiet iaculis. Pellentesque euismod purus non mattis viverra. Pellentesque pulvinar neque ut finibus fringilla. Sed tristique sapien a porttitor gravida. Phasellus sed venenatis ante. Vestibulum orci nisl, congue non ante non, vulputate rutrum neque.
