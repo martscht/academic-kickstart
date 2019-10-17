@@ -45,6 +45,9 @@ hero_media = ""
 [cta_alt]
   url = "./projects"
   label = "Habe ich schon"
+
+[cta_note]
+  label = "Wir empfehlen zusätzlich mit [R-Studio](https://rstudio.com/products/rstudio/) zu arbeiten."
 +++
 
 **R installieren und mit den Projekten anfangen!**

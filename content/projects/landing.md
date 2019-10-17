@@ -4,6 +4,9 @@ summary = "Kurzer Überblick über die Bedienung der Projekte Seite."
 date = "2019-10-17"
 widget = "blank"
 weight = 10
+[design.background]
+  color = "#00618f"
+  text_color_light = true
 +++
 
 
