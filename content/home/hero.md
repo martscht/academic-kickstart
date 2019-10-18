@@ -37,20 +37,15 @@ hero_media = ""
 #   Display link(s) by specifying a URL and label below. Icon is optional for `[cta]`.
 #   Remove a link/note by deleting a cta/note block.
 [cta]
-  url = "https://cran.r-project.org/"
-  label = "Installieren"
-  icon_pack = "fab"
-  icon = "r-project"
+  url = "./projects"
+  label = "Los geht's"
 
 [cta_alt]
-  url = "./projects"
-  label = "Habe ich schon"
-
-[cta_note]
-  label = "Wir empfehlen zusätzlich mit [R-Studio](https://rstudio.com/products/rstudio/) zu arbeiten."
+  url = "/categories/zusatz"
+  label = "Ich brauche eine Auffrischung"
 +++
 
-**R installieren und mit den Projekten anfangen!**
+...oder erst noch einen Blick in das Zusatzmaterial zur Auffrischung werfen.
 
 <!-- Build **Anything** with Widgets
 
