@@ -1,0 +1,196 @@
+---
+title: Grafiken mit ggplot2
+date: '2019-10-29'
+slug: grafiken-mit-ggplot2
+categories:
+  - Zusatz
+tags: [ggplot]
+subtitle: ''
+summary: ''
+authors: [hartig]
+lastmod: '2019-10-29T10:19:57+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<div id="das-paket-ggplot2" class="section level1">
+<h1>Das Paket ggplot2</h1>
+<p>Das Paket <code>ggplot2</code> ist eines der umfangreichsten und leistungstärksten zur Erzeugung von Grafiken in R. Es stellt eine Alternative zu den base-Funktionen (plot etc.) dar, mit der es leichter fällt, komplexere Abbildungen zu erzeugen und diese optisch ansprechend zu gestalten.</p>
+<div id="grundprinzipien-beim-aufbau-von-ggplot-grafiken" class="section level2">
+<h2>Grundprinzipien beim Aufbau von ggplot-Grafiken</h2>
+<ul>
+<li>Im Unterschied zu den base-Funktionen benötigt <code>ggplot</code> als Ausgangsbasis immer einen <code>data.frame</code>, Vektoren oder Matrizen reichen nicht aus.</li>
+<li>Die Grafiken werden nicht mit einem einzelnen Funktionsaufruf erzeugt, sondern sukzessive in mehreren Ebenen (layers) aufgebaut.</li>
+<li>Zu Beginn wird die Funktion <code>ggplot</code> aufgerufen und mindestens der zu verwendende Datensatz spezifiziert.</li>
+<li>Im ersten Aufruf können über <code>mapping = aes()</code> auch schon Variablen definiert werden, die z. B. auf den Achsen abgetragen oder zur Gruppierung von Elementen verwendet werden.</li>
+<li>Die im <code>mapping</code> definierten Variablen werden an die weiteren Ebenen “vererbt”</li>
+<li>Die Ebenen, die einem erzeugten plot hinzugefügt werden, werden als <code>geom</code> bezeichnet. Diese definieren, welche Elemente (z. B. Punkte, Balken, Linien) zur Darstellung der Daten verwendet werden.</li>
+</ul>
+</div>
+<div id="beispiel" class="section level2">
+<h2>Beispiel</h2>
+<p>Beispiel für den sukzessiven Aufbau anhand eines im <code>ggplot2</code>-Paket enthaltenen Datensatzes zu Diamantpreisen.</p>
+<pre class="r"><code>library(ggplot2)
+ggplot(diamonds)  # Nur der Datensatz: leerer Plot</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/diamonds-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(diamonds, aes(x=carat))  # Daten &amp; x-Achse</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/diamonds-2.png" width="672" /></p>
+<pre class="r"><code>ggplot(diamonds, aes(x=carat, y=price))  # Daten und beide Achsen für alle folgenden Ebenen definiert</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/diamonds-3.png" width="672" /></p>
+<pre class="r"><code>ggplot(diamonds, aes(x=carat, y=price, color=cut))  # Gruppierung nach &quot;cut&quot;, in den Ebenen hinzugefügte Elemente werden dann unterschiedlich gefärbt.</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/diamonds-4.png" width="672" /></p>
+<pre class="r"><code># Durch das Hinzufügen eines geoms werden die Daten dargestellt, hier als geglättete Linie
+ggplot(diamonds, aes(x=carat, y=price, color=cut)) +
+  geom_smooth()</code></pre>
+<pre><code>## `geom_smooth()` using method = &#39;gam&#39; and formula &#39;y ~ s(x, bs = &quot;cs&quot;)&#39;</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/diamonds-5.png" width="672" /></p>
+</div>
+</div>
+<div id="grafiken-aus-der-psychologischen-statistik" class="section level1">
+<h1>Grafiken aus der psychologischen Statistik</h1>
+<p>Im Folgenden werden Daten verwendet, die im psych-Paket enthalten sind. Wir erzeugen die folgenden einfachen Grafiken:</p>
+<ul>
+<li>Ein Histogramm</li>
+<li>Ein Streudiagramm</li>
+<li>Einen Boxplot</li>
+</ul>
+<div id="daten" class="section level2">
+<h2>Daten</h2>
+<p>Daten laden und anschauen (<code>describe</code> aus dem <code>psych</code>-Paket)</p>
+<pre class="r"><code># 
+library(psych)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;psych&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:ggplot2&#39;:
+## 
+##     %+%, alpha</code></pre>
+<pre class="r"><code># Datensatz aus zwei Studien über Persönlichkeit, Stimmung und durch Filmen uínduzierte affektive Zustände
+data(affect)
+describe(affect)</code></pre>
+<pre><code>##          vars   n  mean    sd median trimmed   mad min   max range  skew
+## Study*      1 330  1.52  0.50   2.00    1.52  0.00   1  2.00  1.00 -0.06
+## Film        2 330  2.52  1.13   3.00    2.52  1.48   1  4.00  3.00 -0.03
+## ext         3 330 13.16  4.47  13.00   13.38  4.45   0 22.00 22.00 -0.41
+## neur        4 330 10.22  5.04  10.00   10.11  4.45   0 23.00 23.00  0.19
+## imp         5 330  4.29  1.97   4.00    4.30  1.48   0  9.00  9.00 -0.02
+## soc         6 330  7.51  2.86   8.00    7.75  2.97   0 13.00 13.00 -0.64
+## lie         7 330  2.30  1.48   2.00    2.20  1.48   0  7.00  7.00  0.68
+## traitanx    8 330 39.52  9.77  38.00   38.88  8.90  22 71.00 49.00  0.63
+## state1      9 330 40.83 10.76  40.00   40.24 10.38  20 79.00 59.00  0.57
+## EA1        10 330  9.19  7.11   8.00    8.67  8.90   0 29.00 29.00  0.52
+## TA1        11 330 12.91  4.42  13.00   12.76  4.45   0 26.00 26.00  0.35
+## PA1        12 330  8.89  6.79   8.00    8.28  7.41   0 29.00 29.00  0.70
+## NA1        13 330  3.69  4.31   2.00    2.93  2.97   0 28.00 28.00  1.97
+## EA2        14 330 11.01  6.85  11.00   10.82  7.41   0 29.00 29.00  0.21
+## TA2        15 330 15.65  4.88  15.00   15.54  4.45   3 31.00 28.00  0.25
+## PA2        16 330  8.98  6.43   8.00    8.52  7.41   0 29.00 29.00  0.53
+## NA2        17 330  4.65  5.19   3.00    3.79  4.45   0 30.00 30.00  1.38
+## state2     18 170 42.45 10.76  43.00   42.35 10.38  20 71.00 51.00  0.10
+## MEQ        19 170 39.36 10.28  40.00   39.43 11.12  15 65.00 50.00 -0.06
+## BDI        20 160  0.31  0.28   0.24    0.27  0.21   0  1.46  1.46  1.50
+##          kurtosis   se
+## Study*      -2.00 0.03
+## Film        -1.38 0.06
+## ext         -0.15 0.25
+## neur        -0.44 0.28
+## imp         -0.67 0.11
+## soc         -0.13 0.16
+## lie          0.38 0.08
+## traitanx     0.16 0.54
+## state1       0.17 0.59
+## EA1         -0.65 0.39
+## TA1          0.39 0.24
+## PA1         -0.13 0.37
+## NA1          5.29 0.24
+## EA2         -0.79 0.38
+## TA2         -0.13 0.27
+## PA2         -0.39 0.35
+## NA2          1.92 0.29
+## state2      -0.45 0.83
+## MEQ         -0.38 0.79
+## BDI          2.66 0.02</code></pre>
+</div>
+<div id="histogramm" class="section level2">
+<h2>Histogramm</h2>
+<p>Als erstes erzeugen wir ein einfaches Histogramm für Trait-Ängstlichkeit. Für ein Histogramm muss nur die x-Achse spezifiziert werden.</p>
+<pre class="r"><code>ggplot(affect, aes(x=traitanx)) + 
+  geom_histogram()</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/histogram%201-1.png" width="672" /></p>
+<p>Das sieht noch nicht sehr schön aus… Das allgemeine Layout (Hintergrund, Farbschemata) in <code>ggplot</code> lässt sich über verschiedene <code>themes</code> verändern. <code>theme_bw()</code> ist ein schlichtes s/w-Layout. In <code>geom_histogram</code> kann zudem die Breite der Intervalle gesteuert und eine andere Farben gewählt werden. Bei der Ängstlichkeits-Skala ist 5 ein guter Wert, und die Balken werden “DIPF-Orange” gefüllt ;-), die Ränder schwarz. Außerdem fügen wir mit <code>labs</code> (für “labels”) noch Achsenbeschriftungen und einen Titel hinzu.</p>
+<pre class="r"><code>ggplot(affect, aes(x=traitanx)) + 
+  theme_bw() +
+  geom_histogram(binwidth = 5, fill=&quot;#F29400&quot;, color=&quot;black&quot;) +
+  labs(x=&quot;Häufigkeit&quot;, y=&quot;Trait-Ängstlichkeit&quot;, title = &quot;Verteilung der Trait-Ängstlichkeit&quot;)</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/histogram%202-1.png" width="672" /></p>
+<p>Damit lassen wir es jetzt gut sein und kommen zum nächsten Beispiel.</p>
+</div>
+<div id="streudiagramm" class="section level2">
+<h2>Streudiagramm</h2>
+<p>Wir stellen per Streudiagramm die gemeinsame Verteilung von Extraversion und Neurotizismus dar. Hierzu müssen wir beide Achsen definieren und verwenden <em>geom_point</em>, um die Daten als Punkte darzustellen.</p>
+<pre class="r"><code>ggplot(affect, aes(x=ext, y=neur)) +
+  geom_point()</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/scatter%201-1.png" width="672" /></p>
+<p>Das ist auch noch ausbaufähig. Wir ergänzen wieder Achsenbeschriftungen und ändern Farbe und Größe der Punkte. Mit <code>geom_smooth</code> und der Methode <code>lm</code> (für “linear model”) wird eine lineare Anpassungslinie hinzugefügt.</p>
+<pre class="r"><code>ggplot(affect, aes(x=ext, y=neur)) +
+  labs(x=&quot;Extraversion&quot;, y=&quot;Neurozizismus&quot;) +
+  geom_point(size=2, color=&quot;#6DA5D5&quot;) +
+  geom_smooth(method = &quot;lm&quot;)</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/scatter%202-1.png" width="672" /></p>
+<div id="daten-gruppieren" class="section level3">
+<h3>Daten gruppieren</h3>
+<p>Es ist mit <code>ggplot</code> leicht, grafische Darstellungen nach weiteren Variablen im Datensatz zu differenzieren. Durch hinzufügen der Option <code>color=Study</code> im ersten Aufruf wird die Variable <code>Study</code> verwendet, um Elemente in allen weiteren Ebenen (hier: die Punkte und die Anpassungslinien) zu trennen und unterschiedlich zu färben.</p>
+<pre class="r"><code>ggplot(affect, aes(x=ext, y=neur, color=Study)) +
+  labs(x=&quot;Extraversion&quot;, y=&quot;Neurozizismus&quot;) +
+  geom_point(size=2) +
+  geom_smooth(method = &quot;lm&quot;)</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/scatter%203-1.png" width="672" /></p>
+<p>Definieren wir <code>aes(color=Study)</code> nicht im <code>ggplot</code>-Aufruf sondern nur innerhalb von <code>geom_point</code>, werden nur die Punkte differenziert, es bleibt bei einer Anpassungslinie.</p>
+<pre class="r"><code>ggplot(affect, aes(x=ext, y=neur)) +
+  labs(x=&quot;Extraversion&quot;, y=&quot;Neurozizismus&quot;) +
+  geom_point(size=2, aes(color=Study)) +
+  geom_smooth(method = &quot;lm&quot;)</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/scatter%204-1.png" width="672" /></p>
+</div>
+</div>
+<div id="boxplot" class="section level2">
+<h2>Boxplot</h2>
+<p>Ein “Box-and-Whisker-Plot” wird über <code>geom_boxplot</code> erzeugt. Es müssen x- und y-Achse definiert werden.</p>
+<p>“Film” ist im Datensatz eine numerische Variable. Durch die Funktion <code>as.factor()</code> wird dafür gesorgt, dass sie trotzdem als kategorial behandelt wird.</p>
+<p>Die Box geht standardmäßig vom 1. bis zum 3. Quartil (25. bis 75. Perzentil). Die obere Linie erstreckt sich vom Band bis zum größten Wert oder maximal bis 1,5*IQR (IQR=interquartile range, Interquartilabstand). Datenpunkte außerhalb von 1,5* IQR werden als Außreißer durch individuelle Punkte dargestellt.</p>
+<pre class="r"><code>ggplot(affect, aes(x=as.factor(Film), y=traitanx)) +
+  geom_boxplot()</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/boxplot%201-1.png" width="672" /></p>
+<p>Mit <code>geom_boxplot</code> wird nur die Box mit Linien erzeugt, die Striche an den “Whiskers” werden durch Einfügen der Ebene <code>stat_boxplot(geom ='errorbar')</code> erzeugt. Die Ebene wird hier <em>vor</em> der Ebene <code>geom_boxplot()</code> eingefügt, damit die Box über die Linien gezeichnet wird. Ebenfalls hinzugefügt sind hier Farbe der Boxen und Achsentitel.</p>
+<pre class="r"><code>ggplot(affect, aes(x=as.factor(Film), y=traitanx)) +
+  stat_boxplot(geom =&#39;errorbar&#39;) +
+  geom_boxplot(fill=&quot;#F29400&quot;) +
+  labs(x=&quot;Film&quot;, y=&quot;Trait-Ängstlichkeit&quot;)</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/boxplot%202-1.png" width="672" /></p>
+<p>Ein gruppierter Boxplot kann erzeugt werden, indem eine weitere Variable (hier <code>Study</code>) spezifiziert wird, um die Boxen farbig zu differenzieren. Die Definition der Füllfarbe in <code>geom_boxplot</code> muss hier entfernt werden, sonst würde sie die in <code>aes()</code> definierte Füllung überschreiben. Wenn eigene Farben für die Füllung definiert werden sollen, ist das über eine zusätzliche Ebene <code>scale_fill_manual</code> möglich.</p>
+<pre class="r"><code>ggplot(affect, aes(x=as.factor(Film), y=traitanx, fill=Study)) +
+  stat_boxplot(geom =&#39;errorbar&#39;) +
+  geom_boxplot() +
+  labs(x=&quot;Studie&quot;, y=&quot;Trait-Ängstlichkeit&quot;) +
+  scale_fill_manual(values=c(&quot;#F29400&quot;, &quot;#6DA5D5&quot;))</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/boxplot%203-1.png" width="672" /></p>
+<p>Und zu guter Letzt noch umgekehrt, gruppiert mit Studie auf der x-Achse und Farbe nach Film. In der Ebene <code>scale_x_discrete</code> werden manuell Label für die Kategorien der x-Achse spezifiziert. In <code>scale_fill_manual</code> werden hier zudem Titel und Label der Legene manuell definiert (<code>name</code> und <code>labels</code>), zudem werden die Werte für die Farben der Boxen hier mit einer Farbpalette aus dem Paket <code>RColorBrewer</code> definiert.</p>
+<pre class="r"><code>library(RColorBrewer)
+ggplot(affect, aes(x=Study, y=traitanx, fill=as.factor(Film))) +
+  stat_boxplot(geom =&#39;errorbar&#39;) +
+  geom_boxplot() +
+  labs(x=&quot;Studie&quot;, y=&quot;Trait-Ängstlichkeit&quot;) +
+  scale_x_discrete(labels=c(&quot;Studie 1&quot;, &quot;Studie 2&quot;)) +
+  scale_fill_manual(name=&quot;Film&quot;,
+    labels=c(&quot;Monty Python and the Holy Grail&quot;, &quot;The Life of Brian&quot;,
+                               &quot;Live at the Hollywood Bowl&quot;,  &quot;The Meaning of Life&quot;),
+                      values=brewer.pal(4, &quot;Purples&quot;))</code></pre>
+<p><img src="/post/2019-10-29-grafiken-mit-ggplot2_files/figure-html/boxplot%204-1.png" width="672" /></p>
+</div>
+</div>
