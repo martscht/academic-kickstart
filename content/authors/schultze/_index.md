@@ -38,6 +38,9 @@ social:
 - icon: github
   icon_pack: fab
   link: https://github.com/martscht
+- icon: bitbucket
+  icon_pack: fab
+  link: https://bitbucket.com/martscht
 - icon: link
   icon_pack: fa
   link: http://www.psychologie.uni-frankfurt.de/78419488/Team
