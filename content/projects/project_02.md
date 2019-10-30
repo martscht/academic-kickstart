@@ -26,7 +26,7 @@ subtitle = "Kasino"
   # Filter posts by a taxonomy term.
   [content.filters]
     tag = ""
-    category = "Projekt2"
+    category = "Projekt-2"
     publication_type = ""
     exclude_featured = false
 
@@ -52,7 +52,7 @@ subtitle = "Kasino"
   # gradient_end = "SkyBlue"
 
   # Background image.
-  # image = "background.jpg"  # Name of image in `static/img/`.
+  # image = "casino_post.jpg"  # Name of image in `static/img/`.
   # image_darken = 0.6  # Darken the image? Range 0-1 where 0 is transparent and 1 is opaque.
 
   # Text color (true=light or false=dark).

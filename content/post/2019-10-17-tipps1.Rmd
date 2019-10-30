@@ -1,45 +1,188 @@
 ---
 title: Tipps
-author: Christina Berger
-date: '2019-10-17T16:30:00+02:00'
+date: '2019-10-17T22:00:00'
 slug: tipps1
 categories:
-  - Projekt1
+  - "Projekt 1"
 tags: []
 subtitle: ''
 summary: ''
-authors: []
+authors: [berger,mehler]
 featured: no
 image:
   caption: ''
   focal_point: ''
   preview_only: no
 projects: []
-
-output: html_document
 ---
+
+```{r, echo = FALSE}
+wide <- readRDS('p1_wide.rds')
+long <- readRDS('p1_long.rds')
+```
 
 ## Vorwarnung
 
-Warnung, dass die unten Hinweise zur Lösung enthalten sind. An dieser Stelle sollte eine minimale Inhaltsangabe der Tipps stehen, die dazu dient, dass z.B. Leute, die mit dem Einlesen der Daten ein Problem haben wissen, dass Sie auf Tipp X gehen sollten.
+
+Achtung! Im Folgenden geben wir dir ein paar Tipps, die auch Teile der Lösung enthalten können. Deshalb sollten diese nur dann benutzt werden, wenn du bei einer Aufgabe nicht weiterkommst.
+
 
 ## Tipp 1
 
-<details><summary>Tipp Anzeigen!</summary>
-<p>
-Die Tipps sollten konkrete Hinweise enthalten, aber keine vollständige Lösung liefern. R-Code wird dabei - per Voreinstellung - ausgeblendet und nur auf expliziten Knopfdruck hin dargestellt:
+Hier geht es nicht nur um das Zusammenfügen der Datensätze, sondern auch wichtige Vorüberlegungen.
 
-```{r}
-R.Version()
+<details><summary>Tipp anzeigen</summary>
+<p>
+Natürlich könntest du die beiden Datensätze direkt zusammenfügen, doch dann stößt man auf ein Problem. Das Datum sowie auch die Werte der Referenzkategorie (in unserem Fall die AfD) treten in beiden Datensätzen auf. Fügt man beide Datensätze nun zusammen, kämen beide Variablen doppelt und jeweils mit der gleichen Bezeichnung vor. Das heißt, dass du diese beiden Variablen entweder in einem der beiden Datensätze direkt löschen musst, oder dass du irgendwie dafür sorgen musst, dass sich die beiden Variablen in ihrem Namen unterscheiden, sodass sie im zusammengefügten Datensatz gelöscht werden können.
+
+Sofern dir dazu eine Lösung eingefallen ist, kannst du nun dazu übergehen, die beiden Datensätze aneinanderzufügen. Dafür ist es am einfachsten, die beiden "aneinanderzuhängen" anstatt sie "zusammenzufügen". Das kannst du mit dem `cbind`-Befehl in R erreichen. Schau dir diesen Befehl am besten in der R-Hilfefunktion an.
+
+Falls du den Befehl nicht verstehst, folgt hier eine kurze Erklärung des Befehls:
+
+```{r, eval = FALSE}
+Datensatz <- cbind("Datensatz_A","Datensatz_B")
 ```
+
+Voraussetzung für das Funktionieren dieses Befehls in unserem Beispiel ist, dass die Anzahl der Zeilen beider Datensätze übereinstimmt. Als Output erhält man einen `Datensatz`, bei dem `Datensatz_B` "hinten" an `Datensatz_A` angehängt wurde.
+
+Das Endergebnis sollte ein Datensatz mit `r nrow(wide)` Zeilen und `r ncol(wide)` Spalten sein.
 </p>
 </details>
 
 
 ## Tipp 2
 
-<details><summary>Tipp Anzeigen!</summary>
+Dieser Tipp befasst sich mit notwendigen, vorbereitenden Schritten der Datenaufbereitung und behandelt die Anpassung der Variablenart.
+
+<details><summary>Teil 1 anzeigen</summary>
 <p>
-:wink:
+Hier stellt sich die Frage: Liegen alle Daten in der Variablenart vor, die man benötigt?
+Die Variablenart jeder Variable (Spalte) lässt sich mit folgendem Befehl abfragen:
+
+```{r, eval = FALSE}
+class(Variablenname)
+```
+
+Hier bekommt man also eine Angabe zum Typ der Variablen. Wie du im [R Crash Kurs](/post/r-crash-kurs/) nachlesen kannst, sind Zahlen zum Beispiel als `numeric` (oder abgekürzt `num`) abgelegt. Im besonderen Fall, dass eine numerische Variable nur ganze Zahlen enthält, wird sie als `integer` (kurz: `int`) abgelegt. Es handelt sich aber nach wie vor um eine Zahl. Unser Ziel ist, dass alle Variablen im Typ `int` oder `num` vorliegen, sodass R diese auch als Zahlenwerte erkennt.
+
+Überprüfe dafür jede Variable und überlege dir, welche Werte ein Problem darstellen. Falls du nicht weiterkommst, nutze Teil 2 des Tipps.
 </p>
 </details>
+
+<details><summary>Teil 2 anzeigen</summary>
+<p>
+Im Rohdatensatz kann man erkennen, dass die "<1" weder `integer` noch `numeric` sind. Dadurch erkennt R all jene Variablen (Spalten), in denen "<1" mindestens ein Mal vorkommt nicht als Zahlen. Deshalb müssen wir diese "<1" irgendwie durch "0" ersetzen.
+
+Ziel ist also, dass im zusammengesetzten Datensatz, überall wo zuvor der Wert "<1" stand, eine Null steht. Um das zu erreichen, kannst du die Daten entweder hinterher bearbeiten oder direkt beim Einlesen mit `read.table` diese Besonderheit berücksichtigen. Dort kannst du mit einem Argument die Kodierung fehlender Werte festlegen. So gelangst du der Umwandlung von "<1" zu "0" einen Schritt näher.
+
+Falls du ab hier nicht weiter weißt, nutze die Hilfefunktion in R oder suche online.
+</p>
+</details>
+
+## Tipp 3
+
+Hier geht es um die notwendige Umstrukturierung der Daten für die Nutzung in `ggplot`.
+
+<details><summary>Tipp anzeigen</summary>
+<p>
+Das Ziel der Umformung ist, dass eine Zeile des Datensatzes aus Datum, Partei und Prozentzahl besteht. Dadurch erhält man einen Datensatz aus `r nrow(long)` Zeilen und `r ncol(long)` Spalten.
+
+Dafür kann man den `reshape`-Befehl benutzen:
+
+```{r, eval = FALSE}
+langer_Datensatz <- reshape(Datensatz, varying = ..., v.names = ..., timevar = ...,
+                            idvar = ..., times = ..., direction = "long")
+```
+
+`varying`:   Vektor mit den Spaltenbezeichnungen im vorhandenen Datensatz
+`v.names`:   gemessene Größe (Werte), die von mehreren Spalten in eine Spalte übertragen werden sollen
+`timevar`:   Bezeichnung für die Variable, die alle Spaltennamen enthält
+`times`:     Die vorherigen Variablennamen (Spaltennamen), die nun Werte einer durch timevar bezeichneten Variable sind.
+`idvar`:     Name der Variable, die die einzelnen Messwerte einer Gruppe (Spalte) auseinanderhält
+`direction`: Bezeichnung des neuen Formats. Kann entweder "wide" oder "long" sein. Wir brauchen das "long"-Format
+</p>
+</details>
+
+
+## Tipp 4
+
+In diesem Tipp geht es um die Nutzung von `ggplot` zur Erstellung einer Grafik. Bevor du dir diesen Tipp anguckst, kannst du dir auch noch die [kurze Einführung in ggplot2](/post/grafiken-mit-ggplot2) angucken, die wir geschrieben haben.
+
+<details><summary>Tipp anzeigen</summary>
+<p>
+Wenn das Paket geladen ist, kann als Grundbefehl `ggplot` genutzt werden. Dieser kann zunächst die unterste Ebene der Abbildung (die Daten) als Argument entgegennehmen:
+
+```{r, eval = FALSE}
+ggplot(data = Datensatz)
+```
+
+Weil wir daran interessiert sind bestimmte Variablen abzubilden, können wir diese in der Abbildung "mappen" oder abbilden:
+
+```{r, eval = FALSE}
+ggplot(data = Datensatz, mapping = aes(x = ..., y = ..., group = ...))
+```
+
+Diese "Aesthetics" dienen dazu, zu definieren wie die Variablen im Diagramm dargestellt werden. Dafür können wir festlegen, welche Variable auf der x-Achse und welche auf der y-Achse dargestellt wird. Zusätzlich können wir über `group` auch noch eine Gruppierung der $(x, y)$ Kombinationen festlegen und diese zum Beispiel später benutzen, um unterschiedlichen Daten unterschiedliche Farben zu geben, um diese Gruppen optisch leichter voneinander unterscheiden zu können.
+
+Zusätzlich zu dieser Basis muss noch durch ein `geom` festgelegt werden, wie die Daten anzeigt werden sollen, die wir abbilden. Weil es sich um Zeitverläufe dreht, bietet sich ein Liniendiagramm an! Für die Farbe der Linien können wir die Gruppierungsvariable direkt wieder benutzen!
+
+```{r, eval = FALSE}
+geom_line(aes(colour = ...))
+```
+</p>
+</details>
+
+## Tipp 5
+
+In diesem Tipp geht es darum, eine "richtige" Datumsvariable zu erstellen. Die Überführung der Datumsvariable im Datensatz in eine solche Datumsvariable, die auch von R intern als Datum repäsentiert wird, erfordert einige Schritte, von denen ein paar nicht ganz intuitiv sind.
+
+
+<details><summary>Schritt 1 anzeigen</summary>
+<p>
+Um die Daten in eine neue Klasse überführen zu können, müssen sie zunächst als character vorliegen. Erstelle dafür eine zweite Datumsvariable, in der das der Fall ist.
+</p>
+</details>
+
+<details><summary>Schritt 2 anzeigen</summary>
+<p>
+Unser Ziel ist, dass R diese neu erstellte Variable als Datum erkennt. Dafür gibt es in R ein Klasse mit dem Namen `POSIXct`. Für die Umwandlung `character` zu `POSIXct` oder `POSIXlt` gibt es einen bestimmten Befehl. Such diesen im Internet und schau dir dann die Hilfefunktion in R dazu an.
+</p>
+</details>
+
+<details><summary>Schritt 3 anzeigen</summary>
+<p>
+Falls du diesen Befehl nicht findest - so sieht der benötigt Befehl aus `strptime(x, format = "")`. `x` ist in diesem Fall die Variable, die umgewandelt werden soll und das `format` übermittelt R, wie die Daten momentan aussehen. Der Befehl funktioniert so jedoch noch nicht. Woran könnte das liegen? Schau dafür in die R-Hilfe zum Argument `format`.
+</p>
+</details>
+
+<details><summary>Schritt 4 anzeigen</summary>
+<p>
+Das Problem liegt in den vorliegenden Daten. R kann diese Umwandlung nur mit einem `character` vornehmen, der mindestens Jahr, Monat und Tag enthält. Diese werden in der Hilfe von `strptime` je nach Formatierung unterschiedlich bezeichnet - z.B. wird `%d` für den Tag (01 - 31), `%m` für den Monat (01 - 12) und `%y` für das Jahr (00-99) genutzt. Unseren Daten fehlt der Tag! Um die Umwandlung vornehmen zu können, muss man also die Daten modifizieren. Schau dir dafür mal den Befehl `paste0` in der R-Hilfefunktion und im Internet an.
+</p>
+</details>
+
+<details><summary>Schritt 5 anzeigen</summary>
+<p>
+`paste0` "klebt" die Argumente, die der Funktion gegeben werden aneinander. Die `0` bedeutet dabei, dass sie durch nichts getrennt werden sollen. Z.B. könnten wir den Befehl benutzen um einen beliebigen Satz zu schreiben:
+
+```{r}
+paste0('Ich will', ' Kuchen.')
+```
+
+In `paste0` können aber auch Variablen genutzt werden, um *jeder Beobachtung* etwas hinzuzufügen. In unserem Fall müssen wir uns also einfach nur irgendeinen Tag im Monat aussuchen und diesen an unsere Datumsvariable anheften. 
+
+Danach sollte auch die Umwandlung in die Datumsklasse funktionieren.
+</p>
+</details>
+
+<details><summary>Schritt 6 anzeigen</summary>
+<p>
+Ist die Variable ein "POSIXct"? Überprüf das mit dem Befehl class(Variable). Sofern nicht, schau im Internet nach einer Lösung für das Problem.
+
+Ergebnis: 
+Kopiere den Befehl reshape- und den ggplot-Befehl und ersetze jeweils die alte Monatsvariable (Variablentyp: "factor") durch die neue Monatsvariable (Variablentyp: "POSIXct"). Jetzt sollte der Graphik auf der x-Achse nur noch mit den 4 Jahreszahlen 2005, 2010, 2015 und 2020 beschriftet sein.
+</p>
+</details>
+
+
+### [Zurück zum Projekt](/projects#project_01)

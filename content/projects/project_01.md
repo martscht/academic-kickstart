@@ -26,7 +26,7 @@ subtitle = "Google Trends"
   # Filter posts by a taxonomy term.
   [content.filters]
     tag = ""
-    category = "Projekt1"
+    category = "Projekt-1"
     publication_type = ""
     exclude_featured = false
 
@@ -52,7 +52,7 @@ subtitle = "Google Trends"
   # gradient_end = "SkyBlue"
 
   # Background image.
-  # image = "background.jpg"  # Name of image in `static/img/`.
+  # image = "google_post.jpg"  # Name of image in `static/img/`.
   # image_darken = 0.6  # Darken the image? Range 0-1 where 0 is transparent and 1 is opaque.
 
   # Text color (true=light or false=dark).
@@ -66,4 +66,4 @@ subtitle = "Google Trends"
  css_class = ""
 +++
 
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque volutpat mollis elit efficitur ornare. Nunc at sagittis erat. Vestibulum ac elit justo. Integer sit amet nisl neque. Nam eu turpis lobortis, tempor lectus eu, sodales quam. Cras pulvinar pretium mi, vel faucibus urna placerat ac. Nulla justo mi, rutrum nec mauris non, scelerisque tristique ex. Suspendisse molestie eu urna quis condimentum. Mauris euismod at nisi quis gravida. Sed convallis auctor est imperdiet iaculis. Pellentesque euismod purus non mattis viverra. Pellentesque pulvinar neque ut finibus fringilla. Sed tristique sapien a porttitor gravida. Phasellus sed venenatis ante. Vestibulum orci nisl, congue non ante non, vulputate rutrum neque.
+In diesem Projekt untersuchen wir die Häufigkeit, mit der politische Parteien auf Google gesucht werden. Das heißt wir gucken uns die Entwicklung der Google-Suchanfragen seit 2004 an, die von [Google Trends](https://trends.google.de/trends/?geo=DE) abgerufen werden können und wollen eine Überblicksdarstellung generieren. Es wird also notwendig sein diese Daten in R zu importieren, sie nach Bedarf umzustellen und abschließend mit dem Paket `ggplot2` darzustellen.

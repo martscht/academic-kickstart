@@ -1,14 +1,13 @@
 ---
 title: Lösungen
-author: Christina Berger
-date: '2019-10-17T15:00:00+02:00'
+date: '2019-10-17T21:00:00'
 slug: loesungen1
 categories:
-  - Projekt1
+  - "Projekt 1"
 tags: []
 subtitle: ''
 summary: ''
-authors: []
+authors: [berger,mehler]
 featured: no
 image:
   caption: ''
@@ -17,3 +16,222 @@ image:
 projects: []
 ---
 
+## Vorwarnung
+
+Achtung! Im Folgenden werden die Lösungen für Aufgabe 1 präsentiert. Falls du die Aufgabe noch nicht vollständig bearbeitet hast, nutze zunächst die [Tipps](/post/tipps1). Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, um einen Schritt weiterzukommen und beim nächsten Abschnitt weiterzumachen.
+
+
+## Datensammlung
+
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+Um 9 Parteien gleichzeitig abbilden zu können, ist es notwendig zwei separate Anfragen bei [Google Trends](https://trends.google.de/trends/?geo=DE) zu starten. In beiden sollte die *Alternative für Deutschland* als Referenzpartei enthalten sein, weil die Suchanfragen bezüglich der AfD um die Bundestagswahl 2017 herum das Maximum bilden und demzufolge den Referenzwert 100 setzen, an dem alle anderen Suchanfragen skaliert werden. Mit dem <i class="fas fa-download"></i> Button erhältst du dann eine Datei mit dem Namen `multiTimeline.csv`. Wenn du beide Suchanfragen hintereinander durchführst sollte die zweite Datei dann `multiTimeline(1).csv` heißen. Du kannst aber auch beiden Dateien beim Download beliebige Namen geben.
+
+Bevor du die beiden Dateien in R einliest, kannst du ein bisschen Schreibarbeit sparen, wenn du erst den Arbeitsordner (working directory) festlegst. Idealerweise solltest du einen Ordner anlegen, in dem du alle relevanten Dateien für dieses Projekt speicherst.
+
+```{r, eval = FALSE}
+setwd('...') # statt "..." einen Ordner-Pfad festlegen
+```
+
+Die beiden Datensätze können dann mit 
+
+```{r}
+a <- read.table('multiTimeline.csv', header = TRUE, sep= ',')
+b <- read.table('multiTimeline(1).csv', header = TRUE, sep = ',')
+```
+
+eingelesen werden. Neben dem Dateinamen müssen hier das Argument `header` (der Datensatz enthält in der 1. Zeile die Variablennamen) und `sep` - das Trennzeichen zwischen Variablen - festgelegt werden. 
+
+Die beiden ersten Zeilen der beiden Datensätze sollten dann so aussehen:
+
+```{r}
+head(a)
+head(b)
+```
+
+
+Falls du Probleme mit dem Generieren der Datensätze hast, kannst du die beiden Dateien [hier]() und [hier]() herunterladen.
+</p>
+</details>
+
+## Datenaufbereitung
+
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+Bevor die beiden Datensätze zusammengeführt werden können, können Spalten, die in beiden vorkommen, erst umbenannt werden, damit sie hinterher weniger Probleme machen. Um zu sehen, welche Namen in beiden autauchen, können wir `names` benutzen:
+
+```{r}
+names(a)
+names(b)
+```
+
+Hier sind also die ersten beiden Spalten doppelt. Wir können diese beiden einfach aus `b` entfernen:
+
+```{r}
+b <- b[, -c(1, 2)]
+names(b)
+```
+
+Um beide zusammenzufügen dann:
+
+```{r}
+c <- cbind(a, b)
+```
+
+Das Problem dieses kombinierten Datensatzes ist, dass nicht alle Variablen numerisch sind. Das bewirkt, dass die Variablen nur sehr schwer in einer gemeinsamen Abbildung dargestellt werden können:
+
+```{r}
+str(c)
+```
+
+Das kommt daher, dass der Wert `<1` nicht als numerisch interpretiert wird, sondern als eine Beschriftung, sodass die Variable in R automatisch als `factor` erkannt und als nominalskaliert behandelt wird. Diese Werte müssen also alle ersetzt werden, um wieder mit numerischen Daten rechnen zu können.
+
+Das ließe sich z.B. dadurch erreichen, dass wir in `c` alle Werte einzeln ersetzen. Dieses Vorgehen hat allerdings den Nachteil, dass es sehr viele einzelne Schritte benötigt, weswegen wir hier einen Trick anwenden: wir lesen die Daten als numerisch ein und tun dabei so, als wären `<1` fehlende Werte. Das können wir durch das Argument `na = ` im `read.table`-Befehl erreichen, den wir zum Einlesen der Daten genutzt haben:
+
+```{r}
+# Daten einlesen
+a <- read.table('multiTimeline.csv',header = T, sep= ',' , na = '<1')
+b <- read.table('multiTimeline(1).csv', header = T , sep = ',' , na = '<1')
+
+# Daten zusammenführen
+b <- b[, -c(1, 2)]
+c <- cbind(a, b)
+
+# Struktur untersuchen
+str(c)
+```
+
+Jetzt sind also alle Variablen außer `r names(c)[1]` als `integer` (also eine Sonderform numerischer Variablen) abgespeichert. Jetzt müssen wir lediglich noch die mit `NA` als fehlende markierten Beobachtungen durch 0 ersetzen:
+
+```{r}
+c[is.na(c)] <- 0
+```
+
+Im letzten Schritt zur Datenaufbereitung vergeben wir noch etwas kürzere Namen für die Spalten:
+
+```{r}
+names(c)
+names(c) <- c('Monat', 'AfD', 'SPD', 'FDP', 'DieGrüne', 'DieLinke', 'Tierschutzpartei', 'CDU', 'MLPD', 'NPD')
+```
+</p>
+</details>
+
+## Abbildung erstellen
+
+<details><summary>Schritt 1 anzeigen</summary>
+<p>
+Zunächst müssen wir das Paket `ggplot2` laden:
+
+```{r}
+library(ggplot2)
+```
+
+Wie bei den [Tipps](/post/tipps1) oder auch bei der [Kurzeinführung in ggplot2](/post/grafiken-mit-ggplot2) besprochen, erwartet der `ggplot`-Befehl einen Datensatz und Variablen, die wir auf x- und y-Achse darstellen und eventuell eine Gruppierungsvariable. Die x-Achse ist in unserem Fall sehr einfach: es ist die Zeit. Das Problem stellt die y-Achse dar: hierfür haben wir zur Zeit nicht 1 sondern 9 Variablen. Darüber hinaus sind diese 9 Variablen eine Mischung aus unserer y-Achse und der Gruppierungsvariable! Was wir benötigen, um eine klare Abbildung in `ggplot2` zu erzeugen ist einen Datensatz, der die drei "klassischen" Variablen enthält (x, y, Gruppe). Dafür können wir den `reshape` Befehl nutzen:
+
+```{r}
+c_long <- reshape(c,      # Ausgansdaten
+  varying =  c('AfD', 'SPD', 'FDP', 'DieGrüne', 'DieLinke', 'Tierschutzpartei', 'CDU', 'MLPD', 'NPD'), 
+                          # Variablen, die hinterher eine Variable sein sollen
+  v.names = 'Prozent',    # Name der neuen Variable
+  idvar = 'Monat',        # Variable, die über alle Parteien gleich bleibt
+  timevar = 'Partei',     # Name der Variable, die verschiedene Gruppen unterscheidet
+  times = c('AfD', 'SPD', 'FDP', 'DieGrüne', 'DieLinke', 'Tierschutzpartei', 'CDU', 'MLPD', 'NPD'), 
+                          # Kodierung der Parteien auf dieser Gruppierungsvariable
+  direction = 'long')     # Richtung der Umwandlung
+```
+
+Hier wird der Datensatz ins *long-Format* übertragen - er hat hinterher mehr Zeilen (ist also länger) als vorher. Das Gegenteil wäre das *wide-Format* in dem ein Datensatz mehr Spalten hat (also breiter ist) als vorher.
+
+Mit diesem Datensatz können wir in `ggplot2` direkt ein Liniendiagramm erzeugen:
+
+```{r, fig = TRUE}
+ggplot(data = c_long, aes(x = Monat, y = Prozent, group = Partei)) + 
+  geom_line(aes(colour = Partei)) +      # Liniendiagramm
+  xlab('Zeitraum') +                     # Beschriftung x-Achse
+  ylab('Anfragen (in % des Maximums)') + # Beschriftung y-Achse
+  ggtitle('Suchanfragen')                # Überschrift
+```
+
+</p>
+</details>
+
+
+<details><summary>Schritt 2 anzeigen</summary>
+<p>
+Die Abbildung aus Schritt 1 ist noch nicht sonderlich schön. Das erste offensichtliche Manko ist, dass es unmöglich ist die Zeit an der x-Achse abzulesen. Um diesen Zustand zu behen, muss die Zeit in eine "echte" Zeitvariable im `POSIXct`-Format umgewandelt werden:
+
+```{r}
+class(c_long$Monat)
+```
+
+Für die Umwandlung ins `POSIXct`-Format gibt es eine Funktion namens `strptime`. Diese funktioniert allerdings wesentlich besser, wenn die Ausgangsvariable eine `character`-Variable ist. Also müssen wir die Zeit erst in eine Text-Variable umwandeln (dafür erstellen wir vorsichtshalber eine neue Variable):
+
+```{r}
+c_long$nMonat <- as.character(c_long$Monat)
+```
+
+Aus der Hilfe zu `strptime` wird ersichtlich, dass immer mindestens Tag, Monat und Jahr in Zeitvariablen erwartet werden. Daher müssen wir der neuen Text-Variable noch einen Tag hinzufügen. Der genaue Tag macht dabei keinen Unterschied (weil unsere Daten ja nur monatlich sind) - wir nehmen einfach den 1. jeden Monats:
+
+```{r}
+c_long$nMonat <- paste0(c_long$nMonat, '-01')
+head(c_long$nMonat)
+```
+
+So hat die neue `nMonat` Variable ein typisches Zeitformat: Jahr-Monat-Tag. Dieses Format erkennt `strptime` leider nicht automatisch, also müssen wir via dem `format` Argument ansagen, wie unsere Daten aussehen:
+
+```{r}
+c_long$nMonat <- strptime(c_long$nMonat, 
+  format="%Y-%m-%d")    # Format des Datums
+```
+
+Aus der Hilfe von `strptime` sehen wir, dass `%Y` Jahre (mit Jahrhunderten), `%m` Monate (in Zahlen) und `%d` Tage sind. Die Variable ist jetzt
+
+```{r}
+class(c$nMonat)
+```
+leider noch nicht die richtige Klasse! Das lässt sich allerdings schnell beheben:
+
+```{r}
+c_long$nMonat <- as.POSIXct(c_long$nMonat)
+```
+
+Wenn wir jetzt die Abbildung erneut erstellen, sieht die x-Achse schon viel besser aus:
+
+```{r}
+ggplot(data = c_long, aes(x = nMonat, y = Prozent, group = Partei)) + 
+  geom_line(aes(colour = Partei)) +      # Liniendiagramm
+  xlab('Zeitraum') +                     # Beschriftung x-Achse
+  ylab('Anfragen (in % des Maximums)') + # Beschriftung y-Achse
+  ggtitle('Suchanfragen')                # Überschrift
+```
+
+Um bestimmte Abschnitte näher unter die Lupe zu nehmen, können wir jetzt Anhand der Zeitvariable spezifische Auswahlen treffen. Wenn wir uns z.B. den Zeitraum um die Bundestagswahl von 2013 näher angucken möchten, können wir uns auf die Jahre zwischen 2012 und 2014 konzentrieren:
+
+```{r, fig = TRUE}
+wahl_2013 <- subset(c_long, subset = (nMonat < '2014-07-01' & nMonat > '2012-01-01'))
+
+ggplot(data = wahl_2013, aes(x = nMonat, y = Prozent, group = Partei)) + 
+  geom_line(aes(colour = Partei)) +      # Liniendiagramm
+  xlab('Zeitraum') +                     # Beschriftung x-Achse
+  ylab('Anfragen (in % des Maximums)') + # Beschriftung y-Achse
+  ggtitle('Suchanfragen')                # Überschrift
+```
+
+Ein weiteres Manko bei diesen Abbildungen sind die verwirrenden Farben. In Deutschland gibt es ein relativ konsistent genutzes Schema, nach dem die [politische Parteien durch bestimmte Farben dargestellt werden](https://de.wikipedia.org/wiki/Politische_Farbe). Wir können dieses Schema auch in unserer Abbildungen nutzen, wenn wir die Farben per Hand vergeben und dann mit `scale_color_manual` in unseren Plot aufnehmen:
+
+```{r}
+farben <- c('AfD' = 'blue', 'CDU' = 'black', 'DieGrüne' = 'green', 'DieLinke' = 'pink', 'FDP' = 'yellow', 'MLPD' = 'darkred', 'NPD' = 'brown', 'SPD' = 'red', 'Tierschutzpartei' = 'darkblue')
+
+ggplot(data = wahl_2013, aes(x = nMonat, y = Prozent, group = Partei)) + 
+  geom_line(aes(colour = Partei)) +      # Liniendiagramm
+  xlab('Zeitraum') +                     # Beschriftung x-Achse
+  ylab('Anfragen (in % des Maximums)') + # Beschriftung y-Achse
+  ggtitle('Suchanfragen') +              # Überschrift
+  scale_color_manual(values = farben)
+```
+
+</p>
+</details>
+
+
+### [Zurück zum Projekt](/projects#project_01)
