@@ -9,6 +9,15 @@ weight = 10
   text_color_light = true
 +++
 
+Auf dieser Überblicksseite findest du alle Projekte, die wir bisher
+erstellt haben. Jedes Projekt ist in vier Abschnitte gegliedert: Übersicht,
+Problemstellung, Tipps und Lösungen. Die ersten beiden stellen das jeweilige
+Projekt inhaltlich vor und zeigen schildern die Probleme, die in der Bewältigung
+so auftreten könnten. Bei den Tipps gibt es Hinweise, wenn du an irgendeiner
+Stelle nicht weiterkommen solltest und die Lösungen zeigen dann, wie wir dieses
+Projekt bearbeitet haben.
 
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. In posuere hendrerit porttitor. Morbi erat ligula, blandit in magna ut, sodales rhoncus risus. Etiam sollicitudin ipsum vitae dignissim venenatis. Fusce eget est elit. Aenean justo est, mattis eget dolor vehicula, mattis condimentum sem. Nunc commodo auctor fringilla. In gravida pellentesque dui, eget auctor orci vulputate et.
+Wenn du dir die Projekte anguckst ist dabei nicht zwingend notwendig, sie
+in der Reihenfolge durchzugehen, wie wir sie hier präsentieren. Generell werden
+sie nach unten hin etwas schwieriger, aber es ist nicht nötig Eines bearbeitet zu
+haben um ein Anderes bearbeiten zu können.

@@ -65,5 +65,3 @@ subtitle = "Kasino"
  # CSS class.
  css_class = ""
 +++
-
-Lorem ipsum dolor sit amet, consectetur adipiscing elit. Pellentesque volutpat mollis elit efficitur ornare. Nunc at sagittis erat. Vestibulum ac elit justo. Integer sit amet nisl neque. Nam eu turpis lobortis, tempor lectus eu, sodales quam. Cras pulvinar pretium mi, vel faucibus urna placerat ac. Nulla justo mi, rutrum nec mauris non, scelerisque tristique ex. Suspendisse molestie eu urna quis condimentum. Mauris euismod at nisi quis gravida. Sed convallis auctor est imperdiet iaculis. Pellentesque euismod purus non mattis viverra. Pellentesque pulvinar neque ut finibus fringilla. Sed tristique sapien a porttitor gravida. Phasellus sed venenatis ante. Vestibulum orci nisl, congue non ante non, vulputate rutrum neque.
