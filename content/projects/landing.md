@@ -12,7 +12,7 @@ weight = 10
 Auf dieser Überblicksseite findest du alle Projekte, die wir bisher
 erstellt haben. Jedes Projekt ist in vier Abschnitte gegliedert: Übersicht,
 Problemstellung, Tipps und Lösungen. Die ersten beiden stellen das jeweilige
-Projekt inhaltlich vor und zeigen schildern die Probleme, die in der Bewältigung
+Projekt inhaltlich vor und schildern die Probleme, die in der Bewältigung
 so auftreten könnten. Bei den Tipps gibt es Hinweise, wenn du an irgendeiner
 Stelle nicht weiterkommen solltest und die Lösungen zeigen dann, wie wir dieses
 Projekt bearbeitet haben.
