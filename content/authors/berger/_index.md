@@ -18,8 +18,7 @@ organizations:
   url: ""
 
 # Short bio (displayed in user profile at end of posts)
-bio:
-interests:
+bio: 
 education:
 # Social/Academic Networking
 # For available icons, see: https://sourcethemes.com/academic/docs/widgets/#icons
@@ -57,7 +56,5 @@ email: ""
 #   Set this to `[]` or comment out if you are not using People widget.
 user_groups: ["Team"]
 ---
-
-Donec eu vulputate dolor. Quisque malesuada laoreet facilisis. Mauris at enim tincidunt, finibus turpis eu, molestie risus. Nulla porttitor, ligula non varius rutrum, diam massa volutpat velit, id tincidunt odio felis at risus. Suspendisse vitae turpis rutrum, euismod dolor id, condimentum tortor. Duis est mi, sodales sed justo vitae, molestie aliquet nunc. Pellentesque mi metus, tincidunt nec fringilla in, sodales in elit. Aenean dictum finibus tellus, ac interdum est scelerisque nec. Aliquam vel tempor lorem. Quisque id est ex. Phasellus malesuada ac neque vel imperdiet.
-
-Cras ultricies interdum accumsan. Curabitur sed eros ante. Interdum et malesuada fames ac ante ipsum primis in faucibus. Nulla facilisi. Donec orci lacus, scelerisque eu accumsan eu, placerat non lectus. Proin sed quam at urna mollis rhoncus sit amet sit amet diam. Suspendisse ultrices nec odio sed hendrerit. Vivamus ullamcorper gravida neque. Nunc fringilla rhoncus eros vitae sollicitudin. Curabitur ac tellus at nisi fermentum fermentum lacinia non ipsum. Nunc pellentesque est nibh, at convallis ligula semper viverra. Duis varius ligula massa. Cras nibh ante, faucibus et ex eu, facilisis condimentum est.
+Ich bin eine Psychologiestudentin und arbeite neben meinem Studium sowohl als HiWi an der Gothe Universität in der Methodenabteilung, als auch in einem kleinen Restaurant in meinem Heimatort. Ich versuche meine Freizeit abwechslungsreich zu gestalten mit Gitarre spielen, Freunde treffen, Sport und Kochen. Mein Plan ist es mit dem Studium in die Richtung Beratung und Coaching in Unternehmen zu gehen, aber wer weiß schon wo man im Endeffekt landet...
+interests
