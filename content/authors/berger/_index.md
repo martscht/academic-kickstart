@@ -18,7 +18,7 @@ organizations:
   url: ""
 
 # Short bio (displayed in user profile at end of posts)
-bio: 
+bio:
 education:
 # Social/Academic Networking
 # For available icons, see: https://sourcethemes.com/academic/docs/widgets/#icons
@@ -57,4 +57,3 @@ email: ""
 user_groups: ["Team"]
 ---
 Ich bin eine Psychologiestudentin und arbeite neben meinem Studium sowohl als HiWi an der Gothe Universität in der Methodenabteilung, als auch in einem kleinen Restaurant in meinem Heimatort. Ich versuche meine Freizeit abwechslungsreich zu gestalten mit Gitarre spielen, Freunde treffen, Sport und Kochen. Mein Plan ist es mit dem Studium in die Richtung Beratung und Coaching in Unternehmen zu gehen, aber wer weiß schon wo man im Endeffekt landet...
-interests

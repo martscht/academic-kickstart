@@ -4,11 +4,11 @@
 
 widget = "pages"  # See https://sourcethemes.com/academic/docs/page-builder/
 headless = true  # This file represents a page section.
-active = true  # Activate this widget? true/false
-weight = 20  # Order that this section will appear.
+active = false  # Activate this widget? true/false
+weight = 40  # Order that this section will appear.
 
-title = "Projekt 1"
-subtitle = "Google Trends"
+title = "Projekt 3"
+subtitle = "WhatsApp Chats"
 
 [content]
   # Page type to display. E.g. post, talk, or publication.
@@ -26,7 +26,7 @@ subtitle = "Google Trends"
   # Filter posts by a taxonomy term.
   [content.filters]
     tag = ""
-    category = "Projekt-1"
+    category = "Projekt-3"
     publication_type = ""
     exclude_featured = false
 
@@ -65,5 +65,3 @@ subtitle = "Google Trends"
  # CSS class.
  css_class = ""
 +++
-
-In diesem Projekt untersuchen wir die Häufigkeit, mit der politische Parteien auf Google gesucht werden. Das heißt wir gucken uns die Entwicklung der Google-Suchanfragen seit 2004 an, die von [Google Trends](https://trends.google.de/trends/?geo=DE) abgerufen werden können und wollen eine Überblicksdarstellung generieren. Es wird also notwendig sein diese Daten in R zu importieren, sie nach Bedarf umzustellen und abschließend mit dem Paket `ggplot2` darzustellen.
