@@ -18,7 +18,7 @@ organizations:
   url: ""
 
 # Short bio (displayed in user profile at end of posts)
-bio: Ich bin ein Psychologiestudent im 3. Semester an der Goethe Universität und arbeite nebenbei als HiWi in der Methodenabteilung. In meiner Freizeit mache ich gerne Sport und bin ein großer Fußball-Fan. Außerdem beschäftige ich mich viel mit Musik, auch wenn ich selbst noch kein Instrument spielen kann. Was ich nach meinem Studium machen möchte, weiß ich noch nicht genau. Mein größtes Interesse liegt im Bereich der Arbeits- und Organisationspsychologie, aber da möchte ich mich noch nicht festlegen.
+bio: 
 interests:
 education:
 # Social/Academic Networking
@@ -57,3 +57,4 @@ email: ""
 #   Set this to `[]` or comment out if you are not using People widget.
 user_groups: ["Team"]
 ---
+Ich bin ein Psychologiestudent im 3. Semester an der Goethe Universität und arbeite nebenbei als HiWi in der Methodenabteilung. In meiner Freizeit mache ich gerne Sport und bin ein großer Fußball-Fan. Außerdem beschäftige ich mich viel mit Musik, auch wenn ich selbst noch kein Instrument spielen kann. Was ich nach meinem Studium machen möchte, weiß ich noch nicht genau. Mein größtes Interesse liegt im Bereich der Arbeits- und Organisationspsychologie, aber da möchte ich mich noch nicht festlegen.
