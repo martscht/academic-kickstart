@@ -1,0 +1,694 @@
+---
+title: Lösungen
+date: '2019-12-14'
+slug: loesungen2
+categories:
+  - Projekt 2
+tags: []
+subtitle: ''
+summary: ''
+authors: [mehler]
+lastmod: '2019-12-14T18:30:59+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r, echo = F}
+set.seed(999)
+```
+
+## Vorwarnung
+
+Achtung! Im Folgenden werden die Lösungen für das zweite Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die [Tipps](/post/tipps2). Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, einen Schritt weiterzukommen und beim nächsten Abschnitt weiterzumachen.
+
+
+## Grundprinzip Roulette
+
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Das europäische Roulette verwendet eine Scheibe mit den Zahlen von 0 bis 36, also 37 verschiedenen Fächern. Dies entspricht also einer einfach Zufallsziehung aus den Zahlen 0 bis 36, bei der jede Zahl mit gleicher Wahrscheinlichkeit auftritt, da die Fächer alle die gleiche Fläche einnehmen.
+
+```{r}
+sample(0:36)
+```
+
+<p>
+Was hier nun passiert ist eine Urnenziehung ohne Zurücklegen bis alle Nummern gezogen wurden. Das entspricht jedoch nicht der Zufallsziehung beim Roulette. Dort wird jeweils "mit Zurücklegen" gespielt. Das kann man nun auf zwei Wegen erreichen: 
+</p>
+
+Entweder man macht jeweils nur eine Ziehung. Dafür beschränkt man den Befehl auf eine Ziehung aus allen Zahlen. Möchte man nun mehrere Durchgänge simulieren, führt man diesen Befehl einfach mehrfach aus.
+
+```{r}
+sample(0:36, 1)
+```
+
+Oder man legt mit dem Argument `replace = T` fest, dass die gezogenen Zahlen immer wieder ersetzt werden. Jetzt kann man mit dem zweiten Argument festlegen, wie oft man die Zufallsziehung durchführen möchte und man erhält eine mathematische Simulation der Zufallsziehung beim Roulette.
+
+```{r}
+sample(0:36, 5, replace = T)
+```
+
+<p>
+Jetzt lassen wir die Roulettekugel 50 Mal rollen (Loop) und speichern die Ergebnisse in der Variable "Ziehungen".
+</p>
+
+Das kann entweder, wie bereits beschrieben, über das `replace`-Argument im `sample`-Befehl gemacht werden. Das Ergebnis (ein Vektor mit Zahlen) weist man dann einem Objekt zu.
+
+```{r}
+Ziehungen <- sample(0:36, 50, replace = T)
+Ziehungen
+```
+
+Oder man geht einen etwas schwierigeren Weg über eine `for`-Schleife. Dafür erstellt man zuerst ein leeres Objekt, in dem man dann im Folgenden die einzelnen Ziehungen speichern kann, und führt dann die Schleife aus.
+
+```{r}
+Ziehungen <- NULL
+for (i in 1:50) {
+  Ziehungen[i] <- sample(0:36, 1)
+}
+Ziehungen
+```
+
+<p>
+Nun können wir die Zufallsziehung im Roulette simulieren und auch mehrfach ablaufen lassen. Was jetzt noch fehlt sind die Wetten und die Berechnung des Gewinns.
+</p>
+
+<p>
+Dazu wenden wir uns erst einmal der Frage zu: Wie hoch wäre mein Gewinn, wenn ich in jeder Runde 5 Euro auf die 9 gesetzt hätte?
+</p>
+
+<p>
+Bei der Wette auf die 9 handelt es sich um eine einfache Wette auf eine Zahl. Die Wahrscheinlichkeit liegt bei 1:37 mit einer Gewinnausschüttung mit dem Faktor 36 (Die Gewinnausschüttung berechnet sich immer ohne Einbezug der Null. - Aus diesem Grund geht das Casino auf die Dauer als Sieger in diesem Spiel hervor.). Setzt man beispielsweise 5 Euro auf eine Zahl erhält man, sofern man richtig liegt, das 36-fache wieder, also 180 Euro. Damit hat man also unter Abzug des Einsatzes einen Gewinn von 175 Euro, sofern man gewinnt, und einen Verlust von 5 Euro, sofern man verliert.
+</p>
+
+Nun können wir eine Funktion auf das Objekt `Ziehungen` (Vektor) anwenden, die einen weiteren Vektor mit den Gewinnen zu den Ziehungen erstellt. Diesen weisen wir dem Objekt `Gewinne` zu.
+
+```{r}
+Gewinne <- ifelse(Ziehungen == 9, 175, -5)
+```
+
+Die `ifelse`-Funktion ist folgendermaßen aufgebaut:
+
+- Zuerst gibt man die Bedingung an.
+- Dann gibt man die Ausgabe für den Fall an, dass die Bedingung zutrifft.
+- Und zuletzt die Ausgabe, wenn die Bedingung nicht zutrifft.
+
+Wenn also eine 9 herausgekommen ist, dann soll ein Gewinn von `175` eingesetzt werden; ansonsten der Gewinn von `-5` (= Verlust). Der dadurch bestimmte Vektor sieht dann folgendermaßen aus:
+
+```{r, echo = F}
+Gewinne
+```
+
+Jetzt kann man zu jeder Runde den Gewinn bzw. Verlust ablesen. Das kann man jetzt noch zusammenfassen zu einer Gesamtausbeute:
+
+```{r}
+Gesamtgewinn <- sum(Gewinne)
+Gesamtgewinn
+```
+
+Wie man sehen kann, hatten wir in diesem Fall sehr viel Glück. Die 9 wurde in fünf Durchläufen gezogen. Dadurch ergab sich ein phänomenaler Gewinn von 650 Euro. Das war krass. All in auf ROT? :D
+
+</p>
+</details>
+
+## Implementierung verschiedener Wettmöglichkeiten
+
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+<p>
+Auf Vektoren kann man die Funktionen nur sehr schlecht anwenden. Aus diesem Grund muss man den Gewinn einen Schritt vorher ermitteln. Das Problem ist dann, dass die gedrehten Zahlen nicht mehr ausgegeben werden, sondern nur der Gewinn. Eine Möglichkeit dafür ist, eine Schleife zu erstellen und die gedrehten Zahlen in einem eigenen Objekt abzuspeichern.
+</p>
+Zuerst schauen wir uns an, wie man den Gewinn ermitteln kann. Dabei beziehen wir auch die neuen Wettmöglichkeiten `RED`, `BLACK`, `ODD`, `EVEN`, `firstThird`, `secondThird` und `lastThird` mit ein. Also müssen wir diese zunächst als Objekte mit den dazugehörigen Zahlen füllen.
+
+```{r}
+RED <- c(1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36)
+BLACK <- c(2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35)
+EVEN <- c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36)
+ODD <- c(1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35)
+firstThird <- 1:12
+secondThird <- 13:24
+lastThird <- 25:36
+```
+
+Grundsätzlich gibt es beim Roulette drei Variablen: der Einsatz, die Wette und die Zufallsziehung. Alle drei gehen in die Berechnung des Gewinns mit ein. Der Einsatz ist die Basis zur Berechnung des Gewinns. Dazu kommt die Wette im Abgleich mit der Zufallsziehung: je nachdem, ob man richtig tippt oder nicht ergibt sich eine andere Gewinnberechnung.
+
+```{r}
+# x = Ergebnis Roulette
+x <- sample(0:36, 1)
+# y = Einsatz (beispielhaft 10 Euro)
+y <- 10
+# z = Zahl/Gruppe von Zahlen, auf die gesetzt wurde (beispielhaft ungerade Zahlen)
+z <- ODD
+```
+
+Bei der Gewinnberechnung nutzt man nun wieder eine `if`-Funktion wie bereits in der ersten Aufgabe. Dort hat man die Bedingung jedoch nach dem Prinzip "Wenn die Zufallsziehung x der Wette z gleicht, dann gewinnt man." geschrieben. Das kann man zwar wieder übernehmen, aber für die neu hinzugefügten Wetten (wie zum Beispiel auf die ungeraden Zahlen) funktioniert das nicht. Hierfür muss man die Bedingung mit dem `is.element`-Argument formulieren. Wenn `x` (die Zufallsziehung) ein Element von `z` (der Wette) ist, dann hat man gewonnen. Das sieht dann folgendermaßen aus:
+
+```{r}
+if (is.element(x, z)) {
+  if (z == RED) {
+    y
+  } else if (z == BLACK) {
+    y
+  } else if (z == ODD) {
+    y
+  } else if (z == EVEN) {
+    y
+  } else if (z == firstThird) {
+    y * 2
+  } else if (z == secondThird) {
+    y * 2
+  } else if (z == lastThird) {
+    y * 2
+  } else {
+    y * 35
+  }
+} else {
+  -y
+}
+```
+
+<p>
+Zusätzlich zu der neuen Bedingung baut man nun bei Zutreffen der Bedingung eine weitere `if`-Funktion ein, die die unterschiedlichen Berechnungen des Gewinns für die unterschiedlichen Wetten beinhaltet. Damit erhält man eine Funktion, die abhängig von Zufallsziehung, Einsatz und Wette den Gewinn bzw. Verlust ermittelt.
+</p>
+
+Nun setzen wir das Ganze in der Schleife ein, die wir bereits in der ersten Aufgabe benutzt haben, mit der Verbesserung, dass nun in jedem Durchlauf auch der Gewinn ermittelt wird. Dafür müssen zunächst wieder zwei Objekte zum Abspeichern erstellt werden: `profit` für den Gewinn und `Roulette` für die Zufallsziehung.
+
+```{r}
+profit <- NULL
+Roulette <- NULL
+```
+
+```{r}
+for (i in 1:50) {
+  v <- sample(0:36, 1)
+  Roulette[i] <- v
+  profit[i] <- if (is.element(v, z)) {
+    if (z == RED) {
+      y
+    } else if (z == BLACK) {
+      y
+    } else if (z == ODD) {
+      y
+    } else if (z == EVEN) {
+      y
+    } else if (z == firstThird) {
+      y * 2
+    } else if (z == secondThird) {
+      y * 2
+    } else if (z == lastThird) {
+      y * 2
+    } else {
+      y * 35
+    }
+  } else {
+    -y
+  }
+}
+```
+
+Die Ergebnisse können wir uns nun entweder einzeln anschauen, oder wir verbinden beide Objekte zu einem Datensatz.
+
+```{r}
+Roulette
+profit
+```
+
+```{r}
+Spiel_Odd_50 <- data.frame(Roulette, profit)
+head(Spiel_Odd_50)
+```
+
+Den Gesamtgewinn kann man sich dann auch noch für jede Runde mithilfe der `cumsum`-Funktion anzeigen lassen, oder man benutzt die `sum`-Funktion, um nur das Endergebnis zu erhalten.
+
+```{r}
+cumsum(profit)
+sum(profit)
+```
+
+</p>
+</details>
+
+## Spiele bis du X Euro gewonnen hast
+
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Wir spielen nun beispielhaft mit einem Einsatz von 10 Euro auf RED. Dafür erstellen wir außerdem ein Objekt, das den Gewinn in der jeweiligen Runde kurzzeitig abspeichert, damit wir damit arbeiten können. 
+
+```{r}
+y <- 10
+b <- RED
+Gewinn <- NULL
+```
+<p>
+Nun fehlen noch genau zwei Dinge:
+
+1. Wie ermitteln wir jeden Durchgang erneut den Gesamtgewinn, sodass dieser immer wieder mit der Bedingung abgeglichen werden kann?
+2. Wie zählen wir die Durchgänge?
+</p>
+
+1. Für die Bedingung entscheiden wir uns für 50 Euro. Das heißt, dass wir so lange spielen wollen, bis wir 50 Euro gewonnen haben. Dafür brauchen wir ein weiteres Objekt für den Gesamtgewinn. Dieses Objekt soll in jedem Durchgang geupdatet werden. Starten soll es (logischerweise) bei Null. Also erstellen wir dafür das Objekt `Gesamtgewinn_Schleife` mit dem Wert 0.
+
+```{r}
+Gesamtgewinn_Schleife <- 0
+```
+
+<p>
+Dieses Objekt soll dann in jedem Durchgang mit dem Gewinn addiert werden; also schreibt man in die Funktion: `Gesamtgewinn_Schleife <- Gesamtgewinn_Schleife + Gewinn`. So wird der Gesamtgewinn in jedem Durchgang geupdatet und mit der Bedingung `Gesamtgewinn < 50` verglichen. Damit wäre das erste Problem gelöst.
+</p>
+
+2. Für das Zählen der Durchgänge wendet man eine identische Technik an. Dafür erstellt man wiederum ein Objekt (`Durchgaenge`) mit dem Wert 0.
+
+```{r}
+Durchgaenge <- 0
+```
+<p>
+Dieses Objekt updatet man auch in jedem Durchgang, indem man jedes Mal 1 addiert: `Durchgaenge <- Durchgaenge + 1`. Somit zählt man automatisch die Durchgänge mit.
+</p>
+
+Je nachdem kann man sich nun auch jeden Durchgang noch den Zwischenstand (`Gesamtgewinn_Schleife`) oder den Gewinn der Runde (`Gewinn`) mithilfe der `print`-Funktion ausgeben lassen. Das Endergebnis sieht dann folgendermaßen aus:
+
+```{r}
+while (Gesamtgewinn_Schleife < 50 & Durchgaenge < 100) {
+  a <- sample(0:36, 1)
+  Gewinn <- if (is.element(a, b)) {
+    if (b == RED) {
+      y
+    } else if (b == BLACK) {
+      y
+    } else if (b == ODD) {
+      y
+    } else if (b == EVEN) {
+      y
+    } else if (b == firstThird) {
+      y * 2
+    } else if (b == secondThird) {
+      y * 2
+    } else if (b == lastThird) {
+      y * 2
+    } else {
+      y * 35
+    }
+  } else {
+    -y
+  }
+  Gesamtgewinn_Schleife <- Gesamtgewinn_Schleife + Gewinn
+  print (Gesamtgewinn_Schleife)
+  Durchgaenge <- Durchgaenge + 1
+}
+```
+
+Die Funktion wird nun so lange alle Schritte wiederholen, bis die Bedingung `Gesamtgewinn_Schleife < 50` nicht mehr zutrifft. Bis dahin werden auch die Durchgänge gezählt. Das heißt, dass man, sofern die Funktion irgendwann stoppt, an dem Objekt `Durchgaenge` ablesen kann, wie lange man für einen Gewinn von 50 Euro hätte spielen müssen.
+
+</p>
+</details>
+
+## Funktionen
+
+<details><summary>Abschnitt 1 anzeigen</summary>
+<p>
+
+<p>
+Für das Erstellen einer Funktion kann man den `function`-Befehl benutzen. Dieser Befehl ist folgendermaßen aufgebaut: `function (Variablen) {Funktion}`. Und zwar gibt man in den normalen Klammern an, welche Variablen in der Funktion verwendet werden und die zur Durchführung benötigt werden. In den geschwungenen Klammern gibt man dann die Operationen der Funktion an, die unter Verwendung der Variablen durchgeführt werden. Dem Ganzen kann man dann einen Namen mithilfe der Zuweisung mit dem Pfeil geben.
+</p>
+
+<p>
+Für das Roulette ergeben sich zwei Variablen: der Einsatz `y` und die Wette `k`. Die Funktion kann man aus den vorherigen Aufgaben kopieren. Das ist zum einen die Zufallsziehung und zum anderen die Funktion zur Ermittlung des Gewinns in Abhängigkeit von Einsatz `y` und Wette `k`.
+</p>
+
+Das Problem ist nun, dass die Funktion noch keine Ergebnisse ausgibt. Dafür können wir erst einmal ganz einfach den `print`-Befehl nutzen. Wichtig: der `print`-Befehl kann nur ein Objekt ausgeben, deshalb muss man Zufallsziehung und Gewinn in einen Vektor packen. Das sieht dann folgendermaßen aus:
+
+```{r}
+Roulette <- function (y, k) {
+  j <- sample (0:36, 1)
+  Gewinn_Funktion <- if (is.element(j, k)) {
+    if (k == RED) {
+      y
+    } else if (k == BLACK) {
+      y
+    } else if (k == ODD) {
+      y
+    } else if (k == EVEN) {
+      y
+    } else if (k == firstThird) {
+      y * 2
+    } else if (k == secondThird) {
+      y * 2
+    } else if (k == lastThird) {
+      y * 2
+    } else {
+      y * 35
+    }
+  } else {
+    -y
+  }
+  print(c(j,Gewinn_Funktion))
+}
+Roulette(10,7)
+```
+
+<p>
+Nun kann man ganz einfach Roulette spielen, indem man Einsatz und Wette angibt und erhält Zufallsziehung und Gewinn. Wie man in diesem Beispiel sieht, wurden 10 Euro auf die Zahl 7 gesetzt. Ausgegeben wird, welche Zahl bei der Ziehung herauskam und der Gewinn.
+</p>
+Das Ganze ist aber noch nicht so schön. Deshalb versuchen wir das Roulettespiel etwas authentischer zu gestalten mit Pausen und Nachrichten. Das Praktische dabei ist, dass man auch Variablen in diese Nachrichten schreiben kann, sodass man zum Beispiel eine Nachricht mit dem Ergebnis allgemein formulieren kann [`message("Es wurde eine ", j, " gedreht!")`]. Des Weiteren kann man, je nach Resultat (Sieg oder Niederlage) unterschiedliche Nachrichten mithilfe einer `if`-Funktion ausgeben lassen. Das könnte dann folgendermaßen aussehen:
+
+```{r}
+Roulette <- function (y, k) {
+  j <- sample (0:36, 1)
+  Gewinn_Funktion <- if (is.element(j, k)) {
+    if (k == RED) {
+      y
+    } else if (k == BLACK) {
+      y
+    } else if (k == ODD) {
+      y
+    } else if (k == EVEN) {
+      y
+    } else if (k == firstThird) {
+      y * 2
+    } else if (k == secondThird) {
+      y * 2
+    } else if (k == lastThird) {
+      y * 2
+    } else {
+      y * 35
+    }
+  } else {
+    -y
+  }
+  message ("Roulettekugel startet")
+  Sys.sleep (2.0)
+  message ("Rien ne va plus!")
+  Sys.sleep (2.0)
+  message ("Es ist eine ", j, ".")
+  Sys.sleep (2.0)
+  if (is.element (j, k)) {
+    message ("DU hast gewonnen!")
+    Sys.sleep (2.0)
+    message ("Dein Gewinn beträgt ", Gewinn_Funktion, " Euro." )
+  } else {
+    message ("DU hast verloren!")
+    Sys.sleep (2.0)
+    message ("Gib nicht auf! In der nächsten Runde wird das Glück wieder auf deiner Seite stehen.")
+  }
+}
+```
+
+Das testen wir jetzt, indem wir die Funktion einmal benutzen. In diesem Beispiel setzen wir 10 Euro auf `RED`.
+
+```{r}
+Roulette(10,RED)
+```
+
+<p>
+Die Ausgabe in diesem Beispiel ist schon deutlich schöner/authentischer und hält alle nötigen Informationen bereit.
+</p>
+
+In dieser Funktion kann man jedoch nur ein Mal spielen und muss die Funktion dann erneut starten. Dafür können wir eine neue Funktion schreiben, die die alte Funktion dahingehend erweitert, dass man mehrere Runden auf einmal spielen kann. Das wird im zweiten Abschnitt erläutert.
+
+</p>
+</details>
+
+<details><summary> Abschnitt 2 anzeigen </summary>
+<p>
+
+<p>
+Für das Umsetzen einer Roulette-Funktion mit variabler Rundenzahl müssen wir einige Anpassungen und Erweiterungen an der Funktion in Abschnitt 1 vornehmen. Übernehmen können wir wiederum die Zufallsziehung und die Gewinnberechnung aus den vorherigen Aufgaben. Wir wissen auch schon, dass wir drei Variablen haben werden: `m` = Einsatz, `n` = Wette und `o` = Anzahl der Runden. Die Funktion nennen wir `Roulette_Schleife`. Das sieht dann vorerst folgendermaßen aus:
+
+```{r}
+Roulette_Schleife <- function(m, n, o) {
+  j <- sample(0:36, 1)
+  Gewinn_Funktion_Schleife <- if (is.element(j, n)) {
+    if (n == RED) {
+      m
+    } else if (n == BLACK) {
+      m
+    } else if (n == ODD) {
+      m
+    } else if (n == EVEN) {
+      m
+    } else if (n == firstThird) {
+      m * 2
+    } else if (n == secondThird) {
+      m * 2
+    } else if (n == lastThird) {
+      m * 2
+    } else {
+      m * 35
+    }
+  } else {
+    -m
+  }
+}
+```
+
+<p>
+Jetzt müssen wir uns überlegen, wie wir Zufallsziehung und Gewinnberechnung wiederholt durchführen können bis eine bestimmte Anzahl an Runden gespielt wurde. Wir wissen, dass die Variable `o` angibt, wie viele Runden gespielt werden sollen. Das heißt wir erstellen nun eine weitere Variable `q`, die die gespielten Runden zählen soll. Das Vorgehen dabei sollte bereits aus den vorherigen Aufgaben bekannt sein. Mithilfe dieser beiden Variablen `o` und `q` können wir nun eine Bedingung erstellen, sodass gespielt wird bis `o == q` gilt. 
+</p>
+
+Dafür verwenden wir eine neue Funktion: die `repeat`-Funktion. Diese Funktion führt alle ihre Operationen durch bis die Bedingung, in unserem Fall `o == q`, erfüllt ist. Anders als bereits bekannten Funktionen schreibt man die Bedingung hier an das Ende der Funktion. Und zwar ist die `repeat`-Funktion folgendermaßen aufgebaut: `repeat {Operation 1 ENTER Operation 2 ENTER etc. ENTER if (q == o) break}`. Das sieht dann bei uns folgendermaßen aus:
+
+```{r}
+Roulette_Schleife <- function (m, n, o) {
+  q <- 0
+  repeat {
+    q <- q+1
+    j <- sample (0:36, 1)
+    Gewinn_Funktion_Schleife <- if (is.element(j, n)) {
+      if (n == RED) {
+        m
+      } else if (n == BLACK) {
+        m
+      } else if (n == ODD) {
+        m
+      } else if (n == EVEN) {
+        m
+      } else if (n == firstThird) {
+        m * 2
+      } else if (n == secondThird) {
+        m * 2
+      } else if (n == lastThird) {
+        m * 2
+      } else {
+        m * 35
+      }
+    } else {
+      -m
+    }
+  if(q==o) break
+  }
+}
+```
+
+Ebenso wie bei der Funktion im ersten Abschnitt fehlt nun eine Ausgabe mit den wichtigen Informationen/Ergebnissen. Dazu können wir unsere Funktion nun um die Pausen und Nachrichten aus dem ersten Abschnitt erweitern.
+
+```{r}
+Roulette_Schleife <- function (m, n, o) {
+  q <- 0
+  repeat {
+    q <- q+1
+    j <- sample (0:36, 1)
+    Gewinn_Funktion_Schleife <- if (is.element(j, n)) {
+      if (n == RED) {
+        m
+      } else if (n == BLACK) {
+        m
+      } else if (n == ODD) {
+        m
+      } else if (n == EVEN) {
+        m
+      } else if (n == firstThird) {
+        m * 2
+      } else if (n == secondThird) {
+        m * 2
+      } else if (n == lastThird) {
+        m * 2
+      } else {
+        m * 35
+      }
+    } else {
+      -m
+    }
+    message ("Roulettekugel startet")
+    Sys.sleep (2.0)
+    message ("Rien ne va plus!")
+    Sys.sleep (2.0)
+    message ("Es ist eine ", j, ".")
+    Sys.sleep (2.0)
+    if (is.element (j, n)) {
+      message ("DU hast gewonnen!")
+      Sys.sleep (2.0)
+      message ("Dein Gewinn beträgt ", Gewinn_Funktion_Schleife, " Euro." )
+      Sys.sleep (1.0)
+    } else {
+      message ("DU hast verloren!")
+      Sys.sleep (2.0)
+      message ("Gib nicht auf! In der nächsten Runde wird das Glück wieder auf deiner Seite stehen.")
+      Sys.sleep (1.0)
+    }
+  if(q==o) break
+  }
+}
+```
+
+<p>
+Jetzt ist die Ausgabe schon um einiges schöner, doch einige relevante Informationen fehlen noch. Und zwar besteht in dieser Funktion ja die Möglichkeit, mehrere Runden auf einmal zu spielen. Damit kann man noch zusätzlich Information zur aktuellen Runde und zum aktuellen Gesamtgewinn ausgeben.
+</p>
+
+<p>
+Die Ausgabe des Gesamtgewinns gestaltet sich jedoch nicht so leicht wie die Rundenzahl, denn den Gesamtgewinn muss man jede Runde aufs neue updaten. Das Prinzip für solche Operationen wurde bereits in einer vorherigen Aufgabe beschrieben. Bevor die Schleife beginnt erstellt man ein Objekt `Gesamtgewinn_Funktion_Schleife` beginnend mit der Null. In der Schleife nutzt man dann dieses Objekt und überschreibt diesen Wert jede Runde aufs neue, indem man immer wieder den Gewinn (`Gewinn_Funktion_Schleife`) aus der gerade laufenden Runde addiert. [Achtung: Die Nachricht zum Gesamtgewinn muss nach dieser erneuten Gesamtgewinn-Berechnung erfolgen, ansonsten gibt man den jeweils den Gesamtgewinn nach der vorherigen Runde an.]
+</p>
+
+Nachdem man diese beiden Dinge impliziert hat, sieht die Funktion folgendermaßen aus:
+
+```{r}
+Roulette_Schleife <- function (m, n, o) {
+  q <- 0
+  Gesamtgewinn_Funktion_Schleife <- 0
+  repeat {
+    q <- q+1
+    message ("Runde ", q, "!")
+    j <- sample (0:36, 1)
+    Gewinn_Funktion_Schleife <- if (is.element(j, n)) {
+      if (n == RED) {
+        m
+      } else if (n == BLACK) {
+        m
+      } else if (n == ODD) {
+        m
+      } else if (n == EVEN) {
+        m
+      } else if (n == firstThird) {
+        m * 2
+      } else if (n == secondThird) {
+        m * 2
+      } else if (n == lastThird) {
+        m * 2
+      } else {
+        m * 35
+      }
+    } else {
+      -m
+    }
+    Gesamtgewinn_Funktion_Schleife <- Gesamtgewinn_Funktion_Schleife + Gewinn_Funktion_Schleife
+    message ("Roulettekugel startet")
+    Sys.sleep (2.0)
+    message ("Rien ne va plus!")
+    Sys.sleep (2.0)
+    message ("Es ist eine ", j, ".")
+    Sys.sleep (2.0)
+    if (is.element (j, n)) {
+      message ("DU hast gewonnen!")
+      Sys.sleep (2.0)
+      message ("Dein Gewinn beträgt ", Gewinn_Funktion_Schleife, " Euro." )
+      Sys.sleep (1.0)
+      message ("Damit liegt dein Gesamtgewinn bisher bei ", Gesamtgewinn_Funktion_Schleife, " Euro.")
+      Sys.sleep (1.0)
+    } else {
+      message ("DU hast verloren!")
+      Sys.sleep (2.0)
+      message ("Damit liegt dein Gesamtgewinn bisher bei ", Gesamtgewinn_Funktion_Schleife, " Euro.")
+      Sys.sleep (1.0)
+      message ("Gib nicht auf! In der nächsten Runde wird das Glück wieder auf deiner Seite stehen.")
+      Sys.sleep (1.0)
+    }
+  if(q==o) break
+  }
+}
+```
+
+Insgesamt funktioniert die Funktion nun, jedoch endet das Spiel nun ganz abrupt ohne irgendeine abschließende Nachricht. Aus diesem Grund fügen wir nun noch mehrere Nachrichten ein:
+
+- Eine Nachricht, dass die `o` Runden nun gespielt sind.
+- Eine Nachricht, die Einsatz, Wette und Rundenzahl nocheinmal zusammenfasst und den daraus folgenden Gesamtgewinn beinhaltet.
+- Eine Nachricht, abhängig vom Gesamtgewinn. Je nachdem, ob Geld gewonnen oder verloren wurde, oder ob man bei Null rauskam, soll eine unterschiedliche Nachricht zur Folge haben.
+
+Das kann dann folgendermaßen aussehen:
+
+```{r}
+Roulette_Schleife <- function (m, n, o) {
+  q <- 0
+  Gesamtgewinn_Funktion_Schleife <- 0
+  repeat {
+    q <- q+1
+    message ("Runde ", q, "!")
+    j <- sample (0:36, 1)
+    Gewinn_Funktion_Schleife <- if (is.element(j, n)) {
+      if (n == RED) {
+        m
+      } else if (n == BLACK) {
+        m
+      } else if (n == ODD) {
+        m
+      } else if (n == EVEN) {
+        m
+      } else if (n == firstThird) {
+        m * 2
+      } else if (n == secondThird) {
+        m * 2
+      } else if (n == lastThird) {
+        m * 2
+      } else {
+        m * 35
+      }
+    } else {
+      -m
+    }
+    Gesamtgewinn_Funktion_Schleife <- Gesamtgewinn_Funktion_Schleife + Gewinn_Funktion_Schleife
+    message ("Roulettekugel startet")
+    Sys.sleep (2.0)
+    message ("Rien ne va plus!")
+    Sys.sleep (2.0)
+    message ("Es ist eine ", j, ".")
+    Sys.sleep (2.0)
+    if (is.element (j, n)) {
+      message ("DU hast gewonnen!")
+      Sys.sleep (2.0)
+      message ("Dein Gewinn beträgt ", Gewinn_Funktion_Schleife, " Euro." )
+      Sys.sleep (1.0)
+      message ("Damit liegt dein Gesamtgewinn bisher bei ", Gesamtgewinn_Funktion_Schleife, " Euro.")
+      Sys.sleep (1.0)
+    } else {
+      message ("DU hast verloren!")
+      Sys.sleep (2.0)
+      message ("Damit liegt dein Gesamtgewinn bisher bei ", Gesamtgewinn_Funktion_Schleife, " Euro.")
+      Sys.sleep (1.0)
+      message ("Gib nicht auf! In der nächsten Runde wird das Glück wieder auf deiner Seite stehen.")
+      Sys.sleep (1.0)
+    }
+  if(q==o) break
+  }
+  message ("Deine ", q, " Runden sind durch.")
+  Sys.sleep (3.0)
+  message ("Du hast heute in ", q, " Spielrunden jeweils mit einem Einsatz von ", m, " Euro auf ", n, " einen Gesamtgewinn von ", Gesamtgewinn_Funktion_Schleife, " Euro erzielt!")
+  Sys.sleep (3.0)
+  if (Gesamtgewinn_Funktion_Schleife > 0) {
+    message("Herzlichen Glückwunsch!")
+  } else if (Gesamtgewinn_Funktion_Schleife == 0) {
+    message("Sie haben heute nichts gewonnen. Wollen Sie wirklich schon gehen?")
+  } else {
+    message("Schade. Aber seien Sie nicht traurig. Das nächste Mal steht das Glück wieder auf Ihrer Seite!")
+  }
+}
+```
+
+Hier seht ihr jetzt zwei Beispiele:
+
+- Ein Mal wurden in 3 Runden jeweils 5 Euro auf BLACK gesetzt.
+- Ein Mal wurden in 4 Runden jeweils 100 Euro auf ODD gesetzt.
+
+```{r, eval = FALSE}
+Roulette_Schleife(5, BLACK, 3)
+Roulette_Schleife(100, ODD, 4)
+```
+
+</p>
+</details>
+
+
+### [Zurück zum Projekt](/projects#project_02)

@@ -1,0 +1,855 @@
+---
+title: Lösungen
+date: '2019-12-14'
+slug: loesungen2
+categories:
+  - Projekt 2
+tags: []
+subtitle: ''
+summary: ''
+authors: [mehler]
+lastmod: '2019-12-14T18:30:59+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<div id="vorwarnung" class="section level2">
+<h2>Vorwarnung</h2>
+<p>Achtung! Im Folgenden werden die Lösungen für das zweite Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die <a href="/post/tipps2">Tipps</a>. Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, einen Schritt weiterzukommen und beim nächsten Abschnitt weiterzumachen.</p>
+</div>
+<div id="grundprinzip-roulette" class="section level2">
+<h2>Grundprinzip Roulette</h2>
+<details>
+<summary>Abschnitt anzeigen</summary>
+<p>
+<p>Das europäische Roulette verwendet eine Scheibe mit den Zahlen von 0 bis 36, also 37 verschiedenen Fächern. Dies entspricht also einer einfach Zufallsziehung aus den Zahlen 0 bis 36, bei der jede Zahl mit gleicher Wahrscheinlichkeit auftritt, da die Fächer alle die gleiche Fläche einnehmen.</p>
+<pre class="r"><code>sample(0:36)</code></pre>
+<pre><code>##  [1] 26  3  6 13  0 25  9 21  2 22 23 14  4 34  5 18 10 17 32 24 11  8 31
+## [24] 19 36 33 15 30 35  7 29 16 28  1 12 27 20</code></pre>
+<p>
+Was hier nun passiert ist eine Urnenziehung ohne Zurücklegen bis alle Nummern gezogen wurden. Das entspricht jedoch nicht der Zufallsziehung beim Roulette. Dort wird jeweils “mit Zurücklegen” gespielt. Das kann man nun auf zwei Wegen erreichen:
+</p>
+<p>Entweder man macht jeweils nur eine Ziehung. Dafür beschränkt man den Befehl auf eine Ziehung aus allen Zahlen. Möchte man nun mehrere Durchgänge simulieren, führt man diesen Befehl einfach mehrfach aus.</p>
+<pre class="r"><code>sample(0:36, 1)</code></pre>
+<pre><code>## [1] 23</code></pre>
+<p>Oder man legt mit dem Argument <code>replace = T</code> fest, dass die gezogenen Zahlen immer wieder ersetzt werden. Jetzt kann man mit dem zweiten Argument festlegen, wie oft man die Zufallsziehung durchführen möchte und man erhält eine mathematische Simulation der Zufallsziehung beim Roulette.</p>
+<pre class="r"><code>sample(0:36, 5, replace = T)</code></pre>
+<pre><code>## [1] 25  3 27  3  6</code></pre>
+<p>
+Jetzt lassen wir die Roulettekugel 50 Mal rollen (Loop) und speichern die Ergebnisse in der Variable “Ziehungen”.
+</p>
+<p>Das kann entweder, wie bereits beschrieben, über das <code>replace</code>-Argument im <code>sample</code>-Befehl gemacht werden. Das Ergebnis (ein Vektor mit Zahlen) weist man dann einem Objekt zu.</p>
+<pre class="r"><code>Ziehungen &lt;- sample(0:36, 50, replace = T)
+Ziehungen</code></pre>
+<pre><code>##  [1] 33 12 24  1 12 22  1 29 11 12 30  1 26 16 28 18 19  8  3 30 19 22  0
+## [24] 36 33 26 33  5 14 32 28 35 30 17 15 21  2 32 31 25 12 34  3  7 13 23
+## [47] 26 24 15 28</code></pre>
+<p>Oder man geht einen etwas schwierigeren Weg über eine <code>for</code>-Schleife. Dafür erstellt man zuerst ein leeres Objekt, in dem man dann im Folgenden die einzelnen Ziehungen speichern kann, und führt dann die Schleife aus.</p>
+<pre class="r"><code>Ziehungen &lt;- NULL
+for (i in 1:50) {
+  Ziehungen[i] &lt;- sample(0:36, 1)
+}
+Ziehungen</code></pre>
+<pre><code>##  [1] 24 11 10 29 10  9  0 27  8 24 22 19 15 34 24  1  0 20  4  5  8  3 14
+## [24]  9 19  4 25 26 13 11  8 31 35  9  9 24  5 27 31 35  5  5  3  9 17 16
+## [47] 28 31  5 35</code></pre>
+<p>
+Nun können wir die Zufallsziehung im Roulette simulieren und auch mehrfach ablaufen lassen. Was jetzt noch fehlt sind die Wetten und die Berechnung des Gewinns.
+</p>
+<p>
+Dazu wenden wir uns erst einmal der Frage zu: Wie hoch wäre mein Gewinn, wenn ich in jeder Runde 5 Euro auf die 9 gesetzt hätte?
+</p>
+<p>
+Bei der Wette auf die 9 handelt es sich um eine einfache Wette auf eine Zahl. Die Wahrscheinlichkeit liegt bei 1:37 mit einer Gewinnausschüttung mit dem Faktor 36 (Die Gewinnausschüttung berechnet sich immer ohne Einbezug der Null. - Aus diesem Grund geht das Casino auf die Dauer als Sieger in diesem Spiel hervor.). Setzt man beispielsweise 5 Euro auf eine Zahl erhält man, sofern man richtig liegt, das 36-fache wieder, also 180 Euro. Damit hat man also unter Abzug des Einsatzes einen Gewinn von 175 Euro, sofern man gewinnt, und einen Verlust von 5 Euro, sofern man verliert.
+</p>
+<p>Nun können wir eine Funktion auf das Objekt <code>Ziehungen</code> (Vektor) anwenden, die einen weiteren Vektor mit den Gewinnen zu den Ziehungen erstellt. Diesen weisen wir dem Objekt <code>Gewinne</code> zu.</p>
+<pre class="r"><code>Gewinne &lt;- ifelse(Ziehungen == 9, 175, -5)</code></pre>
+<p>Die <code>ifelse</code>-Funktion ist folgendermaßen aufgebaut:</p>
+<ul>
+<li>Zuerst gibt man die Bedingung an.</li>
+<li>Dann gibt man die Ausgabe für den Fall an, dass die Bedingung zutrifft.</li>
+<li>Und zuletzt die Ausgabe, wenn die Bedingung nicht zutrifft.</li>
+</ul>
+<p>Wenn also eine 9 herausgekommen ist, dann soll ein Gewinn von <code>175</code> eingesetzt werden; ansonsten der Gewinn von <code>-5</code> (= Verlust). Der dadurch bestimmte Vektor sieht dann folgendermaßen aus:</p>
+<pre><code>##  [1]  -5  -5  -5  -5  -5 175  -5  -5  -5  -5  -5  -5  -5  -5  -5  -5  -5
+## [18]  -5  -5  -5  -5  -5  -5 175  -5  -5  -5  -5  -5  -5  -5  -5  -5 175
+## [35] 175  -5  -5  -5  -5  -5  -5  -5  -5 175  -5  -5  -5  -5  -5  -5</code></pre>
+<p>Jetzt kann man zu jeder Runde den Gewinn bzw. Verlust ablesen. Das kann man jetzt noch zusammenfassen zu einer Gesamtausbeute:</p>
+<pre class="r"><code>Gesamtgewinn &lt;- sum(Gewinne)
+Gesamtgewinn</code></pre>
+<pre><code>## [1] 650</code></pre>
+<p>Wie man sehen kann, hatten wir in diesem Fall sehr viel Glück. Die 9 wurde in fünf Durchläufen gezogen. Dadurch ergab sich ein phänomenaler Gewinn von 650 Euro. Das war krass. All in auf ROT? :D</p>
+</p>
+</details>
+</div>
+<div id="implementierung-verschiedener-wettmöglichkeiten" class="section level2">
+<h2>Implementierung verschiedener Wettmöglichkeiten</h2>
+<details>
+<summary>Abschnitt anzeigen</summary>
+<p>
+<p>
+Auf Vektoren kann man die Funktionen nur sehr schlecht anwenden. Aus diesem Grund muss man den Gewinn einen Schritt vorher ermitteln. Das Problem ist dann, dass die gedrehten Zahlen nicht mehr ausgegeben werden, sondern nur der Gewinn. Eine Möglichkeit dafür ist, eine Schleife zu erstellen und die gedrehten Zahlen in einem eigenen Objekt abzuspeichern.
+</p>
+<p>Zuerst schauen wir uns an, wie man den Gewinn ermitteln kann. Dabei beziehen wir auch die neuen Wettmöglichkeiten <code>RED</code>, <code>BLACK</code>, <code>ODD</code>, <code>EVEN</code>, <code>firstThird</code>, <code>secondThird</code> und <code>lastThird</code> mit ein. Also müssen wir diese zunächst als Objekte mit den dazugehörigen Zahlen füllen.</p>
+<pre class="r"><code>RED &lt;- c(1, 3, 5, 7, 9, 12, 14, 16, 18, 19, 21, 23, 25, 27, 30, 32, 34, 36)
+BLACK &lt;- c(2, 4, 6, 8, 10, 11, 13, 15, 17, 20, 22, 24, 26, 28, 29, 31, 33, 35)
+EVEN &lt;- c(2, 4, 6, 8, 10, 12, 14, 16, 18, 20, 22, 24, 26, 28, 30, 32, 34, 36)
+ODD &lt;- c(1, 3, 5, 7, 9, 11, 13, 15, 17, 19, 21, 23, 25, 27, 29, 31, 33, 35)
+firstThird &lt;- 1:12
+secondThird &lt;- 13:24
+lastThird &lt;- 25:36</code></pre>
+<p>Grundsätzlich gibt es beim Roulette drei Variablen: der Einsatz, die Wette und die Zufallsziehung. Alle drei gehen in die Berechnung des Gewinns mit ein. Der Einsatz ist die Basis zur Berechnung des Gewinns. Dazu kommt die Wette im Abgleich mit der Zufallsziehung: je nachdem, ob man richtig tippt oder nicht ergibt sich eine andere Gewinnberechnung.</p>
+<pre class="r"><code># x = Ergebnis Roulette
+x &lt;- sample(0:36, 1)
+# y = Einsatz (beispielhaft 10 Euro)
+y &lt;- 10
+# z = Zahl/Gruppe von Zahlen, auf die gesetzt wurde (beispielhaft ungerade Zahlen)
+z &lt;- ODD</code></pre>
+<p>Bei der Gewinnberechnung nutzt man nun wieder eine <code>if</code>-Funktion wie bereits in der ersten Aufgabe. Dort hat man die Bedingung jedoch nach dem Prinzip “Wenn die Zufallsziehung x der Wette z gleicht, dann gewinnt man.” geschrieben. Das kann man zwar wieder übernehmen, aber für die neu hinzugefügten Wetten (wie zum Beispiel auf die ungeraden Zahlen) funktioniert das nicht. Hierfür muss man die Bedingung mit dem <code>is.element</code>-Argument formulieren. Wenn <code>x</code> (die Zufallsziehung) ein Element von <code>z</code> (der Wette) ist, dann hat man gewonnen. Das sieht dann folgendermaßen aus:</p>
+<pre class="r"><code>if (is.element(x, z)) {
+  if (z == RED) {
+    y
+  } else if (z == BLACK) {
+    y
+  } else if (z == ODD) {
+    y
+  } else if (z == EVEN) {
+    y
+  } else if (z == firstThird) {
+    y * 2
+  } else if (z == secondThird) {
+    y * 2
+  } else if (z == lastThird) {
+    y * 2
+  } else {
+    y * 35
+  }
+} else {
+  -y
+}</code></pre>
+<pre><code>## [1] -10</code></pre>
+<p>
+Zusätzlich zu der neuen Bedingung baut man nun bei Zutreffen der Bedingung eine weitere <code>if</code>-Funktion ein, die die unterschiedlichen Berechnungen des Gewinns für die unterschiedlichen Wetten beinhaltet. Damit erhält man eine Funktion, die abhängig von Zufallsziehung, Einsatz und Wette den Gewinn bzw. Verlust ermittelt.
+</p>
+<p>Nun setzen wir das Ganze in der Schleife ein, die wir bereits in der ersten Aufgabe benutzt haben, mit der Verbesserung, dass nun in jedem Durchlauf auch der Gewinn ermittelt wird. Dafür müssen zunächst wieder zwei Objekte zum Abspeichern erstellt werden: <code>profit</code> für den Gewinn und <code>Roulette</code> für die Zufallsziehung.</p>
+<pre class="r"><code>profit &lt;- NULL
+Roulette &lt;- NULL</code></pre>
+<pre class="r"><code>for (i in 1:50) {
+  v &lt;- sample(0:36, 1)
+  Roulette[i] &lt;- v
+  profit[i] &lt;- if (is.element(v, z)) {
+    if (z == RED) {
+      y
+    } else if (z == BLACK) {
+      y
+    } else if (z == ODD) {
+      y
+    } else if (z == EVEN) {
+      y
+    } else if (z == firstThird) {
+      y * 2
+    } else if (z == secondThird) {
+      y * 2
+    } else if (z == lastThird) {
+      y * 2
+    } else {
+      y * 35
+    }
+  } else {
+    -y
+  }
+}</code></pre>
+<pre><code>## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used
+
+## Warning in if (z == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<p>Die Ergebnisse können wir uns nun entweder einzeln anschauen, oder wir verbinden beide Objekte zu einem Datensatz.</p>
+<pre class="r"><code>Roulette</code></pre>
+<pre><code>##  [1]  3 13  1 29 24 12 32 17 34 18 18  0 19 12 15 34  6  9 16  8 25 34 22
+## [24] 12 17 34 16  8  7 25 20 36 31  9 17 27 23 10 33  9 21 14 36 32 10 21
+## [47] 24 29  6 27</code></pre>
+<pre class="r"><code>profit</code></pre>
+<pre><code>##  [1]  10  10  10  10 -10 -10 -10  10 -10 -10 -10 -10  10 -10  10 -10 -10
+## [18]  10 -10 -10  10 -10 -10 -10  10 -10 -10 -10  10  10 -10 -10  10  10
+## [35]  10  10  10 -10  10  10  10 -10 -10 -10 -10  10 -10  10 -10  10</code></pre>
+<pre class="r"><code>Spiel_Odd_50 &lt;- data.frame(Roulette, profit)
+head(Spiel_Odd_50)</code></pre>
+<pre><code>##   Roulette profit
+## 1        3     10
+## 2       13     10
+## 3        1     10
+## 4       29     10
+## 5       24    -10
+## 6       12    -10</code></pre>
+<p>Den Gesamtgewinn kann man sich dann auch noch für jede Runde mithilfe der <code>cumsum</code>-Funktion anzeigen lassen, oder man benutzt die <code>sum</code>-Funktion, um nur das Endergebnis zu erhalten.</p>
+<pre class="r"><code>cumsum(profit)</code></pre>
+<pre><code>##  [1]  10  20  30  40  30  20  10  20  10   0 -10 -20 -10 -20 -10 -20 -30
+## [18] -20 -30 -40 -30 -40 -50 -60 -50 -60 -70 -80 -70 -60 -70 -80 -70 -60
+## [35] -50 -40 -30 -40 -30 -20 -10 -20 -30 -40 -50 -40 -50 -40 -50 -40</code></pre>
+<pre class="r"><code>sum(profit)</code></pre>
+<pre><code>## [1] -40</code></pre>
+</p>
+</details>
+</div>
+<div id="spiele-bis-du-x-euro-gewonnen-hast" class="section level2">
+<h2>Spiele bis du X Euro gewonnen hast</h2>
+<details>
+<summary>Abschnitt anzeigen</summary>
+<p>
+<p>Wir spielen nun beispielhaft mit einem Einsatz von 10 Euro auf RED. Dafür erstellen wir außerdem ein Objekt, das den Gewinn in der jeweiligen Runde kurzzeitig abspeichert, damit wir damit arbeiten können.</p>
+<pre class="r"><code>y &lt;- 10
+b &lt;- RED
+Gewinn &lt;- NULL</code></pre>
+<p>
+<p>Nun fehlen noch genau zwei Dinge:</p>
+<ol style="list-style-type: decimal">
+<li>Wie ermitteln wir jeden Durchgang erneut den Gesamtgewinn, sodass dieser immer wieder mit der Bedingung abgeglichen werden kann?</li>
+<li>Wie zählen wir die Durchgänge?</li>
+</ol>
+</p>
+<ol style="list-style-type: decimal">
+<li>Für die Bedingung entscheiden wir uns für 50 Euro. Das heißt, dass wir so lange spielen wollen, bis wir 50 Euro gewonnen haben. Dafür brauchen wir ein weiteres Objekt für den Gesamtgewinn. Dieses Objekt soll in jedem Durchgang geupdatet werden. Starten soll es (logischerweise) bei Null. Also erstellen wir dafür das Objekt <code>Gesamtgewinn_Schleife</code> mit dem Wert 0.</li>
+</ol>
+<pre class="r"><code>Gesamtgewinn_Schleife &lt;- 0</code></pre>
+<p>
+Dieses Objekt soll dann in jedem Durchgang mit dem Gewinn addiert werden; also schreibt man in die Funktion: <code>Gesamtgewinn_Schleife &lt;- Gesamtgewinn_Schleife + Gewinn</code>. So wird der Gesamtgewinn in jedem Durchgang geupdatet und mit der Bedingung <code>Gesamtgewinn &lt; 50</code> verglichen. Damit wäre das erste Problem gelöst.
+</p>
+<ol start="2" style="list-style-type: decimal">
+<li>Für das Zählen der Durchgänge wendet man eine identische Technik an. Dafür erstellt man wiederum ein Objekt (<code>Durchgaenge</code>) mit dem Wert 0.</li>
+</ol>
+<pre class="r"><code>Durchgaenge &lt;- 0</code></pre>
+<p>
+Dieses Objekt updatet man auch in jedem Durchgang, indem man jedes Mal 1 addiert: <code>Durchgaenge &lt;- Durchgaenge + 1</code>. Somit zählt man automatisch die Durchgänge mit.
+</p>
+<p>Je nachdem kann man sich nun auch jeden Durchgang noch den Zwischenstand (<code>Gesamtgewinn_Schleife</code>) oder den Gewinn der Runde (<code>Gewinn</code>) mithilfe der <code>print</code>-Funktion ausgeben lassen. Das Endergebnis sieht dann folgendermaßen aus:</p>
+<pre class="r"><code>while (Gesamtgewinn_Schleife &lt; 50 &amp; Durchgaenge &lt; 100) {
+  a &lt;- sample(0:36, 1)
+  Gewinn &lt;- if (is.element(a, b)) {
+    if (b == RED) {
+      y
+    } else if (b == BLACK) {
+      y
+    } else if (b == ODD) {
+      y
+    } else if (b == EVEN) {
+      y
+    } else if (b == firstThird) {
+      y * 2
+    } else if (b == secondThird) {
+      y * 2
+    } else if (b == lastThird) {
+      y * 2
+    } else {
+      y * 35
+    }
+  } else {
+    -y
+  }
+  Gesamtgewinn_Schleife &lt;- Gesamtgewinn_Schleife + Gewinn
+  print (Gesamtgewinn_Schleife)
+  Durchgaenge &lt;- Durchgaenge + 1
+}</code></pre>
+<pre><code>## [1] -10
+## [1] -20</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -10</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] 10
+## [1] 0</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] 10
+## [1] 0
+## [1] -10</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] 0
+## [1] -10
+## [1] -20
+## [1] -30
+## [1] -40</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -30
+## [1] -40
+## [1] -50
+## [1] -60</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -50</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -40
+## [1] -50</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -40
+## [1] -50
+## [1] -60
+## [1] -70
+## [1] -80
+## [1] -90
+## [1] -100
+## [1] -110</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -100
+## [1] -110</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -100</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -90
+## [1] -100
+## [1] -110
+## [1] -120
+## [1] -130
+## [1] -140
+## [1] -150
+## [1] -160
+## [1] -170
+## [1] -180</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -170</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -160
+## [1] -170</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -160</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -150</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -140</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -130</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -120</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -110
+## [1] -120</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -110
+## [1] -120
+## [1] -130
+## [1] -140
+## [1] -150
+## [1] -160</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -150</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -140</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -130
+## [1] -140
+## [1] -150
+## [1] -160</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -150
+## [1] -160</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -150
+## [1] -160</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -150
+## [1] -160</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -150
+## [1] -160
+## [1] -170</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -160
+## [1] -170
+## [1] -180</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -170</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -160</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -150
+## [1] -160</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -150
+## [1] -160
+## [1] -170
+## [1] -180</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -170
+## [1] -180
+## [1] -190
+## [1] -200
+## [1] -210
+## [1] -220</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -210</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -200</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -190
+## [1] -200</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -190</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -180
+## [1] -190</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -180
+## [1] -190</code></pre>
+<pre><code>## Warning in if (b == RED) {: the condition has length &gt; 1 and only the first
+## element will be used</code></pre>
+<pre><code>## [1] -180</code></pre>
+<p>Die Funktion wird nun so lange alle Schritte wiederholen, bis die Bedingung <code>Gesamtgewinn_Schleife &lt; 50</code> nicht mehr zutrifft. Bis dahin werden auch die Durchgänge gezählt. Das heißt, dass man, sofern die Funktion irgendwann stoppt, an dem Objekt <code>Durchgaenge</code> ablesen kann, wie lange man für einen Gewinn von 50 Euro hätte spielen müssen.</p>
+</p>
+</details>
+</div>
+<div id="funktionen" class="section level2">
+<h2>Funktionen</h2>
+<details>
+<summary>Abschnitt 1 anzeigen</summary>
+<p>
+<p>
+Für das Erstellen einer Funktion kann man den <code>function</code>-Befehl benutzen. Dieser Befehl ist folgendermaßen aufgebaut: <code>function (Variablen) {Funktion}</code>. Und zwar gibt man in den normalen Klammern an, welche Variablen in der Funktion verwendet werden und die zur Durchführung benötigt werden. In den geschwungenen Klammern gibt man dann die Operationen der Funktion an, die unter Verwendung der Variablen durchgeführt werden. Dem Ganzen kann man dann einen Namen mithilfe der Zuweisung mit dem Pfeil geben.
+</p>
+<p>
+Für das Roulette ergeben sich zwei Variablen: der Einsatz <code>y</code> und die Wette <code>k</code>. Die Funktion kann man aus den vorherigen Aufgaben kopieren. Das ist zum einen die Zufallsziehung und zum anderen die Funktion zur Ermittlung des Gewinns in Abhängigkeit von Einsatz <code>y</code> und Wette <code>k</code>.
+</p>
+<p>Das Problem ist nun, dass die Funktion noch keine Ergebnisse ausgibt. Dafür können wir erst einmal ganz einfach den <code>print</code>-Befehl nutzen. Wichtig: der <code>print</code>-Befehl kann nur ein Objekt ausgeben, deshalb muss man Zufallsziehung und Gewinn in einen Vektor packen. Das sieht dann folgendermaßen aus:</p>
+<pre class="r"><code>Roulette &lt;- function (y, k) {
+  j &lt;- sample (0:36, 1)
+  Gewinn_Funktion &lt;- if (is.element(j, k)) {
+    if (k == RED) {
+      y
+    } else if (k == BLACK) {
+      y
+    } else if (k == ODD) {
+      y
+    } else if (k == EVEN) {
+      y
+    } else if (k == firstThird) {
+      y * 2
+    } else if (k == secondThird) {
+      y * 2
+    } else if (k == lastThird) {
+      y * 2
+    } else {
+      y * 35
+    }
+  } else {
+    -y
+  }
+  print(c(j,Gewinn_Funktion))
+}
+Roulette(10,7)</code></pre>
+<pre><code>## [1]  15 -10</code></pre>
+<p>
+Nun kann man ganz einfach Roulette spielen, indem man Einsatz und Wette angibt und erhält Zufallsziehung und Gewinn. Wie man in diesem Beispiel sieht, wurden 10 Euro auf die Zahl 7 gesetzt. Ausgegeben wird, welche Zahl bei der Ziehung herauskam und der Gewinn.
+</p>
+<p>Das Ganze ist aber noch nicht so schön. Deshalb versuchen wir das Roulettespiel etwas authentischer zu gestalten mit Pausen und Nachrichten. Das Praktische dabei ist, dass man auch Variablen in diese Nachrichten schreiben kann, sodass man zum Beispiel eine Nachricht mit dem Ergebnis allgemein formulieren kann [<code>message(&quot;Es wurde eine &quot;, j, &quot; gedreht!&quot;)</code>]. Des Weiteren kann man, je nach Resultat (Sieg oder Niederlage) unterschiedliche Nachrichten mithilfe einer <code>if</code>-Funktion ausgeben lassen. Das könnte dann folgendermaßen aussehen:</p>
+<pre class="r"><code>Roulette &lt;- function (y, k) {
+  j &lt;- sample (0:36, 1)
+  Gewinn_Funktion &lt;- if (is.element(j, k)) {
+    if (k == RED) {
+      y
+    } else if (k == BLACK) {
+      y
+    } else if (k == ODD) {
+      y
+    } else if (k == EVEN) {
+      y
+    } else if (k == firstThird) {
+      y * 2
+    } else if (k == secondThird) {
+      y * 2
+    } else if (k == lastThird) {
+      y * 2
+    } else {
+      y * 35
+    }
+  } else {
+    -y
+  }
+  message (&quot;Roulettekugel startet&quot;)
+  Sys.sleep (2.0)
+  message (&quot;Rien ne va plus!&quot;)
+  Sys.sleep (2.0)
+  message (&quot;Es ist eine &quot;, j, &quot;.&quot;)
+  Sys.sleep (2.0)
+  if (is.element (j, k)) {
+    message (&quot;DU hast gewonnen!&quot;)
+    Sys.sleep (2.0)
+    message (&quot;Dein Gewinn beträgt &quot;, Gewinn_Funktion, &quot; Euro.&quot; )
+  } else {
+    message (&quot;DU hast verloren!&quot;)
+    Sys.sleep (2.0)
+    message (&quot;Gib nicht auf! In der nächsten Runde wird das Glück wieder auf deiner Seite stehen.&quot;)
+  }
+}</code></pre>
+<p>Das testen wir jetzt, indem wir die Funktion einmal benutzen. In diesem Beispiel setzen wir 10 Euro auf <code>RED</code>.</p>
+<pre class="r"><code>Roulette(10,RED)</code></pre>
+<pre><code>## Roulettekugel startet</code></pre>
+<pre><code>## Rien ne va plus!</code></pre>
+<pre><code>## Es ist eine 2.</code></pre>
+<pre><code>## DU hast verloren!</code></pre>
+<pre><code>## Gib nicht auf! In der nächsten Runde wird das Glück wieder auf deiner Seite stehen.</code></pre>
+<p>
+Die Ausgabe in diesem Beispiel ist schon deutlich schöner/authentischer und hält alle nötigen Informationen bereit.
+</p>
+<p>In dieser Funktion kann man jedoch nur ein Mal spielen und muss die Funktion dann erneut starten. Dafür können wir eine neue Funktion schreiben, die die alte Funktion dahingehend erweitert, dass man mehrere Runden auf einmal spielen kann. Das wird im zweiten Abschnitt erläutert.</p>
+</p>
+</details>
+<details>
+<summary> Abschnitt 2 anzeigen </summary>
+<p>
+<p>
+<p>Für das Umsetzen einer Roulette-Funktion mit variabler Rundenzahl müssen wir einige Anpassungen und Erweiterungen an der Funktion in Abschnitt 1 vornehmen. Übernehmen können wir wiederum die Zufallsziehung und die Gewinnberechnung aus den vorherigen Aufgaben. Wir wissen auch schon, dass wir drei Variablen haben werden: <code>m</code> = Einsatz, <code>n</code> = Wette und <code>o</code> = Anzahl der Runden. Die Funktion nennen wir <code>Roulette_Schleife</code>. Das sieht dann vorerst folgendermaßen aus:</p>
+<pre class="r"><code>Roulette_Schleife &lt;- function(m, n, o) {
+  j &lt;- sample(0:36, 1)
+  Gewinn_Funktion_Schleife &lt;- if (is.element(j, n)) {
+    if (n == RED) {
+      m
+    } else if (n == BLACK) {
+      m
+    } else if (n == ODD) {
+      m
+    } else if (n == EVEN) {
+      m
+    } else if (n == firstThird) {
+      m * 2
+    } else if (n == secondThird) {
+      m * 2
+    } else if (n == lastThird) {
+      m * 2
+    } else {
+      m * 35
+    }
+  } else {
+    -m
+  }
+}</code></pre>
+<p>
+Jetzt müssen wir uns überlegen, wie wir Zufallsziehung und Gewinnberechnung wiederholt durchführen können bis eine bestimmte Anzahl an Runden gespielt wurde. Wir wissen, dass die Variable <code>o</code> angibt, wie viele Runden gespielt werden sollen. Das heißt wir erstellen nun eine weitere Variable <code>q</code>, die die gespielten Runden zählen soll. Das Vorgehen dabei sollte bereits aus den vorherigen Aufgaben bekannt sein. Mithilfe dieser beiden Variablen <code>o</code> und <code>q</code> können wir nun eine Bedingung erstellen, sodass gespielt wird bis <code>o == q</code> gilt.
+</p>
+<p>Dafür verwenden wir eine neue Funktion: die <code>repeat</code>-Funktion. Diese Funktion führt alle ihre Operationen durch bis die Bedingung, in unserem Fall <code>o == q</code>, erfüllt ist. Anders als bereits bekannten Funktionen schreibt man die Bedingung hier an das Ende der Funktion. Und zwar ist die <code>repeat</code>-Funktion folgendermaßen aufgebaut: <code>repeat {Operation 1 ENTER Operation 2 ENTER etc. ENTER if (q == o) break}</code>. Das sieht dann bei uns folgendermaßen aus:</p>
+<pre class="r"><code>Roulette_Schleife &lt;- function (m, n, o) {
+  q &lt;- 0
+  repeat {
+    q &lt;- q+1
+    j &lt;- sample (0:36, 1)
+    Gewinn_Funktion_Schleife &lt;- if (is.element(j, n)) {
+      if (n == RED) {
+        m
+      } else if (n == BLACK) {
+        m
+      } else if (n == ODD) {
+        m
+      } else if (n == EVEN) {
+        m
+      } else if (n == firstThird) {
+        m * 2
+      } else if (n == secondThird) {
+        m * 2
+      } else if (n == lastThird) {
+        m * 2
+      } else {
+        m * 35
+      }
+    } else {
+      -m
+    }
+  if(q==o) break
+  }
+}</code></pre>
+<p>Ebenso wie bei der Funktion im ersten Abschnitt fehlt nun eine Ausgabe mit den wichtigen Informationen/Ergebnissen. Dazu können wir unsere Funktion nun um die Pausen und Nachrichten aus dem ersten Abschnitt erweitern.</p>
+<pre class="r"><code>Roulette_Schleife &lt;- function (m, n, o) {
+  q &lt;- 0
+  repeat {
+    q &lt;- q+1
+    j &lt;- sample (0:36, 1)
+    Gewinn_Funktion_Schleife &lt;- if (is.element(j, n)) {
+      if (n == RED) {
+        m
+      } else if (n == BLACK) {
+        m
+      } else if (n == ODD) {
+        m
+      } else if (n == EVEN) {
+        m
+      } else if (n == firstThird) {
+        m * 2
+      } else if (n == secondThird) {
+        m * 2
+      } else if (n == lastThird) {
+        m * 2
+      } else {
+        m * 35
+      }
+    } else {
+      -m
+    }
+    message (&quot;Roulettekugel startet&quot;)
+    Sys.sleep (2.0)
+    message (&quot;Rien ne va plus!&quot;)
+    Sys.sleep (2.0)
+    message (&quot;Es ist eine &quot;, j, &quot;.&quot;)
+    Sys.sleep (2.0)
+    if (is.element (j, n)) {
+      message (&quot;DU hast gewonnen!&quot;)
+      Sys.sleep (2.0)
+      message (&quot;Dein Gewinn beträgt &quot;, Gewinn_Funktion_Schleife, &quot; Euro.&quot; )
+      Sys.sleep (1.0)
+    } else {
+      message (&quot;DU hast verloren!&quot;)
+      Sys.sleep (2.0)
+      message (&quot;Gib nicht auf! In der nächsten Runde wird das Glück wieder auf deiner Seite stehen.&quot;)
+      Sys.sleep (1.0)
+    }
+  if(q==o) break
+  }
+}</code></pre>
+<p>
+Jetzt ist die Ausgabe schon um einiges schöner, doch einige relevante Informationen fehlen noch. Und zwar besteht in dieser Funktion ja die Möglichkeit, mehrere Runden auf einmal zu spielen. Damit kann man noch zusätzlich Information zur aktuellen Runde und zum aktuellen Gesamtgewinn ausgeben.
+</p>
+<p>
+Die Ausgabe des Gesamtgewinns gestaltet sich jedoch nicht so leicht wie die Rundenzahl, denn den Gesamtgewinn muss man jede Runde aufs neue updaten. Das Prinzip für solche Operationen wurde bereits in einer vorherigen Aufgabe beschrieben. Bevor die Schleife beginnt erstellt man ein Objekt <code>Gesamtgewinn_Funktion_Schleife</code> beginnend mit der Null. In der Schleife nutzt man dann dieses Objekt und überschreibt diesen Wert jede Runde aufs neue, indem man immer wieder den Gewinn (<code>Gewinn_Funktion_Schleife</code>) aus der gerade laufenden Runde addiert. [Achtung: Die Nachricht zum Gesamtgewinn muss nach dieser erneuten Gesamtgewinn-Berechnung erfolgen, ansonsten gibt man den jeweils den Gesamtgewinn nach der vorherigen Runde an.]
+</p>
+<p>Nachdem man diese beiden Dinge impliziert hat, sieht die Funktion folgendermaßen aus:</p>
+<pre class="r"><code>Roulette_Schleife &lt;- function (m, n, o) {
+  q &lt;- 0
+  Gesamtgewinn_Funktion_Schleife &lt;- 0
+  repeat {
+    q &lt;- q+1
+    message (&quot;Runde &quot;, q, &quot;!&quot;)
+    j &lt;- sample (0:36, 1)
+    Gewinn_Funktion_Schleife &lt;- if (is.element(j, n)) {
+      if (n == RED) {
+        m
+      } else if (n == BLACK) {
+        m
+      } else if (n == ODD) {
+        m
+      } else if (n == EVEN) {
+        m
+      } else if (n == firstThird) {
+        m * 2
+      } else if (n == secondThird) {
+        m * 2
+      } else if (n == lastThird) {
+        m * 2
+      } else {
+        m * 35
+      }
+    } else {
+      -m
+    }
+    Gesamtgewinn_Funktion_Schleife &lt;- Gesamtgewinn_Funktion_Schleife + Gewinn_Funktion_Schleife
+    message (&quot;Roulettekugel startet&quot;)
+    Sys.sleep (2.0)
+    message (&quot;Rien ne va plus!&quot;)
+    Sys.sleep (2.0)
+    message (&quot;Es ist eine &quot;, j, &quot;.&quot;)
+    Sys.sleep (2.0)
+    if (is.element (j, n)) {
+      message (&quot;DU hast gewonnen!&quot;)
+      Sys.sleep (2.0)
+      message (&quot;Dein Gewinn beträgt &quot;, Gewinn_Funktion_Schleife, &quot; Euro.&quot; )
+      Sys.sleep (1.0)
+      message (&quot;Damit liegt dein Gesamtgewinn bisher bei &quot;, Gesamtgewinn_Funktion_Schleife, &quot; Euro.&quot;)
+      Sys.sleep (1.0)
+    } else {
+      message (&quot;DU hast verloren!&quot;)
+      Sys.sleep (2.0)
+      message (&quot;Damit liegt dein Gesamtgewinn bisher bei &quot;, Gesamtgewinn_Funktion_Schleife, &quot; Euro.&quot;)
+      Sys.sleep (1.0)
+      message (&quot;Gib nicht auf! In der nächsten Runde wird das Glück wieder auf deiner Seite stehen.&quot;)
+      Sys.sleep (1.0)
+    }
+  if(q==o) break
+  }
+}</code></pre>
+<p>Insgesamt funktioniert die Funktion nun, jedoch endet das Spiel nun ganz abrupt ohne irgendeine abschließende Nachricht. Aus diesem Grund fügen wir nun noch mehrere Nachrichten ein:</p>
+<ul>
+<li>Eine Nachricht, dass die <code>o</code> Runden nun gespielt sind.</li>
+<li>Eine Nachricht, die Einsatz, Wette und Rundenzahl nocheinmal zusammenfasst und den daraus folgenden Gesamtgewinn beinhaltet.</li>
+<li>Eine Nachricht, abhängig vom Gesamtgewinn. Je nachdem, ob Geld gewonnen oder verloren wurde, oder ob man bei Null rauskam, soll eine unterschiedliche Nachricht zur Folge haben.</li>
+</ul>
+<p>Das kann dann folgendermaßen aussehen:</p>
+<pre class="r"><code>Roulette_Schleife &lt;- function (m, n, o) {
+  q &lt;- 0
+  Gesamtgewinn_Funktion_Schleife &lt;- 0
+  repeat {
+    q &lt;- q+1
+    message (&quot;Runde &quot;, q, &quot;!&quot;)
+    j &lt;- sample (0:36, 1)
+    Gewinn_Funktion_Schleife &lt;- if (is.element(j, n)) {
+      if (n == RED) {
+        m
+      } else if (n == BLACK) {
+        m
+      } else if (n == ODD) {
+        m
+      } else if (n == EVEN) {
+        m
+      } else if (n == firstThird) {
+        m * 2
+      } else if (n == secondThird) {
+        m * 2
+      } else if (n == lastThird) {
+        m * 2
+      } else {
+        m * 35
+      }
+    } else {
+      -m
+    }
+    Gesamtgewinn_Funktion_Schleife &lt;- Gesamtgewinn_Funktion_Schleife + Gewinn_Funktion_Schleife
+    message (&quot;Roulettekugel startet&quot;)
+    Sys.sleep (2.0)
+    message (&quot;Rien ne va plus!&quot;)
+    Sys.sleep (2.0)
+    message (&quot;Es ist eine &quot;, j, &quot;.&quot;)
+    Sys.sleep (2.0)
+    if (is.element (j, n)) {
+      message (&quot;DU hast gewonnen!&quot;)
+      Sys.sleep (2.0)
+      message (&quot;Dein Gewinn beträgt &quot;, Gewinn_Funktion_Schleife, &quot; Euro.&quot; )
+      Sys.sleep (1.0)
+      message (&quot;Damit liegt dein Gesamtgewinn bisher bei &quot;, Gesamtgewinn_Funktion_Schleife, &quot; Euro.&quot;)
+      Sys.sleep (1.0)
+    } else {
+      message (&quot;DU hast verloren!&quot;)
+      Sys.sleep (2.0)
+      message (&quot;Damit liegt dein Gesamtgewinn bisher bei &quot;, Gesamtgewinn_Funktion_Schleife, &quot; Euro.&quot;)
+      Sys.sleep (1.0)
+      message (&quot;Gib nicht auf! In der nächsten Runde wird das Glück wieder auf deiner Seite stehen.&quot;)
+      Sys.sleep (1.0)
+    }
+  if(q==o) break
+  }
+  message (&quot;Deine &quot;, q, &quot; Runden sind durch.&quot;)
+  Sys.sleep (3.0)
+  message (&quot;Du hast heute in &quot;, q, &quot; Spielrunden jeweils mit einem Einsatz von &quot;, m, &quot; Euro auf &quot;, n, &quot; einen Gesamtgewinn von &quot;, Gesamtgewinn_Funktion_Schleife, &quot; Euro erzielt!&quot;)
+  Sys.sleep (3.0)
+  if (Gesamtgewinn_Funktion_Schleife &gt; 0) {
+    message(&quot;Herzlichen Glückwunsch!&quot;)
+  } else if (Gesamtgewinn_Funktion_Schleife == 0) {
+    message(&quot;Sie haben heute nichts gewonnen. Wollen Sie wirklich schon gehen?&quot;)
+  } else {
+    message(&quot;Schade. Aber seien Sie nicht traurig. Das nächste Mal steht das Glück wieder auf Ihrer Seite!&quot;)
+  }
+}</code></pre>
+<p>Hier seht ihr jetzt zwei Beispiele:</p>
+<ul>
+<li>Ein Mal wurden in 3 Runden jeweils 5 Euro auf BLACK gesetzt.</li>
+<li>Ein Mal wurden in 4 Runden jeweils 100 Euro auf ODD gesetzt.</li>
+</ul>
+<pre class="r"><code>Roulette_Schleife(5, BLACK, 3)
+Roulette_Schleife(100, ODD, 4)</code></pre>
+</p>
+</details>
+<div id="zurück-zum-projekt" class="section level3">
+<h3><a href="/projects#project_02">Zurück zum Projekt</a></h3>
+</div>
+</div>
