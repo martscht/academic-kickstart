@@ -4,11 +4,11 @@
 
 widget = "pages"  # See https://sourcethemes.com/academic/docs/page-builder/
 headless = true  # This file represents a page section.
-active = false  # Activate this widget? true/false
+active = true  # Activate this widget? true/false
 weight = 30  # Order that this section will appear.
 
 title = "Projekt 2"
-subtitle = "Kasino"
+subtitle = "Casino"
 
 [content]
   # Page type to display. E.g. post, talk, or publication.
@@ -65,3 +65,5 @@ subtitle = "Kasino"
  # CSS class.
  css_class = ""
 +++
+
+In diesem Projekt versuchen wir uns den Weg ins Casino zu ersparen, indem wir in R ein vollständiges Roulette selbst programmieren. Das heißt, dass wir uns mit Zufallsziehungen, Schleifen und Funktionen auseinandersetzen müssen. Aber Vorsicht: Glücksspiel kann süchtig machen.
