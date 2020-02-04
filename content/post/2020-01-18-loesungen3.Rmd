@@ -1,0 +1,302 @@
+---
+title: Lösung
+author: Christina Berger
+date: '2020-01-18'
+slug: loesung3
+categories:
+  - Projekt 3
+tags: []
+subtitle: ''
+summary: ''
+authors: [berger]
+lastmod: '2020-01-18T12:31:21+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+## Vorwarnung
+
+Achtung! Im Folgenden werden die Lösungen für das dritte Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die [Tipps](/post/tipps3). Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, um einen Schritt weiterzukommen und beim nächsten Abschnitt weiterzumachen.
+
+## Datensammlung
+
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+Zunächst muss der Chat, wie in der Vorbereitung eingelesen werden. 
+```{r, eval = F}
+setwd('...')
+install.packages('rwhatsapp')
+```
+```{r}
+library(rwhatsapp)
+whatsapp <- rwa_read('MeineGruppe.txt')
+```
+Wenn du dir nun den Datensatz anschaust sollte er so aussehen
+
+```{r, echo= F, message= F, warning= F, include= F}
+#install.packages('DT')
+a <- DT::datatable(whatsapp)
+```
+```{r, message= F, warning= F, include= F}
+#install.packages('htmlwidgets')
+#install.packages('htmltools')
+htmlwidgets::saveWidget(a, file = 'Tabelle.html' , selfcontained = T)
+
+```
+<iframe seamless src= '../Tabelle/index.html' width = '100%' height = '500'></iframe>
+Wenn es bei dir einige Zeilen gibt, die keinen Absender und keine Uhrzeit haben, liegt das daran, dass jemand einen Absatz in seiner Nachricht hatte. 
+Mit `which` werden hier zunächst alle Zeilen identifiziert, die keine Zeit und keinen Absender haben.
+Im zweiten Schritt wird die Zeit und der Absender aus der oberen Zeile genommen und in die leeren ersten zwei Spalten eingefügt. So wurde aus einer Nachricht zwei Stück, was wir im Hinterkopf behalten müssen für später.
+Wenn das bei dir nicht vorkommt, kannst du diesen Schritt einfach weglassen.
+```{r}
+linebreaks <- which(is.na(whatsapp$time) & is.na(whatsapp$author))
+for (i in linebreaks) whatsapp[i, 1:2] <- whatsapp[i - 1, 1:2] 
+```
+
+Der erste der zwei Sonderfälle, sind Nachrichten vom System (wenn jemand der Gruppe beigetreten ist oder sie verlassen hat).
+Hierfür überschreiben wir unseren Datensatz mit dem gleichen Chat ohne die Zeilen, die immer noch keinen Author haben. 
+Daher ist es wichtig, dass wir vorher die Absätze in den Nachrichten bereinigt haben und nicht die  richtigen Nachrichten zu löschen.
+```{r}
+whatsapp <- whatsapp[!is.na(whatsapp$author),]
+```
+
+Der zweite Sonderfall sind die Medien, die wir beim Exportieren aus Whatsapp ausgeschlossen haben. Mit `grep` können wir die Nachrichten heraussuchen und durch NA ersetzen. Hier muss nicht die ganze Nachricht angegeben werden, da jede dieser Nachrichten gleich aufgebaut ist.
+```{r}
+whatsapp$text[grep('<Medien ausgeschlossen', whatsapp$text)] <- NA
+```
+</p>
+</details>
+
+## Deskriptives
+
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Falls du `ggplot` noch nicht geladen hast, solltest du es jetzt tun.
+```{r}
+library('ggplot2')
+```
+
+Als erstes kannst du dir über die Funktion `summary` einen groben Überblick über Mittelwerte und Standardabweichungen des Datensatzes machen.
+```{r, eval=F}
+summary(whatsapp)
+```
+
+Unser erstes Diagramm ist ein Kreisdiagramm, dazu wer am häufigsten schreibt. Die brauchst hier den Befehl `table` damit du die Häufigkeiten der Personen bekommst.
+```{r}
+pie(table(whatsapp$author), col = c("red", "yellow", "green", "violet", "orange", "blue", "pink", "cyan") )
+```
+
+Wenn wir das gleiche mit `ggplot` machen wollen, müssen wir ein Balkendiagramm benutzten.
+```{r}
+ggplot(whatsapp, aes(x = author)) +
+geom_bar(width = 1 , aes(fill = author))
+```
+
+Für ein Histogramm über die gesammte Zeit kannst du es entweder mit der Basicfunktion `hist` machen, oder wieder mit `ggplot`. Setzte die Balkenbreite, so wie es für dich Sinn macht.
+```{r}
+hist(whatsapp$time, frequency(whatsapp$text), breaks = 20)
+ggplot(whatsapp, aes(x = whatsapp$time))+ geom_histogram()
+```
+
+Für die Wochentage, gibt es in R einen extra Befehl `weeksdays`. Da es wenig Sinn macht, die Wochentag alphabetisch zu sortieren, musst du noch einen Faktor erstellen, in dem du die richtigen Levels zuweist.
+Da Wochentage nicht intervall skaliert ist nutzen wir hier ein Balkendiagramm.
+```{r}
+whatsapp$Wochentage <- weekdays(whatsapp$time)
+whatsapp$Wochentage <- factor(whatsapp$Wochentage, levels = c('Montag','Dienstag', 'Mittwoch', 'Donnerstag', 'Freitag', 'Samstag', 'Sonntag'))
+```
+
+
+```{r}
+ggplot(whatsapp, aes(x = Wochentage)) + geom_bar()
+```
+
+Für die Uhrzeit erstellen wir erst eine neue Zeitvariable ohne das Datum. Leider speichert R die neue Zeitvariable wieder als `Character` ab, sodass du sie nochmal in `POSIXct` umformen musst. Zur Visualisierung benutzen wir hier ein Histogramm.
+```{r}
+whatsapp$uhrzeit <- strftime(whatsapp$time, format = '%H:%M')
+whatsapp$uhrzeit <- as.POSIXct(whatsapp$uhrzeit, format = '%H:%M')
+ggplot(whatsapp, aes(x = whatsapp$uhrzeit))+ geom_histogram(bins = 10, color = 'white') +
+  xlab('Zeit')+ ylab('Nachrichten') + geom_freqpoly()
+```
+
+
+</p>
+</details>
+
+## Zeitanalyse
+
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+Wir haben hier einen zweiten Datensatz erstellt, damit wenn wir etwas am Datensatz verändern und etwas schief geht wir nicht von Anfang an alles neu einlesen müssen. Das ist generell auch für die Zukunft immer eine gute Idee, wenn du etwas an deinem Datensatz verändern willst aber dir nicht ganz sicher bist, wie es geht.
+```{r}
+whatsapp_new <- whatsapp
+```
+Wir wollen nun schauen, wer im Chat am schnellsten antwortet. Am einfachsten ist es etwas zu analysieren, was in der gleichen Zeile steht. Daher erstellen wir eine neue Spalten und fügen jeweils die Zeit aus der darunter stehenden Zeile ein.
+```{r}
+whatsapp_new$response <- NA
+whatsapp_new$response <-c(whatsapp_new$time[2:nrow(whatsapp_new)], NA)
+```
+Im zweiten Schritt können wir dann beide Zeiten voneinander subtrahieren und haben unsere Antwortzeit.
+```{r}
+whatsapp_new$antwortzeit <- whatsapp_new$response - whatsapp_new$time
+```
+
+
+Das gleiche machen wir auch mit dem Absender der Antwortnachricht, da wir sonst nicht zuordnen können wer denn wie schnell geantwortet hat. Wichtig ist hier, dass wir es als Faktor vorliegen haben müssen.
+```{r}
+whatsapp_new$antworter <- NA
+whatsapp_new$antworter <-c(as.character(whatsapp_new$author[2:nrow(whatsapp_new)]), NA)
+whatsapp_new$antworter <- as.factor(whatsapp_new$antworter)
+```
+
+Wie du dir hoffentlich gemerkt hast, gibt es mehrere Zeilen hintereinander, die eigentlich zur gleichen Nachricht gehören und es gibt auch Personen, die ihre Antwort generell in zwei Nachrichten und nicht in einer verfassen. Daher müssen wir die die "sich selbst antworten" ausschließen. Dafür identifitieren wir zunächst die Zeilen die den gleichen Absender und Antworter haben. Danach können wir die zwei Spalten `antwortzeit` und `antworter` durch NA ersetzen.
+```{r}
+gleich <- which(whatsapp_new$antworter == whatsapp_new$author)
+for (i in gleich) {
+  whatsapp_new[i,]$antwortzeit <- NA
+  whatsapp_new[i,]$antworter <- NA
+  }
+```
+
+Nun musst du dir überlegen, was am sinnvollsten ist als Maß der zentralen Lage ist. Bei Betrachtung des Datensatzes sieht man, dass manche Antwortzeiten extrem hoch sind. Das kann daran liegen, dass erst am nächsten Tag die Antwort kam, oder das Gespräch beendet wurde und erst nach 2 Tagen ein neues angefangen wurde. Daher ist es am sinnvollsten den Median zu nutzen, da dieser am robustesten gegenüber Ausreißern ist.
+Mit `tapply` kannst du ein bestimmtes Maß auf die ganze Tabelle anwenden.
+```{r}
+zeit <- tapply(whatsapp_new$antwortzeit, whatsapp_new$antworter, median)
+```
+
+Um am Ende ein Ergebnis zu bekommen, wer nun wirklich die beste Freundin ist, brauchen wir ein Punkt System. Hierfür erstellen wir eine Tabelle mit den Namen aller Chatmitglieder und fügen die Zeit ein. Im zweiten Schritt erhält jeder Punkte, je nach dem auf welchem Platz er sich befindet. Dafür gibt es den Befehl `rank` der die Punktevergabe automatisch macht.
+```{r}
+tab <- data.frame(levels(whatsapp$author), zeit)
+tab$Punkte <- rank(tab$zeit)
+```
+
+```{r, echo = F}
+tab
+```
+
+</p>
+</details>
+
+
+## Stimmungsanalyse
+
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+Falls du es noch nicht getan hast solltest du spätestens hier das Packet `Udpipe` installiert haben und laden.
+```{r}
+#install.packages("udpipe")
+library(udpipe)
+```
+
+Das hier steht alles schon in der [Übersicht](/post/uebersicht3), aber hier der Vollständigkeitshalber nochmal. Um `udpipe` benutzen zu können, musst du das Modell in der richtigen Sprache herunterladen und laden
+```{r, fig = F}
+#model <- udpipe_download_model(language = 'german')
+germodel <- udpipe_load_model(file = dir(pattern = 'udpipe'))
+```
+
+
+Nun müssen die verschiedenen Listen eingelesen werden. Wir haben die Tabellen mit den richtigen Namen versehen, damit es einfacher und ordentlicher ist. Das ist zwar kein muss, aber umbedingt zu empfehlen.
+```{r}
+emo <- read.csv('EmotionLookupTable.txt', sep = '\t', header = FALSE, stringsAsFactors = FALSE)
+names(emo) <- c('Wort', 'Senti', 'Englisch', 'Quelle', 'Entstehung')
+
+
+boost <- read.table('BoosterWordList.txt', stringsAsFactors = FALSE)
+names(boost) <- c('Wort', 'Boost')
+
+
+negate <- read.table('NegatingWordList.txt', stringsAsFactors = FALSE)
+negate <- negate[, 1]
+```
+
+Für die Textanalyse brauchen wir eine Tabelle in der alle Wörter nach ihrer Stärke der Bedeutung sortiert sind.
+```{r}
+polar <- data.frame(term = emo$Wort, polarity = emo$Senti, stringsAsFactors = FALSE)
+```
+
+Die Boostliste wird hier unterteilt in Verstärker und Abschwächer.
+```{r}
+ampli <- boost[boost$Boost > 0, 'Wort']
+deamp <- boost[boost$Boost < 0, 'Wort']
+```
+
+Als ersten versuchen wir das ganze mit Hans. Dafür suchen wir mit `grep` alle Nachrichten raus, die Hans geschrieben hat.
+```{r}
+hans <- whatsapp[grep('Hans', whatsapp$author), 'text']
+hans <- paste(as.character(hans), collapse = ' ')
+```
+
+Im zweiten Schritt müssen wir die Nachrichten in `Tokens` zerlegen. Wenn du nicht mehr weißt, was gemeint ist schau unter [der Problemstellung](/post/problemstellung3) dir nochmal die genauere Erklärung an.
+```{r}
+hans <- udpipe(hans, germodel)
+```
+
+Für die Analyse hast du nun vier Komponenten:
+
+- `polarity_terms` sind die Wörter an sich, welche positiv oder negativ sind.
+- `polarity_negators` sind die Begriffe, die die Bedeutung umkehren können.
+- `polarity_amplifiers` sind die Verstärker.
+- `polarity_deamplifiers`sind die Abschwächer.
+
+```{r}
+senti_hans <- txt_sentiment(hans,
+  polarity_terms = polar,
+  polarity_negators = negate,
+  polarity_amplifiers = ampli,
+  polarity_deamplifiers = deamp)
+```
+In der Spalte `overall` sind alle Endergebnisse gespeichert.
+```{r}
+senti_hans$overall
+```
+
+
+Wenn wir das ganze nun mit allen aus dem Chat machen wollen, müssen wir einen Dataframe erstellen mit allen Personen und die Nachrichten hinzufügen.
+```{r}
+chat <- data.frame(author = levels(whatsapp$author), what = '', stringsAsFactors = FALSE)
+for (i in levels(whatsapp$author)) {
+  chat$what[chat$author == i] <- paste(whatsapp$text[whatsapp$author == i], collapse = ' ')
+}
+```
+
+Auch hier zerlegen wir die Nachricht in `Tokens` und analysieren den Chat auf die gleiche Art und Weise wie oben.
+```{r}
+chat <- udpipe(chat$what, germodel)
+
+senti_all <- txt_sentiment(chat,
+  polarity_terms = polar,
+  polarity_negators = negate,
+  polarity_amplifiers = ampli,
+  polarity_deamplifiers = deamp)
+senti_all$overall
+```
+Man nun nicht erkennen kann wer wer ist, da bei dem `overall` Befehl nur Nummern und keine Namen angezeigt werden. Wir  können aber jedem seinen Namen zuweisen, indem wir die Namen der Authoren zuweisen.
+```{r}
+senti <- senti_all$overall
+senti$doc_id <- levels(whatsapp$author)
+```
+
+Nun kannst du dir die Werte absteigend anschauen. Der höchste Wert ist die positivste Person in deinem Chat.
+```{r}
+senti[order(senti$sentiment_polarity, decreasing = TRUE), ]
+``` 
+
+Für unseren Test müssen wir nun wieder Punkte verteilen. Dafür solltest du erst den 'Positivitätswert' in der Tabelle speichern und dann wie bei der Zeitanalyse Punkte vergeben. Hier muss du aber ein Minus vorschreiben, weil die höchste Zahl hier am besten ist, und nicht die niedrigste.
+```{r}
+tab$senti <- senti$sentiment_polarity
+tab$Punkte2 <- rank(-senti$sentiment_polarity)
+```
+
+Für das Ergebnis des Tests rechnest du einfach beide Punkte zusammen und lässt dir das Minimum ausgeben. 
+```{r}
+tab$final <- tab$Punkte + tab$Punkte2
+tab$levels.whatsapp.author.[min(tab$final)]
+```
+</p>
+</details>
+
+
