@@ -1,0 +1,278 @@
+---
+title: Lösung
+author: Christina Berger
+date: '2020-01-18'
+slug: loesung3
+categories:
+  - Projekt 3
+tags: []
+subtitle: ''
+summary: ''
+authors: [berger]
+lastmod: '2020-01-18T12:31:21+01:00'
+featured: no
+header:
+  image: "/header/whatsapp_post.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/1561391)"
+projects: []
+---
+
+
+
+<div id="vorwarnung" class="section level2">
+<h2>Vorwarnung</h2>
+<p>Achtung! Im Folgenden werden die Lösungen für das dritte Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die <a href="/post/tipps3">Tipps</a>. Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, um einen Schritt weiterzukommen und beim nächsten Abschnitt weiterzumachen.</p>
+</div>
+<div id="datensammlung" class="section level2">
+<h2>Datensammlung</h2>
+<details>
+<summary>Abschnitt anzeigen</summary>
+<p>
+<p>Zunächst muss der Chat, wie in der Vorbereitung eingelesen werden.</p>
+<pre class="r"><code>setwd(&#39;...&#39;)
+install.packages(&#39;rwhatsapp&#39;)</code></pre>
+<pre class="r"><code>library(rwhatsapp)
+whatsapp &lt;- rwa_read(&#39;MeineGruppe.txt&#39;)</code></pre>
+<p>Wenn du dir nun den Datensatz anschaust (z.B. über <code>View</code>) sollte er so aussehen</p>
+<iframe seamless src="../Tabelle/index.html" width="100%" height="500">
+</iframe>
+<p>Wenn es bei dir einige Zeilen gibt, die keinen Absender und keine Uhrzeit haben, liegt das daran, dass jemand einen Absatz in seiner Nachricht hatte.
+Mit <code>which</code> werden hier zunächst alle Zeilen identifiziert, die keine Zeit und keinen Absender haben.
+Im zweiten Schritt wird die Zeit und der Absender aus der oberen Zeile genommen und in die leeren ersten zwei Spalten eingefügt. So wurde aus einer Nachricht zwei Stück, was wir im Hinterkopf behalten müssen für später.
+Wenn das bei dir nicht vorkommt, kannst du diesen Schritt einfach weglassen.</p>
+<pre class="r"><code>linebreaks &lt;- which(is.na(whatsapp$time) &amp; is.na(whatsapp$author))
+for (i in linebreaks) whatsapp[i, 1:2] &lt;- whatsapp[i - 1, 1:2] </code></pre>
+<p>Der erste der zwei Sonderfälle, sind Nachrichten vom System (wenn jemand der Gruppe beigetreten ist oder sie verlassen hat).
+Hierfür überschreiben wir unseren Datensatz mit dem gleichen Chat ohne die Zeilen, die immer noch keinen Author haben.
+Daher ist es wichtig, dass wir vorher die Absätze in den Nachrichten bereinigt haben und nicht die richtigen Nachrichten zu löschen.</p>
+<pre class="r"><code>whatsapp &lt;- whatsapp[!is.na(whatsapp$author),]</code></pre>
+<p>Der zweite Sonderfall sind die Medien, die wir beim Exportieren aus Whatsapp ausgeschlossen haben. Mit <code>grep</code> können wir die Nachrichten heraussuchen und durch NA ersetzen. Hier muss nicht die ganze Nachricht angegeben werden, da jede dieser Nachrichten gleich aufgebaut ist.</p>
+<pre class="r"><code>whatsapp$text[grep(&#39;&lt;Medien ausgeschlossen&#39;, whatsapp$text)] &lt;- NA</code></pre>
+</p>
+</details>
+</div>
+<div id="deskriptives" class="section level2">
+<h2>Deskriptives</h2>
+<details>
+<summary>Abschnitt anzeigen</summary>
+<p>
+<p>Falls du <code>ggplot2</code> noch nicht geladen hast, solltest du es jetzt tun. Falls du dich noch nicht damit beschäftigt hast, wie man mit diesem Paket Grafiken erzeugt, kannst du das z.B. in unserem <a href="/post/grafiken-mit-ggplot2/">Minitatur-Crashkurs</a> nachholen.</p>
+<pre class="r"><code>library(&#39;ggplot2&#39;)</code></pre>
+<p>Unser erstes Diagramm ist ein Kreisdiagramm, dazu wer am häufigsten schreibt. Du brauchst hier den Befehl <code>table</code> damit du die Häufigkeiten der Personen bekommst. Weil der Autor von <code>ggplot2</code> sich wehement weigert, diese Art von Diagramm direkt zu implementieren, können wir hier dein R-eigenen Befehl <code>pie</code> benutzen. Der benötigt als Input aber eine Häufigkeitstabelle:</p>
+<pre class="r"><code>tab &lt;- table(whatsapp$author)
+tab</code></pre>
+<pre><code>## 
+##      Anna Anne-Lisa     Frank     Georg      Hans     Marie     Petra 
+##       225        30       104       134       132       112       149</code></pre>
+<pre class="r"><code>pie(tab, col = c(&quot;red&quot;, &quot;yellow&quot;, &quot;green&quot;, &quot;violet&quot;, &quot;orange&quot;, &quot;blue&quot;, &quot;pink&quot;, &quot;cyan&quot;) )</code></pre>
+<p><img src="/post/2020-01-18-loesungen3_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>Wenn wir das gleiche mit <code>ggplot</code> machen wollen, müssen wir ein Balkendiagramm benutzten.</p>
+<pre class="r"><code>ggplot(whatsapp, aes(x = author)) +
+geom_bar(width = 1 , aes(fill = author))</code></pre>
+<p><img src="/post/2020-01-18-loesungen3_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>Für ein Histogramm über die gesammte Zeit kannst du es entweder mit der Basicfunktion <code>hist</code> machen, oder wieder mit <code>ggplot</code>. Setzte die Balkenbreite, so wie es für dich Sinn macht.</p>
+<pre class="r"><code>hist(whatsapp$time, breaks = 20, freq = TRUE)</code></pre>
+<pre><code>## Warning in breaks[-1L] + breaks[-nB]: NAs produced by integer overflow</code></pre>
+<p><img src="/post/2020-01-18-loesungen3_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<pre class="r"><code>ggplot(whatsapp, aes(x = whatsapp$time))+ geom_histogram()</code></pre>
+<p><img src="/post/2020-01-18-loesungen3_files/figure-html/unnamed-chunk-12-2.png" width="672" /></p>
+<p>Für die Wochentage, gibt es in R einen extra Befehl <code>weeksdays</code>. Da es wenig Sinn macht, die Wochentag alphabetisch zu sortieren, musst du noch einen Faktor erstellen, in dem du die richtigen Levels zuweist.
+Da Wochentage nicht intervall skaliert ist nutzen wir hier ein Balkendiagramm.</p>
+<pre class="r"><code>whatsapp$Wochentage &lt;- weekdays(whatsapp$time)
+whatsapp$Wochentage &lt;- factor(whatsapp$Wochentage, levels = c(&#39;Montag&#39;,&#39;Dienstag&#39;, &#39;Mittwoch&#39;, &#39;Donnerstag&#39;, &#39;Freitag&#39;, &#39;Samstag&#39;, &#39;Sonntag&#39;))</code></pre>
+<pre class="r"><code>ggplot(whatsapp, aes(x = Wochentage)) + geom_bar()</code></pre>
+<p><img src="/post/2020-01-18-loesungen3_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>Für die Uhrzeit erstellen wir erst eine neue Zeitvariable ohne das Datum. Leider speichert R die neue Zeitvariable wieder als <code>Character</code> ab, sodass du sie nochmal in <code>POSIXct</code> umformen musst. Zur Visualisierung benutzen wir hier ein Histogramm.</p>
+<pre class="r"><code>whatsapp$uhrzeit &lt;- strftime(whatsapp$time, format = &#39;%H:%M&#39;)
+whatsapp$uhrzeit &lt;- as.POSIXct(whatsapp$uhrzeit, format = &#39;%H:%M&#39;)
+ggplot(whatsapp, aes(x = whatsapp$uhrzeit))+ geom_histogram(bins = 10, color = &#39;white&#39;) +
+  xlab(&#39;Zeit&#39;)+ ylab(&#39;Nachrichten&#39;) + geom_freqpoly(bins = 10) + scale_x_datetime(date_labels = &#39;%H:%M&#39;)</code></pre>
+<p><img src="/post/2020-01-18-loesungen3_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+</p>
+</details>
+</div>
+<div id="zeitanalyse" class="section level2">
+<h2>Zeitanalyse</h2>
+<details>
+<summary>Abschnitt anzeigen</summary>
+<p>
+<p>Wir haben hier einen zweiten Datensatz erstellt, damit wenn wir etwas am Datensatz verändern und etwas schief geht wir nicht von Anfang an alles neu einlesen müssen. Das ist generell auch für die Zukunft immer eine gute Idee, wenn du etwas an deinem Datensatz verändern willst aber dir nicht ganz sicher bist, wie es geht.</p>
+<pre class="r"><code>whatsapp_new &lt;- whatsapp</code></pre>
+<p>Wir wollen nun schauen, wer im Chat am schnellsten antwortet. Am einfachsten ist es etwas zu analysieren, was in der gleichen Zeile steht. Daher erstellen wir eine neue Spalten und fügen jeweils die Zeit aus der darunter stehenden Zeile ein.</p>
+<pre class="r"><code>whatsapp_new$response &lt;- NA
+whatsapp_new$response &lt;-c(whatsapp_new$time[2:nrow(whatsapp_new)], NA)</code></pre>
+<p>Im zweiten Schritt können wir dann beide Zeiten voneinander subtrahieren und haben unsere Antwortzeit.</p>
+<pre class="r"><code>whatsapp_new$antwortzeit &lt;- whatsapp_new$response - whatsapp_new$time</code></pre>
+<p>Das gleiche machen wir auch mit dem Absender der Antwortnachricht, da wir sonst nicht zuordnen können wer denn wie schnell geantwortet hat. Wichtig ist hier, dass wir es als Faktor vorliegen haben müssen.</p>
+<pre class="r"><code>whatsapp_new$antworter &lt;- NA
+whatsapp_new$antworter &lt;-c(as.character(whatsapp_new$author[2:nrow(whatsapp_new)]), NA)
+whatsapp_new$antworter &lt;- as.factor(whatsapp_new$antworter)</code></pre>
+<p>Wie du dir hoffentlich gemerkt hast, gibt es mehrere Zeilen hintereinander, die eigentlich zur gleichen Nachricht gehören und es gibt auch Personen, die ihre Antwort generell in zwei Nachrichten und nicht in einer verfassen. Daher müssen wir die die “sich selbst antworten” ausschließen. Dafür identifitieren wir zunächst die Zeilen die den gleichen Absender und Antworter haben. Danach können wir die zwei Spalten <code>antwortzeit</code> und <code>antworter</code> durch NA ersetzen.</p>
+<pre class="r"><code>gleich &lt;- which(whatsapp_new$antworter == whatsapp_new$author)
+for (i in gleich) {
+  whatsapp_new[i,]$antwortzeit &lt;- NA
+  whatsapp_new[i,]$antworter &lt;- NA
+  }</code></pre>
+<p>Nun musst du dir überlegen, was am sinnvollsten ist als Maß der zentralen Lage ist. Bei Betrachtung des Datensatzes sieht man, dass manche Antwortzeiten extrem hoch sind. Das kann daran liegen, dass erst am nächsten Tag die Antwort kam, oder das Gespräch beendet wurde und erst nach 2 Tagen ein neues angefangen wurde. Daher ist es am sinnvollsten den Median zu nutzen, da dieser am robustesten gegenüber Ausreißern ist.
+Mit <code>tapply</code> kannst du ein bestimmtes Maß auf die ganze Tabelle anwenden.</p>
+<pre class="r"><code>zeit &lt;- tapply(whatsapp_new$antwortzeit, whatsapp_new$antworter, median)</code></pre>
+<p>Um am Ende ein Ergebnis zu bekommen, wer nun wirklich die beste Freundin ist, brauchen wir ein Punkt System. Hierfür erstellen wir eine Tabelle mit den Namen aller Chatmitglieder und fügen die Zeit ein. Im zweiten Schritt erhält jeder Punkte, je nach dem auf welchem Platz er sich befindet. Dafür gibt es den Befehl <code>rank</code> der die Punktevergabe automatisch macht.</p>
+<pre class="r"><code>tab &lt;- data.frame(levels(whatsapp$author), zeit)
+tab$Punkte &lt;- rank(tab$zeit)</code></pre>
+<pre><code>##           levels.whatsapp.author. zeit Punkte
+## Anna                         Anna  300    4.5
+## Anne-Lisa               Anne-Lisa  960    7.0
+## Frank                       Frank  300    4.5
+## Georg                       Georg  240    3.0
+## Hans                         Hans  120    1.0
+## Marie                       Marie  360    6.0
+## Petra                       Petra  180    2.0</code></pre>
+</p>
+</details>
+</div>
+<div id="stimmungsanalyse" class="section level2">
+<h2>Stimmungsanalyse</h2>
+<details>
+<summary>Abschnitt anzeigen</summary>
+<p>
+<p>Falls du es noch nicht getan hast solltest du spätestens hier das Packet <code>Udpipe</code> installiert haben und laden.</p>
+<pre class="r"><code>#install.packages(&quot;udpipe&quot;)
+library(udpipe)</code></pre>
+<p>Das hier steht alles schon in der <a href="/post/uebersicht3">Übersicht</a>, aber hier der Vollständigkeitshalber nochmal. Um <code>udpipe</code> benutzen zu können, musst du das Modell in der richtigen Sprache herunterladen und laden</p>
+<pre class="r"><code># model &lt;- udpipe_download_model(language = &#39;german&#39;)
+germodel &lt;- udpipe_load_model(file = dir(pattern = &#39;udpipe&#39;))</code></pre>
+<p>Nun müssen die verschiedenen Listen eingelesen werden. Wir haben die Tabellen mit den richtigen Namen versehen, damit es einfacher und ordentlicher ist. Das ist zwar kein muss, aber umbedingt zu empfehlen.</p>
+<pre class="r"><code>emo &lt;- read.csv(&#39;EmotionLookupTable.txt&#39;, sep = &#39;\t&#39;, header = FALSE, stringsAsFactors = FALSE)
+names(emo) &lt;- c(&#39;Wort&#39;, &#39;Senti&#39;, &#39;Englisch&#39;, &#39;Quelle&#39;, &#39;Entstehung&#39;)
+
+
+boost &lt;- read.table(&#39;BoosterWordList.txt&#39;, stringsAsFactors = FALSE)
+names(boost) &lt;- c(&#39;Wort&#39;, &#39;Boost&#39;)
+
+
+negate &lt;- read.table(&#39;NegatingWordList.txt&#39;, stringsAsFactors = FALSE)
+negate &lt;- negate[, 1]</code></pre>
+<p>Für die Textanalyse brauchen wir eine Tabelle in der alle Wörter nach ihrer Stärke der Bedeutung sortiert sind.</p>
+<pre class="r"><code>polar &lt;- data.frame(term = emo$Wort, polarity = emo$Senti, stringsAsFactors = FALSE)</code></pre>
+<p>Die Boostliste wird hier unterteilt in Verstärker und Abschwächer.</p>
+<pre class="r"><code>ampli &lt;- boost[boost$Boost &gt; 0, &#39;Wort&#39;]
+deamp &lt;- boost[boost$Boost &lt; 0, &#39;Wort&#39;]</code></pre>
+<p>Als ersten versuchen wir das ganze mit Hans. Dafür suchen wir mit <code>grep</code> alle Nachrichten raus, die Hans geschrieben hat.</p>
+<pre class="r"><code>hans &lt;- whatsapp$text[grep(&#39;Hans&#39;, whatsapp$author)]
+hans &lt;- paste(hans, collapse = &#39; &#39;)</code></pre>
+<p>Im zweiten Schritt müssen wir die Nachrichten in <code>Tokens</code> zerlegen. Wenn du nicht mehr weißt, was gemeint ist schau unter <a href="/post/problemstellung3">der Problemstellung</a> dir nochmal die genauere Erklärung an.</p>
+<pre class="r"><code>hans &lt;- udpipe(hans, germodel)</code></pre>
+<p>Für die Analyse hast du nun vier Komponenten:</p>
+<ul>
+<li><code>polarity_terms</code> sind die Wörter an sich, welche positiv oder negativ sind.</li>
+<li><code>polarity_negators</code> sind die Begriffe, die die Bedeutung umkehren können.</li>
+<li><code>polarity_amplifiers</code> sind die Verstärker.</li>
+<li><code>polarity_deamplifiers</code>sind die Abschwächer.</li>
+</ul>
+<pre class="r"><code>senti_hans &lt;- txt_sentiment(hans,
+  polarity_terms = polar,
+  polarity_negators = negate,
+  polarity_amplifiers = ampli,
+  polarity_deamplifiers = deamp)</code></pre>
+<p>In der Spalte <code>overall</code> sind alle Endergebnisse gespeichert.</p>
+<pre class="r"><code>senti_hans$overall</code></pre>
+<pre><code>##    doc_id sentiment_polarity sentences terms             terms_positive
+## 1:   doc1                  9        43  1180 danke, gern, gut, ok, okay
+##           terms_negative terms_negation
+## 1: leider, sorry, stören    kein, nicht
+##                                  terms_amplification
+## 1: bestimmt, bißchen, jedenfalls, leicht, sehr, voll</code></pre>
+<p>Wenn wir das ganze nun mit allen aus dem Chat machen wollen, müssen wir einen Dataframe erstellen mit allen Personen und die Nachrichten hinzufügen.</p>
+<pre class="r"><code>chat &lt;- data.frame(author = levels(whatsapp$author), what = &#39;&#39;, stringsAsFactors = FALSE)
+for (i in levels(whatsapp$author)) {
+  chat$what[chat$author == i] &lt;- paste(whatsapp$text[whatsapp$author == i], collapse = &#39; &#39;)
+}</code></pre>
+<p>Auch hier zerlegen wir die Nachricht in <code>Tokens</code> und analysieren den Chat auf die gleiche Art und Weise wie oben.</p>
+<pre class="r"><code>chat &lt;- udpipe(chat$what, germodel)
+
+senti_all &lt;- txt_sentiment(chat,
+  polarity_terms = polar,
+  polarity_negators = negate,
+  polarity_amplifiers = ampli,
+  polarity_deamplifiers = deamp)
+senti_all$overall</code></pre>
+<pre><code>##    doc_id sentiment_polarity sentences terms
+## 1:   doc1               46.6        34  1445
+## 2:   doc2                2.0        15   272
+## 3:   doc3               38.0        42   831
+## 4:   doc4               17.6        33  1069
+## 5:   doc5                9.0        43  1180
+## 6:   doc6               21.2        47   938
+## 7:   doc7                2.0        35  1442
+##                                                      terms_positive
+## 1: danke, gern, gut, mögen, ok, spaß, super, süß, teilen, zufrieden
+## 2:                                                gern, gratis, gut
+## 3:   danke, gern, gut, inspirieren, okay, super, süßen, wert, werte
+## 4:                                      gut, hoffentlich, lol, okay
+## 5:                                       danke, gern, gut, ok, okay
+## 6:                       gern, gut, möchten, ok, super, süß, teilen
+## 7:                             bereit, gern, gut, ok, okay, spielen
+##                  terms_negative   terms_negation
+## 1:                leider, sorry      kein, nicht
+## 2:                       leider            nicht
+## 3:                blöde, leider      kein, nicht
+## 4:  hassen, irre, leider, sorry kein, nicht, nie
+## 5:        leider, sorry, stören      kein, nicht
+## 6: blöd, kriegen, leider, sorry            nicht
+## 7:    leider, schade, vermissen      kein, nicht
+##                                          terms_amplification
+## 1:                                 bißchen, echt, sehr, voll
+## 2:                                      echt, komplett, sehr
+## 3: bestimmt, bißchen, definitiv, echt, sehr, wenig, wirklich
+## 4:                                 bißchen, echt, sehr, voll
+## 5:         bestimmt, bißchen, jedenfalls, leicht, sehr, voll
+## 6:                     bißchen, echt, eventuell, voll, wenig
+## 7:                         echt, unglaublich, voll, wirklich</code></pre>
+<p>Man nun nicht erkennen kann wer wer ist, da bei dem <code>overall</code> Befehl nur Nummern und keine Namen angezeigt werden. Wir können aber jedem seinen Namen zuweisen, indem wir die Namen der Authoren zuweisen.</p>
+<pre class="r"><code>senti &lt;- senti_all$overall
+senti$doc_id &lt;- levels(whatsapp$author)</code></pre>
+<p>Nun kannst du dir die Werte absteigend anschauen. Der höchste Wert ist die positivste Person in deinem Chat.</p>
+<pre class="r"><code>senti[order(senti$sentiment_polarity, decreasing = TRUE), ]</code></pre>
+<pre><code>##       doc_id sentiment_polarity sentences terms
+## 1:      Anna               46.6        34  1445
+## 2:     Frank               38.0        42   831
+## 3:     Marie               21.2        47   938
+## 4:     Georg               17.6        33  1069
+## 5:      Hans                9.0        43  1180
+## 6: Anne-Lisa                2.0        15   272
+## 7:     Petra                2.0        35  1442
+##                                                      terms_positive
+## 1: danke, gern, gut, mögen, ok, spaß, super, süß, teilen, zufrieden
+## 2:   danke, gern, gut, inspirieren, okay, super, süßen, wert, werte
+## 3:                       gern, gut, möchten, ok, super, süß, teilen
+## 4:                                      gut, hoffentlich, lol, okay
+## 5:                                       danke, gern, gut, ok, okay
+## 6:                                                gern, gratis, gut
+## 7:                             bereit, gern, gut, ok, okay, spielen
+##                  terms_negative   terms_negation
+## 1:                leider, sorry      kein, nicht
+## 2:                blöde, leider      kein, nicht
+## 3: blöd, kriegen, leider, sorry            nicht
+## 4:  hassen, irre, leider, sorry kein, nicht, nie
+## 5:        leider, sorry, stören      kein, nicht
+## 6:                       leider            nicht
+## 7:    leider, schade, vermissen      kein, nicht
+##                                          terms_amplification
+## 1:                                 bißchen, echt, sehr, voll
+## 2: bestimmt, bißchen, definitiv, echt, sehr, wenig, wirklich
+## 3:                     bißchen, echt, eventuell, voll, wenig
+## 4:                                 bißchen, echt, sehr, voll
+## 5:         bestimmt, bißchen, jedenfalls, leicht, sehr, voll
+## 6:                                      echt, komplett, sehr
+## 7:                         echt, unglaublich, voll, wirklich</code></pre>
+<p>Für unseren Test müssen wir nun wieder Punkte verteilen. Dafür solltest du erst den ‘Positivitätswert’ in der Tabelle speichern und dann wie bei der Zeitanalyse Punkte vergeben. Hier muss du aber ein Minus vorschreiben, weil die höchste Zahl hier am besten ist, und nicht die niedrigste.</p>
+<pre class="r"><code>tab$senti &lt;- senti$sentiment_polarity
+tab$Punkte2 &lt;- rank(-senti$sentiment_polarity)</code></pre>
+<p>Für das Ergebnis des Tests rechnest du einfach beide Punkte zusammen und lässt dir das Minimum ausgeben.</p>
+<pre class="r"><code>tab$final &lt;- tab$Punkte + tab$Punkte2
+tab$levels.whatsapp.author.[min(tab$final)]</code></pre>
+<pre><code>## [1] Hans
+## Levels: Anna Anne-Lisa Frank Georg Hans Marie Petra</code></pre>
+</p>
+</details>
+</div>
