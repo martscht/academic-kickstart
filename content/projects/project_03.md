@@ -4,7 +4,7 @@
 
 widget = "pages"  # See https://sourcethemes.com/academic/docs/page-builder/
 headless = true  # This file represents a page section.
-active = false  # Activate this widget? true/false
+active = true  # Activate this widget? true/false
 weight = 40  # Order that this section will appear.
 
 title = "Projekt 3"
@@ -65,3 +65,5 @@ subtitle = "WhatsApp Chats"
  # CSS class.
  css_class = ""
 +++
+
+In diesem Projekt zeigen wir dir, wie du Datenanalyse auf deinen WhatsApp Chat anwenden kannst. Wer schreibt im Gruppenchat am häufigsten? Wie lange dauert es, bis dir jemand antwortet? Und wer schreibt immer besonders negative oder positive Dinge?
