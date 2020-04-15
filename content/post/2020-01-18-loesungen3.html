@@ -63,7 +63,7 @@ Daher ist es wichtig, dass wir vorher die Absätze in den Nachrichten bereinigt 
 tab</code></pre>
 <pre><code>## 
 ##      Anna Anne-Lisa     Frank     Georg      Hans     Marie     Petra 
-##       225        30       104       134       132       112       149</code></pre>
+##       196        33        91       105        95       108       137</code></pre>
 <pre class="r"><code>pie(tab, col = c(&quot;red&quot;, &quot;yellow&quot;, &quot;green&quot;, &quot;violet&quot;, &quot;orange&quot;, &quot;blue&quot;, &quot;pink&quot;, &quot;cyan&quot;) )</code></pre>
 <p><img src="/post/2020-01-18-loesungen3_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 <p>Wenn wir das gleiche mit <code>ggplot</code> machen wollen, müssen wir ein Balkendiagramm benutzten.</p>
@@ -75,6 +75,7 @@ geom_bar(width = 1 , aes(fill = author))</code></pre>
 <pre><code>## Warning in breaks[-1L] + breaks[-nB]: NAs produced by integer overflow</code></pre>
 <p><img src="/post/2020-01-18-loesungen3_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 <pre class="r"><code>ggplot(whatsapp, aes(x = whatsapp$time))+ geom_histogram()</code></pre>
+<pre><code>## Warning: Use of `whatsapp$time` is discouraged. Use `time` instead.</code></pre>
 <p><img src="/post/2020-01-18-loesungen3_files/figure-html/unnamed-chunk-12-2.png" width="672" /></p>
 <p>Für die Wochentage, gibt es in R einen extra Befehl <code>weeksdays</code>. Da es wenig Sinn macht, die Wochentag alphabetisch zu sortieren, musst du noch einen Faktor erstellen, in dem du die richtigen Levels zuweist.
 Da Wochentage nicht intervall skaliert ist nutzen wir hier ein Balkendiagramm.</p>
@@ -87,6 +88,9 @@ whatsapp$Wochentage &lt;- factor(whatsapp$Wochentage, levels = c(&#39;Montag&#39
 whatsapp$uhrzeit &lt;- as.POSIXct(whatsapp$uhrzeit, format = &#39;%H:%M&#39;)
 ggplot(whatsapp, aes(x = whatsapp$uhrzeit))+ geom_histogram(bins = 10, color = &#39;white&#39;) +
   xlab(&#39;Zeit&#39;)+ ylab(&#39;Nachrichten&#39;) + geom_freqpoly(bins = 10) + scale_x_datetime(date_labels = &#39;%H:%M&#39;)</code></pre>
+<pre><code>## Warning: Use of `whatsapp$uhrzeit` is discouraged. Use `uhrzeit` instead.
+
+## Warning: Use of `whatsapp$uhrzeit` is discouraged. Use `uhrzeit` instead.</code></pre>
 <p><img src="/post/2020-01-18-loesungen3_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 </p>
 </details>
@@ -120,13 +124,13 @@ Mit <code>tapply</code> kannst du ein bestimmtes Maß auf die ganze Tabelle anwe
 <pre class="r"><code>tab &lt;- data.frame(levels(whatsapp$author), zeit)
 tab$Punkte &lt;- rank(tab$zeit)</code></pre>
 <pre><code>##           levels.whatsapp.author. zeit Punkte
-## Anna                         Anna  300    4.5
-## Anne-Lisa               Anne-Lisa  960    7.0
-## Frank                       Frank  300    4.5
-## Georg                       Georg  240    3.0
-## Hans                         Hans  120    1.0
-## Marie                       Marie  360    6.0
-## Petra                       Petra  180    2.0</code></pre>
+## Anna                         Anna  480      5
+## Anne-Lisa               Anne-Lisa 1680      7
+## Frank                       Frank  840      6
+## Georg                       Georg  390      4
+## Hans                         Hans  210      2
+## Marie                       Marie  360      3
+## Petra                       Petra  180      1</code></pre>
 </p>
 </details>
 </div>
@@ -176,12 +180,10 @@ hans &lt;- paste(hans, collapse = &#39; &#39;)</code></pre>
   polarity_deamplifiers = deamp)</code></pre>
 <p>In der Spalte <code>overall</code> sind alle Endergebnisse gespeichert.</p>
 <pre class="r"><code>senti_hans$overall</code></pre>
-<pre><code>##    doc_id sentiment_polarity sentences terms             terms_positive
-## 1:   doc1                  9        43  1180 danke, gern, gut, ok, okay
-##           terms_negative terms_negation
-## 1: leider, sorry, stören    kein, nicht
-##                                  terms_amplification
-## 1: bestimmt, bißchen, jedenfalls, leicht, sehr, voll</code></pre>
+<pre><code>##    doc_id sentiment_polarity sentences terms      terms_positive terms_negative
+## 1:   doc1                 -3        21   525 gern, gut, ok, okay  leider, sorry
+##    terms_negation terms_amplification
+## 1:    kein, nicht       bißchen, voll</code></pre>
 <p>Wenn wir das ganze nun mit allen aus dem Chat machen wollen, müssen wir einen Dataframe erstellen mit allen Personen und die Nachrichten hinzufügen.</p>
 <pre class="r"><code>chat &lt;- data.frame(author = levels(whatsapp$author), what = &#39;&#39;, stringsAsFactors = FALSE)
 for (i in levels(whatsapp$author)) {
@@ -197,81 +199,81 @@ senti_all &lt;- txt_sentiment(chat,
   polarity_deamplifiers = deamp)
 senti_all$overall</code></pre>
 <pre><code>##    doc_id sentiment_polarity sentences terms
-## 1:   doc1               46.6        34  1445
-## 2:   doc2                2.0        15   272
-## 3:   doc3               38.0        42   831
-## 4:   doc4               17.6        33  1069
-## 5:   doc5                9.0        43  1180
-## 6:   doc6               21.2        47   938
-## 7:   doc7                2.0        35  1442
-##                                                      terms_positive
-## 1: danke, gern, gut, mögen, ok, spaß, super, süß, teilen, zufrieden
-## 2:                                                gern, gratis, gut
-## 3:   danke, gern, gut, inspirieren, okay, super, süßen, wert, werte
-## 4:                                      gut, hoffentlich, lol, okay
-## 5:                                       danke, gern, gut, ok, okay
-## 6:                       gern, gut, möchten, ok, super, süß, teilen
-## 7:                             bereit, gern, gut, ok, okay, spielen
+## 1:   doc1               40.6        23  1176
+## 2:   doc2                2.0        17   284
+## 3:   doc3               29.6        41   666
+## 4:   doc4               15.6        24   700
+## 5:   doc5               -3.0        21   525
+## 6:   doc6               14.2        42   870
+## 7:   doc7               -1.0        30  1130
+##                                              terms_positive
+## 1: danke, gern, gut, mögen, ok, spaß, super, süß, zufrieden
+## 2:                                        gern, gratis, gut
+## 3:        danke, gern, gut, inspirieren, okay, super, süßen
+## 4:                              gut, hoffentlich, mag, okay
+## 5:                                      gern, gut, ok, okay
+## 6:                                    gern, gut, super, süß
+## 7:                                      gern, gut, ok, okay
 ##                  terms_negative   terms_negation
 ## 1:                leider, sorry      kein, nicht
 ## 2:                       leider            nicht
-## 3:                blöde, leider      kein, nicht
-## 4:  hassen, irre, leider, sorry kein, nicht, nie
-## 5:        leider, sorry, stören      kein, nicht
+## 3:                       leider      kein, nicht
+## 4:                leider, sorry kein, nicht, nie
+## 5:                leider, sorry      kein, nicht
 ## 6: blöd, kriegen, leider, sorry            nicht
 ## 7:    leider, schade, vermissen      kein, nicht
 ##                                          terms_amplification
 ## 1:                                 bißchen, echt, sehr, voll
 ## 2:                                      echt, komplett, sehr
 ## 3: bestimmt, bißchen, definitiv, echt, sehr, wenig, wirklich
-## 4:                                 bißchen, echt, sehr, voll
-## 5:         bestimmt, bißchen, jedenfalls, leicht, sehr, voll
-## 6:                     bißchen, echt, eventuell, voll, wenig
-## 7:                         echt, unglaublich, voll, wirklich</code></pre>
+## 4:                                          echt, sehr, voll
+## 5:                                             bißchen, voll
+## 6:                                       bißchen, echt, voll
+## 7:                  echt, unglaublich, voll, wirklich, würde</code></pre>
 <p>Man nun nicht erkennen kann wer wer ist, da bei dem <code>overall</code> Befehl nur Nummern und keine Namen angezeigt werden. Wir können aber jedem seinen Namen zuweisen, indem wir die Namen der Authoren zuweisen.</p>
 <pre class="r"><code>senti &lt;- senti_all$overall
 senti$doc_id &lt;- levels(whatsapp$author)</code></pre>
 <p>Nun kannst du dir die Werte absteigend anschauen. Der höchste Wert ist die positivste Person in deinem Chat.</p>
 <pre class="r"><code>senti[order(senti$sentiment_polarity, decreasing = TRUE), ]</code></pre>
 <pre><code>##       doc_id sentiment_polarity sentences terms
-## 1:      Anna               46.6        34  1445
-## 2:     Frank               38.0        42   831
-## 3:     Marie               21.2        47   938
-## 4:     Georg               17.6        33  1069
-## 5:      Hans                9.0        43  1180
-## 6: Anne-Lisa                2.0        15   272
-## 7:     Petra                2.0        35  1442
-##                                                      terms_positive
-## 1: danke, gern, gut, mögen, ok, spaß, super, süß, teilen, zufrieden
-## 2:   danke, gern, gut, inspirieren, okay, super, süßen, wert, werte
-## 3:                       gern, gut, möchten, ok, super, süß, teilen
-## 4:                                      gut, hoffentlich, lol, okay
-## 5:                                       danke, gern, gut, ok, okay
-## 6:                                                gern, gratis, gut
-## 7:                             bereit, gern, gut, ok, okay, spielen
+## 1:      Anna               40.6        23  1176
+## 2:     Frank               29.6        41   666
+## 3:     Georg               15.6        24   700
+## 4:     Marie               14.2        42   870
+## 5: Anne-Lisa                2.0        17   284
+## 6:     Petra               -1.0        30  1130
+## 7:      Hans               -3.0        21   525
+##                                              terms_positive
+## 1: danke, gern, gut, mögen, ok, spaß, super, süß, zufrieden
+## 2:        danke, gern, gut, inspirieren, okay, super, süßen
+## 3:                              gut, hoffentlich, mag, okay
+## 4:                                    gern, gut, super, süß
+## 5:                                        gern, gratis, gut
+## 6:                                      gern, gut, ok, okay
+## 7:                                      gern, gut, ok, okay
 ##                  terms_negative   terms_negation
 ## 1:                leider, sorry      kein, nicht
-## 2:                blöde, leider      kein, nicht
-## 3: blöd, kriegen, leider, sorry            nicht
-## 4:  hassen, irre, leider, sorry kein, nicht, nie
-## 5:        leider, sorry, stören      kein, nicht
-## 6:                       leider            nicht
-## 7:    leider, schade, vermissen      kein, nicht
+## 2:                       leider      kein, nicht
+## 3:                leider, sorry kein, nicht, nie
+## 4: blöd, kriegen, leider, sorry            nicht
+## 5:                       leider            nicht
+## 6:    leider, schade, vermissen      kein, nicht
+## 7:                leider, sorry      kein, nicht
 ##                                          terms_amplification
 ## 1:                                 bißchen, echt, sehr, voll
 ## 2: bestimmt, bißchen, definitiv, echt, sehr, wenig, wirklich
-## 3:                     bißchen, echt, eventuell, voll, wenig
-## 4:                                 bißchen, echt, sehr, voll
-## 5:         bestimmt, bißchen, jedenfalls, leicht, sehr, voll
-## 6:                                      echt, komplett, sehr
-## 7:                         echt, unglaublich, voll, wirklich</code></pre>
+## 3:                                          echt, sehr, voll
+## 4:                                       bißchen, echt, voll
+## 5:                                      echt, komplett, sehr
+## 6:                  echt, unglaublich, voll, wirklich, würde
+## 7:                                             bißchen, voll</code></pre>
 <p>Für unseren Test müssen wir nun wieder Punkte verteilen. Dafür solltest du erst den ‘Positivitätswert’ in der Tabelle speichern und dann wie bei der Zeitanalyse Punkte vergeben. Hier muss du aber ein Minus vorschreiben, weil die höchste Zahl hier am besten ist, und nicht die niedrigste.</p>
 <pre class="r"><code>tab$senti &lt;- senti$sentiment_polarity
 tab$Punkte2 &lt;- rank(-senti$sentiment_polarity)</code></pre>
 <p>Für das Ergebnis des Tests rechnest du einfach beide Punkte zusammen und lässt dir das Minimum ausgeben.</p>
 <pre class="r"><code>tab$final &lt;- tab$Punkte + tab$Punkte2
 tab$levels.whatsapp.author.[min(tab$final)]</code></pre>
-<pre><code>## [1] Hans
+<pre><code>## [1] Marie
 ## Levels: Anna Anne-Lisa Frank Georg Hans Marie Petra</code></pre>
 </p>
 </details>
