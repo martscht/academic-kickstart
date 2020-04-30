@@ -6,12 +6,12 @@ widget = "blank"
 weight = 20
 +++
 
-Auf dieser Website zeigen wir dir ein paar relativ umfangreiche Projekte, zu
+Auf dieser Website zeigen wir dir ein paar relativ umfangreiche Projekte zu
 allen möglichen Themen (von der Darstellung von Suchanfragen zu politischen
 Parteien bis zum Programmieren eines eigenen Sudoku-Generators), die allesamt
 mit R bearbeitet werden können. Diese Projekte gehen über die Grundlagen
-hinaus, die häufig im normalen Curriculum des Studiums behandelt werden und
-sollen dir so die Möglichkeit geben dich einfach in ein Projekt zu vertiefen und
+hinaus, die häufig im normalen Curriculum des Studiums behandelt werden und 
+sollen dir die Möglichkeit geben, dich in ein Projekt zu vertiefen und
 dich und deine R Fähigkeiten daran auszuprobieren. Dabei kannst du dir selbst
 Kompetenzen aneignen, die für das zukünftige Arbeiten mit R in einem immer
 stärker datengeleiteten Arbeitsalltag sehr wichtig sein können.
@@ -24,6 +24,6 @@ Projekt eine Seite mit Tipps, die dir weiterhelfen können, wenn du irgendwo
 stecken bleibst.
 
 Die Projekte erscheinen auf dieser Website Stück für Stück im Winter 2019 /
-2020, du kannst sie aber jederzeit und jeder Reihenfolge angucken und
-ausprobieren! Wenn du Rückmeldungen zu den Projekten oder Seite als Ganzes hast,
+2020, du kannst sie aber jederzeit und in jeder Reihenfolge angucken und
+ausprobieren! Wenn du Rückmeldungen zu den Projekten oder der Seite als Ganzem hast,
 melde dich einfach über das [Kontakformular](#contact) bei uns!
