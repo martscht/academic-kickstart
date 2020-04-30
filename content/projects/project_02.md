@@ -66,4 +66,4 @@ subtitle = "Casino"
  css_class = ""
 +++
 
-In diesem Projekt versuchen wir uns den Weg ins Casino zu ersparen, indem wir in R ein vollständiges Roulette selbst programmieren. Das heißt, dass wir uns mit Zufallsziehungen, Schleifen und Funktionen auseinandersetzen müssen. Aber Vorsicht: Glücksspiel kann süchtig machen.
+In diesem Projekt versuchen wir, uns den Weg ins Casino zu ersparen, indem wir selbst ein vollständiges Roulette in R programmieren. Das heißt, dass wir uns mit Zufallsziehungen, Schleifen und Funktionen auseinandersetzen müssen. Aber Vorsicht: Glücksspiel kann süchtig machen.
