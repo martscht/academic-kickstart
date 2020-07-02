@@ -7,8 +7,8 @@ headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
 weight = 40  # Order that this section will appear.
 
-title = "Projekt 3"
-subtitle = "WhatsApp Chats"
+title = "Projekt 4"
+subtitle = "OpenStreetMap""
 
 [content]
   # Page type to display. E.g. post, talk, or publication.
@@ -26,7 +26,7 @@ subtitle = "WhatsApp Chats"
   # Filter posts by a taxonomy term.
   [content.filters]
     tag = ""
-    category = "Projekt-3"
+    category = "Projekt-4"
     publication_type = ""
     exclude_featured = false
 
@@ -56,14 +56,14 @@ subtitle = "WhatsApp Chats"
   # image_darken = 0.6  # Darken the image? Range 0-1 where 0 is transparent and 1 is opaque.
 
   # Text color (true=light or false=dark).
-  # text_color_light = true  
+  # text_co
+
+ # CSS class.lor_light = true  
 
 [advanced]
  # Custom CSS.
  css_style = ""
-
- # CSS class.
  css_class = ""
 +++
 
-In diesem Projekt zeige ich dir, wie du deine Whatsappchat analysieren kannst. Wer schreibt im Gruppenchat am häufigsten? Wie lange dauert es, bis dir jemand antwortet? Und wer schreibt immer besonders negative oder positive Dinge? Somit kannst du herausfinden wer deine wahren Freunde sind...
+In diesen Projekt arbeiten wir mit externen online Datenbanken zur Kartendarstellung. Dieses Projekt lässt dir viele Freiheiten und lässt sich individuell an deine Vorstellungen anpassen. Dabei kannst du deine Stadt darstellen und zum Beispiel alle Pommesbuden in deiner Heimatstadt finden. Hier wird deiner Fantasie keine Grenzen gesetzt...
