@@ -1,0 +1,247 @@
+---
+title: Lösungen
+author: Christina Berger
+date: '2020-05-28'
+slug: loesungen4
+categories:
+  - Projekt 4
+tags: []
+subtitle: ''
+summary: ''
+authors: [berger]
+lastmod: '2020-05-28T14:03:10+02:00'
+featured: no
+header:
+  image: "/header/StreetMap_post.jpg"
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+*** 
+
+## Vorwarnung
+
+Achtung! Im Folgenden werden die Lösungen für das vierte Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die [Tipps](/post/tipps4). Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, einen Schritt weiter zu kommen und beim nächsten Abschnitt weiter zu machen.
+
+*** 
+
+## Datenbeschaffung
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Im ersten Schritt musst du dir die Pakete `osmdata`, `ggplot2` und `sf` installieren und laden.
+```{r, message=FALSE, warning = F}
+#install.packages("osmdata")
+#install.packages('sf')
+#install.packages('ggplot2')
+library(osmdata)
+library(ggplot2)
+library(sf)
+```
+
+Hier kannst du dir alle Features, die du benutzten kannst, anzeigen lassen. Eine bessere Übersicht findest du aber meiner Meinung nach auf der Seite von [Wiki OpenStreetMap](https://wiki.openstreetmap.org/wiki/Map_Features)
+```{r, eval = F}
+available_features()
+```
+
+```{r, echo = FALSE}
+head(available_features())
+```
+
+Ich werde in meiner Karte große und kleine Straßen trennen. Daher beschäftige ich mich zunächst mit den großen Straßen von Frankfurt. Mit `getbb` kannst du die Daten von der Stadt oder dem Land, auf das du dich beziehen willst, anfragen.
+
+```{r}
+a <- getbb("Frankfurt am Main Germany")
+```
+
+Wir müssen nun eine sogannte Overpass query erstellen. Das ist eine Überführungsabfrage von R an die entsprechende Website bzw. Online Datenbank.
+```{r}
+b <- opq(a)
+```
+
+Bevor wir jede Information über den angegebenen Ort herunterladen, was extrem lange dauern könnte, müssen wir angeben, welche Features wir herunterladen wollen. Ich habe mir aus der Kategorie "highway": "motorway", "primary", "trunk" und "secondary" heruntergeladen. Dies sind mindestens dreispurige Straßen, weshalb ich sie zu den großen Straßen zähle. Um mehrere Features auf einmal herunterzuladen musst du daraus einen Vektor machen.
+
+```{r}
+c <- add_osm_feature(b, key = "highway", value = c("motorway", "primary", "trunk", "secondary"))
+```
+
+
+Mit diesem Befehl findet erst der wirkliche Download statt. Dabei ist `osmdata_` der Grundbefehl und das was dahinter steht gibt das Format an, in dem die Daten vorliegen sollen. Es kann auch in anderen Formaten wie beispielsweise XML geladen werden. Da du die Daten jedoch mit `ggplot` darstellen willst, ist `sf` in dem Fall am sinnvollsten.
+```{r}
+streets <- osmdata_sf(c)
+streets
+```
+
+Wenn wir uns nun die heruntergeladene Variable anschauen, sehen wir als erstes `$bbox`, das uns die Koordinaten von unserem Ort angibt. In diesem Fall stehen dort also die Koordinaten für Frankfurt. Diese Angaben brauche ich später für meine Darstellung. Als zweites sehen wir `$overpass_call`, was uns zeigt, ob die Übertragung erfolgreich war bzw. wie sie durchgeführt wurde. Wichtig für uns sind noch die letzten fünf: `$osm_lines` bzw. `$osm_ points` zeigt uns ob wir Punkte oder Striche heruntergeladen haben. Das ganze geht auch mit Flächen oder anderen Formen. Hinter diesen Variablen steht entweder NULL, wenn keine Daten in dieser Form heruntergeladen wurden, oder das Format, in dem die Daten vorliegen, und die Anzahl der Einträge. Das Format sollte immer `sf` sein und je nach Anzahl der Einträge oder kontextuellem Sinn solltest du dich für Punkte oder Linien entscheiden. Bei Straßen sind Linien natürlich am sinnvollsten.
+
+<p>
+
+## Erste Abbildung
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Nun können wir unsere erste Abbildung mit den großen Straßen machen. Dafür brauchen wir erst den dir schon bekannten `ggplot()` Befehl. In den `geom_sf()` Befehl müssen wir die Daten eintragen. In meinem Fall will ich von der Variable `streets` die Linien einzeichnen. In der zweiten Zeile definieren wir, dass wir nicht mit den normalen Achsen arbeiten, sondern unsere eigenen hinzufügen (mit dem Befehl `coord_sf`). Mit `color` verändere ich die Farbe der Linien und mit `size` die Größe. `alpha` ist für die Transparenz der Linien zuständig, was später ein gutes Tool ist, um kleine und großen Straßen zu unterscheiden. Bei `coord_sf` müssen wir die Koordinaten aus `$bbox` eintragen, wobei der zweite und letzte Wert für die x-Achse und der erste und dritte Wert für die y-Achse stehen. An dieser Stelle kannst du auch näher heran zoomen, aber du kannst maximal so weit heraus gehen wie die Koordinaten in der `$bbox` Variable es begrenzen. Bei TRUE erweitert `expand` die Abbildung in jede Richtung ein kleines bisschen, um die Darstellung zu verbessern. Das wollen wir in diesem Fall aber vermeiden, weshalb wir es auf FALSE stellen müssen.
+
+```{r}
+ggplot() +
+  geom_sf(data = streets$osm_lines,
+          inherit.aes = FALSE,
+          color = "black",
+          size = .4,
+          alpha = .8) +
+  coord_sf(xlim = c(8.47, 8.8),
+           ylim = c(50.01, 50.23),
+           expand = FALSE)
+```
+Und so sieht meine erste Abbildung aus. Es fehlt noch einiges, bis man Frankfurt wirklich erkennen kann.
+
+<p>
+
+
+## Kleine Straßen & den Main laden
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Nun wollen wir das gleiche auch mit den kleinen Straßen und für Frankfurt auch mit dem Main machen. Die ersten beiden Schritte, bei denen wir Daten über Frankfurt angefragt haben und dafür eine overpass query erstellt haben brauchen wir nicht mehr. Wir können direkt angeben, welche Features wir herunterladen wollen und dies wieder im `sf` Format laden.
+```{r}
+d <- add_osm_feature(b, key = "highway",
+                     value = c("residential", "tertiary", "living_street", "unclassified"))
+
+small_streets <-   osmdata_sf(d)
+```
+
+Hier das gleiche nochmal für den Main bzw. auch für die Nidda. Der einzige Unterschied ist, dass wir uns nun in der Kategorie `waterway`  befinden.
+```{r}
+e <- add_osm_feature(b, key = "waterway", value = "river")
+river <- osmdata_sf(e)
+```
+<p>
+
+
+## Zweite Abbildung mit kleinen Straßen & dem Main
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Nun können wir eine Abbildung erstellen, in denen große und kleine Straßen und der Main dargestellt werden. Dafür übernehmen wir den Befehl der letzten Abbildung und fügen zwei mal den `geom_sf()` Befehl hinzu. Zum einen mit den kleinen Straßen und zum anderen mit den Flüssen. Dabei verwenden wir wieder `osm_lines`, da es sich auch hier bei beiden um Linien und keine Punkte handelt. Ich habe die Größe und das `alpha` bei den kleinen Staßen im Vergleich zu den großen Straßen verringert. Den Main will ich in blau darstellen und in etwas größer, da er einen erhöhten Wiedererkennungswert mit sich bringt.
+```{r}
+ggplot() +
+  geom_sf(data = streets$osm_lines,
+          inherit.aes = FALSE,
+          color = "black",
+          size = .4,
+          alpha = .8) +
+  geom_sf(data = small_streets$osm_lines,
+         inherit.aes = FALSE,
+         color = "black",
+          size = .001,
+          alpha = .6) +
+  geom_sf(data = river$osm_lines,
+          inherit.aes = FALSE,
+          color = "blue",
+          size = 1,
+          alpha = .5) +
+  coord_sf(xlim = c(8.47, 8.8),
+           ylim = c(50.01, 50.23),
+           expand = FALSE)
+
+```
+<p>
+
+## Touristen-Attraktionen laden
+
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Zuletzt werde ich bei mir noch Touristenattraktionen hinzufügen. Diese findest du unter der `tourism` Kategorie.
+...
+```{r}
+f <- add_osm_feature(b, key = 'tourism', value =  c('attraction', 'artwork', 'aquarium', 'gallary', 'information', 'museum', 'viewpoint', 'zoo'))
+attraction <- osmdata_sf(f)
+attraction
+```
+<p>
+
+
+## Dritte Abbildung mit Touristenattraktionen
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+Nun fügen wir einfach zu unserer letzten Abbildung noch die Touristen-Attraktionen hinzu. Diese sind als Punkte dargestellt, weshalb ich `osm_points` verwendet habe.
+Damit ist unsere Abbildung fertig und kann nun verschönert werden.
+```{r}
+ggplot() +
+  geom_sf(data = streets$osm_lines,
+          inherit.aes = FALSE,
+          color = "black",
+          size = .4,
+          alpha = .8) +
+  geom_sf(data = small_streets$osm_lines,
+          inherit.aes = FALSE,
+          color = "black",
+          size = .001,
+          alpha = .6) +
+  geom_sf(data = river$osm_lines,
+          inherit.aes = FALSE,
+          color = "blue",
+          size = 0.8,
+          alpha = .5) +
+  geom_sf(data = attraction$osm_points,
+          inherit.aes = F,
+          color = 'red',
+          size = 0.5) +
+  coord_sf(xlim = c(8.47, 8.8),
+           ylim = c(50.01, 50.23),
+           expand = FALSE)
+
+```
+<p>
+
+
+## Eine schöne Abbildung
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Es gibt nun verschiede Möglichkeiten die Abbildung je nach Geschmack zu verändern. In dieser Abbildung habe ich zum einen die Farben und Größen der Linien bzw. Punkte angepasst. Außerdem habe ich mit `theme_void` die Achsen entfernt und mit `theme(plot.background =)` den Hintergrund verändert.
+```{r}
+ggplot() +
+  geom_sf(data = streets$osm_lines,
+          inherit.aes = FALSE,
+          color = "gray81",
+          size = 0.8,
+          alpha = .8) +
+  geom_sf(data = small_streets$osm_lines,
+          inherit.aes = FALSE,
+          color = "gray68",
+          size = .0001,
+          alpha = .6) +
+  geom_sf(data = river$osm_lines,
+          inherit.aes = FALSE,
+          color = "purple2",
+          size = 1,
+          alpha = .5) +
+   geom_sf(data = attraction$osm_points,
+          inherit.aes = F,
+          color = 'maroon3',
+          size = 0.5) +
+  coord_sf(xlim = c(8.53, 8.77),
+           ylim = c(50.019, 50.222),
+           expand = FALSE)+
+  theme_void() +
+theme(plot.background = element_rect(fill = "grey24"))
+```
+
+Hier sind noch ein paar Anregungen, wie die Abbildungen aussehen könnten. Du kannst ja mal versuchen, den richtigen Code dafür zu finden; und vielleicht stößt du dabei auch auf etwas, was dir gefällt:
+
+
+
+![](/post/Kartenbild1.jpg){width=20%; height=20%}
+
+![](/post/Kartenbild2.jpg){width=20%; height=20%}
+
+![](/post/Kartenbild3.jpg){width=20%; height=20%}
+
+![](/post/Kartenbild4.jpg){width=20%; height=20%}
+
+
+<p>
