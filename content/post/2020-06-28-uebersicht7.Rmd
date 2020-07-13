@@ -1,0 +1,167 @@
+---
+title: Übersicht
+date: '2020-06-28T23:00:00'
+slug: uebersicht7
+categories:
+  - Projekt 7
+tags: []
+subtitle: ''
+summary: ''
+authors: [mehler]
+lastmod: '2020-06-28T16:35:51+02:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+runtime: shiny
+output: html_document
+---
+
+```{r, echo = FALSE, warning = FALSE}
+library(shiny)
+```
+
+***
+
+## Fragestellung
+
+In diesem Projekt soll um das `shiny`-Paket in R gehen. Mithilfe dieses Pakets lassen sich interaktive HTML-basierte Websiten/Apps erstellen. Das Paket sorgt dafür, dass der Code in R in ein HTML-Dokument umgewandelt wird. Dadurch ist es möglich, Websiten/Apps mit R zu erstellen. Weiterhin ist es möglich HTML-Code (und CSS) direkt in R einzubinden, wodurch R auch in der Lage ist verschiedene Programmiersprachen miteinander zu verbinden. Die Frage für dieses Projekt ist also: Wie erstellt man mithilfe von R interaktive Websites/Apps?
+
+***
+
+## Zielsetzung
+
+Am Ende dieses Projektes sollte man in der Lage sein, einfachere interaktive Websites/Apps mithilfe von R, dem `shiny`-Paket, HTML, CSS, ... zu erstellen. Aufgrund der vielfältigen Möglichkeiten ist es nicht möglich von Anfang an die visuell ansprechendsten und anspruchsvollsten Websites/Apps zu erstellen. Doch mit ein bisschen Übung sollte man die Grundbausteine von interaktiven Webistes/Apps verstehen, anwenden und umsetzen können. Für erste Eindrücke schau dir gerne mal die Beispiele auf [dieser Website](https://shiny.rstudio.com/gallery/) an.
+
+***
+
+## Vorbereitung
+
+Das folgende Projekt soll sich mit der Erstellung einer eigenen interaktiven Website/App befassen. Dafür werden beispielhaft die Daten und Ergebnisse aus Projekt 1 sowie die Ergebnisse aus Projekt 5 verwendet und so verändert, dass sie einige interaktive Elemente beinhalten.
+
+Bevor du damit anfangen kannst, solltest du dir zunächst einen Überblick über das shiny-Paket und dessen Anwendung in R verschaffen. Dafür bietet sich zum Beispiel die zum Paket gehörige Website an, die du [hier](https://shiny.rstudio.com/) finden kannst. Für Anfänger hält diese Website auch ein [Tutorial](https://shiny.rstudio.com/tutorial/) bereit, um sich mit den Grundsätzen von shiny vertraut zu machen.
+
+***
+
+## Beispiel
+
+Damit du einen ersten Eindruck von den Anwendungsmöglichkeiten von `shiny` bekommst, werde ich dir hier ein kurzes Beispiel vorstellen, das sich hauptsächlich mit den Basics befasst. Mitunter bekommst du dann auch eine bessere Vorstellung davon, was überhaupt mit "Interaktivität" gemeint ist.
+
+Für das Beispiel werde ich eine bestimmte Anzahl an Zufallszahlen aus der Normalverteilung ziehen und die Daten dann in einem Histogramm darstellen. Dabei werden die Stichprobengröße, der Mittelwert der Normalverteilung, die Standardabweichung der Normalverteilung, die Anzahl der Balken des Histogramms und das Maß der zentralen Tendenz durch den Anwender manipulierbar sein. Außerdem soll wählbar sein, ob und welches Maß der zentralen Tendenz durch eine vertikale Linie dargestellt werden soll und ob die Normalverteilungskurve eingefügt werden soll.
+
+Wie du vielleicht im Tutorial schon gesehen hast, bestehen `shiny`-Websites aus einem User Interface (`ui`) und dem im Hintergrund laufenden R-Code (`server`). Bevor ich dir also einfach die Codes für beide Bestandteile präsentiere, werde ich dir jeweils erklären, was du für die Umsetzung des Beispiels prinzipiell alles benötigen wirst.
+
+<details><summary>User Interface (`ui`)</summary>
+Das User Interface ist, wie es der Name schon sagt, der Teil der Website/App, den der Anwender zu Gesicht bekommt. In diesem Teil geht also es weniger darum, wie einzelne Inhalte entstehen, sondern darum, aus welchen Elementen die Website/App bestehen soll und wie diese angeordnet sein sollen.
+
+Wie bereits erwähnt, soll diese Website/App den Anwender dazu befähigen, die Stichprobengröße, den Mittelwert, die Standardabweichung und die Anzahl der Balken auszuwählen sowie auch zu bestimmen, ob ein Maß der zentralen Tendenz und die Normalverteilungskruve abgebildet werden sollen. Dafür benutze ich zwei Schieberegler: einen für die Stichprobengröße und einen für die Anzahl der Balken. Des Weiteren brauche ich ein kleines Auswahlmenü für das Maß der zentralen Tendenz, jeweils ein Zahlen-Input-Feld für Mittelwert und Standardabweichung und Radiobuttons für das Hinzufügen der Normalverteilungskurve. Zusätzlich kann man hier auch noch einen 'ActionButton' einsetzen, um Aktualisierungen des Outputs (Histogramm) manuell auslösen zu können, sobald man bestimmte Eingaben vorgenommen hat. Letztlich muss man noch bestimmen, wo das Histogramm ausgegeben werden soll und schon ist man mit dem User Interface fertig. Zumindest fast... man hat zwar alle Bestandteile zusammen, doch diese müssen auch noch angeordnet werden. 
+
+Der R-Code dazu sieht folgendermaßen aus:
+```{r}
+ui <- fluidPage(
+  titlePanel(title = em(strong('Beispiel für die Übersicht in Projekt 7'))),
+  hr(),
+  plotOutput('Histogramm'),
+  hr(),
+  wellPanel(
+    sliderInput(inputId = 'Stichprobengroesse',
+                label = 'Stichprobengröße',
+                value = 1000, min = 100, max = 10000, step = 100),
+    sliderInput(inputId = 'Breaks',
+                label = 'Balken im Histogramm',
+                value = 10, min = 2, max = 100),
+    fluidRow(
+      column(6, numericInput(inputId = 'Mittelwert',
+                             label = 'Mittelwert',
+                             value = 100, min = -1000, max = 1000)),
+      column(6, selectInput(inputId = 'Mass',
+                            label = 'Maß der zentralen Tendenz für die Stichprobe',
+                            choices = c('Kein Maß', 'Median', 'Mittelwert')))
+    ),
+    fluidRow(
+      column(6, numericInput(inputId = 'Standardabweichung',
+                             label = 'Standardabweichung',
+                             value = 15, min = 0, max = 1000)),
+      column(3, radioButtons(inputId = 'Normalverteilung',
+                            label = 'Normalverteilungskurve einzeichnen',
+                            inline = TRUE,
+                            choices = c('Ja', 'Nein'),
+                            selected = 'Nein')),
+      column(3,
+             br(),
+             actionButton(inputId = 'Update',
+                          label = 'Histogramm aktualisieren'))
+    )
+  ),
+  hr()
+)
+```
+
+Das User Interface kann man sich auch schon anschauen, indem man den folgenden Code ausführt:
+
+```{r, eval = F}
+server <- function(input, output, session) {
+
+}
+
+shinyApp(ui, server)
+```
+
+Wie man sehen kann, liegen das Layout und die Input-Objekte bereits vor und können manipuliert werden. Jedoch fehlt im User Interface (ui) der Output, mit dem ich mich nun im zweiten Bestandteil (`server`) befassen werden.
+</details>
+
+Im nächsten Schritt erstelle ich den R-Code, der den Output (das Histogramm) in Abhängigkeit von den sechs Inputs erstellt. All das wird auf dem User Interface (`ui`) nicht sichtbar sein, sondern nur auf dem 'Server', in diesem Fall also meinem (oder deinem) Laptop, durchgeführt werden. Alle Operationen, die nicht auf der 'App' zu sehen sein sollen, müssen also im zweiten Teil enthalten sein. 
+
+<details><summary>R-Code (`server`)</summary>
+
+Die Frage, die sich nun erst einmal stellt, ist: Worauf muss ich jetzt eigentlich achten? Was muss ich machen?
+
+Für eine vollständige Website/App brauche ich 'nur' noch das Histogramm. Dieses ist in zweierlei Hinsicht abhängig von den Inputs: Zum einen wird der Datensatz durch die Inputs `Stichprobengröße`, `Mittelwert` und `Standardabweichung` beeinflusst, zum anderen wird die Abbildung selbst durch die `Breaks`, das `Maß der zentralen Tendenz` und die `Normalverteilungskurve` beeinflusst.
+
+Der R-Code dazu sieht folgendermaßen aus:
+
+```{r}
+server <- function(input, output, session) {
+  rv <- reactiveValues(data = rnorm(1000, mean = 100, sd = 15))
+  observeEvent(input$Update, {
+    rv$data <- rnorm(input$Stichprobengroesse,
+                     mean = input$Mittelwert,
+                     sd = input$Standardabweichung)
+  })
+  output$Histogramm <- renderPlot({
+    zentraleTendenz <- input$Mass
+    Normalverteilungskurve <- input$Normalverteilung
+    hist(rv$data, breaks = input$Breaks, freq = FALSE)
+    if(Normalverteilungskurve == 'Ja'){
+      curve(
+        dnorm(x,
+              mean = isolate(input$Mittelwert),
+              sd = isolate(input$Standardabweichung)),
+        add = TRUE, lwd = 3)
+    }
+    if(zentraleTendenz == 'Median'){
+      abline(v = median(rv$data), lwd = 1, col = 'orange')
+    } else if (zentraleTendenz == 'Mittelwert'){
+      abline(v = mean(rv$data), lwd = 1, col = 'red')
+    } else {}
+  })
+}
+```
+
+</details>
+
+Wenn du den Code für beide Bestandteile nun bei dir ausführst und die App dann mit `shinyApp(ui, server)` startest, dann wird sich ein neues Fenster auf deinem Gerät öffnen und die App mit diesem als 'Server' ausführen. Probier es einfach mal aus und versuch dann einfach mal, die einzelnen Zeilen nachzuvollziehen!
+
+So sollte das Beispiel letztlich bei dir aussehen:
+
+--> Hier Bild von Beispiel-App einfügen
+
+<iframe height="800" width="100%" frameborder="no" src="https://martscht.shinyapps.io/project7_ex1/"> </iframe>
+
+Das war es erst einmal mit der Einführung. Viel Spaß bei diesem Projekt!
+
+***
+
+#### [Weiter zur Problemstellung](/post/problemstellung7)
