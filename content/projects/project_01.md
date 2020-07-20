@@ -66,4 +66,4 @@ subtitle = "Google Trends"
  css_class = ""
 +++
 
-In diesem Projekt untersuchen wir die Häufigkeit, mit der politische Parteien auf Google gesucht werden. Das heißt wir gucken uns die Entwicklung der Google-Suchanfragen seit 2004 an, die von [Google Trends](https://trends.google.de/trends/?geo=DE) abgerufen werden können und wollen eine Überblicksdarstellung generieren. Es wird also notwendig sein diese Daten in R zu importieren, sie nach Bedarf umzustellen und abschließend mit dem Paket `ggplot2` darzustellen.
+In diesem Projekt untersuchen wir die Häufigkeit, mit der politische Parteien auf Google gesucht werden. Das heißt, dass wir uns die Entwicklung der Google-Suchanfragen seit 2004 anschauen, die von [Google Trends](https://trends.google.de/trends/?geo=DE) abgerufen werden kann. Daraus wollen wir eine Überblicksdarstellung generieren. Es wird also notwendig sein, diese Daten in R zu importieren, sie nach Bedarf umzustellen und abschließend mit dem Paket `ggplot2` darzustellen.
