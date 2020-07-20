@@ -66,4 +66,4 @@ subtitle = "Sudoku"
  css_class = ""
 +++
 
-In diesem Projekt zeigen wir dir, wie du dir dein eigenes Sudoku erstellen kannst. Was steckt hinter diesem Rätsel? Wie löst man sie am schnellsten?
+In diesem Projekt zeigen wir dir, wie du dir dein eigenes Sudoku erstellen kannst. Was steckt hinter diesem Rätsel? Wie löst man sie am schnellsten? Mit verschiedenen Schwierigkeitsgraden kannst du hier deine Rätselfähigkeiten steigern und alles anwenden, was du bisher schon gelernt hast.
