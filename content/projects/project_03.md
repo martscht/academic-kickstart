@@ -66,4 +66,4 @@ subtitle = "WhatsApp Chats"
  css_class = ""
 +++
 
-In diesem Projekt zeige ich dir, wie du deine Whatsappchat analysieren kannst. Wer schreibt im Gruppenchat am häufigsten? Wie lange dauert es, bis dir jemand antwortet? Und wer schreibt immer besonders negative oder positive Dinge? Somit kannst du herausfinden wer deine wahren Freunde sind...
+In diesem Projekt zeige ich dir, wie du deine Whatsapp-Chats analysieren kannst. Wer schreibt im Gruppenchat am häufigsten? Wie lange dauert es, bis dir jemand antwortet? Und wer schreibt immer besonders negative oder positive Dinge? Hier kannst du herausfinden, wer deine wahren Freunde sind.
