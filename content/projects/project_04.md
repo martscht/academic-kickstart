@@ -66,4 +66,4 @@ subtitle = "OpenStreetMap"
  css_class = ""
 +++
 
-In diesen Projekt arbeiten wir mit externen online Datenbanken zur Kartendarstellung. Dieses Projekt lässt dir viele Freiheiten und lässt sich individuell an deine Vorstellungen anpassen. Dabei kannst du deine Stadt darstellen und zum Beispiel alle Pommesbuden in deiner Heimatstadt finden. Hier wird deiner Fantasie keine Grenzen gesetzt...
+In diesen Projekt arbeiten wir mit externen Online-Datenbanken zur Kartendarstellung. Dieses Projekt lässt dir viele Freiheiten, weshalb du es individuell an deine Vorstellungen anpassen kannst. Dabei kannst du deine Heimatstadt darstellen und zum Beispiel alle Pommesbuden finden. Hier wird deiner Fantasie keine Grenzen gesetzt.
