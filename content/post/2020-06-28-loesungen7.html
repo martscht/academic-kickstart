@@ -1,0 +1,851 @@
+---
+title: Lösungen
+date: '2020-06-28T20:00:00'
+slug: loesungen7
+categories:
+  - Projekt 7
+tags: []
+subtitle: ''
+summary: ''
+authors: [mehler]
+lastmod: '2020-06-28T17:35:09+02:00'
+featured: no
+header:
+  image: "/header/shiny_post.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/de/photo/948715)"
+projects: []
+---
+
+
+
+<style>
+details > summary {
+  cursor: pointer;
+}
+
+details {
+  background-color: #f0f8ff;
+  border: 1px solid black;
+  border-radius: 20px;
+  padding-left: 10px;
+  padding-right: 10px;
+  padding-top: 4px;
+  padding-bottom: 4px
+}
+
+details code {
+  background-color: #f0f8ff
+}
+
+details > details {
+  background-color: #e2e6e9;
+  border: 1px dashed black;
+}
+
+details > details code {
+  background-color: #e2e6e9
+}
+</style>
+<hr />
+<div id="vorwarnung" class="section level2">
+<h2>Vorwarnung</h2>
+<p>Achtung! Im Folgenden werden die Lösungen für das erste Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die <a href="/post/tipps1">Tipps</a>. Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, um einen Schritt weiterzukommen und beim nächsten Abschnitt weiterzumachen.</p>
+<hr />
+</div>
+<div id="darstellung-der-suchanfragen-verschiedener-parteien" class="section level2">
+<h2>Darstellung der Suchanfragen verschiedener Parteien</h2>
+<p>Hier sind die Lösungen zum ersten Abschnitt des Projekts “Darstellung der Suchanfragen”. Die Lösungen decken mitunter alle Vorgaben aus der Problemstellung ab, gehen aber vor allem mit dem Style deutlich darüber hinaus. Das heißt, hier in den Lösungen werden dir nicht nur die relevanten Schritte zum Endprodukt gezeigt, sondern auch einige Möglichkeiten, dein Endprodukt besonders gut aussehen zu lassen. Da sich die Lösung auf eine unübersichtliche Anzahl an Zeilen von Code beläuft, wird die Erklärung im Folgenden auf vier Abschnitte aufgeteilt.</p>
+<div id="aufbereitung-der-daten" class="section level4">
+<h4>Aufbereitung der Daten</h4>
+<p><details><summary>Abschnitt anzeigen</summary> Zuallererst müssen die Datensätze zur Benutzung in den Diagrammen aufbereitet werden. Dafür werden die beiden Datensätze <code>p1_long</code> und <code>p1_wide</code> aus dem ersten Projekt auf dieser Website verwendet. Damit du die nächsten Schritte nachvollziehen kannst, solltest du am selben Punkt starten und die beiden Datensätze <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/p1_long.rds">hier</a> und <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/p1_wide.rds">hier</a> herunterladen und in den Ordner einfügen, in dem du bei diesem Projekt arbeiten willst (deine Working Directory).</p>
+<p>Jetzt kannst du die beiden Datensätze mit dem Befehl <code>readRDS</code> laden:</p>
+<pre class="r"><code>p1_wide &lt;- readRDS(&#39;p1_wide.rds&#39;)
+p1_long &lt;- readRDS(&#39;p1_long.rds&#39;)</code></pre>
+<p>Falls du bereits Projekt 1 gemacht hast, dann sollte dir der nächste Schritt bereits bekannt sein. Im ersten Projekt hat sich ein Problem mit den Daten ergeben, das eine ordnungsgemäße Beschriftung eines Diagramms mit Daten unmöglich gemacht hat. Das liegt daran, dass die Variable <code>Monat</code> in den Datensätzen als <code>factor</code> vorliegt und von R deshalb nicht als Datum erkannt werden kann. Damit das der Fall ist, müssen die Zeitangaben als <code>POSIXct</code> vorliegen. Nutze dafür einfach dein R-Script aus dem ersten Projekt. Falls du das erste Projekt noch nicht bearbeitet hast, kannst du die nötigen Schritte mit Erklärung im Folgenden nachlesen.</p>
+<p><details><summary>Umwandlung der Zeitangaben in <code>POSIXct</code></summary> Schau dir zunächst einmal die Struktur der Datumsvariable an.</p>
+<pre class="r"><code>str(p1_long$Monat)</code></pre>
+<pre><code>##  Factor w/ 190 levels &quot;2004-01&quot;,&quot;2004-02&quot;,..: 1 2 3 4 5 6 7 8 9 10 ...</code></pre>
+<p>Wie bereits erwähnt, liegt das Datum als <code>factor</code> vor und kann deshalb von R nicht als Datum behandelt werden. R erkennt bei einem <code>factor</code> nur, dass es sich um eine Kette von Symbolen handelt, die ohne jeglichen Sinn existiert und als Kategoriename betrachtet werden kann. In anderenen Worten: die Kategorie <code>factor</code> beschreibt Variablen mit vorgegebenen möglichen, unsortierten Ausprägungen.</p>
+<p>Der erste Schritt, um das zu verändern, ist die Umwandlung von <code>factor</code> in <code>character</code>. <code>character</code> sind Variablen, die aus freiem Text bestehen und dadurch unendlich viele mögliche Ausprägungen zulassen (- das kommt einer Datumsvariable zumindest schon einmal näher).</p>
+<pre class="r"><code>p1_long$nMonat &lt;- as.character(p1_long$Monat)</code></pre>
+<p>Um Fehler zu vermeiden, wird ab diesem Schritt eine neue Datums-Variable erstellt und im Folgenden für die Umwandlung in <code>POSIXct</code> verwendet.</p>
+<p>Im nächsten Schritt muss die neu erstellte Variable nun um mehrere Zeichen erweitert werden. Dafür wählen wir die drei Zeichen <code>-01</code>, die mit dem <code>paste0</code>-Befehl an alle Daten angehängt werden kann, um einen Tag zu symbolisieren (Für uns ist irrelevant, welche Zahl verwendet wird, da der Datensatz sowieso nur aus monatlichen Daten besteht.).</p>
+<pre class="r"><code>p1_long$nMonat &lt;- paste0(p1_long$nMonat, &#39;-01&#39;)
+head(p1_long$nMonat)</code></pre>
+<pre><code>## [1] &quot;2004-01-01&quot; &quot;2004-02-01&quot; &quot;2004-03-01&quot; &quot;2004-04-01&quot; &quot;2004-05-01&quot;
+## [6] &quot;2004-06-01&quot;</code></pre>
+<p>Warum muss man das zu diesem Zeitpunkt machen? Warum braucht man die Datumsvariable in diesem Format: JJJJ-MM-TT? Der Grund dafür liegt im folgenden Befehl, der die Variable von einem <code>charcter</code> in eine Datumsvariable umwandeln soll. Dieser Befehl besitzt nur eingeschränkte, vorgegebene Formate für Daten, die er als solche erkennen und dementsprechend umwandeln kann. Das Format JJJJ-MM ist keines dieser Formate, weshalb die Datumsvariable <code>nMonat</code> um einen zufälligen Tag (Wir nehmen den ersten Tag des Monats.) erweitert werden muss.</p>
+<p>Der Befehl, um den es geht, heißt <code>strptime</code> und arbeitet mit dem <code>format</code>-Argument, wobei das vorliegende Format der Daten für die Umwandlung spezifiziert werden muss.</p>
+<pre class="r"><code>p1_long$nMonat &lt;- strptime(p1_long$nMonat, format=&quot;%Y-%m-%d&quot;)
+str(p1_long$nMonat)</code></pre>
+<pre><code>##  POSIXlt[1:1710], format: &quot;2004-01-01&quot; &quot;2004-02-01&quot; &quot;2004-03-01&quot; &quot;2004-04-01&quot; &quot;2004-05-01&quot; ...</code></pre>
+<p>Das Datum liegt nun in der <code>POSIXlt</code>-Form vor. Damit erkennt R die Variable <code>nMonat</code> bereits als Datum, doch wir brauchen die Variable als <code>POSIXct</code>. Dafür kann man einfach den Befehl <code>as.POSIXct</code> benutzen.</p>
+<pre class="r"><code>p1_long$nMonat &lt;- as.POSIXct(p1_long$nMonat)
+str(p1_long$nMonat)</code></pre>
+<pre><code>##  POSIXct[1:1710], format: &quot;2004-01-01&quot; &quot;2004-02-01&quot; &quot;2004-03-01&quot; &quot;2004-04-01&quot; &quot;2004-05-01&quot; ...</code></pre>
+<p>Damit wurde die Datumsvariable erfolgreich von einem <code>factor</code> in ein <code>POSIXct</code> umgewandelt. Genau das Gleiche machst du jetzt noch mit dem zweiten Datensatz (<code>p1_wide</code>) und das Problem mit den Zeitangaben ist vollständig gelöst.</p>
+<pre class="r"><code>p1_wide$nMonat &lt;- as.character(p1_wide$Monat)
+p1_wide$nMonat &lt;- paste0(p1_wide$nMonat, &#39;-01&#39;)
+p1_wide$nMonat &lt;- strptime(p1_wide$nMonat, format=&quot;%Y-%m-%d&quot;)
+p1_wide$nMonat &lt;- as.POSIXct(p1_wide$nMonat)</code></pre>
+<p></details></p>
+<p>Wenn du die Datumsvariable erfolgreich umgewandelt hast, müssen nur noch zwei Sachen für eine vollständige Vorbereitung durchgeführt werden.</p>
+<p>Zum Einen wird im Folgenden die Abbildung aus Projekt 1 benutzt. Diese Abbildung benutzt zur Zuweisung von Farben zu den politischen Parteien einen Vektor <code>farben</code>. Diesen kann man einfach aus Projekt 1 übernehmen; ich habe hier aber ein paar farbliche Veränderungen vorgenommen, da mir einige Farben etwas zu grell waren.</p>
+<pre class="r"><code>farben &lt;- c(&#39;AfD&#39; = &#39;deepskyblue&#39;, &#39;CDU&#39; = &#39;black&#39;, &#39;DieGrüne&#39; = &#39;green3&#39;,
+            &#39;DieLinke&#39; = &#39;magenta&#39;, &#39;FDP&#39; = &#39;gold&#39;, &#39;MLPD&#39; = &#39;orange&#39;,
+            &#39;NPD&#39; = &#39;brown&#39;, &#39;SPD&#39; = &#39;red&#39;, &#39;Tierschutzpartei&#39; = &#39;darkblue&#39;)</code></pre>
+<p>Zum Anderen ist in der Aufgabenstellung ein Liniendiagramm zur Darstellung der kumulativen Suchhäufigkeiten im zeitlichen Verlauf gefordert. An sich ist diese Grafik identisch zum Liniendiagramm aus Projekt 1 mit dem Unterschied, dass hier eine andere Variable auf der y-Achse abgebildet werden soll. Deshalb werden neue y-Werte benötigt, die man am besten im <code>p1_long</code>-Datensatz hinzufügt.</p>
+<p>Für die Umsetzung dieser Anforderung muss man sich der Struktur des Datensatzes bewusst sein. Zu jeder Partei gibt es Daten für 190 Monate, die alle in der selben Spalte dargestellt werden (Variable <code>Prozent</code>). Eine solche Variable wird nun für die kumulierten Prozente benötigt. Dafür kann man jedoch nicht für jeden Eintrag einfach die Summe von Zeile 1 bis Zeile X bilden, da sich so die Prozente der verschiedenen Parteien vermischen würden. Eine richtige, aber sehr umständliche Methode, um das zu umgehen, siehst du im Folgenden R-Code:</p>
+<pre class="r"><code>for (i in 1:190) {p1_long$Prozent_kumuliert[i] &lt;- sum(p1_long$Prozent[1:i])}
+for (i in 191:380) {p1_long$Prozent_kumuliert[i] &lt;- sum(p1_long$Prozent[191:i])}
+for (i in 381:570) {p1_long$Prozent_kumuliert[i] &lt;- sum(p1_long$Prozent[381:i])}
+for (i in 571:760) {p1_long$Prozent_kumuliert[i] &lt;- sum(p1_long$Prozent[571:i])}
+for (i in 761:950) {p1_long$Prozent_kumuliert[i] &lt;- sum(p1_long$Prozent[761:i])}
+for (i in 951:1140) {p1_long$Prozent_kumuliert[i] &lt;- sum(p1_long$Prozent[951:i])}
+for (i in 1141:1330) {p1_long$Prozent_kumuliert[i] &lt;- sum(p1_long$Prozent[1141:i])}
+for (i in 1331:1520) {p1_long$Prozent_kumuliert[i] &lt;- sum(p1_long$Prozent[1331:i])}
+for (i in 1521:1710) {p1_long$Prozent_kumuliert[i] &lt;- sum(p1_long$Prozent[1521:i])}</code></pre>
+<p>Hierbei wurde ‘einfach’ für jede Partei ein einzelner Befehl erstellt, der die jeweilige Zeilenspanne (z.B. 1-190) betrachtet und jeweils die kumulierten Prozente berechnet. Der Code erklärt sich im einzelnen folgendermaßen: Gehen wir von dem ersten Befehl <code>for (i in 1:190) {p1_long$Prozent_kumuliert[i] &lt;- sum(p1_long$Prozent[1:i])}</code> aus, dann setzt diese Funktion für <code>i</code> alle Werte von 1 bis 190 ein. Dieses <code>i</code> beschreibt die Zeile, in der sich die Funktion zu einem gewissen Zeitpunkt befindet. Befindet sich die Funktion beispielsweise bei <code>i</code> = 40 (also in Zeile 40), dann wird in der neuen Variable <code>Prozent_kumuliert</code> in der i-ten Zeile (also Zeile 40) ein Wert eingesetzt. Dieser Wert berechnet sich durch die Funktion <code>sum(p1_long$Prozent[1:i])</code>. Diese Funktion besagt, dass eine Summe aus den Werten der Variable <code>Prozent</code> von Zeile 1 bis Zeile <code>i</code> (in diesem Beispiel also Zeile 1 bis 40) gebildet werden soll.</p>
+<p>Damit hat man die gröbsten Vorbereitungen getroffen und kann zum nächsten Unterpunkt, dem Erstellen der Diagramme, kommen. </details></p>
+</div>
+<div id="erstellung-der-diagramme" class="section level4">
+<h4>Erstellung der Diagramme</h4>
+<p><details><summary>Abschnitt anzeigen</summary> Wie in der Problemstellung deutlich wurde, soll es in diesem Projekt darum gehen, mindestens 4 Diagramme in eine App einzubeziehen. Damit Probleme mit der Erstellung dieser Diagramme von vorn herein ausgeschlossen werden können, werden diese hier vor der Erstellung der Bestandteile der App besprochen.</p>
+<p>Diagramm 1 soll ein Liniendiagramm der prozentualen Häufigkeit im Zeitverlauf sein. Dieses wurde bereits in Projekt 1 mit dem Paket <code>ggplot2</code> erstellt und kann hier deshalb einfach übernommen werden:</p>
+<pre class="r"><code>#install.packages(&#39;ggplot2&#39;) --&gt; musst du nur ausführen, sofern du das Paket noch nie benutzt hast
+library(ggplot2)
+ggplot(data = p1_long, aes(x = nMonat, y = Prozent, group = Partei)) +
+      geom_line(aes(colour = Partei)) +      # Liniendiagramm
+      xlab(&#39;Zeitraum&#39;) +                     # Beschriftung x-Achse
+      ylab(&#39;Anfragen (in % des Monats-Maximums)&#39;) + # Beschriftung y-Achse
+      ggtitle(&#39;Suchanfragen deutscher Parteien&#39;) +    # Überschrift
+      scale_color_manual(values = farben) +  # Zuweisung Farbe-Partei
+      theme_bw()         # Formatierung des Achsensystems (bw für black and white)</code></pre>
+<p><img src="/post/2020-06-28-loesungen7_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>Diagramm 2 soll auch ein Liniendiagramm sein, nur dieses mal mit den kumulierten Häufigkeiten im Zeitverlauf. Im Prinzip ist das also genau das gleiche Diagramm mit Änderungen in Zeile 1 (bei <code>aes</code> muss ein anderes <code>y</code> angegeben werden) und in Zeile 4 (Bezeichnung der y-Achse sollte verändert werden). Dieses andere <code>y</code> wurde bereits in den Vorbereitungen erstellt und kann hier deshalb einfach verwendet werden.</p>
+<pre class="r"><code>ggplot(data = p1_long, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
+      geom_line(aes(colour = Partei)) +      # Liniendiagramm
+      xlab(&#39;Zeitraum&#39;) +                     # Beschriftung x-Achse
+      ylab(&#39;Anfragen (in % des Monats-Maximums/kumuliert)&#39;) +  # Beschriftung y-Achse
+      ggtitle(&#39;Suchanfragen deutscher Parteien&#39;) +  # Überschrift
+      scale_color_manual(values = farben) +  # Zuweisung Farbe-Partei
+      theme_bw()       # Formatierung des Achsensystems (bw für black and white)</code></pre>
+<p><img src="/post/2020-06-28-loesungen7_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>Diagramm 3 soll ein Balkendiagramm mit den kumulierten Häufigkeiten der Parteien sein. Dafür verwenden wir nun den <code>p1_wide</code>-Datensatz, da wir hier keine Zwischenwerte mehr brauchen: Die Balken sollen in diesem Fall lediglich die kumulierte Häufigkeit für einen bestimmten Zeitraum angeben. Das könnte man natürlich auch mit <code>p1_long</code> umsetzen, mit <code>p1_wide</code> ist es jedoch deutlich einfacher.</p>
+<p>Bei dem Befehl <code>barplot</code> fordert R als erstes Argument einen Vektor mit den Höhen der Balken (<code>height</code>). Mithilfe von <code>p1_wide</code> erhält man diese Höhen, indem man die Summen der Spalten mit colSums bilden lässt. Mit weiteren Argumenten zur Formatierung sieht das Balkendiagramm dann folgendermaßen aus:</p>
+<pre class="r"><code>barplot(height = colSums(p1_wide[,2:10]),
+        beside = FALSE, ylim = c(0, 2000),
+        col = c(&#39;deepskyblue&#39;, &#39;red&#39;, &#39;gold&#39;, &#39;green3&#39;, &#39;magenta&#39;,
+                &#39;darkblue&#39;, &#39;black&#39;, &#39;orange&#39;, &#39;brown&#39;),
+        main = &quot;Balkendiagramm der kumulierten Häufigkeiten&quot;)</code></pre>
+<p><img src="/post/2020-06-28-loesungen7_files/figure-html/unnamed-chunk-12-1.png" width="672" /> Wie bereits erwähnt, funktioniert das Diagramm auch mithilfe von <code>p1_long</code>. Falls du sehen willst, wie das Diagramm mit diesem Datensatz erstellt werden kann, schau dir den folgenden kleinen Abschnitt an. Für die nächsten Schritte zur Erstellung der App bietet sich der Gebrauch von <code>p1_long</code> jedoch nicht so sehr an, weshalb für dieses Diagramm die Variante mit <code>p1_wide</code> benutzt werden sollte.</p>
+<p><details><summary>Balkendiagramm mit <code>p1_long</code></summary> Mit <code>p1_long</code> gestaltet sich die Auswahl der korrekten Werte für die Höhen aus der Variable <code>Prozent_kumuliert</code> etwas komplizierter, da die Werte aller Parteien in einer Spalte liegen. Aus diesem Grund muss man hier bestimmte Zeilen dieser Variable für die Höhen auswählen. Bei dem vollständigen Datensatz mit 1710 Zeilen wissen wir, dass es zu jeder Partei 190 Daten gibt. Die relevanten Höhen liegen also in den Zeilen 190, 380, 570, … Damit wir da heran kommen, benutzen wir vereinfacht den <code>seq</code>-Befehl. Dieser ermöglicht es, aus einer Zahlenspanne von A bis B jede X-te Zahl auszuwählen (genereller Aufbau: <code>seq(A, B, X)</code>). Das sieht dann für den gesamten Datensatz folgendermaßen aus:</p>
+<pre class="r"><code>barplot(height = p1_long$Prozent_kumuliert[seq(0, 1710, 190)],
+  beside = FALSE, ylim = c(0, 2000),
+  col = c(&#39;deepskyblue&#39;, &#39;red&#39;, &#39;gold&#39;, &#39;green3&#39;, &#39;magenta&#39;,
+          &#39;darkblue&#39;, &#39;black&#39;, &#39;orange&#39;, &#39;brown&#39;),
+  names.arg = c(&#39;AfD&#39;, &#39;SPD&#39;, &#39;FDP&#39;, &#39;DieGrüne&#39;, &#39;DieLinke&#39;,
+                &#39;Tierschutzpartei&#39;, &#39;CDU&#39;, &#39;MLPD&#39;, &#39;NPD&#39;),
+  main = &quot;Balkendiagramm der kumulierten Häufigkeiten&quot;)</code></pre>
+<p><img src="/post/2020-06-28-loesungen7_files/figure-html/unnamed-chunk-13-1.png" width="672" /> Damit das Ganze dann noch etwas reaktiver ist, also in der Lage ist, auf mehrere Modifikationen des Datensatzes zu reagieren (beispielsweise die Reduktion auf eine bestimmte Zeitspanne), kann man den Befehl dann noch folgendermaßen modifizieren:</p>
+<pre class="r"><code>barplot(height = p1_long$Prozent_kumuliert[
+  seq(0, length(p1_long$Prozent_kumuliert), length(p1_long$Prozent_kumuliert)/9)
+  ],
+  beside = FALSE, ylim = c(0, 2000),
+  col = c(&#39;deepskyblue&#39;, &#39;red&#39;, &#39;gold&#39;, &#39;green3&#39;, &#39;magenta&#39;,
+          &#39;darkblue&#39;, &#39;black&#39;, &#39;orange&#39;, &#39;brown&#39;),
+  names.arg = c(&#39;AfD&#39;, &#39;SPD&#39;, &#39;FDP&#39;, &#39;DieGrüne&#39;, &#39;DieLinke&#39;,
+                &#39;Tierschutzpartei&#39;, &#39;CDU&#39;, &#39;MLPD&#39;, &#39;NPD&#39;),
+  main = &quot;Balkendiagramm der kumulierten Häufigkeiten&quot;)</code></pre>
+<p>Damit ist die Funktion nicht nur für den vollständigen Datensatz anwendbar, sondern für jegliche Beschränkungen der Zeitspanne (sofern man alle anderen Daten aus dem Datensatz entfernt). Denn so ist Auswahl der Höhen nur noch von der Länge des Datensatzes abhängig und diese wird bei jeder Ausführung des <code>barplot</code>-Befehls aufs Neue bestimmt. Im späteren Verlauf dieses Abschnitts des Projekts wird deutlich, warum gerade das von großer Wichtigkeit ist. Jedoch ist darauf hinzuweisen, dass die Variante mit <code>p1_wide</code> deutlich einfacher ist. </details></p>
+<p>Diagramm 4 soll ein Kuchendiagramm mit der kumulierten Häufigkeit der Parteien sein. Hierfür werden die gleichen Daten wie in Diagramm 3 benötigt. Es gibt also wiederum die Möglichkeit, das Diagramm mit <code>p1_long</code> oder <code>p1_wide</code> zu erstellen. Doch mit <code>p1_wide</code> ist es vermutlich einfacher, weshalb im Folgenden auch nur dieser Weg betrachtet wird (für Erklärung der Erstellung der Grafik mit <code>p1_long</code> siehe oben). Für die Erstellung eines Kuchendiagramms kann man zum Beispiel die Funktion <code>pie</code> nutzen, die mit den Argumenten <code>x</code> (für die Daten), <code>main</code> (für den Titel), <code>col</code> (für die Farben) uvm. arbeitet. In diesem Fall sieht das dann folgendermaßen aus:</p>
+<pre class="r"><code>pie(x = colSums(p1_wide[,2:10]),
+    main = &#39;Kuchendiagramm der kumulierten Häufigkeiten&#39;,
+    col = c(&#39;deepskyblue&#39;, &#39;red&#39;, &#39;gold&#39;, &#39;green3&#39;, &#39;magenta&#39;,
+            &#39;darkblue&#39;, &#39;black&#39;, &#39;orange&#39;, &#39;brown&#39;)
+)</code></pre>
+<p><img src="/post/2020-06-28-loesungen7_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p>Damit wurden alle Vorbereitung getroffen und nötige Inhalte für die App erstellt. Nun kann mit der Erstellung der eigentlich App begonnen werden. Der nächste Abschnitt behandelt zunächst einmal das User Interface.</p>
+<p></details></p>
+</div>
+<div id="user-interface" class="section level4">
+<h4>User Interface</h4>
+<p><details><summary>Abschnitt anzeigen</summary> An diesem Punkt beginnen wir, mit dem <code>shiny</code>-Paket zu arbeiten. Aus diesem Grund sollte dieses spätestens jetzt heruntergeladen werden und dann in die aktuelle Sitzung geladen werden.</p>
+<pre class="r"><code>#install.packages(&quot;shiny&quot;) -&gt; nur notwendig, sofern du das Paket nicht bereits heruntergeladen hast
+library(shiny)</code></pre>
+<p>Die Problemstellung gibt für die Gestaltung des User Interfaces fünf Bestandteile vor:</p>
+<ol style="list-style-type: decimal">
+<li><a href="#Erstens">Die Daten sollen in einem Diagramm dargestellt werden. Die Darstellungsform soll wählbar sein.</a></li>
+<li><a href="#Zweitens">Der Titel des Diagramms soll durch den Anwender definierbar sein.</a></li>
+<li><a href="#Drittens">Die angezeigten Parteien sollen manuell wählbar sein.</a></li>
+<li><a href="#Viertens">Der dargestellte Zeitraum soll durch den Anwender bestimmbar sein.</a></li>
+<li><a href="#Fünftens">Zusatz: Verwendung eines Action Buttons</a></li>
+</ol>
+<p>WICHTIG!: Alle reaktiven Inhalte, die durch die Inputs beeinflusst werden, können nicht im User Interface ausgeführt und erstellt werden. Aus diesem Grund wird hier mit InputId’s gearbeitet, deren Inhalt erst im Server spezfiziert wird.</p>
+<p><a id="Erstens"></a> 1.) Die Diagramme für die Darstellung der Daten haben wir bereits im zweiten Teilabschnitt erstellt. Diese sollen durch eine <code>navbarPage</code> in die App eingearbeitet werden. Dadurch wird immer nur eins der Diagramme angezeigt. Mithilfe der Navigationsleiste kann dann zwischen den verschiedenen Diagrammen hin und her geschaltet werden. Innerhalb der <code>navbarPage</code> legt man mit <code>tabPanel</code>-Befehlen die Inhalte der Unterseiten fest. Dabei legt man zuerst fest, wie der Name der Unterseite in der Navigationsleiste lauten soll, und danach was auf dieser Unterseite abgebildet werden soll. Das Endresultat kann dann folgendermaßen aussehen:</p>
+<pre class="r"><code>navbarPage(strong(&quot;Darstellungsart&quot;), # Titel der Navigationsleiste (steht ganz links), &#39;strong()&#39; macht die Schrift fett
+           tabPanel(&quot;Liniendiagramm&quot;, # Titel der Unterseite
+                    plotOutput(&quot;Liniendiagramm&quot;)), # Inhalt der Unterseite -&gt; Hier soll der Output mit der Bezeichnung &quot;Liniendiagramm&quot; dargestellt werden.
+           tabPanel(&quot;Liniendiagramm (kumuliert)&quot;,
+                    plotOutput(&quot;Liniendiagramm_kumuliert&quot;)),
+           tabPanel(&quot;Balkendiagramm (kumuliert)&quot;,
+                    plotOutput(&quot;Balkendiagramm&quot;)),
+           tabPanel(&quot;Kuchendiagramm (kumuliert)&quot;,
+                    plotOutput(&quot;Kuchendiagramm&quot;)))</code></pre>
+<p>Wie hier zu sehen ist, können die Diagramme noch nicht im User Interface erstellt werden. Dafür werden sogenannte Platzhalter/Bezeichnungen eingeführt, die dann später mit Inhalt gefüllt werden. So wird zum Beispiel die erste Unterseite der Navigationsleiste mit <code>plotOutput(&quot;Liniendiagramm&quot;)</code> gefüllt. Das bedeutet, dass an diesem Punkt der Output mit der Bezeichnung <code>Liniendiagramm</code> dargestellt werden soll. Was dieser Output ist und wie er erstellt wird, ist hier noch nicht spezifiziert, da das Liniendiagramm (wie auch die anderen Diagramme) von den folgenden drei Inputs abhängig sein wird. Und wie bereits erwähnt: Im User Interface können nur statische Bestandteile der App erstellt werden.</p>
+<p><a id="Zweitens"></a> 2.) Die zweite Vorgabe aus der Problemstellung ist, dass der Titel der Diagramme durch den Anwender der App definierbar sein soll. Das bedeutet, dass zusätzlich ein Eingabefeld für normalen Text benötigt wird. Dafür gibt es einen relativ simplen Befehl: <code>textInput()</code>. <code>textInput()</code> erstellt ein Input-Feld für normalen Text und benötigt dafür die Argumente <code>inputId</code> für die Bezeichnung des Inputs für die Wiederverwendung im Server und (falls erwünscht) <code>label</code> für die Beschriftung dieses Input-Feldes (Dort kann man für den Anwender erklären, was im Input-Feld gefordert ist bzw. was die Funktion des Input-Feldes ist.).</p>
+<pre class="r"><code>textInput(inputId = &quot;Titel&quot;, label = &quot;Titel der Grafik&quot;)</code></pre>
+<p><a id="Drittens"></a> 3.) Die dritte Vorgabe ist, dass die im Diagramm angezeigten Parteien manuell wählbar sein sollen. Dafür braucht man einen Input, bei dem man für jede Partei manuell entscheiden kann, ob sie angezeigt werden soll oder nicht. Es wäre sehr umständlich für alle 9 Parteien ein eigenes Input-Feld mit den Möglichkeit <code>JA</code> und <code>NEIN</code> zu erstellen, deshalb fällt hier die günstigste Wahl auf ein <code>checkboxGroupInput</code>. Diese Input-Form ermöglicht es, für jede Partei durch Ankreuzen festzulegen, ob diese angezeigt werden soll oder nicht. Neben den bereits erklärten Argumenten unter 2.) kommen hier die Argumente <code>inline</code> und <code>choices</code> dazu. Mit <code>choices</code> kann man angeben, welche Möglichkeiten vorhanden sein sollen; in unserem Fall die neun im Datensatz vorhandenen Parteien. Mit <code>inline</code> kann man dann entscheiden, ob die Möglichkeiten untereinander oder “inline”, also in einer Linie, dargestellt werden sollen.</p>
+<pre class="r"><code>checkboxGroupInput(inputId = &quot;Parteien&quot;,
+                   label = &quot;Parteien&quot;,
+                   inline = TRUE,
+                   choices = c(&quot;AfD&quot;, &quot;SPD&quot;, &quot;FDP&quot;, &quot;DieGrüne&quot;, &quot;DieLinke&quot;,
+                               &quot;Tierschutzpartei&quot;, &quot;CDU&quot;, &quot;MLPD&quot;, &quot;NPD&quot;))</code></pre>
+<p><a id="Viertens"></a> 4.) Die letzte Anforderung ist die Möglichkeit zur Eingrenzung des betrachteten Zeitintervalls. Für solche Funktionen hält <code>shiny</code> bereits ein spezialisiertes Input-Fenster parat: <code>dateRangeInput()</code>. Neben den Argumenten <code>inputId</code> und <code>label</code> kann man hier zusätzlich die Argumente <code>start</code> und <code>format</code> angeben. Mit <code>format</code> legt man das Format der Datumsangabe fest. Da diese Datumsangabe mit den Daten in den Datensätzen <code>p1_long</code> und <code>p1_wide</code> übereinstimmen sollten, sollte man sich hier ebenso für das Format <code>&quot;yyyy-mm-dd&quot;</code> entscheiden. Mit <code>start</code> kann man darüber hinaus die default-Einstellung des Startdatums in der App spezifizieren (<code>end</code> liegt standardmäßig auf dem aktuellen Datum; kann man auch festlegen, für diesen Fall aber nicht zwingend notwendig). Der R-Code dazu sieht dann folgendermaßen aus:</p>
+<pre class="r"><code>dateRangeInput(inputId = &quot;Datum&quot;,
+               label = &quot;Zeitspanne&quot;,
+               start = &quot;2000-01-01&quot;,
+               format = &quot;yyyy-mm-dd&quot;)</code></pre>
+<p><a id="Fünftens"></a> 5.) Zusätzlich dazu kann man dem Ganzen auch noch einen sogenannten <code>actionButton</code> hinzufügen. Mithilfe von diesem <code>actionButton</code> kann man bewusst steuern, wann gewisse Veränderungen in den Input-Fenstern in den Output übernommen werden sollen.</p>
+<pre class="r"><code>actionButton(inputId = &quot;Update&quot;, label = &quot;Diagramm erzeugen&quot;)</code></pre>
+<p>Jetzt kann man diese 5 Bestandteile einfach mal in ein User Interface zusammenfügen und ausführen. Dafür kann man den Standardaufbau einer shiny-App mithilfe des snippets <code>shinyapp</code> abrufen (während der Eingabe von “shinyapp” öffnen sich Vorschläge; daraus einfach ‘shinyapp – snippet’ auswählen und ENTER drücken) und alle Inputs bei <code>ui</code> einfügen:</p>
+<pre class="r"><code>ui &lt;- fluidPage(
+  navbarPage(strong(&quot;Darstellungsart&quot;),
+           tabPanel(&quot;Liniendiagramm&quot;,
+                    plotOutput(&quot;Liniendiagramm&quot;)),
+           tabPanel(&quot;Liniendiagramm (kumuliert)&quot;,
+                    plotOutput(&quot;Liniendiagramm_kumuliert&quot;)),
+           tabPanel(&quot;Balkendiagramm (kumuliert)&quot;,
+                    plotOutput(&quot;Balkendiagramm&quot;)),
+           tabPanel(&quot;Kuchendiagramm (kumuliert)&quot;,
+                    plotOutput(&quot;Kuchendiagramm&quot;))),
+  dateRangeInput(inputId = &quot;Datum&quot;,
+               label = &quot;Zeitspanne&quot;,
+               start = &quot;2000-01-01&quot;,
+               format = &quot;yyyy-mm-dd&quot;),
+  textInput(inputId = &quot;Titel&quot;, label = &quot;Titel der Grafik&quot;),
+  checkboxGroupInput(inputId = &quot;Parteien&quot;,
+                   label = &quot;Parteien&quot;,
+                   inline = TRUE,
+                   choices = c(&quot;AfD&quot;, &quot;SPD&quot;, &quot;FDP&quot;, &quot;DieGrüne&quot;, &quot;DieLinke&quot;,
+                               &quot;Tierschutzpartei&quot;, &quot;CDU&quot;, &quot;MLPD&quot;, &quot;NPD&quot;)),
+  actionButton(inputId = &quot;Update&quot;, label = &quot;Diagramm erzeugen&quot;)
+)
+
+server &lt;- function(input, output, session) {
+  
+}
+
+shinyApp(ui, server)</code></pre>
+<p>Nun kann man das vorläufige User Interface der App betrachten. Am Anfang der Seite ist die Navigationsleiste zu sehen. Darunter ist ein großer leerer Bereich für die Inhalte der Unterseiten, da diese ja bisher noch nicht erstellt wurden. Am Ende der Seite sind die drei Inputs für Titel, Zeitraum und die Parteien zu sehen und der Action Button mit der Aufschrift “Diagramm erzeugen”.</p>
+<p>Natürlich kann man an der App in ihrem aktuellen Status allem voran die Formatierung bemängeln. Die App enthält keine Farben, die Input-Fenster sind nicht an die Größe der Seite angepasst und stehen einfach nur untereinander, und es gibt keinen Titel. Die Problemstellung schreibt diese optischen Verbesserungen zwar nicht vor; doch sie machen die App deutlich ansehnlicher. Im Folgenden wird dir eine mögliche Formatierung des User Interfaces der App vorgestellt.</p>
+<pre class="r"><code>ui &lt;- fluidPage(
+  style = &quot;background: #337ab7; color: white;&quot;, # Format der Gesamtseite: Hintergrundfarbe mit dem tag #337ab7 und Schriftfarbe weiß 
+  tags$head(tags$style(&quot;.navbar {background-color: #eded00;}&quot;, # Navigationsleiste: Hintergrundfarbe mit dem tag #eded00
+                       &quot;.navbar-default .navbar-brand {color: black; background-color: #ffaa00}&quot;)), # Navigationsleistentitel mit der Schriftfarbe schwarz und der Hintergrundfarbe #ffaa00
+  titlePanel( # hier wird ein Titelfeld ganz oben eingefügt
+    title = h1(strong(&quot;Suchanfragen deutscher Parteien&quot;), align = &quot;center&quot;), # Überschrift der Formatierung h1 in fett (-&gt;strong) und zentriert (align = &quot;center&quot;)
+    windowTitle = &quot;Suchanfragen deutscher Parteien&quot;), # Titel, der im Tab angezeigt wird
+  wellPanel( # erstellt ein Element, das die darin liegenden Objekte gruppiert
+    style = &quot;background: #87CEFA; border-color: #2e6da4&quot;, # Format dieses Elements
+    navbarPage(strong(&quot;Darstellungsart&quot;),
+      tabPanel(&quot;Liniendiagramm&quot;,
+               plotOutput(&quot;Liniendiagramm&quot;)),
+      tabPanel(&quot;Liniendiagramm (kumuliert)&quot;,
+               plotOutput(&quot;Liniendiagramm_kumuliert&quot;)),
+      tabPanel(&quot;Balkendiagramm (kumuliert)&quot;,
+               plotOutput(&quot;Balkendiagramm&quot;)),
+      tabPanel(&quot;Kuchendiagramm (kumuliert)&quot;,
+               plotOutput(&quot;Kuchendiagramm&quot;))
+    ),
+    br(), # fügt einen break ein -&gt; entspicht einer Leerzeile im Text
+    fluidRow( # erstellt eine Reihe, die sich an die Fensterbreite anpasst (&quot;fluid&quot;)
+      column(6, # spezifiziert, wo dieser Input stehen soll: belegt die ersten 6 Spalten (eine Zeile besteht aus 12 Spalten = nimmt also die Hälfte der Seite ein)
+             dateRangeInput(inputId = &quot;Datum&quot;,
+                            label = &quot;Zeitspanne&quot;,
+                            start = &quot;2000-01-01&quot;,
+                            format = &quot;yyyy-mm-dd&quot;)),
+      column(6, # besetzt die 6 Spalten auf der rechten Seite; also die rechte Hälfte des Fensters
+             textInput(inputId = &quot;Titel&quot;,
+                       label = &quot;Titel der Grafik&quot;))),
+    fluidRow(
+      column(9, checkboxGroupInput(
+        inputId = &quot;Parteien&quot;,
+        label = &quot;Parteien&quot;,
+        inline = TRUE,
+        choices = c(&quot;AfD&quot;, &quot;SPD&quot;, &quot;FDP&quot;, &quot;DieGrüne&quot;, &quot;DieLinke&quot;,
+                    &quot;Tierschutzpartei&quot;, &quot;CDU&quot;, &quot;MLPD&quot;, &quot;NPD&quot;))),
+      column(3, br(), actionButton(
+        inputId = &quot;Update&quot;,
+        label = strong(&quot;Diagramm erzeugen&quot;), # Die Beschriftung des ActionButtons soll fett sein.
+        style = &quot;color: #fff; background-color: #337ab7; border-color: #2e6da4&quot;)) # Der Button selbst soll die Schriftfarbe #fff haben, die Hintergrundfarbe #337ab7 und die Rahmenfabre #2e6da4.
+    )
+  )
+)
+
+server &lt;- function(input, output, session) {
+  
+}
+
+shinyApp(ui, server)</code></pre>
+<p>Das Endergebnis ist bereits etwas hübscher und deutet an, was mit dem Design alles möglich ist. Falls du dich fragst, was es mit den Farbcodes auf sich hat und woher diese kommen: HTML (worauf shiny basiert) hat ein Farbsystem, das mit diesen 6-stelligen Codes arbeitet; diese sind im Internet relativ einfach auffindbar und verfolgen eine relativ einfache Logik. Für mehr Infos dazu schau dir einfach mal die Website <a href="https://html-color-codes.info/webfarben_hexcodes/">html-color-codes.info</a> an, wenn du dich für die Logik dahinter interessierst und vielleicht deine eigene Farb-Kombination zusammenstellen willst. Eine weitere Möglichkeit ist die Website <a href="http://www.farbtabelle.at/grosse-farbtabelle/">farbtabelle.at</a>, die dir eine Farbtabelle mit über 4000 Farben und zugehörigen Farbcodes bereitstellt.</p>
+<p>An diesem Punkt kannst du das User Interface als abgeschlossen betrachten. Nur die Outputs der verschiedenen Navigationstabs müssen noch in Abhängigkeit der Inputs (inklusive des Action Buttons) erstellt und eingefügt werden. Die Umsetzung dieser letzten Anforderung wird im letzten Teilabschnitt “Server” besprochen.</p>
+<p></details></p>
+</div>
+<div id="server" class="section level4">
+<h4>Server</h4>
+<p><details><summary>Abschnitt anzeigen</summary></p>
+<p>Zunächst kann man alle Diagramme in diese Funktion übernehmen. Diese Diagramme muss man nun nur noch in eine reaktive Funktion packen (<code>renderPlot</code>) und dann durch einen Zuweisungspfeil spezifizieren, welchen Output das jeweilige Diagramm darstellt. Dabei sind die Bezeichnungen aus den <code>tabPanels</code> von besonderer Bedeutung, da diese hier für die Zuordnung von Diagramm zu <code>tabPanel</code> ausschlaggebend sind.</p>
+<pre class="r"><code>server &lt;- function(input, output, session) {
+  output$Liniendiagramm &lt;- renderPlot(
+    ggplot(data = p1_long, aes(x = nMonat, y = Prozent, group = Partei)) +
+      geom_line(aes(colour = Partei)) +
+      xlab(&#39;Zeitraum&#39;) +
+      ylab(&#39;Anfragen (in % des Monats-Maximums)&#39;) +
+      ggtitle(&#39;Suchanfragen deutscher Parteien&#39;) +
+      scale_color_manual(values = farben) +  
+      theme_bw()
+  )
+  output$Liniendiagramm_kumuliert &lt;- renderPlot(
+    ggplot(data = p1_long, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
+      geom_line(aes(colour = Partei)) +
+      xlab(&#39;Zeitraum&#39;) +
+      ylab(&#39;Anfragen (in % des Monats-Maximums/kumuliert)&#39;) +
+      ggtitle(&#39;Suchanfragen deutscher Parteien&#39;) +
+      scale_color_manual(values = farben) +
+      theme_bw()
+  )
+  output$Balkendiagramm &lt;- renderPlot(
+    barplot(height = colSums(p1_wide[,2:10]),
+      beside = FALSE, ylim = c(0, 2000),
+      col = c(&#39;deepskyblue&#39;, &#39;red&#39;, &#39;gold&#39;, &#39;green3&#39;, &#39;magenta&#39;,
+              &#39;darkblue&#39;, &#39;black&#39;, &#39;orange&#39;, &#39;brown&#39;),
+      main = &quot;Balkendiagramm der kumulierten Häufigkeiten&quot;
+    )
+  )
+  output$Kuchendiagramm &lt;- renderPlot(
+    pie(x = colSums(p1_wide[,2:10]),
+      main = &#39;Kuchendiagramm der kumulierten Häufigkeiten&#39;,
+      col = c(&#39;deepskyblue&#39;, &#39;red&#39;, &#39;gold&#39;, &#39;green3&#39;, &#39;magenta&#39;,
+              &#39;darkblue&#39;, &#39;black&#39;, &#39;orange&#39;, &#39;brown&#39;)
+    )
+  )
+}</code></pre>
+<p>Das bildet nun die Grundstruktur für den Server. Jetzt geht es darum, die reaktiven Inputs in die Diagramme zu integrieren. Fangen wir dafür bei der einfachsten Sache an: dem Titel. Der angegebene Titel wird in der Variable <code>input$Titel</code> gespeichert, da bei diesem Input <code>inputId = &quot;Titel&quot;</code> von uns festgelegt wurde. Diese Variable setzen wir nun einfach an die Stelle des Titels in den vier Diagrammen:</p>
+<pre class="r"><code>server &lt;- function(input, output, session) {
+  output$Liniendiagramm &lt;- renderPlot(
+    ggplot(data = p1_long, aes(x = nMonat, y = Prozent, group = Partei)) +
+      geom_line(aes(colour = Partei)) +
+      xlab(&#39;Zeitraum&#39;) +
+      ylab(&#39;Anfragen (in % des Monats-Maximums)&#39;) +
+      ggtitle(input$Titel) +
+      scale_color_manual(values = farben) +  
+      theme_bw()
+  )
+  output$Liniendiagramm_kumuliert &lt;- renderPlot(
+    ggplot(data = p1_long, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
+      geom_line(aes(colour = Partei)) +
+      xlab(&#39;Zeitraum&#39;) +
+      ylab(&#39;Anfragen (in % des Monats-Maximums/kumuliert)&#39;) +
+      ggtitle(input$Titel) +
+      scale_color_manual(values = farben) +
+      theme_bw()
+  )
+  output$Balkendiagramm &lt;- renderPlot(
+    barplot(height = colSums(p1_wide[,2:10]),
+      beside = FALSE, ylim = c(0, 2000),
+      col = c(&#39;deepskyblue&#39;, &#39;red&#39;, &#39;gold&#39;, &#39;green3&#39;, &#39;magenta&#39;,
+              &#39;darkblue&#39;, &#39;black&#39;, &#39;orange&#39;, &#39;brown&#39;),
+      main = input$Titel
+    )
+  )
+  output$Kuchendiagramm &lt;- renderPlot(
+    pie(x = colSums(p1_wide[,2:10]),
+      main = input$Titel,
+      col = c(&#39;deepskyblue&#39;, &#39;red&#39;, &#39;gold&#39;, &#39;green3&#39;, &#39;magenta&#39;,
+              &#39;darkblue&#39;, &#39;black&#39;, &#39;orange&#39;, &#39;brown&#39;)
+    )
+  )
+}</code></pre>
+<p>Im zweiten Schritt geht es darum, ein variables Zeitintervall miteinzubeziehen. Dafür muss man den Datensatz vor der Verwendung in den Diagrammen manipulieren. Diese Manipulation soll jedoch nicht bei jeder kleinsten Veränderung vonstatten gehen, sondern erst dann, wenn der <code>Action-Button</code> betätigt wurde. Um das zu verwirklichen, werden die Funktionen <code>reactiveValues</code> und <code>observeEvent</code> benötigt. Mit <code>reactiveValues</code> erstellt man ein reaktives Objekt, in unserem Fall der Datensatz <code>p1_long</code>, der durch die Inputs verändert werden kann. Man schreibt also: <code>rv &lt;- reactiveValues(data = p1_long)</code>. Der Datensatz ist nun ein reaktives Objekt, das über <code>rv$data</code> abrufbar ist, und außerdem stellt <code>p1_long</code>, also der gesamte Datensatz, den Ausgangsdatensatz für die Erstellung der Diagramme beim Öffnen der App dar. Jetzt benutzt man den Befehl <code>observeEvent</code>, um <code>rv$data</code> dann zu aktualisieren, wenn der Action-Button betätigt wird. Wie lässt sich diese Aktualisierung jedoch bewerkstelligen? Die genaue Erklärung dazu erhältst du (wenn du möchtest) im folgenden kleinen Unterabschnitt.</p>
+<p><details><summary>Aktualisierung der betrachteten Zeitspanne</summary> Das Problem von Daten ist, dass sie nicht den typischen Strukturen von Zahlen folgen. Zahlen stehen für sich, während Daten aus den drei Komponenten Tag, Monat und Jahr bestehen. Aus diesem Grund muss der Input aus den beiden Input-Feldern in ein Datums-Format (POSIXct) gebracht werden, um es mit den Daten aus der Variable <code>nMonat</code> vergleichen zu können. Glücklicherweise liegen die Daten in den Input-Feldern bereits im Format ‘JJJJ-MM-TT’ vor, sodass man einfach den Befehl <code>as.POSIXct</code> verwenden kann. Jetzt geht es darum, vom Datensatz <code>p1_long</code> nur jene Zeilen beizubehalten, deren Datum (<code>nMonat</code>) in der angegebenen Datumspanne der Input-Felder liegt. Daraus ergeben sich die zwei Bedingungen <code>as.POSIXct(input$Datum[1]) &lt; p1_long$nMonat</code> und <code>as.POSIXct(input$Datum[2]) &gt; p1_long$nMonat</code> für die Auswahl der Zeilen. </details></p>
+<p>Nun hat man die Veränderung näher bestimmt, die durch einen Knopfdruck ausgelöst werden. Jetzt gilt es noch, den Knopfdruck in die Funktion mit einzubeziehen. Wie bereits erwähnt, nutzt man die <code>observeEvent</code>-Funktion dafür. Diese Funktion reagiert auf Veränderungen des ersten Arguments. Hier ist der Inhalt des ersten Arguments <code>input$Update</code>, dessen Wert bei jedem Knopfdruck verändert (und zwar von 0 zu 1 und dann wieder zu 0 usw.). Das heißt bei jedem Knopfdruck ändert sich <code>input$Update</code>, wodurch <code>rv$data</code> auf eine mögliche Veränderung von <code>input$Datum</code> reagieren soll. Das Ganze sieht dann folgendermaßen aus:</p>
+<pre class="r"><code>rv &lt;- reactiveValues(data = p1_long)
+observeEvent(input$Update, {
+  rv$data &lt;- p1_long[as.POSIXct(input$Datum[1]) &lt; p1_long$nMonat
+                     &amp; as.POSIXct(input$Datum[2]) &gt; p1_long$nMonat,]}) # ACHTUNG: Nicht die geschweifte Klammer vergessen!</code></pre>
+<p>Das Ganze muss man dann auch noch für <code>p1_wide</code> umsetzen, da dieser Datensatz in der Erstellung der Diagramme auch benötigt wird.</p>
+<p>WICHTIG - Danach befinden sich die relevanten Datensätze zur Erstellung der Diagramme in <code>rv$data</code> für die ersten beiden Diagramme und in <code>rv2$data</code> für die Diagramme drei und vier! Das muss also in den Befehlen der Diagramme auch noch verändert werden! Der R-Code dazu sieht dann folgendermaßen aus:</p>
+<pre class="r"><code>server &lt;- function(input, output, session) {
+  rv &lt;- reactiveValues(data = p1_long)
+  observeEvent(input$Update, {
+    rv$data &lt;- p1_long[as.POSIXct(input$Datum[1]) &lt; p1_long$nMonat
+                       &amp; as.POSIXct(input$Datum[2]) &gt; p1_long$nMonat,]})
+  rv2 &lt;- reactiveValues(data = p1_wide[,2:10]) # nur Spalte 2-10, da die Spalten 1 und 11 das Datum enthalten und keine Prozentangaben
+  observeEvent(input$Update, {
+    rv2$data &lt;- p1_wide[as.POSIXct(input$Datum[1]) &lt; p1_wide$nMonat
+                       &amp; as.POSIXct(input$Datum[2]) &gt; p1_wide$nMonat,]})
+  output$Liniendiagramm &lt;- renderPlot(
+    ggplot(data = rv$data, aes(x = nMonat, y = Prozent, group = Partei)) +
+      geom_line(aes(colour = Partei)) +
+      xlab(&#39;Zeitraum&#39;) +
+      ylab(&#39;Anfragen (in % des Monats-Maximums)&#39;) +
+      ggtitle(input$Titel) +
+      scale_color_manual(values = farben) +  
+      theme_bw()
+  )
+  output$Liniendiagramm_kumuliert &lt;- renderPlot(
+    ggplot(data = rv$data, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
+      geom_line(aes(colour = Partei)) +
+      xlab(&#39;Zeitraum&#39;) +
+      ylab(&#39;Anfragen (in % des Monats-Maximums/kumuliert)&#39;) +
+      ggtitle(input$Titel) +
+      scale_color_manual(values = farben) +
+      theme_bw()
+  )
+  output$Balkendiagramm &lt;- renderPlot(
+    barplot(height = colSums(rv2$data),
+      beside = FALSE, ylim = c(0, 2000),
+      col = c(&#39;deepskyblue&#39;, &#39;red&#39;, &#39;gold&#39;, &#39;green3&#39;, &#39;magenta&#39;,
+              &#39;darkblue&#39;, &#39;black&#39;, &#39;orange&#39;, &#39;brown&#39;),
+      main = input$Titel
+    )
+  )
+  output$Kuchendiagramm &lt;- renderPlot(
+    pie(x = colSums(rv2$data),
+      main = input$Titel,
+      col = c(&#39;deepskyblue&#39;, &#39;red&#39;, &#39;gold&#39;, &#39;green3&#39;, &#39;magenta&#39;,
+              &#39;darkblue&#39;, &#39;black&#39;, &#39;orange&#39;, &#39;brown&#39;)
+    )
+  )
+}</code></pre>
+<p>Im letzten Schritt muss man noch die Auswahl der Parteien mit in die Erstellung der Diagramme einbeziehen. Auch hier setzt man vor der Erstellung der Diagramme an den Datensätzen selbst an. Der Input aus der <code>checkbockGroupInput</code>-Funktion kommt in <code>input$Partei</code> als einfacher Text an. Ist zum Beispiel <code>CDU</code> angekreuzt, dann befindet sich im Objekt <code>input$Partei</code> ein Objekt <code>CDU</code>. Aufgrund dessen lässt sich eine Bedingung mit dem <code>is.element</code>-Befehl erstellen, der jene Reaktivität der Diagramme umsetzt. Im Datensatz <code>p1_long</code> findet man eine Variable <code>Partei</code>, in der die jeweilige Partei angegeben ist. Hier muss man also einfach jene Zeilen des Datensatzes auswählen, in denen die Partei aus der Variable <code>Partei</code> ein Objekt von <code>input$Partei</code> ist. Für den Datensatz <code>p1_wide</code> findet sich keine solche Variable. Hier hat jede Partei eine eigene Spalte, weshalb die Partei-Bedingung hier die relevanten Spalten auswählt.</p>
+<p>Im R-Code umgesetzt sieht das dann folgendermaßen aus und bildet mitunter das Endprodukt des Servers:</p>
+<pre class="r"><code>server &lt;- function(input, output, session) {
+  rv &lt;- reactiveValues(data = p1_long)
+  observeEvent(input$Update, {
+    rv$data &lt;- p1_long[is.element(p1_long$Partei, input$Parteien)
+                       &amp; as.POSIXct(input$Datum[1]) &lt; p1_long$nMonat
+                       &amp; as.POSIXct(input$Datum[2]) &gt; p1_long$nMonat,]})
+  output$Liniendiagramm &lt;- renderPlot(
+    ggplot(data = rv$data, aes(x = nMonat, y = Prozent, group = Partei)) +
+      geom_line(aes(colour = Partei)) +      # Liniendiagramm
+      xlab(&#39;Zeitraum&#39;) +                     # Beschriftung x-Achse
+      ylab(&#39;Anfragen (in % des Monats-Maximums)&#39;) + # Beschriftung y-Achse
+      ggtitle(input$Titel) +                 # Überschrift
+      scale_color_manual(values = farben) +
+      theme_bw()
+  )
+  output$Liniendiagramm_kumuliert &lt;- renderPlot(
+    ggplot(data = rv$data, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
+      geom_line(aes(colour = Partei)) +      # Liniendiagramm
+      xlab(&#39;Zeitraum&#39;) +                     # Beschriftung x-Achse
+      ylab(&#39;Anfragen (in % des Monats-Maximums/kumuliert)&#39;) + # Beschriftung y-Achse
+      ggtitle(input$Titel) +                 # Überschrift
+      scale_color_manual(values = farben) +
+      theme_bw()
+  )
+  rv2 &lt;- reactiveValues(data = p1_wide[,2:10])
+  observeEvent(input$Update, {
+    rv2$data &lt;- p1_wide[as.POSIXct(input$Datum[1]) &lt; p1_wide$nMonat
+                       &amp; as.POSIXct(input$Datum[2]) &gt; p1_wide$nMonat,
+                       input$Parteien]})
+  output$Balkendiagramm_kumuliert &lt;- renderPlot(
+    barplot(height = colSums(rv2$data),
+            beside = FALSE, ylim = c(0, 2000),
+            col = c(&#39;deepskyblue&#39;, &#39;red&#39;, &#39;gold&#39;, &#39;green3&#39;, &#39;magenta&#39;,
+                    &#39;darkblue&#39;, &#39;black&#39;, &#39;orange&#39;, &#39;brown&#39;),
+            main = input$Titel)
+  )
+  output$Kuchendiagramm &lt;- renderPlot(
+    pie(x = colSums(rv2$data), main = input$Titel,
+        col = c(&#39;deepskyblue&#39;, &#39;red&#39;, &#39;gold&#39;, &#39;green3&#39;, &#39;magenta&#39;, &#39;darkblue&#39;,
+                &#39;black&#39;, &#39;orange&#39;, &#39;brown&#39;)
+    )
+  )
+}</code></pre>
+<p></details></p>
+<p>Wenn man nun <code>ui</code> und <code>server</code> erstellt hat, kann man die vollständige App folgendermaßen abrufen:</p>
+<pre class="r"><code>shinyApp(ui, server)</code></pre>
+<p>Es ergibt sich eine App, die mehrere Diagrammen mit mehr oder weniger dem gleichen Datensatz erstellt. Diese Diagramme reagieren direkt auf Veränderungen des Titels im dazugehörigen Input-Fenster. Auf die ausgewählte Zeitspanne und die ausgewählten Parteien reagieren die Diagramme nicht direkt, sondern erst dann, wenn die Veränderungen durch das Drücken des “Diagramm erzeugen”-Buttons auf die Diagramme angewendet werden.</p>
+<hr />
+</div>
+</div>
+<div id="sudokus-lösen" class="section level2">
+<h2>Sudokus lösen</h2>
+<p>Hier sind die Lösungen zum zweiten Abschnitt des Projekts “Sudokus lösen”. Wie bereits erwähnt, handelt es sich hier nur um eine Möglichkeit, die angesprochenen Ziele umzusetzen. Die Lösungen sind also vor allem als Vorschlag zu betrachten; andere Wege sind logischerweise auch denkbar, möglicherweise sogar besser. Damit die Lösung für dich etwas übersichtlicher ist, ist der gesamte Prozess in drei Abschnitte aufgeteilt.</p>
+<div id="vorbereitungensudoku-ausgabe" class="section level4">
+<h4>Vorbereitungen/Sudoku-Ausgabe</h4>
+<p><details><summary>Abschnitt anzeigen</summary> Bevor du mit diesem Projekt anfangen kannst, brauchst du ungelöste Sudokus als <code>.rds</code>-Dateien. Sofern du Projekt 5 noch nicht bearbeitet hast und du dir keine eigenen Sudokus erstellen kannst, kannst du dir <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/BeispielSudokuLeicht.rds">hier</a> und <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/meinSudoku.rds">hier</a> zwei Sudokus herunterladen. Diese kannst du im Folgenden in die aktuelle R-Sitzung laden und zum Ausprobieren der vorgeschlagenen App verwenden.</p>
+<pre class="r"><code>BeispielSudoku &lt;- readRDS(&quot;BeispielSudokuLeicht.rds&quot;)</code></pre>
+<p>Jetzt kannst du die Darstellung des Sudokus aus <a href="/post/loesungen5">Projekt 5</a> übernehmen. Dafür wurde unter anderem das Paket <code>plot.matrix</code> verwendet, das nun wiederum geladen werden muss:</p>
+<pre class="r"><code>#install.packages(&quot;plot.matrix&quot;) &lt;- nur ausführen, wenn du dieses Paket noch nie benutzt hast
+library(plot.matrix)</code></pre>
+<p>Am Beispiel von dem geladenen Sudoku können wir uns nun anschauen, wie die Abbildung am Ende von Projekt 5 aussah:</p>
+<pre class="r"><code>par(yaxt = &quot;n&quot;, xaxt = &quot;n&quot;, mar = c(0, 0, 4, 0))
+plot(BeispielSudoku,
+     main = &quot;Sudoku&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;,
+     breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+     col = c(&quot;yellow&quot; , &quot;orange&quot;, &quot;red&quot;, &quot;violet&quot;, &quot;lightblue&quot;,
+             &quot;cornflowerblue&quot;, &quot;lightgreen&quot;, &quot;chartreuse3&quot;, &quot;lightsalmon4&quot;),
+     border = F, text.cell = list(cex = 1), fmt.cell=&#39;%.0f&#39;,
+     na.print = &#39;&#39;, na.col = &quot;white&quot;,
+     xlim = c(0.5, 9.5), ylim = c(0.5, 9.5))
+abline(h = 0.5, lwd = 5)
+abline(h = 1.5, lwd = 0.5)
+abline(h = 2.5, lwd = 0.5)
+abline(h = 3.5, lwd = 2)
+abline(h = 4.5, lwd = 0.5)
+abline(h = 5.5, lwd = 0.5)
+abline(h = 6.5, lwd = 2)
+abline(h = 7.5, lwd = 0.5)
+abline(h = 8.5, lwd = 0.5)
+abline(h = 9.5, lwd = 5)
+abline(v = 0.5, lwd = 5)
+abline(v = 1.5, lwd = 0.5)
+abline(v = 2.5, lwd = 0.5)
+abline(v = 3.5, lwd = 2)
+abline(v = 4.5, lwd = 0.5)
+abline(v = 5.5, lwd = 0.5)
+abline(v = 6.5, lwd = 2)
+abline(v = 7.5, lwd = 0.5)
+abline(v = 8.5, lwd = 0.5)
+abline(v = 9.5, lwd = 5)</code></pre>
+<p><img src="/post/2020-06-28-loesungen7_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+<p>Für die App muss diese Abbildung noch etwas angepasst werden. Zum Einen wurden in der ursprünglichen Abbildung die Achsenbeschriftungen durch den <code>par</code>-Befehl entfernt. Da wir diese im Folgenden jedoch benötigen, muss das gelöscht werden. Hier habe ich mich jedoch dazu entschieden, den <code>par</code>-Befehl beizubehalten, um beispielsweise die Schriftgröße der Achsenbeschriftung durch <code>cex.axis</code> und dessen Schriftfarbe durch <code>col.axis</code> anzupassen.</p>
+<pre class="r"><code>par(cex.axis = 1.5, col.axis = &#39;darkblue&#39;)</code></pre>
+<p>Die Abbildung sieht nun folgendermaßen aus: <img src="/post/2020-06-28-loesungen7_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
+<p>Außerdem braucht man in der Abbildung keinen Titel (<code>main</code>-Argument entfernen), die Beschriftung an der rechten Seite muss entfernt werden (<code>key = NULL</code> hinzufügen) und die Schriftgröße der Zahlen im Sudoku kann vergrößert werden (z.B. <code>text.cell = list(cex = 2</code>). In Folge dessen kann man die Abstände des Sudokus zum Rand der Abbildung mit dem <code>mar</code>-Argument in der <code>par</code>-Funktion anpassen. Die angepasste Abbildung des Sudokus sieht dann letztlich folgendermaßen aus:</p>
+<pre class="r"><code>par(cex.axis = 1.5, col.axis = &#39;darkblue&#39;, mar = c(4,4,0,2))
+plot(BeispielSudoku,
+     xlab = &quot;&quot;, ylab = &quot;&quot;,
+     breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10),
+     col = c(&quot;yellow&quot; , &quot;orange&quot;, &quot;red&quot;, &quot;violet&quot;, &quot;lightblue&quot;,
+             &quot;cornflowerblue&quot;, &quot;lightgreen&quot;, &quot;chartreuse3&quot;, &quot;lightsalmon4&quot;),
+     border = F, text.cell = list(cex = 2), fmt.cell=&#39;%.0f&#39;,
+     na.print = &#39;&#39;, na.col = &quot;white&quot;, key = NULL,
+     xlim = c(0.5, 9.5), ylim = c(0.5, 9.5))
+abline(h = 0.5, lwd = 5)
+abline(h = 1.5, lwd = 0.5)
+abline(h = 2.5, lwd = 0.5)
+abline(h = 3.5, lwd = 2)
+abline(h = 4.5, lwd = 0.5)
+abline(h = 5.5, lwd = 0.5)
+abline(h = 6.5, lwd = 2)
+abline(h = 7.5, lwd = 0.5)
+abline(h = 8.5, lwd = 0.5)
+abline(h = 9.5, lwd = 5)
+abline(v = 0.5, lwd = 5)
+abline(v = 1.5, lwd = 0.5)
+abline(v = 2.5, lwd = 0.5)
+abline(v = 3.5, lwd = 2)
+abline(v = 4.5, lwd = 0.5)
+abline(v = 5.5, lwd = 0.5)
+abline(v = 6.5, lwd = 2)
+abline(v = 7.5, lwd = 0.5)
+abline(v = 8.5, lwd = 0.5)
+abline(v = 9.5, lwd = 5)</code></pre>
+<p><img src="/post/2020-06-28-loesungen7_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
+<p>Diese Abbildung wird im Folgenden genau in dieser Formatierung verwendet. Die Formatierungen sind nicht unbedingt erforderlich für die erfolgreiche Erstellung der App, doch sie erhöhen den ästhetischen Wert der Abbildung ungemein. Dementsprechend musst du die Abbildung so nicht 1:1 übernehmen, sondern kannst auch eigene Ideen mit einfließen lassen. </details></p>
+</div>
+<div id="user-interface-1" class="section level4">
+<h4>User Interface</h4>
+<p><details><summary>Abschnitt anzeigen</summary> An diesem Punkt beginnen wir, mit dem <code>shiny</code>-Paket zu arbeiten. Aus diesem Grund sollte dieses spätestens jetzt heruntergeladen werden und dann in die aktuelle Sitzung geladen werden.</p>
+<pre class="r"><code>#install.packages(&quot;shiny&quot;) -&gt; nur notwendig, sofern du das Paket nicht bereits heruntergeladen hast
+library(shiny)</code></pre>
+<p>Wie bereits in der Problemstellung erwähnt, kann man für die Umsetzung einer App zum Lösen von Sudokus eine <code>pageWithSidebar</code> verwenden. Dabei setzt man alle Inputs in die sogenannte “Sidebar” und das Sudoku setzt man in das <code>mainPanel</code> - so im Groben die Idee zur Umsetzung im User Interface. Zunächst sollten jedoch die einzelnen Inputs betrachtet werden, die zur Umsetzung der Anforderungen aus der Problemstellung benötigt werden. Hier nochmal die Übersicht:</p>
+<ol style="list-style-type: decimal">
+<li>Die App sollte ein “Default-Sudoku” beinhalten, das beim Öffnen der App angezeigt wird.</li>
+<li>Das Sudoku sollte mithilfe von Inputs vollständig befüllbar sein.</li>
+<li>Es sollten nur jene Zahlen veränderbar sein, die nicht zuvor durch das Sudoku gegeben waren.</li>
+<li>Alle durch den Anwender eingesetzten Zahlen sollten ständig veränderbar sein.</li>
+<li>Man sollte sein eigenes Sudoku in die App laden können (im .rds-Format) und es dort lösen können. Die Punkte 1-4 sollten also derart umgesetzt werden, dass sie für jedes geladene Sudoku Gültigkeit besitzen.</li>
+</ol>
+<p>Die Punkte 1, 3 und 4 beziehen sich auf Inhalte, die nicht im User Interface bewerkstelltigt werden können (sondern im Server). Für diesen Abschnitt bleiben also nur die Punkte 2 und 5, die eingearbeitet werden müssen.</p>
+<p>2.) Das Einsetzen von Zahlen ist auf dem Papier eine leichte Aufgabe: Die gefundenen Zahlen werden einfach in die leeren Kästchen geschrieben. Doch hier gestaltet sich dieser Prozess etwas komplizierter. Der Sudoku-Abbildung liegt eine 9x9-Matrix zugrunde, die an bestimmten Stellen mit Zahlen gefüllt ist. Damit man Zahlen einsetzen kann, muss eben diese 9x9-Matrix verändert werden. Dafür wird jedoch nicht nur die Information benötigt, welche Zahl eingesetzt werden soll, sondern auch eine Koordinate aus Zeile und Spalte, die besagt, wo diese Zahl eingesetzt werden soll. Aus diesem Grund braucht es in diesem Fall drei Zahlen-Inputs, die jeweils mit Werten von 1 bis 9 befüllt werden können. Dafür hält <code>shiny</code> die Funktion <code>numericInput</code> mit den Argumenten <code>inputId</code>, <code>label</code>, <code>value</code>, <code>min</code> und <code>max</code> bereit.</p>
+<ul>
+<li><code>inputId</code> speichert die Bezeichnung für diesen Input, mit der im Server gearbeitet werden kann (im Server verwendbar als Variable mit <code>input$inputId</code>).</li>
+<li><code>label</code> gibt an, welche Benennung das Input-Fenster für den Anwender der App haben soll.</li>
+<li><code>value</code> stellt den Ausgangswert dar, der beim Start der App ausgewählt ist.</li>
+<li><code>min</code> und <code>max</code> ermöglichen es, den Wertebereich einzugrenzen, der durch das Input-Fenster angenommen wird.</li>
+</ul>
+<p>Für diesen Fall könnten die drei Inputs folgendermaßen aussehen:</p>
+<pre class="r"><code>numericInput(inputId = &quot;row&quot;,
+             label = &quot;Reihe&quot;,
+             value = &#39;&#39;, min = 1, max = 9)
+numericInput(inputId = &quot;column&quot;,
+             label = &quot;Spalte&quot;,
+             value = &#39;&#39;, min = 1, max = 9)
+numericInput(inputId = &quot;num&quot;,
+             label = &quot;Zahl&quot;,
+             value = &#39;&#39;, min = 1, max = 9)</code></pre>
+<p>Damit die Abbildung nicht auf jede Veränderung in einem dieser drei Inputs reagiert, macht hier ein <code>actionButton</code> Sinn, mit dem man im Server die Reaktivität der Abbildung auf diese drei Inputs steuern kann. Das ist deshalb von großer Wichtigkeit, da die Funktion erst dann eine Zahl einsetzen soll, wenn alle DREI Inputs angegeben wurden. Der <code>actionButton</code> benötigt in diesem Fall nur die beiden Argumente <code>inputId</code> und <code>label</code> (siehe oben).</p>
+<pre class="r"><code>actionButton(inputId = &quot;go&quot;,
+             label = &quot;Zahl einsetzen&quot;)</code></pre>
+<p>5.) Neben dem Einsetzen von Zahlen soll außerdem die Möglichkeit bestehen, ein eigenes Sudoku im <code>.rds</code>-Format hochzuladen. Dafür hält <code>shiny</code> die Funktion <code>fileInput</code> bereit. Diese Funktion beinhaltet neben den bereits bekannten Argumenten <code>inputId</code> und <code>label</code> die Argumente <code>accept</code>, <code>buttonLabel</code> und <code>placeholder</code>.</p>
+<ul>
+<li><code>accept</code> begrenzt die durch das Input-Fenster akzeptierten Datei-Formate.</li>
+<li><code>buttonLabel</code> ermöglicht es, den Button zum Hochladen individuell zu benennen.</li>
+<li><code>placeholder</code> nimmt einen Platzhalter-Text für das Input-Fenster entgegen, der dort angezeigt wird, wenn noch keine Datei geladen wurde.</li>
+</ul>
+<pre class="r"><code>fileInput(inputId = &quot;Matrix&quot;,
+          label = &quot;Füge hier dein eigenes Sudoku (als .rds) ein!&quot;,
+          accept = &quot;.rds&quot;,
+          buttonLabel = &quot;Datei hochladen&quot;,
+          placeholder = &quot;Noch keine Datei hochgeladen.&quot;)</code></pre>
+<p>Auch hier können wir zur Sicherheit einen <code>actionButton</code> einfügen, mit dem man dann später steuern kann, ob und wann die hochgeladene Datei in die Abbildung übernommen werden soll.</p>
+<pre class="r"><code>actionButton(inputId = &quot;use&quot;,
+             label = &quot;Sudoku benutzen&quot;)</code></pre>
+<p>Alle diese Input-Fenster kann man nun in ein Skript zusammenfügen und zum Test einmal ausführen:</p>
+<pre class="r"><code>ui &lt;- fluidPage(
+  fileInput(inputId = &quot;Matrix&quot;,
+            label = &quot;Füge hier dein eigenes Sudoku (als .rds) ein!&quot;,
+            accept = &quot;.rds&quot;,
+            buttonLabel = &quot;Datei hochladen&quot;,
+            placeholder = &quot;Noch keine Datei hochgeladen.&quot;),
+  actionButton(inputId = &quot;use&quot;,
+               label = &quot;Sudoku benutzen&quot;),
+  numericInput(inputId = &quot;row&quot;,
+               label = &quot;Reihe&quot;,
+               value = &#39;&#39;, min = 1, max = 9),
+  numericInput(inputId = &quot;column&quot;,
+               label = &quot;Spalte&quot;,
+               value = &#39;&#39;, min = 1, max = 9),
+  numericInput(inputId = &quot;num&quot;,
+               label = &quot;Zahl&quot;,
+               value = &#39;&#39;, min = 1, max = 9),
+  actionButton(inputId = &quot;go&quot;,
+               label = &quot;Zahl einsetzen&quot;)
+)
+
+server &lt;- function(input, output, session) {
+  
+}
+
+shinyApp(ui, server)</code></pre>
+<p>Die erforderten Inputs sind nun zwar alle vorhanden, doch die App sieht rein optisch gesehen nicht sehr ansprechend aus. Zuerst setzen wir das Ganze in das allgemeine Layout <code>pageWithSidebar</code>: mit allen Inputs im Seitenfenster, dem Output “Sudokus” (der im Server erstellt wird) im Hauptfenster und einem Titel (<code>h1</code>):</p>
+<pre class="r"><code>ui &lt;- pageWithSidebar(
+  h1(strong(em(&quot;Hier kann man Sudokus lösen!&quot;))),
+  sidebarPanel(
+    fileInput(inputId = &quot;Matrix&quot;,
+              label = &quot;Füge hier dein eigenes Sudoku (als .rds) ein!&quot;,
+              accept = &quot;.rds&quot;,
+              buttonLabel = &quot;Datei hochladen&quot;,
+              placeholder = &quot;Noch keine Datei hochgeladen.&quot;),
+    actionButton(inputId = &quot;use&quot;,
+                 label = &quot;Sudoku benutzen&quot;),
+    numericInput(inputId = &quot;row&quot;,
+                 label = &quot;Reihe&quot;,
+                 value = &#39;&#39;, min = 1, max = 9),
+    numericInput(inputId = &quot;column&quot;,
+                 label = &quot;Spalte&quot;,
+                 value = &#39;&#39;, min = 1, max = 9),
+    numericInput(inputId = &quot;num&quot;,
+                 label = &quot;Zahl&quot;,
+                 value = &#39;&#39;, min = 1, max = 9),
+    actionButton(inputId = &quot;go&quot;,
+                 label = &quot;Zahl einsetzen&quot;)),
+  mainPanel(
+    plotOutput(&quot;Sudokus&quot;))
+)</code></pre>
+<p>WICHTIG: Damit das User Interface funktioniert, braucht man einen Titel, den man entweder mit den Standardbefehlen <code>h1</code>, <code>h2</code>, <code>h3</code>, … oder einem <code>titlePanel</code> erstellen kann. Dazu lässt sich jeglich Formatierung der Schrift kombinieren (z.B. <code>strong()</code> = fett, <code>em()</code> = kursiv, etc.).</p>
+<p>Zu diesem Zeitpunkt hat man bereits eine angemessene Struktur in die einzelnen Elemente gebracht, doch es lassen sich noch einige weitere Verbesserungen vornehmen.</p>
+<pre class="r"><code>ui &lt;- pageWithSidebar(
+  h1(strong(em(&quot;Hier kann man Sudokus lösen!&quot;)), align = &quot;center&quot;, style = &#39;background: aqua&#39;), #der Titel wird zentriert (&quot;center&quot;) und der Hintergrund des Titels bekommt die Farbe &quot;aqua&quot;
+  sidebarPanel(
+    h3(&quot;Willst du dein eigenes Sudoku lösen? Lade dein Sudoku einfach hier hoch!&quot;), #Unterüberschrift für das Hochladen der Datei
+    br(), #Leerzeile
+    fileInput(inputId = &quot;Matrix&quot;,
+              label = &quot;Füge hier dein eigenes Sudoku (als .rds) ein!&quot;,
+              accept = &quot;.rds&quot;,
+              buttonLabel = &quot;Datei hochladen&quot;,
+              placeholder = &quot;Noch keine Datei hochgeladen.&quot;),
+    actionButton(inputId = &quot;use&quot;,
+                 label = &quot;Sudoku benutzen&quot;),
+    h3(&quot;Wo willst du eine Zahl einsetzen?&quot;), #Unterüberschrift für das Einsetzen der Zahlen
+    numericInput(inputId = &quot;row&quot;,
+                 label = &quot;Reihe&quot;,
+                 value = &#39;&#39;, min = 1, max = 9),
+    numericInput(inputId = &quot;column&quot;,
+                 label = &quot;Spalte&quot;,
+                 value = &#39;&#39;, min = 1, max = 9),
+    numericInput(inputId = &quot;num&quot;,
+                 label = &quot;Zahl&quot;,
+                 value = &#39;&#39;, min = 1, max = 9),
+    actionButton(inputId = &quot;go&quot;,
+                 label = &quot;Zahl einsetzen&quot;)),
+  mainPanel(
+    wellPanel(plotOutput(&quot;Sudokus&quot;, width = &quot;640px&quot;, height = &quot;600px&quot;), align = &quot;center&quot;) # Output wird in ein &quot;Panel&quot; gesetzt. Darin hat der Output eine vorgegebene Höhe und Breite und wird zentriert.
+  )
+)
+
+shinyApp(ui, server)</code></pre>
+<p>Damit kann man das User Interface als fertig betrachten. Natürlich ist es möglich die Hintergrundfarbe, die Schriftfarbe, die Schriftart, die Schriftgröße, die Rahmenfarbe, die Rahmenart, und vieles mehr individuell für jedes einzelne Element zu bestimmen, doch so weit wollen wir hier nicht unbedingt gehen. Zum Einen ginge das möglicherweise zu weit und hätte mehr mit CSS als mit <code>shiny</code> zu tun. Zum Anderen beinhaltet die Sudoku-Abbildung bereits einige Farben, weshalb ein farbenfrohes User Interface möglicherweise kontraproduktiv wäre. Letztlich ist das Ganze dir selbst überlassen und du kannst jegliche Formatierung vornehmen, die du möchtest. Falls du daran größeres Interesse hast, kannst du dir auch einfach eine kleine <a href="https://www.google.com/search?q=CSS+einf%C3%BChrung&amp;rlz=1C1NDCM_deDE810DE810&amp;oq=CSS+einf%C3%BChrung&amp;aqs=chrome..69i57j0l6.3316j0j7&amp;sourceid=chrome&amp;ie=UTF-8">Einführung zu CSS</a> anschauen.</p>
+<p></details></p>
+</div>
+<div id="server-1" class="section level4">
+<h4>Server</h4>
+<p><details><summary>Abschnitt anzeigen</summary> Mit ausgearbeitetem User Interface und erstellter Sudoku-Abbildung gilt es nun nur noch, die geforderten Funktionen im Server technisch umzusetzen. Schauen wir uns dafür nochmals die Anforderungen aus der Problemstellung an:</p>
+<ol style="list-style-type: decimal">
+<li>Die App sollte ein “Default-Sudoku” beinhalten, das beim Öffnen der App angezeigt wird.</li>
+<li>Das Sudoku sollte mithilfe von Inputs vollständig befüllbar sein.</li>
+<li>Es sollten nur jene Zahlen veränderbar sein, die nicht zuvor durch das Sudoku gegeben waren.</li>
+<li>Alle durch den Anwender eingesetzten Zahlen sollten ständig veränderbar sein.</li>
+<li>Man sollte sein eigenes Sudoku in die App laden können (im .rds-Format) und es dort lösen können. Die Punkte 1-4 sollten also derart umgesetzt werden, dass sie für jedes geladene Sudoku Gültigkeit besitzen.</li>
+</ol>
+<p>Diese können wir in zwei Schritte aufteilen:</p>
+<ol style="list-style-type: decimal">
+<li>Generelle Funktionalität der App (Lösen eines Sudokus)</li>
+<li>Implementierung der Hochlade-Funktion</li>
+</ol>
+<p>1.) Damit man anhand der gegebenen Oberfläche ein Sudoku lösen kann, braucht man einen reaktiven Datensatz, der auf die Eingabe der Zahlen reagiert, diese an der entsprechenden Stelle einsetzt und aus dem dann eine neue/aktualisierte Abbildung erstellt wird. Damit man schon beim Öffnen ein Sudoku angezeigt bekommt, braucht man außerdem ein Sudoku, dass standardmäßig die Grundlage für den reaktiven Datensatz bildet. Im ersten Schritt sorgen wir also dafür, dass eben dieses “Default-Sudoku” besteht. Dafür wird das bereits geladene <code>BeispielSudoku</code> verwendet.</p>
+<pre class="r"><code>server &lt;- function(input, output, session) {
+  BeispielSudoku &lt;- readRDS(&#39;BeispielSudokuLeicht.rds&#39;) #Sudoku laden
+  rv &lt;- reactiveValues(data = BeispielSudoku) #Sudoku als reaktiven Datensatz speichern
+}</code></pre>
+<p>Wenn jetzt eine Zahl eingesetzt wird; der Anwender also den <code>actionButton</code> mit der Aufschrift “Zahl einsetzen” betätigt hat, dann soll im reaktiven Datensatz an der ausgewählten Koordinate aus Zeile und Spalte die besagte Zahl eingesetzt werden. Dieses Einsetzen soll jedoch an die Bedingung geknüpft sein, dass es sich um ein von Anfang an freies Feld handelt; ansonsten könnte man auch durch das Sudoku gegebene Zahlen verändern (was man logischerweise nicht möchte). Aus diesem Grund benutzt man hier das Objekt <code>BeispielSudoku</code>, das im gesamten Verlauf nicht verändert wird und damit den Ausgangszustand des Sudokus perfekt widerspiegelt.</p>
+<pre class="r"><code>server &lt;- function(input, output, session) {
+  BeispielSudoku &lt;- readRDS(&#39;BeispielSudokuLeicht.rds&#39;) #Sudoku laden
+  rv &lt;- reactiveValues(data = BeispielSudoku) #Sudoku als reaktiven Datensatz speichern
+  observeEvent(input$go, { #Wenn der Action Button betätigt wird, soll das in der geschweiften Klammer geschehen.
+    if(is.na(BeispielSudoku[input$row, input$column])){ #Wenn das ausgewählte Feld im Ausgangssudoku ein leeres Feld war, dann...
+      rv$data[input$row, input$column] &lt;- input$num #... soll an dieser Stelle input$num eingesetzt werden
+    }
+  })
+}</code></pre>
+<p><details><summary>Funktionsweise des Action-Buttons</summary> Der Action-Button spielt in diesem Teil der Funktion in Verbindung mit der <code>observeEvent</code>-Funktion eine wichtige Rolle. Aus diesem Grund gibt es hier ein paar Details zu dessen Funktionsweise.</p>
+<p>Der Action-Button funktioniert wie eine typische Input-Funktion und lässt sich durch einfaches Klicken betätigen. Doch was passiert mit einem Klick im Hintergrund? Das wird deutlich, wenn man sich anschaut, welche Ausgabe in der Input-Variable ankommt. Hier kann man sich vorstellen, dass der Button zwei Stadien einnehmen kann: Stadium A (“0”) und Stadium B (“1”). Zunächst liegt der Button in Stadium A (“0”) vor. Betätigt man jedoch diesen Button ein Mal, dann springt der Button in Stadium B (“1”). Wird der Button nun ein zweites Mal betätigt, dann springt der Button zurück in Stadium (“0”). Das heißt, dass der Button bei jedem Klick von einem Stadium in das andere wechselt.</p>
+<p>Die <code>observeEvent</code>-Funktion reagiert immer dann, wenn sich das Objekt in Argument 1 verändert. Aufgrund der Systematik des Action-Buttons reagiert die Funktion in diesem Fall also auf jeden Klick. </details></p>
+<p>Anhand dieser Befehle kann man den Server nun vorläufig abschließen, indem man die Sudoku-Abbildung in eine reaktive Funktion (<code>renderPlot</code>) steckst, einem Output zuweist (<code>Output$OutputId</code>; <code>OutputId</code> aus dem User Interface) und die Quelle der Abbildung zu <code>rv$data</code> veränderst. Damit ist es dir möglich, das Default-Sudoku problemlos zu lösen (mit den Funktionen, die durch die Anforderungen 1-4 impliziert sind).</p>
+<pre class="r"><code>server &lt;- function(input, output, session) {
+  BeispielSudoku &lt;- readRDS(&#39;BeispielSudokuLeicht.rds&#39;)
+  rv &lt;- reactiveValues(data = BeispielSudoku)
+  observeEvent(input$go, {
+    if(is.na(BeispielSudoku[input$row, input$column])){
+      rv$data[input$row, input$column] &lt;- input$num
+    }
+  })
+  output$Sudokus &lt;- renderPlot({
+    par(cex.axis = 1.5, col.axis = &#39;darkblue&#39;, mar = c(4,4,0,2))
+    plot(rv$data, border = F,
+         col = c(&quot;yellow&quot; , &quot;orange&quot;, &quot;red&quot;, &quot;violet&quot;, &quot;lightblue&quot;,
+                 &quot;cornflowerblue&quot;, &quot;lightgreen&quot;, &quot;chartreuse3&quot;, &quot;lightsalmon4&quot;),
+         na.col = &quot;white&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, text.cell = list(cex = 2),
+         key = NULL, fmt.cell=&#39;%.0f&#39;, na.print = &#39;&#39;,
+         xlim = c(0.5, 9.5), ylim = c(0.5, 9.5))
+    abline(h = 0.5, lwd = 5)
+    abline(h = 1.5, lwd = 0.5)
+    abline(h = 2.5, lwd = 0.5)
+    abline(h = 3.5, lwd = 2)
+    abline(h = 4.5, lwd = 0.5)
+    abline(h = 5.5, lwd = 0.5)
+    abline(h = 6.5, lwd = 2)
+    abline(h = 7.5, lwd = 0.5)
+    abline(h = 8.5, lwd = 0.5)
+    abline(h = 9.5, lwd = 5)
+    abline(v = 0.5, lwd = 5)
+    abline(v = 1.5, lwd = 0.5)
+    abline(v = 2.5, lwd = 0.5)
+    abline(v = 3.5, lwd = 2)
+    abline(v = 4.5, lwd = 0.5)
+    abline(v = 5.5, lwd = 0.5)
+    abline(v = 6.5, lwd = 2)
+    abline(v = 7.5, lwd = 0.5)
+    abline(v = 8.5, lwd = 0.5)
+    abline(v = 9.5, lwd = 5)
+  })
+}</code></pre>
+<p>2.) Nun besteht die Aufgabe nur noch darin, ein die Hochlade-Funktion in die gesamte Funktion zu implizieren. Zunächst einmal müssen wir uns dafür anschauen, was in dem zugehörigen Input (<code>input$Matrix</code>) ankommt. Schau dir dafür einfach mal <a href="https://shiny.rstudio.com/reference/shiny/latest/fileInput.html">diese Übersicht</a> an. Es wird deutlich, dass beim Einlesen von eigenen Daten in unserem Fall unter <code>input$Matrix$datapath</code> der Dateipfad abgespeichert wird. Das heißt, dass wir zu diesem Zeitpunkt noch nicht den Datensatz mit der 9x9-Matrix zur Hand haben. Dieser muss dann eingelesen werden, wenn der dazugehörige Action-Button mit der Aufschrift “Sudoku benutzen” betätigt wurde. Dazu verwenden wir abermals die <code>observeEvent</code>-Funktion mit <code>input$use</code> als Auslöse-Objekt und speichern den Datensatz als reaktives Objekt ab.</p>
+<pre class="r"><code>observeEvent(input$use, {
+  rv$data &lt;- readRDS(input$Matrix$datapath)
+})</code></pre>
+<p>Vorausschauend können wir den Datensatz auch noch ein zweites Mal in einer “festen” Variable abspeichern, um später den Abgleich mit dem Ausgangssudoku durchführen zu können (damit vorgegebene Zahlen unverändlich sind). Da sich diese jedoch je nach eingelesenem Datensatz verändert, benutzen wir dafür die <code>reactive</code>-Funktion. Diese sorgt dafür, dass dieses Objekt (<code>meinSudoku</code>) beim Einlesen des Sudokus erstellt wird und ab diesem Zeitpunkt für jede weitere Operation verwendet wird (bis zum Einlesen eines neuen Sudokus).</p>
+<pre class="r"><code>observeEvent(input$use, {
+  rv$data &lt;- readRDS(input$Matrix$datapath)
+})
+meinSudoku &lt;- reactive({
+  readRDS(input$Matrix$datapath)
+})</code></pre>
+<p>Sofern man nun ein eigenes Sudoku einliest, kann dieses in der Sudoku-Abbildung verwendet werden. Doch zu diesem Zeitpunkt funktioniert das Einsetzen der Zahlen nicht, denn das richtet sich immer noch nach dem Ausgangssudoku. Aus diesem Grund kann jetzt eine <code>if</code>-Funktion dafür verwendet werden, je nach Ausgangslage verschiedene Zahlenabgleichs-Funktionen auszuwählen. Dafür kann man die Bedingung <code>is.null(input$Matrix)</code> verwenden, da das Input-Objekt <code>NULL</code> beinhaltet, sofern keine Datei hochgeladen wurde.</p>
+<pre class="r"><code>observeEvent(input$go, { #Action Button zum Einsetzen einer Zahl wurde betätigt.
+  if(is.null(input$Matrix)){ #Wenn keine Datei eingelesen wurde...
+    if(is.na(BeispielSudoku[input$row, input$column])){ #...und wenn das ausgewählte Feld im Ausgangssudoku (BeispielSudoku) leer war...
+      rv$data[input$row, input$column] &lt;- input$num #...dann soll in dieses Feld die Zahl input$num eingesetzt werden.
+    }
+  }
+})</code></pre>
+<p>Diese Funktion beschreibt nun erst einmal den Fall, dass kein eigenes Sudoku eingelesen wurde und mit dem Ausgangssudoku gearbeitet werden soll. Jetzt muss noch der zweite Fall betrachtet werden, bei dem es ein eingelesenes Sudoku gibt:</p>
+<pre class="r"><code>observeEvent(input$go, { #Action Button zum Einsetzen einer Zahl wurde betätigt.
+  if(is.null(input$Matrix)){ #Wenn keine Datei eingelesen wurde und...
+    if(is.na(BeispielSudoku[input$row, input$column])){ #...wenn das ausgewählte Feld im Ausgangssudoku (BeispielSudoku) leer war, ...
+      rv$data[input$row, input$column] &lt;- input$num #...dann soll in dieses Feld die Zahl input$num eingesetzt werden.
+    }
+  }
+  if(!is.null(input$Matrix)) { #Wenn &quot;nicht kein Sudoku&quot;, also ein Sudoku, hochgeladen wurde und...
+    if(is.na(meinSudoku()[input$row, input$column])) { #...wenn das ausgewählte Feld im ursprünglichen hochgeladenen Sudoku(meinSudoku) leer war, ...
+      rv$data[input$row, input$column] &lt;- input$num #...dann soll in dieses Feld die Zahl input$num eingesetzt werden.
+    }
+  }
+})</code></pre>
+<p>So werden letztlich beide Fälle explizit berücksichtigt. Wichtig zu beachten ist dabei, dass man das Objekt <code>meinSudoku</code> in der Bedingung der <code>if</code>-Funktion als reaktiven Ausdruck, also mit Klammern dahinter, anwählen muss: <code>meinSudoku()</code>. Jetzt kann man die ausarbeiteten Befehle aus 1.) und 2.) zusammenfügen und erhält folgenden abschließenden Server:</p>
+<pre class="r"><code>server &lt;- function(input, output, session) {
+  BeispielSudoku &lt;- readRDS(&#39;BeispielSudokuLeicht.rds&#39;)
+  rv &lt;- reactiveValues(data = BeispielSudoku)
+  observeEvent(input$use, {
+    rv$data &lt;- readRDS(input$Matrix$datapath)
+  })
+  meinSudoku &lt;- reactive({
+    readRDS(input$Matrix$datapath)
+  })
+  observeEvent(input$go, {
+    if(is.null(input$Matrix)){
+      if(is.na(BeispielSudoku[input$row, input$column])){
+        rv$data[input$row, input$column] &lt;- input$num
+      }
+    }
+    if(!is.null(input$Matrix)) {
+      if(is.na(meinSudoku()[input$row, input$column])) {
+        rv$data[input$row, input$column] &lt;- input$num
+      }
+    }
+  })
+  output$Sudokus &lt;- renderPlot({
+    par(cex.axis = 1.5, col.axis = &#39;darkblue&#39;, mar = c(4,4,0,2))
+    plot(rv$data, border = F,
+         col = c(&quot;yellow&quot; , &quot;orange&quot;, &quot;red&quot;, &quot;violet&quot;, &quot;lightblue&quot;,
+                 &quot;cornflowerblue&quot;, &quot;lightgreen&quot;, &quot;chartreuse3&quot;, &quot;lightsalmon4&quot;),
+         na.col = &quot;white&quot;, xlab = &quot;&quot;, ylab = &quot;&quot;, text.cell = list(cex = 2),
+         key = NULL, fmt.cell=&#39;%.0f&#39;, na.print = &#39;&#39;,
+         xlim = c(0.5, 9.5), ylim = c(0.5, 9.5))
+    abline(h = 0.5, lwd = 5)
+    abline(h = 1.5, lwd = 0.5)
+    abline(h = 2.5, lwd = 0.5)
+    abline(h = 3.5, lwd = 2)
+    abline(h = 4.5, lwd = 0.5)
+    abline(h = 5.5, lwd = 0.5)
+    abline(h = 6.5, lwd = 2)
+    abline(h = 7.5, lwd = 0.5)
+    abline(h = 8.5, lwd = 0.5)
+    abline(h = 9.5, lwd = 5)
+    abline(v = 0.5, lwd = 5)
+    abline(v = 1.5, lwd = 0.5)
+    abline(v = 2.5, lwd = 0.5)
+    abline(v = 3.5, lwd = 2)
+    abline(v = 4.5, lwd = 0.5)
+    abline(v = 5.5, lwd = 0.5)
+    abline(v = 6.5, lwd = 2)
+    abline(v = 7.5, lwd = 0.5)
+    abline(v = 8.5, lwd = 0.5)
+    abline(v = 9.5, lwd = 5)
+  })
+}</code></pre>
+<p></details></p>
+<p>Führt man nun die Endprodukte aus den Abschnitten User Interface (<code>ui</code>) und Server (<code>server</code>) aus, kann man mit dieser Funktion die Applikation starten.</p>
+<pre class="r"><code>shinyApp(ui, server)</code></pre>
+<p>Damit ist man nicht nur in der Lage, über das erstellte Interface das Ausgangssudoku vollständig zu lösen, sondern man kann auch eigene Sudokus hochladen und mit diesem Interface bearbeiten.</p>
+<hr />
+</div>
+<div id="zurück-zum-projekt" class="section level3">
+<h3><a href="/projects#project_07">Zurück zum Projekt</a></h3>
+</div>
+</div>
