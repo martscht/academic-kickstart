@@ -1,6 +1,8 @@
 #### UI Side ####
 ui <- fluidPage(
-  titlePanel(title = em(strong('Beispiel für die Übersicht in Projekt 7'))),
+  titlePanel(
+    title = em(strong('Beispiel für die Übersicht in Projekt 7')),
+    windowTitle = 'Beispiel für die Übersicht in Projekt 7'),
   hr(),
   plotOutput('Histogramm'),
   hr(),
