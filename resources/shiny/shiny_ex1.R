@@ -18,7 +18,7 @@ ui <- fluidPage(
         label = 'Mittelwert',
         value = 100, min = -1000, max = 1000)),
       column(6, selectInput(inputId = 'Mass',
-        label = 'Maß der zentralen Tendenz für die Stichprobe',
+        label = 'Maß der zentralen Tendenz (Stichprobe)',
         choices = c('Kein Maß', 'Median', 'Mittelwert')))
     ),
     fluidRow(
