@@ -130,7 +130,7 @@ server <- function(input, output, session) {
       ggtitle(input$Titel) +
       theme(axis.ticks = element_blank(),
             axis.text.y = element_blank(),
-            axis.text.x = element_text(colour = 'black', size = 20),
+            axis.text.x = element_text(colour = 'black'),
             axis.title = element_blank()) +
       scale_y_continuous(
         breaks = cumsum(p1_new$Prozent_kumuliert) - p1_new$Prozent_kumuliert/2,
