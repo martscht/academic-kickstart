@@ -595,6 +595,185 @@ server <- function(input, output, session) {
   )
 }
 ```
+
+<details><summary><i>Zusatz:</i> Formelle Fertigstellung</summary>
+Wie bereits in den Tipps erwähnt, sollte man eine App ohne vorhergehenden Code ausführen können. Dafür bedarf es der Aufnahme der Vorbereitungen in die `server`-Funktion. Zusammengenommen beläuft sich das auf die folgenden Code-Zeilen (inklusive des Ladens weiterer Pakete):
+
+```{r, eval = FALSE}
+p1_long <- readRDS("p1_long.rds")
+p1_wide <- readRDS("p1_wide.rds")
+p1_long$nMonat <- as.character(p1_long$Monat)
+p1_long$nMonat <- paste0(p1_long$nMonat, '-01')
+p1_long$nMonat <- strptime(p1_long$nMonat, format="%Y-%m-%d")
+p1_long$nMonat <- as.POSIXct(p1_long$nMonat)
+p1_wide$nMonat <- as.character(p1_wide$Monat)
+p1_wide$nMonat <- paste0(p1_wide$nMonat, '-01')
+p1_wide$nMonat <- strptime(p1_wide$nMonat, format="%Y-%m-%d")
+p1_wide$nMonat <- as.POSIXct(p1_wide$nMonat)
+farben <- c('AfD' = 'deepskyblue', 'CDU' = 'black', 'DieGrüne' = 'green3',
+            'DieLinke' = 'magenta', 'FDP' = 'gold', 'MLPD' = 'orange',
+            'NPD' = 'brown', 'SPD' = 'red', 'Tierschutzpartei' = 'darkblue')
+for (i in 1:190) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1:i])}
+for (i in 191:380) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[191:i])}
+for (i in 381:570) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[381:i])}
+for (i in 571:760) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[571:i])}
+for (i in 761:950) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[761:i])}
+for (i in 951:1140) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[951:i])}
+for (i in 1141:1330) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1141:i])}
+for (i in 1331:1520) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1331:i])}
+for (i in 1521:1710) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1521:i])}
+library(ggplot2)
+library(dplyr)
+```
+
+Das gesamte Dokument aus User Interface und Server sieht dann abschließend folgendermaßen aus:
+
+```{r, eval = FALSE}
+library(shiny)
+ui <- fluidPage(
+  theme = "bootstrap.css", style = "background: #337ab7; color: white",
+  tags$head(tags$style(".navbar {background-color: #eded00;}",
+                       ".navbar-default .navbar-brand {color: black;}")),
+  titlePanel(
+    h1(strong("Suchanfragen deutscher Parteien"), align = "center")),
+  wellPanel(style = "background: #87CEFA; border-color: #2e6da4",
+            navbarPage(
+              strong("Darstellungsart"),
+              tabPanel("Liniendiagramm", plotOutput("Liniendiagramm")),
+              tabPanel("Liniendiagramm (kumuliert)", plotOutput("Liniendiagramm_kumuliert")),
+              tabPanel("Balkendiagramm", plotOutput("Balkendiagramm_kumuliert")),
+              tabPanel("Balkendiagramm 2", plotOutput("Balkendiagramm2_kumuliert")),
+              tabPanel("Kuchendiagramm", plotOutput("Kuchendiagramm")),
+              tabPanel("Kuchendiagramm 2", plotOutput("Kuchendiagramm2"))
+            ),
+            br(),
+            fluidRow(
+              column(6,
+                     dateRangeInput(
+                       inputId = "Datum", label = "Zeitspanne",
+                       start = "2000-01-01", format = "yyyy-mm-dd")),
+              column(6, textInput(
+                inputId = "Titel", label = "Titel der Grafik"))
+            ),
+            fluidRow(
+              column(9, checkboxGroupInput(
+                inputId = "Parteien", label = "Parteien", inline = TRUE,
+                choices = c("AfD", "SPD", "FDP", "DieGrüne", "DieLinke",
+                            "Tierschutzpartei", "CDU", "MLPD", "NPD"))),
+              column(3, br(), actionButton(
+                inputId = "Update", label = strong("Graphik erzeugen"),
+                style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"))
+            )
+  )
+)
+
+server <- function(input, output, session) {
+  p1_long <- readRDS('p1_long.rds')
+  p1_wide <- readRDS('p1_wide.rds')
+  p1_long$nMonat <- as.character(p1_long$Monat)
+  p1_long$nMonat <- paste0(p1_long$nMonat, '-01')
+  p1_long$nMonat <- strptime(p1_long$nMonat, format="%Y-%m-%d")
+  p1_long$nMonat <- as.POSIXct(p1_long$nMonat)
+  p1_wide$nMonat <- as.character(p1_wide$Monat)
+  p1_wide$nMonat <- paste0(p1_wide$nMonat, '-01')
+  p1_wide$nMonat <- strptime(p1_wide$nMonat, format="%Y-%m-%d")
+  p1_wide$nMonat <- as.POSIXct(p1_wide$nMonat)
+  farben <- c('AfD' = 'deepskyblue', 'CDU' = 'black', 'DieGrüne' = 'green3',
+              'DieLinke' = 'magenta', 'FDP' = 'gold', 'MLPD' = 'orange',
+              'NPD' = 'brown', 'SPD' = 'red', 'Tierschutzpartei' = 'darkblue')
+  for (i in 1:190) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1:i])}
+  for (i in 191:380) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[191:i])}
+  for (i in 381:570) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[381:i])}
+  for (i in 571:760) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[571:i])}
+  for (i in 761:950) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[761:i])}
+  for (i in 951:1140) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[951:i])}
+  for (i in 1141:1330) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1141:i])}
+  for (i in 1331:1520) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1331:i])}
+  for (i in 1521:1710) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1521:i])}
+  library(ggplot2)
+  library(dplyr)
+  rv <- reactiveValues(data = p1_long)
+  observeEvent(input$Update, {
+    rv$data <- p1_long[is.element(p1_long$Partei, input$Parteien)
+                       & as.POSIXct(input$Datum[1]) < p1_long$nMonat
+                       & as.POSIXct(input$Datum[2]) > p1_long$nMonat,]})
+  output$Liniendiagramm <- renderPlot(
+    ggplot(data = rv$data, aes(x = nMonat, y = Prozent, group = Partei)) +
+      geom_line(aes(colour = Partei)) +      # Liniendiagramm
+      xlab('Zeitraum') +                     # Beschriftung x-Achse
+      ylab('Anfragen (in % des Monats-Maximums)') + # Beschriftung y-Achse
+      ggtitle(input$Titel) +                 # Überschrift
+      scale_color_manual(values = farben) +
+      theme_bw()
+  )
+  output$Liniendiagramm_kumuliert <- renderPlot(
+    ggplot(data = rv$data, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
+      geom_line(aes(colour = Partei)) +      # Liniendiagramm
+      xlab('Zeitraum') +                     # Beschriftung x-Achse
+      ylab('Anfragen (in % des Monats-Maximums/kumuliert)') + # Beschriftung y-Achse
+      ggtitle(input$Titel) +                 # Überschrift
+      scale_color_manual(values = farben) +
+      theme_bw()
+  )
+  rv2 <- reactiveValues(data = p1_wide[,2:10])
+  observeEvent(input$Update, {
+    rv2$data <- p1_wide[as.POSIXct(input$Datum[1]) < p1_wide$nMonat
+                        & as.POSIXct(input$Datum[2]) > p1_wide$nMonat,
+                        input$Parteien]})
+  output$Balkendiagramm_kumuliert <- renderPlot(
+    barplot(height = colSums(rv2$data),
+            beside = FALSE, ylim = c(0, 2000),
+            col = c('deepskyblue', 'red', 'gold', 'green3', 'magenta',
+                    'darkblue', 'black', 'orange', 'brown'),
+            main = input$Titel)
+  )
+  output$Balkendiagramm2_kumuliert <- renderPlot({
+    p1_new <- data.frame(names(rv2$data), colSums(rv2$data))
+    names(p1_new)[1]<-paste("Partei")
+    names(p1_new)[2]<-paste("Prozent_kumuliert")
+    ggplot(p1_new, aes(x = Partei, y = Prozent_kumuliert, fill = Partei)) +
+      scale_fill_manual(values = farben) +
+      geom_col(color = "black") +
+      theme_bw() +
+      xlab("Partei") +
+      ylab("kumulierte Suchhäufigkeiten") +
+      ggtitle(input$Titel)
+  })
+  output$Kuchendiagramm <- renderPlot(
+    pie(x = colSums(rv2$data), main = input$Titel,
+        col = c('deepskyblue', 'red', 'gold', 'green3', 'magenta', 'darkblue',
+                'black', 'orange', 'brown')
+    )
+  )
+  output$Kuchendiagramm2 <- renderPlot({
+    p1_new <- data.frame(names(rv2$data), colSums(rv2$data))
+    names(p1_new)[1]<-paste("Partei")
+    names(p1_new)[2]<-paste("Prozent_kumuliert")
+    p1_new <- p1_new %>%
+      arrange(desc(Partei)) %>%
+      mutate(prop = Prozent_kumuliert / sum(p1_new$Prozent_kumuliert) *100) %>%
+      mutate(ypos = cumsum(prop) - 0.5*prop)
+    ggplot(p1_new, aes(x = "", y = Prozent_kumuliert, fill = Partei)) +
+      scale_fill_manual(values = farben) +
+      geom_bar(stat = "identity", width = 1) +
+      coord_polar("y", start = 0) +
+      theme_void() +
+      ggtitle(input$Titel) +
+      theme(axis.ticks = element_blank(),
+            axis.text.y = element_blank(),
+            axis.text.x = element_text(colour = 'black', size = 20),
+            axis.title = element_blank()) +
+      scale_y_continuous(
+        breaks = cumsum(p1_new$Prozent_kumuliert) - p1_new$Prozent_kumuliert/2,
+        labels = p1_new$Partei)
+  })
+}
+
+shinyApp(ui, server)
+```
+
+</details>
+
 </details>
 
 Wenn man nun `ui` und `server` erstellt hat, kann man die vollständige App folgendermaßen abrufen:
@@ -602,6 +781,8 @@ Wenn man nun `ui` und `server` erstellt hat, kann man die vollständige App folg
 ```{r, eval = FALSE}
 shinyApp(ui, server)
 ```
+
+- Hier die App einfügen!
 
 Es ergibt sich eine App, die mehrere Diagrammen mit mehr oder weniger dem gleichen Datensatz erstellt. Diese Diagramme reagieren direkt auf Veränderungen des Titels im dazugehörigen Input-Fenster. Auf die ausgewählte Zeitspanne und die ausgewählten Parteien reagieren die Diagramme nicht direkt, sondern erst dann, wenn die Veränderungen durch das Drücken des "Diagramm erzeugen"-Buttons auf die Diagramme angewendet werden. 
 
@@ -915,9 +1096,10 @@ Mit ausgearbeitetem User Interface und erstellter Sudoku-Abbildung gilt es nun n
 
 Diese können wir in zwei Schritte aufteilen:
 
-1. Generelle Funktionalität der App (Lösen eines Sudokus)
-2. Implementierung der Hochlade-Funktion
+1. [Generelle Funktionalität der App (Lösen eines Sudokus)](#Eins)
+2. [Implementierung der Hochlade-Funktion](#Zwei)
 
+<a id="Eins"></a>
 1.) Damit man anhand der gegebenen Oberfläche ein Sudoku lösen kann, braucht man einen reaktiven Datensatz, der auf die Eingabe der Zahlen reagiert, diese an der entsprechenden Stelle einsetzt und aus dem dann eine neue/aktualisierte Abbildung erstellt wird. Damit man schon beim Öffnen ein Sudoku angezeigt bekommt, braucht man außerdem ein Sudoku, dass standardmäßig die Grundlage für den reaktiven Datensatz bildet. Im ersten Schritt sorgen wir also dafür, dass eben dieses "Default-Sudoku" besteht. Dafür wird das bereits geladene `BeispielSudoku` verwendet.
 
 ```{r, eval = FALSE}
@@ -992,6 +1174,7 @@ server <- function(input, output, session) {
 }
 ```
 
+<a id="Zwei"></a>
 2.) Nun besteht die Aufgabe nur noch darin, ein die Hochlade-Funktion in die gesamte Funktion zu implizieren. Zunächst einmal müssen wir uns dafür anschauen, was in dem zugehörigen Input (`input$Matrix`) ankommt. Schau dir dafür einfach mal [diese Übersicht](https://shiny.rstudio.com/reference/shiny/latest/fileInput.html) an. Es wird deutlich, dass beim Einlesen von eigenen Daten in unserem Fall unter `input$Matrix$datapath` der Dateipfad abgespeichert wird. Das heißt, dass wir zu diesem Zeitpunkt noch nicht den Datensatz mit der 9x9-Matrix zur Hand haben. Dieser muss dann eingelesen werden, wenn der dazugehörige Action-Button mit der Aufschrift "Sudoku benutzen" betätigt wurde. Dazu verwenden wir abermals die `observeEvent`-Funktion mit `input$use` als Auslöse-Objekt und speichern den Datensatz als reaktives Objekt ab.
 
 ```{r, eval = FALSE}
@@ -1095,6 +1278,108 @@ server <- function(input, output, session) {
   })
 }
 ```
+
+<details><summary><i>Zusatz:</i> Formelle Fertigstellung</summary>
+Wie bereits in den Tipps erwähnt, sollte man eine App ohne vorhergehenden Code ausführen können. Dafür bedarf es der Aufnahme der Vorbereitungen in die `server`-Funktion. Zusammengenommen beläuft sich das auf die folgenden Code-Zeilen (inklusive des Ladens weiterer Pakete):
+
+```{r, eval = FALSE}
+BeispielSudoku <- readRDS("BeispielSudokuLeicht.rds")
+library(plot.matrix)
+```
+
+Das gesamte Dokument aus User Interface und Server sieht dann abschließend folgendermaßen aus:
+
+```{r, eval = FALSE}
+library(shiny)
+ui <- pageWithSidebar(
+  h1(strong(em("Hier kann man das Sudoku lösen!")),
+     align = "center", style = 'background: aqua'),
+  sidebarPanel(
+    h3("Willst du dein eigenes Sudoku lösen? Lade dein Sudoku einfach hier hoch!"),
+    br(),
+    fileInput(inputId = "Matrix",
+              label = "Füge hier dein eigenes Sudoku (als .rds) ein!",
+              accept = ".rds",
+              buttonLabel = "Datei hochladen",
+              placeholder = "Noch keine Datei hochgeladen."),
+    actionButton(inputId = "use",
+                 label = "Sudoku benutzen"),
+    h3("Wo willst du eine Zahl einsetzen?"),
+    numericInput(inputId = "row",
+                 label = "Reihe",
+                 value = '', min = 1, max = 9),
+    numericInput(inputId = "column",
+                 label = "Spalte",
+                 value = '', min = 1, max = 9),
+    numericInput(inputId = "num",
+                 label = "Zahl",
+                 value = '', min = 1, max = 9),
+    actionButton(inputId = "go",
+                 label = "Zahl einsetzen")),
+  mainPanel(
+    wellPanel(
+      plotOutput("Sudokus", width = "640px", height = "600px"),
+      align = "center"
+    )
+  )
+)
+
+server <- function(input, output, session) {
+  BeispielSudoku <- readRDS('BeispielSudokuLeicht.rds')
+  library(plot.matrix)
+  rv <- reactiveValues(data = BeispielSudoku)
+  observeEvent(input$use, {
+    rv$data <- readRDS(input$Matrix$datapath)
+  })
+  meinSudoku <- reactive({
+    readRDS(input$Matrix$datapath)
+  })
+  observeEvent(input$go, {
+    if(is.null(input$Matrix) & is.na(BeispielSudoku[input$row, input$column])){
+      rv$data[input$row, input$column] <- input$num
+    }
+    if(!is.null(input$Matrix)) {
+      if(is.na(meinSudoku()[input$row, input$column])) {
+        rv$data[input$row, input$column] <- input$num
+      }
+    }
+  })
+  output$Sudokus <- renderPlot({
+    par(cex.axis = 1.5, col.axis = 'darkblue', mar = c(4,4,0,2))
+    plot(rv$data, border = F,
+         col = c("yellow" , "orange", "red", "violet", "lightblue",
+                 "cornflowerblue", "lightgreen", "chartreuse3", "lightsalmon4"),
+         na.col = "white", xlab = "", ylab = "", text.cell = list(cex = 2),
+         key = NULL, fmt.cell='%.0f', na.print = '',
+         xlim = c(0.5, 9.5), ylim = c(0.5, 9.5))
+    abline(h = 0.5, lwd = 5)
+    abline(h = 1.5, lwd = 0.5)
+    abline(h = 2.5, lwd = 0.5)
+    abline(h = 3.5, lwd = 2)
+    abline(h = 4.5, lwd = 0.5)
+    abline(h = 5.5, lwd = 0.5)
+    abline(h = 6.5, lwd = 2)
+    abline(h = 7.5, lwd = 0.5)
+    abline(h = 8.5, lwd = 0.5)
+    abline(h = 9.5, lwd = 5)
+    abline(v = 0.5, lwd = 5)
+    abline(v = 1.5, lwd = 0.5)
+    abline(v = 2.5, lwd = 0.5)
+    abline(v = 3.5, lwd = 2)
+    abline(v = 4.5, lwd = 0.5)
+    abline(v = 5.5, lwd = 0.5)
+    abline(v = 6.5, lwd = 2)
+    abline(v = 7.5, lwd = 0.5)
+    abline(v = 8.5, lwd = 0.5)
+    abline(v = 9.5, lwd = 5)
+  })
+}
+
+shinyApp(ui, server)
+```
+
+</details>
+
 </details>
 
 Führt man nun die Endprodukte aus den Abschnitten User Interface (`ui`) und Server (`server`) aus, kann man mit dieser Funktion die Applikation starten.
@@ -1102,6 +1387,8 @@ Führt man nun die Endprodukte aus den Abschnitten User Interface (`ui`) und Ser
 ```{r, eval = FALSE}
 shinyApp(ui, server)
 ```
+
+- Hier die App einfügen!
 
 Damit ist man nicht nur in der Lage, über das erstellte Interface das Ausgangssudoku vollständig zu lösen, sondern man kann auch eigene Sudokus hochladen und mit diesem Interface bearbeiten.
 
