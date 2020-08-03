@@ -11,8 +11,8 @@ ui <- fluidPage(
               strong("Darstellungsart"),
               tabPanel("Liniendiagramm", plotOutput("Liniendiagramm")),
               tabPanel("Liniendiagramm (kumuliert)", plotOutput("Liniendiagramm_kumuliert")),
-              tabPanel("Balkendiagramm", plotOutput("Balkendiagramm_kumuliert")),
-              tabPanel("Kuchendiagramm", plotOutput("Kuchendiagramm"))
+              tabPanel("Balkendiagramm (kumuliert)", plotOutput("Balkendiagramm")),
+              tabPanel("Kuchendiagramm (kumuliert)", plotOutput("Kuchendiagramm"))
             ),
             br(),
             fluidRow(
@@ -103,7 +103,7 @@ server <- function(input, output, session) {
 
 
   # Balkendiagramm
-  output$Balkendiagramm_kumuliert <- renderPlot({
+  output$Balkendiagramm <- renderPlot({
     p1_new <- data.frame(names(rv2$data), colSums(rv2$data))
     names(p1_new)[1]<-paste("Partei")
     names(p1_new)[2]<-paste("Prozent_kumuliert")
