@@ -83,7 +83,9 @@ server <- function(input, output, session) {
   )
 
   # Kumuliertes Liniendiagramm
-  output$Liniendiagramm_kumuliert <- renderPlot(
+  output$Liniendiagramm_kumuliert <- renderPlot({
+    rv$data$Prozent_kumuliert <- unlist(tapply(rv$data$Prozent, rv$data$Partei, cumsum))
+    
     ggplot(data = rv$data, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
       geom_line(aes(colour = Partei)) +      # Liniendiagramm
       xlab('Zeitraum') +                     # Beschriftung x-Achse
@@ -91,7 +93,7 @@ server <- function(input, output, session) {
       ggtitle(input$Titel) +                 # Überschrift
       scale_color_manual(values = farben) +
       theme_bw()
-  )
+  })
 
   # Datenauswahl (Gesamtplots)
   rv2 <- reactiveValues(data = p1_wide[,2:10])
