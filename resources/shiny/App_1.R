@@ -36,9 +36,8 @@ ui <- fluidPage(
 )
 
 server <- function(input, output, session) {
-  # Pakete laden
+  # Paket laden
   library(ggplot2)
-  library(dplyr)
 
   # Daten einlesen
   p1_long <- readRDS('p1_long.rds')
