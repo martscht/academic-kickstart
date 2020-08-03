@@ -1,7 +1,10 @@
 library(shiny)
 ui <- pageWithSidebar(
-  h1(strong(em("Hier kann man das Sudoku lösen!")),
-     align = "center", style = 'background: aqua'),
+  titlePanel(
+    h1(strong(em("Hier kann man das Sudoku lösen!")),
+       align = "center", style = 'background: aqua'),
+    windowTitle = "Sudokus lösen!"
+  ),
   sidebarPanel(
     h3("Willst du dein eigenes Sudoku lösen? Lade dein Sudoku einfach hier hoch!"),
     br(),
@@ -23,7 +26,8 @@ ui <- pageWithSidebar(
                  label = "Zahl",
                  value = '', min = 1, max = 9),
     actionButton(inputId = "go",
-                 label = "Zahl einsetzen")),
+                 label = "Zahl einsetzen")
+  ),
   mainPanel(
     wellPanel(
       plotOutput("Sudokus", width = "640px", height = "600px"),
