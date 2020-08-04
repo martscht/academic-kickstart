@@ -16,19 +16,16 @@ header:
 projects: []
 ---
 
-***
-
 ## Vorwarnung
 
 Achtung! Im Folgenden werden die Lösungen für das erste Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die [Tipps](/post/tipps1). Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, um einen Schritt weiterzukommen und beim nächsten Abschnitt weiterzumachen.
-
-***
 
 ## Darstellung der Suchanfragen verschiedener Parteien
 Hier sind die Lösungen zum ersten Abschnitt des Projekts "Darstellung der Suchanfragen". Die Lösungen decken mitunter alle Vorgaben aus der Problemstellung ab, gehen aber vor allem mit dem Style deutlich darüber hinaus. Das heißt, hier in den Lösungen werden dir nicht nur die relevanten Schritte zum Endprodukt gezeigt, sondern auch einige Möglichkeiten, dein Endprodukt besonders gut aussehen zu lassen. Da sich die Lösung auf eine unübersichtliche Anzahl an Zeilen von Code beläuft, wird die Erklärung im Folgenden auf vier Abschnitte aufgeteilt.
 
 #### Aufbereitung der Daten
 <details><summary>Abschnitt anzeigen</summary>
+
 Zuallererst müssen die Datensätze zur Benutzung in den Diagrammen aufbereitet werden. Dafür werden die beiden Datensätze `p1_long` und `p1_wide` aus dem ersten Projekt auf dieser Website verwendet. Damit du die nächsten Schritte nachvollziehen kannst, solltest du am selben Punkt starten und die beiden Datensätze [hier](https://raw.githubusercontent.com/martscht/projekte/master/content/post/p1_long.rds) und [hier](https://raw.githubusercontent.com/martscht/projekte/master/content/post/p1_wide.rds) herunterladen und in den Ordner einfügen, in dem du bei diesem Projekt arbeiten willst (deine Working Directory).
 
 Jetzt kannst du die beiden Datensätze mit dem Befehl `readRDS` laden:
@@ -41,6 +38,7 @@ p1_long <- readRDS('p1_long.rds')
 Falls du bereits Projekt 1 gemacht hast, dann sollte dir der nächste Schritt bereits bekannt sein. Im ersten Projekt hat sich ein Problem mit den Daten ergeben, das eine ordnungsgemäße Beschriftung eines Diagramms mit Daten unmöglich gemacht hat. Das liegt daran, dass die Variable `Monat` in den Datensätzen als `factor` vorliegt und von R deshalb nicht als Datum erkannt werden kann. Damit das der Fall ist, müssen die Zeitangaben als `POSIXct` vorliegen. Nutze dafür einfach dein R-Script aus dem ersten Projekt. Falls du das erste Projekt noch nicht bearbeitet hast, kannst du die nötigen Schritte mit Erklärung im Folgenden nachlesen.
 
 <details><summary>Umwandlung der Zeitangaben in `POSIXct`</summary>
+
 Schau dir zunächst einmal die Struktur der Datumsvariable an.
 ```{r}
 str(p1_long$Monat)
@@ -95,7 +93,27 @@ farben <- c('AfD' = 'deepskyblue', 'CDU' = 'black', 'DieGrüne' = 'green3',
 
 Zum Anderen ist in der Aufgabenstellung ein Liniendiagramm zur Darstellung der kumulativen Suchhäufigkeiten im zeitlichen Verlauf gefordert. An sich ist diese Grafik identisch zum Liniendiagramm aus Projekt 1 mit dem Unterschied, dass hier eine andere Variable auf der y-Achse abgebildet werden soll. Deshalb werden neue y-Werte benötigt, die man am besten im `p1_long`-Datensatz hinzufügt.
 
-Für die Umsetzung dieser Anforderung muss man sich der Struktur des Datensatzes bewusst sein. Zu jeder Partei gibt es Daten für 190 Monate, die alle in der selben Spalte dargestellt werden (Variable `Prozent`). Eine solche Variable wird nun für die kumulierten Prozente benötigt. Dafür kann man jedoch nicht für jeden Eintrag einfach die Summe von Zeile 1 bis Zeile X bilden, da sich so die Prozente der verschiedenen Parteien vermischen würden. Eine richtige, aber sehr umständliche Methode, um das zu umgehen, siehst du im Folgenden R-Code:
+Für die Umsetzung dieser Anforderung muss man sich der Struktur des Datensatzes bewusst sein. Zu jeder Partei gibt es Daten für 190 Monate, die alle in der selben Spalte dargestellt werden (Variable `Prozent`). Eine solche Variable wird nun für die kumulierten Prozente benötigt. Dafür kann man jedoch nicht für jeden Eintrag einfach die Summe von Zeile 1 bis Zeile X bilden, da sich so die Prozente der verschiedenen Parteien vermischen würden.
+
+Aus diesem Grund sind im Folgenden zwei Funktionen von großer Relevanz: `cumsum` und `tapply`.
+`cumsum` berechnet kumulierte Summen und speichert diese in einer *Liste* ab. Damit hat man bereits die passende Rechenoperation für die Berechnung der `Prozent_kumuliert`-Variable. Doch mit dieser Funktion allein stößt man auf Probleme, da `cumsum` nicht zwischen den verschiedenen Parteien unterscheidet, sodass diese *alle* Prozentangaben aus `p1_long$Prozent` aufaddiert und nicht bei jeder Partei erneut bei Null beginnt. Um dieses Problem zu lösen, kann man die `tapply`-Funktion verwenden. Diese kann bestimmen, dass auf eine bestimmte Variable (`p1_long$Prozent`) in Abhängigkeit von einer anderen Variable (`p1_long$Partei`) eine definierte Funktion (`cumsum`) angewendet wird. Nun steht nur noch eine Problematik bevor: Die errechneten Daten liegen in Listen-Form vor und nicht als Vektor. Dafür muss man das Ganze in die `unlist`-Funktion packen, die die Liste in einen einfachen Vektor umwandelt.
+
+```{r}
+p1_long$Prozent_kumuliert <- unlist(tapply(p1_long$Prozent, p1_long$Partei, cumsum))
+```
+
+Führt man diesen Befehl nun ohne Weiteres aus, dann kommt es zu einem bestimmten Fehler. Schaut man sich die errechneten kumulierten Prozente an, dann stimmen diese größtenteils nicht mit den Veränderungen in `p1_long$Prozent` überein. Das liegt daran, dass `tapply` die kumulierten Summen nicht nur mit `cumsum` in Abhängigkeit von `p1_long$Partei` berechnet, sondern diese Daten auch nach der alphabetischen Reihenfolge der Parteien ordnet. Damit also die beiden Variablen `Prozent` und `Prozent_kumuliert` zusammenpassen, müssen die Zeilen in `p1_long` zunächst derart angeordnet werden, dass die Parteien in alphabetischer Reihenfolge vorliegen. Das erreicht man mithilfe des `order`-Befehls.
+
+```{r}
+p1_long <- p1_long[order(p1_long$Partei), ] #Die Zeilen sollen nach der Variable "Partei" (alphabetisch) geordnet werden.
+p1_long$Prozent_kumuliert <- unlist(tapply(p1_long$Prozent, p1_long$Partei, cumsum))
+```
+
+Damit hat man nun erfolgreich eine Variable mit den kumulierten Prozentangaben für alle Parteien bestimmt.
+
+<details><summary> Weitere Möglichkeit</summary>
+
+Eine andere richtige, aber umständlichere Methode siehst du im folgenden R-Code:
 
 ```{r}
 for (i in 1:190) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1:i])}
@@ -110,12 +128,14 @@ for (i in 1521:1710) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1521:i
 ```
 
 Hierbei wurde 'einfach' für jede Partei ein einzelner Befehl erstellt, der die jeweilige Zeilenspanne (z.B. 1-190) betrachtet und jeweils die kumulierten Prozente berechnet. Der Code erklärt sich im einzelnen folgendermaßen: Gehen wir  von dem ersten Befehl `for (i in 1:190) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1:i])}` aus, dann setzt diese Funktion für `i` alle Werte von 1 bis 190 ein. Dieses `i` beschreibt die Zeile, in der sich die Funktion zu einem gewissen Zeitpunkt befindet. Befindet sich die Funktion beispielsweise bei `i` = 40 (also in Zeile 40), dann wird in der neuen Variable `Prozent_kumuliert` in der i-ten Zeile (also Zeile 40) ein Wert eingesetzt. Dieser Wert berechnet sich durch die Funktion `sum(p1_long$Prozent[1:i])`. Diese Funktion besagt, dass eine Summe aus den Werten der Variable `Prozent` von Zeile 1 bis Zeile `i` (in diesem Beispiel also Zeile 1 bis 40) gebildet werden soll.
+</details>
 
-Damit hat man die gröbsten Vorbereitungen getroffen und kann zum nächsten Unterpunkt, dem Erstellen der Diagramme, kommen.
+Zu diesem Zeitpunkt sollten die gröbsten Vorbereitungen abgeschlossen sein und man kann mit dem Erstellen der Diagramme beginnen.
 </details>
 
 #### Erstellung der Diagramme
 <details><summary>Abschnitt anzeigen</summary>
+
 Wie in der Problemstellung deutlich wurde, soll es in diesem Projekt darum gehen, mindestens 4 Diagramme in eine App einzubeziehen. Damit Probleme mit der Erstellung dieser Diagramme von vorn herein ausgeschlossen werden können, werden diese hier vor der Erstellung der Bestandteile der App besprochen.
 
 Diagramm 1 soll ein Liniendiagramm der prozentualen Häufigkeit im Zeitverlauf sein. Dieses wurde bereits in Projekt 1 mit dem Paket `ggplot2` erstellt und kann hier deshalb einfach übernommen werden:
@@ -146,6 +166,32 @@ ggplot(data = p1_long, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
 
 Diagramm 3 soll ein Balkendiagramm mit den kumulierten Häufigkeiten der Parteien sein. Dafür verwenden wir nun den `p1_wide`-Datensatz, da wir hier keine Zwischenwerte mehr brauchen: Die Balken sollen in diesem Fall lediglich die kumulierte Häufigkeit für einen bestimmten Zeitraum angeben. Das könnte man natürlich auch mit `p1_long` umsetzen, mit `p1_wide` ist es jedoch deutlich einfacher.
 
+Für die Erstellung von Balkendiagrammen bietet R mehrere Möglichkeiten. Zum Einen kann man jenes mit der `barplot`-Funktion erstellen und zum Anderen kann man abermals `ggplot2` verwenden. Aufgrund der vielfältigeren Möglichkeiten von `ggplot2` ist diese Variante jedoch dem `barplot`-Befehl vorzuziehen. Im Folgenden werden dir beide Möglichkeiten präsentiert, doch im späteren Verlauf verwende ich die praktischere (aber kompliziertere) `ggplot2`-Version.
+
+Damit man mit `ggplot2` ein Balkendiagramm erstellen kann, muss man zunächst einen neuen Datensatz aus `p1_wide` erstellen. Das macht hier Sinn, da `ggplot2` für ein Balkendiagramm nur einen Datensatz als Input annimmt, der in einer Zeile die "Benennung" der Balken und in einer anderen die Höhe der Balken beinhaltet. Einen solchen Datensatz erhält man, indem man die Namen der Spalten 2 bis 10 von `p1_wide` und die Summen der Prozentangaben der Spalten 2 bis 10 zu einem Datensatz zusammenfügt (Spalte 2 bis 10, da man die Datumsvariablen nicht für das Diagramm benötigt). Um in jenem Datensatz die Variablen besser auswählen zu können, sollte man dann noch die Variablennamen ändern.
+
+```{r}
+p1_new <- data.frame(names(p1_wide[, 2:10]), colSums(p1_wide[, 2:10]))
+names(p1_new)[1]<-paste("Partei")
+names(p1_new)[2]<-paste("Prozent_kumuliert")
+```
+
+Mit diesem Datensatz kann man nun das Balkendiagramm erstellen:
+
+```{r}    
+ggplot(p1_new, aes(x = Partei, y = Prozent_kumuliert, fill = Partei)) + #X- und Y-Variable festlegen; "fill" bestimmt, wie/wonach die Balken gefüllt werden sollen
+  scale_fill_manual(values = farben) + #baut auf "fill"-Befehl auf und übermittelt die Farbkodierung 
+  geom_col(color = "black") + #erstellt ein Balkendiagramm anhand der oben festgelegten Daten; "color" bestimmt die Farbe der Umrandung der Balken
+  theme_bw() + #bestimmt die grundlegende Formatierung von Achsen und Hintergrund (bw = black and white)
+  xlab("Partei") + #Beschriftung X-Achse
+  ylab("kumulierte Suchhäufigkeiten") + #Beschriftung Y-Achse
+  ggtitle("Balkendiagramm") #Titel des Diagramms
+```
+
+Falls du mit `ggplot2` nicht zurechtkommst, kannst du das Balkendiagramm auch mit `barplot` erstellen. Neben eingeschränkten Möglichkeiten der Formatierung ist dort unter anderem keine Farbkodierung möglich. Falls du diesen Weg jedoch gewählt hast, kannst du dir diese Möglichkeit hier trotzdem anschauen.   
+
+<details><summary> Balkendiagramm mit `barplot`</summary>
+
 Bei dem Befehl `barplot` fordert R als erstes Argument einen Vektor mit den Höhen der Balken (`height`). Mithilfe von `p1_wide` erhält man diese Höhen, indem man die Summen der Spalten mit colSums bilden lässt. Mit weiteren Argumenten zur Formatierung sieht das Balkendiagramm dann folgendermaßen aus:
 
 ```{r}
@@ -155,10 +201,11 @@ barplot(height = colSums(p1_wide[,2:10]),
                 'darkblue', 'black', 'orange', 'brown'),
         main = "Balkendiagramm der kumulierten Häufigkeiten")
 ```
+
 Wie bereits erwähnt, funktioniert das Diagramm auch mithilfe von `p1_long`. Falls du sehen willst, wie das Diagramm mit diesem Datensatz erstellt werden kann, schau dir den folgenden kleinen Abschnitt an. Für die nächsten Schritte zur Erstellung der App bietet sich der Gebrauch von `p1_long` jedoch nicht so sehr an, weshalb für dieses Diagramm die Variante mit `p1_wide` benutzt werden sollte.
 
-<details><summary>Balkendiagramm mit `p1_long`</summary>
-Mit `p1_long` gestaltet sich die Auswahl der korrekten Werte für die Höhen aus der Variable `Prozent_kumuliert` etwas komplizierter, da die Werte aller Parteien in einer Spalte liegen. Aus diesem Grund muss man hier bestimmte Zeilen dieser Variable für die Höhen auswählen. Bei dem vollständigen Datensatz mit 1710 Zeilen wissen wir, dass es zu jeder Partei 190 Daten gibt. Die relevanten Höhen liegen also in den Zeilen 190, 380, 570, ... Damit wir da heran kommen, benutzen wir vereinfacht den `seq`-Befehl. Dieser ermöglicht es, aus einer Zahlenspanne von A bis B jede X-te Zahl auszuwählen (genereller Aufbau: `seq(A, B, X)`). Das sieht dann für den gesamten Datensatz folgendermaßen aus: 
+Mit `p1_long` gestaltet sich die Auswahl der korrekten Werte für die Höhen aus der Variable `Prozent_kumuliert` etwas komplizierter, da die Werte aller Parteien in einer Spalte liegen. Aus diesem Grund muss man hier bestimmte Zeilen dieser Variable für die Höhen auswählen. Bei dem vollständigen Datensatz mit 1710 Zeilen wissen wir, dass es zu jeder Partei 190 Daten gibt. Die relevanten Höhen liegen also in den Zeilen 190, 380, 570, ... Damit wir da heran kommen, benutzen wir vereinfacht den `seq`-Befehl. Dieser ermöglicht es, aus einer Zahlenspanne von A bis B jede X-te Zahl auszuwählen (genereller Aufbau: `seq(A, B, X)`). Das sieht dann für den gesamten Datensatz folgendermaßen aus:
+
 ```{r}
 barplot(height = p1_long$Prozent_kumuliert[seq(0, 1710, 190)],
   beside = FALSE, ylim = c(0, 2000),
@@ -168,7 +215,9 @@ barplot(height = p1_long$Prozent_kumuliert[seq(0, 1710, 190)],
                 'Tierschutzpartei', 'CDU', 'MLPD', 'NPD'),
   main = "Balkendiagramm der kumulierten Häufigkeiten")
 ```
+
 Damit das Ganze dann noch etwas reaktiver ist, also in der Lage ist, auf mehrere Modifikationen des Datensatzes zu reagieren (beispielsweise die Reduktion auf eine bestimmte Zeitspanne), kann man den Befehl dann noch folgendermaßen modifizieren:
+
 ```{r, eval = FALSE}
 barplot(height = p1_long$Prozent_kumuliert[
   seq(0, length(p1_long$Prozent_kumuliert), length(p1_long$Prozent_kumuliert)/9)
@@ -180,10 +229,64 @@ barplot(height = p1_long$Prozent_kumuliert[
                 'Tierschutzpartei', 'CDU', 'MLPD', 'NPD'),
   main = "Balkendiagramm der kumulierten Häufigkeiten")
 ```
-Damit ist die Funktion nicht nur für den vollständigen Datensatz anwendbar, sondern für jegliche Beschränkungen der Zeitspanne (sofern man alle anderen Daten aus dem Datensatz entfernt). Denn so ist Auswahl der Höhen nur noch von der Länge des Datensatzes abhängig und diese wird bei jeder Ausführung des `barplot`-Befehls aufs Neue bestimmt. Im späteren Verlauf dieses Abschnitts des Projekts wird deutlich, warum gerade das von großer Wichtigkeit ist. Jedoch ist darauf hinzuweisen, dass die Variante mit `p1_wide` deutlich einfacher ist.
+
+Damit ist die Funktion nicht nur für den vollständigen Datensatz anwendbar, sondern für jegliche Beschränkungen der Zeitspanne (sofern man alle anderen Daten aus dem Datensatz entfernt). Denn so ist die Auswahl der Höhen nur noch von der Länge des Datensatzes abhängig und diese wird bei jeder Ausführung des `barplot`-Befehls aufs Neue bestimmt. Im späteren Verlauf dieses Abschnitts des Projekts wird deutlich, warum gerade das von großer Wichtigkeit ist. Jedoch ist darauf hinzuweisen, dass die Variante mit `p1_wide` deutlich einfacher ist.
 </details>
 
-Diagramm 4 soll ein Kuchendiagramm mit der kumulierten Häufigkeit der Parteien sein. Hierfür werden die gleichen Daten wie in Diagramm 3 benötigt. Es gibt also wiederum die Möglichkeit, das Diagramm mit `p1_long` oder `p1_wide` zu erstellen. Doch mit `p1_wide` ist es vermutlich einfacher, weshalb im Folgenden auch nur dieser Weg betrachtet wird (für Erklärung der Erstellung der Grafik mit `p1_long` siehe oben). Für die Erstellung eines Kuchendiagramms kann man zum Beispiel die Funktion `pie` nutzen, die mit den Argumenten `x` (für die Daten), `main` (für den Titel), `col` (für die Farben) uvm. arbeitet. In diesem Fall sieht das dann folgendermaßen aus:
+Diagramm 4 soll ein Kuchendiagramm mit der kumulierten Häufigkeit der Parteien sein. Hierfür werden die gleichen Daten wie in Diagramm 3 benötigt. Es gibt also wiederum die Möglichkeit, das Diagramm mit `p1_long` oder `p1_wide` zu erstellen. Doch mit `p1_wide` ist es vermutlich einfacher, weshalb im Folgenden auch nur dieser Weg betrachtet wird (für Erklärung der Erstellung der Grafik mit `p1_long` siehe oben).
+
+Für die Erstellung von Kuchendiagrammen bietet R mehrere Möglichkeiten. Zum Einen kann jenes mit der `pie`-Funktion erstellt werden und zum Anderen kann abermals `ggplot2` verwendet werden. Aufgrund der vielfältigeren Möglichkeiten von `ggplot2` ist diese Variante jedoch dem `pie`-Befehl vorzuziehen. Im Folgenden werden dir beide Möglichkeiten präsentiert, doch im späteren Verlauf verwende ich die praktischere (aber kompliziertere) `ggplot2`-Version.
+
+Ebenso wie bei dem zuvor erstellten Balkendiagramm muss man zur Erstellung eines Kuchendiagramms mit `ggplot2` aus `p1_wide` einen neuen Datensatz erstellen (auch hier sollte man wiederum der Einfachheit halber die Variablen manuell benennen). 
+
+```{r}
+p1_new <- data.frame(names(p1_wide[, 2:10]), colSums(p1_wide[, 2:10]))
+names(p1_new)[1]<-paste("Partei")
+names(p1_new)[2]<-paste("Prozent_kumuliert")
+```
+
+Mit diesem Datensatz kann man nun ein Kuchendiagramm mit `ggplot2` erstellen. Da es jedoch keine explizite Funktion für Kuchendiagramme gibt, muss man einen alternativen Weg zum Ziel finden. Unser Vorgehen siehst du im Folgenden:
+
+```{r}
+ggplot(p1_new, aes(x = "", y = Prozent_kumuliert, fill = Partei)) + # X bleibt leer, da die Beschriftung manuell eingefügt werden muss; Y = Werte zur Erstellung des Diagramms; "fill" = wonach sollen die Abschnitte des Kuchens gefärbt werden
+  scale_fill_manual(values = farben) + # Farbkodierung der Parteien
+  geom_bar(stat = "identity", width = 1) + # Grundstruktur: Balkendiagramm [stat = "identity" erreicht das Gleiche, wie wenn man von vorn herein geom_col() benutzt]
+  coord_polar("y", start = 0) + # hiermit überführt man das Balkendiagramm in ein Kuchendiagramm
+  theme_void() + # void = kein Hintergrund, keine Achsen etc., alles weiß
+  ggtitle("Kuchendiagramm") + # Titel des Plots
+  theme(axis.ticks = element_blank(), # keine Achsenmarkierungen/Skalierung
+        axis.text.y = element_blank(), # keine Beschriftung auf der y-Achse (Skala)
+        axis.text.x = element_text(colour = 'black'), # Beschriftung auf der x-Achse in schwarz (Skala bzw. Parteinamen)
+        axis.title = element_blank()) + # keine Labels für beide Achsen
+  scale_y_continuous( # Erstellung der Beschriftung der x-Achse außerhalb des Kuchens
+    breaks = cumsum(p1_new$Prozent_kumuliert) - p1_new$Prozent_kumuliert/2, # Platzierung der Beschriftung (in der Mitte des jeweiligen Abschnitts)
+    labels = p1_new$Partei) # Zur Beschriftung sollen die Parteinamen verwendet werden
+```
+
+Wie du sehen kannst, funktioniert das in der Art *fast* einwandfrei. Die Funktion konnte erfolgreich ein Kuchendiagramm mit den gegebenen neun Parteien erstellen. Das einzige Problem ist, dass die Beschriftungen nicht mit den Kuchenabschnitten übereinstimmen. Das liegt daran, dass `ggplot` nicht die ursprüngliche Reihenfolge der Parteien aus dem Datensatz `p1_new` übernimmt, sondern die Abschnitte automatisch in alphabetischer Reihenfolge *gegen den Uhrzeigersinn* darstellt. Damit also Kuchenstücke und Beschriftung übereinstimmen, müssen die Parteien alphabetisch geordnet werden. Das kann mit dem `order`-Befehl umgesetzt werden mit dem Zusatz, dass die Parteien dieses Mal absteigend geordnet werden müssen (weil die Beschriftung *im Uhrzeigersinn* geschieht).
+
+```{r}
+# Die Zeilen von p1_new werden nach der Variable "Partei" alphabetisch umsortiert. Dabei gilt decreasing = TRUE; unten im Alphabet (Z) soll im Datensatz also oben (Zeile 1) stehen. 
+p1_new <- p1_new[order(p1_new$Partei, decreasing = TRUE), ]
+
+ggplot(p1_new, aes(x = "", y = Prozent_kumuliert, fill = Partei)) +
+  scale_fill_manual(values = farben) +
+  geom_bar(stat = "identity", width = 1) +
+  coord_polar("y", start = 0) +
+  theme_void() +
+  ggtitle("Kuchendiagramm") +
+  theme(axis.ticks = element_blank(),
+        axis.text.y = element_blank(),
+        axis.text.x = element_text(colour = 'black'),
+        axis.title = element_blank()) +
+  scale_y_continuous(
+    breaks = cumsum(p1_new$Prozent_kumuliert) - p1_new$Prozent_kumuliert/2,
+    labels = p1_new$Partei)
+```
+
+<details><summary> Kuchendiagramm mit `pie`</summary>
+
+Die `pie`-Funktion arbeitet mit den Argumenten `x` (für die Daten), `main` (für den Titel), `col` (für die Farben) und vielen mehr. In diesem Fall sieht das dann folgendermaßen aus:
 
 ```{r}
 pie(x = colSums(p1_wide[,2:10]),
@@ -193,12 +296,18 @@ pie(x = colSums(p1_wide[,2:10]),
 )
 ```
 
+Bei `pie` muss man einbußen bei der Farbkodierung akzeptieren. Die Farben können hier nicht explizit den Parteien zugewiesen werden, sondern werden "von vorne nach hinten" automatisch vergeben.
+
+Vorteil: Mit `pie` kann man Kuchendiagramme in deutlich kürzerer Zeit und deutlich einfacherer erstellen. 
+</details>
+
 Damit wurden alle Vorbereitung getroffen und nötige Inhalte für die App erstellt. Nun kann mit der Erstellung der eigentlich App begonnen werden. Der nächste Abschnitt behandelt zunächst einmal das User Interface.
 
 </details>
 
 #### User Interface
 <details><summary>Abschnitt anzeigen</summary>
+
 An diesem Punkt beginnen wir, mit dem `shiny`-Paket zu arbeiten. Aus diesem Grund sollte dieses spätestens jetzt heruntergeladen werden und dann in die aktuelle Sitzung geladen werden.
 
 ```{r, warning = FALSE}
@@ -303,7 +412,7 @@ shinyApp(ui, server)
 
 Nun kann man das vorläufige User Interface der App betrachten. Am Anfang der Seite ist die Navigationsleiste zu sehen. Darunter ist ein großer leerer Bereich für die Inhalte der Unterseiten, da diese ja bisher noch nicht erstellt wurden. Am Ende der Seite sind die drei Inputs für Titel, Zeitraum und die Parteien zu sehen und der Action Button mit der Aufschrift "Diagramm erzeugen".
 
-Natürlich kann man an der App in ihrem aktuellen Status allem voran die Formatierung bemängeln. Die App enthält keine Farben, die Input-Fenster sind nicht an die Größe der Seite angepasst und stehen einfach nur untereinander, und es gibt keinen Titel. Die Problemstellung schreibt diese optischen Verbesserungen zwar nicht vor; doch sie machen die App deutlich ansehnlicher. Im Folgenden wird dir eine mögliche Formatierung des User Interfaces der App vorgestellt.
+Natürlich kann man an der App in ihrem aktuellen Status allem voran die Formatierung bemängeln. Die App enthält keine Farben, es gibt keinen Titel, die Input-Fenster sind nicht an die Größe der Seite angepasst und alle Bestandteile stehen einfach nur untereinander. Die Problemstellung schreibt diese optischen Veränderungen zwar nicht vor; doch sie machen die App deutlich ansehnlicher. Im Folgenden wird dir eine mögliche Formatierung des User Interfaces der App vorgestellt.
 
 ```{r, eval = FALSE}
 ui <- fluidPage(
@@ -358,6 +467,7 @@ shinyApp(ui, server)
 ```
 
 <details><summary>Bedeutung von `fluidRow` & `column`</summary>
+
 In der verschönerten Version des User Interfaces wurden die beiden Befehle `fluidRow` und `column` verwendet. Diese dienen dazu, die erstellten Objekte schöner anzuordnen.
 
 Mit `fluidRow` erstellt man dabei eine Reihe, deren Besonderheit es ist, dass sie sich der Fenstergröße anpassen kann (deshalb "fluid"). Die Bedeutung davon wird klar, wenn man betracht, wie der `column`-Befehl funktioniert.
@@ -366,7 +476,7 @@ Mit `column` legt man dann nämlich fest, in welcher/n Spalte/n dieser Reihe ein
 Hat man zum Beispiel zwei Objekte, nehmen wir zwei `numericInputs`, dann kann man mit der Spaltenaufteilung "6|6" beiden Inputs eine Hälfte (6 Spalten) des Bildschirms zuweisen. Belegt das Fenster der App jedoch nicht die gesamte Breite des Bildschirms, dann stehen der App weniger als 12 Spalten zur Verfügung. Das heißt, dass die beiden `numericInputs` nun nicht mehr vollständig in einer Reihe angezeigt werden können, da es sich bei der Spaltenzuweisung um eine absolute (nicht veränderbare/nicht "fluide") Angabe handelt. Theoretisch müsste diese App nun zu groß für das Fenster sein, sodass man mit Schiebereglern agieren müsste. Doch an diesem Punkt greifen die Vorteile des `fluidRow`-Befehls, denn durch diesen werden die beiden Inputs nun untereinander dargestellt. Probiere das gerne einmal aus, indem du die Fenstergröße der App etwas verändert.
 </details>
 
-Das Endergebnis ist bereits etwas hübscher und deutet an, was mit dem Design alles möglich ist. Falls du dich fragst, was es mit den Farbcodes auf sich hat und woher diese kommen: HTML (worauf shiny basiert) hat ein Farbsystem, das mit diesen 6-stelligen Codes arbeitet; diese sind im Internet relativ einfach auffindbar und verfolgen eine relativ einfache Logik. Für mehr Infos dazu schau dir einfach mal die Website [html-color-codes.info](https://html-color-codes.info/webfarben_hexcodes/) an, wenn du dich für die Logik dahinter interessierst und vielleicht deine eigene Farb-Kombination zusammenstellen willst. Eine weitere Möglichkeit ist die Website [farbtabelle.at](http://www.farbtabelle.at/grosse-farbtabelle/), die dir eine Farbtabelle mit über 4000 Farben und zugehörigen Farbcodes bereitstellt.
+Das Endergebnis ist bereits etwas hübscher und deutet an, was mit dem Design alles möglich ist. Falls du dich fragst, was es mit den Farbcodes auf sich hat und woher diese kommen: HTML (worauf shiny basiert) hat ein Farbsystem, das mit diesen 6-stelligen Codes arbeitet; diese sind im Internet relativ einfach auffindbar und verfolgen eine relativ einfache Logik. Für mehr Infos dazu schau dir einfach mal die Website [html-color-codes.info](https://html-color-codes.info/webfarben_hexcodes/) an, wenn du dich für die Logik hinter der Farbkodierung interessierst und vielleicht deine eigene Farb-Kombination zusammenstellen willst. Eine weitere Möglichkeit ist die Website [farbtabelle.at](http://www.farbtabelle.at/grosse-farbtabelle/), die dir eine Farbtabelle mit über 4000 Farben und zugehörigen Farbcodes bereitstellt.
 
 An diesem Punkt kannst du das User Interface als abgeschlossen betrachten. Nur die Outputs der verschiedenen Navigationstabs müssen noch in Abhängigkeit der Inputs (inklusive des Action Buttons) erstellt und eingefügt werden. Die Umsetzung dieser letzten Anforderung wird im letzten Teilabschnitt "Server" besprochen.
 
@@ -379,7 +489,8 @@ Zunächst kann man alle Diagramme in diese Funktion übernehmen. Diese Diagramme
 
 ```{r, eval = FALSE}
 server <- function(input, output, session) {
-  output$Liniendiagramm <- renderPlot(
+  # Liniendiagramm
+  output$Liniendiagramm <- renderPlot({
     ggplot(data = p1_long, aes(x = nMonat, y = Prozent, group = Partei)) +
       geom_line(aes(colour = Partei)) +
       xlab('Zeitraum') +
@@ -387,8 +498,9 @@ server <- function(input, output, session) {
       ggtitle('Suchanfragen deutscher Parteien') +
       scale_color_manual(values = farben) +  
       theme_bw()
-  )
-  output$Liniendiagramm_kumuliert <- renderPlot(
+  })
+  # Kumuliertes Liniendiagramm
+  output$Liniendiagramm_kumuliert <- renderPlot({
     ggplot(data = p1_long, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
       geom_line(aes(colour = Partei)) +
       xlab('Zeitraum') +
@@ -396,22 +508,44 @@ server <- function(input, output, session) {
       ggtitle('Suchanfragen deutscher Parteien') +
       scale_color_manual(values = farben) +
       theme_bw()
-  )
-  output$Balkendiagramm <- renderPlot(
-    barplot(height = colSums(p1_wide[,2:10]),
-      beside = FALSE, ylim = c(0, 2000),
-      col = c('deepskyblue', 'red', 'gold', 'green3', 'magenta',
-              'darkblue', 'black', 'orange', 'brown'),
-      main = "Balkendiagramm der kumulierten Häufigkeiten"
-    )
-  )
-  output$Kuchendiagramm <- renderPlot(
-    pie(x = colSums(p1_wide[,2:10]),
-      main = 'Kuchendiagramm der kumulierten Häufigkeiten',
-      col = c('deepskyblue', 'red', 'gold', 'green3', 'magenta',
-              'darkblue', 'black', 'orange', 'brown')
-    )
-  )
+  })
+  # Balkendiagramm 
+  output$Balkendiagramm <- renderPlot({
+    p1_new <- data.frame(names(p1_wide[, 2:10]), colSums(p1_wide[, 2:10]))
+    names(p1_new)[1]<-paste("Partei")
+    names(p1_new)[2]<-paste("Prozent_kumuliert")
+    
+    ggplot(p1_new, aes(x = Partei, y = Prozent_kumuliert, fill = Partei)) +
+      scale_fill_manual(values = farben) +
+      geom_col(color = "black") +
+      theme_bw() +
+      xlab("Partei") +
+      ylab("kumulierte Suchhäufigkeiten") +
+      ggtitle('Suchanfragen deutscher Parteien')
+  })
+  
+  # Kuchendiagramm
+  output$Kuchendiagramm <- renderPlot({
+    p1_new <- data.frame(names(p1_wide[, 2:10]), colSums(p1_wide[, 2:10]))
+    names(p1_new)[1]<-paste("Partei")
+    names(p1_new)[2]<-paste("Prozent_kumuliert")
+    
+    p1_new <- p1_new[order(p1_new$Partei, decreasing = TRUE), ]
+    
+    ggplot(p1_new, aes(x = "", y = Prozent_kumuliert, fill = Partei)) +
+      scale_fill_manual(values = farben) +
+      geom_bar(stat = "identity", width = 1) +
+      coord_polar("y", start = 0) +
+      theme_void() +
+      ggtitle('Suchanfragen deutscher Parteien') +
+      theme(axis.ticks = element_blank(),
+            axis.text.y = element_blank(),
+            axis.text.x = element_text(colour = 'black'),
+            axis.title = element_blank()) +
+      scale_y_continuous(
+        breaks = cumsum(p1_new$Prozent_kumuliert) - p1_new$Prozent_kumuliert/2,
+        labels = p1_new$Partei)
+  })
 }
 ```
 
@@ -420,7 +554,8 @@ Inputs in die Diagramme zu integrieren. Fangen wir dafür bei der einfachsten Sa
 
 ```{r, eval = FALSE}
 server <- function(input, output, session) {
-  output$Liniendiagramm <- renderPlot(
+  # Liniendiagramm
+  output$Liniendiagramm <- renderPlot({
     ggplot(data = p1_long, aes(x = nMonat, y = Prozent, group = Partei)) +
       geom_line(aes(colour = Partei)) +
       xlab('Zeitraum') +
@@ -428,8 +563,9 @@ server <- function(input, output, session) {
       ggtitle(input$Titel) +
       scale_color_manual(values = farben) +  
       theme_bw()
-  )
-  output$Liniendiagramm_kumuliert <- renderPlot(
+  })
+  # Kumuliertes Liniendiagramm
+  output$Liniendiagramm_kumuliert <- renderPlot({
     ggplot(data = p1_long, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
       geom_line(aes(colour = Partei)) +
       xlab('Zeitraum') +
@@ -437,22 +573,43 @@ server <- function(input, output, session) {
       ggtitle(input$Titel) +
       scale_color_manual(values = farben) +
       theme_bw()
-  )
-  output$Balkendiagramm <- renderPlot(
-    barplot(height = colSums(p1_wide[,2:10]),
-      beside = FALSE, ylim = c(0, 2000),
-      col = c('deepskyblue', 'red', 'gold', 'green3', 'magenta',
-              'darkblue', 'black', 'orange', 'brown'),
-      main = input$Titel
-    )
-  )
-  output$Kuchendiagramm <- renderPlot(
-    pie(x = colSums(p1_wide[,2:10]),
-      main = input$Titel,
-      col = c('deepskyblue', 'red', 'gold', 'green3', 'magenta',
-              'darkblue', 'black', 'orange', 'brown')
-    )
-  )
+  })
+  # Balkendiagramm 
+  output$Balkendiagramm <- renderPlot({
+    p1_new <- data.frame(names(p1_wide[, 2:10]), colSums(p1_wide[, 2:10]))
+    names(p1_new)[1]<-paste("Partei")
+    names(p1_new)[2]<-paste("Prozent_kumuliert")
+    
+    ggplot(p1_new, aes(x = Partei, y = Prozent_kumuliert, fill = Partei)) +
+      scale_fill_manual(values = farben) +
+      geom_col(color = "black") +
+      theme_bw() +
+      xlab("Partei") +
+      ylab("kumulierte Suchhäufigkeiten") +
+      ggtitle(input$Titel)
+  })
+  # Kuchendiagramm
+  output$Kuchendiagramm <- renderPlot({
+    p1_new <- data.frame(names(p1_wide[, 2:10]), colSums(p1_wide[, 2:10]))
+    names(p1_new)[1]<-paste("Partei")
+    names(p1_new)[2]<-paste("Prozent_kumuliert")
+    
+    p1_new <- p1_new[order(p1_new$Partei, decreasing = TRUE), ]
+    
+    ggplot(p1_new, aes(x = "", y = Prozent_kumuliert, fill = Partei)) +
+      scale_fill_manual(values = farben) +
+      geom_bar(stat = "identity", width = 1) +
+      coord_polar("y", start = 0) +
+      theme_void() +
+      ggtitle(input$Titel) +
+      theme(axis.ticks = element_blank(),
+            axis.text.y = element_blank(),
+            axis.text.x = element_text(colour = 'black'),
+            axis.title = element_blank()) +
+      scale_y_continuous(
+        breaks = cumsum(p1_new$Prozent_kumuliert) - p1_new$Prozent_kumuliert/2,
+        labels = p1_new$Partei)
+  })
 }
 ```
 
@@ -460,10 +617,11 @@ Im zweiten Schritt geht es darum, ein variables Zeitintervall miteinzubeziehen. 
 `rv <- reactiveValues(data = p1_long)`. Der Datensatz ist nun ein reaktives Objekt, das über `rv$data` abrufbar ist, und außerdem stellt `p1_long`, also der gesamte Datensatz, den Ausgangsdatensatz für die Erstellung der Diagramme beim Öffnen der App dar. Jetzt benutzt man den Befehl `observeEvent`, um `rv$data` dann zu aktualisieren, wenn der Action-Button betätigt wird. Wie lässt sich diese Aktualisierung jedoch bewerkstelligen? Die genaue Erklärung dazu erhältst du (wenn du möchtest) im folgenden kleinen Unterabschnitt.
 
 <details><summary>Aktualisierung der betrachteten Zeitspanne</summary>
+
 Das Problem von Daten ist, dass sie nicht den typischen Strukturen von Zahlen folgen. Zahlen stehen für sich, während Daten aus den drei Komponenten Tag, Monat und Jahr bestehen. Aus diesem Grund muss der Input aus den beiden Input-Feldern in ein Datums-Format (POSIXct) gebracht werden, um es mit den Daten aus der Variable `nMonat` vergleichen zu können. Glücklicherweise liegen die Daten in den Input-Feldern bereits im Format 'JJJJ-MM-TT' vor, sodass man einfach den Befehl `as.POSIXct` verwenden kann. Jetzt geht es darum, vom Datensatz `p1_long` nur jene Zeilen beizubehalten, deren Datum (`nMonat`) in der angegebenen Datumspanne der Input-Felder liegt. Daraus ergeben sich die zwei Bedingungen `as.POSIXct(input$Datum[1]) < p1_long$nMonat` und `as.POSIXct(input$Datum[2]) > p1_long$nMonat` für die Auswahl der Zeilen.
 </details>
 
-Nun hat man die Veränderung näher bestimmt, die durch einen Knopfdruck ausgelöst werden. Jetzt gilt es noch, den Knopfdruck in die Funktion mit einzubeziehen. Wie bereits erwähnt, nutzt man die `observeEvent`-Funktion dafür. Diese Funktion reagiert auf Veränderungen des ersten Arguments. Hier ist der Inhalt des ersten Arguments `input$Update`, dessen Wert bei jedem Knopfdruck verändert (und zwar von 0 zu 1 und dann wieder zu 0 usw.). Das heißt bei jedem Knopfdruck ändert sich `input$Update`, wodurch `rv$data` auf eine mögliche Veränderung von `input$Datum` reagieren soll. Das Ganze sieht dann folgendermaßen aus:
+Nun hat man die Veränderung näher bestimmt, die durch einen Knopfdruck ausgelöst werden soll. Jetzt gilt es noch, den Knopfdruck in die Funktion mit einzubeziehen. Wie bereits erwähnt, nutzt man dafür die `observeEvent`-Funktion. Diese Funktion reagiert auf Veränderungen des ersten Arguments. Hier ist der Inhalt des ersten Arguments `input$Update`, dessen Wert sich bei jedem Knopfdruck verändert (und zwar von 0 zu 1 und dann wieder zu 0 usw.). Das heißt, dass sich bei jedem Knopfdruck `input$Update` ändert, wodurch `rv$data` auf eine mögliche Veränderung von `input$Datum` reagieren soll. Das Ganze sieht dann folgendermaßen aus:
 
 ```{r, eval = FALSE}
 rv <- reactiveValues(data = p1_long)
@@ -472,22 +630,21 @@ observeEvent(input$Update, {
                      & as.POSIXct(input$Datum[2]) > p1_long$nMonat,]}) # ACHTUNG: Nicht die geschweifte Klammer vergessen!
 ```
 
-Das Ganze muss man dann auch noch für `p1_wide` umsetzen, da dieser Datensatz in der Erstellung der Diagramme auch benötigt wird.
+Das Ganze muss dann auch noch für `p1_wide` umgesetzt werden, da auch dieser Datensatz in der Erstellung der Diagramme benötigt wird.
 
 WICHTIG - Danach befinden sich die relevanten Datensätze zur Erstellung der Diagramme in `rv$data` für die ersten beiden Diagramme und in `rv2$data` für die Diagramme drei und vier! Das muss also in den Befehlen der Diagramme auch noch verändert werden!
 Der R-Code dazu sieht dann folgendermaßen aus:
 
 ```{r, eval = FALSE}
 server <- function(input, output, session) {
+  # Datenauswahl (Zeitplots)
   rv <- reactiveValues(data = p1_long)
   observeEvent(input$Update, {
     rv$data <- p1_long[as.POSIXct(input$Datum[1]) < p1_long$nMonat
                        & as.POSIXct(input$Datum[2]) > p1_long$nMonat,]})
-  rv2 <- reactiveValues(data = p1_wide[,2:10]) # nur Spalte 2-10, da die Spalten 1 und 11 das Datum enthalten und keine Prozentangaben
-  observeEvent(input$Update, {
-    rv2$data <- p1_wide[as.POSIXct(input$Datum[1]) < p1_wide$nMonat
-                       & as.POSIXct(input$Datum[2]) > p1_wide$nMonat,]})
-  output$Liniendiagramm <- renderPlot(
+  
+  # Liniendiagramm
+  output$Liniendiagramm <- renderPlot({
     ggplot(data = rv$data, aes(x = nMonat, y = Prozent, group = Partei)) +
       geom_line(aes(colour = Partei)) +
       xlab('Zeitraum') +
@@ -495,8 +652,10 @@ server <- function(input, output, session) {
       ggtitle(input$Titel) +
       scale_color_manual(values = farben) +  
       theme_bw()
-  )
-  output$Liniendiagramm_kumuliert <- renderPlot(
+  })
+  
+  # Kumuliertes Liniendiagramm
+  output$Liniendiagramm_kumuliert <- renderPlot({
     ggplot(data = rv$data, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
       geom_line(aes(colour = Partei)) +
       xlab('Zeitraum') +
@@ -504,23 +663,69 @@ server <- function(input, output, session) {
       ggtitle(input$Titel) +
       scale_color_manual(values = farben) +
       theme_bw()
-  )
-  output$Balkendiagramm <- renderPlot(
-    barplot(height = colSums(rv2$data),
-      beside = FALSE, ylim = c(0, 2000),
-      col = c('deepskyblue', 'red', 'gold', 'green3', 'magenta',
-              'darkblue', 'black', 'orange', 'brown'),
-      main = input$Titel
-    )
-  )
-  output$Kuchendiagramm <- renderPlot(
-    pie(x = colSums(rv2$data),
-      main = input$Titel,
-      col = c('deepskyblue', 'red', 'gold', 'green3', 'magenta',
-              'darkblue', 'black', 'orange', 'brown')
-    )
-  )
+  })
+  
+  # Datenauswahl (Gesamtplots)
+  rv2 <- reactiveValues(data = p1_wide[, 2:10]) # nur Spalte 2-10, da die Spalten 1 und 11 das Datum enthalten und keine Prozentangaben
+  observeEvent(input$Update, {
+    rv2$data <- p1_wide[as.POSIXct(input$Datum[1]) < p1_wide$nMonat
+                       & as.POSIXct(input$Datum[2]) > p1_wide$nMonat,]})
+  
+  # Balkendiagramm 
+  output$Balkendiagramm <- renderPlot({
+    p1_new <- data.frame(names(rv2$data), colSums(rv2$data))
+    names(p1_new)[1]<-paste("Partei")
+    names(p1_new)[2]<-paste("Prozent_kumuliert")
+    
+    ggplot(p1_new, aes(x = Partei, y = Prozent_kumuliert, fill = Partei)) +
+      scale_fill_manual(values = farben) +
+      geom_col(color = "black") +
+      theme_bw() +
+      xlab("Partei") +
+      ylab("kumulierte Suchhäufigkeiten") +
+      ggtitle(input$Titel)
+  })
+  
+  # Kuchendiagramm
+  output$Kuchendiagramm <- renderPlot({
+    p1_new <- data.frame(names(rv2$data), colSums(rv2$data))
+    names(p1_new)[1]<-paste("Partei")
+    names(p1_new)[2]<-paste("Prozent_kumuliert")
+    
+    p1_new <- p1_new[order(p1_new$Partei, decreasing = TRUE), ]
+    
+    ggplot(p1_new, aes(x = "", y = Prozent_kumuliert, fill = Partei)) +
+      scale_fill_manual(values = farben) +
+      geom_bar(stat = "identity", width = 1) +
+      coord_polar("y", start = 0) +
+      theme_void() +
+      ggtitle(input$Titel) +
+      theme(axis.ticks = element_blank(),
+            axis.text.y = element_blank(),
+            axis.text.x = element_text(colour = 'black'),
+            axis.title = element_blank()) +
+      scale_y_continuous(
+        breaks = cumsum(p1_new$Prozent_kumuliert) - p1_new$Prozent_kumuliert/2,
+        labels = p1_new$Partei)
+  })
 }
+```
+
+Führt man den Server nun aus und schaut sich die vorläufige App an, dann stößt man nach dem Ausprobieren der bisher implizierten Funktionen auf eine Problematik: Das kumulierte Liniendiagramm reagiert nicht korrekt auf die Begrenzungen der Zeitspanne. Anstatt dass sich immer wieder ein neuer Plot bildet, bei dem die einzelnen Linien immer bei Null beginnen, wird bei einer Begrenzung der Zeitspanne lediglich der ausgewählte Abschnitt des Ausgangsplots abgebildet. Aus diesem Grund sollten die kumulierten Werte bei jeder Veränderung von `rv$data` erneut berechnet werden.
+
+```{r, eval = FALSE}
+output$Liniendiagramm_kumuliert <- renderPlot({
+  # Aktualisierung der kumulierten Prozente immer dann, wenn sich rv$data verändert:
+  rv$data$Prozent_kumuliert <- unlist(tapply(rv$data$Prozent, rv$data$Partei, cumsum))
+  
+  ggplot(data = rv$data, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
+    geom_line(aes(colour = Partei)) +      # Liniendiagramm
+    xlab('Zeitraum') +                     # Beschriftung x-Achse
+    ylab('Anfragen (in % des Monats-Maximums/kumuliert)') + # Beschriftung y-Achse
+    ggtitle(input$Titel) +                 # Überschrift
+    scale_color_manual(values = farben) +
+    theme_bw()
+})
 ```
 
 Im letzten Schritt muss man noch die Auswahl der Parteien mit in die Erstellung der Diagramme einbeziehen. Auch hier setzt man vor der Erstellung der Diagramme an den Datensätzen selbst an. Der Input aus der `checkbockGroupInput`-Funktion kommt in `input$Partei` als einfacher Text an. Ist zum Beispiel `CDU` angekreuzt, dann befindet sich im Objekt `input$Partei` ein Objekt `CDU`. Aufgrund dessen lässt sich eine Bedingung mit dem `is.element`-Befehl erstellen, der jene Reaktivität der Diagramme umsetzt. 
@@ -531,12 +736,15 @@ Im R-Code umgesetzt sieht das dann folgendermaßen aus und bildet mitunter das E
 
 ```{r, eval = FALSE}
 server <- function(input, output, session) {
+  # Datenauswahl (Zeitplots)
   rv <- reactiveValues(data = p1_long)
   observeEvent(input$Update, {
     rv$data <- p1_long[is.element(p1_long$Partei, input$Parteien)
                        & as.POSIXct(input$Datum[1]) < p1_long$nMonat
                        & as.POSIXct(input$Datum[2]) > p1_long$nMonat,]})
-  output$Liniendiagramm <- renderPlot(
+  
+  # Liniendiagramm
+  output$Liniendiagramm <- renderPlot({
     ggplot(data = rv$data, aes(x = nMonat, y = Prozent, group = Partei)) +
       geom_line(aes(colour = Partei)) +      # Liniendiagramm
       xlab('Zeitraum') +                     # Beschriftung x-Achse
@@ -544,8 +752,12 @@ server <- function(input, output, session) {
       ggtitle(input$Titel) +                 # Überschrift
       scale_color_manual(values = farben) +
       theme_bw()
-  )
-  output$Liniendiagramm_kumuliert <- renderPlot(
+  })
+  
+  # Kumuliertes Liniendiagramm
+  output$Liniendiagramm_kumuliert <- renderPlot({
+    rv$data$Prozent_kumuliert <- unlist(tapply(rv$data$Prozent, rv$data$Partei, cumsum))
+    
     ggplot(data = rv$data, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
       geom_line(aes(colour = Partei)) +      # Liniendiagramm
       xlab('Zeitraum') +                     # Beschriftung x-Achse
@@ -553,25 +765,52 @@ server <- function(input, output, session) {
       ggtitle(input$Titel) +                 # Überschrift
       scale_color_manual(values = farben) +
       theme_bw()
-  )
+  })
+  
+  # Datenauswahl (Gesamtplots)
   rv2 <- reactiveValues(data = p1_wide[,2:10])
   observeEvent(input$Update, {
     rv2$data <- p1_wide[as.POSIXct(input$Datum[1]) < p1_wide$nMonat
                        & as.POSIXct(input$Datum[2]) > p1_wide$nMonat,
                        input$Parteien]})
-  output$Balkendiagramm_kumuliert <- renderPlot(
-    barplot(height = colSums(rv2$data),
-            beside = FALSE, ylim = c(0, 2000),
-            col = c('deepskyblue', 'red', 'gold', 'green3', 'magenta',
-                    'darkblue', 'black', 'orange', 'brown'),
-            main = input$Titel)
-  )
-  output$Kuchendiagramm <- renderPlot(
-    pie(x = colSums(rv2$data), main = input$Titel,
-        col = c('deepskyblue', 'red', 'gold', 'green3', 'magenta', 'darkblue',
-                'black', 'orange', 'brown')
-    )
-  )
+  
+  # Balkendiagramm 
+  output$Balkendiagramm <- renderPlot({
+    p1_new <- data.frame(names(rv2$data), colSums(rv2$data))
+    names(p1_new)[1]<-paste("Partei")
+    names(p1_new)[2]<-paste("Prozent_kumuliert")
+    
+    ggplot(p1_new, aes(x = Partei, y = Prozent_kumuliert, fill = Partei)) +
+      scale_fill_manual(values = farben) +
+      geom_col(color = "black") +
+      theme_bw() +
+      xlab("Partei") +
+      ylab("kumulierte Suchhäufigkeiten") +
+      ggtitle(input$Titel)
+  })
+  
+  # Kuchendiagramm
+  output$Kuchendiagramm <- renderPlot({
+    p1_new <- data.frame(names(rv2$data), colSums(rv2$data))
+    names(p1_new)[1]<-paste("Partei")
+    names(p1_new)[2]<-paste("Prozent_kumuliert")
+    
+    p1_new <- p1_new[order(p1_new$Partei, decreasing = TRUE), ]
+    
+    ggplot(p1_new, aes(x = "", y = Prozent_kumuliert, fill = Partei)) +
+      scale_fill_manual(values = farben) +
+      geom_bar(stat = "identity", width = 1) +
+      coord_polar("y", start = 0) +
+      theme_void() +
+      ggtitle(input$Titel) +
+      theme(axis.ticks = element_blank(),
+            axis.text.y = element_blank(),
+            axis.text.x = element_text(colour = 'black'),
+            axis.title = element_blank()) +
+      scale_y_continuous(
+        breaks = cumsum(p1_new$Prozent_kumuliert) - p1_new$Prozent_kumuliert/2,
+        labels = p1_new$Partei)
+  })
 }
 ```
 
@@ -579,30 +818,32 @@ server <- function(input, output, session) {
 Wie bereits in den Tipps erwähnt, sollte man eine App ohne vorhergehenden Code ausführen können. Dafür bedarf es der Aufnahme der Vorbereitungen in die `server`-Funktion. Zusammengenommen beläuft sich das auf die folgenden Code-Zeilen (inklusive des Ladens weiterer Pakete):
 
 ```{r, eval = FALSE}
+# Paket laden
+library(ggplot2)
+
+# Daten einlesen
 p1_long <- readRDS("p1_long.rds")
 p1_wide <- readRDS("p1_wide.rds")
+
+# Monate formatieren
 p1_long$nMonat <- as.character(p1_long$Monat)
 p1_long$nMonat <- paste0(p1_long$nMonat, '-01')
 p1_long$nMonat <- strptime(p1_long$nMonat, format="%Y-%m-%d")
 p1_long$nMonat <- as.POSIXct(p1_long$nMonat)
+
 p1_wide$nMonat <- as.character(p1_wide$Monat)
 p1_wide$nMonat <- paste0(p1_wide$nMonat, '-01')
 p1_wide$nMonat <- strptime(p1_wide$nMonat, format="%Y-%m-%d")
 p1_wide$nMonat <- as.POSIXct(p1_wide$nMonat)
+
+# Farbkodierung der Parteien
 farben <- c('AfD' = 'deepskyblue', 'CDU' = 'black', 'DieGrüne' = 'green3',
             'DieLinke' = 'magenta', 'FDP' = 'gold', 'MLPD' = 'orange',
             'NPD' = 'brown', 'SPD' = 'red', 'Tierschutzpartei' = 'darkblue')
-for (i in 1:190) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1:i])}
-for (i in 191:380) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[191:i])}
-for (i in 381:570) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[381:i])}
-for (i in 571:760) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[571:i])}
-for (i in 761:950) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[761:i])}
-for (i in 951:1140) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[951:i])}
-for (i in 1141:1330) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1141:i])}
-for (i in 1331:1520) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1331:i])}
-for (i in 1521:1710) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1521:i])}
-library(ggplot2)
-library(dplyr)
+
+# Kumulierte Suchanfragen
+p1_long <- p1_long[order(p1_long$Partei), ]
+p1_long$Prozent_kumuliert <- unlist(tapply(p1_long$Prozent, p1_long$Partei, cumsum))
 ```
 
 Das gesamte Dokument aus User Interface und Server sieht dann abschließend folgendermaßen aus:
@@ -614,16 +855,15 @@ ui <- fluidPage(
   tags$head(tags$style(".navbar {background-color: #eded00;}",
                        ".navbar-default .navbar-brand {color: black;}")),
   titlePanel(
-    h1(strong("Suchanfragen deutscher Parteien"), align = "center")),
+    h1(strong("Suchanfragen deutscher Parteien"), align = "center"),
+    windowTitle = "Suchanfragen deutscher Parteien"),
   wellPanel(style = "background: #87CEFA; border-color: #2e6da4",
             navbarPage(
               strong("Darstellungsart"),
               tabPanel("Liniendiagramm", plotOutput("Liniendiagramm")),
               tabPanel("Liniendiagramm (kumuliert)", plotOutput("Liniendiagramm_kumuliert")),
-              tabPanel("Balkendiagramm", plotOutput("Balkendiagramm_kumuliert")),
-              tabPanel("Balkendiagramm 2", plotOutput("Balkendiagramm2_kumuliert")),
-              tabPanel("Kuchendiagramm", plotOutput("Kuchendiagramm")),
-              tabPanel("Kuchendiagramm 2", plotOutput("Kuchendiagramm2"))
+              tabPanel("Balkendiagramm (kumuliert)", plotOutput("Balkendiagramm")),
+              tabPanel("Kuchendiagramm (kumuliert)", plotOutput("Kuchendiagramm"))
             ),
             br(),
             fluidRow(
@@ -640,43 +880,49 @@ ui <- fluidPage(
                 choices = c("AfD", "SPD", "FDP", "DieGrüne", "DieLinke",
                             "Tierschutzpartei", "CDU", "MLPD", "NPD"))),
               column(3, br(), actionButton(
-                inputId = "Update", label = strong("Graphik erzeugen"),
+                inputId = "Update", label = strong("Diagramm erzeugen"),
                 style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"))
             )
   )
 )
 
 server <- function(input, output, session) {
+  # Paket laden
+  library(ggplot2)
+  
+  # Daten einlesen
   p1_long <- readRDS('p1_long.rds')
   p1_wide <- readRDS('p1_wide.rds')
+  
+  # Monate formatieren
   p1_long$nMonat <- as.character(p1_long$Monat)
   p1_long$nMonat <- paste0(p1_long$nMonat, '-01')
   p1_long$nMonat <- strptime(p1_long$nMonat, format="%Y-%m-%d")
   p1_long$nMonat <- as.POSIXct(p1_long$nMonat)
+  
   p1_wide$nMonat <- as.character(p1_wide$Monat)
   p1_wide$nMonat <- paste0(p1_wide$nMonat, '-01')
   p1_wide$nMonat <- strptime(p1_wide$nMonat, format="%Y-%m-%d")
   p1_wide$nMonat <- as.POSIXct(p1_wide$nMonat)
+  
+  # Farbkodierung der Parteien
   farben <- c('AfD' = 'deepskyblue', 'CDU' = 'black', 'DieGrüne' = 'green3',
               'DieLinke' = 'magenta', 'FDP' = 'gold', 'MLPD' = 'orange',
               'NPD' = 'brown', 'SPD' = 'red', 'Tierschutzpartei' = 'darkblue')
-  for (i in 1:190) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1:i])}
-  for (i in 191:380) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[191:i])}
-  for (i in 381:570) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[381:i])}
-  for (i in 571:760) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[571:i])}
-  for (i in 761:950) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[761:i])}
-  for (i in 951:1140) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[951:i])}
-  for (i in 1141:1330) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1141:i])}
-  for (i in 1331:1520) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1331:i])}
-  for (i in 1521:1710) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1521:i])}
-  library(ggplot2)
-  library(dplyr)
+  
+  # Kumulative Suchanfragen
+  p1_long <- p1_long[order(p1_long$Partei), ]
+  p1_long$Prozent_kumuliert <- unlist(tapply(p1_long$Prozent, p1_long$Partei, cumsum))
+  
+  # Datenauswahl (Zeitplots)
   rv <- reactiveValues(data = p1_long)
   observeEvent(input$Update, {
     rv$data <- p1_long[is.element(p1_long$Partei, input$Parteien)
                        & as.POSIXct(input$Datum[1]) < p1_long$nMonat
                        & as.POSIXct(input$Datum[2]) > p1_long$nMonat,]})
-  output$Liniendiagramm <- renderPlot(
+  
+  # Liniendiagramm
+  output$Liniendiagramm <- renderPlot({
     ggplot(data = rv$data, aes(x = nMonat, y = Prozent, group = Partei)) +
       geom_line(aes(colour = Partei)) +      # Liniendiagramm
       xlab('Zeitraum') +                     # Beschriftung x-Achse
@@ -684,8 +930,12 @@ server <- function(input, output, session) {
       ggtitle(input$Titel) +                 # Überschrift
       scale_color_manual(values = farben) +
       theme_bw()
-  )
-  output$Liniendiagramm_kumuliert <- renderPlot(
+  })
+  
+  # Kumuliertes Liniendiagramm 
+  output$Liniendiagramm_kumuliert <- renderPlot({
+    rv$data$Prozent_kumuliert <- unlist(tapply(rv$data$Prozent, rv$data$Partei, cumsum))
+    
     ggplot(data = rv$data, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
       geom_line(aes(colour = Partei)) +      # Liniendiagramm
       xlab('Zeitraum') +                     # Beschriftung x-Achse
@@ -693,23 +943,21 @@ server <- function(input, output, session) {
       ggtitle(input$Titel) +                 # Überschrift
       scale_color_manual(values = farben) +
       theme_bw()
-  )
+  })
+  
+  # Datenauswahl (Gesamtplots)
   rv2 <- reactiveValues(data = p1_wide[,2:10])
   observeEvent(input$Update, {
     rv2$data <- p1_wide[as.POSIXct(input$Datum[1]) < p1_wide$nMonat
                         & as.POSIXct(input$Datum[2]) > p1_wide$nMonat,
                         input$Parteien]})
-  output$Balkendiagramm_kumuliert <- renderPlot(
-    barplot(height = colSums(rv2$data),
-            beside = FALSE, ylim = c(0, 2000),
-            col = c('deepskyblue', 'red', 'gold', 'green3', 'magenta',
-                    'darkblue', 'black', 'orange', 'brown'),
-            main = input$Titel)
-  )
-  output$Balkendiagramm2_kumuliert <- renderPlot({
+  
+  # Balkendiagramm 
+  output$Balkendiagramm <- renderPlot({
     p1_new <- data.frame(names(rv2$data), colSums(rv2$data))
     names(p1_new)[1]<-paste("Partei")
     names(p1_new)[2]<-paste("Prozent_kumuliert")
+    
     ggplot(p1_new, aes(x = Partei, y = Prozent_kumuliert, fill = Partei)) +
       scale_fill_manual(values = farben) +
       geom_col(color = "black") +
@@ -718,20 +966,15 @@ server <- function(input, output, session) {
       ylab("kumulierte Suchhäufigkeiten") +
       ggtitle(input$Titel)
   })
-  output$Kuchendiagramm <- renderPlot(
-    pie(x = colSums(rv2$data), main = input$Titel,
-        col = c('deepskyblue', 'red', 'gold', 'green3', 'magenta', 'darkblue',
-                'black', 'orange', 'brown')
-    )
-  )
-  output$Kuchendiagramm2 <- renderPlot({
+  
+  # Kuchendiagramm
+  output$Kuchendiagramm <- renderPlot({
     p1_new <- data.frame(names(rv2$data), colSums(rv2$data))
     names(p1_new)[1]<-paste("Partei")
     names(p1_new)[2]<-paste("Prozent_kumuliert")
-    p1_new <- p1_new %>%
-      arrange(desc(Partei)) %>%
-      mutate(prop = Prozent_kumuliert / sum(p1_new$Prozent_kumuliert) *100) %>%
-      mutate(ypos = cumsum(prop) - 0.5*prop)
+    
+    p1_new <- p1_new[order(p1_new$Partei, decreasing = TRUE), ]
+    
     ggplot(p1_new, aes(x = "", y = Prozent_kumuliert, fill = Partei)) +
       scale_fill_manual(values = farben) +
       geom_bar(stat = "identity", width = 1) +
@@ -761,17 +1004,18 @@ Wenn man nun `ui` und `server` erstellt hat, kann man die vollständige App folg
 shinyApp(ui, server)
 ```
 
-- Hier die App einfügen!
+So könnte die App dann letztlich bei dir aussehen:
 
-Es ergibt sich eine App, die mehrere Diagrammen mit mehr oder weniger dem gleichen Datensatz erstellt. Diese Diagramme reagieren direkt auf Veränderungen des Titels im dazugehörigen Input-Fenster. Auf die ausgewählte Zeitspanne und die ausgewählten Parteien reagieren die Diagramme nicht direkt, sondern erst dann, wenn die Veränderungen durch das Drücken des "Diagramm erzeugen"-Buttons auf die Diagramme angewendet werden. 
+<iframe height="1100px" width="100%" frameborder="no" src="https://martscht.shinyapps.io/Projekt7_App1/"> </iframe>
 
-***
+Es ergibt sich also eine App, die mehrere Diagrammen mit mehr oder weniger dem gleichen Datensatz erstellen kann. Diese Diagramme reagieren direkt auf Veränderungen des Titels im dazugehörigen Input-Fenster. Auf die ausgewählte Zeitspanne und die ausgewählten Parteien reagieren die Diagramme nicht direkt, sondern erst dann, wenn die Veränderungen durch das Drücken des "Diagramm erzeugen"-Buttons auf die Diagramme angewendet werden. Da sich die App hier nun wieder an die Breite des Textfensters angepasst hat, kannst du dir die App [hier](https://martscht.shinyapps.io/Projekt7_App1/) nochmals in voller Breite (und damit in der Basis-Formatierung) anschauen.
 
 ## Sudokus lösen
 Hier sind die Lösungen zum zweiten Abschnitt des Projekts "Sudokus lösen". Wie bereits erwähnt, handelt es sich hier nur um eine Möglichkeit, die angesprochenen Ziele umzusetzen. Die Lösungen sind also vor allem als Vorschlag zu betrachten; andere Wege sind logischerweise auch denkbar, möglicherweise sogar besser. Damit die Lösung für dich etwas übersichtlicher ist, ist der gesamte Prozess in drei Abschnitte aufgeteilt.
 
 #### Vorbereitungen/Sudoku-Ausgabe
 <details><summary>Abschnitt anzeigen</summary>
+
 Bevor du mit diesem Projekt anfangen kannst, brauchst du ungelöste Sudokus als `.rds`-Dateien. Sofern du Projekt 5 noch nicht bearbeitet hast und du dir keine eigenen Sudokus erstellen kannst, kannst du dir [hier](https://raw.githubusercontent.com/martscht/projekte/master/content/post/BeispielSudokuLeicht.rds) und [hier](https://raw.githubusercontent.com/martscht/projekte/master/content/post/meinSudoku.rds) zwei Sudokus herunterladen. Diese kannst du im Folgenden in die aktuelle R-Sitzung laden und zum Ausprobieren der vorgeschlagenen App verwenden.
 
 ```{r}
@@ -896,6 +1140,7 @@ Diese Abbildung wird im Folgenden genau in dieser Formatierung verwendet. Die Fo
 
 #### User Interface
 <details><summary>Abschnitt anzeigen</summary>
+
 An diesem Punkt beginnen wir, mit dem `shiny`-Paket zu arbeiten. Aus diesem Grund sollte dieses spätestens jetzt heruntergeladen werden und dann in die aktuelle Sitzung geladen werden.
 
 ```{r, warning = FALSE}
@@ -993,11 +1238,12 @@ server <- function(input, output, session) {
 shinyApp(ui, server)
 ```
 
-Die erforderten Inputs sind nun zwar alle vorhanden, doch die App sieht rein optisch gesehen nicht sehr ansprechend aus. Zuerst setzen wir das Ganze in das allgemeine Layout `pageWithSidebar`: mit allen Inputs im Seitenfenster, dem Output "Sudokus" (der im Server erstellt wird) im Hauptfenster und einem Titel (`h1`):
+Die erforderten Inputs sind nun zwar alle vorhanden, doch die App sieht rein optisch gesehen nicht sehr ansprechend aus. Zuerst setzen wir das Ganze in das allgemeine Layout `pageWithSidebar`: mit allen Inputs im Seitenfenster, dem Output "Sudokus" (der im Server erstellt wird) im Hauptfenster und einem Titel (`titlePanel`):
 
 ```{r, eval = FALSE}
 ui <- pageWithSidebar(
-  h1(strong(em("Hier kann man Sudokus lösen!"))),
+  titlePanel(
+    h1(strong(em("Hier kann man Sudokus lösen!")))),
   sidebarPanel(
     fileInput(inputId = "Matrix",
               label = "Füge hier dein eigenes Sudoku (als .rds) ein!",
@@ -1028,7 +1274,11 @@ Zu diesem Zeitpunkt hat man bereits eine angemessene Struktur in die einzelnen E
 
 ```{r, eval = FALSE}
 ui <- pageWithSidebar(
-  h1(strong(em("Hier kann man Sudokus lösen!")), align = "center", style = 'background: aqua'), #der Titel wird zentriert ("center") und der Hintergrund des Titels bekommt die Farbe "aqua"
+  titlePanel(
+    h1(strong(em("Hier kann man Sudokus lösen!")),
+       align = "center", #der Titel wird zentriert ("center")
+       style = 'background: aqua'), #der Hintergrund des Titels bekommt die Farbe "aqua"
+    windowTitle = "Sudokus lösen!"), #das Fenster (im Browser) bekommt den Titel "Sudokus lösen!"
   sidebarPanel(
     h3("Willst du dein eigenes Sudoku lösen? Lade dein Sudoku einfach hier hoch!"), #Unterüberschrift für das Hochladen der Datei
     br(), #Leerzeile
@@ -1065,6 +1315,7 @@ Damit kann man das User Interface als fertig betrachten. Natürlich ist es mögl
 
 #### Server
 <details><summary>Abschnitt anzeigen</summary>
+
 Mit ausgearbeitetem User Interface und erstellter Sudoku-Abbildung gilt es nun nur noch, die geforderten Funktionen im Server technisch umzusetzen. Schauen wir uns dafür nochmals die Anforderungen aus der Problemstellung an:
 
 1. Die App sollte ein "Default-Sudoku" beinhalten, das beim Öffnen der App angezeigt wird.
@@ -1103,6 +1354,7 @@ server <- function(input, output, session) {
 ```
 
 <details><summary>Funktionsweise des Action-Buttons</summary>
+
 Der Action-Button spielt in diesem Teil der Funktion in Verbindung mit der `observeEvent`-Funktion eine wichtige Rolle. Aus diesem Grund gibt es hier ein paar Details zu dessen Funktionsweise.
 
 Der Action-Button funktioniert wie eine typische Input-Funktion und lässt sich durch einfaches Klicken betätigen. Doch was passiert mit einem Klick im Hintergrund? Das wird deutlich, wenn man sich anschaut, welche Ausgabe in der Input-Variable ankommt. Hier kann man sich vorstellen, dass der Button zwei Stadien einnehmen kann: Stadium A ("0") und Stadium B ("1"). Zunächst liegt der Button in Stadium A ("0") vor. Betätigt man jedoch diesen Button ein Mal, dann springt der Button in Stadium B ("1"). Wird der Button nun ein zweites Mal betätigt, dann springt der Button zurück in Stadium ("0"). Das heißt, dass der Button bei jedem Klick von einem Stadium in das andere wechselt.
@@ -1259,10 +1511,10 @@ server <- function(input, output, session) {
 ```
 
 <details><summary><i>Zusatz:</i> Formelle Fertigstellung</summary>
-Wie bereits in den Tipps erwähnt, sollte man eine App ohne vorhergehenden Code ausführen können. Dafür bedarf es der Aufnahme der Vorbereitungen in die `server`-Funktion. Zusammengenommen beläuft sich das auf die folgenden Code-Zeilen (inklusive des Ladens weiterer Pakete):
+Wie bereits in den Tipps erwähnt, sollte man eine App ohne vorhergehenden Code ausführen können. Dafür bedarf es der Aufnahme der Vorbereitungen in die `server`-Funktion. In diesem Fall beläuft sich das nur auf das Laden eines zusätzlichen Pakets:
 
 ```{r, eval = FALSE}
-BeispielSudoku <- readRDS("BeispielSudokuLeicht.rds")
+# Paket laden
 library(plot.matrix)
 ```
 
@@ -1271,8 +1523,10 @@ Das gesamte Dokument aus User Interface und Server sieht dann abschließend folg
 ```{r, eval = FALSE}
 library(shiny)
 ui <- pageWithSidebar(
-  h1(strong(em("Hier kann man das Sudoku lösen!")),
-     align = "center", style = 'background: aqua'),
+  titlePanel(
+    h1(strong(em("Hier kann man das Sudoku lösen!")),
+       align = "center", style = 'background: aqua'),
+    windowTitle = "Sudokus lösen!"),
   sidebarPanel(
     h3("Willst du dein eigenes Sudoku lösen? Lade dein Sudoku einfach hier hoch!"),
     br(),
@@ -1304,8 +1558,13 @@ ui <- pageWithSidebar(
 )
 
 server <- function(input, output, session) {
-  BeispielSudoku <- readRDS('BeispielSudokuLeicht.rds')
+  # Paket laden
   library(plot.matrix)
+  
+  # Default-Sudoku laden
+  BeispielSudoku <- readRDS('BeispielSudokuLeicht.rds')
+  
+  # Sudoku-Auswahl für die Erstellung der Sudoku-Abbildung
   rv <- reactiveValues(data = BeispielSudoku)
   observeEvent(input$use, {
     rv$data <- readRDS(input$Matrix$datapath)
@@ -1313,6 +1572,8 @@ server <- function(input, output, session) {
   meinSudoku <- reactive({
     readRDS(input$Matrix$datapath)
   })
+  
+  # Zahlen einsetzen
   observeEvent(input$go, {
     if(is.null(input$Matrix) & is.na(BeispielSudoku[input$row, input$column])){
       rv$data[input$row, input$column] <- input$num
@@ -1323,6 +1584,8 @@ server <- function(input, output, session) {
       }
     }
   })
+  
+  # Abbildung erstellen
   output$Sudokus <- renderPlot({
     par(cex.axis = 1.5, col.axis = 'darkblue', mar = c(4,4,0,2))
     plot(rv$data, border = F,
@@ -1367,10 +1630,10 @@ Führt man nun die Endprodukte aus den Abschnitten User Interface (`ui`) und Ser
 shinyApp(ui, server)
 ```
 
-- Hier die App einfügen!
+So könnte die App dann letztlich bei dir aussehen:
 
-Damit ist man nicht nur in der Lage, über das erstellte Interface das Ausgangssudoku vollständig zu lösen, sondern man kann auch eigene Sudokus hochladen und mit diesem Interface bearbeiten.
+<iframe height="1340px" width="100%" frameborder="no" src="https://martscht.shinyapps.io/Projekt7_App2/"> </iframe>
 
-***
+Damit ist man also nicht nur in der Lage, über das erstellte Interface das Ausgangssudoku vollständig zu lösen, sondern man kann auch eigene Sudokus hochladen und mit diesem Interface bearbeiten. Da sich die App hier nun wieder an die Breite des Textfensters angepasst hat, kannst du dir die App [hier](https://martscht.shinyapps.io/Projekt7_App2/) nochmals in voller Breite (und damit in der Basis-Formatierung) anschauen. 
 
 ### [Zurück zum Projekt](/projects#project_07)
