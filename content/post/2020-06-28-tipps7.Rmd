@@ -33,17 +33,20 @@ Mein Vorschlag für ein strukturiertes Vorgehen:
 Zu jedem dieser Schritte wirst du im Folgenden einen Tipp erhalten, in dem die inhaltlichen Anforderungen explizit ausgeführt werden. 
 
 #### Tipp 1 - Aufbereitung der Daten
+Hier findest du den ersten Tipp zur Aufbereitung der Daten.
 <details><summary>Abschnitt anzeigen</summary>
 Sobald man die beiden Datensätze `p1_wide` und `p1_long` heruntergeladen hat, sollte man sich deren Aufbau anschauen. Der relevanteste Unterschied beider Datensätze besteht darin, dass die Prozentangaben der einzelnen Parteien bei `p1_long` in einer Spalte vorliegen, während bei `p1_wide` für jede Partei eine eigene Spalte vorliegt. Dadurch ergibt sich eine nötige Erweiterung des Datensatzes für die Erstellung der Diagramme: bei `p1_long` muss man manuell eine neue Variable mit den kumulierten Prozentangaben für die einzelnen Parteien erstellen. Schau dir dafür mal die `tapply`-Funktion an!
 Die zweite Problematik wurde bereits in Projekt 1 angesprochen und wird durch die Überprüfung der Struktur der Datumsvariablen in beiden Datensätzen deutlich: R erkennt die Datumsangaben nicht als solche an. Um das zu erreichen, muss man jeweils eine neue Datumsvariable erstellen, in der das Datum von der Klasse `factor` in die Klasse `POSIXct` umgewandelt wurde. Da es in diesem Projekt schwerpunktmäßig nicht um die Arbeit mit Datensätzen geht, kannst du diese Umwandlungen aus den [Lösungen von Projekt 1](/post/loesungen1) übernehmen. 
 </details>
 
 #### Tipp 2 - Erstellung der Diagramme
+Der zweite Tipp befasst sich mit der Erstellung der vier Diagramme.
 <details><summary>Abschnitt anzeigen</summary>
 Auch bei der Erstellung der Diagramme kannst du große Teile aus Projekt 1 übernehmen. Die Diagramme 1 und 2 können beinahe unverändert aus den [Lösungen von Projekt 1](/post/loesungen1) übernommen werden. Nur die Diagramme 3 und 4 (das Balkendiagramm und das Kuchendiagramm) musst du neu erstellen. Verwende dafür der Einfachheit halber den Datensatz `p1_wide` in Verbindung mit `ggplot2`. Falls du damit nicht zurechtkommst, kannst du auch mit den beiden Funktionen `barplot` und `pie` arbeiten; diese weisen jedoch gewisse Nachteile auf. 
 </details>
 
 #### Tipp 3 - User Interface
+Im dritten Tipp geht es um das User Interface der App. Das ist der Teil der App, den der Anwender beim Öffnen der App zu Gesicht bekommt.
 <details><summary>Abschnitt anzeigen</summary>
 Überlege dir, welche Input-Fenster für die App benötigt werden. Zur Hilfe kannst du hier eine kleine Übersicht der Input-Funktionen sehen:
 [![](/post/2020-07-21-uebersicht7_files/shiny-Befehle-Inputs.png)](https://shiny.rstudio.com/tutorial/)
@@ -67,6 +70,7 @@ tags$head(
 </details>
 
 #### Tipp 4 - Server
+Der letzte Tipp behandelt den Server der App. Das ist der Teil der App, der im Hintergrund der App läuft und reaktive Inhalte erzeugt.
 <details><summary>Abschnitt anzeigen</summary>
 Im Server geht es darum, die Outputs der App zu erstellen und dabei die Inputs mit einzubeziehen. Die bereits erstellten Diagramme musst du dafür zunächst in eine `render`-Funktion einfügen und dann anhand der zuvor definierten Bezeichnungen im User Interface den richtigen Outputs zuweisen. Eine kurze Erklärung dazu erhältst du [hier](https://shiny.rstudio.com/tutorial/written-tutorial/lesson4/).
 Für das Einbeziehen der Inputs in die Diagramme benötigst du Wissen darüber, wie die eingegebenen Daten in den Input-Variablen vorliegen (abrufen kannst du die Inputs über `input$inputId`). Der Titel wird als normaler Text vorliegen, weshalb man `input$Titel` einfach an die Stelle des Titels setzen kann. Der Input der Datumsspanne wird aus zwei Daten im Format "yyyy-mm-dd" bestehen (`input$Datum[1]` und `input$Datum[2]`). Damit R diese auch als Datum erkennen kann, müssen diese in das `POSIXct`-Format umgewandelt werden (das geht einfach mit `asPOSIXct`). Dann kann man mit zwei einfachen größer (>)/kleiner (<) Bedingungen, die erwünschte Datumsspanne aus dem Datensatz herausfiltern. Hierfür braucht man die `reactiveValues`-Funktion zum Erstellen eines reaktiven Datensatzes (als Ausgangspunkt für Veränderungen anhand des Inputs und als Default-Datensatz zur Erstellung der Diagramme beim Öffnen der App) und die `observeEvent`-Funktion damit die Aktualisierung des verwendeten Datensatzes erst nach dem Betätigen des Action-Buttons geschieht. Ist diese Veränderung geschehen, muss man auch den in den Diagrammen verwendeten Datensatz verändern (dort muss der reaktive Datensatz eingesetzt werden). Denk dabei daran, dass in den Diagrammen mit zwei Datensätzen gearbeitet wird, weshalb du zwei reaktive Datensätze erstellen musst. Als letztes musst du noch den Input der zu verwendenden Parteien in die Veränderung der reaktiven Datensätze (innerhab der `observeEvent`-Funktion) einbeziehen. Innerhalb von `input$Parteien` liegen die ausgewählten Parteien als Faktoren vor (z.B. `CDU`), weshalb du mithilfe einer `is.element`-Bedingung die ausgewählten Parteien aus dem Ursprungsdatensatz herausfiltern kannst.
@@ -78,8 +82,9 @@ Für das Einbeziehen der Inputs in die Diagramme benötigst du Wissen darüber, 
 Auch hier beim Erstellen eines Interfaces zum Lösen von Sudokus wird das Vorgehen in mehrere Schritte gegliedert. Es beginnt mit den Vorbereitungen bzw. der Überarbeitung der Sudoku-Ausgabe aus Projekt 5. Der nächste Abschnitt behandelt die Erstellung des User Interfaces und als letztes wird der Server erstellt. Möglicherweise werden dabei im ersten Schritt einige Veränderungen vorgeschlagen, deren Sinn erst im weiteren Verlauf des Projekts klar wird. Lasse dich davon nicht verwirren und versuche dich daran, die vorgeschlagenen Schritte umzusetzen.
 
 #### Tipp 1 - Vorbereitungen/Sudoku-Ausgabe
+Der erste Tipp behandelt einige notwendige sowie auch optionale Vorbereitungen. Dabei geht es in erster Linie um die Anpassung der Sudoku-Ausgabe für die App. 
 <details><summary>Abschnitt anzeigen</summary>
-Wenn man die Abbildung aus Projekt 5 übernimmt, hat man ein Sudoku-Gitter mit farbig hinterlegten Zahlen und der Überschrift "Sudoku". Als Abbildung allein ergibt das vielleicht Sinn, doch für die App sollten daran einige Veränderungen vorgenommen werden:
+Wenn man die [Abbildung aus Projekt 5](/post/loesungen5) übernimmt, hat man ein Sudoku-Gitter mit farbig hinterlegten Zahlen und der Überschrift "Sudoku". Als Abbildung allein ergibt das vielleicht Sinn, doch für die App sollten daran einige Veränderungen vorgenommen werden:
 
 1. Die Beschriftung der Achsen sollte wieder hinzugefügt werden.
 2. Die Legende auf der rechte Seite sollte entfernt werden.
@@ -89,6 +94,7 @@ Wenn man die Abbildung aus Projekt 5 übernimmt, hat man ein Sudoku-Gitter mit f
 </details>
 
 #### Tipp 2 - User Interface
+In diesem Tipp geht es um das User Interface der Sudoku-App. Der Tipp beschäftigt sich mit der Frage "Wie soll die App aufgebaut sein und welche Bestandteile soll diese implizieren?"
 <details><summary>Abschnitt anzeigen</summary>
 Im User Interface muss entschieden werden, mit welchen Inputs das Einsetzen von Zahlen und das Hochladen eines eigenen Sudokus umgesetzt werden sollen. Das Einsetzen von Zahlen gestaltet nicht so einfach wie in der analogen Form, bei der man "einfach" eine Zahl in ein Kästchen schreibt. In einer digitalen Form muss angegeben werden, an welcher Position die ausgewählte Zahl eingesetzt werden soll. Aus diesem Grund braucht man hier neben einem Zahlen-Input zwei weitere Zahlen-Inputs für Zeilen und Spaltenangabe jeweils mit einem Wertebereich von 1 bis 9 sowie auch einen Action-Button für das tatsächliche Einsetzen der Zahl. Für das Hochladen eines eigenen Sudokus braucht man darüber hianus einen Input für Dateien. Damit es dabei zu keinen Problemen kommt, kann man hier auch einen weiteren Action-Button einbauen, der später steuert, ob und wann genau die hochgeladene Datei als Quelle für die Abbildung übernommen werden soll.
 
@@ -107,6 +113,7 @@ tags$head(
 </details>
 
 #### Tipp 3 - Server
+Der letzte Tipp behandelt den im Hintergrund laufenden Server. Dieser Tipp teilt sich weiter auf in zwei Schritte: Schritt 1 - Allgemeine Funktionalität und Schritt 2 - Implikation der Upload-Funktion.
 <details><summary>Abschnitt anzeigen</summary>
 Schritt 1: Zunächst braucht man ein Beispiel Sudoku, das abgebildet wird, wenn die App geöffnet wird und noch kein eigenes Sudoku geladen wurde. Anhand von diesem Sudoku können wir auch die Funktionalität des Einsetzens der Zahlen überprüfen und die Funktion einfügen, dass vorgegebene Zahlen nicht verändert werden können. Dafür muss man den Datensatz (also das Sudoku) laden und als reaktiven Datensatz abspeichern, indem man die `reactiveValues`-Funktion verwendet. Nun liegt das Sudoku im ursprünglichen Objekt (z.B. `BeispielSudoku`) und im reaktiven Objekt (z.B. `rv$data`) vor, anhand dessen nun die Abbildung erstellt werden soll.
 
