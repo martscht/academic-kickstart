@@ -29,7 +29,7 @@ ui <- fluidPage(
                 choices = c("AfD", "SPD", "FDP", "DieGrüne", "DieLinke",
                             "Tierschutzpartei", "CDU", "MLPD", "NPD"))),
               column(3, br(), actionButton(
-                inputId = "Update", label = strong("Graphik erzeugen"),
+                inputId = "Update", label = strong("Diagramm erzeugen"),
                 style = "color: #fff; background-color: #337ab7; border-color: #2e6da4"))
             )
   )
