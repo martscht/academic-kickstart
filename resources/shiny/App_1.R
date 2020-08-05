@@ -84,7 +84,7 @@ server <- function(input, output, session) {
   # Kumuliertes Liniendiagramm
   output$Liniendiagramm_kumuliert <- renderPlot({
     rv$data$Prozent_kumuliert <- unlist(tapply(rv$data$Prozent, rv$data$Partei, cumsum))
-    
+
     ggplot(data = rv$data, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
       geom_line(aes(colour = Partei)) +      # Liniendiagramm
       xlab('Zeitraum') +                     # Beschriftung x-Achse
