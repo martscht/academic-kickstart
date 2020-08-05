@@ -5,7 +5,7 @@ headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
 weight = 10  # Order that this section will appear.
 
-title = "Sofort mit den Projekten loslegen"
+title = "Willkommen bei pandar!"
 
 # Hero image (optional). Enter filename of an image in the `static/img/` folder.
 hero_media = ""
@@ -41,11 +41,11 @@ hero_media = ""
   label = "Los geht's"
 
 [cta_alt]
-  url = "/categories/zusatz"
-  label = "Ich brauche eine Auffrischung"
+  url = "./lehre"
+  label = "Ich bin nur wegen der Lehre hier"
 +++
 
-...oder erst noch einen Blick in das Zusatzmaterial zur Auffrischung werfen.
+Hier findest du Projekte zur Vertiefung deiner R-Kenntnisse!
 
 <!-- Build **Anything** with Widgets
 
