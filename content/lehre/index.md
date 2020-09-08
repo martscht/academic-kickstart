@@ -1,5 +1,5 @@
 ---
-title: "Lehre (PsyBSc 2)"
+title: "Lehre"
 date: "2020-05-08"
 type: "widget_page"
 ---
