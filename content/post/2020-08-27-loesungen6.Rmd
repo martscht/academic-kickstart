@@ -1,0 +1,284 @@
+<<<<<<< HEAD
+---
+title: Lösungen
+author: Christina Berger
+date: '2020-08-27'
+slug: loesungen6
+categories:
+  - Projekt 6
+tags: []
+subtitle: ''
+summary: ''
+authors: [berger]
+lastmod: '2020-08-27T12:29:03+02:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+*** 
+
+## Vorwarnung
+
+Achtung! Im Folgenden werden die Lösungen für das sechste Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die [Tipps](/post/tipps6). Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, einen Schritt weiter zu kommen und beim nächsten Abschnitt weiter zu machen.
+
+*** 
+
+
+## Google Sheet erstellen
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Der erste Schritt für unsere Umfrage ist das Google Spreed Sheet. Dies kannst du einfach über deinen Google Account erstellen. Wenn du keinen hast, kannst du auch jedes andere Tabellenprogramm nutzen wie Excel oder Gnumeric (o.ä.). Mein Google Sheet findest du [hier](https://docs.google.com/spreadsheets/d/1SF7d_v1hSCjP4DOQH1fE3dpH9VeFCs38daVE-cchoqM/edit#gid=0). 
+
+Zunächst solltest du alle Spalten richtig benennen und zuodnen können. Dafür brauchst du auf jeden Fall `type`, `name` und `label` . `showif` benötigtst du, weil du Bedingungen für den Fragebogen bzw. für die einzelnen Items einfügen willst. Außerdem ist es sinnvoll bei `choice1` und `choice2` Ankerbeispiele für die beiden Pole hinzuschreiben, um invertierte Antworten zu verhindern. `optional` brauchst du nicht, wenn eine Antwort zu jedem Item verpflichtend sein soll. Da dies der default ist musst du dafür nichts angeben. Mit `*` macht du deutlich, dass jemand das Item nicht beantworten muss. Die Spalte `explenantion` ist für deine Ordnung und dein eigenes Verständnis zuständig.
+
+Im zweiten Schritt solltest du die Items in die `label` Spalte einfügen und ihnen einen Variablennamen geben. Außerdem brauchst du eine Antwortskala, wobei für die meisten psychologischen Tests die Likert Skala verwendet wird. Diese kannst du mit `rating_button` verwenden. Zusätzlich musst du die minimale, maximle Punktzahl und die Schrittgröße angeben. Ich habe die Antwortmöglichkeiten 1, 2, 3, 4, 5 verwendet und benutzte daher den Code `rating_button 1,5,1`.
+
+Zusätzlich zu dem normalen Fragebogen habe ich von Typ `note` zu Beginn eine Willkommensnachricht hinterlassen und im Anschluss nach dem Alter gefragt. Die Altersabfrage habe ich über den Typ `number` gemacht, wobei auch hier das minimale, maximale Alter und die Schrittzahl (1) angeben werden muss. Für den Fragebogen habe ich im Anschluss die Bedingung aufgestellt, dass die Personen über 12 Jahre alt sein muss. (in der Spalte `showif` steht daher age > 12). 
+
+Mit dem type `submit` kann man eine zweite Seite einfügen, wass sinnvoll ist, wenn man Bedingungen abfragen will oder auch wenn man persönlisiertes Feedback geben möchte, wie es bei uns der Fall ist. 
+<p>
+
+
+## Personalisiertes Feedback
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Für unser interenes Feedback müssen wir zunächst Mittelwerte über alle Items zu den jeweiligen Persönlichkeitseigenschaften machen. Dabei müssen wir die jeweiligen Namen der der Items aufrufen. 
+
+```{r, echo = F}
+N1 <- 3
+N2 <- 5
+N3 <- 4
+N4 <- 2
+N5 <- 4
+N6 <- 5
+N7 <- 2
+N8 <- 3
+E1 <- 1
+E2 <- 3
+E3 <- 5
+E4 <- 3
+E5 <- 3
+E6 <- 2
+E7 <- 1
+E8 <- 5
+G1 <- 2
+G2 <- 5
+G3 <- 4
+G4 <- 4
+G5 <- 3
+G6<- 2
+G7 <- 3
+G8 <- 1
+V1 <- 3
+V2 <- 2
+V3 <- 2
+V4 <- 3
+V5 <- 5
+V6 <- 2
+V7 <- 2
+V8 <- 1
+O1 <- 1
+O2 <- 3
+O3 <- 3
+O4 <- 2
+O5 <- 1
+O6 <- 2
+O7 <- 5
+O8 <- 3
+
+```
+
+```{r}
+N <- mean(c(N1,N2, N3, N4, N5, N6, N7, N8))
+E <- mean(c(E1,E2, E3, E4, E5, E6, E7, E8))
+O <- mean(c(O1,O2, O3, O4, O5, O6, O7, O8))
+V <- mean(c(V1, V2, V3, V4, V5, V6, V7, V8))
+G <- mean(c(G1,G2, G3, G4, G5, G6, G7, G8))
+```
+
+Als nächstes müssen wir eine Matrix aus diesen Mittelwerten bilden, dabei nutzten wir zum einen den Befehl `as.matrix`, um die Mittelwerte zu einer Matrix zu konvertieren und im Anschluss `t()`, um die Matrix zu transoponieren. Wenn du nicht mehr weißt, was eine transponierte Matrix ist und wofür man sie braucht kannst du dir auch [hier](https://www.youtube.com/watch?v=MbtvhxTYRgs) nochmal ein Video anschauen. Für unsere Grafik müssen die Spalten jedoch noch Namen bekommen, indem wir mit `colnames` die richtigen Eigenschaften den Spalten zuweisen.
+
+```{r}
+Big <- t(as.matrix(c(E,G, N,  O, V)))
+colnames(Big) <- c('Extraversion','Gewissenhaft', 'Neurotizismus', 'Offenheit', 'Verträglich')
+```
+
+Für die Grafik benötigen wir das Packet `fmsb`. Das steht für *Functions for Medical Statistical Book* und ist ehemals für die Darstellung von medizinischen Daten in Japan entwicklet worden.
+
+```{r}
+#install.packages('fmsb')
+library(fmsb)
+```
+
+Die letzten wichtigen Schritte sind, unsere Daten in einen Dataframe zu konvertieren und jeder Variable den maximalen und minimalen Wert anzugeben. Da bedeutet, dass wir für unser Diagramm sagen müssen, dass der Abstand vom inneren Punkt bis zum äußeren Rand 5 beträgt. Damit sieht unsere Tabelle jetzt so aus, dass jede Variable die richtige Überschrift hat, mit dem durchschnittlichen Wert (hier nur beispielhafte Werte), dem maximalen und minimalen Wert, sprich 1 und 5.
+
+```{r}
+Big <- as.data.frame(Big)
+Big <- rbind(rep(5,5) , rep(1,5) , Big)
+Big
+```
+
+Der Befehl, um unser SpiderPlot zu erstellen ist dieser: 
+```{r}
+radarchart(Big)
+```
+
+Wenn dieser Code in R funktioniert solltest du ihn in eine neue Zeile von deiner Tabelle einfügen. Damit ist deine Tabelle komplett. Wenn du den Link von deinem Google Sheet kopierst kannst du ihn über die Website einlesen.
+<p>
+
+
+## Survey und Run erstellen
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Auf der Website von formr kannst du nun eine neue `Survey` erstellen und diese auch testen. Im Anschluss musst du einen neuen `Run` erstellen und die Umfrage hinzufügen. Außerdem benötigst du einen Stop-Befehl, um die Studie zum laufen zu bringen. Um deine Studie verschicken zu können, musst du oben rechts bei `publicness` die Studie auf öffentlich stellen. Direkt rechts neben dem Namen deiner Studie sieht du einen Link den du einfach kopieren kannst und an deine Teilnehmer versendest.
+
+<p>
+
+=======
+---
+title: Lösungen
+author: Christina Berger
+date: '2020-08-27T20:00:00'
+slug: loesungen6
+categories:
+  - Projekt 6
+tags: []
+subtitle: ''
+summary: ''
+authors: [berger]
+lastmod: '2020-08-27'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+## Vorwarnung
+
+Achtung! Im Folgenden werden die Lösungen für das sechste Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die [Tipps](/post/tipps6). Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, einen Schritt weiter zu kommen und beim nächsten Abschnitt weiter zu machen.
+
+
+## Google Sheet erstellen
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Der erste Schritt für unsere Umfrage ist das Google Spreadsheet. Dieses kannst du einfach über deinen Google Account erstellen. Wenn du keinen hast, kannst du auch jedes andere Tabellenprogramm nutzen, wie z.B. Excel oder Gnumeric (o.ä.). Mein Google Sheet findest du [hier](https://docs.google.com/spreadsheets/d/1SF7d_v1hSCjP4DOQH1fE3dpH9VeFCs38daVE-cchoqM/edit#gid=0). 
+
+Zunächst solltest du alle Spalten richtig benennen und zuordnen können. Dafür brauchst du auf grundsätzlich `type`, `name` und `label` . `showif` benötigtst du, wenn du Bedingungen für den Fragebogen bzw. für die einzelnen Items einfügen willst. Außerdem ist es sinnvoll bei `choice1` und `choice2` Ankerbeispiele für beide Pole aufzuführen, um invertierte Antworten zu vermeiden. `optional` brauchst du, wenn die Beantwortung eines Items nicht verpflichtend sein soll, was du mit einem `*` deutlich machst. In unserem Fall musst du hier nichts angeben, da standardmäßig alle Items verpflichtend sind. Übrig bleibt die Spalte `explanation`, die lediglich deiner Ordnung bzw. deinem eigenen Verständnis dient.
+
+Im zweiten Schritt solltest du die Items in die `label` Spalte einfügen und ihnen einen Variablennamen geben. Außerdem brauchst du eine Antwortskala, wobei für die meisten psychologischen Tests die Likert-Skala verwendet wird. Diese kannst du mit `rating_button` auswählen. Zusätzlich musst du die minimale und die maximale Punktzahl, sowie auch die Schrittgröße angeben. Ich habe die Antwortmöglichkeiten 1, 2, 3, 4, 5 verwendet und benutzte daher den Code `rating_button 1,5,1`.
+
+Zusätzlich zu dem normalen Fragebogen habe ich von Typ `note` Gebrauch gemacht, um zu Beginn eine Willkommensnachricht zu hinterlassen, und im Anschluss nach dem Alter gefragt. Die Altersabfrage habe ich über den Typ `number` realisiert, wobei auch hier das minimale und das maximale Alter, sowie auch die Schrittzahl (1) angeben werden müssen. Für den Fragebogen habe ich im Anschluss die Bedingung aufgestellt, dass die Probanden über 12 Jahre alt sein müssen (in der Spalte `showif` steht daher age > 12). 
+
+Mit dem Typ `submit` kann man eine zweite Seite einfügen, was sinnvoll ist, wenn man Bedingungen abfragen will oder wenn man persönlisiertes Feedback geben möchte, wie es bei uns der Fall ist. 
+</p>
+
+
+## Personalisiertes Feedback
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Für unser internes Feedback müssen wir zunächst Mittelwerte über alle Items zu den jeweiligen Persönlichkeitseigenschaften bilden. Dafür müssen wir die Namen der jeweiligen Items aufrufen. 
+
+```{r, echo = F}
+N1 <- 3
+N2 <- 5
+N3 <- 4
+N4 <- 2
+N5 <- 4
+N6 <- 5
+N7 <- 2
+N8 <- 3
+E1 <- 1
+E2 <- 3
+E3 <- 5
+E4 <- 3
+E5 <- 3
+E6 <- 2
+E7 <- 1
+E8 <- 5
+G1 <- 2
+G2 <- 5
+G3 <- 4
+G4 <- 4
+G5 <- 3
+G6<- 2
+G7 <- 3
+G8 <- 1
+V1 <- 3
+V2 <- 2
+V3 <- 2
+V4 <- 3
+V5 <- 5
+V6 <- 2
+V7 <- 2
+V8 <- 1
+O1 <- 1
+O2 <- 3
+O3 <- 3
+O4 <- 2
+O5 <- 1
+O6 <- 2
+O7 <- 5
+O8 <- 3
+
+```
+
+```{r}
+N <- mean(c(N1, N2, N3, N4, N5, N6, N7, N8))
+E <- mean(c(E1, E2, E3, E4, E5, E6, E7, E8))
+O <- mean(c(O1, O2, O3, O4, O5, O6, O7, O8))
+V <- mean(c(V1, V2, V3, V4, V5, V6, V7, V8))
+G <- mean(c(G1, G2, G3, G4, G5, G6, G7, G8))
+```
+
+Als nächstes müssen wir eine Matrix aus diesen Mittelwerten bilden. Dafür nutzen wir zum einen den Befehl `as.matrix`, um die Mittelwerte zu einer Matrix zu konvertieren, und im Anschluss `t()`, um die Matrix zu transponieren. Wenn du nicht mehr weißt, was eine transponierte Matrix ist und wofür man sie braucht, kannst du dir auch [hier](https://www.youtube.com/watch?v=MbtvhxTYRgs) nochmal ein Video dazu anschauen. Für unsere Grafik müssen die Spalten nun noch Namen bekommen, indem wir mit `colnames` den Spalten die richtigen Eigenschaften zuweisen.
+
+```{r}
+Big <- t(as.matrix(c(E,G, N,  O, V)))
+colnames(Big) <- c('Extraversion','Gewissenhaftigkeit', 'Neurotizismus', 'Offenheit', 'Verträglichkeit')
+```
+
+Für die Grafik benötigen wir das Packet `fmsb`. Das steht für *Functions for Medical Statistical Book* und ist ehemals für die Darstellung von medizinischen Daten in Japan entwickelt worden.
+
+```{r}
+#install.packages('fmsb')
+library(fmsb)
+```
+
+Die letzten wichtigen Schritte sind, unsere Daten in ein Dataframe zu konvertieren und bei jeder Variable den maximalen und minimalen Wert anzugeben. Das bedeutet, dass wir für unser Diagramm den Abstand vom inneren Punkt bis zum äußeren Rand bestimmen müssen. Wenn das geschafft ist, dann sieht unsere Tabelle jetzt so aus, dass jede Variable die richtige Überschrift hat und die durchschnittlichen Werte (hier nur beispielhafte Werte), sowie auch die Extremwerte, sprich 1 und 5, vorliegen.
+
+```{r}
+Big <- as.data.frame(Big)
+Big <- rbind(rep(5,5) , rep(1,5) , Big)
+Big
+```
+
+Der Befehl, um unser Spiderplot zu erstellen ist dieser: 
+```{r}
+radarchart(Big)
+```
+
+Wenn dieser Code in R funktioniert solltest du ihn in eine neue Zeile von deiner Tabelle einfügen. Damit ist deine Tabelle komplett. Wenn du den Link von deinem Google Sheet kopierst kannst du ihn über die Website einlesen.
+<p>
+
+
+## Survey und Run erstellen
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Auf der Website von FormR kannst du nun eine neue `Survey` erstellen und diese auch testen. Im Anschluss musst du einen neuen `Run` erstellen und die Umfrage hinzufügen. Außerdem benötigst du einen Stop-Befehl, um die Studie zum laufen zu bringen. Um deine Studie verschicken zu können, musst du oben rechts bei `publicness` die Studie auf "öffentlich" stellen. Direkt rechts neben dem Namen deiner Studie sieht du einen Link, den du nun einfach kopieren und versenden kannst, sodass deine Probanden die Studie bearbeiten können.
+
+<p>
+
+>>>>>>> 75847a496d4e87e568415002a1b4aa69f8b0d062
