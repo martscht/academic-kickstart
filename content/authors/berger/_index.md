@@ -56,4 +56,5 @@ email: ""
 #   Set this to `[]` or comment out if you are not using People widget.
 user_groups: ["Team"]
 ---
-Ich bin eine Psychologiestudentin und arbeite neben meinem Studium sowohl als HiWi an der Gothe Universität in der Methodenabteilung, als auch in einem kleinen Restaurant in meinem Heimatort. Ich versuche meine Freizeit abwechslungsreich zu gestalten mit Gitarre spielen, Freunde treffen, Sport und Kochen. Mein Plan ist es mit dem Studium in die Richtung Beratung und Coaching in Unternehmen zu gehen, aber wer weiß schon wo man im Endeffekt landet...
+
+Ich bin Psychologiestudentin an der Goethe Universität und habe diese Seite als HiWi in der interdisziplinären Abteilung erstellt. Mein Schwerpunkt des Studiums liegt in der Arbeits- und Organisationspsychologie, da ich später in der Personalentwicklung bzw. Personalauswahl arbeiten möchte. Ich finde es jedoch wichtig einen breiten Horizont zu behalten und alle Möglichkeiten, die das Leben einem gibt zu nutzten.
