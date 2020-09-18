@@ -25,7 +25,71 @@ header:
 
 ## Vorwarnung
 
-Achtung! Im Folgenden werden die Lösungen für das sechste Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die [Tipps](/post/tipps8). Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, einen Schritt weiter zu kommen und beim nächsten Abschnitt weiter zu machen.
+Achtung! Im Folgenden werden die Lösungen für das achte Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die [Tipps](/post/tipps8). Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, einen Schritt weiter zu kommen und beim nächsten Abschnitt weiter zu machen.
 
 ***
+
+## Variable auswählen
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Bevor du anfängst lädst du am besten die Packete, welche du für dieses Projket benötigst: 
+```{r}
+#install.packages("httr")
+#install.packages("jsonlite")
+#install.packages('OData')
+#install.packages('data.table')
+library(data.table)
+library(OData)
+library(httr)
+library(jsonlite)
+```
+
+
+Im ersten Schritt musst du dir dann eine Variable aussuchen. Dafür lädst du zunächst die Daten der Indikatoren herunter. 
+```{r}
+Indikatoren <- retrieveData('https://ghoapi.azureedge.net/api/Indicator')
+```
+
+Da wir uns die verschachtelte Liste nur schwer anzeigen lassen können, formatieren wir sie in einen Dataframe. 
+
+```{r}
+Indi <- as.data.frame(Indikatoren)
+```
+
+Somit bekommen wir einen sehr langen Dataframe, bei dem in der ersten Zeile der Variablenname steht, in der zweiten Zeile die Beschreibung zu der Variable und in der dritten Zeile die Sprache. 
+
+Wenn du dir die Indikatoren lieber als Matrix anzeigen lassen willst, musst du zunächst den Befehl `unlist` anwenden.
+
+```{r}
+a <- unlist(Indikatoren)
+ma <- as.matrix(a)
+```
+
+Hier hast du nun eine Spalte in der erst der Vairablenname steht, darunter steht die Beschreibung zu der Variable und wiederum darunter steht die Sprache zu der Variable, welche meistens Englisch ist.
+
+Ich werde im folgenden mit der Variable `WHOSIS_000001` zur Lebenserwartung arbeiten, aber es sollte mit jeder anderen Variable genau so funktionieren.
+
+<p>
+
+## Daten über die API herunterladen 
+<details><summary>Abschnitt anzeigen</summary>
+<p>
+
+Unsere Daten, mit denen wir arbeiten wollen können wir auf die gleiche Art und Weise herunterladen, wie die Indikatoren: mit dem Befehl `retrieveData`. Das einzige, was wir für den Befehl benötigen ist den richtigen URL. 
+
+Für die Daten der WHO ist der grundlegende Befehl `https://ghoapi.azureedge.net/api`. Da ich die Variable zu Lebenserwartung laden möchte, füge ich dem Link ein `/` + `WHOSIS_000001` an. Damit sieht der vollständige Link so aus: `https://ghoapi.azureedge.net/api/WHOSIS_000001` und kann zum Laden der Daten verwendet werden. 
+
+```{r}
+data <- retrieveData('https://ghoapi.azureedge.net/api/WHOSIS_000001')
+```
+
+
+Diese Daten liegen nun wieder in einer verschaltelten Liste vor. Wenn wir uns die Variable `value` anschauen, sehen wir jedoch, dass es sich diesmal nicht um character, sondern um weitere Listen in der Liste handeln. Für diese Art an verschachtelten Listen gibt es einen einfachen Befehl aus dem `data.table`-Packet, welches mit dem Befehl `rbindlist` verschachtelte Listen in einfach Dataframes konvertiert. Dabei musst du nur beachten, dass du `fill`= TRUE setzt. 
+
+```{r}
+data1 <- rbindlist(data$value, fill = T)
+```
+
+Somit haben wir einen vollständigen Dataframe mit dem wir nun die User Interface erstellen können. 
 

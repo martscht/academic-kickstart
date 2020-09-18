@@ -26,6 +26,51 @@ header:
 <hr />
 <div id="vorwarnung" class="section level2">
 <h2>Vorwarnung</h2>
-<p>Achtung! Im Folgenden werden die Lösungen für das sechste Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die <a href="/post/tipps8">Tipps</a>. Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, einen Schritt weiter zu kommen und beim nächsten Abschnitt weiter zu machen.</p>
+<p>Achtung! Im Folgenden werden die Lösungen für das achte Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die <a href="/post/tipps8">Tipps</a>. Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, einen Schritt weiter zu kommen und beim nächsten Abschnitt weiter zu machen.</p>
 <hr />
+</div>
+<div id="variable-auswählen" class="section level2">
+<h2>Variable auswählen</h2>
+<details>
+<summary>Abschnitt anzeigen</summary>
+<p>
+<p>Bevor du anfängst lädst du am besten die Packete, welche du für dieses Projket benötigst:</p>
+<pre class="r"><code>#install.packages(&quot;httr&quot;)
+#install.packages(&quot;jsonlite&quot;)
+#install.packages(&#39;OData&#39;)
+#install.packages(&#39;data.table&#39;)
+library(data.table)</code></pre>
+<pre><code>## Warning: Paket &#39;data.table&#39; wurde unter R Version 3.6.3 erstellt</code></pre>
+<pre class="r"><code>library(OData)</code></pre>
+<pre><code>## Warning: Paket &#39;OData&#39; wurde unter R Version 3.6.3 erstellt</code></pre>
+<pre class="r"><code>library(httr)</code></pre>
+<pre><code>## Warning: Paket &#39;httr&#39; wurde unter R Version 3.6.3 erstellt</code></pre>
+<pre class="r"><code>library(jsonlite)</code></pre>
+<pre><code>## Warning: Paket &#39;jsonlite&#39; wurde unter R Version 3.6.3 erstellt</code></pre>
+<p>Im ersten Schritt musst du dir dann eine Variable aussuchen. Dafür lädst du zunächst die Daten der Indikatoren herunter.</p>
+<pre class="r"><code>Indikatoren &lt;- retrieveData(&#39;https://ghoapi.azureedge.net/api/Indicator&#39;)</code></pre>
+<p>Da wir uns die verschachtelte Liste nur schwer anzeigen lassen können, formatieren wir sie in einen Dataframe.</p>
+<pre class="r"><code>Indi &lt;- as.data.frame(Indikatoren)</code></pre>
+<p>Somit bekommen wir einen sehr langen Dataframe, bei dem in der ersten Zeile der Variablenname steht, in der zweiten Zeile die Beschreibung zu der Variable und in der dritten Zeile die Sprache.</p>
+<p>Wenn du dir die Indikatoren lieber als Matrix anzeigen lassen willst, musst du zunächst den Befehl <code>unlist</code> anwenden.</p>
+<pre class="r"><code>a &lt;- unlist(Indikatoren)
+ma &lt;- as.matrix(a)</code></pre>
+<p>Hier hast du nun eine Spalte in der erst der Vairablenname steht, darunter steht die Beschreibung zu der Variable und wiederum darunter steht die Sprache zu der Variable, welche meistens Englisch ist.</p>
+<p>Ich werde im folgenden mit der Variable <code>WHOSIS_000001</code> zur Lebenserwartung arbeiten, aber es sollte mit jeder anderen Variable genau so funktionieren.</p>
+<p>
+</div>
+<div id="daten-über-die-api-herunterladen" class="section level2">
+<h2>Daten über die API herunterladen</h2>
+<details>
+<summary>Abschnitt anzeigen</summary>
+<p>
+<p>Unsere Daten, mit denen wir arbeiten wollen können wir auf die gleiche Art und Weise herunterladen, wie die Indikatoren: mit dem Befehl <code>retrieveData</code>. Das einzige, was wir für den Befehl benötigen ist den richtigen URL.</p>
+<p>Für die Daten der WHO ist der grundlegende Befehl <code>https://ghoapi.azureedge.net/api</code>. Da ich die Variable zu Lebenserwartung laden möchte, füge ich dem Link ein <code>/</code> + <code>WHOSIS_000001</code> an. Damit sieht der vollständige Link so aus: <code>https://ghoapi.azureedge.net/api/WHOSIS_000001</code> und kann zum Laden der Daten verwendet werden.</p>
+<pre class="r"><code>data &lt;- retrieveData(&#39;https://ghoapi.azureedge.net/api/WHOSIS_000001&#39;)</code></pre>
+<p>Diese Daten liegen nun wieder in einer verschaltelten Liste vor. Wenn wir uns die Variable <code>value</code> anschauen, sehen wir jedoch, dass es sich diesmal nicht um character, sondern um weitere Listen in der Liste handeln. Für diese Art an verschachtelten Listen gibt es einen einfachen Befehl aus dem <code>data.table</code>-Packet, welches mit dem Befehl <code>rbindlist</code> verschachtelte Listen in einfach Dataframes konvertiert. Dabei musst du nur beachten, dass du <code>fill</code>= TRUE setzt.</p>
+<pre class="r"><code>data1 &lt;- rbindlist(data$value, fill = T)</code></pre>
+<pre><code>## Warning in rbindlist(data$value, fill = T): Column 9 [&#39;Dim2Type&#39;] of item 1 is
+## length 0. This (and 76040 others like it) has been filled with NA (NULL for list
+## columns) to make each item uniform.</code></pre>
+<p>Somit haben wir einen vollständigen Dataframe mit dem wir nun die User Interface erstellen können.</p>
 </div>
