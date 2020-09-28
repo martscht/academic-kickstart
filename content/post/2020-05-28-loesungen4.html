@@ -26,7 +26,7 @@ projects: []
 </div>
 <div id="datenbeschaffung" class="section level2">
 <h2>Datenbeschaffung</h2>
-<details><summary>Abschnitt anzeigen</summary>
+<p><details><summary>Abschnitt anzeigen</summary></p>
 <p>Im ersten Schritt musst du dir die Pakete <code>osmdata</code>, <code>ggplot2</code> und <code>sf</code> installieren und laden.</p>
 <pre class="r"><code>#install.packages(&quot;osmdata&quot;)
 #install.packages(&#39;sf&#39;)
@@ -56,11 +56,11 @@ streets</code></pre>
 ##        $osm_multilines : NULL
 ##     $osm_multipolygons : NULL</code></pre>
 <p>Wenn wir uns nun die heruntergeladene Variable anschauen, sehen wir als erstes <code>$bbox</code>, das uns die Koordinaten von unserem Ort angibt. In diesem Fall stehen dort also die Koordinaten für Frankfurt. Diese Angaben brauche ich später für meine Darstellung. Als zweites sehen wir <code>$overpass_call</code>, was uns zeigt, ob die Übertragung erfolgreich war bzw. wie sie durchgeführt wurde. Wichtig für uns sind noch die letzten fünf: <code>$osm_lines</code> bzw. <code>$osm_ points</code> zeigt uns, ob wir Punkte oder Striche heruntergeladen haben. Das Ganze geht auch mit Flächen oder anderen Formen. Hinter diesen Variablen steht entweder <code>NULL</code>, wenn keine Daten in dieser Form heruntergeladen wurden, oder das Format, in dem die Daten vorliegen, und die Anzahl der Einträge. Das Format sollte immer <code>sf</code> sein und je nach Anzahl der Einträge oder kontextuellem Sinn solltest du dich für Punkte oder Linien entscheiden. Bei Straßen sind Linien natürlich am sinnvollsten.</p>
-</details>
+<p></details></p>
 </div>
 <div id="erste-abbildung" class="section level2">
 <h2>Erste Abbildung</h2>
-<details><summary>Abschnitt anzeigen</summary>
+<p><details><summary>Abschnitt anzeigen</summary></p>
 <p>Nun können wir unsere erste Abbildung mit den großen Straßen machen. Dafür brauchen wir erst den dir schon bekannten <code>ggplot()</code>-Befehl. In den <code>geom_sf()</code>-Befehl müssen wir die Daten eintragen. In meinem Fall will ich von der Variable <code>streets</code> die Linien einzeichnen. In der zweiten Zeile definieren wir, dass wir nicht mit den normalen Achsen arbeiten, sondern unsere eigenen hinzufügen (mit dem Befehl <code>coord_sf</code>). Mit <code>color</code> verändere ich die Farbe der Linien und mit <code>size</code> die Größe. <code>alpha</code> ist für die Transparenz der Linien zuständig, was später ein gutes Tool ist, um kleine und großen Straßen zu unterscheiden. Bei <code>coord_sf</code> müssen wir die Koordinaten aus <code>$bbox</code> eintragen, wobei der zweite und letzte Wert für die x-Achse und der erste und dritte Wert für die y-Achse stehen. An dieser Stelle kannst du auch näher heran zoomen, aber du kannst maximal so weit heraus gehen wie die Koordinaten in der <code>$bbox</code> Variable es begrenzen. Bei TRUE erweitert <code>expand</code> die Abbildung in jede Richtung ein kleines bisschen, um die Darstellung zu verbessern. Das wollen wir in diesem Fall aber vermeiden, weshalb wir es auf FALSE stellen müssen.</p>
 <pre class="r"><code>ggplot() +
   geom_sf(data = streets$osm_lines,
@@ -72,11 +72,11 @@ streets</code></pre>
            ylim = c(50.01, 50.23),
            expand = FALSE)</code></pre>
 <p><img src="/post/2020-05-28-loesungen4_files/figure-html/unnamed-chunk-8-1.png" width="672" /> Und so sieht meine erste Abbildung aus. Es fehlt noch einiges, bis man Frankfurt wirklich erkennen kann.</p>
-</details>
+<p></details></p>
 </div>
 <div id="kleine-straßen-den-main-laden" class="section level2">
 <h2>Kleine Straßen &amp; den Main laden</h2>
-<details><summary>Abschnitt anzeigen</summary>
+<p><details><summary>Abschnitt anzeigen</summary></p>
 <p>Nun wollen wir das Gleiche auch mit den kleinen Straßen und für Frankfurt auch mit dem Main machen. Die ersten beiden Schritte, bei denen wir Daten über Frankfurt angefragt haben und dafür eine overpass query erstellt haben, brauchen wir nicht mehr. Wir können direkt angeben, welche Features wir herunterladen wollen und dies wieder im <code>sf</code>-Format laden.</p>
 <pre class="r"><code>d &lt;- add_osm_feature(b, key = &quot;highway&quot;,
                      value = c(&quot;residential&quot;, &quot;tertiary&quot;, &quot;living_street&quot;, &quot;unclassified&quot;))
@@ -85,11 +85,11 @@ small_streets &lt;-   osmdata_sf(d)</code></pre>
 <p>Hier das Gleiche nochmal für den Main bzw. auch für die Nidda. Der einzige Unterschied ist, dass wir uns nun in der Kategorie <code>waterway</code> befinden.</p>
 <pre class="r"><code>e &lt;- add_osm_feature(b, key = &quot;waterway&quot;, value = &quot;river&quot;)
 river &lt;- osmdata_sf(e)</code></pre>
-</details>
+<p></details></p>
 </div>
 <div id="zweite-abbildung-mit-kleinen-straßen-dem-main" class="section level2">
 <h2>Zweite Abbildung mit kleinen Straßen &amp; dem Main</h2>
-<details><summary>Abschnitt anzeigen</summary>
+<p><details><summary>Abschnitt anzeigen</summary></p>
 <p>Nun können wir eine Abbildung erstellen, in denen große und kleine Straßen und der Main dargestellt werden. Dafür übernehmen wir den Befehl der letzten Abbildung und fügen zwei mal den <code>geom_sf()</code> Befehl hinzu. Zum einen mit den kleinen Straßen und zum anderen mit den Flüssen. Dabei verwenden wir wieder <code>osm_lines</code>, da es sich auch hier bei beiden um Linien und keine Punkte handelt. Ich habe die Größe und das <code>alpha</code> bei den kleinen Staßen im Vergleich zu den großen Straßen verringert. Den Main will ich in blau darstellen und in etwas größer, da er einen erhöhten Wiedererkennungswert mit sich bringt.</p>
 <pre class="r"><code>ggplot() +
   geom_sf(data = streets$osm_lines,
@@ -111,11 +111,11 @@ river &lt;- osmdata_sf(e)</code></pre>
            ylim = c(50.01, 50.23),
            expand = FALSE)</code></pre>
 <img src="/post/2020-05-28-loesungen4_files/figure-html/unnamed-chunk-11-1.png" width="672" />
-</details>
+<p></details></p>
 </div>
 <div id="touristen-attraktionen-laden" class="section level2">
 <h2>Touristen-Attraktionen laden</h2>
-<details><summary>Abschnitt anzeigen</summary>
+<p><details><summary>Abschnitt anzeigen</summary></p>
 <p>Zuletzt werde ich bei mir noch Touristenattraktionen hinzufügen. Diese findest du unter der <code>tourism</code>-Kategorie.</p>
 <pre class="r"><code>f &lt;- add_osm_feature(b, key = &#39;tourism&#39;, value =  c(&#39;attraction&#39;, &#39;artwork&#39;, &#39;aquarium&#39;, &#39;gallary&#39;, &#39;information&#39;, &#39;museum&#39;, &#39;viewpoint&#39;, &#39;zoo&#39;))
 attraction &lt;- osmdata_sf(f)
@@ -129,11 +129,11 @@ attraction</code></pre>
 ##          $osm_polygons : &#39;sf&#39; Simple Features Collection with 189 polygons
 ##        $osm_multilines : &#39;sf&#39; Simple Features Collection with 2 multilinestrings
 ##     $osm_multipolygons : &#39;sf&#39; Simple Features Collection with 3 multipolygons</code></pre>
-</details>
+<p></details></p>
 </div>
 <div id="dritte-abbildung-mit-touristenattraktionen" class="section level2">
 <h2>Dritte Abbildung mit Touristenattraktionen</h2>
-<details><summary>Abschnitt anzeigen</summary>
+<p><details><summary>Abschnitt anzeigen</summary></p>
 <p>Nun fügen wir einfach zu unserer letzten Abbildung noch die Touristen-Attraktionen hinzu. Diese sind als Punkte dargestellt, weshalb ich <code>osm_points</code> verwendet habe. Damit ist unsere Abbildung fertig und kann nun verschönert werden.</p>
 <pre class="r"><code>ggplot() +
   geom_sf(data = streets$osm_lines,
@@ -159,11 +159,11 @@ attraction</code></pre>
            ylim = c(50.01, 50.23),
            expand = FALSE)</code></pre>
 <img src="/post/2020-05-28-loesungen4_files/figure-html/unnamed-chunk-13-1.png" width="672" />
-</details>
+<p></details></p>
 </div>
 <div id="eine-schöne-abbildung" class="section level2">
 <h2>Eine schöne Abbildung</h2>
-<details><summary>Abschnitt anzeigen</summary>
+<p><details><summary>Abschnitt anzeigen</summary></p>
 <p>Es gibt nun verschiede Möglichkeiten, die Abbildung je nach Geschmack zu verändern. In dieser Abbildung habe ich zum einen die Farben und Größen der Linien bzw. Punkte angepasst. Außerdem habe ich mit <code>theme_void</code> die Achsen entfernt und mit <code>theme(plot.background =)</code> den Hintergrund verändert.</p>
 <pre class="r"><code>ggplot() +
   geom_sf(data = streets$osm_lines,
@@ -208,5 +208,5 @@ theme(plot.background = element_rect(fill = &quot;grey24&quot;))</code></pre>
 <img src="/post/Kartenbild4.jpg" style="height:20.0%" />
 
 </div>
-</details>
+<p></details></p>
 </div>
