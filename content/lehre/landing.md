@@ -1,11 +1,12 @@
 +++
-title = "Hier wird noch gebaut..."
+title = "Material aus der Lehre"
 date = "2019-11-07"
 widget = "blank"
 weight = 10
 [design.background]
-  image = "/header/under_construction.jpg"
-  caption = "[Courtesy of pxhere](https://pxhere.com/en/photo/724752)"
+  image = "/teaching.jpg"
+  caption = "[Courtesy of pxhere](https://pxhere.com/en/photo/913893)"
+  text_color_light = true
 +++
 
 
