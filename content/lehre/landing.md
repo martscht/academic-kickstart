@@ -4,7 +4,7 @@ date = "2019-11-07"
 widget = "blank"
 weight = 10
 [design.background]
-  image = "/teaching.jpg"
+  image = "/teaching2.jpg"
   caption = "[Courtesy of pxhere](https://pxhere.com/en/photo/913893)"
   text_color_light = true
 +++
