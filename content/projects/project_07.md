@@ -15,7 +15,7 @@ subtitle = "ShinyR"
   page_type = "post"
 
   # Choose how much pages you would like to display (0 = all pages)
-  count = 4
+  count = 6
 
   # Choose how many pages you would like to offset by
   offset = 0
@@ -66,4 +66,4 @@ subtitle = "ShinyR"
  css_class = ""
 +++
 
-In diesem Projekt zeigen wir dir den Umgang mit ShinyR. ShinyR ermöglicht es, interaktive Webinhalte mithilfe von R zu erstellen. Die dabei entstehenden Websites lassen R im Hintergrund und können somit von jeder Person ohne Programmiererfahrung genutzt werden. 
+In diesem Projekt zeigen wir dir den Umgang mit ShinyR. ShinyR ermöglicht es, interaktive Webinhalte mithilfe von R zu erstellen. Die dabei entstehenden Websites lassen R im Hintergrund und können somit von jeder Person ohne Programmiererfahrung genutzt werden.
