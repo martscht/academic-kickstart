@@ -71,9 +71,10 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 |  |  |  |  |
 | --- | --- | --- | --- |
 | 1 | **Objekte, Funktionen, Pakete** | | |
-| 2 | **Deskriptives und Plots** | [Inhalte](/post/r-deskriptiv) | [Aufgaben](/post/r-deskriptiv-aufgaben) | 3 | **Verteilungen** | | |
+| 2 | **Deskriptives und Plots** | [Inhalte](/post/r-deskriptiv) | [Aufgaben](/post/r-deskriptiv-aufgaben) |
+| 3 | **Verteilungen** | | |
 | 4 | **Tests und Konfidenzintervalle** | | |
 | 5 | **Tests für Gruppenvergleiche** | | |
 | 6 | **Korrelation und Regression** | | |
 | *Bonus* | **Hypothesen und Präregistrierung** | | |
-| | | | 
+| | | |
