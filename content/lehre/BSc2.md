@@ -2,20 +2,20 @@
 # A Recent Blog Posts section created with the Pages widget.
 # This section displays recent blog posts from `content/post/`.
 
-widget = "pages"  # See https://sourcethemes.com/academic/docs/page-builder/
+widget = "blank"  # See https://sourcethemes.com/academic/docs/page-builder/
 headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
-weight = 30  # Order that this section will appear.
+weight = 20  # Order that this section will appear.
 
-title = "PsyMSc 1"
-subtitle = "Forschungsmethoden und Evaluation"
+title = "PsyBSc 2"
+subtitle = "Statistik I"
 
 [content]
   # Page type to display. E.g. post, talk, or publication.
   page_type = "post"
 
   # Choose how much pages you would like to display (0 = all pages)
-  count = 4
+  count = 0
 
   # Choose how many pages you would like to offset by
   offset = 0
@@ -26,7 +26,7 @@ subtitle = "Forschungsmethoden und Evaluation"
   # Filter posts by a taxonomy term.
   [content.filters]
     tag = ""
-    category = "MSc 1"
+    category = "BSc2"
     publication_type = ""
     exclude_featured = false
 
@@ -66,4 +66,14 @@ subtitle = "Forschungsmethoden und Evaluation"
  css_class = ""
 +++
 
-Hier sollte eine Beschreibung von MSc 1 stehen.
+In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestudium. Dafür gucken wir uns die Grundstruktur von R, Datenimport, einfache Grafiken, Deskriptivstatistiken, Verteilungsfunktionen und ein paar Tests an. Das dazugehörige Material taucht im hier Verlauf des Semesters auf.
+
+|  |  |  |  |
+| --- | --- | --- | --- |
+| 1 | **Objekte, Funktionen, Pakete** | | |
+| 2 | **Deskriptives und Plots** | [Inhalte](/post/r-deskriptiv) | [Aufgaben](/post/r-deskriptiv-aufgaben) | 3 | **Verteilungen** | | |
+| 4 | **Tests und Konfidenzintervalle** | | |
+| 5 | **Tests für Gruppenvergleiche** | | |
+| 6 | **Korrelation und Regression** | | |
+| *Bonus* | **Hypothesen und Präregistrierung** | | |
+| | | | 
