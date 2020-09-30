@@ -4,6 +4,7 @@ summary = ""
 date = "2019-10-17"
 widget = "blank"
 weight = 59
+active = false
 
 [design.background]
   # Apply a background color, gradient, or image.
