@@ -70,7 +70,7 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 
 |  |  |  |  |
 | --- | --- | --- | --- |
-| 1 | **R-Intro** | [Inhalte](/post/r-crash-kurs) | Aufgaben |
+| 1 | **R-Intro** | [Inhalte](/post/r-crash-kurs) | [Aufgaben](/post/r-crash-kurs-aufgaben) |
 | 2 | **Deskriptives und Plots** | [Inhalte](/post/r-deskriptiv) | [Aufgaben](/post/r-deskriptiv-aufgaben) |
 | 3 | **Verteilungen** | Inhalte | Aufgaben |
 | 4 | **Tests und Konfidenzintervalle** | Inhalte | Aufgaben |
