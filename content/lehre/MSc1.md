@@ -67,3 +67,8 @@ subtitle = "Forschungsmethoden und Evaluation"
 +++
 
 Hier sollte eine Beschreibung von MSc 1 stehen.
+
+|  |  |  |  |
+| --- | --- | --- | --- |
+| 0 | **Einleitung und Wiederholung** | [Inhalte](/post/einleitung-und-wiederholung)  |
+| | | |
