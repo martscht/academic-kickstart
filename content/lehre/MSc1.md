@@ -7,8 +7,8 @@ headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
 weight = 30  # Order that this section will appear.
 
-title = "PsyMSc 1"
-subtitle = "Forschungsmethoden und Evaluation"
+title = "PsyMSc 1 - F&E I"
+subtitle = "Forschungsmethoden und Evaluation I"
 
 [content]
   # Page type to display. E.g. post, talk, or publication.
@@ -66,9 +66,15 @@ subtitle = "Forschungsmethoden und Evaluation"
  css_class = ""
 +++
 
-Hier sollte eine Beschreibung von MSc 1 stehen.
+Das Modul PsyMSc1 ist in zwei Teile untergliedert: Forschungsmethoden und Evaluation I und II. In F&E I geht es um multivariate Vorhersagemodelle, die als (multivariate) Erweiterung des allgemeinen linearen Modells angesehen werden können. Beispielsweise wird die Regressionsanalyse erweitert um auch bestimmte Abhängigkeiten in den Daten modellieren zu können, sowie um auch dichotome abhängige Variablen vorhersagen zu können. Neben der multivariaten Erweiterung der Varianzanalyse (ANOVA) werden auch Datenvorbereitungsmaßnahmen vorgestellt, welche den/die Anwender/in beim Verstehen der Struktur in den Daten unterstützen soll. Die inhaltlichen Sitzungen werden hierbei durch die Umsetzung in `R` unterstützt:
 
-|  |  |  |  |
-| --- | --- | --- | --- |
-| 0 | **Einleitung und Wiederholung** | [Inhalte](/post/einleitung-und-wiederholung)  |
-| | | |
+
+|  |  |  |  | | |
+| --- | --- | --- | --- | --- | --- |
+| 0 | **Einleitung und Wiederholung** | [Inhalte](/post/einleitung-und-wiederholung)  | R Skript | Daten | Übungsdaten |
+| 1 | **Regressionsanalyse und Ausreißerdiagnostik** | Inhalte  | R Skript | Daten | Übungsdaten |
+| 2 | **Hierarchische Regressionsanalyse** | Inhalte  | R Skript | Daten | Übungsdaten |
+| 3 | **Hauptkomponentenanalyse** | Inhalte  | R Skript | Daten | Übungsdaten |
+| 4 | **Logistische Regressionsanalyse** | Inhalte  | R Skript | Daten | Übungsdaten |
+| 5 | **Multivariate Varianzanalyse** | Inhalte  | R Skript | Daten | Übungsdaten |
+|  |  |  |  | | |
