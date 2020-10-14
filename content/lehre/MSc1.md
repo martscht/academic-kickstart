@@ -7,7 +7,7 @@ headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
 weight = 30  # Order that this section will appear.
 
-title = "PsyMSc 1: F&E I"
+title = "PsyMSc 1"
 subtitle = "Forschungsmethoden und Evaluation I"
 
 [content]
