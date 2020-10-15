@@ -54,7 +54,7 @@ projects: []
 ## 4      1 111.91499 531.5384 560.4300
 ## 5      1 116.12682 604.3759 659.4524
 ## 6      0 106.14127 308.7457 602.8577</code></pre>
-<p>Wir erkennen die 4 Spalten mit dem Geschlecht, dem IQ, der Lese- und der Mathematikleistung. &lt;mark style="background-color: Außerdem sehen wir, dass die Variablen mit den Namen <code>IQ</code>, <code>reading</code> und <code>math</code> einige Dezimalstellen aufweisen, was daran liegt, dass diese Daten simuliert wurden (allerdings echten Daten nachempfunden sind). Da es sich bei unserem Datensatz um ein Objekt vom Typ <code>data.frame</code> handelt, können wir die Variablennamen des Datensatzes außerdem mit der <code>names</code> Funktion abfragen. Weitere interessante Funktionen sind die <code>nrow</code> und <code>ncol</code> Funktion, die, wie Sie sich sicher schon gedacht haben, die Zeilen- und die Spaltenanzahl widergeben (wir könnten auch <code>dim</code> verwenden, was diese beiden Informationen auf einmal ausgibt).</p>
+<p>Wir erkennen die 4 Spalten mit dem Geschlecht, dem IQ, der Lese- und der Mathematikleistung. Außerdem sehen wir, dass die Variablen mit den Namen <code>IQ</code>, <code>reading</code> und <code>math</code> einige Dezimalstellen aufweisen, was daran liegt, dass diese Daten simuliert wurden (allerdings echten Daten nachempfunden sind). Da es sich bei unserem Datensatz um ein Objekt vom Typ <code>data.frame</code> handelt, können wir die Variablennamen des Datensatzes außerdem mit der <code>names</code> Funktion abfragen. Weitere interessante Funktionen sind die <code>nrow</code> und <code>ncol</code> Funktion, die, wie Sie sich sicher schon gedacht haben, die Zeilen- und die Spaltenanzahl widergeben (wir könnten auch <code>dim</code> verwenden, was diese beiden Informationen auf einmal ausgibt).</p>
 <pre class="r"><code># Namen der Variablen abfragen
 names(Schulleistungen)</code></pre>
 <pre><code>## [1] &quot;female&quot;  &quot;IQ&quot;      &quot;reading&quot; &quot;math&quot;</code></pre>
@@ -293,7 +293,217 @@ lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), lwd = 3)
 <pre class="r"><code>hist(ps, main = &quot;p-Werte (des Welch t-Tests) nach 10000 Replikationen\n unter Modellverstößen für kleine Stichproben&quot;, xlab = &quot;p&quot;, freq = F)
 abline(a = 1, b = 0, lwd = 3)</code></pre>
 <p><img src="/post/2020-10-06-einleitung-und-wiederholung_files/figure-html/unnamed-chunk-25-2.png" width="672" style="display: block; margin: auto;" />
-Insgesamt sieht die Verteilung der Teststatistik (also quasi der empirischen <span class="math inline">\(t\)</span>-Werte) einigermaßen in Ordnung aus, wenn auch etwas schief, doch bei den <span class="math inline">\(p\)</span>-Werten fällt auf, dass die Null-Hypothese zu häufig verworfen wird, nämlich insgesamt in 10% der Fälle (durch Zufall, da die Null-Hypothese eigentlich gilt!); also doppelt so häufig wie von uns vorgegeben! Hier gibt es kaum Unterschiede zum ursprünglichen <span class="math inline">\(t\)</span>-</p>
+Insgesamt sieht die Verteilung der Teststatistik (also quasi der empirischen <span class="math inline">\(t\)</span>-Werte) einigermaßen in Ordnung aus, wenn auch etwas schief, doch bei den <span class="math inline">\(p\)</span>-Werten fällt auf, dass die Null-Hypothese zu häufig verworfen wird, nämlich insgesamt in 10% der Fälle (durch Zufall, da die Null-Hypothese eigentlich gilt!); also doppelt so häufig wie von uns vorgegeben! Hier gibt es kaum Unterschiede zum ursprünglichen <span class="math inline">\(t\)</span>-Test mit gleichen Varianzen. Allerdings ist die Stichprobengröße hier mit 5 pro Gruppe recht klein!</p>
+</div>
+<div id="verteilung-unter-h_0-mit-modellverstößen-mit-größerer-stichprobe-welch-test" class="section level4">
+<h4>Verteilung unter <span class="math inline">\(H_0\)</span> mit Modellverstößen mit größerer Stichprobe: Welch-Test</h4>
+<pre class="r"><code>set.seed(1234)
+ts &lt;- c(); ps &lt;- c() # wir brauchen zunächst Vektoren, in die wir die t-Werte und die p-Werte hineinschreiben können
+for(i in 1:10000)
+{
+        X &lt;- -rexp(n = 100, rate = 1) # simuliere Exponentialverteilung zur Rate 1 mit n = 100
+        X &lt;- X + 1 # zentriere, sodass der Populationsmittelwert wieder 0 ist
+        Y &lt;- rexp(n = 100, rate = 2) # simuliere Exponentialverteilung zur Rate 2 mit n = 100
+        Y &lt;- Y - 1/2 # zentriere, sodass der Populationsmittelwert wieder 0 ist
+        ttest &lt;- t.test(X, Y) # Welch Test
+        ts &lt;- c(ts, ttest$statistic) # nehme den Vektor ts und verlängere ihn um den neuen t-Wert
+        ps &lt;- c(ps, ttest$p.value)   # nehme den Vektor ps und verlängere ihn um den neuen p-Wert
+}
+
+hist(ts, main = &quot;t-Werte (des Welch t-Tests) nach 10000 Replikationen\n unter Modellverstöße für größere Stichproben&quot;, xlab = &quot;t&quot;, freq = F)
+lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), lwd = 3)</code></pre>
+<p><img src="/post/2020-10-06-einleitung-und-wiederholung_files/figure-html/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>hist(ps, main = &quot;p-Werte (des Welch t-Tests) nach 10000 Replikationen\n unter Modellverstößen für größere Stichproben&quot;, xlab = &quot;p&quot;, freq = F)
+abline(a = 1, b = 0, lwd = 3)</code></pre>
+<p><img src="/post/2020-10-06-einleitung-und-wiederholung_files/figure-html/unnamed-chunk-26-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Für jeweils 100 Erhebungen pro Gruppe ist der Verstoß gegen die Normalverteilungsannahme bei ungleichen Varianzen für den Welch-Test fast zu vernachlässigen.</p>
 </div>
 </div>
+<div id="AppendixB" class="section level3">
+<h3>Appendix B</h3>
+<div id="matrixalgebra" class="section level4">
+<h4>Matrixalgebra</h4>
+<p>Matrixalgebra wird bspw. auch in Eid, et al. (2017) im <em>Anhang B: Matrixalgebra</em> ab Seite 1051 behandelt.</p>
+<p><code>R</code> ist eine vektorbasierte Programmiersprache, was bedeutet, dass möglichst viel mit Vektor- oder Matrixoperationen durchgeführt werden soll. Um davon Gebrauch zu machen, müssen wir uns mit diesen Operationen vertraut machen:</p>
+<div id="vektoren" class="section level5">
+<h5>Vektoren</h5>
+<p>Dazu seien <code>X</code> und <code>Y</code> zwei Vektoren, die wir mit dem Zuordnungspfeil <code>&lt;-</code> erstellen und mit der Vektorfunktion <code>c()</code> erstellen:</p>
+<pre class="r"><code>X &lt;- c(1, 2, 3)
+Y &lt;- c(10, 8, 6)</code></pre>
+<p>Wir können auf Elemente eines Vektor mit eckigen Klammern zugreifen. Bspw. erhalten wir das 2. Element von Y (also quasi <span class="math inline">\(y_2\)</span>) mit</p>
+<pre class="r"><code>Y[2]</code></pre>
+<pre><code>## [1] 8</code></pre>
+<p>Elementenweise Additionen funktionieren super simpel, indem wir sie einfach mit <code>+</code> verknüpfen. Auch Subtraktionen oder skalare Multiplikationen funktionieren so:</p>
+<pre class="r"><code>X + Y  # Addition</code></pre>
+<pre><code>## [1] 11 10  9</code></pre>
+<pre class="r"><code>X - Y  # Subtraktion</code></pre>
+<pre><code>## [1] -9 -6 -3</code></pre>
+<pre class="r"><code>3*X    # Skalare Multiplikation</code></pre>
+<pre><code>## [1] 3 6 9</code></pre>
+<pre class="r"><code>1/2*X</code></pre>
+<pre><code>## [1] 0.5 1.0 1.5</code></pre>
+<p>Wenn <code>X</code> und <code>Y</code> nicht die selbe Länge haben, ist es in <code>R</code> oft so, dass die Vektoren künstlich verlängert werden, um verrechnet zu werden. Dies sollten wir immer im Hinterkopf behalten.</p>
+<pre class="r"><code>Z &lt;- c(1:6) # Zahlen 1 bis 6
+Z + Y</code></pre>
+<pre><code>## [1] 11 10  9 14 13 12</code></pre>
+<p><code>Z</code> ist hier doppelt so lang wie <code>Y</code>, sodass in der Addition <code>Y</code> einfach zweimal hintereinander geschrieben wird, damit die Addition möglich ist, denn eine Addition bei Vektoren (und auch Matrizen) funktioniert nur, wenn die beiden Elemente das gleiche Format haben!</p>
+<p>Wenn wir zwei Vektoren miteinander multiplizieren, so entsteht kein Matrixprodukt, sondern eine elementenweise Multiplikation:</p>
+<pre class="r"><code>X*Y # elementenweise Multiplikation</code></pre>
+<pre><code>## [1] 10 16 18</code></pre>
+</div>
+</div>
+<div id="matrizen" class="section level4">
+<h4>Matrizen</h4>
+<p>Die gerade behandelten Vektoren können wir ganz leicht zu einer Matrix machen, indem wir den Befehl <code>as.matrix</code> bspw. auf <code>X</code> anwenden. Dieser Befehl erzeugt eine 3x1 Matrix - also eigentlich einen Spaltenvektor.</p>
+<pre class="r"><code>as.matrix(X)</code></pre>
+<pre><code>##      [,1]
+## [1,]    1
+## [2,]    2
+## [3,]    3</code></pre>
+<p>Wir können die beiden Vektoren auch zu einer Matrix kombinieren, indem wir sie bspw. als zwei Zeilenvektoren mit dem Befehl <code>cbind</code> (was für column binding steht) zusammenfügen - genauso geht dies auch mit <code>rbind</code> (was für row binding steht):</p>
+<pre class="r"><code>A &lt;- cbind(X, Y)
+A</code></pre>
+<pre><code>##      X  Y
+## [1,] 1 10
+## [2,] 2  8
+## [3,] 3  6</code></pre>
+<pre class="r"><code>B &lt;- rbind(X, Y)
+B</code></pre>
+<pre><code>##   [,1] [,2] [,3]
+## X    1    2    3
+## Y   10    8    6</code></pre>
+<p>Wir können nun bspw. den Eintrag <span class="math inline">\(A_{12}\)</span> herauslesen via <code>[1, 2]</code>, wobei der erste Eintrag immer für die Zeile und der 2. für die Spalte steht:</p>
+<pre class="r"><code>A[1, 2] # Eintrag 1. Zeile 2. Spalte in A</code></pre>
+<pre><code>##  Y 
+## 10</code></pre>
+<p>Eine ganze Zeile oder Spalte erhalten wir, indem wir eines der Elemente in der Indizierung frei lassen:</p>
+<pre class="r"><code>A[1, ] # 1. Zeile</code></pre>
+<pre><code>##  X  Y 
+##  1 10</code></pre>
+<pre class="r"><code>A[, 2] # 2. Spalte</code></pre>
+<pre><code>## [1] 10  8  6</code></pre>
+<p>Wir können eine Matrix transponieren; also Zeilen und Spalten vertauschen; indem wir den Befehl <code>t()</code> auf die Matrix anwenden:</p>
+<pre class="r"><code>A</code></pre>
+<pre><code>##      X  Y
+## [1,] 1 10
+## [2,] 2  8
+## [3,] 3  6</code></pre>
+<pre class="r"><code>t(A)</code></pre>
+<pre><code>##   [,1] [,2] [,3]
+## X    1    2    3
+## Y   10    8    6</code></pre>
+<pre class="r"><code>B</code></pre>
+<pre><code>##   [,1] [,2] [,3]
+## X    1    2    3
+## Y   10    8    6</code></pre>
+<p>Wir erkennen, dass die Matrix <code>B</code> gerade die Transponierte von <code>A</code> ist! Die beiden Matrizen <code>A</code> und <code>B</code> lassen sich nicht addieren, da sie nicht das richtige Format haben, während skalare Multiplikation immer funktioniert:</p>
+<pre class="r"><code>A + B</code></pre>
+<pre><code>## Error in A + B : non-conformable arrays</code></pre>
+<pre class="r"><code>A * 2</code></pre>
+<pre><code>##      X  Y
+## [1,] 2 20
+## [2,] 4 16
+## [3,] 6 12</code></pre>
+<p>Da die beiden Matrizen gerade das Format 3x2 und 2x3 haben, lassen sie sich aber als Matrixprodukt verrechnen. Der Operator hierfür heißt <code>%*%</code> (verwenden wir stattdessen <code>*</code>, so wird eine elementenweise Multiplikation durchgeführt, was etwas komplett anderes ist!):</p>
+<pre class="r"><code>A %*% B # Matrixprodukt A*B</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]  101   82   63
+## [2,]   82   68   54
+## [3,]   63   54   45</code></pre>
+<pre class="r"><code>B %*% A # Matrixprodukt B*A</code></pre>
+<pre><code>##    X   Y
+## X 14  44
+## Y 44 200</code></pre>
+<p>An den Ergebnissen erkennen wir auch, dass Matrixprodukte nicht kommutativ sind, also die Reihenfolge wichtig ist in der (matrix-)multipliziert wird.</p>
+</div>
+<div id="spezielle-matrizen" class="section level4">
+<h4>Spezielle Matrizen</h4>
+<p>Eine quadratische Matrix hat genauso viele Zeilen wie Spalten. Eine wichtige quadratische Matrix ist die Einheitsmatrix <span class="math inline">\(I\)</span>, welche nur 1en auf der Diagonalen und sonst 0en hat. Diese ist gerade das Elemente, mit welchem wir getrost multiplizieren können (falls die Dimensionen stimmen), weil dann nichts passiert (wie Multiplikation mit 1 bei Zahlen). Wir erhalten sie mit <code>diag</code>, was eigentlich eine (quadratische) Diagonalmatrix erzeugt mit beliebigen Elementen auf der Diagonalen:</p>
+<pre class="r"><code>diag(3) # Einheitsmatrix 3x3</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]    1    0    0
+## [2,]    0    1    0
+## [3,]    0    0    1</code></pre>
+<pre class="r"><code>diag(1:3) # Diagonalmatrix mit Elementen 1,2,3 auf der Diagonalen</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]    1    0    0
+## [2,]    0    2    0
+## [3,]    0    0    3</code></pre>
+<p>Wir können eine Matrix mit dem <code>matrix</code> Befehl auch mit Hand füllen. Diesem übergeben wir einen Vektor und die Dimensionen der Matrix (<code>data</code> werden die Daten, die wir in die Matrix schreiben wollen übergeben, <code>nrow</code> und <code>ncol</code> bestimmen die Anzahl der Zeilen und Spalten und mit <code>byrow = T</code> zeigen wir an, dass wir die Matrix zeilenweise gefüllt bekommen möchten):</p>
+<pre class="r"><code>C &lt;- matrix(data = c(1:9), nrow = 3, ncol = 3, byrow = T)
+C</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]    1    2    3
+## [2,]    4    5    6
+## [3,]    7    8    9</code></pre>
+<p>Wir können mit <code>diag</code> auch wieder die Diagonalelemnte einer Matrix erfahren:</p>
+<pre class="r"><code>diag(C)</code></pre>
+<pre><code>## [1] 1 5 9</code></pre>
+<div id="determinanten-und-invertierung" class="section level5">
+<h5>Determinanten und Invertierung</h5>
+<p>Die Inverse, also jenes Element, mit welchem wir (matrix-)multiplizieren müssen, um die Einheitsmatrix zu erhalten, lässt sich in <code>R</code> mit dem <code>solve</code> Befehl erhalten (dies geht nur bei quadratischen Matrizen):</p>
+<pre class="r"><code>solve(C)</code></pre>
+<pre><code>## Error in solve.default(C) : 
+##   system is computationally singular: reciprocal condition number = 2.59052e-18</code></pre>
+<p>Die Matrix <code>C</code> lässt sich nicht invertieren, da sie singulär ist und damit nicht invertierbar. Dies bedeutet, dass es lineare Abhängigkeiten der Zeilen bzw. Spalten gibt. Wir können dies explizit prüfen, indem wir die Determinate bestimmen mit <code>det</code>:</p>
+<pre class="r"><code>det(C)</code></pre>
+<pre><code>## [1] 6.661338e-16</code></pre>
+<pre class="r"><code>round(det(C), 14)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p>Mit <code>round</code> runden wir das Ergebnis auf die 14. Nachkommastelle. Eine Matrix ist genau dann invertierbar (also regular im Vergleich zu singulär), wenn die Determinate dieser (quadratischen) Matrix <strong>nicht</strong> Null ist. Lineare Abhängigkeit bedeutet, dass die Zeilen oder Spalten durch Addition, Subtraktion und skalare Multiplikationen auseinander hervorgehen. Wir erkennen die lineare Abhängigkeit zwischen den Spalten, indem wir von der 2. Spalte die 1. Spalte abziehen und anschließend dies auf die 2. Spalte addieren - also de facto _2*2.Spalte - 1. Spalte_ rechnen:</p>
+<pre class="r"><code>2*C[, 2] - C[, 1]     # 2*2.Spalte - 1. Spalte rechnen ist gleich</code></pre>
+<pre><code>## [1] 3 6 9</code></pre>
+<pre class="r"><code>C[, 3]               # 3. Spalte</code></pre>
+<pre><code>## [1] 3 6 9</code></pre>
+<p>Hätten wir <code>C^-1</code> gererchnet, so hätten wir eine elementenweise Invertierung durchgeführt:</p>
+<pre class="r"><code>C^-1</code></pre>
+<pre><code>##           [,1]  [,2]      [,3]
+## [1,] 1.0000000 0.500 0.3333333
+## [2,] 0.2500000 0.200 0.1666667
+## [3,] 0.1428571 0.125 0.1111111</code></pre>
+<pre class="r"><code>C^-1 %*% C # ist nicht die Einheitsmatrix</code></pre>
+<pre><code>##          [,1]     [,2]     [,3]
+## [1,] 5.333333 7.166667 9.000000
+## [2,] 2.216667 2.833333 3.450000
+## [3,] 1.420635 1.799603 2.178571</code></pre>
+<pre class="r"><code>C^-1 * C   # elementenweise ergibt überall 1 - ist immer noch nicht die Einheitsmatrix!</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]    1    1    1
+## [2,]    1    1    1
+## [3,]    1    1    1</code></pre>
+<p>Dies bedeutet, dass <code>C^-1</code> in <code>R</code> nicht die Invertierung betietelt sondern <code>solve</code>!</p>
+<p>Betrachten wir nun eine invertierbare Matrix <code>D</code>:</p>
+<pre class="r"><code>D &lt;- matrix(c(1, 0, 0,
+              1, 1, 1,
+              2, 4, 5), 3, 3, byrow = T)
+det(D)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<p>Die Determinante von <code>D</code> ist 1. Somit können wir <code>D</code> invertieren. Das Produkt aus <code>D</code> mit seiner Inversen ergibt gerade die 3x3 Einheitsmatrix:</p>
+<pre class="r"><code>solve(D)</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]    1    0    0
+## [2,]   -3    5   -1
+## [3,]    2   -4    1</code></pre>
+<pre class="r"><code>D %*% solve(D)</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]    1    0    0
+## [2,]    0    1    0
+## [3,]    0    0    1</code></pre>
+<pre class="r"><code>solve(D) %*% D</code></pre>
+<pre><code>##      [,1] [,2] [,3]
+## [1,]    1    0    0
+## [2,]    0    1    0
+## [3,]    0    0    1</code></pre>
+<p>Das Produkt zwischen <span class="math inline">\(D\)</span> und <span class="math inline">\(D^{-1}\)</span> ist (ausnahmsweise) kommutativ: <span class="math inline">\(DD^{-1}=D^{-1}D=I\)</span>.</p>
+</div>
+</div>
+</div>
+</div>
+<div id="literatur" class="section level2">
+<h2>Literatur</h2>
+<p><a href="https://hds.hebis.de/ubffm/Record/HEB369761391">Agresti, A, &amp; Finlay, B. (2013).</a> <em>Statistical methods for the social sciences.</em> (Pearson new international edition, 4th edition). Harlow, Essex : Pearson Education Limited.</p>
+<p><a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, M., Gollwitzer, M., &amp; Schmitt, M. (2017).</a> <em>Statistik und Forschungsmethoden</em> (5. Auflage, 1. Auflage: 2010). Weinheim: Beltz.</p>
+<ul>
+<li><small> <em>Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.</em></li>
+</ul>
 </div>
