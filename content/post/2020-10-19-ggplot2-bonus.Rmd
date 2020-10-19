@@ -1,0 +1,238 @@
+---
+title: Mehr Grafiken mit ggplot2
+date: '2020-10-17'
+slug: ggplot2-bonus
+categories: ["Zusatz"]
+tags: ["ggplot"]
+subtitle: ''
+summary: ''
+authors: [schultze]
+lastmod: '2020-10-17T16:00:00+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+# Erweiterte Plots mit `ggplot2`
+
+Weil auch ich mich in dieser Phase der eingeschränkten Freizeitmöglichkeiten beschäftigen muss, habe ich im Folgenden ein paar zusätzliche Abbildungen erstellt, die die Grundlagen aus dem [Post zu `ggplot2`](/post/grafiken-mit-ggplot2) erweitern. Für die Grafiken hier benutze ich den gleichen Datensatz, weswegen ich hier das [Erstellen und Umstrukturieren der Daten](/post/grafiken-mit-ggplot2#Beispieldaten) hier nicht noch einmal explizit behandele. Für die Abbildungen unten gehen wir also davon aus, dass die aktuellen COVID-Zahlen im aggregierten langen Format vorliegen. Die Abbildungen in diesem Post gehen über das Ausmaß dessen hinaus, was normalerweise in psychologischen Studien oder Berichten genutzt wird, aber falls Sie die grafische Darstellung von Daten interessiert, sollten Sie aber von diesen Möglichkeiten gehört haben.
+
+```{r, echo = FALSE}
+confirmed <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
+deaths <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
+
+confirmed_long <- reshape(confirmed,
+  varying = names(confirmed)[-c(1:4)],
+  v.names = 'Confirmed',
+  timevar = 'Day',
+  idvar = names(confirmed)[1:4],
+  direction = 'long')
+rownames(confirmed_long) <- NULL
+
+deaths_long <- reshape(deaths,
+  varying = names(deaths)[-c(1:4)],
+  v.names = 'Deaths',
+  timevar = 'Day',
+  idvar = names(deaths)[1:4],
+  direction = 'long')
+rownames(deaths_long) <- NULL
+
+long <- merge(confirmed_long, deaths_long,
+  by = c('Province.State', 'Country.Region', 'Lat', 'Long', 'Day'))
+
+covid <- aggregate(cbind(Confirmed, Deaths) ~ Country.Region + Day, data = long, FUN = 'sum')
+```
+
+## Animationen
+
+Was sich bei Verlaufsdaten anbietet ist es, diese auch so zu animieren, dass der Verlauf deutlich wird. Für Animationen gibt es für `ggplot2` das Erweiterungspaket `gganimate`, das Ihnen die Möglichkeit bietet, normale `ggplot`s um eine Achse - die Zeit - zu erweitern. Zuerst aber müssen wir `gganimate` laden:
+
+```{r}
+library(gganimate)
+```
+
+Damit die Darstellung nicht so unübersichtlich wird, beschränken wir die Abbildung mal auf Frankreich, Deutschland, Italien, Spanien und das Vereinigte Königreich:
+
+```{r}
+covid_sel <- covid[covid$Country.Region %in% c('France', 'Germany', 'Italy', 'Spain', 'United Kingdom'), ]
+```
+
+Nehmen wir wieder den Plot der Verläufe der bestätigten Fälle. Dieser stellt jetzt den "statischen" Anteil unserer Abbildung dar, daher können wir ihn einfach `static` nennen:
+
+```{r static}
+static <- ggplot(covid_sel, aes(x = Day, y = Confirmed, color = Country.Region)) +
+  geom_line() + geom_point() +
+  theme_light() + scale_color_discrete('Country')
+```
+
+Im Gegensatz zu den bisherigen Abbildungen ändern wir außerdem den Titel der Legende zu "Country", um das Ganze ein wenig aufzuhübschen. In `static` ist jetzt zunächst der gleiche Plot enthalten, wie bisher:
+
+```{r}
+static
+```
+
+Um Animationen zu generieren, können wir mit den Funktionen von `gganimate` eine neue Schicht - die der Übergänge - erzeugen. Alle Funktionen, mit denen man durch das Pakte Animationen erzeugen kann beginnen mit `transition_` - ähnlich wie im Kern-`ggplot2` alle Geometrien mit `geom_` beginnen.
+
+Um in einer Animation nach und nach die Werte der einzelnen Tage anzuzeigen, können wir die Daten schrittweise "aufdecken" - der dazugehörige Befehl heißt also `transition_reveal`. Um das mit unserem bisher statistischen Plot zu verbinden, benutzen wir in `ggplot` Tradition weiterhin das `+`:
+
+```{r}
+fluid <- static + transition_reveal(Day)
+```
+
+Die Funktion `transition_reveal` möchte als Argument wissen, anhand welche Variable des Datensatzes wir die Zeitachse kodieren. Bei uns ist das der Tag, also `Day`. Wenn Sie jetzt `fluid` aufrufen würden, würde nach ca. 20 Sekunden renderzeit eine Animation in RStudio erscheinen. Wir fügen der Abbildung aber zunächst noch einen Titel und Untertitel hinzu. Dabei soll der Untertitel den jeweiligen Tag angeben, sich also über die Zeit ebenfalls verändern. In der Hilfe zu `transition_reveal` finden Sie den Abschnitt Label variables, der Ihnen verrät, welche Werte von der Animation ausgegeben werden und z.B. in die Benennung mit eingebunden werden können. In diesem Fall heißt diese Variable `frame_along`. Diese können wir in den Untertitel einbinden:
+
+```{r}
+fluid <- static + transition_reveal(Day) +
+  ggtitle('Confirmed COVID-19 Cases', subtitle = 'Day {frame_along}')
+```
+
+Somit wird in der Animation im Untertitel immer "Day X" stehen, wobei X sich im Verlauf der Animation ändert. Um dann die Abbildung zu animieren gibt es den Befehl `animate`, der ein paar, für uns relevante, Argumente entgegennimmt:
+
+  - `plot`: Welche Plot soll animiert werden? Hier `fluid`
+  - `nframes`: Wieviele Frames sollen insgesamt animiert werden?
+  - `fps`: Wieviele Frames per Second soll die finale Animation haben?
+  - `duration`: Wie lang soll die Animation (in Sekunden) sein?
+
+Von den letzten drei sind immer nur zwei nötig, weil die dritte sich dann aus den beiden Angaben ergibt. In unserem Fall mach es Sinn jedem Tag einen eigenen Frame zuzuweisen und 20 Frames pro Sekunde zu benutzen:
+
+```{r, eval = FALSE}
+animate(fluid,
+  nframes = max(covid_sel$Day),
+  fps = 20)
+```
+
+Die Animation sollte erneut ca. 20 Sekunden dauern und in folgendem gif resultieren (ich habe die Animation am 19. Oktober durchgeführt, Ihre Animation wird sich also dementsprechend unterscheiden):
+
+![](/post/lines.gif)
+
+
+
+## Karten
+
+Bei psychologischen Daten eher selten, aber mit dem COVID-19 Datensatz natürlich sehr naheliegend, ist die Datenvisualisierung auf Karten. Für komplexere Karten (z.B. mit Google Maps) gibt es das `ggmap` Paket. Für unsere Zwecke reichen allerdings die von `ggplot2` mitgelieferten Karten aus.
+
+Karten benötigen eine sehr eigene Art der Datenaufbereitung, die häufig nicht gerade platzsparend ist. Daher sind die meisten Karten in R nicht als Datensätze vorhanden, sondern müssen erst einmal in solche überführt werden. Dafür gibt es die `map_data` Funktion. Um die Weltkarte in einen Datensatz zu übertragen, z.B.:
+
+```{r}
+welt <- map_data('world')
+head(welt)
+```
+
+Was Sie in den Daten sehen sind Länge- und Breitengrade von Landesgrenzen. Außerdem bestimmt die Variable `group` das Land (anhand dessen die Landesgrenzen gruppiert werden sollten). Damit Linie der Grenzen nicht hin und her springt gibt es außerdem die Variable `order` die angibt, welcher Punkt in der Grenze als nächstes kommt. Anhand dieser Punkte werden in `ggplot2` mit der allgemeinen `geom_polygon` Funktion Karten gezeichnet. Um eine leere Weltkarte zu erzeugen reicht Folgendes aus:
+
+```{r}
+ggplot(welt, aes(x = long, y = lat, group = group)) +
+  geom_polygon()
+```
+
+Wie Sie sehen, hat dieser Plot die gleichen Eigenschaften wie normale `ggplot`s - weil es ein ganz normaler Plot ist. Um einzelne Länder erkennen zu können, sollten wir z.B. die Länder weiß und nicht schwarz füllen. Außerdem brauchen wir nicht unbedingt x- und y-Achse, sodass wir das komplett leere Theme `theme_void` nutzen können:
+
+```{r}
+ggplot(welt, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = 'white', color = 'black', lwd = .25) +
+  theme_void()
+```
+
+Um die Karten-Daten mit den COVID Daten in Verbindung zu bringen steht uns leider - wie so häufig - im Weg, dass die Daten nicht einheitlich kodiert wurden. In diesem Fall sind es die Benennungen der Länder, die uneinheitlich sind. Um herauszufinden, wo Unterschiede bestehen, können wir die normalen Operatoren der Mengenvergleiche in R nutzen:
+
+```{r}
+setdiff(unique(welt$region), unique(covid$Country.Region))
+setdiff(unique(covid$Country.Region), unique(welt$region))
+```
+
+Im Folgenden werden die Namen der Länder mit dem `recode` Befehl des `car`-Pakets umkodiert. Diesen hatten wir im letzten Semester zum Rekodieren negativ formulierter Items genutzt.
+
+```{r}
+# Recodes
+covid$Country.Region <- car::recode(covid$Country.Region,
+  "'Burma' = 'Myanmar';
+  'Cabo Verde' = 'Cape Verde';
+  'Congo (Brazzaville)' = 'Republic of Congo';
+  'Congo (Kinshasa)' = 'Democratic Republic of the Congo';
+  'Czechia' = 'Czech Republic';
+  'Eswatini' = 'Swaziland';
+  'Holy See' = 'Vatican';
+  'Korea, South' = 'South Korea';
+  'North Macedonia' = 'Macedonia';
+  'Saint Kitts and Nevis' = 'Saint Kitts';
+  'Saint Vincent and the Grenadines' = 'Saint Vincent';
+  'Taiwan*' = 'Taiwan';
+  'United Kingdom' = 'UK';
+  'US' = 'USA';
+  'West Bank and Gaza' = 'Palestine'")
+```
+
+Darüber hinaus brauchen zwei Inselstaaten eine gesonderte Behandlung, weil sie auf der Karte als separate Inseln, im COVID Datensatz aber als ein Land geführt werden:
+
+```{r}
+# Antigua & Barbuda
+covid$Country.Region <- car::recode(covid$Country.Region, "'Antigua and Barbuda'='Antigua'")
+tmp <- covid[covid$Country.Region == 'Antigua', ]
+tmp$Country.Region <- 'Barbuda'
+covid <- rbind(covid, tmp)
+
+# Trinidad & Tobago
+covid$Country.Region <- car::recode(covid$Country.Region, "'Trinidad and Tobago'='Trinidad'")
+tmp <- covid[covid$Country.Region == 'Trinidad', ]
+tmp$Country.Region <- 'Tobago'
+covid <- rbind(covid, tmp)
+```
+
+Zu guter Letzt muss die Elfenbeinküste einzeln umkodiert werden, weil der Apostroph im französischen Namen ein Problem bereitet:
+
+```{r}
+levels(covid$Country.Region) <- c(levels(covid$Country.Region), 'Ivory Coast')
+covid$Country.Region[covid$Country.Region == "Cote d'Ivoire"] <- 'Ivory Coast'
+```
+
+Diese Umkodierung ist nicht auf andere Datensätze übertragbar - Sie müssen immer in den Daten, die Sie vorliegen haben nachgucken, welche Schritte zum Angleichen verschiedener Datensätze notwendig sind.
+
+Um die Daten für heute anzuzeigen, können wir den Datensatz wieder erst einmal auf heute beschränken:
+
+```{r}
+covid_today <- covid[covid$Day == max(covid$Day), ]
+```
+
+Anschließend können wir den Datensatz mit der Weltkarte zusammenführen. Dafür verwenden wir wieder den `merge` Befehl. Damit nach dem `merge` die Grenzen richtig gezeichnet werden, müssen wieder die Reihenfolge der Daten wiederherstellen. Dazu wird mit `order` nach Land (`group`) und dann nach Reihenfolge der Grenzpunkte (`order`) sortiert.
+
+```{r}
+covid_map <- merge(welt, covid_today, by.x = 'region', by.y = 'Country.Region', all.x = TRUE, all.y = FALSE)
+covid_map <- covid_map[order(covid_map$group, covid_map$order), ]
+```
+
+Mit den neuen Daten können wir unsere vorherige Karte jetzt so ergänzen, dass wir die Länder nach der Anzahl der Fälle einfärben:
+
+```{r}
+ggplot(covid_map, aes(x = long, y = lat, group = group)) +
+  geom_polygon(color = 'black', lwd = .25, aes(fill = Confirmed)) +
+  theme_void()
+```
+
+Wegen der exponentiellen Art und Weise mit der die Anzahl der Fälle in betroffenen Ländern zunimmt, sind mit dieser Skalierung nur wenige Länder überhaupt unterscheidbar. Das liegt besonders an der exorbitanten Anzahl bestätigter Fälle in den USA. Um solche Situationen zu umgehen wird in der Datenvisualisierung häufig mit logarithmischen Skalen gearbeitet. Das Gleiche können wir hier auch mit dem Argument `trans` für Funktionen tun, die mit `scale_` beginnen. Darüber hinaus gefällt mir die Farbgebung nicht, sodass ich mit `scale_fill_gradient2` drei Farben aussuchen werden, die Untergrenze, Mittelpunkt und Obergrenze der bestätigten Fälle kodieren:
+
+```{r}
+ggplot(covid_map, aes(x = long, y = lat, group = group)) +
+  geom_polygon(color = 'black', lwd = .25, aes(fill = Confirmed)) +
+  theme_void() +
+  scale_fill_gradient2(low = '#737c45', mid = '#e3ba0f', high = '#ad3b76',
+    trans = 'log2',
+    midpoint = log(median(covid_map$Confirmed, na.rm = TRUE), 2))
+```
+
+Per Voreinstellung ist der Mittelpunkt der Skala bei 0 - was in unserem Fall nicht sonderlich sinnvoll ist. Stattdessen wird hier über `midpoint` der aktuelle Median als Mittelpunkt der Skala definiert.
+
+Im letzten Schritt werden die Farbe, die bei fehlenden Werten vergeben wird, etwas angepasst und die Skala wird von der etwas befremdlich wirkenden Beschriftung in 10, 1000 und 100000 überführt. Darüber hinaus wird die Legende nach unten Verschoben, um der Karte genug Platz in die Breite zu geben. Mit `scipen` wird außerdem vorübergehend die wissenschaftliche Notation der Zahlen ausgesetzt:
+
+```{r}
+options(scipen = 3)
+ggplot(covid_map, aes(x = long, y = lat, group = group)) +
+  geom_polygon(color = 'black', lwd = .25, aes(fill = Confirmed)) +
+  theme_void() +
+  scale_fill_gradient2(trans = 'log2', low = '#737c45', mid = '#e3ba0f', high = '#ad3b76', na.value = 'grey95', midpoint = log(median(covid_map$Confirmed, na.rm = TRUE), 2),
+    breaks = c(10, 1000, 100000), name = 'Confirmed\n(Log-Scale)') +
+  theme(legend.position = 'bottom')
+options(scipen = 1)
+```

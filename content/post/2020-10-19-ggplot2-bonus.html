@@ -1,0 +1,199 @@
+---
+title: Mehr Grafiken mit ggplot2
+date: '2020-10-17'
+slug: ggplot2-bonus
+categories: ["Zusatz"]
+tags: ["ggplot"]
+subtitle: ''
+summary: ''
+authors: [schultze]
+lastmod: '2020-10-17T16:00:00+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<div id="erweiterte-plots-mit-ggplot2" class="section level1">
+<h1>Erweiterte Plots mit <code>ggplot2</code></h1>
+<p>Weil auch ich mich in dieser Phase der eingeschränkten Freizeitmöglichkeiten beschäftigen muss, habe ich im Folgenden ein paar zusätzliche Abbildungen erstellt, die die Grundlagen aus dem <a href="/post/grafiken-mit-ggplot2">Post zu <code>ggplot2</code></a> erweitern. Für die Grafiken hier benutze ich den gleichen Datensatz, weswegen ich hier das <a href="/post/grafiken-mit-ggplot2#Beispieldaten">Erstellen und Umstrukturieren der Daten</a> hier nicht noch einmal explizit behandele. Für die Abbildungen unten gehen wir also davon aus, dass die aktuellen COVID-Zahlen im aggregierten langen Format vorliegen. Die Abbildungen in diesem Post gehen über das Ausmaß dessen hinaus, was normalerweise in psychologischen Studien oder Berichten genutzt wird, aber falls Sie die grafische Darstellung von Daten interessiert, sollten Sie aber von diesen Möglichkeiten gehört haben.</p>
+<div id="animationen" class="section level2">
+<h2>Animationen</h2>
+<p>Was sich bei Verlaufsdaten anbietet ist es, diese auch so zu animieren, dass der Verlauf deutlich wird. Für Animationen gibt es für <code>ggplot2</code> das Erweiterungspaket <code>gganimate</code>, das Ihnen die Möglichkeit bietet, normale <code>ggplot</code>s um eine Achse - die Zeit - zu erweitern. Zuerst aber müssen wir <code>gganimate</code> laden:</p>
+<pre class="r"><code>library(gganimate)</code></pre>
+<pre><code>## Loading required package: ggplot2</code></pre>
+<p>Damit die Darstellung nicht so unübersichtlich wird, beschränken wir die Abbildung mal auf Frankreich, Deutschland, Italien, Spanien und das Vereinigte Königreich:</p>
+<pre class="r"><code>covid_sel &lt;- covid[covid$Country.Region %in% c(&#39;France&#39;, &#39;Germany&#39;, &#39;Italy&#39;, &#39;Spain&#39;, &#39;United Kingdom&#39;), ]</code></pre>
+<p>Nehmen wir wieder den Plot der Verläufe der bestätigten Fälle. Dieser stellt jetzt den “statischen” Anteil unserer Abbildung dar, daher können wir ihn einfach <code>static</code> nennen:</p>
+<pre class="r"><code>static &lt;- ggplot(covid_sel, aes(x = Day, y = Confirmed, color = Country.Region)) +
+  geom_line() + geom_point() +
+  theme_light() + scale_color_discrete(&#39;Country&#39;)</code></pre>
+<p>Im Gegensatz zu den bisherigen Abbildungen ändern wir außerdem den Titel der Legende zu “Country”, um das Ganze ein wenig aufzuhübschen. In <code>static</code> ist jetzt zunächst der gleiche Plot enthalten, wie bisher:</p>
+<pre class="r"><code>static</code></pre>
+<p><img src="/post/2020-10-19-ggplot2-bonus_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Um Animationen zu generieren, können wir mit den Funktionen von <code>gganimate</code> eine neue Schicht - die der Übergänge - erzeugen. Alle Funktionen, mit denen man durch das Pakte Animationen erzeugen kann beginnen mit <code>transition_</code> - ähnlich wie im Kern-<code>ggplot2</code> alle Geometrien mit <code>geom_</code> beginnen.</p>
+<p>Um in einer Animation nach und nach die Werte der einzelnen Tage anzuzeigen, können wir die Daten schrittweise “aufdecken” - der dazugehörige Befehl heißt also <code>transition_reveal</code>. Um das mit unserem bisher statistischen Plot zu verbinden, benutzen wir in <code>ggplot</code> Tradition weiterhin das <code>+</code>:</p>
+<pre class="r"><code>fluid &lt;- static + transition_reveal(Day)</code></pre>
+<p>Die Funktion <code>transition_reveal</code> möchte als Argument wissen, anhand welche Variable des Datensatzes wir die Zeitachse kodieren. Bei uns ist das der Tag, also <code>Day</code>. Wenn Sie jetzt <code>fluid</code> aufrufen würden, würde nach ca. 20 Sekunden renderzeit eine Animation in RStudio erscheinen. Wir fügen der Abbildung aber zunächst noch einen Titel und Untertitel hinzu. Dabei soll der Untertitel den jeweiligen Tag angeben, sich also über die Zeit ebenfalls verändern. In der Hilfe zu <code>transition_reveal</code> finden Sie den Abschnitt Label variables, der Ihnen verrät, welche Werte von der Animation ausgegeben werden und z.B. in die Benennung mit eingebunden werden können. In diesem Fall heißt diese Variable <code>frame_along</code>. Diese können wir in den Untertitel einbinden:</p>
+<pre class="r"><code>fluid &lt;- static + transition_reveal(Day) +
+  ggtitle(&#39;Confirmed COVID-19 Cases&#39;, subtitle = &#39;Day {frame_along}&#39;)</code></pre>
+<p>Somit wird in der Animation im Untertitel immer “Day X” stehen, wobei X sich im Verlauf der Animation ändert. Um dann die Abbildung zu animieren gibt es den Befehl <code>animate</code>, der ein paar, für uns relevante, Argumente entgegennimmt:</p>
+<ul>
+<li><code>plot</code>: Welche Plot soll animiert werden? Hier <code>fluid</code></li>
+<li><code>nframes</code>: Wieviele Frames sollen insgesamt animiert werden?</li>
+<li><code>fps</code>: Wieviele Frames per Second soll die finale Animation haben?</li>
+<li><code>duration</code>: Wie lang soll die Animation (in Sekunden) sein?</li>
+</ul>
+<p>Von den letzten drei sind immer nur zwei nötig, weil die dritte sich dann aus den beiden Angaben ergibt. In unserem Fall mach es Sinn jedem Tag einen eigenen Frame zuzuweisen und 20 Frames pro Sekunde zu benutzen:</p>
+<pre class="r"><code>animate(fluid,
+  nframes = max(covid_sel$Day),
+  fps = 20)</code></pre>
+<p>Die Animation sollte erneut ca. 20 Sekunden dauern und in folgendem gif resultieren (ich habe die Animation am 19. Oktober durchgeführt, Ihre Animation wird sich also dementsprechend unterscheiden):</p>
+<p><img src="/post/lines.gif" /></p>
+</div>
+<div id="karten" class="section level2">
+<h2>Karten</h2>
+<p>Bei psychologischen Daten eher selten, aber mit dem COVID-19 Datensatz natürlich sehr naheliegend, ist die Datenvisualisierung auf Karten. Für komplexere Karten (z.B. mit Google Maps) gibt es das <code>ggmap</code> Paket. Für unsere Zwecke reichen allerdings die von <code>ggplot2</code> mitgelieferten Karten aus.</p>
+<p>Karten benötigen eine sehr eigene Art der Datenaufbereitung, die häufig nicht gerade platzsparend ist. Daher sind die meisten Karten in R nicht als Datensätze vorhanden, sondern müssen erst einmal in solche überführt werden. Dafür gibt es die <code>map_data</code> Funktion. Um die Weltkarte in einen Datensatz zu übertragen, z.B.:</p>
+<pre class="r"><code>welt &lt;- map_data(&#39;world&#39;)
+head(welt)</code></pre>
+<pre><code>##        long      lat group order region subregion
+## 1 -69.89912 12.45200     1     1  Aruba      &lt;NA&gt;
+## 2 -69.89571 12.42300     1     2  Aruba      &lt;NA&gt;
+## 3 -69.94219 12.43853     1     3  Aruba      &lt;NA&gt;
+## 4 -70.00415 12.50049     1     4  Aruba      &lt;NA&gt;
+## 5 -70.06612 12.54697     1     5  Aruba      &lt;NA&gt;
+## 6 -70.05088 12.59707     1     6  Aruba      &lt;NA&gt;</code></pre>
+<p>Was Sie in den Daten sehen sind Länge- und Breitengrade von Landesgrenzen. Außerdem bestimmt die Variable <code>group</code> das Land (anhand dessen die Landesgrenzen gruppiert werden sollten). Damit Linie der Grenzen nicht hin und her springt gibt es außerdem die Variable <code>order</code> die angibt, welcher Punkt in der Grenze als nächstes kommt. Anhand dieser Punkte werden in <code>ggplot2</code> mit der allgemeinen <code>geom_polygon</code> Funktion Karten gezeichnet. Um eine leere Weltkarte zu erzeugen reicht Folgendes aus:</p>
+<pre class="r"><code>ggplot(welt, aes(x = long, y = lat, group = group)) +
+  geom_polygon()</code></pre>
+<p><img src="/post/2020-10-19-ggplot2-bonus_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p>Wie Sie sehen, hat dieser Plot die gleichen Eigenschaften wie normale <code>ggplot</code>s - weil es ein ganz normaler Plot ist. Um einzelne Länder erkennen zu können, sollten wir z.B. die Länder weiß und nicht schwarz füllen. Außerdem brauchen wir nicht unbedingt x- und y-Achse, sodass wir das komplett leere Theme <code>theme_void</code> nutzen können:</p>
+<pre class="r"><code>ggplot(welt, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = &#39;white&#39;, color = &#39;black&#39;, lwd = .25) +
+  theme_void()</code></pre>
+<p><img src="/post/2020-10-19-ggplot2-bonus_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+<p>Um die Karten-Daten mit den COVID Daten in Verbindung zu bringen steht uns leider - wie so häufig - im Weg, dass die Daten nicht einheitlich kodiert wurden. In diesem Fall sind es die Benennungen der Länder, die uneinheitlich sind. Um herauszufinden, wo Unterschiede bestehen, können wir die normalen Operatoren der Mengenvergleiche in R nutzen:</p>
+<pre class="r"><code>setdiff(unique(welt$region), unique(covid$Country.Region))</code></pre>
+<pre><code>##  [1] &quot;Aruba&quot;                               &quot;Anguilla&quot;                           
+##  [3] &quot;American Samoa&quot;                      &quot;Antarctica&quot;                         
+##  [5] &quot;French Southern and Antarctic Lands&quot; &quot;Antigua&quot;                            
+##  [7] &quot;Barbuda&quot;                             &quot;Saint Barthelemy&quot;                   
+##  [9] &quot;Bermuda&quot;                             &quot;Ivory Coast&quot;                        
+## [11] &quot;Democratic Republic of the Congo&quot;    &quot;Republic of Congo&quot;                  
+## [13] &quot;Cook Islands&quot;                        &quot;Cape Verde&quot;                         
+## [15] &quot;Curacao&quot;                             &quot;Cayman Islands&quot;                     
+## [17] &quot;Czech Republic&quot;                      &quot;Canary Islands&quot;                     
+## [19] &quot;Falkland Islands&quot;                    &quot;Reunion&quot;                            
+## [21] &quot;Mayotte&quot;                             &quot;French Guiana&quot;                      
+## [23] &quot;Martinique&quot;                          &quot;Guadeloupe&quot;                         
+## [25] &quot;Faroe Islands&quot;                       &quot;Micronesia&quot;                         
+## [27] &quot;UK&quot;                                  &quot;Guernsey&quot;                           
+## [29] &quot;Greenland&quot;                           &quot;Guam&quot;                               
+## [31] &quot;Heard Island&quot;                        &quot;Isle of Man&quot;                        
+## [33] &quot;Cocos Islands&quot;                       &quot;Christmas Island&quot;                   
+## [35] &quot;Chagos Archipelago&quot;                  &quot;Jersey&quot;                             
+## [37] &quot;Siachen Glacier&quot;                     &quot;Kiribati&quot;                           
+## [39] &quot;Nevis&quot;                               &quot;Saint Kitts&quot;                        
+## [41] &quot;South Korea&quot;                         &quot;Saint Martin&quot;                       
+## [43] &quot;Marshall Islands&quot;                    &quot;Macedonia&quot;                          
+## [45] &quot;Myanmar&quot;                             &quot;Northern Mariana Islands&quot;           
+## [47] &quot;Montserrat&quot;                          &quot;New Caledonia&quot;                      
+## [49] &quot;Norfolk Island&quot;                      &quot;Niue&quot;                               
+## [51] &quot;Bonaire&quot;                             &quot;Sint Eustatius&quot;                     
+## [53] &quot;Saba&quot;                                &quot;Nauru&quot;                              
+## [55] &quot;Pitcairn Islands&quot;                    &quot;Palau&quot;                              
+## [57] &quot;Puerto Rico&quot;                         &quot;North Korea&quot;                        
+## [59] &quot;Madeira Islands&quot;                     &quot;Azores&quot;                             
+## [61] &quot;Palestine&quot;                           &quot;French Polynesia&quot;                   
+## [63] &quot;South Sandwich Islands&quot;              &quot;South Georgia&quot;                      
+## [65] &quot;Saint Helena&quot;                        &quot;Ascension Island&quot;                   
+## [67] &quot;Saint Pierre and Miquelon&quot;           &quot;Swaziland&quot;                          
+## [69] &quot;Sint Maarten&quot;                        &quot;Turks and Caicos Islands&quot;           
+## [71] &quot;Turkmenistan&quot;                        &quot;Tonga&quot;                              
+## [73] &quot;Trinidad&quot;                            &quot;Tobago&quot;                             
+## [75] &quot;Taiwan&quot;                              &quot;USA&quot;                                
+## [77] &quot;Vatican&quot;                             &quot;Grenadines&quot;                         
+## [79] &quot;Saint Vincent&quot;                       &quot;Virgin Islands&quot;                     
+## [81] &quot;Vanuatu&quot;                             &quot;Wallis and Futuna&quot;                  
+## [83] &quot;Samoa&quot;</code></pre>
+<pre class="r"><code>setdiff(unique(covid$Country.Region), unique(welt$region))</code></pre>
+<pre><code>##  [1] &quot;Antigua and Barbuda&quot;              &quot;Burma&quot;                           
+##  [3] &quot;Cabo Verde&quot;                       &quot;Congo (Brazzaville)&quot;             
+##  [5] &quot;Congo (Kinshasa)&quot;                 &quot;Cote d&#39;Ivoire&quot;                   
+##  [7] &quot;Czechia&quot;                          &quot;Diamond Princess&quot;                
+##  [9] &quot;Eswatini&quot;                         &quot;Holy See&quot;                        
+## [11] &quot;Korea, South&quot;                     &quot;MS Zaandam&quot;                      
+## [13] &quot;North Macedonia&quot;                  &quot;Saint Kitts and Nevis&quot;           
+## [15] &quot;Saint Vincent and the Grenadines&quot; &quot;Taiwan*&quot;                         
+## [17] &quot;Trinidad and Tobago&quot;              &quot;United Kingdom&quot;                  
+## [19] &quot;US&quot;                               &quot;West Bank and Gaza&quot;</code></pre>
+<p>Im Folgenden werden die Namen der Länder mit dem <code>recode</code> Befehl des <code>car</code>-Pakets umkodiert. Diesen hatten wir im letzten Semester zum Rekodieren negativ formulierter Items genutzt.</p>
+<pre class="r"><code># Recodes
+covid$Country.Region &lt;- car::recode(covid$Country.Region,
+  &quot;&#39;Burma&#39; = &#39;Myanmar&#39;;
+  &#39;Cabo Verde&#39; = &#39;Cape Verde&#39;;
+  &#39;Congo (Brazzaville)&#39; = &#39;Republic of Congo&#39;;
+  &#39;Congo (Kinshasa)&#39; = &#39;Democratic Republic of the Congo&#39;;
+  &#39;Czechia&#39; = &#39;Czech Republic&#39;;
+  &#39;Eswatini&#39; = &#39;Swaziland&#39;;
+  &#39;Holy See&#39; = &#39;Vatican&#39;;
+  &#39;Korea, South&#39; = &#39;South Korea&#39;;
+  &#39;North Macedonia&#39; = &#39;Macedonia&#39;;
+  &#39;Saint Kitts and Nevis&#39; = &#39;Saint Kitts&#39;;
+  &#39;Saint Vincent and the Grenadines&#39; = &#39;Saint Vincent&#39;;
+  &#39;Taiwan*&#39; = &#39;Taiwan&#39;;
+  &#39;United Kingdom&#39; = &#39;UK&#39;;
+  &#39;US&#39; = &#39;USA&#39;;
+  &#39;West Bank and Gaza&#39; = &#39;Palestine&#39;&quot;)</code></pre>
+<p>Darüber hinaus brauchen zwei Inselstaaten eine gesonderte Behandlung, weil sie auf der Karte als separate Inseln, im COVID Datensatz aber als ein Land geführt werden:</p>
+<pre class="r"><code># Antigua &amp; Barbuda
+covid$Country.Region &lt;- car::recode(covid$Country.Region, &quot;&#39;Antigua and Barbuda&#39;=&#39;Antigua&#39;&quot;)
+tmp &lt;- covid[covid$Country.Region == &#39;Antigua&#39;, ]
+tmp$Country.Region &lt;- &#39;Barbuda&#39;
+covid &lt;- rbind(covid, tmp)
+
+# Trinidad &amp; Tobago
+covid$Country.Region &lt;- car::recode(covid$Country.Region, &quot;&#39;Trinidad and Tobago&#39;=&#39;Trinidad&#39;&quot;)
+tmp &lt;- covid[covid$Country.Region == &#39;Trinidad&#39;, ]
+tmp$Country.Region &lt;- &#39;Tobago&#39;
+covid &lt;- rbind(covid, tmp)</code></pre>
+<p>Zu guter Letzt muss die Elfenbeinküste einzeln umkodiert werden, weil der Apostroph im französischen Namen ein Problem bereitet:</p>
+<pre class="r"><code>levels(covid$Country.Region) &lt;- c(levels(covid$Country.Region), &#39;Ivory Coast&#39;)
+covid$Country.Region[covid$Country.Region == &quot;Cote d&#39;Ivoire&quot;] &lt;- &#39;Ivory Coast&#39;</code></pre>
+<p>Diese Umkodierung ist nicht auf andere Datensätze übertragbar - Sie müssen immer in den Daten, die Sie vorliegen haben nachgucken, welche Schritte zum Angleichen verschiedener Datensätze notwendig sind.</p>
+<p>Um die Daten für heute anzuzeigen, können wir den Datensatz wieder erst einmal auf heute beschränken:</p>
+<pre class="r"><code>covid_today &lt;- covid[covid$Day == max(covid$Day), ]</code></pre>
+<p>Anschließend können wir den Datensatz mit der Weltkarte zusammenführen. Dafür verwenden wir wieder den <code>merge</code> Befehl. Damit nach dem <code>merge</code> die Grenzen richtig gezeichnet werden, müssen wieder die Reihenfolge der Daten wiederherstellen. Dazu wird mit <code>order</code> nach Land (<code>group</code>) und dann nach Reihenfolge der Grenzpunkte (<code>order</code>) sortiert.</p>
+<pre class="r"><code>covid_map &lt;- merge(welt, covid_today, by.x = &#39;region&#39;, by.y = &#39;Country.Region&#39;, all.x = TRUE, all.y = FALSE)
+covid_map &lt;- covid_map[order(covid_map$group, covid_map$order), ]</code></pre>
+<p>Mit den neuen Daten können wir unsere vorherige Karte jetzt so ergänzen, dass wir die Länder nach der Anzahl der Fälle einfärben:</p>
+<pre class="r"><code>ggplot(covid_map, aes(x = long, y = lat, group = group)) +
+  geom_polygon(color = &#39;black&#39;, lwd = .25, aes(fill = Confirmed)) +
+  theme_void()</code></pre>
+<p><img src="/post/2020-10-19-ggplot2-bonus_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>Wegen der exponentiellen Art und Weise mit der die Anzahl der Fälle in betroffenen Ländern zunimmt, sind mit dieser Skalierung nur wenige Länder überhaupt unterscheidbar. Das liegt besonders an der exorbitanten Anzahl bestätigter Fälle in den USA. Um solche Situationen zu umgehen wird in der Datenvisualisierung häufig mit logarithmischen Skalen gearbeitet. Das Gleiche können wir hier auch mit dem Argument <code>trans</code> für Funktionen tun, die mit <code>scale_</code> beginnen. Darüber hinaus gefällt mir die Farbgebung nicht, sodass ich mit <code>scale_fill_gradient2</code> drei Farben aussuchen werden, die Untergrenze, Mittelpunkt und Obergrenze der bestätigten Fälle kodieren:</p>
+<pre class="r"><code>ggplot(covid_map, aes(x = long, y = lat, group = group)) +
+  geom_polygon(color = &#39;black&#39;, lwd = .25, aes(fill = Confirmed)) +
+  theme_void() +
+  scale_fill_gradient2(low = &#39;#737c45&#39;, mid = &#39;#e3ba0f&#39;, high = &#39;#ad3b76&#39;,
+    trans = &#39;log2&#39;,
+    midpoint = log(median(covid_map$Confirmed, na.rm = TRUE), 2))</code></pre>
+<p><img src="/post/2020-10-19-ggplot2-bonus_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p>Per Voreinstellung ist der Mittelpunkt der Skala bei 0 - was in unserem Fall nicht sonderlich sinnvoll ist. Stattdessen wird hier über <code>midpoint</code> der aktuelle Median als Mittelpunkt der Skala definiert.</p>
+<p>Im letzten Schritt werden die Farbe, die bei fehlenden Werten vergeben wird, etwas angepasst und die Skala wird von der etwas befremdlich wirkenden Beschriftung in 10, 1000 und 100000 überführt. Darüber hinaus wird die Legende nach unten Verschoben, um der Karte genug Platz in die Breite zu geben. Mit <code>scipen</code> wird außerdem vorübergehend die wissenschaftliche Notation der Zahlen ausgesetzt:</p>
+<pre class="r"><code>options(scipen = 3)
+ggplot(covid_map, aes(x = long, y = lat, group = group)) +
+  geom_polygon(color = &#39;black&#39;, lwd = .25, aes(fill = Confirmed)) +
+  theme_void() +
+  scale_fill_gradient2(trans = &#39;log2&#39;, low = &#39;#737c45&#39;, mid = &#39;#e3ba0f&#39;, high = &#39;#ad3b76&#39;, na.value = &#39;grey95&#39;, midpoint = log(median(covid_map$Confirmed, na.rm = TRUE), 2),
+    breaks = c(10, 1000, 100000), name = &#39;Confirmed\n(Log-Scale)&#39;) +
+  theme(legend.position = &#39;bottom&#39;)</code></pre>
+<p><img src="/post/2020-10-19-ggplot2-bonus_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<pre class="r"><code>options(scipen = 1)</code></pre>
+</div>
+</div>
