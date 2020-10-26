@@ -71,10 +71,10 @@ Das Modul PsyMSc1 ist in zwei Teile untergliedert: Forschungsmethoden und Evalua
 
 |  |  |  |  | | |
 | --- | --- | --- | --- | --- | --- |
-| 0 | **Einleitung und Wiederholung** | [Inhalte](/post/einleitung-und-wiederholung)  | [`R` Skript](https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/0_Intro_RCode.R) | [Daten](/post/Schulleistungen.rda) | [Übungsdaten](/post/Schulleistungen.rda) |
-| 1 | **Regressionsanalyse und Ausreißerdiagnostik** | [Inhalte](/post/regression-und-ausreisserdiagnostik)  | [`R` Skript](https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/1_Regression_RCode.R) | [Daten](/post/Schulleistungen.rda) | Übungsdaten |
-| 2 | **Hierarchische Regressionsanalyse** | [Inhalte](/post/multi-level-modeling)  | [`R` Skript](https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/2_Multi-Level-Modeling_RCode.R) | [Daten](/post/StudentsInClasses.rda) | [Übungsdaten](/post/StudentsInClasses.rda) |
-| 3 | **Hauptkomponentenanalyse** | [Inhalte](/post/PCA)  | [`R` Skript](https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/3_PCA_RCode.R) | Daten | Übungsdaten |
-| 4 | **Logistische Regressionsanalyse** | Inhalte  | `R` Skript | Daten | Übungsdaten |
-| 5 | **Multivariate Varianzanalyse** | Inhalte  | `R` Skript | Daten | Übungsdaten |
+| 0 | **Einleitung und Wiederholung** | [Inhalte](/post/einleitung-und-wiederholung)  | [Übungsdaten und -vorbereitung](/post/MSc1-Daten) |
+| 1 | **Regressionsanalyse und Ausreißerdiagnostik** | [Inhalte](/post/regression-und-ausreisserdiagnostik)  | [Übungsdaten und -vorbereitung](/post/MSc1-Daten) |
+| 2 | **Hierarchische Regressionsanalyse** | [Inhalte](/post/multi-level-modeling)  | [Übungsdaten und Vorbereitung](/post/MSc1-Daten) |
+| 3 | **Hauptkomponentenanalyse** | [Inhalte](/post/PCA)  | [Übungsdaten und -vorbereitung](/post/MSc1-Daten) |
+| 4 | **Logistische Regressionsanalyse** | Inhalte  | [Übungsdaten und -vorbereitung](/post/MSc1-Daten) |
+| 5 | **Multivariate Varianzanalyse** | Inhalte  | [Übungsdaten und -vorbereitung](/post/MSc1-Daten) |
 |  |  |  |  | | |
