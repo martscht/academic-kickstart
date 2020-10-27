@@ -13,7 +13,7 @@ tags:
 subtitle: 'Multi-Level Modeling'
 summary: ''
 authors: [irmer]
-lastmod: '2020-10-26T17:32:21+02:00'
+lastmod: '2020-10-27T17:32:21+02:00'
 featured: no
 header:
   image: "/header/FEI_Sitzung2_post.jpg"
@@ -62,8 +62,8 @@ Aus dieser Übersicht ergibt sich folgende Aufteilung:
 **Ebene 1 (within-level)**
 
 * Mathematikleistung als AV: `MatheL`
-* Motivation der Schüler/innen als Pädiktor: `Motivation`
-* Intelligenz der Schüler/innen als Pädiktor: `KFT` (Kognitiver Fähigkeitstest)
+* Motivation der Schüler/innen als Prädiktor: `Motivation`
+* Intelligenz der Schüler/innen als Prädiktor: `KFT` (Kognitiver Fähigkeitstest)
 
 **Ebene 2 (between-level)**
 
@@ -75,7 +75,7 @@ Die Daten liegen hier im "Long"-Format vor, was bedeutet, dass Schüler aus eine
 ```{r}
 colMeans(StudentsInClasses)
 ```
-Bei Multi-Level-Analysen ist darauf zu achten, dass für bessere Interpretierbarkeit unabhängige Variablen zentriert werden sollten. Wir können zwischen _Grand-Mean-Centering_ und _Group-Mean-Centering_ unterscheiden. Beim _Grand-Mean-Centering_ wird am Stichprobenmittelwert der jeweiligen Variable zentriert. Somit spricht ein Wert von Null auf der zentrierten Variable für den Mittelwert über alle Erhebungen (hier: Schulkinder). Beim Group-Mean-Centering wird am Mittelwert des jeweiligen Clusters zentriert. Somit entspricht ein Mittelwert von 0 auf der zentrierten Variable für einen durchschnittlichen Wert innerhalb dieses Clusters (hier: für einen durchschnittlichen Wert innerhalb dieser Schulklasse). Beim Group-Mean-Centering können die Ergebnisse gut in Hinsicht auf die Schulklasse interpretiert werden, allerdings geht die Unterschiedlichkeit zwischen Klassen verloren, weswegen häufig zusätzlich zur zentrierten Variable auch der Mittelwert pro Cluster als L2 Variable mit in das Modell aufgenommen wird.
+Bei Multi-Level-Analysen ist darauf zu achten, dass für bessere Interpretierbarkeit unabhängige Variablen zentriert werden sollten. Wir können zwischen _Grand-Mean-Centering_ und _Group-Mean-Centering_ unterscheiden. Beim _Grand-Mean-Centering_ wird am Stichprobenmittelwert der jeweiligen Variable zentriert. Somit spricht ein Wert von Null auf der zentrierten Variable für den Mittelwert über alle Erhebungen (hier: Schulkinder). Beim Group-Mean-Centering wird am Mittelwert des jeweiligen Clusters zentriert. Somit entspricht ein Mittelwert von 0 auf der zentrierten Variable für einen durchschnittlichen Wert innerhalb dieses Clusters (hier: für einen durchschnittlichen Wert innerhalb dieser Schulklasse). Beim Group-Mean-Centering können die Ergebnisse gut in Hinsicht auf die Schulklasse interpretiert werden, allerdings geht die Unterschiedlichkeit zwischen Klassen verloren, weswegen häufig zusätzlich zur zentrierten Variable auch der Mittelwert pro Cluster als L2 Variable mit in das Modell aufgenommen wird. Wir schauen uns dies später im Abschnitt [Datenzentrierung](#Datenzentrierung) genauer an.
 
 
 ### Hypothesen
@@ -88,12 +88,12 @@ Wir wollen folgende Hypothesen untersuchen:
 
 
 ### Pakete laden
-Wir werden im Folgenden wieder neue `R`-Pakete benötigen. Diese müssen zunächst installiert werden (`install.packages`) und anschließend geladen werden: Das wichtigste Paket ist `lme4` (**l**inear **m**ixed **e**ffects 4, wobei wir annehmen können, dass die 4 hier für _four_ steht, was sich wie "_for **r**_" spricht), welches für die Multi-Level Analysen von Nöten ist. `robutmeta` verwenden wir, um Daten gruppenspezifisch zu zentriern.
+Wir werden im Folgenden wieder neue `R`-Pakete benötigen. Diese müssen zunächst installiert werden (`install.packages`) und anschließend geladen werden: Das wichtigste Paket ist `lme4` (**l**inear **m**ixed **e**ffects 4, wobei wir annehmen können, dass die 4 hier für _four_ steht, was sich wie "_for **r**_" spricht), welches für die Multi-Level Analysen von Nöten ist.  `lmerTest` verwenden wir, um Modellvergleiche sinnvoll auch für Varianzen durchführen zu können. `lme4` und `lmerTest` sollten immer gemeinsam geladen werden (auch wenn in den meisten Fällen `lmerTest` erzwingt, dass `lme4` auch geladen wird), denn `lmerTest` erweitert lediglich das Paket `lme4` um einige wichtige Funktionen. `robutmeta` verwenden wir, um Daten gruppenspezifisch zu zentrieren.
 
 ```{r, message=F}
 library(lme4)       # für das Durchführen von Multi-Level Regressionen
+library(lmerTest) # lmerTest markiert in der Ausgabe signifikante Koeffizienten und korrigiert Modellvergleiche für Varianzen
 library(robumeta)   # Datensatzmanipulation
-library(lmerTest) # lmerTest markiert in der Ausgabe signifikante Koeffizienten
 library(ggplot2) # ggplot2 und dplyr werden nur für Grafiken benötigt
 library(dplyr)   # für Datensatzmanipulationen
 ```
@@ -101,22 +101,22 @@ library(dplyr)   # für Datensatzmanipulationen
 
 ## Modellspezifikation
 
-Wir verwenden die Funktion `lmer` des Pakets `lme4`, um Multi-Level-Modelle zu schätzen. Die allgemeine Syntax ähnelt sehr der Syntax der `lm`-Funktion für lineare Modelle. Diese Syntax sah so aus:
+Wir verwenden die Funktion `lmer` des Pakets `lme4` (bzw. des Pakets `lmerTest`), um Multi-Level-Modelle zu schätzen. Die allgemeine Syntax ähnelt sehr der Syntax der `lm`-Funktion für lineare Modelle. Diese Syntax sah so aus:
 
 * `lm(Y ~ 1 + X, data = StudentsInClasses)`
 
 Die Syntax für `lmer` wird nun erweitert, um die Clusterung zu enthalten: wir nehmen für einen Augenblick an, dass `X` eine L1-Variable ist, `Z` eine L2 Variable und `gruppe` die Clusterungsvariable. In der Modellgleichung werden wie im linearen Modell die Prädiktoren aufgeführt, deren Effekte als *feste Effekte* geschätzt werden. Zusätzlich werden mit dem senkrechten Strich `|` *Zufallseffekte* spezifiziert, welche Variationen beschreiben, die auf das Cluster (hier die Zugehörigkeit zu einer Schulklasse) zurückzuführen sind. Vor dem `|`  stehen die Effekte, die als zufällig behandelt werden sollen, danach die Gruppierungsvariable, durch die die Ebene definiert ist:
 
-* `Y ~ 1 + (1 | gruppe)`: *Random Intercept* für Y auf Ebene der Gruppen
+* `Y ~ 1 + (1 | gruppe)`: *Random Intercept* für Y auf Ebene der Gruppen (dies wird auch das Nullmodell genannt, da keine Prädiktoren enthalten sind)
 * `Y ~ 1 + X + (1 | gruppe)`: *Random Intercept* und fester Effekt für X
 * `Y ~ 1 + X + (1 + X | gruppe)`: *Random Intercept* und *Random Slope* für X
 * `Y ~ 1 + X + Z + (1 + X | gruppe)`: *Random Intercept* und *Random Slope* für X und Prädiktor Z auf L2 (Aufklärung der Interzeptvariation durch `Z`)
 * `Y ~ 1 + X + Z + Z:X + (1 + X | gruppe)`: *Random Intercept* und *Random Slope* für X und Prädiktor Z auf L2, sowie Cross-Level-Interaktion (Aufklärung der Interzept- und Slopevariation durch `Z`)
 
-Wir erkennen, wie oben schon angedeutet, L2-Variablen nur daran, dass sie über eine Clustereinheit nicht variieren. In unserem Beispiel sehen wir dies daran, dass die Klassengröße für jedes Schulkind aus der selben Schulklasse identisch ist. Dies ist auch in der Modellgleichung so: hier wird `Z` analog zu `X` in die Modellgleich aufgenommen, an welcher wir nicht erkennen, ob es sich hierbei um einen L2-Effekt handelt - dies können wir nur wissen, wenn wir wissen in welchem Format die Daten vorliegen. `:` steht für das Produkt zwischen Variablen in Regressionsmodellen. Oft wird auch `*` verwendet, welches dann sowohl die einzelnen Haupteffekte, als auch die Interaktion repräsentiert: also `Z*X = Z + X + Z:X`.
+Wir erkennen, wie oben schon angedeutet, L2-Variablen nur daran, dass sie über eine Clustereinheit nicht variieren. In unserem Beispiel sehen wir dies daran, dass die Klassengröße für jedes Schulkind aus der selben Schulklasse identisch ist. Dies ist auch in der Modellgleichung so: hier wird `Z` analog zu `X` in die Modellgleichung aufgenommen, an welcher wir nicht erkennen, ob es sich hierbei um einen L2-Effekt handelt - dies können wir nur wissen, wenn wir wissen in welchem Format die Daten vorliegen. `:` steht für das Produkt zwischen Variablen in Regressionsmodellen. Oft wird auch `*` verwendet, welches dann sowohl die einzelnen Haupteffekte, als auch die Interaktion repräsentiert: also `Z*X = Z + X + Z:X`.
 
 Die zugehörigen Gleichungen zu den Modellen sehen so aus (siehe auch
-[Eid, et al., 2017,](https://hds.hebis.de/ubffm/Record/HEB366849158) Kapitel 20.2).
+[Eid, et al., 2017,](https://hds.hebis.de/ubffm/Record/HEB366849158) Kapitel 20.2):
 
 * `Y ~ 1 + (1 | gruppe)`
   * $Y_{ij} = \beta_{0j} + \varepsilon_{ij}$
@@ -143,7 +143,12 @@ Die zugehörigen Gleichungen zu den Modellen sehen so aus (siehe auch
   * $\beta_{1j}=\gamma_{10} + \gamma_{11}Z_j+ u_{1j}$
   * $\Longrightarrow Y_{ij} = \gamma_{00} + \gamma_{01}Z_j + u_{0j} + \gamma_{10}X_{ij} + \gamma_{11}Z_jX_{ij} + u_{1j}X_{ij} + \varepsilon_{ij}$
 
-Hierbei ist zu beachten, dass natürlich auch _nur_ eine L2 Variable in das Modell aufgenommen werden könnte oder die Interzeptvariation durch die L2-Variable erklärt werden könnte, ohne, dass eine _Random Slope_ spezifiziert wird, etc. Dies hängt von den Hypothesen ab.
+Hierbei ist zu beachten, dass natürlich auch _nur_ eine L2 Variable in das Modell aufgenommen werden könnte oder die Interzeptvariation durch die L2-Variable erklärt werden könnte, ohne, dass eine _Random Slope_ spezifiziert wird, etc. Dies hängt von den Hypothesen ab. 
+
+Außerdem können wir den Gleichungen die Unabhängigkeitsverletzung einer einfachen Regression entnehmen. Dies erkennen wir bereits am Nullmodell, dass in eingesetzter Form wie folgt aussieht:
+
+$$ Y_{ij} = \gamma_{00} + \underbrace{u_{0j} + \varepsilon_{ij}}_{e_i}$$
+In einer einfachen Regression würde $e_i:=u_{0j}+\varepsilon_{ij}$ als Residuum angesehen werden. Damit haben alle Erhebungen aus der gleichen Clustereinheit $j$ etwas gemeinsam (nämlich $u_{0j}$) und sind somit korreliert. Dies widerspricht der $i.i.d.$-Annahme in der Regression (vgl. [Regressionssitzung](/post/regression-und-ausreisserdiagnostik)).
 
 ## Analysen mit dem Beispieldatensatz
 
@@ -203,7 +208,7 @@ $$ICC := \frac{\mathbb{V}ar[u_0]}{\mathbb{V}ar[u_0]+\mathbb{V}ar[\varepsilon]}.$
 VarCorr(m0)$schulklasse[1] / (VarCorr(m0)$schulklasse[1] + summary(m0)$sigma^2)
 ```
 
-_**Achtung:** Unterschiede kommen durch Runden zu stande - die Ergebnisse abgelesen aus dem Output sind nur auf 2 Nachkommastellen genau._
+_**Achtung:** Unterschiede kommen durch Runden zustande - die Ergebnisse abgelesen aus dem Output sind nur auf 2 Nachkommastellen genau._
 
 Die Funktion `VarCorr` gibt die Varianz, die Standardabweichung, sowie die Korrelationen zwischen mehreren Random Effekten (z.B. die Korrelation zwischen Interzept und Slope) aus. Wir müssen dann das Interzept via `$schulklasse[1]` auswählen, weil es der erste zufällige Effekt ist, der  auf das Cluster zurückgeführt werden kann.
 ```{r}
@@ -221,7 +226,7 @@ summary(m0)$sigma^2 # Residualvarianz
 names(summary(m0)) # alle Informationen, die wir der Summary entlocken können
 ```
 
-**Inhaltliche Interpretation**: 16,2% der Varianz in der Mathematikleistung können durch die Klassenzugehörigkeit erklärt werden. Die Multi-Levelstruktur in den Daten muss somit unbedingt berücksichtigt werden.
+**Inhaltliche Interpretation**: 16.2% der Varianz in der Mathematikleistung können durch die Klassenzugehörigkeit erklärt werden. Die Multi-Level-Struktur in den Daten muss somit unbedingt berücksichtigt werden.
 
 
 Nun weiter im Output:
@@ -233,9 +238,9 @@ Fixed effects:
 ---
 Signif. codes:  0 \'***\' 0.001 \'**\' 0.01 \'*\' 0.05 \'.\' 0.1 \' \' 1')
 ```
-enthält die `Fixed effects` (also die $\gamma$s aus den Gleichungen zuvor). Im Nullmodell gibt es nur $\gamma_{00}$, das globale Interzept. Es liegt bei 54.0236, was bedeutet, dass die durchschnittliche Matheleistung über alle Schulklassen und -kinder hinweig bei ca 54 liegt. Das Interzept ist zudem signifikant von 0 verschieden: $t$-Wert = 62.4 mit $p < .001$ (`<2e-16` = $<2*10^{-16}$). Somit können wir mit einer Irrtumswahrscheinlichkeit von 5% davon ausgehen, dass die durchschnittliche Matheleistung von Null abweicht. Diese Information ist hier nicht spannend, da die Matheleistung gerade von 0 bis 100 geht und somit ein Mittelwert von 0 sehr unwahrscheinlich erscheint.
+enthält die `Fixed effects` (also die $\gamma$s aus den Gleichungen zuvor). Im Nullmodell gibt es nur $\gamma_{00}$, das globale Interzept. Es liegt bei 54.0236, was bedeutet, dass die durchschnittliche Matheleistung über alle Schulklassen und -kinder hinweg bei ca 54 liegt. Das Interzept ist zudem signifikant von 0 verschieden: $t$-Wert = 62.4 mit $p < .001$ (`<2e-16` = $<2*10^{-16}$). Somit können wir mit einer Irrtumswahrscheinlichkeit von 5% davon ausgehen, dass die durchschnittliche Matheleistung von Null abweicht. Diese Information ist hier nicht spannend, da die Matheleistung gerade von 0 bis 100 geht und somit ein Mittelwert von 0 sehr unwahrscheinlich erscheint.
 
-Nun wollen wir prüfen, ob sich die Matheleistung durch die Motivation zu Lernen vorhesagen lässt.
+Nun wollen wir prüfen, ob sich die Matheleistung durch die Motivation zu Lernen vorhersagen lässt.
 
 ## Hypothese 1: Motivation als Prädiktor
 
@@ -255,14 +260,14 @@ summary(m1)
 
 Im Output hat sich nun der Abschnitt `Fixed effects` erweitert um den Effekt der Motivation. Das Regressionsgewicht für (die am Stichprobenmittelwert zentrierte) Motivation beträgt `r round(fixef(m1)["Motivation_c"],3)` und ist mit *p* < .001 signifikant. Somit wird die Nullhypothese verworfen: "Mit einer Irrtumswahrscheinlichkeit von 5% ist der Zusammenhang (Steigungskoeffizient, $\gamma_{10}$) zwischen Motivation und Mathematikleistung in der Population aller Schüler von Null verschieden." Durch die Zentrierung können wir weiterhin das Interzept ($\gamma_{00}$) sinnvoll interpretieren. Ein durchschnittlich motiviertes Kind hat im Mittel eine Matheleistung von `r round(fixef(m1)["(Intercept)"],3)`.
 
-Insgesamt ist zu sagen, dass unsere Hypothese 1 durch die Daten gestützt wird. Es stellt sich allerdings die Frage, ob die signifikante lineare Beziehung der Variable auch inhaltlich bedeutsam ist. Um dies besser beurteilen zu können, wollen wir ein Pseudo-$R^2$ bestimmen - es ist sehr dem Determinationskoeffizieten der Regression verwandt, kann aber Fehlschätzungen unterliegen, weswegen es nicht für bare Münze genommen werden sollte. Es kann uns allerdings helfen, besser einschätzen zu können, wie groß denn die Varianzaufklärung des Prädiktors ist, auch wenn wir im Hinterkopf behalten sollten, dass mit Pseudo-$R^2$ auch Probleme auftreten können (die es in der Regel mit dem Determinationskoeffizienten nicht gibt). Für mehr Informationen hierzu schaue bspw. in [Eid, et al. (2017)]() Kaptiel 20.3.4 ab Seite 750.
+Insgesamt ist zu sagen, dass unsere Hypothese 1 durch die Daten gestützt wird. Es stellt sich allerdings die Frage, ob die signifikante lineare Beziehung der Variable auch inhaltlich bedeutsam ist. Um dies besser beurteilen zu können, wollen wir ein Pseudo-$R^2$ bestimmen - es ist sehr dem Determinationskoeffizienten der Regression verwandt, kann aber Fehlschätzungen unterliegen, weswegen es nicht für bare Münze genommen werden sollte. Es kann uns allerdings helfen, besser einschätzen zu können, wie groß denn die Varianzaufklärung des Prädiktors ist, auch wenn wir im Hinterkopf behalten sollten, dass mit Pseudo-$R^2$ auch Probleme auftreten können (die es in der Regel mit dem Determinationskoeffizienten nicht gibt). Für mehr Informationen hierzu schaue bspw. in [Eid, et al. (2017)]() Kapitel 20.3.4 ab Seite 750.
 
 ### Pseudo $R^2$: within
 Die Varianz unseres Kriteriums $Y$ haben wir im Null-Modell in Varianz des Cluster (Interzeptvarianz) und (within) Residualvarianz aufgeteilt: $\mathbb{V}ar[Y] = \mathbb{V}ar[u_0]+\mathbb{V}ar[\varepsilon]$. Die Variation von $u_0$ beschreibt somit die between-Variation, die auf Unterschiede zwischen Klassen (und somit Unterschiede, die auf die Clusterung zurückzuführen sind), während die Variation von $\varepsilon$ gerade die within-Variation ist. Unter ideellen Bedingungen sollte nun ein L1-Prädiktor nur die within-Residualvariation verringern (dies ist dann gegeben, wenn ein L1 Prädiktor sich nicht systematisch zwischen Klassen unterscheidet, es also keine Mittelwertsunterschiede über Klassen hinweg auf dieser L1 Variable gibt!): für den Prädiktor Motivation ($X_1$) ergibt sich die Variation von $Y$ als $$\mathbb{V}ar[Y] = \mathbb{V}ar[u_0]+\underbrace{\gamma_{10}^2\mathbb{V}ar[X_1]+\mathbb{V}ar[\varepsilon^*]}_{\mathbb{V}ar[\varepsilon]}.$$ Für mehr Informationen zu Varianzrechenregeln siehe im [Appendix B](#AppendixB) nach. Wir schreiben hier $\varepsilon^*$, da es sich um ein anderes Residuum handelt, als im leeren Modell ($X_1$ ist ja mit von der Partie). Dieser ideellen Gleichung ist zu entnehmen, dass die Varianz von $\varepsilon^*$ kleiner ausfällt, also die von $\varepsilon$, wenn $\gamma_{10}\neq 0$ und $X_1$ nicht konstant ist, also wenn $X_1$ zur Vorhersage vom Kriterium beiträgt (also folgt $\mathbb{V}ar[\varepsilon^*]<\mathbb{V}ar[\varepsilon]$). Wir machen uns diese Gegebenheit zu nutze und quantifizieren die relative Veränderung in der Varianz des Residuums und nennen diese Pseudo-$R^2$:
 $$R^2_\text{pseudo:within}=\frac{\mathbb{V}ar[\varepsilon]-\mathbb{V}ar[\varepsilon^*]}{\mathbb{V}ar[\varepsilon]}=1-\frac{\mathbb{V}ar[\varepsilon^*]}{\mathbb{V}ar[\varepsilon]}.$$
 
 
-In der Realität ist es so, dass Prädiktoren je nach Zentrierung auch within und between Variation von $Y$ erklären, da der Mittelwert eines Clusters between-Information enthält und die Abweichungen von diesem Mittelwert within-Informationen. Somit ist es so, dass ein nichtzentrierter Prädiktor sowohl within als auch between Variation am Kriterium erklärt. HInzu kommt dann noch die Schätzungenauigkeit.
+In der Realität ist es so, dass Prädiktoren je nach Zentrierung auch within und between Variation von $Y$ erklären, da der Mittelwert eines Clusters between-Information enthält und die Abweichungen von diesem Mittelwert within-Informationen. Somit ist es so, dass ein nicht-zentrierter Prädiktor sowohl within als auch between Variation am Kriterium erklärt. Hinzu kommt dann noch die Schätzungenauigkeit.
 
 Um Pseudo-$R^2$ in `R` umzusetzen, müssen wir lediglich die Residualvarianzen der beiden Modelle abgreifen und verrechnen:
 ```{r}
@@ -279,12 +284,12 @@ Insgesamt können also `r round((1 - summary(m1)$sigma^2/summary(m0)$sigma^2)*10
 
 
 ### Pseudo $R^2$: between
-Genauso wie wir soeben die relative Veränderung der (within) Residualvarianz quantifiziert haben, können wir auch die relative Veränderung der Interzeptvariation (between Variation, Variation, die auf Unterschiede des Clusters/zwischen Klassen zurückzuführen sind) bestimmen. Da wir die Motivation am Gruppenmittelwert zentriert haben, sind einige Unterschiede zwischen den Klassen immernoch in der Variable `Motivation_c` enthalten (dazu später mehr im Abschnitt zur [Datenzentrierung](#Datenzentrierung)). Diesen Varianzanteil wollen wir nun quantifizieren und vergleichen dazu die beiden Modelle `m0` und `m1`:
+Genauso wie wir soeben die relative Veränderung der (within) Residualvarianz quantifiziert haben, können wir auch die relative Veränderung der Interzeptvariation (between Variation, Variation, die auf Unterschiede des Clusters/zwischen Klassen zurückzuführen sind) bestimmen. Da wir die Motivation am Gruppenmittelwert zentriert haben, sind einige Unterschiede zwischen den Klassen immer noch in der Variable `Motivation_c` enthalten (dazu später mehr im Abschnitt zur [Datenzentrierung](#Datenzentrierung)). Diesen Varianzanteil wollen wir nun quantifizieren und vergleichen dazu die beiden Modelle `m0` und `m1`:
 \begin{align}
 \texttt{m0}:&\quad \mathbb{V}ar[Y] = \mathbb{V}ar[u_0]+\mathbb{V}ar[\varepsilon]\\
 \texttt{m1}:&\quad \mathbb{V}ar[Y] = \mathbb{V}ar[u_0^*]+\gamma_{10}^2\mathbb{V}ar[X_1]+\mathbb{V}ar[\varepsilon^*]
 \end{align}
-Falls der Prädiktor der Motivation (grand-mean zentriert) auch noch Unterschiede zwischen den Klassen enthält, dann sollten gelten: $\mathbb{V}ar[u_0^*]<\mathbb{V}ar[u_0]$; also sollte die Interzeptvariation von `m0` zu `m1` kleiner werden. Analog zum Pseudo-$R^2$ zuvor wird Pseudo-$R^2$ für die between Ebene (L2) definiert:
+Falls der Prädiktor der Motivation (Grand-Mean zentriert) auch noch Unterschiede zwischen den Klassen enthält, dann sollten gelten: $\mathbb{V}ar[u_0^*]<\mathbb{V}ar[u_0]$; also sollte die Interzeptvariation von `m0` zu `m1` kleiner werden. Analog zum Pseudo-$R^2$ zuvor wird Pseudo-$R^2$ für die between Ebene (L2) definiert:
 $$R^2_\text{pseudo:between}=\frac{\mathbb{V}ar[u_0]-\mathbb{V}ar[u_0^*]}{\mathbb{V}ar[u_0]}=1-\frac{\mathbb{V}ar[u_0^*]}{\mathbb{V}ar[u_0]}.$$
 Wie wir die Interzeptvarianz erhalten, hatten wir uns schon angesehen, als es um den ICC ging. Folglich berechnen wir $R^2_\text{pseudo:between}$ so:
 ```{r}
@@ -297,10 +302,10 @@ VarU1 <- VarCorr(m1)$schulklasse[1]  # Varianz des Interzepts im Modell mit Moti
 1 - VarCorr(m1)$schulklasse[1]/VarCorr(m0)$schulklasse[1]
 ```
 
-Am Ergebnis erkennen wir auch, wieso es sich hierbei nur um ein Pseudo-$R^2$ handelt, denn die Varianz des Interzepts steigt tatsächlich von `m0` zu `m1`.  Dies kann auf die simultane Schätzung der beiden Varianzen mit Hilfe von (restricted) Maximum Likelihood zurückgeführt werden, welche nicht nur von den Varianzen der Mittelwerte abhängt, sondern auch vom Stichprobenfehler (vgl. Eid, et al., 2017, S. 752). In so einem Fall wird Pseudo-$R^2$ auf 0 gesetzt. Folglich gehen wir davon aus, dass der erklärte between Varianzanteil der Matheleistung durch die Motivation 0 ist. Diesem Problem kann durch die zusätzliche Gewichtung der Varianzen durch die Anzahl der Level 1 und Level 2 Einheiten entgegegengewirkt werden, was Sie vielleicht beim Schreiben Ihrer Masterarbeit dann durchführen könnten (vgl. Eid, et al., 2017, S. 752 und folgend).
+Am Ergebnis erkennen wir auch, wieso es sich hierbei nur um ein Pseudo-$R^2$ handelt, denn die Varianz des Interzepts steigt tatsächlich von `m0` zu `m1`.  Dies kann auf die simultane Schätzung der beiden Varianzen mit Hilfe von (restricted) Maximum Likelihood zurückgeführt werden, welche nicht nur von den Varianzen der Mittelwerte abhängt, sondern auch vom Stichprobenfehler (vgl. Eid, et al., 2017, S. 752). In so einem Fall wird Pseudo-$R^2$ auf 0 gesetzt. Folglich gehen wir davon aus, dass der erklärte between Varianzanteil der Matheleistung durch die Motivation 0 ist. Diesem Problem kann durch die zusätzliche Gewichtung der Varianzen durch die Anzahl der Level 1 und Level 2 Einheiten entgegengewirkt werden, was Sie vielleicht beim Schreiben Ihrer Masterarbeit dann durchführen könnten (vgl. Eid, et al., 2017, S. 752 und folgend).
 
 ### Pseudo $R^2$: between and within
-Zum Schluss bestimmen wir nun noch den Anteil der Variation des Kriteriums der insgesamt (between und within) durch den Prädiktor erklärt werden kann. Dazu schauen wir uns die gemeinsame Veränderung der Varianzen auf Level 1 (within) und Level 2 (between) an. Erklärt der Prädiktor substantielle Anteile, so sollte gelten: $\mathbb{V}ar[u_0^*]+\mathbb{V}ar[\varepsilon^*]<\mathbb{V}ar[u_0]+\mathbb{V}ar[\varepsilon]$; also sollte die gesamte nichterklärte Varianz vom Kriterium von `m0` zu `m1` kleiner werden! Die relative Veränderung quantifizieren wir mit Hilfe von Pseudo-$R^2$ für between und within:
+Zum Schluss bestimmen wir nun noch den Anteil der Variation des Kriteriums der insgesamt (between und within) durch den Prädiktor erklärt werden kann. Dazu schauen wir uns die gemeinsame Veränderung der Varianzen auf Level 1 (within) und Level 2 (between) an. Erklärt der Prädiktor substantielle Anteile, so sollte gelten: $\mathbb{V}ar[u_0^*]+\mathbb{V}ar[\varepsilon^*]<\mathbb{V}ar[u_0]+\mathbb{V}ar[\varepsilon]$; also sollte die gesamte nicht erklärte Varianz vom Kriterium von `m0` zu `m1` kleiner werden! Die relative Veränderung quantifizieren wir mit Hilfe von Pseudo-$R^2$ für between und within:
 \begin{align*}
 R^2_\text{pseudo:bw}&=\frac{(\mathbb{V}ar[u_0]+\mathbb{V}ar[\varepsilon])-(\mathbb{V}ar[u_0^*]+\mathbb{V}ar[\varepsilon^*])}{\mathbb{V}ar[u_0]+\mathbb{V}ar[\varepsilon]}\\
 &=1-\frac{\mathbb{V}ar[u_0^*]+\mathbb{V}ar[\varepsilon^*]}{\mathbb{V}ar[u_0]+\mathbb{V}ar[\varepsilon]}.
@@ -336,14 +341,14 @@ Diesmal wird der Abschnitt `Random effects` erweitert um die Varianz des Effekts
 
 ### Test des Zufallseffekts
 
-Um zu Testen, ob die Varianz des Motivationseffekts sigifikant wird, wird das Modell `m1` ohne *random slope* mit dem Modell `m2` mit *random slope* verglichen. Dies machen wir mit Hilfe der `anova` Funktion, welche in `R` dazu genutzt wird, um Modelle zu vergleichen. Ihr müssen wir zunächst das restriktivere Modell (mit weniger $df$) übergeben und als 2. Argument das weniger restriktive Modell. Außerdem wählen wir explizit die Methode, mit welcher die Modelle verglichen werden sollen via `test = "LRT"`. Somit verwenden wir den Likelihood-Ratio-Test:
+Um zu testen, ob die Varianz des Motivationseffekts signifikant wird, wird das Modell `m1` ohne *random slope* mit dem Modell `m2` mit *random slope* verglichen. Dies machen wir mit Hilfe der `anova` Funktion, welche in `R` dazu genutzt wird, um Modelle zu vergleichen. Hierbei ist es essentiell, dass wir zuvor das Paket `lmerTest` geladen haben, da es sonst zu fehlerhaften Signifikanztests kommen kann.  Der `anova`-Funktion müssen wir zunächst das restriktivere Modell (mit weniger $df$) übergeben und als zweites Argument das weniger restriktive Modell. Außerdem wählen wir explizit die Methode, mit welcher die Modelle verglichen werden sollen via `test = "LRT"`. Somit verwenden wir den Likelihood-Ratio-Test: Dieser hat ohne das zusätzliche Laden des `lmerTest`-Pakets allerdings das Problem, dass der $\alpha$-Fehler zu groß sein kann, wenn wir Varianzen  auf Signifikanz prüfen. Dies liegt daran, dass Varianzen nicht negativ sein können, wir daher eine gerichtete Hypothese formulieren müssen und daher den $p$-Wert eines Varianzvergleichs in MLM mittels LRT durch zwei teilen müssen. Dies gilt allerdings ausschließlich für Varianzen (vgl Eid, et al., 2017, Seite 749 und folgend). Da aber automatisch mit der Random Slope auch die Kovarianz zwischen Interzept und Slope in `lmer` hinzugefügt wird, stimmt auch das wiederum nicht. _Machen wir uns es daher einfach und verwenden das `lmerTest`-Paket!_ Das Laden des Pakets `lmerTest` benutzt eine Misch-$\chi^2$-Verteilung, um diesem Problem aus dem Weg zu gehen. Allerdings müssen wir hierzu zusätzlich noch `refit = F` wählen und so der `anova`-Funktion zu sagen, dass REML-Schätzungen (und damit die Korrektur der Verteilungen wegen des Testens der Varianzen) verwendet werden sollen. Außerdem könnten Sie auch die `ranova` Funktion des `lmerTest`-Pakets nutzen, um alle Random-Effekte eines Modells zu prüfen. Sehen Sie selbst, beide Tests kommen zu selben Ergebnis (für über diesen Kurs hinausgehende Literatur zu diesem Thema siehe bspw. dem dazu erschienen [`r fontawesome::fa("graduation-cap")` Artikel](https://www.jstatsoft.org/article/view/v082i13)). 
 
 ```{r}
-anova(m1, m2, test = "LRT")
+anova(m1, m2, test = "LRT", refit = F) 
+ranova(m2)
 ```
 
-Der Modellvergleichsoutput enthält folgende Informationen (dieser ist annähernd identisch aufgebaut und enthält jeweils unterschiedliche Teststatistiken, je nach dem welchen Test wir anfordern - bspw. bei der Regression würde Omnibustest/F-Test verwendet werden, entsprechend stünde dort die $F$-Statistik).
-Zunächst erhalten wir die Warnung, dass das Modell erneut mit ML geschätzt werden muss, damit eine Likelihood-Differenz einfach bestimmt werden kann (`refitting model(s) with ML (instead of REML)`).
+Die LRT-Teststatistik (empirischer $\chi^2$-Wert) liegt bei beiden Methoden bei exakt dem selben Ergebnis: $\chi^2(df=2)=461.51$. Wir schauen uns den Output der `anova`-Funktion genauer an: Der Modellvergleichsoutput enthält folgende Informationen (dieser ist annähernd identisch aufgebaut und enthält jeweils unterschiedliche Teststatistiken, je nach dem welchen Test wir anfordern - bspw. bei der Regression würde Omnibustest/F-Test verwendet werden, entsprechend stünde dort die $F$-Statistik).
 
 ```{r, echo=F}
 cat('Data: StudentsInClasses
@@ -354,16 +359,16 @@ m2: MatheL ~ 1 + Motivation_c + (1 + Motivation_c | schulklasse)')
 gibt uns an, welche Daten verwendet werden und welche Modelle verglichen werden. Hier sollte das komplexere Modell an 2. Stelle stehen, da sonst die Likelihood-Differenz negativ sein könnte.
 
 ```{r, echo = F}
-cat('   npar    AIC    BIC  logLik deviance  Chisq Df Pr(>Chisq)
-m1    4 6240.1 6259.1 -3116.1   6232.1
-m2    6 5784.9 5813.4 -2886.5   5772.9 459.18  2  < 2.2e-16 ***
+cat('    npar    AIC    BIC  logLik deviance  Chisq Df Pr(>Chisq)    
+ m1    4 6239.1 6258.1 -3115.6   6231.1                         
+ m2    6 5781.6 5810.1 -2884.8   5769.6 461.51  2  < 2.2e-16 ***
 ---
 Signif. codes:  0 \'***\' 0.001 \'**\' 0.01 \'*\' 0.05 \'.\' 0.1 \' \' 1')
 ```
 
-gibt uns Kennwerte zum Modellvergleich an. Ganz vorne stehen die Namen der Modelle (der Objekte), die verglichen werden. `npar` gibt die zu schätzenden Parameter an. Für das Modell `m1` ist dies $\gamma_{00},\gamma_{10}$ (fixed) und $\mathbb{V}ar[u_0],\mathbb{V}ar[\varepsilon]$ (random), während für `m2` $\gamma_{00},\gamma_{10}$ (fixed) und $\mathbb{V}ar[u_0], \mathbb{V}ar[u_1], \mathbb{C}ov[u_0,u_1],\mathbb{V}ar[\varepsilon]$ (random) geschätzt werden müssen. Es kommen also die Varianz von $u_1$ sowie die Kovarianz zwischen $u_0$ und $u_1$ hinzu. Der `AIC` (Akaike's Information Criterion) sowie der `BIC` (Bayes' Information Criterion) sind Informationskriterien, die die Komplexität des Modells sowie die Stichprobengröße mit einbeziehen. Kleinere Werte stehen für besseren Modell-Fit. Allerdings kann keine Aussage über die Signifikanz einer möglichen Differenzen in diesen getroffen werden. `logLik` gibt die Loglikelihood der Modelle an. Größere Werte sind wünschenswert. `deviance` ist hier einfach $-2*$`logLik` und entspricht quasi der Abweichung der Daten vom Modell (kleine Werte sind zu bevorzugen). `Chisq` ist die Likelihood-Differenz $\chi^2_{emp}=-2(LL_{m_1}-LL_{m_2})=D_{m_1}-D_{m_2}$, die sich entwender über -2 mal der Log-likelihood ($LL$) Differenz bestimmen lässt oder via der Differenz der Devianzen ($D$). `Df` gibt die Freiheitsgerade der Likelihood-Differenz an. Dies ist hier gerade die Differenz der Anzahl der Parameter der beiden Modelle (siehe `npar`). `Pr(>Chisq)` ist der zugehörige $p$-Wert.
+gibt uns Kennwerte zum Modellvergleich an. Ganz vorne stehen die Namen der Modelle (der Objekte), die verglichen werden. `npar` gibt die zu schätzenden Parameter an. Für das Modell `m1` ist dies $\gamma_{00},\gamma_{10}$ (fixed) und $\mathbb{V}ar[u_0],\mathbb{V}ar[\varepsilon]$ (random), während für `m2` $\gamma_{00},\gamma_{10}$ (fixed) und $\mathbb{V}ar[u_0], \mathbb{V}ar[u_1], \mathbb{C}ov[u_0,u_1],\mathbb{V}ar[\varepsilon]$ (random) geschätzt werden müssen. Es kommen also die Varianz von $u_1$ sowie die Kovarianz zwischen $u_0$ und $u_1$ hinzu. Der `AIC` (Akaike's Information Criterion) sowie der `BIC` (Bayes' Information Criterion) sind Informationskriterien, die die Komplexität des Modells sowie die Stichprobengröße mit einbeziehen. Kleinere Werte stehen für besseren Modell-Fit. Allerdings kann keine Aussage über die Signifikanz einer möglichen Differenzen in diesen getroffen werden. `logLik` gibt die Loglikelihood (hier _restricted Loglikelihood_) der Modelle an. Größere Werte sind wünschenswert. `deviance` ist hier einfach $-2*$`logLik` und entspricht quasi der Abweichung der Daten vom Modell (kleine Werte sind zu bevorzugen). `Chisq` ist die Likelihood-Differenz $\chi^2_{emp}=-2(LL_{m_1}-LL_{m_2})=D_{m_1}-D_{m_2}$, die sich entweder über -2 mal der Loglikelihood ($LL$) Differenz bestimmen lässt oder via der Differenz der Devianzen ($D$). `Df` gibt die Freiheitsgrade der Likelihood-Differenz an. Dies ist hier gerade die Differenz der Anzahl der Parameter der beiden Modelle (siehe `npar`). `Pr(>Chisq)` ist der zugehörige $p$-Wert.
 
-**Interpretation**: Modell `m1` passt signifikant schlechter zu den Daten, $\chi^2(2)=459.18; p<.001$, also ist die Varianz des Effekts sigifikant von null verschieden. Wir entscheiden uns somit für ein Modell inklusive *Random Slope* für die Motivation! Hypothese 2 wird somit durch die Daten gestützt. Dies bedeutet, dass sich die Beziehung zwischen Motivation und Matheleistung über die Klassenhinweg unterscheidet (in manchen Klassen hängt die Matheleistung somit stärker  von der Lernmotivation eines Kindes ab als in anderen Schulklassen).
+**Interpretation**: Modell `m1` passt signifikant schlechter zu den Daten, $\chi^2(df=2)=461.51; p<.001$, also ist die Varianz des Effekts signifikant von Null verschieden. Wir entscheiden uns somit für ein Modell inklusive *Random Slope* für die Motivation! Hypothese 2 wird somit durch die Daten gestützt. Dies bedeutet, dass sich die Beziehung zwischen Motivation und Matheleistung über die Klassen hinweg unterscheidet (in manchen Klassen hängt die Matheleistung somit stärker  von der Lernmotivation eines Kindes ab als in anderen Schulklassen).
 
 #### Grafische Veranschaulichung des Zufallseffekts
 
@@ -431,7 +436,7 @@ KlassenG    -0.971
 Motivatin_c  0.003 -0.003')
 ```
 
-Diese Informationen sollten nicht inhaltlich interpretiert werden, sondern geben Auskunkft über die Schätzung der Parameter (wenn REML verwendet wird, wird in einem zweistufigen Verfahren zunächst die zufälligen Effekte geschätzt und dann werden die festen Effekte geschätzt und eine Signifikanzentscheidung ist für die festen Effekte möglich). Die Schätzung des Interzepts korreliert sehr hoch negativ mit der Schätzung des Koeffizienten der Klassengröße, was daran liegen kann, dass die Klassengröße keinerlei Vorhersagekraft liefert.
+Diese Informationen sollten nicht inhaltlich interpretiert werden, sondern geben Auskunft über die Schätzung der Parameter (wenn REML verwendet wird, wird in einem zweistufigen Verfahren zunächst die zufälligen Effekte geschätzt und dann werden die festen Effekte geschätzt und eine Signifikanzentscheidung ist für die festen Effekte möglich). Die Schätzung des Interzepts korreliert sehr hoch negativ mit der Schätzung des Koeffizienten der Klassengröße, was daran liegen kann, dass die Klassengröße keinerlei Vorhersagekraft liefert.
 
 **Interpretation**: Bei gleichzeitiger Berücksichtigung der Motivation ist der Effekt der Klassengröße nicht signifikant, bzw. über die Motivation hinaus ist der Effekt der Klassengröße nicht bedeutsam.
 
@@ -443,11 +448,11 @@ m3b <- lmer(MatheL ~ 1 + KlassenG_c + Motivation_c + (1 | schulklasse), data=Stu
 summary(m3b)
 ```
 
-**Interpretation**: Die Zentrierung hat keinerlei Auswirkungen auf die Signifikanzentscheidung bzgl. der Klassengröße. Die Schätzung des durchschnittlichen Intercepts ($\gamma_{00}$) ändert sich. Insgesamt findet Hypothese 3 keine Evidenz in den Daten. Da der Effekt nicht signifikant ist, schauen wir uns auch nicht die erklärte between-Variation an.
+**Interpretation**: Die Zentrierung hat keinerlei Auswirkungen auf die Signifikanzentscheidung bzgl. der Klassengröße. Die Schätzung des durchschnittlichen Interzepts ($\gamma_{00}$) ändert sich. Insgesamt findet Hypothese 3 keine Evidenz in den Daten. Da der Effekt nicht signifikant ist, schauen wir uns auch nicht die erklärte between-Variation an.
 
 ## Hypothese 4: Wechselwirkung zwischen Klassengröße und Motivation
 
-Eine Wechselwirkung zwischen zwei Prädiktoren kann mit der Syntax `X1:X2` in das Modell aufgenommen werden: `Y ~ X1 + X2 + X1:X2`. Eine Kurzschreibweise hierfüre ist `Y ~ X1*X2`. Insbesondere für dieses Modell empfiehlt es sich, die Klassengröße zu zentrieren, da eine Klassengröße von null wenig sinnvoll ist und Wechelwirkungen von den Mittelwerten der Variablen abhängen (das haben wir im Abschnitt zuvor schon erledigt!). Wir ergänzen das Modell `m3b`  um die Wechselwirkung zwischen (zentrierter) Klassengröße und (zentrierter) Motivation:
+Eine Wechselwirkung (also eigentlich ein Produkt von Prädiktoren) zwischen zwei Prädiktoren kann mit der Syntax `X1:X2` in das Modell aufgenommen werden: `Y ~ X1 + X2 + X1:X2`. Eine Kurzschreibweise hier für ist `Y ~ X1*X2`. Insbesondere für dieses Modell empfiehlt es sich, die Klassengröße zu zentrieren, da eine Klassengröße von Null wenig sinnvoll ist und Wechselwirkungen von den Mittelwerten der Variablen abhängen (das haben wir im Abschnitt zuvor schon erledigt!). Wir ergänzen das Modell `m3b`  um die Wechselwirkung zwischen (zentrierter) Klassengröße und (zentrierter) Motivation:
 
 ```{r}
 m4 <- lmer(MatheL ~ 1 + KlassenG_c + Motivation_c  + KlassenG_c:Motivation_c + (1 | schulklasse), data=StudentsInClasses)
@@ -486,9 +491,9 @@ Eigentlich würde eine Cross-Level-Interaktion vor allem dann in ein Modell aufg
 m4c <- lmer(MatheL ~ 1 + KlassenG_c + Motivation_c  + KlassenG_c:Motivation_c + (1 + Motivation_c | schulklasse), data=StudentsInClasses)
 summary(m4c)
 
-anova(m4, m4c, test = "LRT")
+anova(m4, m4c, test = "LRT", refit = F)
 ```
-Der Modellvergleich zeigt, dass ein Modell nur mit Klassengröße, Motivation und Interaktion von Klassengröße und Motivation signifikant schlechter zu den Daten passt als ein Modell mit zusätzlicher Random Slope. Final würden wir uns also für ein Modell mit Random Intercept und Random Slope entscheiden, allerdings die Klassengröße als Prädiktor (und Cross-Level Interaktion) herauslassen.
+Der Modellvergleich zeigt, dass ein Modell nur mit Klassengröße, Motivation und Interaktion zwischen Klassengröße und Motivation signifikant schlechter zu den Daten passt als ein Modell mit zusätzlicher Random Slope. Final würden wir uns also für ein Modell mit Random Intercept und Random Slope entscheiden, allerdings die Klassengröße als Prädiktor (und Cross-Level Interaktion) herauslassen.
 
 
 
@@ -508,7 +513,7 @@ Ein Wert von 0 auf $X_{ij}^{**}$ entspricht nun dem Durchschnitt in Cluster/Grup
 
 Um diese Variablen anschließend auch noch sinnvoll hinsichtlich (z.B. Cross-Level-) Interaktionen interpretieren zu können, sollte die Gruppenmittelwertsvariable idealerweise auch noch am zentralen Mittelwert zentriert sein (der zentrale Mittelwert ist gerade auch der Mittelwert dieser Gruppenmittelwertsvariable):
 $$\bar{X}_{\cdot j}^*=\bar{X}_{\cdot j} - \bar{X}_{\cdot \cdot}$$
-Somit entspricht ein Wert von 0 auf dieser Variable gerade einer Erhebung, die dem durchschnittlichen Mittelwert über alle Cluster entspricht. Demnach können wir auch sinnvoll beide zentrierten Variablen auf einmal interpretieren. Wenn eine Person auf der Variable $X_{ij}^{**}$ und auf der Variable $\bar{X}_{\cdot j}^*$ einen Wert von Null aufweist, so bedeutet dies, dass die Ausprägung auf dieser Variable durchschnittlich im Bezug auf das Cluster ist und auch auf die Gesamtstichprobe (wir landen also wieder beim gesamten Durchschnitt über die Stichprobe, können aber Effekte nun im Bezug auf Unterschiede zwischen den einzelnen Gruppe und innerhalb der Gruppen auseinanderdröseln). Folgende Aussagen sind möglich: (Kinder aus) Schulkassen mit durchschnittlich höherer Motivation zeigen insgesamt im Durchschnitt eine höhere Matheleistung (*quasi:* wenn der Durchschnitt der Motivation höher liegt in einer Klasse, so liegt auch der Mittelwert der Matheleistung in dieser Klasse im Mittel höher) und Kinder, die im Vergleich zu ihrer Schulklasse motivierter sind, zeigen ebenfalls eine im Schnitt eine höhere Matheleistung als andere Kinder ihrer Schulklasse. Auch Interaktionen können weitere Einblicke in die Daten bringen. Natürlich könnten diese Effekte auch gegenläufig sein.
+Somit entspricht ein Wert von 0 auf dieser Variable gerade einer Erhebung, die dem durchschnittlichen Mittelwert über alle Cluster entspricht. Demnach können wir auch sinnvoll beide zentrierten Variablen auf einmal interpretieren. Wenn eine Person auf der Variable $X_{ij}^{**}$ und auf der Variable $\bar{X}_{\cdot j}^*$ einen Wert von Null aufweist, so bedeutet dies, dass die Ausprägung auf dieser Variable durchschnittlich im Bezug auf das Cluster ist und auch auf die Gesamtstichprobe (wir landen also wieder beim gesamten Durchschnitt über die Stichprobe, können aber Effekte nun im Bezug auf Unterschiede zwischen den einzelnen Gruppe und innerhalb der Gruppen auseinanderdröseln). Folgende Aussagen sind möglich: (Kinder aus) Schulklassen mit durchschnittlich höherer Motivation zeigen insgesamt im Durchschnitt eine höhere Matheleistung (*quasi:* wenn der Durchschnitt der Motivation höher liegt in einer Klasse, so liegt auch der Mittelwert der Matheleistung in dieser Klasse im Mittel höher) und Kinder, die im Vergleich zu ihrer Schulklasse motivierter sind, zeigen ebenfalls eine im Schnitt eine höhere Matheleistung als andere Kinder ihrer Schulklasse. Auch Interaktionen können weitere Einblicke in die Daten bringen. Natürlich könnten diese Effekte auch gegenläufig sein.
 
 ### Umsetzung in `R`: Group-Mean-Centering
 In `R` sieht das Ganze so aus:
@@ -531,7 +536,7 @@ round(colMeans(StudentsInClasses), 10)
 
 Die Funktion `group.center` aus dem `robumeta`-Paket nimmt uns die Arbeit ab, die Daten händisch an den Gruppenmittelwerten zu zentrieren ($X_{ij}^{**}$). Sie nimmt 2 Argumente entgegen: `var` die Variable, die zentriert werden soll (hier die Motivation), und `grp` die Gruppierungsvariable (hier die Schulklasse). Wir erhalten die Gruppenmittelwerte durch Umstellen der Gleichung: Aus $X_{ij}^{**}=X_{ij}-\bar{X}_{\cdot j}$ folgt, dass auch $\bar{X}_{\cdot j}=X_{ij}-X_{ij}^{**}$ gilt. Zum Schluss wird noch die Gruppierungsvariable zentriert am Gesamtmittelwert: $\bar{X}_{\cdot j}^*=\bar{X}_{\cdot j} - \bar{X}_{\cdot \cdot}$. Den Spaltenmittelwerten entnehmen wir, dass die gruppenzentrierte Variable einen Mittelwert von 0 hat und die zentrierte Gruppenmittelwertsvariable ebenfalls. Außerdem sehen wir hier nochmals, dass der Mittelwert der Motivation gleich dem Mittelwert der Gruppenmittelwertsmotivation ist (`Motivation` vs. `Mot_groupmeans`).
 
-Diese Art der Zentrierung spielt insbesondere in Multi-Level-Analyse mit Messwiederholung von Personen (die Person ist die Clusterung und die L1 Varibale sind die Messungen einer Person) eine wichtige Rolle (siehe auch
+Diese Art der Zentrierung spielt insbesondere in Multi-Level-Analyse mit Messwiederholung von Personen (die Person ist die Clusterung und die L1 Variable sind die Messungen einer Person) eine wichtige Rolle (siehe auch
 [Eid, et al., 2017,](https://hds.hebis.de/ubffm/Record/HEB366849158) Kapitel 20.4).
 
 In [Appendix C](#AppendixC) wird eine Funktion präsentiert, mit welcher wir uns leicht Effekte in Multi-Level-Modellen ansehen können und so bspw. erkennen, wie unterschiedliche within und between Effekte ausfallen können - z.B. dass sie komplett gegenläufig sein können, was gleichzeitig einen wichtigen Vorteil dieser Analysemethode aufzeigt! Es wird auch das Big-Fish Little-Pond Prinzip daran erläutert.
@@ -688,7 +693,7 @@ plot_within_between_effects <- function(nb = 50, nw = 50, between_effect = 1, wi
 }
 ```
 
-Die Funktion nimmt 4 Argumente entgegben. `nb` die Anzahl an Clustern (Default ist 50), `nw` Anzahl an Erhebungen innerhalb eines Clusters (Default ist 50), `between_effect` Effekt zwischen den Clustern (Default ist 1, hier ist es sinnvoll nur Werte zwischen -1 und 1 zu nehmen) und  `within_effect` ist der within Gruppeneffekt (Default ist 1, hier ist es sinnvoll nur Werte zwischen -1 und 1 zu nehmen). Bspw. können wir nun ganz einfach eine Grafik für das Simpson Paradox (oder auch den Ökologischen Fehlschluss) erstellen (siehe auch [Eid, et al., 2017,](https://hds.hebis.de/ubffm/Record/HEB366849158) S. 729-730). Hier wird global betrachtet ein anderer Effekt gefunden, wie innerhalb der Gruppen. Wir können dies verstehen, indem wir den Between-Effekt bspw. auf `-1` setzen und den Within-Effekt auf `1`:
+Die Funktion nimmt 4 Argumente entgegen. `nb` die Anzahl an Clustern (Default ist 50), `nw` Anzahl an Erhebungen innerhalb eines Clusters (Default ist 50), `between_effect` Effekt zwischen den Clustern (Default ist 1, hier ist es sinnvoll nur Werte zwischen -1 und 1 zu nehmen) und  `within_effect` ist der within Gruppeneffekt (Default ist 1, hier ist es sinnvoll nur Werte zwischen -1 und 1 zu nehmen). Bspw. können wir nun ganz einfach eine Grafik für das Simpson Paradoxon (oder auch den Ökologischen Fehlschluss) erstellen (siehe auch [Eid, et al., 2017,](https://hds.hebis.de/ubffm/Record/HEB366849158) S. 729-730). Hier wird global betrachtet ein anderer Effekt gefunden, wie innerhalb der Gruppen. Wir können dies verstehen, indem wir den Between-Effekt bspw. auf `-1` setzen und den Within-Effekt auf `1`:
 
 ```{r}
 plot_within_between_effects(nb = 50, nw = 50, between_effect = -1, within_effect = 1)
