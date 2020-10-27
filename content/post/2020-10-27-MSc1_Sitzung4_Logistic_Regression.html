@@ -1,0 +1,589 @@
+---
+title: Logistische Regression
+date: '2020-10-27'
+slug: logistische-regression
+categories:
+  - MSc1
+tags:
+  - dichotom
+  - GLM
+  - generalisiertes lineares Modell
+  - Regression
+  - Linkfunktion
+  - Maximum Likelihood
+  - Likelihood Ratio Test
+subtitle: 'Generalisiertes lineares Modell: dichotome abhängige Variablen'
+summary: ''
+authors: [irmer]
+lastmod: '2020-10-27T08:32:21+02:00'
+featured: no
+header:
+  image: "/header/FEI_Sitzung4_post.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/776748)"
+projects: []
+---
+
+
+
+<div id="einleitung" class="section level2">
+<h2>Einleitung</h2>
+<p>In dieser Sitzung wollen wir dichotome abhängige Variablen mit der logistischen Regression (vgl. bspw. <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, Gollwitzer &amp; Schmitt, 2017</a>, Kapitel 22 und <a href="https://hds.hebis.de/ubffm/Record/HEB371183324">Pituch und Stevens, 2016,</a> Kapitel 11) analysieren. Diese Daten sind dahingehend speziell, dass die abhängige Variable nur zwei Ausprägungen hat, welche in der Regel mit <span class="math inline">\(0\)</span> und <span class="math inline">\(1\)</span> kodiert werden. Dies führt dazu, dass der Wertebereich der abhängigen Variable so gut wie gar nicht durch die Vorhersage innerhalb einer normalen Regressionsanalyse “getroffen” wird, die Residuen sind nicht länger unabhängig von der Ausprägung der abhängigen Variablen sind und auch die Normalverteilungsannahme der Residuen verletzt ist. Wir wollen uns ein fiktives Datenbeispiel (Datensatz <code>Titanic</code> aus dem gleichnamigen .rda File <code>Titanic.rda</code>) ansehen, in welchem die Überlebenswahrscheinlichkeit des Titanicunglücks durch das Alter sowie die Klassenzugehörigkeit auf dem Schiff vorhergesagt werden soll. Sie können den <a href="https://pandar.netlify.app/post/Titanic.rda"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> Datensatz “Titanic.rda” hier herunterladen</a>.</p>
+<div id="daten-laden" class="section level3">
+<h3>Daten laden</h3>
+<p>Wir laden zunächst die Daten: entweder lokal von Ihrem Rechner:</p>
+<pre class="r"><code>load(&quot;C:/Users/Musterfrau/Desktop/Titanic.rda&quot;)</code></pre>
+<p>oder wir laden sie direkt über die Website:</p>
+<pre class="r"><code>load(url(&quot;https://pandar.netlify.app/post/Titanic.rda&quot;))</code></pre>
+<p>Nun sollte in <code>R</code>-Studio oben rechts in dem Fenster unter der Rubrik “Data” unser Datensatz mit dem Namen “<em>Titanic</em>” erscheinen.</p>
+</div>
+<div id="übersicht-über-die-daten" class="section level3">
+<h3>Übersicht über die Daten</h3>
+<p>Wir wollen uns einen Überblick über die Daten verschaffen:</p>
+<pre class="r"><code>head(Titanic)</code></pre>
+<pre><code>##   survived sex age pclass
+## 1        1   1  29      1
+## 2        1   2  48      1
+## 3        0   2  39      1
+## 4        0   2  71      1
+## 5        1   1  24      1
+## 6        1   1  26      1</code></pre>
+<p>Die Variable <code>survived</code> gibt an, ob eine Person das Unglück überlebt hat. <code>sex</code> kodiert das Geschlecht, wobei <code>1</code> für weiblich und <code>2</code> für männlich steht. Die Variablen <code>age</code> und <code>pclass</code> beschreiben das Alter und die Klasse, in der die Person reiste (Klasse 1 bis 3).</p>
+</div>
+<div id="hypothesen" class="section level3">
+<h3>Hypothesen</h3>
+<p>Während das Schiff sank, galt die Devise: <em>Frauen und Kinder zuerst!</em> Zumindest wird einem dies vermittelt, wenn man sich den gleichnamigen Spielfilm von James Cameron aus dem Jahr 1997 mit Kate Winslet und Leonardo DiCaprio in den Hauptrollen ansieht. Außerdem waren die Klassen an Board so angeordnet, dass die erste Klasse oberhalb der 2. lag, welche wiederum oberhalb der 3. Klasse lag. Daher hatten es Passagiere aus der 3. Klasse schwerer an Deck des Schiffs zu gelangen. Folglich sind unsere Hypothesen die Folgenden:</p>
+<ol style="list-style-type: decimal">
+<li>Das Überleben des Unglücks hängt vom Alter ab</li>
+<li>Das Überleben des Unglücks hängt vom Geschlecht ab</li>
+<li>Das Überleben des Unglücks hängt von der Klasse an Bord ab</li>
+</ol>
+</div>
+</div>
+<div id="modellspezifikation" class="section level2">
+<h2>Modellspezifikation</h2>
+<p>Um das Überleben zu modellieren, könnten wir eine Regressionsanalyse heranziehen, und das Überleben (<code>survived</code>) durch bspw. das Alter (<code>age</code>) vorhersagen:</p>
+<ul>
+<li><code>lm(survived ~ 1 + age, data = Titanic)</code></li>
+</ul>
+<p>In dieser Analyse sind einige Annahmen der Regressionsanalyse verletzt: Normalverteilung der Residuen, Homoskedastizität und auch Unabhängigkeit der Residuen. Aus diesem Grund wollen wir die logistische Regression heranziehen. In einer Regressionsanalyse wird der Mittelwert gegeben die unabhängigen Variablen modelliert. Es handelt sich also um einen bedingten Mittelwert. Dies ist daher ersichtlich, dass die Residuen im Mittel zu jeder Ausprägung von <span class="math inline">\(\hat{y}\)</span> gerade Null sind und somit im Mittel immer der vorhergesagte Wert eintritt. Gleiches wollen wir auf eine 0-1-Variable verallgemeinern. Wenn Sie einen Münzwurf durchführen und Kopf als 1 und Zahl als 0 kodieren, so erhalten Sie eine Zahlenfolge von 0en und 1en. Wenn Sie nun die relative Häufigkeit (also die Wahrscheinlichkeit) untersuchen wollen, dass Kopf auftritt, so müssen Sie lediglich den Mittelwert über alle 0en und 1en bestimmen. Dieser Mittelwert ist dann genau die Wahrscheinlichkeit, dass die Münze Kopf zeigt. In folgendem Beispiel ist die relative Häufigkeit Kopf zu werfen 25%:</p>
+<pre class="r"><code>Münze &lt;- c(0, 1, 0, 0)
+mean(Münze)</code></pre>
+<pre><code>## [1] 0.25</code></pre>
+<p>Diese 25% sind selbstverständlich nur eine Schätzung für die wahre Wahrscheinlichkeit Kopf zu werfen. In einer idealen Welt würden wir davon ausgehen, dass die Wahrscheinlichkeit bei 50% liegt!</p>
+<p>Im Grunde wird bei der logistischen Regression die Wahrscheinlichkeit des Erfolgs (was auch immer das ist: Kopf bei einem Münzwurf, Überleben eines Unglücks ja/nein, befördert ja/nein, erkrankt ja/nein, etc.) modelliert, welche eigentlich nur wieder dem Mittelwert entspricht (bzw. der bedingten Erwartung). Die Funktion in <code>R</code> hierzu heißt <code>glm</code>, was für <strong>G</strong>eneralized <strong>L</strong>inear <strong>M</strong>odel steht. Um den Wertebereich der AV einzuhalten, wird die Erfolgswahrscheinlichkeit so transformiert, dass sie linear durch die UVs vorhergesagt werden kann, aber die Wahrscheinlichkeit trotzdem zwischen 0 und 1 liegt.</p>
+<p><span class="math display">\[\begin{align*}
+p &amp;= \mathbb{P}(Y = 1 | X_1 = x_1, \dots) = \frac{e^{\beta_0 + \beta_1x_1 + \dots}}{1 + e^{\beta_0 + \beta_1x_1 + \dots}}\\[2ex]
+odds(p) &amp; = \frac{\mathbb{P}(Y = 1 | X_1 = x_1, \dots)}{1-\mathbb{P}(Y = 1 | X_1 = x_1, \dots)} = e^{\beta_0 + \beta_1x_1 + \dots}\\[2ex]
+logit(p) &amp;  = \ln\left(\frac{\mathbb{P}(Y = 1 | X_1 = x_1, \dots)}{1-\mathbb{P}(Y = 1 | X_1 = x_1, \dots)}\right) = \beta_0 + \beta_1x_1 + \dots
+\end{align*}\]</span></p>
+<p>Eine Schreibweise für die normale Regression ist <span class="math inline">\(\mathbb{E}[Y | X_1 = x_1,\dots]=\beta_0 + \beta_1x_1 + \dots\)</span>. Gilt für <span class="math inline">\(Y=0,1\)</span>, so ist <span class="math inline">\(\mathbb{E}[Y] = \mathbb{P}(Y=1)=p\)</span>, also der Mittelwert über <span class="math inline">\(Y\)</span> ist die Wahrscheinlichkeit, dass <span class="math inline">\(Y=1\)</span> (wie wir oben am Münzwurfbeispiel gesehen haben). Somit ist ersichtlich, dass bei der logistischen Regression im Grunde nichts anderes als der Mittelwert/die Erwartung, dass <span class="math inline">\(Y=1\)</span> ist, modelliert wird.</p>
+</div>
+<div id="analysen-mit-dem-beispieldatensatz" class="section level2">
+<h2>Analysen mit dem Beispieldatensatz</h2>
+<p>Um die Probleme einer normalen Regression besser zu erkennen, führen wir eine solche durch.</p>
+<div id="hypothese-1-alter-als-prädiktor" class="section level3">
+<h3>Hypothese 1: Alter als Prädiktor</h3>
+<p>Für die erste Hypothese müssen wir den Einfluss des Alters auf die Überlebenswahrscheinlichkeit (im logistischen Regressionsfall) bzw. des Überlebens (im linearen Regressionsfall) bestimmen.</p>
+<div id="lineares-modell-einfache-regressionsanalyse" class="section level4">
+<h4>Lineares Modell: Einfache Regressionsanalyse</h4>
+<p>Wir nennen unser Modell zur Modellierung des Überlebens <code>reg_model</code>.</p>
+<pre class="r"><code>reg_model &lt;- lm(survived ~ 1 + age, data = Titanic)
+summary(reg_model)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = survived ~ 1 + age, data = Titanic)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -0.4642 -0.4156 -0.3796  0.5806  0.6867 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  0.464814   0.034973  13.291   &lt;2e-16 ***
+## age         -0.001894   0.001054  -1.796   0.0727 .  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.4912 on 1044 degrees of freedom
+## Multiple R-squared:  0.003082,   Adjusted R-squared:  0.002127 
+## F-statistic: 3.227 on 1 and 1044 DF,  p-value: 0.07271</code></pre>
+<p>Laut der einfachen Regressionsanalyse scheint das Alter nicht mit dem Überleben des Unglücks zusammenzuhängen. Wir führen trotzdem noch einige Analysen zur Diagnostik durch.</p>
+<pre class="r"><code>library(car) # nötiges Paket laden</code></pre>
+<pre class="r"><code>avPlots(model = reg_model, pch = 16)</code></pre>
+<p><img src="/post/2020-10-27-MSc1_Sitzung4_Logistic_Regression_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>residualPlots(model = reg_model, pch = 16)</code></pre>
+<p><img src="/post/2020-10-27-MSc1_Sitzung4_Logistic_Regression_files/figure-html/unnamed-chunk-7-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre><code>##            Test stat Pr(&gt;|Test stat|)  
+## age           2.3402          0.01946 *
+## Tukey test    2.3402          0.01927 *
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>library(MASS)# nötiges Paket laden
+res &lt;- studres(reg_model) # Studentisierte Residuen als Objekt speichern
+hist(res, freq = F)
+xWerte &lt;- seq(from = min(res), to = max(res), by = 0.01)
+lines(x = xWerte, y = dnorm(x = xWerte, mean = mean(res), sd = sd(res)), lwd = 3)</code></pre>
+<p><img src="/post/2020-10-27-MSc1_Sitzung4_Logistic_Regression_files/figure-html/unnamed-chunk-7-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Den Verteilungen der Residuen können wir deutlich entnehmen, dass diese höchst systematisch ausfallen (mit steigendem Alter fallen die Residuen linear ab) und auch die Normalverteilungsannahme ist deutlich verletzt. Eine Regression erscheint nicht sinnvoll. Den Ergebnisse der Signifikanzentscheidungen kann nicht getraut werden.</p>
+</div>
+</div>
+<div id="generalisiertes-lineares-modell-logistische-regressionsanalyse" class="section level3">
+<h3>Generalisiertes Lineares Modell: Logistische Regressionsanalyse</h3>
+<p>Nun wollen wir eine logistische Regressionsanlyse durchführen. In dieser werden die Residuen nicht länger als normalverteilt angenommen, sondern die AV wird als (bedingt) binomialverteilt modelliert. Wir nennen das Modell <code>m1</code>, da es die erste Hypothese untersucht. Die Funktion <code>glm</code> übernimmt für uns die richtige Transformation, indem wir noch das Zusatzargument <code>family = "binomial"</code> festlegen. Die Binomialverteilung ist gerade jene Verteilung, die beschreibt, wie häufig bei <span class="math inline">\(n\)</span> Versuchen Erfolg eintritt (also genau die richtige Verteilung für unser Modell!).</p>
+<pre class="r"><code>m1 &lt;- glm(survived ~ 1 + age, family = &quot;binomial&quot;, data = Titanic)
+summary(m1)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = survived ~ 1 + age, family = &quot;binomial&quot;, data = Titanic)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.1189  -1.0361  -0.9768   1.3187   1.5162  
+## 
+## Coefficients:
+##              Estimate Std. Error z value Pr(&gt;|z|)  
+## (Intercept) -0.136531   0.144715  -0.943   0.3455  
+## age         -0.007899   0.004407  -1.792   0.0731 .
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1414.6  on 1045  degrees of freedom
+## Residual deviance: 1411.4  on 1044  degrees of freedom
+## AIC: 1415.4
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<p>Der Output der Summary unterscheidet sich geringfügig von der der normalen Regressionsanalyse:</p>
+<pre><code>## 
+##  Call:
+##  glm(formula = survived ~ 1 + age, family = &quot;binomial&quot;, data = Titanic)
+##  
+##  Deviance Residuals: 
+##      Min       1Q   Median       3Q      Max  
+##  -1.1189  -1.0361  -0.9768   1.3187   1.5162</code></pre>
+<p>zeigt uns, dass wir kein <code>lm</code>-Objekt sondern ein <code>glm</code>-Objekt vor uns haben. Außerdem werden uns dieses Mal <code>Deviance Residuals</code> angezeigt anstatt normal Residuen. Das Schätzverfahren ist ein anderes. Es wird nicht das kleinste Quadrate Verfahren angewandt, sondern die Maximum-Likelihood-Schätzmethode (ML).</p>
+<pre><code>## 
+##  Coefficients:
+##               Estimate Std. Error z value Pr(&gt;|z|)  
+##  (Intercept) -0.136531   0.144715  -0.943   0.3455  
+##  age         -0.007899   0.004407  -1.792   0.0731 .
+##  ---
+##  Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Der Überblick über die (ML-)Parameterschätzung unterscheidet sich kaum von der der normalen Regression. Lediglich die <span class="math inline">\(t\)</span>-Werte werden durch <span class="math inline">\(z\)</span>-Werte ersetzt. Die Idee hinter der Signifikanzentscheidung ist aber komplett identisch (außerdem geht die <span class="math inline">\(t\)</span>-Verteilung für große <span class="math inline">\(n\)</span> in die <span class="math inline">\(z\)</span>-(Standardnormal-)Verteilung über).</p>
+<pre><code>##      Null deviance: 1414.6  on 1045  degrees of freedom
+##  Residual deviance: 1411.4  on 1044  degrees of freedom
+##  AIC: 1415.4
+##  
+##  Number of Fisher Scoring iterations: 4</code></pre>
+<p>In diesem Abschnitt werden die Devianzen angezeigt. Diese beschreiben gerade die Log-Likelihooddifferenz zum saturierten Modell (also de facto die Abweichung des Modells zu den Daten). Die <code>Null deviance</code> beschreibt hier den Unterschied eines Modells ohne Prädiktoren zu den Daten. Dieses hat hier <code>1045</code> Freiheitsgrade. Unter <code>Residual deviance</code> wird nun die Devianz unseres angenommenen Modells verstanden. Da wir einen Prädiktor mit in das Modell aufgenommen haben (das Alter), so geht ein Freiheitsgrad für dieses Parameter verloren, weswegen die Residualdevianz hier <code>1044</code> Freiheitsgrade hat (siehe bspw. <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, et al., 2017,</a> Kapitel 22.8 und insbesondere Seiten 823-824). Der AIC unseres Modells liegt bei <code>AIC: 1415.4</code>. Mit Hilfe dieses AICs können auch nicht geschachtelte Modelle sowie Modelle mit unterschiedlichen Annahmen verglichen werden. Eine Signfikanzentscheidung ist allerdings nicht möglich (siehe bspw. <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, et al., 2017,</a> Seite 750). <code>Number of</code> <code>Fisher Scoring</code> <code>iterations: 4</code> gibt an, wie lange der Fisher-Scoring-Algorithmus gebraucht hat, um die Standardfehler zu bestimmen. Dies kann Auskunft auf mögliche Konvergenzschwierigkeiten liefern. Hier ist ein Wert von 4 aber sehr niedrig!</p>
+<div id="fazit-der-analyse" class="section level4">
+<h4>Fazit der Analyse</h4>
+<p>Der Effekt des Alters ist immer noch nicht statistisch signifikant, obwohl wir dieses Mal ein sinnvolleres Modell angesetzt haben. Somit gibt es bisher keine Evidenz für unsere erste Hypothese. Wenn wir den Wertebereich entlang der x-Achse sehr/unrealistisch groß wählen und das Alter von -500 bis 500 laufen lassen, so können wir uns die linearen und nichtlinearen Beziehungen zwischen Alter und Logit und Alter und Odds und Wahrscheinlichkeit ansehen. <code>m_age$coefficients[1] +</code> <code>m_age$coefficients[2]*AltersWerte</code> ist hierbei die Formel für den Logit, da die Parameterschätzungen einfach die <span class="math inline">\(\beta\)</span>-Koeffizienten sind, welche linear verknüpft den Logit ergeben. Glücklicherweise sind Logit, Odds und Wahrscheinlichkeit sehr leicht ineinander überführbar:</p>
+<pre class="r"><code>AltersWerte &lt;- seq(-500, 500, 0.1)
+logit &lt;- m1$coefficients[1] + m1$coefficients[2]*AltersWerte
+plot(x = AltersWerte, y = logit, type = &quot;l&quot;, col = &quot;blue&quot;, lwd = 3)</code></pre>
+<p><img src="/post/2020-10-27-MSc1_Sitzung4_Logistic_Regression_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>odds &lt;- exp(logit)
+plot(x = AltersWerte, y = odds, type = &quot;l&quot;, col = &quot;blue&quot;, lwd = 3)</code></pre>
+<p><img src="/post/2020-10-27-MSc1_Sitzung4_Logistic_Regression_files/figure-html/unnamed-chunk-12-2.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>p &lt;- odds/(1 + odds)
+plot(x = AltersWerte, y = p, type = &quot;l&quot;, col = &quot;blue&quot;, lwd = 3)</code></pre>
+<p><img src="/post/2020-10-27-MSc1_Sitzung4_Logistic_Regression_files/figure-html/unnamed-chunk-12-3.png" width="672" style="display: block; margin: auto;" /></p>
+<p><code>type = "l"</code> fordert eine Linie anstatt von Punkten an, <code>lwd = 3</code> sagt, dass diese Linie dreimal so dick wie der Default sein soll und <code>col = "blue"</code> sagt, dass die Linie blau sein soll. Wir erkennen in allen drei Plots die negative Beziehung zwischen Überleben und Alter. Der Logit ist eine lineare Funktion (Wertebereich [<span class="math inline">\(-\infty\)</span>,<span class="math inline">\(\infty\)</span>]). Somit steigt (bzw. sinkt) der Logit um <span class="math inline">\(\beta_1\)</span>, wenn der Prädiktor (hier Alter) um eine Einheit erhöht wird. Die Odds sind eine Exponentialfunktion (Wertebereich [0,<span class="math inline">\(\infty\)</span>]) und bei der Wahrscheinlichkeit handelt es sich um eine sogenannte Ogive (Wertebereich [0,1]). Die Odds steigen (bzw. sinken) um den Faktor <span class="math inline">\(e^{\beta_1}\)</span> (auch Odds-Ratio genannt), wenn der Prädiktor (hier Alter) um eine Einheit erhöht wird - die Beziehung zwischen Odds und Prädiktor sind somit multiplikativ! Wir schauen uns die Parameterinterpretation der Odds im nächsten Abschnitt genauer an. Wie sich die Wahrscheinlichkeit verändert, ist nicht pauschal zu sagen. Diese Veränderung hängt von der Ausprägung des Prädiktors ab und lässt sich nicht durch eine einzige Zahl quantifizieren. In <a href="#AppendixA">Appendix A</a> haben Sie die Möglichkeit spielerisch die Einflüsse der Parameter in der logistischen Regression kennen zu lernen.</p>
+</div>
+</div>
+<div id="hypothese-2" class="section level3">
+<h3>Hypothese 2</h3>
+<p>Nun wollen wir das Geschlecht mit in unser Modell aufnehmen und somit Hypothese 2 untersuchen. Da das Geschlecht hier auch nur 2 Ausprägungen hat, kann dieser Effekt als Vergleich zwischen Gruppen verstanden werden. Intern wird dann mit “Dummy”-Variablen gerechnet. Wir können sicher gehen, dass mit “Dummy”-Variablen gerechnet wird (dies ist analog dazu, dass wir das Geschlecht mit 0 und 1 kodieren, anstatt 1 und 2 - so wie wir dies in den anderen Sitzungen getan hatten!), indem wir <code>R</code> sagen, dass es sich bei der Variable Geschlecht um einen “Faktor” handelt, der Gruppenzugehörigkeit symbolisiert. Wir können prüfen, ob diese Variable ein Faktor ist, indem wir <code>is.factor</code> auf die Variable <code>sex</code> anwenden.</p>
+<pre class="r"><code>is.factor(Titanic$sex)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Es scheint sich also um einen Faktor zu handeln. Falls dies nicht der Fall gewesen wäre, so hätten wir <code>as.factor</code> auf die Variable anwenden können. Wäre das Geschlecht über Strings kodiert (bspw. “m” und “w”), so würde <code>R</code> dies automatisch in einen Faktor umwandeln, sobald es in einem Modell als Variable verwendet wird. Mit der Funktion <code>table</code> erhalten wir einen Überblick über die Kombination an Überlebenden und dem Geschlecht.</p>
+<pre class="r"><code>table(Titanic$survived, Titanic$sex)</code></pre>
+<pre><code>##    
+##       2   1
+##   0 523  96
+##   1 135 292</code></pre>
+<p>In der Tabelle wird entlang der Spalten das Geschlecht vs. dem Überlebensstatus in den Zeilen abgetragen. Dieser Tabelle ist zu entnehmen, dass der relative Anteil an Frauen, die das Unglück überlebt haben, höher ist, als der der Männer: 292 vs. 96 für die Frauen und 135 vs. 523 für die Männer. Auch absolut gesehen haben mehr Frauen das Unglück überlebt. Folglich würden wir einen Geschlechtereffekt erwarten:</p>
+<pre class="r"><code>m2 &lt;-  glm(survived ~ 1 + age + sex, family = &quot;binomial&quot;, data = Titanic)
+summary(m2)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = survived ~ 1 + age + sex, family = &quot;binomial&quot;, 
+##     data = Titanic)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -1.7247  -0.6859  -0.6603   0.7555   1.8737  
+## 
+## Coefficients:
+##              Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept) -1.225275   0.183985  -6.660 2.74e-11 ***
+## age         -0.004254   0.005207  -0.817    0.414    
+## sex1         2.460689   0.152315  16.155  &lt; 2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1414.6  on 1045  degrees of freedom
+## Residual deviance: 1101.3  on 1043  degrees of freedom
+## AIC: 1107.3
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<p>Das besondere an diesem Output ist, dass bei der Variable Geschlecht eine kleine <code>1</code> dahinter steht:</p>
+<pre><code>##  Coefficients:
+##               Estimate Std. Error z value Pr(&gt;|z|)    
+##  (Intercept) -1.225275   0.183985  -6.660 2.74e-11 ***
+##  age         -0.004254   0.005207  -0.817    0.414    
+##  sex1         2.460689   0.152315  16.155  &lt; 2e-16 ***</code></pre>
+<p>Dies gibt an, dass hier dummy-kodiert wurde und der Effekt von 1 (Frauen) im Vergleich zur Referenzgruppe (also 2, der Männer) dargestellt ist. Wir bekommen einen Überblick über die Kodierung, indem wir entweder die Variable Geschlecht ansehen oder die Funktion <code>levels</code> auf das Geschlecht anwenden:</p>
+<pre class="r"><code>Titanic$sex</code></pre>
+<pre><code>##    [1] 1 2 2 2 1 1 2 2 1 1 2 2 1 1 2 1 2 2 2 1 1 2 1 1 2 2 1 1 1 2 2 1 2 1 2 2 2
+##   [38] 2 1 1 2 1 2 1 1 2 2 1 2 2 1 1 1 2 2 1 1 2 1 1 1 2 2 2 1 2 1 2 1 2 2 2 1 2
+##   [75] 2 1 1 2 1 1 2 2 2 2 2 1 1 1 2 2 1 1 1 2 1 2 1 1 2 1 1 2 2 2 2 2 2 2 2 1 2
+##  [112] 1 1 2 2 2 2 1 2 2 1 2 2 1 2 2 1 2 2 1 2 1 1 2 1 2 2 2 2 2 2 2 2 1 2 1 1 2
+##  [149] 2 2 2 2 1 2 2 2 1 1 2 1 2 2 1 2 1 2 2 2 2 2 2 1 2 2 2 1 2 1 2 2 2 2 1 1 1
+##  [186] 2 2 1 2 1 2 2 1 2 2 2 1 1 1 2 2 1 1 2 2 2 2 1 1 2 2 2 2 2 2 2 1 2 1 2 2 2
+##  [223] 2 2 2 2 2 2 1 2 1 2 2 2 1 1 2 2 2 2 2 1 2 2 1 1 2 1 2 2 1 1 2 2 2 1 2 2 2
+##  [260] 2 2 2 1 1 2 2 2 2 2 2 2 2 2 2 2 2 2 1 2 2 2 2 2 1 2 2 1 1 2 1 2 2 2 1 2 1
+##  [297] 2 1 2 1 2 2 2 1 1 1 1 2 1 2 1 2 2 2 2 2 1 2 1 1 2 1 1 1 1 1 1 2 2 1 1 2 2
+##  [334] 1 2 2 1 2 2 2 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 2 2 1 2 2 1 2 1 1 2 2 2 1
+##  [371] 1 1 2 2 2 2 2 2 2 2 2 2 1 1 2 2 1 2 2 1 1 1 2 2 2 2 1 2 2 2 2 1 1 2 2 2 2
+##  [408] 2 2 2 2 2 2 2 2 1 1 2 2 2 2 2 2 1 2 2 1 2 2 2 2 1 2 1 2 2 2 2 2 2 2 2 2 2
+##  [445] 1 2 2 2 2 2 1 1 1 2 2 2 2 2 2 2 2 1 2 2 2 2 2 2 1 2 2 2 2 2 2 2 1 1 2 2 2
+##  [482] 2 2 2 1 1 1 1 2 1 1 2 2 1 2 2 2 2 2 2 2 2 2 2 2 2 2 2 2 1 2 2 2 2 2 2 2 2
+##  [519] 2 2 1 2 2 2 2 1 1 2 1 1 2 2 2 2 2 2 2 2 2 2 1 1 2 2 2 2 1 2 2 2 2 1 2 2 1
+##  [556] 1 2 2 2 2 2 2 2 1 2 1 2 2 1 1 2 1 2 1 1 2 2 2 2 2 1 2 2 1 2 2 2 1 2 2 2 1
+##  [593] 1 2 2 1 1 1 2 2 2 1 2 2 2 2 1 2 1 2 2 2 2 2 1 1 2 1 2 2 2 2 2 1 2 1 2 2 2
+##  [630] 2 2 2 2 1 2 2 2 2 1 2 2 2 1 2 2 1 2 2 2 2 2 2 2 2 2 2 2 2 2 1 2 1 1 2 1 2
+##  [667] 2 2 2 2 2 1 2 2 2 1 2 2 2 2 2 2 2 2 2 2 1 2 1 1 2 1 2 1 2 1 2 1 2 1 2 1 2
+##  [704] 1 2 1 2 1 1 2 2 1 2 1 2 1 2 1 2 1 2 1 1 1 2 1 2 1 2 2 1 2 1 2 2 1 2 1 2 1
+##  [741] 2 1 1 2 1 2 1 2 2 1 2 1 2 1 1 2 1 1 2 1 2 1 2 1 2 1 1 2 1 2 1 2 1 2 1 2 2
+##  [778] 1 1 2 1 2 1 2 2 1 2 1 2 1 2 1 2 1 2 1 2 1 2 1 1 2 2 1 1 2 2 1 1 2 1 2 1 2
+##  [815] 2 1 2 1 1 1 2 1 2 2 2 2 2 2 1 1 1 2 1 1 1 2 1 2 1 2 2 1 1 2 1 1 2 1 2 1 2
+##  [852] 1 2 1 2 2 2 1 1 2 2 2 2 1 2 2 2 1 2 1 1 1 2 1 2 1 1 1 2 1 2 1 2 1 2 2 1 2
+##  [889] 1 2 2 2 2 2 2 2 1 2 1 2 1 2 1 2 1 2 2 2 1 2 1 2 1 2 1 2 1 1 1 1 2 2 1 1 1
+##  [926] 1 1 2 2 1 2 2 1 2 1 2 1 2 1 2 1 2 2 2 1 1 2 1 1 2 1 1 1 2 1 2 2 1 1 2 2 1
+##  [963] 2 1 1 1 1 1 2 2 2 1 1 2 1 1 2 2 2 1 2 1 2 2 1 1 1 1 2 2 2 1 1 2 2 2 2 1 2
+## [1000] 1 2 1 1 1 2 1 1 2 2 2 1 1 2 2 1 1 2 2 1 1 1 1 1 1 2 2 2 2 1 2 2 2 2 2 2 2
+## [1037] 2 2 2 2 2 2 1 1 2 2
+## Levels: 2 1</code></pre>
+<pre class="r"><code>levels(Titanic$sex)</code></pre>
+<pre><code>## [1] &quot;2&quot; &quot;1&quot;</code></pre>
+<p>Bei ersterer Wahl wird, nachdem alle Ausprägungen ausgegeben wurden, <code>## Levels: 2 1</code> dargestellt. Dies ist der gleiche Output, den auch die Funktion <code>levels</code> erzeugt. Er ist folgendermaßen zu verstehen: es gibt hier zwei Faktoren/Gruppenzugehörigkeiten/Kategorien, wobei der Faktor mit dem Namen 2 (also die Männer) als Referenz für die Kodierung verwendet wird. Somit sind alle Effekt immer im Vergleich zur Referenzkategorie zu interpretieren. Mit Hilfe von <code>relevel</code> könnten wir die Referenzkategorie ändern und dann der Variable erneut zuordnen via <code>Titanic$sex_relevel &lt;-</code> <code>relevel(Titanic$sex, ref = "1")</code> (hier würde eine neue Variable mit mit dem Namen <code>sex_relevel</code> dem Datensatz angehängt werden, in welchem die Frauen die Referenzkategorie darstellen würden).</p>
+<div id="ergebnisinterpretation" class="section level4">
+<h4>Ergebnisinterpretation</h4>
+<p>Die <span class="math inline">\(\beta\)</span>-Gewichte zu interpretieren hat wenig inhaltliche Aussagekraft. Wir könnten bspw. für das Geschlecht lediglich die Aussage treffen, dass (unter Konstanthaltung aller weiteren Prädiktoren im Modell) wenn Frauen im Vergleich zu Männern betrachtet werden, so steigt der Logit (der Überlebenswahrscheinlichkeit) um 2.46. Wenn wir allerdings anstatt des Logits die Odds heranziehen, so können wir mit Hilfe des Odds-Ratio doch eine Aussage über die Überlebenswahrscheinlichkeit treffen. Dazu müssen wir die <span class="math inline">\(\beta\)</span>-Gewichte transformieren via <span class="math inline">\(e^\beta\)</span>:</p>
+<pre class="r"><code>exp(m2$coefficients) # Odds-Ratios</code></pre>
+<pre><code>## (Intercept)         age        sex1 
+##   0.2936769   0.9957548  11.7128810</code></pre>
+<p>Nun können wir die Ergebnisse (einigermaßen) sinnvoll interpretieren. Das Interzept wird an der Stelle interpretiert, wo alle Prädiktoren den Wert 0 annehmen. Das Alter am Wert 0 ist wenig sinnvoll, wir könnten uns allerdings einen Säugling vorstellen, der ein Alter von 0 Jahren hat. Außerdem ist noch die Variable <code>sex1</code> im Modell. Dies ist eine Dummy-Variable, die den Wert 1 annimmt, wenn das Geschlecht den Wert 1 (im Vergleich zu 2; der Referenzkategorie) annimmt; also wenn wir eine Frau im Vergleich zu einem Mann betrachten. Folglich hat diese Dummy-Variable gerade den Wert 0, wenn ein Mann betrachtet wird. Wir interpretieren das Interzept bzgl. der Odds wie folgt: Ein männlicher Säugling hat Überlebens-Odds von 0.29. Dies bedeutet, dass es für ihn 0.29 mal so wahrscheinlich ist zu überleben, wie nicht zu überleben. Leider spricht dieses Ergebnis für recht schlechte Aussichten. Der Effekt des Alters lässt sich wie folgt interpretieren: Steigt das Alter um 1 Jahr (unter Konstanthaltung aller weiteren Prädiktoren im Modell), so verändern sich die Odds zu Überleben um den Faktor (multiplikativ) 0.996. Insgesamt sinken die Odds zu Überleben und damit die Überlebenswahrscheinlichkeit mit dem Alter, denn das Odds-Ratio ist genau dann kleiner 1, wenn der <span class="math inline">\(\beta\)</span>-Koeffizient des Logit kleiner 0 ist und es sich somit um eine negative/abfallende Beziehung handelt! Dieser Effekt ist allerdings nicht statistisch signifikant und wird somit nur für die Stichprobe, nicht aber für die Population interpretiert. Wird nun eine Frau im Vergleich zu einem Mann betrachtet, so steigen die Odds zu Überleben um den Faktor 11.71. Somit haben (unter Konstanthaltung aller weiteren Prädiktoren im Modell) Frauen eine 11.71 mal so hohe Überlebenswahrscheinlichkeit, wie die Männer. Hier ist extrem wichtig zu beachten, dass die Odds sich multiplikativ ändern und nicht additiv, wie wir es von der linearen Regression (und im Übrigen auch vom Logit) gewohnt sind.</p>
+</div>
+<div id="grafische-veranschaulichung" class="section level4">
+<h4>Grafische Veranschaulichung</h4>
+<p>Wir können uns diese Modell auch grafisch ansehen und damit die oben aufgezeigten Effekte verdeutlichen. Dazu werden wir diesmal <code>ggplot</code> aus dem <code>ggplot2</code> Paket verwenden. Dieses muss natürlich installiert sein (<code>install.packages("ggplot2")</code>) und geladen werden.</p>
+<pre class="r"><code>library(ggplot2)</code></pre>
+<p>Wir können hier sehr leicht Gruppierungen in Grafiken darstellen. Zunächst müssen wir allerdings die Prädiktionen unseres Modells bestimmen, denn wir wollen uns die Vorhersage/Erwartung (unter) unseres Modells ansehen. Die Funktion, mit der wir dies machen können, heißt genauso wie die Funktion die sie ausführt: <code>predict</code>. Wir sagen damit den Logit für alle Konstellationen von Alter und Geschlecht in unseren Daten vorher, indem wir der Funktion das Modell übergeben. Anschließend können wir den Logit so transformieren, dass wir die Odds oder die Wahrscheinlichkeit erhalten. Um dies leichter nachvollziehbar zu machen, führen wir die Transformationen mit neu erstellten Variablen durch, ehe wir diese dem Datensatz anhängen (denn <code>ggplot</code> hat es am liebsten, wenn wir mit <code>data.frames</code>, also ganzen Datensätzen arbeiten).</p>
+<pre class="r"><code>logit_m2 &lt;- predict(m2)
+odds_m2 &lt;- exp(logit_m2)
+p_m2 &lt;- odds_m2/(1 + odds_m2)
+
+# dem Datensatz anhängen:
+Titanic$logit_m2 &lt;- logit_m2
+Titanic$odds_m2 &lt;- odds_m2
+Titanic$p_m2 &lt;- p_m2
+
+head(Titanic)</code></pre>
+<pre><code>##   survived sex age pclass  logit_m2   odds_m2      p_m2
+## 1        1   1  29      1  1.112041 3.0405579 0.7525094
+## 2        1   2  48      1 -1.429479 0.2394337 0.1931799
+## 3        0   2  39      1 -1.391191 0.2487789 0.1992178
+## 4        0   2  71      1 -1.527326 0.2171154 0.1783852
+## 5        1   1  24      1  1.133312 3.1059271 0.7564496
+## 6        1   1  26      1  1.124804 3.0796125 0.7548787</code></pre>
+<p>Eine Grafik erhalten wir nun mit <code>ggplot</code> sehr einfach:</p>
+<pre class="r"><code>ggplot(data = Titanic, mapping = aes(x = age, y = logit_m2, col = sex)) + 
+        geom_line(lwd = 2) + 
+        ggtitle(&quot;Logit vs Age and Sex&quot;)</code></pre>
+<p><img src="/post/2020-10-27-MSc1_Sitzung4_Logistic_Regression_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><code>ggplot</code> arbeitet etwas anders als die Basisfunktion <code>plot</code>. Zunächst übergeben wir ihr die Daten <code>data = Titanic</code>. Dem <code>mapping</code> übergeben wir sozusagen das Achsenkreuz und Gruppenzugehörigkeiten und Farbkodierungen innerhalb von <code>aes(x = age, y = logit_m2, col = sex)</code>. Hier wird gesagt, dass das Alter auf die x-Achse soll und wir den Logit entlang der y-Achse plotten wollen. Außerdem soll für das Geschlecht eine separate Linie eingezeichnet werden und diese soll farblich kodiert sein. Damit dies funktioniert, müssen natürlich die Variablen im richtigen Format vorliegen. Bspw. müssen Gruppierungen, wie etwa das Geschlecht, als Faktor vorliegen. Anschließend fügen wir mit <code>+</code> hinzu, was genau geplottet werden soll. In diesem Beispiel wollen wir Linien haben. Deshalb verwenden wir die Funktion <code>geom_line</code> mit dem Argument <code>lwd = 2</code> für zweifache Liniendicke. Würden wir hier bspw. <code>geom_point</code> verwenden, so würden Punkte gezeichnet werden. Wieder mit dem <code>+</code> fügen wir außerdem einen Titel hinzu mit der Funktion <code>ggtitle</code>. Gleiches können wir auch für die Odds oder die Wahrscheinlichkeit durchführen:</p>
+<pre class="r"><code>ggplot(data = Titanic, mapping = aes(x = age, y = odds_m2, col = sex)) + 
+        geom_line(lwd = 2) + 
+        ggtitle(&quot;Odds vs Age and Sex&quot;)</code></pre>
+<p><img src="/post/2020-10-27-MSc1_Sitzung4_Logistic_Regression_files/figure-html/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(data = Titanic, mapping = aes(x = age, y = p_m2, col = sex)) + 
+        geom_line(lwd = 2) + 
+        ggtitle(&quot;P vs Age and Sex&quot;)</code></pre>
+<p><img src="/post/2020-10-27-MSc1_Sitzung4_Logistic_Regression_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Einen wirklichen Alterseffekt können wir in keinem der Grafiken erkennen. Dass sich Unterschiede über das Geschlecht abbilden, sehen wir allerdings recht deutlich! Weitere Informationen zu <code>ggplot2</code> erhalten Sie bspw. auf <a href="https://ggplot2.tidyverse.org"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> Tidyverse</a>. Außerdem können Sie sich auch eine <a href="/post/grafiken-mit-ggplot2"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> Einführung in <code>ggplot2</code></a> auf dieser Website ansehen.</p>
+</div>
+</div>
+<div id="hypothese-3" class="section level3">
+<h3>Hypothese 3</h3>
+<p>Nun wollen wir die Reiseklasse mit in unser Modell aufnehmen und somit Hypothese 3 untersuchen. Die Klasse ist auch ein Faktor, der 3 Ausprägungen hat. Wir schauen uns die Level an:</p>
+<pre class="r"><code>levels(Titanic$pclass)</code></pre>
+<pre><code>## [1] &quot;3&quot; &quot;1&quot; &quot;2&quot;</code></pre>
+<p>Die drei Klassen sind mit 1, 2 und 3 kodiert, wobei die 3. Klasse die Referenz ist (da sie an erster Stelle steht). Dies müssen wir bei der Interpretation berücksichtigen. Schauen wir uns die Ergebnisse an:</p>
+<pre class="r"><code>m3 &lt;-  glm(survived ~ 1 + age + sex + pclass, family = &quot;binomial&quot;, data = Titanic)
+summary(m3)</code></pre>
+<pre><code>## 
+## Call:
+## glm(formula = survived ~ 1 + age + sex + pclass, family = &quot;binomial&quot;, 
+##     data = Titanic)
+## 
+## Deviance Residuals: 
+##     Min       1Q   Median       3Q      Max  
+## -2.6399  -0.6979  -0.4336   0.6688   2.3964  
+## 
+## Coefficients:
+##              Estimate Std. Error z value Pr(&gt;|z|)    
+## (Intercept) -1.265431   0.202868  -6.238 4.44e-10 ***
+## age         -0.034393   0.006331  -5.433 5.56e-08 ***
+## sex1         2.497845   0.166037  15.044  &lt; 2e-16 ***
+## pclass1      2.289661   0.225802  10.140  &lt; 2e-16 ***
+## pclass2      1.009091   0.198363   5.087 3.64e-07 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## (Dispersion parameter for binomial family taken to be 1)
+## 
+##     Null deviance: 1414.62  on 1045  degrees of freedom
+## Residual deviance:  982.45  on 1041  degrees of freedom
+## AIC: 992.45
+## 
+## Number of Fisher Scoring iterations: 4</code></pre>
+<p>Dieses Mal sind alle Prädiktoren signifikant - auch das <em>Alter.</em> Bevor wir zur Interpretation übergehen, wollen wir die Hinzunahme der Klasse noch insgesamt auf Signifikanz prüfen. Wir sehen am Output, dass jede Dummy-Variable für sich signifikante Vorhersagekraft leistet, allerdings wollen wir eine Signifikanzentscheidung für die Variable <em>Reiseklasse</em> als Ganzes durchführen und ziehen dazu den Likelihood-Ratio-Test (<span class="math inline">\(\chi^2\)</span>-Differenzen-Test) heran.</p>
+<div id="modellvergleich" class="section level4">
+<h4>Modellvergleich</h4>
+<p>Diesen kennen wir bereits aus der <a href="/post/multi-level-modeling">hierarchischen Regressionssitzung</a>.</p>
+<pre class="r"><code>anova(m2, m3, test = &quot;LRT&quot;)</code></pre>
+<pre><code>## Analysis of Deviance Table
+## 
+## Model 1: survived ~ 1 + age + sex
+## Model 2: survived ~ 1 + age + sex + pclass
+##   Resid. Df Resid. Dev Df Deviance  Pr(&gt;Chi)    
+## 1      1043    1101.34                          
+## 2      1041     982.45  2   118.89 &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Der Test liefert einen signifikante Likelihood-Differenz, <span class="math inline">\(\chi^2(df=2)=\)</span> 118.886, <span class="math inline">\(p&lt;.001\)</span>. Der Test hat hier 2 Freiheitsgrade, da auch zwei Dummy-Variablen mit in das Modell aufgenommen wurden! Folglich verbessert die Klassenzugehörigkeit die Prädiktion der Überlebenswahrscheinlichkeit des Titanicunglücks.</p>
+</div>
+<div id="ergebnisinterpretation-1" class="section level4">
+<h4>Ergebnisinterpretation</h4>
+<p>Um die Ergebnisse sinnvoll zu interpretieren, schauen wir uns wieder die Odds-Ratios an:</p>
+<pre class="r"><code>exp(m3$coefficients) # Odds-Ratio</code></pre>
+<pre><code>## (Intercept)         age        sex1     pclass1     pclass2 
+##   0.2821176   0.9661915  12.1562649   9.8715863   2.7431059</code></pre>
+<p>Das Interzept wird an der Stelle interpretiert, an dem alle Prädiktoren den Wert 0 annehmen. Dies ist der Fall, wenn das Alter sowie alle Dummy-Variablen den Wert 0 annehmen, wir uns also für alle kategorialen Prädiktoren in der Referenzkategorie befinden. Somit hat ein männlicher Säugling aus der 3. Klasse eine um den Faktor 0.282 kleinere Wahrscheinlichkeit zu überleben im Vergleich zu zu sterben. Unter Konstanthaltung aller weiteren Prädiktoren im Modell sinken die Odds zu Überleben um den Faktor 0.966, wenn das Alter um ein Jahr steigt. Unter Konstanthaltung aller weiteren Prädiktoren im Modell steigen die Odds zu Überleben um den Faktor 12.156, wenn Frauen im Vergleich zu Männern betrachtet werden. Unter Konstanthaltung aller weiteren Prädiktoren im Modell steigen die Odds zu Überleben um den Faktor 9.872, wenn eine Person aus der 1. Klasse im Vergleich zu einer Person aus der 3. Klasse betrachtet wird. Unter Konstanthaltung aller weiteren Prädiktoren im Modell steigen die Odds zu Überleben um den Faktor 2.743, wenn eine Person aus der 2. Klasse im Vergleich zu einer Person aus der 3. Klasse betrachtet wird.</p>
+</div>
+<div id="grafische-veranschaulichung-1" class="section level4">
+<h4>Grafische Veranschaulichung</h4>
+<p>Die selbigen Ergebnisse wollen wir uns auch noch einmal grafisch ansehen. Dazu müssen wir wieder einer Prädiktion mittels unseres Modells <code>m3</code> durchführen. Die Prädiktion und das Anhängen an den Datensatz erfolgt analog zu oben:</p>
+<pre class="r"><code>logit_m3 &lt;- predict(m3)
+odds_m3 &lt;- exp(logit_m3)
+p_m3 &lt;- odds_m3/(1 + odds_m3)
+
+# dem Datensatz anhängen:
+Titanic$logit_m3 &lt;- logit_m3
+Titanic$odds_m3 &lt;- odds_m3
+Titanic$p_m3 &lt;- p_m3
+
+head(Titanic)</code></pre>
+<pre><code>##   survived sex age pclass  logit_m2   odds_m2      p_m2   logit_m3    odds_m3
+## 1        1   1  29      1  1.112041 3.0405579 0.7525094  2.5246703 12.4867779
+## 2        1   2  48      1 -1.429479 0.2394337 0.1931799 -0.6266457  0.5343813
+## 3        0   2  39      1 -1.391191 0.2487789 0.1992178 -0.3171067  0.7282531
+## 4        0   2  71      1 -1.527326 0.2171154 0.1783852 -1.4176900  0.2422730
+## 5        1   1  24      1  1.133312 3.1059271 0.7564496  2.6966365 14.8297674
+## 6        1   1  26      1  1.124804 3.0796125 0.7548787  2.6278500 13.8439735
+##        p_m3
+## 1 0.9258533
+## 2 0.3482715
+## 3 0.4213810
+## 4 0.1950240
+## 5 0.9368279
+## 6 0.9326326</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">survived</th>
+<th align="left">sex</th>
+<th align="right">age</th>
+<th align="left">pclass</th>
+<th align="right">logit_m2</th>
+<th align="right">odds_m2</th>
+<th align="right">p_m2</th>
+<th align="right">logit_m3</th>
+<th align="right">odds_m3</th>
+<th align="right">p_m3</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">1</td>
+<td align="right">29</td>
+<td align="left">1</td>
+<td align="right">1.112041</td>
+<td align="right">3.0405579</td>
+<td align="right">0.7525094</td>
+<td align="right">2.5246703</td>
+<td align="right">12.4867779</td>
+<td align="right">0.9258533</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">2</td>
+<td align="right">48</td>
+<td align="left">1</td>
+<td align="right">-1.429479</td>
+<td align="right">0.2394337</td>
+<td align="right">0.1931799</td>
+<td align="right">-0.6266457</td>
+<td align="right">0.5343813</td>
+<td align="right">0.3482715</td>
+</tr>
+<tr class="odd">
+<td align="right">0</td>
+<td align="left">2</td>
+<td align="right">39</td>
+<td align="left">1</td>
+<td align="right">-1.391191</td>
+<td align="right">0.2487789</td>
+<td align="right">0.1992178</td>
+<td align="right">-0.3171067</td>
+<td align="right">0.7282531</td>
+<td align="right">0.4213810</td>
+</tr>
+<tr class="even">
+<td align="right">0</td>
+<td align="left">2</td>
+<td align="right">71</td>
+<td align="left">1</td>
+<td align="right">-1.527327</td>
+<td align="right">0.2171154</td>
+<td align="right">0.1783852</td>
+<td align="right">-1.4176900</td>
+<td align="right">0.2422730</td>
+<td align="right">0.1950240</td>
+</tr>
+<tr class="odd">
+<td align="right">1</td>
+<td align="left">1</td>
+<td align="right">24</td>
+<td align="left">1</td>
+<td align="right">1.133312</td>
+<td align="right">3.1059271</td>
+<td align="right">0.7564496</td>
+<td align="right">2.6966365</td>
+<td align="right">14.8297674</td>
+<td align="right">0.9368279</td>
+</tr>
+<tr class="even">
+<td align="right">1</td>
+<td align="left">1</td>
+<td align="right">26</td>
+<td align="left">1</td>
+<td align="right">1.124804</td>
+<td align="right">3.0796125</td>
+<td align="right">0.7548787</td>
+<td align="right">2.6278500</td>
+<td align="right">13.8439735</td>
+<td align="right">0.9326326</td>
+</tr>
+</tbody>
+</table>
+<p>Allerdings müssen wir die Gruppenzugehörigkeit noch in eine Variable zusammenführen. Wir haben zwei Variablen, die Gruppenzugehörigkeit anzeigen: das Geschlecht und die Reiseklasse. Wir wollen allerdings insgesamt 6 separate Linien eingezeichnet bekommen. Dazu verwenden wir einen Trick: wir transformieren das Geschlecht und die Klassenzugehörigkeit wieder in Zahlen. Das machen wir in zwei Schritten, denn sobald <code>R</code> in Faktoren denkt, so kodiert es intern um, sodass die Referenzkategorie immer der 1. Faktor ist. Folglich würde, wenn wir einfach die Funktion <code>as.numeric</code> anwenden, die Faktoren in Ihrer Reihenfolge, in der sie bei <code>Levels</code> aufgeführt werden in Zahlen von 1 bis maximale Anzahl an Kategorien umgewandelt werden. Aus diesem Grund wandeln wir die Zahlen zunächst in Buchstabenketten/Strings um, indem wir <code>as.character</code> anwenden und anschließend wagen wir dann die Transformation in Zahlen. Wir schauen uns dies am Beispiel des Geschlechts an indem wir uns die ersten 6 Elemente ausgeben lassen:</p>
+<pre class="r"><code>Titanic$sex[1:6] # Ursprung: Faktor/Kategorie</code></pre>
+<pre><code>## [1] 1 2 2 2 1 1
+## Levels: 2 1</code></pre>
+<pre class="r"><code># falsche Transformation:
+as.numeric(Titanic$sex)[1:6] </code></pre>
+<pre><code>## [1] 2 1 1 1 2 2</code></pre>
+<pre class="r"><code># RICHTIGE Transformation:
+as.numeric(as.character(Titanic$sex))[1:6] </code></pre>
+<pre><code>## [1] 1 2 2 2 1 1</code></pre>
+<p>Nachdem wir also die Faktoren wieder in Zahlen umgewandelt haben, multiplizieren wir anschließend das Geschlecht mit 100. Somit steht die <code>100</code> für Frauen und die <code>200</code> für Männern. Wenn wir nun die Klassenzugehörigkeit addieren, so erhalten wir 6 unterschiedliche Zahlen: <code>101</code> = Frauen aus der 1. Klasse, <code>102</code> = Frauen aus der 2. Klasse und <code>103</code> = Frauen aus der 3. Klasse. Entsprechend stehen <code>201</code>, <code>202</code> und <code>203</code> jeweils für Männer aus der 1., 2. und 3. Reiseklasse. Wenn wir diese Variable nun wieder als Faktor deklarieren, so können wir sie verwenden, um in <code>ggplot</code> die gewünschte Grafik zu erzeugen:</p>
+<pre class="r"><code># Trick 17:
+class_sex &lt;- as.numeric(as.character(Titanic$sex))*100 + as.numeric(as.character(Titanic$pclass))
+Titanic$class_sex &lt;- as.factor(class_sex) # als Faktor dem Datensatz hinzufügen
+head(Titanic) # passt!</code></pre>
+<pre><code>##   survived sex age pclass  logit_m2   odds_m2      p_m2   logit_m3    odds_m3
+## 1        1   1  29      1  1.112041 3.0405579 0.7525094  2.5246703 12.4867779
+## 2        1   2  48      1 -1.429479 0.2394337 0.1931799 -0.6266457  0.5343813
+## 3        0   2  39      1 -1.391191 0.2487789 0.1992178 -0.3171067  0.7282531
+## 4        0   2  71      1 -1.527326 0.2171154 0.1783852 -1.4176900  0.2422730
+## 5        1   1  24      1  1.133312 3.1059271 0.7564496  2.6966365 14.8297674
+## 6        1   1  26      1  1.124804 3.0796125 0.7548787  2.6278500 13.8439735
+##        p_m3 class_sex
+## 1 0.9258533       101
+## 2 0.3482715       201
+## 3 0.4213810       201
+## 4 0.1950240       201
+## 5 0.9368279       101
+## 6 0.9326326       101</code></pre>
+<p>Natürlich gibt es auch andere Wege, um diese Gruppierungsvariable zu bestimmen. Sie haben jetzt am eigenen Leib erfahren, wie durchdacht die Daten aufbereitet sein müssen, dass eine Grafik leicht zu erstellen ist! Falls Sie <code>ggplot</code> weiter interessiert, so können Sie sich auch die aufbereitete Sitzung von <a href="/authors/schultze">Martin Schultze</a> dazu ansehen: <a href="https://pandar.netlify.app/post/grafiken-mit-ggplot2/"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> Grafiken mit <code>ggplot2</code></a> (das ist natürlich rein freiwillig!). Nun können wir die Grafiken analog zu oben erstellen, wobei wir lediglich die Benennung für die Farbe, das Modell sowie den Titel ein wenig abändern müssen:</p>
+<pre class="r"><code>ggplot(data = Titanic, mapping = aes(x = age, y = logit_m3, col = class_sex)) + 
+        geom_line(lwd = 2) + 
+        ggtitle(&quot;Logit vs Age, Sex and Class&quot;)</code></pre>
+<p><img src="/post/2020-10-27-MSc1_Sitzung4_Logistic_Regression_files/figure-html/unnamed-chunk-32-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(data = Titanic, mapping = aes(x = age, y = odds_m3, col = class_sex)) + 
+        geom_line(lwd = 2) + 
+        ggtitle(&quot;Odds vs Age, Sex and Class&quot;)</code></pre>
+<p><img src="/post/2020-10-27-MSc1_Sitzung4_Logistic_Regression_files/figure-html/unnamed-chunk-33-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>ggplot(data = Titanic, mapping = aes(x = age, y = p_m3, col = class_sex)) + 
+        geom_line(lwd = 2) + 
+        ggtitle(&quot;P vs Age, Sex and Class&quot;)</code></pre>
+<p><img src="/post/2020-10-27-MSc1_Sitzung4_Logistic_Regression_files/figure-html/unnamed-chunk-34-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Alle drei Grafiken zeigen deutlich die Haupteffekte der Analyse: Die Überlebenswahrscheinlichkeit des Titanicunglücks sinkt mit dem Alter. Frauen haben eine höhere Überlebenswahrscheinlichkeit als Männer (bei vergleichbaren Alter) sowie deskriptiv gesprochen hatten Menschen die in der 1. Klasse reisen eine höhere Überlebenswahrscheinlichkeit als jene aus der 2. und 3. Klasse und die aus der 2. Klasse hatten ebenfalls eine höhere Überlebenswahrscheinlichkeit als jene aus der 3. Klasse (jeweils immer für vergleichbares Alter und Geschlecht). Der Zusatz “für vergleichbares Alter” ist im Grunde das Gleiche wie der Zusatz “unter Konstanthaltung aller weiteren Prädiktoren im Modell”, denn wir können schlecht die Überlebenswahrscheinlichkeit eines zwanzigjährigen Mannes aus der 1. Klasse mit der einer sechzigjährigen Frau aus der 3. Klasse vergleichen, denn dann wissen wir nicht, ob die Wahrscheinlichkeiten unterschiedlich sind, weil es sich um eine Frau oder einen Mann aus der jeweiligen Klasse handelt oder, ob es sich auf das Alter zurückführen lässt, oder ob eine Kombination der Variablen das Ergebnis erzeugt - was wir aber tun können, ist für gleiches Alter die 6 Linien jeweils zu vergleichen! Außerdem erkennen wir insbesondere an der Modellierung des Logit oder der Wahrscheinlichkeit, dass Frauen, die in der 3. Klasse reisten noch eine höhere Überlebenswahrscheinlichkeit hatten als Männer aus der 1. Klasse (erneut: jeweils für vergleichbares Alter!). Innerhalb der Geschlechter waren die Klassen allerdings auf die gleiche Art und Weise sortiert: <span class="math inline">\(1 &gt; 2 &gt; 3\)</span>. Insgesamt suggeriert dies also, dass dem Motto “<em>Frauen und Kinder zuerst</em>” Folge geleistet wurde.</p>
+<p>Final können wir festhalten, dass wohl alle drei Hypothesen erfüllt sind und sowohl das Alter, das Geschlecht sowie Klassenzugehörigkeit die Überlebenswahrscheinlichkeit des Titanicunglücks beeinflussten (<em>beachten Sie, dass es sich hierbei um fiktive Daten handelt!</em>).</p>
+<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/4_Log_Reg_RCode.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
+</div>
+</div>
+</div>
+<div id="appendix" class="section level2">
+<h2>Appendix</h2>
+<div id="AppendixA" class="section level3">
+<h3>Appendix A: Parametereinflüsse</h3>
+<p>Die folgende Funktion stellt vier Grafiken dar: den Logit, die Odds, die Wahrscheinlichkeit und die Wahrscheinlichkeit vs. eine Zufallserhebung. Sie können <span class="math inline">\(\beta_0\)</span> und <span class="math inline">\(\beta_1\)</span> dieses Modells so einstellen, wie Sie wünschen und können sich den Effekt auf die verschiedenen Darstellungsformen der logistischen Regression ansehen. In hellblau wird jeweils die Funktion mit <span class="math inline">\(\beta_0 = 0\)</span> und <span class="math inline">\(\beta_1 = 1\)</span> als Referenz dargestellt. Die gestrichelten Linien stellen jeweils die x- und die y-Achse dar. In roten Punkten werden Realisierungen von <span class="math inline">\(Y=0,1\)</span> dargestellt, die mit der angezeigten Wahrscheinlichkeit gezogen wurden. Um die Ergebnisse vergleichbar zu machen, wird <code>set.seed(1234)</code> verwendet (vgl. <a href="/post/einleitung-und-wiederholung">Einführungssitzung</a>).</p>
+<pre class="r"><code>Logistic_functions &lt;- function(beta0 = 0, beta1 = 1)
+{
+        par(mfrow=c(2,2)) # 4 Grafiken in einer
+        
+        xWerte &lt;- seq(-5, 5, 0.1)
+        logit &lt;- beta0 + beta1*xWerte
+        plot(x = xWerte, y = logit, type = &quot;l&quot;, col = &quot;blue&quot;, lwd = 3, main = &quot;Logit vs X&quot;, xlab = &quot;X&quot;)
+        lines(xWerte, xWerte, col = &quot;skyblue&quot;)
+        abline(h = 0, lty = 3); abline(v = 0, lty = 3)
+
+        odds &lt;- exp(logit)
+        plot(x = xWerte, y = odds, type = &quot;l&quot;, col = &quot;blue&quot;, lwd = 3, main = &quot;Odds vs X&quot;, xlab = &quot;X&quot;)
+        abline(h = 0, lty = 3); abline(v = 0, lty = 3)
+        lines(xWerte, exp(xWerte), col = &quot;skyblue&quot;)
+
+        p &lt;- odds/(1 + odds)
+        plot(x = xWerte, y = p, type = &quot;l&quot;, col = &quot;blue&quot;, lwd = 3, main = &quot;P vs X&quot;, ylim = c(0,1), xlab = &quot;X&quot;)  
+        lines(xWerte, exp(xWerte)/(1 + exp(xWerte)), col = &quot;skyblue&quot;)
+        abline(h = 0, lty = 3); abline(v = 0, lty = 3)
+ 
+        set.seed(1234) # Vergleichbarkeit
+        Y &lt;- rbinom(n = length(xWerte), size = 1, prob = p)
+        plot(x = xWerte, y = p, type = &quot;l&quot;, col = &quot;blue&quot;, lwd = 3, main = &quot;P vs X und zufällige Realisierungen&quot;,
+             ylim = c(0,1), xlab = &quot;X&quot;, ylab = &quot;P und Y&quot;)
+        abline(h = 0, lty = 3); abline(v = 0, lty = 3)
+        points(x = xWerte, y = Y, pch = 16, cex = .5, col = &quot;red&quot;)
+}</code></pre>
+<p>Sie führen diese Funktion aus, indem Sie alles von <code>Logistic_functions &lt;- function(beta0 = 0, beta1 = 1){</code> bis <code>}</code> kopieren und in Ihrem <code>R</code>-Studio Fenster ausführen, sodass in der Rubrik oben rechts (dort wo auch immer <code>Data</code> erscheint) unter <code>Functions</code> <code>Logistic_functions</code> als Funktion aufgeführt wird. Sie können sich bspw. die Konstellation für <span class="math inline">\(\beta_0 = 1\)</span> und <span class="math inline">\(\beta_1 = -0.5\)</span> im Vergleich zu <span class="math inline">\(\beta_0 = 0\)</span> und <span class="math inline">\(\beta_1 = 1\)</span> ansehen:</p>
+<pre class="r"><code>Logistic_functions(beta0 = 1, beta1 = -.5)</code></pre>
+<p><img src="/post/2020-10-27-MSc1_Sitzung4_Logistic_Regression_files/figure-html/unnamed-chunk-36-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="literatur" class="section level2">
+<h2>Literatur</h2>
+<p><a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, M., Gollwitzer, M., &amp; Schmitt, M. (2017).</a> <em>Statistik und Forschungsmethoden</em> (5. Auflage, 1. Auflage: 2010). Weinheim: Beltz.</p>
+<p><a href="https://hds.hebis.de/ubffm/Record/HEB371183324">Pituch, K. A. &amp; Stevens, J. P. (2016).</a> <em>Applied Multivariate Statistics for the Social Sciences</em> (6th ed.). New York: Taylor &amp; Francis.</p>
+<ul>
+<li><small> <em>Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.</em></li>
+</ul>
+</div>

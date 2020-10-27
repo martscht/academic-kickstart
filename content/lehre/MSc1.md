@@ -75,6 +75,6 @@ Das Modul PsyMSc1 ist in zwei Teile untergliedert: Forschungsmethoden und Evalua
 | 1 | **Regressionsanalyse und Ausreißerdiagnostik** | [Inhalte](/post/regression-und-ausreisserdiagnostik)  | [Übungsdaten und -vorbereitung](/post/MSc1-Daten) |
 | 2 | **Hierarchische Regressionsanalyse** | [Inhalte](/post/multi-level-modeling)  | [Übungsdaten und Vorbereitung](/post/MSc1-Daten) |
 | 3 | **Hauptkomponentenanalyse** | [Inhalte](/post/PCA)  | [Übungsdaten und -vorbereitung](/post/MSc1-Daten) |
-| 4 | **Logistische Regressionsanalyse** | Inhalte  | [Übungsdaten und -vorbereitung](/post/MSc1-Daten) |
+| 4 | **Logistische Regressionsanalyse** | [Inhalte](/post/logistische-regression)  | [Übungsdaten und -vorbereitung](/post/MSc1-Daten) |
 | 5 | **Multivariate Varianzanalyse** | Inhalte  | [Übungsdaten und -vorbereitung](/post/MSc1-Daten) |
 |  |  |  |  | | |
