@@ -184,6 +184,20 @@ Die Spalte <code>Std.Error</code> enthält die Standardfehler. Diese werden in <
 ## Multiple R-squared:  0.3555, Adjusted R-squared:  0.3422 
 ## F-statistic: 26.75 on 2 and 97 DF,  p-value: 5.594e-10</code></pre>
 <p>Dazu entnehmen wir dem letzten Block den Standardfehler der Residuen (<code>Residual standard error</code>), der im Grunde die Fehlervariation von <span class="math inline">\(y\)</span> beschreibt, sowie das multiple <span class="math inline">\(R^2\)</span> (<code>Multiple R-squared</code>), welches anzeigt, dass ca. 35.5% der Variation der Leseleistung auf die Prädiktoren Geschlecht und Intelligenz zurückgeführt werden kann. Dieses Varianzinkrement ist statistisch signifikant, was wir am <span class="math inline">\(F\)</span>-Test in der letzten Zeile ablesen können. Der <span class="math inline">\(F\)</span>-Wert (<code>F-statistic</code>) liegt bei 26.75, wobei die Hypothesenfreiheitsgrade hier gerade 2 sind (<span class="math inline">\(df_h\)</span>) und die Residualfreiheitsgrade bei 97 (<span class="math inline">\(df_e\)</span>) liegen. Der zugehörige <span class="math inline">\(p\)</span>-Wert ist deutlich kleiner als 5% und liegt bei <span class="math inline">\(5.594*10^{-10}\)</span>. Dies bedeutet, dass mit einer Irrtumswahrscheinlichkeit von 5% auch in der Population eine Vorhersage der Leseleistung durch Geschlecht und Intelligenz gemeinsam angenommen werden kann (<span class="math inline">\(R^2\neq0\)</span>). In einem Artikel (oder einer Abschlussarbeit) würden wir zur Untermauerung <em>F</em>(2,97)=26.75, p&lt;.001 in den Fließtext schreiben.</p>
+<p>Außerdem könnten wir das Summary Objekt auch unter einem Namen abspeichern und ihm dann weitere Informationen entlocken. Bspw. erhalten wir mit <code>$coefficients</code> die Tabelle der Koeffizienten.</p>
+<pre class="r"><code>summary_our_model &lt;- summary(lm.beta(our_model))
+summary_our_model$coefficients # Koeffiziententabelle</code></pre>
+<pre><code>##             Estimate Standardized Std. Error  t value     Pr(&gt;|t|)
+## (Intercept) 88.20929    0.0000000 56.5060958 1.561058 1.217669e-01
+## female      38.47046    0.1810138 17.3863424 2.212683 2.926502e-02
+## IQ           3.94442    0.5836188  0.5528999 7.134059 1.765181e-10</code></pre>
+<pre class="r"><code>names(summary_our_model)      # weitere mögliche Argumente, die wir erhalten können</code></pre>
+<pre><code>##  [1] &quot;call&quot;          &quot;terms&quot;         &quot;residuals&quot;     &quot;coefficients&quot; 
+##  [5] &quot;aliased&quot;       &quot;sigma&quot;         &quot;df&quot;            &quot;r.squared&quot;    
+##  [9] &quot;adj.r.squared&quot; &quot;fstatistic&quot;    &quot;cov.unscaled&quot;</code></pre>
+<pre class="r"><code>summary_our_model$r.squared  # R^2</code></pre>
+<pre><code>## [1] 0.3554865</code></pre>
+<p>Gleiches können wir mit allen Summary-Objekten auch in späteren Sitzungen machen!</p>
 <p>Wenn wir diese Siginfikanzentscheidungen nutzen wollen, um die Effekte in der Population auf diese Weise zu interpretieren, so müssen einige Voraussetzungen erfüllt sein, die zunächst noch geprüft werden müssten. Bspw. nehmen wir für ein Regressionsmodell an, dass die Regressoren lineare Beziehungen mit dem Kriterium aufweisen. Die Personen/Erhebungen sollten unabhängig und identisch verteilt sein (sie sollten aus einer i.i.d. Population stammen, also keinerlei Beziehung untereinander aufweisen und dem gleichen Populationsmodell folgen). Die Residuen innerhalb der Regression werden als normalverteilt und homoskedastisch (also mit gleicher Varianz über alle Ausprägungen der Prädiktoren) angenommen. Nur unter diesen Voraussetzungen lassen sich die Signifikanzentscheidungen überhaupt interpretieren. Außerdem beeinflussen Ausreißer die Schätzungen der Regressionskoeffizienten drastisch.</p>
 </div>
 </div>
@@ -203,7 +217,7 @@ Die Spalte <code>Std.Error</code> enthält die Standardfehler. Diese werden in <
 <h3>Linearität</h3>
 <p>Eine grafische Prüfung der partiellen Linearität zwischen den einzelnen Prädiktorvariablen und dem Kriterium kann durch <em>partielle Regressionsplots</em> (engl. <em>Partialplots</em>) erfolgen. Dafür sagen wir in einem Zwischenschritt einen einzelnen Prädiktor durch alle übrigen Prädiktoren im Modell vorher und speichern die Residuen, die sich aus dieser Regression ergeben. Diese kennzeichnen den eigenständigen Anteil, den ein Prädiktor nicht mit den übrigen Prädiktoren gemein hat (er wird also von den übrigen Prädiktoren bereinigt). Dann werden die Residuen aus dieser Vorhersage gegen die Residuen des Kriteriums bei Vorhersage durch den jeweiligen Prädiktor dargestellt. Diese Grafiken können Hinweise auf systematische nicht-lineare Zusammenhänge geben, die in der Modellspezifikation nicht berücksichtigt wurden. Die zugehörige <code>R</code>-Funktion des <code>car</code> Pakets heißt <code>avPlots</code> und braucht als Argument lediglich das spezifizierte Regressionsmodell <code>our_model</code>.</p>
 <pre class="r"><code>avPlots(model = our_model, pch = 16, lwd = 4)</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-14-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-15-1.png" width="960" style="display: block; margin: auto;" /></p>
 <p>Mit Hilfe der Argumente <code>pch=16</code> und <code>lwd=4</code> werden die Darstellung der Punkte (ausgefüllt anstatt leer) sowie die Dicke der Linie (vierfache Dicke) manipuliert (<em>für mehr zu Grafikparametern in <code>R</code> siehe <a href="https://www.statmethods.net/advgraphs/parameters.html"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> hier</a></em>). Den Achsenbeschriftungen ist zu entnehmen, dass auf der Y-Achse jeweils <em>reading | others</em> dargestellt ist. Die vertikale Linie <em>|</em> steht hierbei für den mathematischen Ausdruck <em>gegeben</em>. <em>Others</em> steht hierbei für alle weiteren (anderen) Prädiktoren im Modell. Dies bedeutet, dass es sich hierbei um die Residuen aus der Regression von <em>reading</em> auf alle anderen Prädiktoren handelt. Bei den unabhängigen Variablen (UV, <em>female</em>, <em>IQ</em>) steht <em>UV | others</em> also jeweils für die jeweilige UV gegeben der anderen UVs im Modell. Somit beschreiben die beiden Plots jeweils die Beziehungen, die die UVs über die anderen UVs im Modell hinaus mit dem Kriterium (AV, abhängige Variable) haben. Es ist zu beachten, dass die Variable Geschlecht hier nur zwei Ausprägungen hat.</p>
 <p>Die hier dargestellten Plots sehen sehr linear aus, weswegen wir nicht an der Liniearitätsannahme zweifeln.</p>
 </div>
@@ -215,7 +229,7 @@ Die Spalte <code>Std.Error</code> enthält die Standardfehler. Diese werden in <
 <h3>Homoskedastizität</h3>
 <p>Die Varianz der Residuen sollte unabhängig von den Ausprägungen der Prädiktoren sein. Dies wird i.d.R. grafisch geprüft, indem die Residuen <span class="math inline">\(e_i\)</span> gegen die vorhergesagten Werte <span class="math inline">\(\hat{y}_i\)</span> geplottet werden: der sogenannte <em>Residuenplot</em> (engl.: <em>residual plot</em>). In diesem Streudiagramm sollten die Residuen gleichmäßig über <span class="math inline">\(\hat{y}_i\)</span> streuen und keine systematischen Trends (linear, quadratisch, auffächernd, o.ä.) erkennbar sein. <strong>Prüfung nicht-linearer Zusammenhänge:</strong> Die Funktion <code>residualPlots</code> des Pakets <code>car</code> erzeugt separate Streudiagramme für die Residuen in Abhängigkeit von jedem einzelnen Prädiktor <span class="math inline">\(x_j\)</span> und von den vorhergesagten Werten <span class="math inline">\(\hat{y}_i\)</span> (<em>“Fitted Values”</em>); als Input braucht die Funktion das Modell <code>our_model</code>. Zusätzlich wird für jeden Plot ein quadratischer Trend eingezeichnet und auf Signifikanz getestet, wodurch eine zusätzliche Prüfung auf nicht-lineare Effekte erfolgt. Sind diese Tests nicht signifikant, ist davon auszugehen, dass diese Effekte nicht vorliegen und die Voraussetzung der Homoskedastizität damit nicht verletzt ist.</p>
 <pre class="r"><code>residualPlots(model = our_model, pch = 16)</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-15-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-16-1.png" width="960" style="display: block; margin: auto;" /></p>
 <pre><code>##            Test stat Pr(&gt;|Test stat|)
 ## female        0.0207           0.9835
 ## IQ            1.4015           0.1643
@@ -232,11 +246,11 @@ oder
 hist(res, freq = F)
 xWerte &lt;- seq(from = min(res), to = max(res), by = 0.01)
 lines(x = xWerte, y = dnorm(x = xWerte, mean = mean(res), sd = sd(res)), lwd = 3)</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Das Histogramm zeigt keine großen Verstöße gegen die Normalverteilungsannahme.</p>
 <p>Ähnliche Informationen sind aus dem <em>Q-Q-Plot</em> zu entnehmen. Dafür kann der Befehl <code>qqPlot</code> aus dem <code>car</code> Paket genutzt werden. Hier kann die Verteilung, gegen die geprüft werden soll, direkt mit <code>distribution</code> festgelegt werden.</p>
 <pre class="r"><code>qqPlot(our_model, pch = 16, distribution = &quot;norm&quot;)</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre><code>## [1]  6 33</code></pre>
 <p>Durch die Angabe von <code>distribution = "norm"</code> als Argument für die Funktion <code>qqPlot</code> des <code>car</code>-Pakets wird ein Vergleich der vorliegenden Variable gegen eine Normalverteilung erzeugt (auch der Vergleich zu anderen Verteilungen wäre möglich - die Anführungszeichen sind dabei essentiell. Welche weiteren Verteilungen es gibt, kann bspw. in der oben angegebenen Quelle gefunden werden). Die gestrichelten Linien zeigen ein “gebootstraptes” (vgl. <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, et al., 2017, S. 283</a>) 95% Konfidenzintervall an. In diesem Plot sind studentisierte Residuen dargestellt, welche gegen die zugehörigen Qunatile der angenommenen Verteilung abgetragen werden (vgl. <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, 2017, S. 717 und folgend</a>). Die Punkte sollten möglichst nah an der durchgezogenen Linie (Winkelhalbierende oder Gerade “<span class="math inline">\(y=x\)</span>”) liegen. Zahlen im Plot zeigen extreme Werte auf (zur Erinnerung, bei einer Standardnormalverteilung mit Mittelwert 0 und Varianz 1 sind Werte ab 1.96 auf dem 5% Niveau extrem - deshalb werden hier die Residuen der Proband*innen 6 und 33 als extrem dargestellt). Insgesamt scheint auch hier kein Grund zum Zweifeln an der Normalverteilungsannahme gegeben.</p>
 <p>Nun wollen wir die Voraussetzung zusätzlich mittels des Kolmogorov Smirnov Tests überprüfen (siehe bspw. <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, et al., 2017, Kapitel 10.16.1</a>). Dieser testet, wenn wir gegen die Normalverteilung prüfen, im Grunde genommen die Null-Hypothese: <span class="math inline">\(H_0:\)</span> <em>“Normalverteilung liegt vor”</em>. (Wir wissen allerdings, dass wir Hypothesen nur verwerfen können und nicht wirklich annehmen, weshalb diese Tests immer nur unter Vorbehalt interpretiert werden sollten - Aussagen wie etwa: <em>“<span class="math inline">\(H_0\)</span> nicht verworfen; daraus folgt, dass in der Population Normalverteilung herrscht”</em>, sind nicht zulässig. Wird die <span class="math inline">\(H_0\)</span> nicht verworfen, nehmen wir nur weiterhin an, dass eine Normalverteilung vorliegt, ein Beweis ist dies jedoch nicht). Die Funktion <code>ks.test</code> benötigt als Argument die Variable, die auf Normalverteilung geprüft werden soll (hier also <code>x = res</code>); und als weiteres Argument die Vergleichsverteilung - entweder ebenfalls als Vektor (Vergleich von empirischen Verteilungen) oder die theoretisch angenommene Verteilungsfunktion in Anführungszeichen (es sind alle in <code>R</code> implementierten Verteilungen möglich); hier <code>y = "pnorm"</code>. In diesem spezifischen Beispiel brauchen wir nun keine weiteren Einstellungen, da die Residuen studentisiert wurden. Normalerweise müssten wir noch die verteilungsspezifischen Parameter vorgeben: hier der Mittelwert und die Standardabweichung. Der vollständige Befehl für alle Normalverteilungen mit dem beobachten Mittelwert und beobachteter Standardabweichung erhalten wir so: <code>ks.test(x = res, y = "pnorm", mean(res), sd(res))</code>, wir könnten dort auch Zahlen vorgeben. Hier geht es aber noch einfacher:</p>
@@ -294,7 +308,7 @@ cor(Schulleistungen$female, Schulleistungen$IQ)</code></pre>
 h &lt;- hatvalues(our_model)           # Hebelwerte
 hist(h, breaks  = 20)               
 abline(v = 4/n, col = &quot;red&quot;)  # Cut-off bei 4/n</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Das Zusatzargument <code>breaks = 20</code> in <code>hist</code> gibt an, dass 20 Balken gezeichnet werden sollen. <code>abline</code> ist eine Funktion, die eine Gerade einem Plot hinzufügt. Dem Argument <code>v</code> wird hierbei der Punkt übergeben, an welchem eine <strong>v</strong>ertikale Linie eingezeichnet werden soll. <code>col = "red"</code> gibt an, dass diese Linie rot sein soll.</p>
 </div>
 <div id="cooks-distanz" class="section level3">
@@ -304,12 +318,12 @@ abline(v = 4/n, col = &quot;red&quot;)  # Cut-off bei 4/n</code></pre>
 CD &lt;- cooks.distance(our_model) # Cooks Distanz
 hist(CD, breaks  = 20)
 abline(v = 1, col = &quot;red&quot;)  # Cut-off bei 1</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" />
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" />
 In diesem Plot ist die vertikale Linie nicht enthalten, da der Plot schon zu früh entlang der x-Achse aufhört. Wir können die Grenzen mit <code>xlim = c(0,1)</code> explizit von 0 bis 1 vorgeben:</p>
 <pre class="r"><code># Cooks Distanz nochmal
 hist(CD, breaks  = 20, xlim = c(0, 1))
 abline(v = 1, col = &quot;red&quot;)  # Cut-off bei 1</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="blasendiagramm" class="section level3">
 <h3>Blasendiagramm</h3>
@@ -318,7 +332,7 @@ abline(v = 1, col = &quot;red&quot;)  # Cut-off bei 1</code></pre>
 # In &quot;IDs&quot; werden die Zeilennummern der auffälligen Fälle gespeichert,
 # welche gleichzeitig als Zahlen im Blasendiagramm ausgegeben werden
 InfPlot &lt;- influencePlot(our_model)</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>IDs &lt;- as.numeric(row.names(InfPlot))
 # Werte der identifizierten Fälle
 InfPlot</code></pre>
@@ -362,7 +376,7 @@ round(scale(Schulleistungen)[IDs,],2) </code></pre>
 <div id="einfluss-von-hebelwert-und-cooks-distanz" class="section level3">
 <h3>Einfluss von Hebelwert und Cook’s Distanz</h3>
 <p>Was wäre nun gewesen, wenn die Hebelwerte oder Cook’s Distanz extreme Werte angezeigt hätten? Um dieser Frage auf den Grund zu gehen, schauen wir uns für eine Kombination der beiden Koeffizienten den Effekt auf eine Regressionsgerade an. Die vier Grafiken zeigen jeweils die Regressionsgerade in schwarz ohne den jeweiligen Ausreißer, während die Gerade in blau die Regressionsanalyse (<code>Y ~ 1 + X</code>) inklusive des Ausreißers symbolisiert.</p>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-28-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>In <code>A)</code> ist die Regression ohne Ausreißer dargestellt. Die beiden Gerade sind fast identisch. <code>B)</code> zeigt den Effekt, wenn nur der Hebelwert groß ist. Es ist kaum ein Einfluss auf die Regressionsgerade auszumachen. Der Mittelwert der Variable <code>X</code> wird stark nach rechts verschoben. Dies bedeutet, dass ein großer Hebelwert nur den Mittelwert dieser Variable in Richtung des Ausreißers “hebelt”, nicht aber zwangsweise die Regressionsgerade! <code>C)</code> zeigt eine große Cook’s Distanz bei gleichzeitig kleinem Hebelwert. die Gerade ist etwas nach oben verschoben und auch die Steigung hat sich leicht verändert. Insgesamt ist mit dem bloßen Auge allerdings noch kein extremer Effekt auf die Gerade auszumachen. Dieser Effekt wird nur in <code>D)</code> deutlich. Hier ist sowohl Cook’s Distanz als auch der Hebelwert extrem. Dadurch verändert sich die Regressionsgerade stark. Hier könnten wir davon sprechen, dass die Gerade durch den Ausreißer nach unten “gehebelt” wird. Die hier dargestellte Erhebung hat auch auch die größte Mahalanobisdistanz, da sie sowohl in <code>X</code> als auch in <code>Y</code> Richtung extrem ist (siehe dazu nächsten Abschnitt). Insgesamt zeigt diese Grafik, dass nicht ein Koeffizient alleine ausreicht, um einen Effekt auf eine Regressionsanalyse zu untersuchen und dass Werte besonders dann extreme Auswirkungen haben, wenn mehrere Koeffizienten groß sind!</p>
 </div>
 <div id="mahalanobisdistanz" class="section level3">
@@ -372,7 +386,7 @@ round(scale(Schulleistungen)[IDs,],2) </code></pre>
 Wir erkennen, dass wir hier den Personenwert relativ zur Streuung in den Daten betrachten. Nutzen wir nun mehrere Variablen und wollen multivariate Ausreißer interpretieren, so ist die Mahalanobisdistanz folgendermaßen definiert:
 <span class="math display">\[MD_i=(\mathbf{X}_i-\bar{\mathbf{X}})&#39;\Sigma^{-1}(\mathbf{X}_i-\bar{\mathbf{X}}).\]</span>
 Der Vektor der Mittelwertsdifferenzen <span class="math inline">\(\mathbf{X}_i-\bar{\mathbf{X}}\)</span> wird durch die Kovarianzmatrix der Daten <span class="math inline">\(\Sigma\)</span> gewichtet. Sind zwei Variablen <span class="math inline">\(X_1\)</span> und <span class="math inline">\(X_2\)</span> positiv korreliert, so treten große Werte (und auch kleine Werte) auf beiden Variablen gemeinsam häufig auf, allerdings sind große <span class="math inline">\(X_1\)</span> und kleine <span class="math inline">\(X_2\)</span>-Werte (gleichzeitig und auch umgekehrt) unwahrscheinlich. Dies lässt sich anhand der Mahalanobisdistanz untersuchen. <em>Wann ist nun ein Mahalanobisdistanzwert extrem?</em> Dies können wir uns an einem zweidimensionalen Beispiel klarer machen. Dazu tragen wir in ein Diagramm die Ellipsen (Kurven) gleicher Mahalanobisdistanz ein, also jene Linien, welche laut Mahalanobisdistanz gleich weit vom Zentroiden entfernt liegen. Je dunkler die Kurven, desto weiter entfernt liegen diese Punkte vom Zentroiden (hier <span class="math inline">\((0,0)\)</span>) und desto unwahrscheinlicher sind diese Punkte in den Daten zu beobachten. In diesem Beispiel nehmen wir an, dass die Variablen positiv korreliert sind:</p>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-28-1.png" width="672" style="display: block; margin: auto;" />
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-29-1.png" width="672" style="display: block; margin: auto;" />
 Hier ist
 <span class="math display">\[\begin{align*}
 \mathbf{X}&amp;=\begin{pmatrix}X_1\\ X_2\end{pmatrix}\\
@@ -426,9 +440,9 @@ colMeans(X)  # Spaltenmittelwerte (1. Zahl = Mittelwert der Leseleistung, 2. Zah
 <pre class="r"><code>hist(MD, freq = F, breaks = 15)
 xWerte &lt;- seq(from = min(MD), to = max(MD), by = 0.01)
 lines(x = xWerte, y = dchisq(x = xWerte, df = 2), lwd = 3)</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-33-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-34-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>qqPlot(x = MD,distribution =  &quot;chisq&quot;, df = 2, pch = 16)</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-33-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-34-2.png" width="672" style="display: block; margin: auto;" /></p>
 <pre><code>## [1] 16  9</code></pre>
 <p>Gleiches gilt auch für den Q-Q-Plot, der hier ebenfalls gegen die <span class="math inline">\(\chi^2(df=2)\)</span>-Verteilung abgetragen wurde. Der Q-Q-Plot hat außerdem als Output die Fallnummer (Pbn-Nr) der extremeren Werte - hier ebenfalls 9 und 16. Insgesamt ist also zu sagen, dass die Mahalanobisdistanz nicht der multivariaten Normalverteilungsannahme widerspricht. Der Ellipsenplot oben zeigt zwei multivariat-normalverteilte Variablen. Die Normalverteilungsdichte können wir uns dort wie einen Hügel vorstellen, der aus dem Bildschirm wächst, wobei hellere Kurven für eine größere Höhe des Hügels sprechen.</p>
 <p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/1_Regression_RCode.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
@@ -691,13 +705,13 @@ ggplot(data = df_res, aes(x = res)) +
                     fill = &quot;skyblue&quot;) +           # Wie sollen die Balken gefüllt sein?
      stat_function(fun = dnorm, args = list(mean = mean(res), sd = sd(res)), col = &quot;darkblue&quot;) + # Füge die Normalverteilungsdiche &quot;dnorm&quot; hinzu und nutze den empirischen Mittelwert und die empirische Standardabweichung &quot;args = list(mean = mean(res), sd = sd(res))&quot;, wähle dunkelblau als Linienfarbe
      labs(title = &quot;Histogramm der Residuen mit Normalverteilungsdichte&quot;, x = &quot;Residuen&quot;) # Füge eigenen Titel und Achsenbeschriftung hinzu</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-50-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-51-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Nutzen wir nur die Defaulteinstellung des Histogramms (bis auf <code>bins = 15</code> <em>- für die Vergleichbarkeit der beiden Grafiken</em>), sieht es so aus:</p>
 <pre class="r"><code># hier nochmal nur das Nötigste:
 ggplot(data = df_res, aes(x = res)) + 
      geom_histogram(aes(y =..density..),  bins = 15) +           
      stat_function(fun = dnorm, args = list(mean = mean(res), sd = sd(res)))</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-51-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-52-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Hier sind auch noch die weiteren Histogramme dieser Sitzung mit <code>ggplot</code> aufbereitet:</p>
 <div id="hat-values" class="section level4">
 <h4>Hat-Values</h4>
@@ -707,7 +721,7 @@ df_h &lt;- data.frame(h) # als Data.Frame für ggplot
 ggplot(data = df_h, aes(x = h)) + 
      geom_histogram(aes(y =..density..),  bins = 15)+
   geom_vline(xintercept = 4/n, col = &quot;red&quot;) # Cut-off bei 4/n</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-52-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-53-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="cooks-distanz-1" class="section level4">
 <h4>Cooks-Distanz:</h4>
@@ -717,7 +731,7 @@ df_CD &lt;- data.frame(CD) # als Data.Frame für ggplot
 ggplot(data = df_CD, aes(x = CD)) + 
      geom_histogram(aes(y =..density..),  bins = 15)+
   geom_vline(xintercept = 1, col = &quot;red&quot;) # Cut-Off bei 1</code></pre>
-<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-53-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-10-12-MSc1_Sitzung1_Regression_files/figure-html/unnamed-chunk-54-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
 <div id="AppendixD" class="section level3">
