@@ -31,7 +31,7 @@ library(ggplot2) # ggplot2 und dplyr werden nur für Grafiken benötigt
 ```
 
 ## Einleitung
-In dieser Sitzung wollen wir dichotome abhängige Variablen mit der logistischen Regression  (vgl. bspw. [Eid, Gollwitzer & Schmitt, 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 22 und [Pituch und Stevens, 2016,](https://hds.hebis.de/ubffm/Record/HEB371183324) Kapitel 11) analysieren. Diese Daten sind dahingehend speziell, dass die abhängige Variable nur zwei Ausprägungen hat, welche in der Regel mit $0$ und $1$ kodiert werden. Dies führt dazu, dass der Wertebereich der abhängigen Variable so gut wie gar nicht durch die Vorhersage innerhalb einer normalen Regressionsanalyse "getroffen" wird, die Residuen nicht länger unabhängig von der Ausprägung der abhängigen Variablen sind und auch die Normalverteilungsannahme der Residuen verletzt ist. Wir wollen uns ein fiktives Datenbeispiel (Datensatz `Titanic` aus dem gleichnamigen .rda File `Titanic.rda`) ansehen, in welchem die Überlebenswahrscheinlichkeit des Titanicunglücks durch das Alter sowie die Klassenzugehörigkeit auf dem Schiff vorhergesagt werden soll. Sie können den   [`r fontawesome::fa("download")` Datensatz "Titanic.rda" hier herunterladen](https://pandar.netlify.app/post/Titanic.rda).
+In dieser Sitzung wollen wir dichotome abhängige Variablen mit der logistischen Regression  (vgl. bspw. [Eid, Gollwitzer & Schmitt, 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 22 und [Pituch und Stevens, 2016,](https://hds.hebis.de/ubffm/Record/HEB371183324) Kapitel 11) analysieren. Diese Daten sind dahingehend speziell, dass die abhängige Variable nur zwei Ausprägungen hat, welche in der Regel mit $0$ und $1$ kodiert werden. Dies führt dazu, dass der Wertebereich der abhängigen Variable so gut wie gar nicht durch die Vorhersage innerhalb einer normalen Regressionsanalyse "getroffen" wird, die Residuen nicht länger unabhängig von der Ausprägung der abhängigen Variablen sind und auch die Normalverteilungsannahme der Residuen verletzt ist. Wir wollen uns ein reales Datenbeispiel (Datensatz `Titanic` aus dem gleichnamigen .rda File `Titanic.rda`) ansehen, in welchem die Überlebenswahrscheinlichkeit des Titanicunglücks durch das Alter sowie die Klassenzugehörigkeit auf dem Schiff vorhergesagt werden soll. Der Datensatz ist öffentlich zugänglich auf [Open-Daten-Soft](https://public.opendatasoft.com) zu finden. Sie können sich den [vollständigen Datensatz hier](https://public.opendatasoft.com/explore/dataset/titanic-passengers) ansehen. Bevor wir Ihn verwenden, wurden alle fehlenden Werte entfernt (wir gehen einfach mal davon aus, dass das keine Effekte auf die Ergebnisse hat, obwohl wir dies selbstverständlich prüfen müssten) und es wurden einige Variablen rekodiert bzw. entfernt. Sie können den im Folgenden verwendeten  [`r fontawesome::fa("download")` Datensatz "Titanic.rda" hier herunterladen](https://pandar.netlify.app/post/Titanic.rda).
 
 ### Daten laden
 Wir laden zunächst die Daten: entweder lokal von Ihrem Rechner:
@@ -53,9 +53,10 @@ Wir wollen uns einen Überblick über die Daten verschaffen:
 
 ```{r}
 head(Titanic)
+dim(Titanic) # Dimensionen des Datensatzes
 ```
 
-Die Variable `survived` gibt an, ob eine Person das Unglück überlebt hat. `sex` kodiert das Geschlecht, wobei `1` für weiblich und `2` für männlich steht. Die Variablen `age` und `pclass` beschreiben das Alter und die Klasse, in der die Person reiste (Klasse 1 bis 3).
+Die Variable `survived` gibt an, ob eine Person das Unglück überlebt hat. `sex` kodiert das Geschlecht, wobei `1` für weiblich und `2` für männlich steht. Die Variablen `age` und `pclass` beschreiben das Alter und die Klasse, in der die Person reiste (Klasse 1 bis 3). In dieser Analyse werden `r dim(Titanic)[1]` Personen berücksichtigt.
 
 
 
@@ -103,11 +104,12 @@ Für die erste Hypothese müssen wir den Einfluss des Alters auf die Überlebens
 #### Lineares Modell: Einfache Regressionsanalyse
 Wir nennen unser Modell zur Modellierung des Überlebens `reg_model`.
 ```{r}
+library(lm.beta) # std. Koeffizienten
 reg_model <- lm(survived ~ 1 + age, data = Titanic)
-summary(reg_model)
+summary(lm.beta(reg_model))
 ```
 
-Laut der einfachen Regressionsanalyse scheint das Alter nicht mit dem Überleben des Unglücks zusammenzuhängen. Wir führen trotzdem noch einige Analysen zur Diagnostik durch.
+Laut der einfachen Regressionsanalyse scheint das Alter nur gering mit dem Überleben des Unglücks zusammenzuhängen. Wir führen noch einige Analysen zur Diagnostik durch.
 
 ```{r, message=F}
 library(car) # nötiges Paket laden
@@ -124,7 +126,7 @@ xWerte <- seq(from = min(res), to = max(res), by = 0.01)
 lines(x = xWerte, y = dnorm(x = xWerte, mean = mean(res), sd = sd(res)), lwd = 3)
 ```
 
-Den Verteilungen der Residuen können wir deutlich entnehmen, dass diese höchst systematisch ausfallen (mit steigendem Alter fallen die Residuen linear ab) und auch die Normalverteilungsannahme ist deutlich verletzt. Eine Regression erscheint nicht sinnvoll. Den Ergebnisse der Signifikanzentscheidungen kann nicht getraut werden.
+Den Verteilungen der Residuen können wir deutlich entnehmen, dass diese höchst systematisch ausfallen (mit steigendem Alter fallen die Residuen linear ab) und auch die Normalverteilungsannahme ist deutlich verletzt. Eine Regression erscheint nicht sinnvoll. Den Ergebnisse der Signifikanzentscheidungen kann nicht getraut werden. Wir müssen uns also irgendwie anders mit den Daten auseinandersetzen!
 
 ### Generalisiertes Lineares Modell: Logistische Regressionsanalyse
 Nun wollen wir eine logistische Regressionsanlyse durchführen. In dieser werden die Residuen nicht länger als normalverteilt angenommen, sondern die AV wird als (bedingt) binomialverteilt modelliert. Wir nennen das Modell `m1`, da es die erste Hypothese untersucht. Die Funktion `glm` übernimmt für uns die richtige Transformation, indem wir noch das Zusatzargument `family = "binomial"` festlegen. Die Binomialverteilung ist gerade jene Verteilung, die beschreibt, wie häufig bei $n$ Versuchen Erfolg eintritt (also genau die richtige Verteilung für unser Modell!).
@@ -141,9 +143,9 @@ cat('
  Call:
  glm(formula = survived ~ 1 + age, family = "binomial", data = Titanic)
 
- Deviance Residuals:
-     Min       1Q   Median       3Q      Max
- -1.1189  -1.0361  -0.9768   1.3187   1.5162  ')
+ Deviance Residuals: 
+     Min       1Q   Median       3Q      Max  
+ -1.1488  -1.0361  -0.9544   1.3159   1.5908')
 ```
 
 zeigt uns, dass wir kein `lm`-Objekt sondern ein `glm`-Objekt vor uns haben. Außerdem werden uns dieses Mal `Deviance Residuals` angezeigt anstatt normale Residuen. Das Schätzverfahren ist ein anderes. Es wird nicht das Kleinste-Quadrate-Verfahren angewandt, sondern die Maximum-Likelihood-Schätzmethode (ML).
@@ -152,18 +154,18 @@ zeigt uns, dass wir kein `lm`-Objekt sondern ein `glm`-Objekt vor uns haben. Au�
 cat('
  Coefficients:
               Estimate Std. Error z value Pr(>|z|)
- (Intercept) -0.136531   0.144715  -0.943   0.3455
- age         -0.007899   0.004407  -1.792   0.0731 .
+ (Intercept) -0.05672    0.17358  -0.327   0.7438  
+ age         -0.01096    0.00533  -2.057   0.0397 *
  ---
  Signif. codes:  0 \'***\' 0.001 \'**\' 0.01 \'*\' 0.05 \'.\' 0.1 \' \' 1')
 ```
 
-Der Überblick über die (ML-)Parameterschätzung unterscheidet sich kaum von der normalen Regression. Lediglich die $t$-Werte werden durch $z$-Werte ersetzt. Die Idee hinter der Signifikanzentscheidung ist aber komplett identisch (außerdem geht die $t$-Verteilung für große $n$ in die $z$-(Standardnormal-)Verteilung über).
+Der Überblick über die (ML-)Parameterschätzung unterscheidet sich kaum von der normalen Regression. Lediglich die $t$-Werte werden durch $z$-Werte ersetzt. Die Idee hinter der Signifikanzentscheidung ist aber komplett identisch (außerdem geht die $t$-Verteilung für große $n$ in die $z$-(Standardnormal-)Verteilung über). Hier scheint sich ein signifikanter Effekt des Alters zu zeigen.
 
 ```{r, echo = F}
-cat('     Null deviance: 1414.6  on 1045  degrees of freedom
- Residual deviance: 1411.4  on 1044  degrees of freedom
- AIC: 1415.4
+cat('     Null deviance: 964.52  on 713  degrees of freedom
+ Residual deviance: 960.23  on 712  degrees of freedom
+ AIC: 964.23
 
  Number of Fisher Scoring iterations: 4')
 ```
@@ -173,7 +175,7 @@ In diesem Abschnitt werden die Devianzen angezeigt. Diese beschreiben gerade die
 
 
 #### Fazit der Analyse
-Der Effekt des Alters ist immer noch nicht statistisch signifikant, obwohl wir dieses Mal ein sinnvolleres Modell eingesetzt haben. Somit gibt es bisher keine Evidenz für unsere erste Hypothese. Wenn wir den Wertebereich entlang der x-Achse sehr/unrealistisch groß wählen und das Alter von -500 bis 500 laufen lassen, so können wir uns die linearen und nichtlinearen Beziehungen zwischen Alter und Logit und Alter und Odds und Wahrscheinlichkeit ansehen. `m_age$coefficients[1] +` `m_age$coefficients[2]*AltersWerte` ist hierbei die Formel für den Logit, da die Parameterschätzungen einfach die $\beta$-Koeffizienten sind, welche linear verknüpft den Logit ergeben. Glücklicherweise sind Logit, Odds und Wahrscheinlichkeit sehr leicht ineinander überführbar:
+Der Effekt des Alters ist statistisch signifikant. Wir haben dieses Mal ein sinnvolleres Modell eingesetzt, was bedeutet, dass wir den Ergebnissen eher trauen können. Insgesamt stützen die Daten unsere erste Hypothese. Allerdings ist dieser Effekt sehr klein (dazu später mehr, wenn wir zur Ergebnisinterpretation und zur Einordnung der Koeffizienten kommen). Wenn wir den Wertebereich entlang der x-Achse sehr/unrealistisch groß wählen und das Alter von -500 bis 500 laufen lassen, so können wir uns die linearen und nichtlinearen Beziehungen zwischen Alter und Logit und Alter und Odds und Wahrscheinlichkeit ansehen, andernfalls ist der Effekt so klein, dass wir kaum etwas erkennen. `m_age$coefficients[1] +` `m_age$coefficients[2]*AltersWerte` ist hierbei die Formel für den Logit, da die Parameterschätzungen einfach die $\beta$-Koeffizienten sind, welche linear verknüpft den Logit ergeben. Glücklicherweise sind Logit, Odds und Wahrscheinlichkeit sehr leicht ineinander überführbar:
 
 ```{r}
 AltersWerte <- seq(-500, 500, 0.1)
@@ -187,7 +189,7 @@ p <- odds/(1 + odds)
 plot(x = AltersWerte, y = p, type = "l", col = "blue", lwd = 3)
 ```
 
-`type = "l"` fordert eine Linie anstatt von Punkten an, `lwd = 3` sagt, dass diese Linie dreimal so dick wie der Default sein soll und `col = "blue"` sagt, dass die Linie blau sein soll. Wir erkennen in allen drei Plots die negative Beziehung zwischen Überleben und Alter. Der Logit ist eine lineare Funktion (Wertebereich [$-\infty$,$\infty$]). Somit steigt (bzw. sinkt) der Logit um $\beta_1$, wenn der Prädiktor (hier Alter) um eine Einheit erhöht wird. Die Odds sind eine Exponentialfunktion (Wertebereich [0,$\infty$]) und bei der Wahrscheinlichkeit handelt es sich um eine sogenannte Ogive (Wertebereich [0,1]). Die Odds steigen (bzw. sinken) um den Faktor $e^{\beta_1}$ (auch Odds-Ratio genannt), wenn der Prädiktor (hier Alter) um eine Einheit erhöht wird - die Beziehung zwischen Odds und Prädiktor ist somit multiplikativ! Wir schauen uns die Parameterinterpretation der Odds im nächsten Abschnitt genauer an. Wie sich die Wahrscheinlichkeit verändert, ist nicht pauschal zu sagen. Diese Veränderung hängt von der Ausprägung des Prädiktors ab und lässt sich nicht durch eine einzige Zahl quantifizieren. In [Appendix A](#AppendixA) haben Sie die Möglichkeit, spielerisch die Einflüsse der Parameter in der logistischen Regression kennen zu lernen.
+`type = "l"` fordert eine Linie anstatt von Punkten an, `lwd = 3` sagt, dass diese Linie dreimal so dick wie der Default sein soll und `col = "blue"` sagt, dass die Linie blau sein soll. Wir erkennen in allen drei Plots die negative Beziehung zwischen Überleben und Alter. Der Logit ist eine lineare Funktion (Wertebereich [$-\infty$,$\infty$]). Somit steigt (bzw. sinkt) der Logit um $\beta_1$, wenn der Prädiktor (hier Alter) um eine Einheit erhöht wird. Die Odds sind eine Exponentialfunktion (Wertebereich [0,$\infty$]) und bei der Wahrscheinlichkeit handelt es sich um eine sogenannte Ogive (Wertebereich [0,1]). Die Odds steigen (bzw. sinken) um den Faktor $e^{\beta_1}$ (auch Odds-Ratio genannt), wenn der Prädiktor (hier Alter) um eine Einheit erhöht wird - die Beziehung zwischen Odds und Prädiktor ist somit multiplikativ! Wir schauen uns die Parameterinterpretation der Odds im nächsten Abschnitt genauer an. Wie sich die Wahrscheinlichkeit verändert, ist nicht pauschal zu sagen. Diese Veränderung hängt von der Ausprägung des Prädiktors ab und lässt sich nicht durch eine einzige Zahl quantifizieren. Wir erkennen aber, dass die Ogive erst deutlich nach einem Alter von Null nach links laufend flacher gegen 1 geht. Im Intervall von 0 bis 80 (also realistischem Alter) ist die Wahrscheinlichkeit zu überleben kleiner als 50% und fallend mit dem Alter. In [Appendix A](#AppendixA) haben Sie die Möglichkeit, spielerisch die Einflüsse der Parameter in der logistischen Regression kennen zu lernen.
 
 ### Hypothese 2
 Nun wollen wir das Geschlecht mit in unser Modell aufnehmen und somit Hypothese 2 untersuchen. Da das Geschlecht hier auch nur 2 Ausprägungen hat, kann dieser Effekt als Vergleich zwischen Gruppen verstanden werden. Intern wird dann mit "Dummy"-Variablen gerechnet. Wir können sicher gehen, dass mit "Dummy"-Variablen gerechnet wird (dies ist analog dazu, dass wir das Geschlecht mit 0 und 1 kodieren, anstatt 1 und 2 - so wie wir dies in den anderen Sitzungen getan hatten!), indem wir `R` sagen, dass es sich bei der Variable Geschlecht um einen "Faktor" handelt, der Gruppenzugehörigkeit symbolisiert. Wir können prüfen, ob diese Variable ein Faktor ist, indem wir `is.factor` auf die Variable `sex` anwenden.
@@ -201,7 +203,7 @@ Es scheint sich also um einen Faktor zu handeln. Falls dies nicht der Fall gewes
 table(Titanic$survived, Titanic$sex)
 ```
 
-In der Tabelle wird entlang der Spalten das Geschlecht vs. der Überlebensstatus in den Zeilen abgetragen. Dieser Tabelle ist zu entnehmen, dass der relative Anteil an Frauen, die das Unglück überlebt haben, höher ist als der der Männer: 292 vs. 96 für die Frauen und 135 vs. 523 für die Männer. Auch absolut gesehen haben mehr Frauen das Unglück überlebt. Folglich würden wir einen Geschlechtereffekt erwarten:
+In der Tabelle wird entlang der Spalten das Geschlecht vs. der Überlebensstatus in den Zeilen abgetragen. Dieser Tabelle ist zu entnehmen, dass der relative Anteil an Frauen, die das Unglück überlebt haben, höher ist als der der Männer: 197 vs. 64 für die Frauen und 93 vs. 360 für die Männer. Auch absolut gesehen haben mehr Frauen das Unglück überlebt. Folglich würden wir einen Geschlechtereffekt erwarten
 
 ```{r}
 m2 <-  glm(survived ~ 1 + age + sex, family = "binomial", data = Titanic)
@@ -213,9 +215,9 @@ Das besondere an diesem Output ist, dass bei der Variable Geschlecht eine kleine
 ```{r, echo = F}
 cat(' Coefficients:
               Estimate Std. Error z value Pr(>|z|)
- (Intercept) -1.225275   0.183985  -6.660 2.74e-11 ***
- age         -0.004254   0.005207  -0.817    0.414
- sex1         2.460689   0.152315  16.155  < 2e-16 ***')
+ (Intercept) -1.188647   0.222432  -5.344  9.1e-08 ***
+ age         -0.005426   0.006310  -0.860     0.39    
+ sex1         2.465920   0.185384  13.302  < 2e-16 ***')
 ```
 
 Dies gibt an, dass hier dummy-kodiert wurde und der Effekt von 1 (Frauen) im Vergleich zur Referenzgruppe (also 2, der Männer) dargestellt ist. Wir bekommen einen Überblick über die Kodierung, indem wir entweder die Variable Geschlecht ansehen oder die Funktion `levels` auf das Geschlecht anwenden:
@@ -234,7 +236,7 @@ Die $\beta$-Gewichte zu interpretieren, hat wenig inhaltliche Aussagekraft. Wir 
 exp(m2$coefficients) # Odds-Ratios
 ```
 
-Nun können wir die Ergebnisse (einigermaßen) sinnvoll interpretieren. Das Interzept wird an der Stelle interpretiert, wo alle Prädiktoren den Wert 0 annehmen. Das Alter am Wert 0 ist wenig sinnvoll, wir könnten uns allerdings einen Säugling vorstellen, der ein Alter von 0 Jahren hat. Außerdem ist noch die Variable `sex1` im Modell. Dies ist eine Dummy-Variable, die den Wert 1 annimmt, wenn das Geschlecht den Wert 1 (im Vergleich zu 2; der Referenzkategorie) annimmt; also wenn wir eine Frau im Vergleich zu einem Mann betrachten. Folglich hat diese Dummy-Variable gerade den Wert 0, wenn ein Mann betrachtet wird. Wir interpretieren das Interzept bzgl. der Odds wie folgt: Ein männlicher Säugling hat Überlebens-Odds von 0.29. Dies bedeutet, dass es für ihn 0.29-mal so wahrscheinlich ist zu überleben wie nicht zu überleben. Leider spricht dieses Ergebnis für recht schlechte Aussichten. Der Effekt des Alters lässt sich wie folgt interpretieren: Steigt das Alter um 1 Jahr (unter Konstanthaltung aller weiteren Prädiktoren im Modell), so verändern sich die Odds zu überleben um den Faktor (multiplikativ) 0.996. Insgesamt sinken die Odds zu überleben und damit die Überlebenswahrscheinlichkeit mit dem Alter, denn das Odds-Ratio ist genau dann kleiner 1, wenn der $\beta$-Koeffizient des Logit kleiner 0 ist und es sich somit um eine negative/abfallende Beziehung handelt! Dieser Effekt ist allerdings nicht statistisch signifikant und wird somit nur für die Stichprobe, nicht aber für die Population interpretiert. Wird nun eine Frau im Vergleich zu einem Mann betrachtet, so steigen die Odds zu überleben um den Faktor 11.71. Somit haben (unter Konstanthaltung aller weiteren Prädiktoren im Modell) Frauen eine 11.71 mal so hohe Überlebenswahrscheinlichkeit wie die Männer. Hier ist extrem wichtig, zu beachten, dass die Odds sich multiplikativ ändern und nicht additiv, wie wir es von der linearen Regression (und im Übrigen auch vom Logit) gewohnt sind.
+Nun können wir die Ergebnisse (einigermaßen) sinnvoll interpretieren. Das Interzept wird an der Stelle interpretiert, wo alle Prädiktoren den Wert 0 annehmen. Das Alter am Wert 0 ist wenig sinnvoll, wir könnten uns allerdings einen Säugling vorstellen, der ein Alter von 0 Jahren hat. Außerdem ist noch die Variable `sex1` im Modell. Dies ist eine Dummy-Variable, die den Wert 1 annimmt, wenn das Geschlecht den Wert 1 (im Vergleich zu 2; der Referenzkategorie) annimmt; also wenn wir eine Frau im Vergleich zu einem Mann betrachten. Folglich hat diese Dummy-Variable gerade den Wert 0, wenn ein Mann betrachtet wird. Wir interpretieren das Interzept bzgl. der Odds wie folgt: Ein männlicher Säugling hat Überlebens-Odds von `r round(exp(m2$coefficients), 3)[1]`. Dies bedeutet, dass es für ihn `r round(exp(m2$coefficients), 3)[1]`-mal so wahrscheinlich ist zu überleben wie nicht zu überleben. Leider spricht dieses Ergebnis für recht schlechte Aussichten. Der Effekt des Alters lässt sich wie folgt interpretieren: Steigt das Alter um 1 Jahr (unter Konstanthaltung aller weiteren Prädiktoren im Modell), so verändern sich die Odds zu überleben um den Faktor (multiplikativ) `r round(exp(m2$coefficients), 3)[2]`. Insgesamt sinken die Odds zu überleben und damit die Überlebenswahrscheinlichkeit mit dem Alter, denn das Odds-Ratio ist genau dann kleiner 1, wenn der $\beta$-Koeffizient des Logit kleiner 0 ist und es sich somit um eine negative/abfallende Beziehung handelt! Dieser Effekt ist allerdings nicht statistisch signifikant und wird somit nur für die Stichprobe, nicht aber für die Population interpretiert. Wird nun eine Frau im Vergleich zu einem Mann betrachtet, so steigen die Odds zu überleben um den Faktor `r round(exp(m2$coefficients), 3)[3]`. Somit haben (unter Konstanthaltung aller weiteren Prädiktoren im Modell) Frauen eine `r round(exp(m2$coefficients), 3)[3]` mal so hohe Überlebenswahrscheinlichkeit wie die Männer. Hier ist extrem wichtig, zu beachten, dass die Odds sich multiplikativ ändern und nicht additiv, wie wir es von der linearen Regression (und im Übrigen auch vom Logit) gewohnt sind.
 
 #### Grafische Veranschaulichung
 Wir können uns dieses Modell auch grafisch ansehen und damit die oben aufgezeigten Effekte verdeutlichen. Dazu werden wir diesmal `ggplot` aus dem `ggplot2` Paket verwenden. Dieses muss natürlich installiert sein (`install.packages("ggplot2")`) und geladen werden.
@@ -245,7 +247,7 @@ library(ggplot2)
 
 Wir können hier sehr leicht Gruppierungen in Grafiken darstellen. Zunächst müssen wir allerdings die Prädiktionen unseres Modells bestimmen, denn wir wollen uns die Vorhersage/Erwartung (unter) unseres Modells ansehen. Die Funktion, mit der wir dies machen können, heißt genauso wie die Funktion die sie ausführt: `predict`. Wir sagen damit den Logit für alle Konstellationen von Alter und Geschlecht in unseren Daten vorher, indem wir der Funktion das Modell übergeben. Anschließend können wir den Logit so transformieren, dass wir die Odds oder die Wahrscheinlichkeit erhalten. Um dies leichter nachvollziehbar zu machen, führen wir die Transformationen mit neu erstellten Variablen durch, ehe wir diese dem Datensatz anhängen (denn `ggplot` hat es am liebsten, wenn wir mit `data.frames`, also ganzen Datensätzen arbeiten).
 
-```{r}
+```{r, results="hide"}
 logit_m2 <- predict(m2)
 odds_m2 <- exp(logit_m2)
 p_m2 <- odds_m2/(1 + odds_m2)
@@ -256,6 +258,10 @@ Titanic$odds_m2 <- odds_m2
 Titanic$p_m2 <- p_m2
 
 head(Titanic)
+```
+
+```{r, echo = F}
+knitr::kable(head(Titanic))
 ```
 
 Eine Grafik erhalten wir nun mit `ggplot` sehr einfach:
@@ -298,7 +304,7 @@ Dieses Mal sind alle Prädiktoren signifikant - auch das *Alter.* Bevor wir zur 
 
 
 #### Modellvergleich
-Diesen kennen wir bereits aus der [hierarchischen Regressionssitzung](/post/multi-level-modeling).
+Diesen kennen wir bereits aus der [hierarchischen Regressionssitzung](/post/multi-level-modeling). Allerdings haben wir es hier nicht mit *restricted* Likelihoods zu tun, weswegen wir das `refit` Argument weglassen können! Auch prüfen wir hier keine Varianzen, sodass wir die $p$-Werte interpretieren können, so wie sie ausgegeben werden.
 
 ```{r}
 anova(m2, m3, test = "LRT")
@@ -318,7 +324,7 @@ Das Interzept wird an der Stelle interpretiert, an dem alle Prädiktoren den Wer
 #### Grafische Veranschaulichung
 Die selbigen Ergebnisse wollen wir uns auch noch einmal grafisch ansehen. Dazu müssen wir wieder einer Prädiktion mittels unseres Modells `m3` durchführen. Die Prädiktion und das Anhängen an den Datensatz erfolgt analog zu oben:
 
-```{r}
+```{r, results="hide"}
 logit_m3 <- predict(m3)
 odds_m3 <- exp(logit_m3)
 p_m3 <- odds_m3/(1 + odds_m3)
@@ -349,11 +355,15 @@ as.numeric(as.character(Titanic$sex))[1:6]
 
 Nachdem wir also die Faktoren wieder in Zahlen umgewandelt haben, multiplizieren wir anschließend das Geschlecht mit 100. Somit steht die `100` für Frauen und die `200` für Männern. Wenn wir nun die Klassenzugehörigkeit addieren, so erhalten wir 6 unterschiedliche Zahlen: `101` = Frauen aus der 1. Klasse, `102` = Frauen aus der 2. Klasse und `103` = Frauen aus der 3. Klasse. Entsprechend stehen `201`, `202` und `203` jeweils für Männer aus der 1., 2. und 3. Reiseklasse. Wenn wir diese Variable nun wieder als Faktor deklarieren, so können wir sie verwenden, um in `ggplot` die gewünschte Grafik zu erzeugen:
 
-```{r}
+```{r, results="hide"}
 # Trick 17:
 class_sex <- as.numeric(as.character(Titanic$sex))*100 + as.numeric(as.character(Titanic$pclass))
 Titanic$class_sex <- as.factor(class_sex) # als Faktor dem Datensatz hinzufügen
 head(Titanic) # passt!
+```
+
+```{r, echo = F}
+knitr::kable(head(Titanic))
 ```
 
 Natürlich gibt es auch andere Wege, um diese Gruppierungsvariable zu bestimmen. Sie haben jetzt am eigenen Leib erfahren, wie durchdacht die Daten aufbereitet sein müssen, damit eine Grafik leicht zu erstellen ist! Falls Sie `ggplot` weiter interessiert, so können Sie sich auch die Aufbereitete Sitzung von [Martin Schultze](/authors/schultze) dazu ansehen: [Grafiken mit `ggplot2`](https://pandar.netlify.app/post/grafiken-mit-ggplot2/) (das ist natürlich rein freiwillig!). Nun können wir die Grafiken analog zu oben erstellen, wobei wir lediglich die Benennung für die Farbe, das Modell sowie den Titel ein wenig abändern müssen:
@@ -376,9 +386,9 @@ ggplot(data = Titanic, mapping = aes(x = age, y = p_m3, col = class_sex)) +
         ggtitle("P vs Age, Sex and Class")
 ```
 
-Alle drei Grafiken zeigen deutlich die Haupteffekte der Analyse: Die Überlebenswahrscheinlichkeit des Titanicunglücks sinkt mit dem Alter. Frauen haben eine höhere Überlebenswahrscheinlichkeit als Männer (bei vergleichbarem Alter) sowie deskriptiv gesprochen hatten Menschen die in der 1. Klasse reisen eine höhere Überlebenswahrscheinlichkeit als jene aus der 2. und 3. Klasse und die aus der 2. Klasse hatten ebenfalls eine höhere Überlebenswahrscheinlichkeit als jene aus der 3. Klasse (jeweils immer für vergleichbares Alter und Geschlecht). Der Zusatz "für vergleichbares Alter" ist im Grunde das Gleiche wie der Zusatz "unter Konstanthaltung aller weiteren Prädiktoren im Modell", denn wir können schlecht die Überlebenswahrscheinlichkeit eines zwanzigjährigen Mannes aus der 1. Klasse mit der einer sechzigjährigen Frau aus der 3. Klasse vergleichen, denn dann wissen wir nicht, ob die Wahrscheinlichkeiten unterschiedlich sind, weil es sich um eine Frau oder einen Mann aus der jeweiligen Klasse handelt oder, ob es sich auf das Alter zurückführen lässt, oder ob eine Kombination der Variablen das Ergebnis erzeugt - was wir aber tun können, ist für ein gleiches Alter die 6 Linien jeweils zu vergleichen! Außerdem erkennen wir insbesondere an der Modellierung des Logit oder der Wahrscheinlichkeit, dass Frauen, die in der 3. Klasse reisten, noch eine höhere Überlebenswahrscheinlichkeit hatten als Männer aus der 1. Klasse (erneut: jeweils für vergleichbares Alter!). Innerhalb der Geschlechter waren die Klassen allerdings auf die gleiche Art und Weise sortiert: $1 > 2 > 3$. Insgesamt suggeriert dies also, dass dem Motto "*Frauen und Kinder zuerst*" Folge geleistet wurde.
+Alle drei Grafiken zeigen deutlich die Haupteffekte der Analyse: Die Überlebenswahrscheinlichkeit des Titanicunglücks sinkt mit dem Alter. Frauen haben eine höhere Überlebenswahrscheinlichkeit als Männer (bei vergleichbarem Alter) sowie deskriptiv gesprochen hatten Menschen die in der 1. Klasse reisen eine höhere Überlebenswahrscheinlichkeit als jene aus der 2. und 3. Klasse und die aus der 2. Klasse hatten ebenfalls eine höhere Überlebenswahrscheinlichkeit als jene aus der 3. Klasse (jeweils immer für vergleichbares Alter und Geschlecht). Der Zusatz "für vergleichbares Alter" ist im Grunde das Gleiche wie der Zusatz "unter Konstanthaltung aller weiteren Prädiktoren im Modell", denn wir können schlecht die Überlebenswahrscheinlichkeit eines zwanzigjährigen Mannes aus der 1. Klasse mit der einer sechzigjährigen Frau aus der 3. Klasse vergleichen, denn dann wissen wir nicht, ob die Wahrscheinlichkeiten unterschiedlich sind, weil es sich um eine Frau oder einen Mann aus der jeweiligen Klasse handelt oder, ob es sich auf das Alter zurückführen lässt, oder ob eine Kombination der Variablen das Ergebnis erzeugt - was wir aber tun können, ist für ein gleiches Alter die 6 Linien jeweils zu vergleichen! Außerdem erkennen wir insbesondere an der Modellierung des Logit oder der Wahrscheinlichkeit, dass Frauen, die in der 3. Klasse reisten, eine annähernd gleiche Überlebenswahrscheinlichkeit hatten wie Männer aus der 1. Klasse (erneut: jeweils für vergleichbares Alter!). Innerhalb der Geschlechter waren die Klassen allerdings auf die gleiche Art und Weise sortiert: $1 > 2 > 3$. Insgesamt suggeriert dies also, dass dem Motto "*Frauen und Kinder zuerst*" Folge geleistet wurde.
 
-Final können wir festhalten, dass wohl alle drei Hypothesen erfüllt sind und sowohl das Alter als auch das Geschlecht und die Klassenzugehörigkeit die Überlebenswahrscheinlichkeit des Titanicunglücks beeinflussten (*beachten Sie, dass es sich hierbei um fiktive Daten handelt!*).
+Final können wir festhalten, dass wahrscheinlich alle drei Hypothesen erfüllt sind und sowohl das Alter als auch das Geschlecht und die Klassenzugehörigkeit die Überlebenswahrscheinlichkeit des Titanicunglücks beeinflussten.
 
 
 Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/4_Log_Reg_RCode.R).
