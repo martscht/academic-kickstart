@@ -15,7 +15,7 @@ tags:
 subtitle: 'Principal Component Analysis: PCA'
 summary: ''
 authors: [irmer]
-lastmod: '2020-10-26T17:32:21+02:00'
+lastmod: '2020-10-29T17:32:21+02:00'
 featured: no
 header:
   image: "/header/FEI_Sitzung3_post.jpg"
@@ -278,7 +278,7 @@ PCA1</code></pre>
 ## Cumulative Var        1.00000000
 ## Proportion Explained  0.05025994
 ## Cumulative Proportion 1.00000000</code></pre>
-<p>Die Eigenwerte/Varianzen der Hauptkompenten sind hierbei einfach die Diagonalelemente folgenden Matrixprodukts: <span class="math inline">\(\Lambda&#39;\Lambda\)</span> (siehe auch <a href="#Grundbegriffe">Grundbegriffe der PCA</a>, <code>diag</code> gibt die Diagonalelemente wieder, <code>t()</code> transponiert die Matrix und <code>%*%</code> ist der Matrixproduktoperator):</p>
+<p>Die Eigenwerte/Varianzen der Hauptkomponenten sind hierbei einfach die Diagonalelemente folgenden Matrixprodukts: <span class="math inline">\(\Lambda&#39;\Lambda\)</span> (siehe auch <a href="#Grundbegriffe">Grundbegriffe der PCA</a>, <code>diag</code> gibt die Diagonalelemente wieder, <code>t()</code> transponiert die Matrix und <code>%*%</code> ist der Matrixproduktoperator):</p>
 <pre class="r"><code>diag(t(PCA1$loadings[,]) %*% PCA1$loadings[,])</code></pre>
 <pre><code>##       PC1       PC2       PC3       PC4       PC5       PC6 
 ## 2.5706246 1.4347873 0.8080240 0.5047381 0.3802664 0.3015597</code></pre>
@@ -316,7 +316,7 @@ PCA1</code></pre>
 <p>Die alles entscheidende Frage ist nun: <em>Wie viele Komponenten extrahieren wir, um unsere Daten(-dimensionalität) zu reduzieren?</em> Dazu schauen wir uns den Eigenwerteverlauf einmal an. Die Eigenwerte werden immer in absteigender Reihenfolge ausgegeben. Da wir eine Korrelationsmatrix herangezogen haben, können wir das Eigenwerte-größer-1 Kriterium (Kaiser-Gutmann Kriterium) anwenden und alle Komponenten beibehalten, deren Eigenwert größer 1 ist (hätten wir eine Kovarianzmatrix hergenommen, würde sich diese Kriterium dahingehen verändern, dass alle Hauptkomponenten beibehalten werden, deren Eigenwert größer als der durchschnittliche Eigenwert, bzw. die durchschnittliche Varianz, ist - <em>Plottwist</em>: Gleiches gilt auch im Korrelationsfall! Hier haben alle Variablen eine Varianz von 1, damit ist die durchschnittliche Varianz gleich dem durchschnittlichen Eigenwert und somit gleich 1). Ganz so einfach ist es allerdings nicht, denn es gibt noch das Ellbow-Kriterium (auch Scree Plot genannt), in welchem wir nach einem Knick im Eigenwerteverlauf suchen. Dies ist der Idee geschuldet, dass davon ausgegangen wird, dass Eigenwerte unbedeutsamer Hauptkomponenten substantiell kleiner ausfallen (im und nach den Knick) als Eigenwerte bedeutsamer Hauptkomponenten (vor dem Knick). Des Weiteren gibt es noch die simulationsbasierte Parallel-Analyse, welche im gleichen Stichprobenumfang sehr viele unkorrelierte Datensätze simuliert und dann einen auf unsere Bedürfnisse angepassten zufälligen durchschnittlichen Eigenwerteverlauf generiert (siehe bspw. <a href="(https://hds.hebis.de/ubffm/Record/HEB366849158)">Siehe Eid et al., 2017,</a> Kapitel 25.3.2 oder <a href="https://hds.hebis.de/ubffm/Record/HEB468515836">Brandt, 2020</a>, Kapitel 23.4). Das gleiche wird in <code>R</code> außerdem noch mit Neuverteilen der Datenpunkte über die Variablen hinweg gemacht (resampling). Nach diesen beiden Kriterien entscheiden wir uns für alle Hauptkomponenten deren Eigenwert größer als der durchschnittliche zufällige Eigenwert ist.</p>
 <p>Wir können alle drei/vier Methoden in einer Funktion untersuchen, welche <code>fa.parallel</code> heißt. Diese führt eigentlich eine Parallelanalyse für Faktorenanalysen (FA) durch und plotten dann die Eigenwertverläufe in einer Grafik. Wenn wir allerdings das Zusatzargument <code>fa = "pc"</code> wählen, so wird das ganze für eine PCA gemacht. Wir müssen der Funktion lediglich die Daten übergeben (damit geresampled werden kann!). Zum Schluss malen wir noch eine horizontale Linie bei der Eigenwertsgröße von 1 hinzu, um das Eigenwerte-größer-1 Kriterium leichter prüfen zu können (<code>abline(h = 1)</code>).</p>
 <pre class="r"><code>fa.parallel(dataUV, fa = &quot;pc&quot;)</code></pre>
-<pre><code>## Parallel analysis suggests that the number of factors =  NA  and the number of components =  2</code></pre>
+<pre><code>## Parallel analysis suggests that the number of factors =  NA  and the number of components =  1</code></pre>
 <pre class="r"><code># Eigenwerte größer 1?
 abline(h = 1)</code></pre>
 <p><img src="/post/2020-10-14-MSc1_Sitzung3_PCA_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
@@ -412,7 +412,7 @@ PCA3</code></pre>
 <p>Diese lässt sich auch in einem stark vereinfachten Pfaddiagramm darstellen. Dazu wenden wir <code>fa.diagramm</code> aus dem <code>psych</code> Paket auf das <code>PCA3</code> Objekt an. Pfeile symbolisieren hier, dass die Variable an der Pfeilspitze eine Linearkombination aus den Variablen an den jeweiligen Pfeilenden ist (dazu mehr im nächsten Semester!). Der Default in diesem Plot ist so gewählt, dass nur sehr große Faktorladungen auch als Pfeile eingezeichnet werden.</p>
 <pre class="r"><code>fa.diagram(PCA3)</code></pre>
 <p><img src="/post/2020-10-14-MSc1_Sitzung3_PCA_files/figure-html/unnamed-chunk-33-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Gestrichelte Pfeile zeigen entgegengesetze Vorzeichen an. Hier wird zwar <code>x5</code> der 2. Hauptkomponente zugeordnet, aber es fällt schon etwas auf, dass dessen Koeffizient etwas geringer ausfällt als die der anderen.</p>
+<p>Gestrichelte Pfeile zeigen entgegengesetze Vorzeichen an. Hier wird zwar <code>x5</code> der 2. Hauptkomponente zugeordnet, aber es fällt schon etwas auf, dass dessen Koeffizient etwas geringer ausfällt als die der anderen. Außerdem ist hier noch zu vermerken, dass die PCA kein Erklärungsmodell liefert. Das bedeutet, dass wir den Hauptkomponenten keine inhaltliche Bedeutung unterstellen können a la: das ist die latente Variable, die die jeweilige Variation in den Daten erzeugt. Wie an den Pfeilen ersichtlich, sind die Hauptkomponenten Linearkombination der Variablen. Bei Erklärungsmodellen wäre es genau anders herum. Die Variablen würden sich aus den Hauptkomponenten zusammensetzen! Um Erklärungsmodelle anzusetzen, müssen Sie noch bis zum Kurs im Sommer warten, wenn es um latente Modellierung geht. Folglich stehen hohe Ladungen auf einer Hauptkomponenten nur für hohe Gemeinsamkeiten in der Variation der Items.</p>
 </div>
 <div id="unrotierte-und-rotierte-ladungen-in-einem-plot" class="section level3">
 <h3>Unrotierte und rotierte Ladungen in einem Plot</h3>
