@@ -18,7 +18,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer]
-lastmod: '2020-10-26T10:58:21+02:00'
+lastmod: '2020-11-03T10:58:21+02:00'
 featured: no
 header:
   image: "/header/FEI_Data.jpg"
@@ -190,4 +190,93 @@ Hier wird noch für Sie gebaut `r fontawesome::fa("tools")`. Die Übung wird vor
 
 ## Sitzung 5: 
 
-Hier wird noch für Sie gebaut `r fontawesome::fa("tools")`. Die Übung wird vorbereitet. Haben Sie noch etwas Geduld.
+
+Wir wollen uns Mittelwertsunterschiede der *Big-5* eines entsprechenden Fragebogens ansehen. Der Originaldatensatz ist ein Onlinedatensatz, wird seit 2012 erfasst und ist auf [`r fontawesome::fa("download")` openpsychometrics.org](https://openpsychometrics.org/_rawdata/) als *.zip* downloadbar. Bisher haben über **19700** Proband\*innen aus der ganzen Welt teilgenommen. Zu jeder der fünf Facetten gibt es 10 Fragen. Der Fragebogen ist [hier und durchführbar](https://openpsychometrics.org/tests/IPIP-BFFM/) einzusehen. Im Datensatz *Big5.rda* befindet sich eine gekürzte Version des Fragebogen. Der Itemwortlaut der Persönlichkeitseigenschaften ist:
+
+| Label | Itemwortlaut |
+| --- | --- | 
+| E1	| I am the life of the party. |
+| E2*	| I don't talk a lot. |
+| E3	| I feel comfortable around people. |
+| E4*	| I keep in the background. |
+| E5	| I start conversations. |
+| E6*	| I have little to say. |
+| E7	| I talk to a lot of different people at parties. |
+| E8*	| I don't like to draw attention to myself. |
+| E9	| I don't mind being the center of attention. |
+| E10*	| I am quiet around strangers. |
+| N1	| I get stressed out easily. |
+| N2*	| I am relaxed most of the time. |
+| N3	| I worry about things. |
+| N4*	| I seldom feel blue. |
+| N5	| I am easily disturbed. |
+| N6	| I get upset easily. |
+| N7	| I change my mood a lot. |
+| N8	| I have frequent mood swings. |
+| N9	| I get irritated easily. |
+| N10	| I often feel blue. |
+| A1*	| I feel little concern for others. |
+| A2	| I am interested in people. |
+| A3*	| I insult people. |
+| A4	| I sympathize with others' feelings. |
+| A5*	| I am not interested in other people's problems. |
+| A6	| I have a soft heart. |
+| A7*	| I am not really interested in others. |
+| A8	| I take time out for others. |
+| A9	| I feel others' emotions. |
+| A10	| I make people feel at ease. |
+| C1	| I am always prepared. |
+| C2*	| I leave my belongings around. |
+| C3	| I pay attention to details. |
+| C4*	| I make a mess of things. |
+| C5	| I get chores done right away. |
+| C6*	| I often forget to put things back in their proper place. |
+| C7	| I like order. |
+| C8*	| I shirk my duties. |
+| C9	| I follow a schedule. |
+| C10	| I am exacting in my work. |
+| O1	| I have a rich vocabulary. |
+| O2*	| I have difficulty understanding abstract ideas. |
+| O3	| I have a vivid imagination. |
+| O4*	| I am not interested in abstract ideas. |
+| O5	| I have excellent ideas. |
+| O6*	| I do not have a good imagination. |
+| O7	| I am quick to understand things. |
+| O8	| I use difficult words. |
+| O9	| I spend time reflecting on things. |
+| O10	| I am full of ideas. |
+
+Hierbei steht **E** für **E**xtranversion, **N** für **N**eurotizismus, **A** für **A**greeableness (Verträglichkeit), **C** für **C**onscientiousness (Gewissenhaftigkeit) und **O** für **O**ffenheit für Erfahrung. Sie müssen zur Vorbereitung auf die Übungen Items invertieren (inverse Items sind mit "\*" gekennzeichnet) und jeweils Skalenmittelwerte (z.B. geschickt mit `colMeans`) für jede Persönlichkeitsfacette bestimmen (wir nehmen hier der Einfachheit halber an, dass die Items $\tau$-äquivalent sind und somit gleiche wahre Anteile der dahinterliegenden latenten Variable messen - dazu mehr im nächsten Semester - in kurz: Sie dürfen einfach Items mitteln, um Skalenwerte zu erhalten).
+
+Sie können den gekürzten  [`r fontawesome::fa("download")` Datensatz "Big5.rda" hier herunterladen](/post/Big5.rda) und diese anschließend mit `load` laden (bspw. auf dem Desktop von Frau "Musterfrau").
+
+```{r, eval = F}
+load("C:/Users/Musterfrau/Desktop/Big5.rda")
+```
+
+Genauso können Sie die Daten direkt von der Website laden:
+
+```{r, eval = F}
+load(url("https://pandar.netlify.app/post/Big5.rda"))
+```
+
+
+
+Außerdem können Sie den Datensatz selbst wie folgt selbst kürzen. Dazu müssen Sie nur das *.zip*-File herunterladen und das Working Directory entsprechend legen, sodass Sie die Daten einlesen können. Wir verwenden nur Daten aus Deutschland, Frankreich und den Vereinigten Arabischen Emiraten.
+
+```{r, eval = F}
+data_full <- read.table("BIG5/data.csv", header = T, sep = "\t") # nach entpacken des .zip liegen die Daten in einem Ordner namens Big5
+
+### Entferne leere Zeilen und Zeilen mit Missings aus dem Datensatz
+ind <- apply(data_full, 1, FUN = function(x) any(is.na(x))) # erzeuge eine Variable, welche TRUE ist, wenn mindestens ein Eintrag pro Zeile fehlt und ansonsten FALSE anzeigt
+data_full <- data_full[!ind, ] # Wähle nur diejenigen Zeilen, in denen unsere Indikatorvariable "ind" NICHT TRUE anzeigt, also wo alle Einträge vorhanden sind
+# !ind (Ausrufezeichen vor ind) negiert die Einträge in ind (Prüfe bspw. !FALSE == TRUE, nicht false ist gleich true)
+
+### Shorten Data Set
+Big5 <- data_full[data_full$country %in% c("DE", "FR", "AE") , ]
+# Verwende nur Daten aus den Ländern: Deutschland (DE), Frankreich (FR) und den Vereinigten Arabischen Emiraten (AE)
+Big5 <- data.frame(Big5) # Schreibe Datensatz als data.frame
+save(list = c("Big5"), file = "Big5.rda")
+# Speichere gekürzten Datensatz in .rda file (dem R-internen Datenformat)
+## --> Das ist auch der Datensatz, den wir weiter verwendet haben!
+```
