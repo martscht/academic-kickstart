@@ -77,5 +77,5 @@ Das Modul PsyMSc1 ist in zwei Teile untergliedert: Forschungsmethoden und Evalua
 | 3 | **Hauptkomponentenanalyse** | [Inhalte](/post/PCA)  | [Übungsdaten](/post/MSc1-Daten) |
 | 4 | **Logistische Regressionsanalyse** | [Inhalte](/post/logistische-regression)  | [Übungsdaten](/post/MSc1-Daten) |
 | 5 | **Multivariate Varianzanalyse** | Inhalte  | [Übungsdaten](/post/MSc1-Daten) |
-| Zusatz | **Diskriminanzanalyse** | Inhalte  | --- |
+| *Zusatz* | **Diskriminanzanalyse** | Inhalte  | --- |
 |  |  |  |  | | |
