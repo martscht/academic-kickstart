@@ -79,4 +79,4 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 | *Zusatz* | **Hypothesen und Präregistrierung** | Inhalte | Aufgaben |
 | | | |
 
-Die Umfrage aus der ersten Woche gibt es [hier](https://psybsc2.formr.org/).
+Die Umfrage aus der ersten Woche gibt es [hier](https://psybsc2.formr.org/). Die Daten, die dabei in der ersten Sitzung entstanden sind, können Sie [<i class="fas fa-download"></i> hier runterladen](/post/fb20.csv). Was welche Variablen in diesem Datensatz bedeutet, wird in der [<i class="fas fa-download"></i>  Variablenübersicht erläutert](/post/variablen.pdf).
