@@ -66,6 +66,7 @@ subtitle = "Forschungsmethoden und Evaluation I"
  css_class = ""
 +++
 
+
 Das Modul PsyMSc1 ist in zwei Teile untergliedert: Forschungsmethoden und Evaluation I und II. In F&E I geht es um multivariate Vorhersagemodelle, die als (multivariate) Erweiterung des allgemeinen linearen Modells angesehen werden können. Beispielsweise wird die Regressionsanalyse erweitert um auch bestimmte Abhängigkeiten in den Daten modellieren zu können, sowie um auch dichotome abhängige Variablen vorhersagen zu können. Neben der multivariaten Erweiterung der Varianzanalyse (ANOVA) werden auch Datenvorbereitungsmaßnahmen vorgestellt, welche den/die Anwender/in beim Verstehen der Struktur in den Daten unterstützen soll. Die inhaltlichen Sitzungen werden hierbei durch die Umsetzung in `R` unterstützt:
 
 
