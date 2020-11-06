@@ -1,0 +1,494 @@
+---
+title: Simulationsstudien in R
+date: '2020-11-06'
+slug: simulationsstudien-in-r
+categories:
+  - MSc5
+tags:
+  - Simulationen
+  - Power
+  - Type I-Error
+  - Coverage
+  - Bias
+  - Signifikanztestung
+  - Verteilungen
+subtitle: ''
+summary: ''
+authors: [irmer]
+lastmod: '2020-11-06T19:21:58+02:00'
+featured: no
+header:
+  image: "/header/MSc5_Simulation_post.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/616076)"
+projects: []
+---
+
+
+
+<div id="einleitung" class="section level2">
+<h2>Einleitung</h2>
+<p>Simulationsstudien können Aufschluss darüber liefern, wie gut ein statistisches Verfahren oder auch ein Schätzer funktioniert. Wir wollen uns eine einfache Simulationsstudie ansehen, mit welcher wir das Schätzen der Erwartung (des Mittelwerts der Population) der Normalverteilung untersuchen wollen. Dazu schauen wir uns einfache Simulationstechniken und Wiederholungssfunktionen, wie etwa die <code>for</code>-Schleife, in <code>R</code> an. Bevor wir uns mit Simulationsstudien in <code>R</code> beschäftigen, sollten Sie sich etwas mit <code>R</code> vertraut gemacht sowie die nötige Software (<code>R</code> als Programmiersprache und <code>R</code>-Studio als schöneres Interface) installiert haben. Hierzu eignet sich hervorragend der ebenfalls auf <a href="https://pandar.netlify.com/"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> Pandar</a> zu findende <a href="/post/r-crash-kurs"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg><code>R</code>-Crash Kurs</a>. Auch in der <a href="/post/einleitung-und-wiederholung"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> ersten Sitzung aus dem Masterstudium der Psychologie</a> wurden einige Begriffe, die für Simulationsstudien von Relevanz sind, wiederholt und es wurde auch eine kleine Simulation zum Untersuchen des <span class="math inline">\(t\)</span>-Tests durchgeführt.</p>
+</div>
+<div id="daten-simulieren" class="section level2">
+<h2>Daten simulieren</h2>
+<p>Wir können in <code>R</code> verschiedene Verteilungen simulieren. Bspw. erzeugt der Befehl <code>rnorm</code> normalverteilte Zufallsvariablen. Für weitere Informationen und Verteilungen siehe bspw. <a href="https://en.wikibooks.org/wiki/R_Programming/Probability_Distributions"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> <code>R</code>-Verteilungen auf Wiki</a>. Wir müssen diesem Befehl lediglich übergeben wie viele Replikationen wir wünschen und welchen Mittelwert und Standardabweichung die Zufallsvariablen haben sollen. Wir wollen eine Normalverteilung mit Mittelwert 4 und Standardabweichung 5 <span class="math inline">\(\mathcal{N}(4,5^2)\)</span> simulieren und legen die generierte (realisierte) Zufallsvariable in einem Objekt mit dem Namen <code>X</code> ab, um später gezeigte Informationen wie den Mittelwert oder die Standardabweichung abrufen zu können - dies machen wir mit dem “Zuordnungspfeil” <code>&lt;-</code> (zur Erinnerung: links davon steht der Name, den wir uns ausdenken; hier: <code>X</code>; rechts steht das zugeordnete Objekt). Wir wollen zunächst 10 Replikationen generieren und setzen einen Seed, der für die Replizierbarkeit von Simulationen gemacht wird. Auf diese Weise erhalten wir immer die gleichen Zufallszahlen:</p>
+<pre class="r"><code>set.seed(1234) # Vergleichbarkeit
+# (Pseudo-)Zufallsvariablen simulieren
+X &lt;- rnorm(n = 10, mean = 4, sd = 5)
+X</code></pre>
+<pre><code>##  [1] -2.0353287  5.3871462  9.4222059 -7.7284885  6.1456234  6.5302795
+##  [7]  1.1263002  1.2668407  1.1777400 -0.4501891</code></pre>
+<pre class="r"><code>set.seed(1234) # Vergleichbarkeit
+# (Pseudo-)Zufallsvariablen simulieren
+Y &lt;- rnorm(n = 10, mean = 4, sd = 5)
+Y</code></pre>
+<pre><code>##  [1] -2.0353287  5.3871462  9.4222059 -7.7284885  6.1456234  6.5302795
+##  [7]  1.1263002  1.2668407  1.1777400 -0.4501891</code></pre>
+<pre class="r"><code>Z &lt;- rnorm(n = 10, mean = 4, sd = 5)
+Z</code></pre>
+<pre><code>##  [1]  5.083774  1.287537  8.455723  6.979903 12.178090  7.446377 -2.406233
+##  [8]  2.934277 13.482699 12.884316</code></pre>
+<pre class="r"><code>cbind(X, Y, Z) # Vergleiche alle erzeugten Variablen</code></pre>
+<pre><code>##                X          Y         Z
+##  [1,] -2.0353287 -2.0353287  5.083774
+##  [2,]  5.3871462  5.3871462  1.287537
+##  [3,]  9.4222059  9.4222059  8.455723
+##  [4,] -7.7284885 -7.7284885  6.979903
+##  [5,]  6.1456234  6.1456234 12.178090
+##  [6,]  6.5302795  6.5302795  7.446377
+##  [7,]  1.1263002  1.1263002 -2.406233
+##  [8,]  1.2668407  1.2668407  2.934277
+##  [9,]  1.1777400  1.1777400 13.482699
+## [10,] -0.4501891 -0.4501891 12.884316</code></pre>
+<p>Solche generierten Variablen werden auch häufig Pseudozufallszahlen genannt, da sie mit einem PC deterministisch simuliert wurden. Wir erkennen recht schnell, was die Funktion <code>set.seed</code> macht, wenn wir ihr das gleiche Argument, nämlich 1234 übergeben. Die Variablen <code>X</code> und <code>Y</code> sind identisch, <code>Z</code> ist allerdings deutlich unterschiedlich. Damit ist ersichtlich, dass diese Variablen nicht <em>rein zufällig</em> generiert wurden. Die Daten werden allerdings so erzeugt, dass sie unabhängig und damit unkorreliert sind:</p>
+<pre class="r"><code>cor(cbind(X, Y, Z)) # Korrelation der erstellten Zufallsvariablen</code></pre>
+<pre><code>##            X          Y          Z
+## X 1.00000000 1.00000000 0.06163893
+## Y 1.00000000 1.00000000 0.06163893
+## Z 0.06163893 0.06163893 1.00000000</code></pre>
+<p>Die Korrelation zwischen <code>X</code> und <code>Y</code> ist 1, da es sich hier um die “selbe” Variable handelt. <code>Z</code> ist gering mit <code>X</code> und <code>Y</code> korreliert. Dies liegt am Sampling Error. Würden wir diese Simulation immer wieder wiederholen, so sollte die Korrelation im Mittel Null sein.</p>
+</div>
+<div id="einfache-schätzungen-und-ihre-streuung" class="section level2">
+<h2>Einfache Schätzungen und ihre Streuung</h2>
+<p>Einer der ersten Schätzer, die wir im Studium kennengelernt haben, ist der Mittelwert, welcher den Erwartungswert (Populationsmittelwert) schätzt. Der Mittelwert ist asymptotisch (sind die Daten bereits normalverteilt, sogar unmittelbar) normalverteilt mit Streuung <span class="math inline">\(SE:=\frac{SD}{\sqrt{n}}\)</span>, wobei <span class="math inline">\(SD\)</span> die Standardabweichung, also die Wurzel aus der Varianz und <span class="math inline">\(n\)</span> die Stichprobengröße beschreibt. Die Verteilung des Schätzer erhalten wir nur, wenn wir immer wieder mit gleicher Stichprobengröße <span class="math inline">\(n\)</span> unter den gleichen Voraussetzungen Daten ziehen und unseren Schätzer bestimmen, wir also bspw. obigen Code immer wieder (für unterschiedliche Seeds) ausführen. Wenn wir nun für <code>X</code> Mittelwert und <span class="math inline">\(SE\)</span> bestimmen, so wird es nicht so sein, dass wir damit die exakten Populationsparameter erwischen. Dies liegt am Sampling Error. Unser Mittelwert ist nur eine Schätzung für die Erwartung in der Population!</p>
+<pre class="r"><code>mean(X) # Mittelwert</code></pre>
+<pre><code>## [1] 2.084213</code></pre>
+<pre class="r"><code>sd(X)   # SD</code></pre>
+<pre><code>## [1] 4.978938</code></pre>
+<pre class="r"><code>n &lt;- length(X) # Stichprobenumfang (Länge des Vektors = Anzahl an Ziehungen)
+sd(X)/sqrt(n)  # SE</code></pre>
+<pre><code>## [1] 1.574478</code></pre>
+<p><code>length</code> bestimmt die Länge eines Vektors und <code>sqrt</code> ist die Quadratwurzel. In unserer Stichprobe liegen wir mit dem Mittelwert also um ca. 1.9158 neben der Erwartung. Die Standardabweichung liegt sehr nah an der vorgegebenen dran. Die Streuung des Mittelwerts (<span class="math inline">\(SE\)</span>) ist recht groß. Dies liegt natürlich an der sehr geringen Stichprobengröße. Folglich ist es auch nicht verwunderlich, dass wir so weit neben der Erwartung hinsichtlich des Mittelwerts gelandet sind.</p>
+</div>
+<div id="schleifen-und-andere-wege-in-r-operationen-zu-wiederholen" class="section level2">
+<h2>Schleifen und andere Wege in <code>R</code> Operationen zu wiederholen</h2>
+<p>Um Operationen immer wieder zu wiederholen, können ganz verschiedene, unterschiedlich effiziente und unterschiedlich leicht nachvollziehbare Wege gewählt werden. Ein sehr leicht verständlicher, aber ggf. nicht sehr effizienter Weg bspw. Simulationen zu wiederholen, ist die Schleife. Es gibt verschiedene Schleifen in <code>R</code>. Die bekannteste ist die <code>for</code>-Schleife. Außerdem gibt es noch die <code>while</code> und die <code>repeat</code>-Schleife (falls Sie mehr Informationen zu Schleifen wünschen, schauen Sie doch mal auf diesem <a href="https://www.datacamp.com/community/tutorials/tutorial-on-loops-in-r">Data-Camp Beitrag</a> vorbei.</p>
+<div id="die-for-schleife" class="section level3">
+<h3>Die <code>for</code>-Schleife</h3>
+<p>Die <code>for</code>-Schleife sieht wie folgt aus:</p>
+<pre class="r"><code>for(Schleifen_internes_Argument in Schleifen_externes_Argument)
+{
+     # Schleifeninhalt, der auch auf Schleifen_internes_Argument zugreifen kann
+}</code></pre>
+<p>Das <code>Schleifen_interne_Argument</code> (i.d.R. ein eindimensionales Symbol/Zahl/String) ist ein Platzhalter, der über das <code>Schleifen_externes_Argument</code> (i.d.R. ein Vektor) iteriert, also nach und nach die Elemente im externen Argument durchgeht. Die beiden sind durch den Ausdruck <code>in</code> getrennt: rechts davon steht das Symbol, das über die Ausprägungen im rechten Symbol iterieren soll. Zum Beispiel könnten wir über verschiedene Stichprobengrößen <code>N</code> iterieren. Dazu können wir zunächst <code>N</code> festlegen und anschließend <code>n</code> als das interne Argument verwenden:</p>
+<pre class="r"><code>N &lt;- c(10, 50, 100)
+for(n in N)
+{
+     
+}</code></pre>
+<p>Bisher passiert noch nichts, da innerhalb der Schleife nichts gemacht wird. Wir wenden einfach mal <code>print</code> auf <code>n</code> an, um uns die Ausprägungen von <code>n</code> anzeigen zu lassen:</p>
+<pre class="r"><code>N &lt;- c(10, 50, 100)
+for(n in N)
+{
+     print(n)
+}</code></pre>
+<pre><code>## [1] 10
+## [1] 50
+## [1] 100</code></pre>
+<p>Wir sehen also, dass die Schleife drei Mal durchlaufen wurde und in jedem Durchlauf <code>n</code> eine andere Ausprägung hatte! Es ist sinnvoll, die beide Argumente einer Schleife auch namentlich sinnvoll zu wählen, damit keine Verwirrung eintreten kann. Häufig wird auch <code>i</code> als Laufindex in einer <code>for</code>-Schleife verwendet. Beliebt ist die Funktion <code>1:Reps</code>, die einen Vektor erzeugt, der von 1 bis zur vorgegebenen Anzahl an Wiederholungen läuft:</p>
+<pre class="r"><code>Reps &lt;- 10
+for(i in 1:Reps)
+{
+     print(i)
+}</code></pre>
+<pre><code>## [1] 1
+## [1] 2
+## [1] 3
+## [1] 4
+## [1] 5
+## [1] 6
+## [1] 7
+## [1] 8
+## [1] 9
+## [1] 10</code></pre>
+<div id="weitere-schleifen-while-und-repeat" class="section level4">
+<h4>Weitere Schleifen: <code>while</code> und <code>repeat</code></h4>
+<p>Die <code>while</code>-Schleife führt die Schleifenoperation so lange durch, bis ein Kriterium erreicht ist. Um den letzten Output mit der <code>while</code>-Schleife zu replizieren, müssen wir Folgendes tun:</p>
+<pre class="r"><code>i &lt;- 1 # Initialisierung
+while(i &lt;= Reps)
+{
+     print(i)
+     i &lt;- i + 1 # Erhöhe i um 1
+}</code></pre>
+<pre><code>## [1] 1
+## [1] 2
+## [1] 3
+## [1] 4
+## [1] 5
+## [1] 6
+## [1] 7
+## [1] 8
+## [1] 9
+## [1] 10</code></pre>
+<p>Innerhalb der Schleife erhöhen wir jeweils <code>i</code> immer um 1 und brechen dann ab, wenn <code>i</code> kleiner oder gleich groß (<code>R</code>-Operator: <code>&lt;=</code>) ist wie <code>Reps</code> (hier 10). Diese Schleife erscheint für diesen Zweck deutlich umständlicher, als die <code>for</code>-Schleife, allerdings kann sie so lange durchlaufen werden, bis ein Kriterium erreicht ist. Die <code>repeat</code>-Schleife funktioniert ähnlich der <code>while</code>-Schleife. Der Schleifeninhalt wird so lange immer wieder ausgeführt, bis wir explizit mit <code>break</code> die Schleife beenden. Wir kommen zum gleichen Ergebnis wie obige <code>while</code>-Schleife mit folgendem Code:</p>
+<pre class="r"><code>i &lt;- 1 # Initialisierung
+repeat
+{
+     if(i &gt; Reps) # Prüfe, ob i nun größer Reps ist, falls ja, dann beende
+     {
+          break
+     }
+     
+     print(i)
+     i &lt;- i + 1 # Erhöhe i um 1
+}</code></pre>
+<pre><code>## [1] 1
+## [1] 2
+## [1] 3
+## [1] 4
+## [1] 5
+## [1] 6
+## [1] 7
+## [1] 8
+## [1] 9
+## [1] 10</code></pre>
+<p>In der <code>if</code>-Abfrage, wird geprüft, ob <code>i</code> bereits größer als <code>Reps</code> ist. Falls dem so ist, so wird die Schleife beendet. Dies ginge auch in Kurzschreibweise: <code>if(i &gt; Reps) break</code>. Falls nun Ihr Interesse an Schleifen geweckt wurde, so schauen Sie doch im bereits oben Erwähnten <a href="https://www.datacamp.com/community/tutorials/tutorial-on-loops-in-r">Data-Camp Beitrag</a> vorbei. Dort sind auch schöne Flow-Charts dargestellt, was genau die Schleifen (im Englischen <em>Loops</em>) genau machen.</p>
+</div>
+<div id="eine-einfache-simulationsstudie-mit-der-for-schleife" class="section level4">
+<h4>Eine einfache Simulationsstudie mit der <code>for</code>-Schleife</h4>
+<p>Wenn wir nun einen weiteren Vektor erstellen, der genauso lang ist, wie wir Wiederholungen anfragen, so können wir in diesen Vektor iterationsspezifische Informationen hineinschreiben. Dazu erstellen wir mit <code>rep</code> einen Vektor <code>M</code>, der Länge <code>Reps</code>, der nur aus Missings (<code>NA</code>) besteht und schreiben in diesen Vektor jeweils an die Stelle <code>i</code> für wachsendes <code>i</code> die Ausprägung von <code>i^2</code> (i zum Quadrat):</p>
+<pre class="r"><code>Reps &lt;- 10
+M &lt;- rep(NA, Reps)
+M # M besteht nur aus Missings</code></pre>
+<pre><code>##  [1] NA NA NA NA NA NA NA NA NA NA</code></pre>
+<pre class="r"><code>for(i in 1:Reps)
+{
+     M[i] &lt;- i^2
+}
+M # M besteht aus den Zahlen von 1 bis 10 zum Quadrat</code></pre>
+<pre><code>##  [1]   1   4   9  16  25  36  49  64  81 100</code></pre>
+<p>Wenn wir nun anstatt von <code>i^2</code> den Mittelwert einer Realisierung dort hineinschreiben, so führen wir schon unsere erste kleine Simulationsstudie durch:</p>
+<pre class="r"><code>Reps &lt;- 10
+M &lt;- rep(NA, Reps)
+set.seed(100) # Vergleichbarkeit
+for(i in 1:Reps)
+{
+     X &lt;- rnorm(n = 10, mean = 4, sd = 5)
+     M[i] &lt;- mean(X)
+}
+M # M besteht aus den Mittelwerten der 10 Trials</code></pre>
+<pre><code>##  [1] 3.910214 5.168457 3.354288 5.570583 4.034181 3.783851 4.983162 1.969181
+##  [9] 4.389539 2.982171</code></pre>
+<p>Wenn wir außerdem noch eine weitere Variable <code>SE</code> mitführen, so können wir auch die Standardfehler des Mittelwertes direkt mit abspeichern. Dazu müssen wir nur vor der Schleife <code>SE</code> auf die gleiche Art und Weise wie <code>M</code> erzeugen und innerhalb der Schleife die nötige Berechnung und Zuordnung durchführen:</p>
+<pre class="r"><code>Reps &lt;- 10
+M &lt;- rep(NA, Reps); SE &lt;- rep(NA, Reps) # Zeilen lassen sich auch mit &quot;;&quot; hintereinander schreiben
+set.seed(100) # Vergleichbarkeit
+for(i in 1:Reps)
+{
+     X &lt;- rnorm(n = 10, mean = 4, sd = 5)
+     M[i] &lt;- mean(X)
+     SE[i] &lt;- sd(X)/sqrt(length(X))
+}
+M # Mittelwerte der 10 Trials</code></pre>
+<pre><code>##  [1] 3.910214 5.168457 3.354288 5.570583 4.034181 3.783851 4.983162 1.969181
+##  [9] 4.389539 2.982171</code></pre>
+<pre class="r"><code>SE # SEs der 10 Trials</code></pre>
+<pre><code>##  [1] 0.8872064 1.3601514 1.0677863 1.1726830 1.8964952 2.4070357 1.4417604
+##  [8] 2.0125966 1.7096845 1.9697478</code></pre>
+<p>Damit haben wir alle Größen, die wir für eine Simulationsstudie brauchen, um die Konsistenz sowie die Effizienz des Schätzers (hier: Mittelwert) zu untersuchen.</p>
+</div>
+</div>
+<div id="advanced-replicate-apply-und-das-nutzen-und-erstellen-von-funktionen" class="section level3">
+<h3><em>Advanced:</em> <code>replicate</code>, <code>apply</code> und das Nutzen und Erstellen von Funktionen</h3>
+<p>Eine deutlich schwierigere Art, die obige Simulationsstudie durchzuführen ist mit Hilfe der <code>apply</code>-Funktion. Die Klasse der <code>apply</code>-Funktionen wendet immer wieder eine vorgegebene Funktion auf (mehrere) Datensätze oder Elemente an. Das Vorgehen ist hier ein ganz anderes. Wir erstellen zunächst die Daten und speichern diese als eine Liste. Listen sich Ansammlungen von Elementen, die nicht alle das gleiche Format haben müssen und damit deutlich flexibler als bspw. Matrizen sind. Dies geschieht mit der Funktion <code>replicate</code>. Anschließend wenden wir eine vorher definierte Funktion auf jeden Listeneintrag an und speichern das Ergebnis ab. Das Problem hierbei ist, dass sobald wir mehrere Informationen aus dem Datensatz haben wollen, empfiehlt es sich dafür extra Funktionen zu definieren. Wir könnten auch mehrere Schritte durchführen und immer wieder unterschiedliche Funktionen anwenden, allerdings wollen wir den Ablauf so nah an der <code>for</code>-Schleife halten, wie möglich! Für das iterative Anwenden unserer vorgegebener Funktion, verwenden wir eine Funktion aus der <code>apply</code>-Familie.</p>
+<p>Wir beginnen mit dem Erstellen der Daten mit Hilfe von <code>replicate</code>, der wir drei Argumente übergeben: <code>n</code> ist die Anzahl an Wiederholungen, <code>expr</code> ist der Ausdruck/die Funktion, die repliziert werden soll und <code>simplify = F</code> gibt an, dass wir keine Vereinfachung der Daten vornehmen wollen, da wir eine Liste ausgegeben bekommen möchten. Dies liegt ganz einfach daran, dass wenn Sie eine Simulationsstudie durchführen, in der es mehr als eine zu simulierende Variable gibt, dann bleibt es in Listen übersichtlicher!</p>
+<pre class="r"><code>Reps &lt;- 10
+set.seed(100) # Vergleichbarkeit
+X_data &lt;- replicate(n = Reps, expr = rnorm(n = 10, mean = 4, sd = 5), simplify = F)
+X_data</code></pre>
+<pre><code>## [[1]]
+##  [1]  1.4890382  4.6576558  3.6054146  8.4339240  4.5848564  5.5931504
+##  [7]  1.0910466  7.5726636 -0.1262971  2.2006893
+## 
+## [[2]]
+##  [1]  4.4494307  4.4813723  2.9918302  7.6992025  4.6168975  3.8534165
+##  [7]  2.0557288  6.5542813 -0.5690709 15.5514841
+## 
+## [[3]]
+##  [1]  1.80955009  7.82030308  5.30980646  7.86702298 -0.07189562  1.80774715
+##  [7]  0.39889225  5.15472266 -1.78864731  5.23537996
+## 
+## [[4]]
+##  [1]  3.5444322 12.7868781  3.3103519  3.4440325  0.5499284  2.8910288
+##  [7]  4.9145384  6.0866164  9.3270116  8.8510101
+## 
+## [[5]]
+##  [1]  3.491854 11.016017 -4.883878  7.114337  1.388583 10.611155  2.182798
+##  [8] 10.595329  4.218895 -5.393279
+## 
+## [[6]]
+##  [1]  1.7646891 -4.6929897  4.8943242 13.4873285 -7.3596274  8.9023207
+##  [7] -2.9941281 13.1243621 10.9064936 -0.1942594
+## 
+## [[7]]
+##  [1]  2.6900211  3.6557799  2.1055822 16.9097946  4.6491707  0.4348751
+##  [7]  7.1899712  5.0084580  3.6504153  3.5375506
+## 
+## [[8]]
+##  [1]  6.244516 -1.321778 -1.812097 12.242609 -6.310480  4.063749 -1.437642
+##  [8]  5.352697  9.042259 -6.372024
+## 
+## [[9]]
+##  [1]  8.484111  3.750021 -2.726747 -5.656058  7.547908  3.210475  5.081839
+##  [8]  8.086810 12.635879  3.481149
+## 
+## [[10]]
+##  [1]  1.214389 11.141507 -0.464787 -1.787856  1.348518 16.228414 -0.162479
+##  [8]  6.067599 -1.893416 -1.870174</code></pre>
+<p><code>X_data</code> ist eine Liste, die 10 Einträge enthält: jeder Eintrag besteht aus einem Vektor mit 10 Einträgen einer Normalverteilung mit Mittelwert 4 und Standardabweichung 5. Wir indizieren in Listen mit Hilfe zweier eckiger Klammern <code>[[index]]</code>. Bspw. können wir uns die 3. Replikation wie folgt ausgeben lassen:</p>
+<pre class="r"><code>X_data[[3]] # 3. Replikation</code></pre>
+<pre><code>##  [1]  1.80955009  7.82030308  5.30980646  7.86702298 -0.07189562  1.80774715
+##  [7]  0.39889225  5.15472266 -1.78864731  5.23537996</code></pre>
+<p>Nun könnten wir natürlich über die Listeneinträge mit einer <code>for</code>-Schleife iterieren, aber das ist nicht das Ziel dieses Abschnitts. Stattdessen erstellen wir eine Funktion, die wir <code>calculate_mean_SE</code> nennen wollen und welche den Mittelwert und den SE eines Vektors bestimmt und diesen als Liste ausgibt. Eine Funktion wird in <code>R</code> erzeugt, indem wir den Namen gefolgt vom Zuordnungspfeil <code>&lt;-</code> und <code>fuction</code> schreiben. Die Funktion <code>function</code> erstellt dann eine Funktion mit unserem vorgegebenen Namen und nimmt als Argumente entgegegen, was wir in die Funktion hineingeben wollen:</p>
+<pre class="r"><code>calculate_mean_SE &lt;- function(X)
+{
+     M &lt;- mean(X)
+     SE &lt;- sd(X)/sqrt(length(X))
+     out &lt;- list(&quot;Mean&quot; = M, &quot;StdError&quot; = SE) # Output bestimmen
+     return(out) # Funktionsoutput
+}</code></pre>
+<p><code>calculate_mean_SE</code> ist der Name unserer Funktion (siehe <a href="#AppendixA">Appendix A</a> für eine Kurzschreibweise dieser Funktion). Das Argument, welches wir in die Funktion übergeben heißt hier <code>X</code>. Innerhalb der Funktion wird dann der Mittelwert in <code>M</code> und der <span class="math inline">\(SE\)</span> in <code>SE</code> abgespeichert. Diese beiden Argumente werden anschließend in einer Liste übergeben, wobei in Anführungszeichen die Namen der Argumente angegeben werden. Wenn wir die gesamte Funktion von <code>calculate_mean_SE &lt;- function(X){</code> bis <code>}</code> markieren und ausführen, dann sollte die Funktion oben rechts in Ihrem <code>R</code>-Studiofenser unter der Rubrik <strong>Functions</strong> zu finden sein. Wir können die Funktion nun bspw. auf <code>X_data[[3]]</code> anwenden:</p>
+<pre class="r"><code>calculate_mean_SE(X = X_data[[3]])</code></pre>
+<pre><code>## $Mean
+## [1] 3.354288
+## 
+## $StdError
+## [1] 1.067786</code></pre>
+<p>Wir erkennen im Output die Namen der Koeffizienten, die uns ausgegeben werden. So in etwa funktionieren auch andere Outputs in <code>R</code>, wie bspw. der Output eines <code>lm</code>-Objekts. Speichern wir das Ergebnis ab, so können wir mit <code>$</code> auf unsere vorgegebenen Namen zurückgreifen:</p>
+<pre class="r"><code>Erg3 &lt;- calculate_mean_SE(X = X_data[[3]])
+names(Erg3)</code></pre>
+<pre><code>## [1] &quot;Mean&quot;     &quot;StdError&quot;</code></pre>
+<pre class="r"><code>Erg3$Mean</code></pre>
+<pre><code>## [1] 3.354288</code></pre>
+<pre class="r"><code>Erg3$StdError</code></pre>
+<pre><code>## [1] 1.067786</code></pre>
+<p>Diese Funktion können wir nun immer wieder auf <code>X_data</code> anwenden. Dies geht ganz einfach mit <code>lapply</code> (das <code>l</code> steht für list-wise):</p>
+<pre class="r"><code>Results &lt;- lapply(X = X_data, FUN = calculate_mean_SE)
+Results[[3]] # 3. Listeneintrag</code></pre>
+<pre><code>## $Mean
+## [1] 3.354288
+## 
+## $StdError
+## [1] 1.067786</code></pre>
+<p>Dem Argument <code>X</code> übergeben wir die Liste, auf welche wir unsere Funktion anwenden wollen. Dem Argument <code>FUN</code> übergeben wir die Funktion, die angewendet werden soll. Das Ergebnis speichern wir unter dem Namen <code>Result</code> ab. Es liegt als Liste vor. Wir haben uns mit <code>Results[[3]]</code> den 3. Listeneintrag ausgeben. Eine weitere Variante wäre <code>sapply</code> (<code>s</code> für simplified). Diese Funktion macht genau das gleiche wie <code>lapply</code> nur gibt sie eine Matrix aus (für weiter Information siehe bspw. auf <a href="https://www.r-bloggers.com/2016/03/apply-lapply-rapply-sapply-functions-in-r-2/"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> r-Bloggers</a>:</p>
+<pre class="r"><code>sResults &lt;- sapply(X = X_data, FUN = calculate_mean_SE)
+sResults</code></pre>
+<pre><code>##          [,1]      [,2]     [,3]     [,4]     [,5]     [,6]     [,7]    
+## Mean     3.910214  5.168457 3.354288 5.570583 4.034181 3.783851 4.983162
+## StdError 0.8872064 1.360151 1.067786 1.172683 1.896495 2.407036 1.44176 
+##          [,8]     [,9]     [,10]   
+## Mean     1.969181 4.389539 2.982171
+## StdError 2.012597 1.709685 1.969748</code></pre>
+</div>
+</div>
+<div id="simulationsstudien-evaluieren" class="section level2">
+<h2>Simulationsstudien evaluieren</h2>
+<p>Wir haben zwei Wege kennengelernt eine einfache Simulationsstudie in <code>R</code> durchzuführen. Nun müssen wir eine Aussage über die Güte des Mittelwertschätzers treffen. Dazu müssen wir den Parameterbias sowie den relativen Parameterbias bestimmen und somit eine Aussage über die Konsistenz der Schätzung zu treffen. Ein Schätzer ist konsistent, wenn er für größer werdende Stichproben gegen den wahren Wert strebt (<em>mathematisch bzgl. Mittelwert</em>: <span class="math inline">\(\bar{X}_n\underset{n\to\infty}{\longrightarrow}\mathbb{E}[X]\)</span> [mindestens] in Wahrscheinlichkeit; hier ist <span class="math inline">\(\bar{X}_n\)</span> der Mittelwert einer Stichprobe der Größe <span class="math inline">\(n\)</span>/ eines Datenvektors der Länge <span class="math inline">\(n\)</span>; dieser Ausdruck wird auch das [schwache] Gesetz der großen Zahlen genannt). Außerdem variiert ein Schätzer. Diese Variation wollen wir mit dem <span class="math inline">\(SE\)</span> beschreiben. Dazu vergleichen wir den mittleren <span class="math inline">\(SE\)</span> (auch MC<strong>SE</strong> für Monte-Carlo-<strong>SE</strong>) mit der Standardabweichung über alle Schätzungen (auch MC<strong>SD</strong> für Monte-Carlo-<strong>SD</strong>). Ein Verfahren ist effizient, wenn seine (modellimplizierten) <span class="math inline">\(SE\)</span> klein sind und genau geschätzt werden, also nah an der wahren erwarteten Variation dran liegen (also MCSE und MCSD übereinstimmen).</p>
+<p>Sei dazu <span class="math inline">\(\hat{\theta}_j\)</span> die Schätzung (hier der Mittelwert) der <span class="math inline">\(j\)</span>-ten Studie (<span class="math inline">\(j=1,\dots,k\)</span>, <span class="math inline">\(k\)</span> ist die Anzahl an Replikationen, in unserem Beispiel ist <span class="math inline">\(k=10\)</span>) für den wahren Wert <span class="math inline">\(\theta\)</span> und <span class="math inline">\(SE(\hat{\theta}_j)\)</span> der zugehörige Standardfehler. Dann können wir (absoluten) Bias, relativen Bias, MCSD und MCSE wie folgt definieren:</p>
+<p><span class="math display">\[\begin{align}
+\text{Bias}&amp;=\bar{\hat{\theta}}-\theta\\
+\text{Rel-Bias}&amp;=\frac{\bar{\hat{\theta}}-\theta}{\theta}\\
+\text{MCSD}&amp;=SD(\hat{\theta_j})\\
+\text{MCSE}&amp;=\overline{SE(\hat{\theta}_j)},
+\end{align}\]</span></p>
+<p>wobei der Strich über den Variablen jeweils den Mittelwert symbolisiert. Der Hut ^ symbolisiert, dass hier etwas geschätzt wird.</p>
+<p>Führen wir einen Signifikanztest durch, so können wir die Power oder den Type I-Error eines Tests bestimmen (siehe auch <a href="/post/einleitung-und-wiederholung">Einführungssitzung zu PsyMSc1</a>, wo diese Begriffe bereits behandelt werden). Der Type I-Error ist der Fehler erster Art oder <span class="math inline">\(\alpha\)</span>-Fehler. Wir messen in in Wahrscheinlichkeiten. Wir begehen einen <span class="math inline">\(\alpha\)</span>-Fehler, wenn wir die <span class="math inline">\(H_0\)</span> verwerfen, obwohl diese gilt. Diese Wahrscheinlichkeit des <span class="math inline">\(\alpha\)</span>-Fehlers sollte beim vorgegebenen <span class="math inline">\(\alpha\)</span>-Niveau (i.d.R. <span class="math inline">\(\alpha=5\%\)</span>) liegen. Gilt die <span class="math inline">\(H_0\)</span> nicht, so möchten wir, dass ein Test dies uns mit möglichst großer Wahrscheinlichkeit anzeigt. Die Wahrscheinlichkeit richtigerweise die <span class="math inline">\(H_0\)</span> zu verwerfen wird als <em>Power</em> bezeichnet. Hier können wir bspw. die Wahrscheinlichkeit bestimmen, dass das Konfidenzintervall nicht die 0 einschließt (somit der Effekt signifikant von 0 verschieden ist) - gleiches erreichen wir, indem wir einfach den Effekt durch seinen <span class="math inline">\(SE\)</span> teilen (<span class="math inline">\(\left|\frac{Est}{SE}\right|\)</span> und vergleiche bspw. mit 1.96). Untersuchen wir einen “richtigen” Test (z.B. ANOVA), so schauen wir uns die relative Häufigkeit eines signifikanten Ergebnisses an (also die relative Häufigkeit von <span class="math inline">\(p&lt;0.05\)</span>). Die Power sollte möglichst groß sein (z.B. hätten Methodiker gerne, dass Power <span class="math inline">\(\ge 80\%\)</span> gilt). Liegt kein Effekt vor (was wir durch Vorgaben im Modell so entscheiden), so beschreibt die Power (so wie eben beschrieben) gerade den Type I-Error, also den Fehler erster Art. Dieser sollte gerade mit Wahrscheinlichkeit des <span class="math inline">\(\alpha\)</span>-Niveaus auftreten. Somit sollte der Type I-Error möglichst nah an der <span class="math inline">\(5\%\)</span>-Marke liegen:</p>
+<p><span class="math display">\[\begin{align}
+\text{Type I-Error}&amp;=\mathbb{P}\left(H_0 \text{ verwerfen } | H_0 \text{ gilt}\right)\\
+\text{Power}&amp;=\mathbb{P}\left(H_0 \text{ verwerfen } | H_1 \text{ gilt}\right).
+\end{align}\]</span></p>
+<p>Außerdem können wir mit Hilfe der SEs von Effektparametern ein Konfidenzintervall bestimmen und dann untersuchen, wie wahrscheinlich es ist, den wahren Wert in diesem Konfidenzintervall einzuschließen. Es ergibt sich das symmetrische Konfidenzintervall (unter asymptotischer Normalverteilungsannahme des Schätzers) zu einem <span class="math inline">\(\alpha\)</span>-Niveau von <span class="math inline">\(5\%\)</span> (dieses kennen Sie vielleicht noch aus dem ersten Semester):
+<span class="math display">\[\Big[\hat{\theta}_j - 1.96SE(\theta_j);\ \ \hat{\theta}_j + 1.96SE(\theta_j)\Big]\]</span></p>
+<p>Die Wahrscheinlichkeit, dass der wahre Werte in diesem Konfidenzintervall leigt, wird die “Coverage” genannt (im Grunde engl. für die Überdeckungswahrscheinlichkeit des wahren Wertes mit einem Konfidenzintervall) und sollte bei <span class="math inline">\(95\%\)</span> liegen (sofern <span class="math inline">\(\alpha=5\%\)</span> gewählt wurde). Folglich sollte sich die Schätzung nur in 5% der Fälle zufällig vom wahren Wert unterscheiden!</p>
+<p><span class="math display">\[\begin{align}
+\text{Coverage}&amp;=\mathbb{P}\left(\theta \in \left[\hat{\theta}_j - 1.96SE(\hat{\theta_j});\ \ \hat{\theta}_j + 1.96SE(\hat{\theta_j})\right]\right).
+\end{align}\]</span></p>
+<div id="konsistenz-und-bias" class="section level3">
+<h3>Konsistenz und Bias</h3>
+<p>Wir bestimmen zunächst den Mittelwert über alle Mittelwertschätzungen (also <span class="math inline">\(\bar{\hat{\theta}}\)</span>).</p>
+<pre class="r"><code>Mean_X &lt;- mean(M) # äquivalent zu 
+Mean_X2 &lt;- mean(unlist(sResults[1, ])) #, denn die Mittelwerte stehen in der ersten Zeile 
+# von sResults, die allerdings wieder als Liste ausgegeben wird und damit mit `unlist` erst
+# in einen Vektor transformiert werden muss
+Mean_X</code></pre>
+<pre><code>## [1] 4.014563</code></pre>
+<pre class="r"><code>Mean_X2</code></pre>
+<pre><code>## [1] 4.014563</code></pre>
+<p>Die Funktion <code>unlist</code> wandelt eine Liste in einen Vektor um. Somit erhalten wir mit <code>sResults[1, ]</code> die Mittelwerte in einer Liste, die dann mit <code>unlist</code> in einen Vektor umgewandelt werden. Wir bestimmen den absoluten Bias, indem wir den wahren Wert von unserer Schätzung abziehen (<span class="math inline">\(\bar{\hat{\theta}}-\theta\)</span>). Der wahre Mittelwert liegt bei 4:</p>
+<pre class="r"><code>Bias &lt;- Mean_X - 4
+Bias</code></pre>
+<pre><code>## [1] 0.01456281</code></pre>
+<p>Der absolute Bias fällt sehr klein aus! Um den absoluten Bias besser einordnen zu können, wird er am wahren Wert relativiert: Der relative Bias ist der absolute Bias geteilt durch den wahren Wert (Achtung: dieser kann nur bestimmt werden, solange der wahre Wert <span class="math inline">\(\neq0\)</span>: <span class="math inline">\(\frac{\bar{\hat{\theta}}-\theta}{\theta}\)</span>).</p>
+<pre class="r"><code>Rel_Bias &lt;- (Mean_X - 4)/4   # oder &lt;- Bias/4
+Rel_Bias</code></pre>
+<pre><code>## [1] 0.003640703</code></pre>
+<pre class="r"><code>Rel_Bias * 100 # in Prozent</code></pre>
+<pre><code>## [1] 0.3640703</code></pre>
+<p>Der relative Bias liegt bei 0.36 <span class="math inline">\(\%\)</span> und ist damit sehr gering. Der Mittelwert scheint bereits für kleine Stichproben konsistent für den Erwartungswert (den Populationsmittelwert) zu sein.</p>
+</div>
+<div id="effizienz-und-der-vergleich-von-mcse-und-mcsd" class="section level3">
+<h3>Effizienz und der Vergleich von MCSE und MCSD</h3>
+<p>Damit ein Verfahren gut funktioniert, bzw. ein Schätzer gut funktioniert, so muss der Standardfehler vertrauenerweckend sein, also die Variation des Schätzers gut abbilden. Entsprechend müssen wir den mittleren <span class="math inline">\(SE\)</span> mit der SD über die Schätzungen vergleichen (da beide Methoden der Simulation zum selben Ergebnis gekommen sind, konzentrieren wir uns auf die Erste):</p>
+<pre class="r"><code>MCSE &lt;- mean(SE)
+MCSE2 &lt;- mean(unlist(sResults[2,]))
+
+MCSD &lt;- sd(M)
+MCSD2 &lt;- sd(unlist(sResults[1,]))
+
+MCSE</code></pre>
+<pre><code>## [1] 1.592515</code></pre>
+<pre class="r"><code>MCSD</code></pre>
+<pre><code>## [1] 1.084299</code></pre>
+<p>Deskriptiv gesehen liegen die beide recht weit auseinander! Nun können wir den absoluten und den relativen Bias in der Streuung des Mittelwerts bestimmen:</p>
+<pre class="r"><code>Bias_SE &lt;- MCSE - MCSD
+Bias_SE</code></pre>
+<pre><code>## [1] 0.5082154</code></pre>
+<pre class="r"><code>Rel_Bias_SE &lt;- (MCSE - MCSD)/MCSD
+Rel_Bias_SE</code></pre>
+<pre><code>## [1] 0.468704</code></pre>
+<p>Oft wird auch einfach MCSE durch MCSD geteilt, um den relativen Bias direkt ablesen zu können. Insgesamt liegt der relative Bias der Streuung der Mittelwertsschätzung bei ca 46.87 <span class="math inline">\(\%\)</span>, was enorm groß ist. Allerdings ist die Schätzung der MCSD bei einer so geringen Replikationszahl nicht sehr genau. MCSE hingegen funktioniert bereits recht gut. Dies können wir in diesem spezifischen Beispiel auch daran erkennen, dass wir wissen, wie groß die wahre Streuung in den Daten ist, denn wir haben die Standardabweichung mit 5 vorgegeben. Anschließend müssen wir diese durch die Wurzel an Ziehungen teilen und erhalten so den wahren SE (nämlich <span class="math inline">\(\frac{5}{\sqrt{10}}\)</span>):</p>
+<pre class="r"><code>MCSE - 5/sqrt(10)                   # Bias zum wahren SE</code></pre>
+<pre><code>## [1] 0.01137591</code></pre>
+<pre class="r"><code>(MCSE - 5/sqrt(10))/(5/sqrt(10))    # rel. Bias zum wahren SE</code></pre>
+<pre><code>## [1] 0.007194755</code></pre>
+<p>Hier sehen wir nun, dass die <span class="math inline">\(SE\)</span>s bereits gut funktionieren für eine Stichprobengröße von 10. Der relative Bias liegt bei unter <span class="math inline">\(1\%\)</span>. Wenn wir gleiche Simulation mit wesentlich mehr Replikationen bei gleicher niedriger Stichprobengröße von 10 durchführen würden, dann sollte sich der MCSD ebenfalls bei <span class="math inline">\(\frac{5}{\sqrt{10}}\)</span> einpendeln! Insgesamt ist zu sagen, dass der Schätzer “Mittelwert” effizient ist.</p>
+</div>
+<div id="coverage-power-und-type-i-error" class="section level3">
+<h3>Coverage, Power und Type I-Error</h3>
+<p>Die Coverage kann für jeden Koeffizienten eines Modells bestimmt werden. Jedoch hängt es von der Ausprägung des Populationsparameters ab, ob wir die Power oder den Type I-Error bestimmen. Dies ist jedoch nur eine Namensentscheidung. Beides wir gleich bestimmt.</p>
+<div id="power-und-type-i-error-bestimmen" class="section level4">
+<h4>Power und Type I-Error bestimmen</h4>
+<p>In unserer kleinen Simulation haben wir den Mittelwert von normalverteilten Zufallsvariablen untersucht. Wir könnten uns also die Frage stellen, ob dieser Mittelwert von 0 verschieden ist. Dazu könnten wir einen Test durchführen (z.B. Einstichproben-<span class="math inline">\(z\)</span>-Test) oder wir teilen den Mittelwert durch seinen modellimplizierten <span class="math inline">\(SE\)</span> (was in diesem spezifischen Beispiel gerade das selbe ist). Da wir bereits wissen, dass der wahre Mittelwert bei 4 liegt, bestimmen wir auf diese Weise die Power dieses Koeffizienten. Wir müssen zunächst prüfen, wann <span class="math inline">\(\left|\frac{Est}{SE}\right|&gt;1.96\)</span> gilt (bzw. <span class="math inline">\(\left|\frac{\bar{\hat{\theta}}}{SE(\hat{\theta}_j)}\right|&gt;1.96\)</span>)- wir müssen hierbei den Absolutbetrag beachten, da dieser Bruch durchaus auch negativ sein kann, wir wollen aber keine gerichtete Hypothese untersuchen. Die Funktion in <code>R</code> heißt <code>abs</code>:</p>
+<pre class="r"><code>abs(M/SE)</code></pre>
+<pre><code>##  [1] 4.4073330 3.7999131 3.1413479 4.7502887 2.1271770 1.5719964 3.4563036
+##  [8] 0.9784281 2.5674554 1.5139865</code></pre>
+<pre class="r"><code>M2 &lt;- unlist(sResults[1,]) # andere Methode
+SE2 &lt;- unlist(sResults[2,]) # andere Methode
+abs(M2/SE2) # identisch zu oben, also können wir uns auf eines der beiden konzentrieren</code></pre>
+<pre><code>##  [1] 4.4073330 3.7999131 3.1413479 4.7502887 2.1271770 1.5719964 3.4563036
+##  [8] 0.9784281 2.5674554 1.5139865</code></pre>
+<p>Hier alle einzeln durchzugehen und zu untersuchen, wie häufig dieser Bruch größer als 1.96 ist, ist mühselig, weswegen wir dies mit <code>R</code> automatisieren:</p>
+<pre class="r"><code>abs(M/SE) &gt; 1.96</code></pre>
+<pre><code>##  [1]  TRUE  TRUE  TRUE  TRUE  TRUE FALSE  TRUE FALSE  TRUE FALSE</code></pre>
+<p>An <code>TRUE</code> und <code>FALSE</code> erkennen wir, wann der Ausdruck größer als 1.96 ist. Wenn wir nun den Mittelwert auf diesen Vektor aus <code>TRUE</code> und <code>FALSE</code> anwenden, dann erhalten wir die relative Häufigkeit für Erfolg (<code>TRUE</code>). Die <code>mean</code> Funktion bestimmt die relative Häufigkeit von <code>TRUE</code> da <code>TRUE</code> <code>R</code>-intern als 1 und <code>FALSE</code> <code>R</code>-intern als 0 verstanden wird (siehe auch <a href="/post/logistische-regression">Sitzung zur logistischen Regression</a> um relative Häufigkeiten von 01-Folgen zu wiederholen!).</p>
+<pre class="r"><code>mean(abs(M/SE) &gt; 1.96)</code></pre>
+<pre><code>## [1] 0.7</code></pre>
+<p>Die Power liegt hier bei 0.7, was 70% entspricht!</p>
+</div>
+<div id="coverage-bestimmen" class="section level4">
+<h4>Coverage bestimmen</h4>
+<p>Um die Coverage zu bestimmen, müssen wir uns das Konfidenzintervall ansehen, denn wir wollen untersuchen, ob sich die Schätzung signifikant vom wahren Wert unterscheidet (das wäre nämlich nicht gewünscht!). Für unsere 10 Trials sieht das ganze so aus (Grafik-Code können Sie <a href="AppendixB">Appendix B</a> entnehmen):
+<img src="/post/2020-11-06-MSc5_Simulationsstudien_files/figure-html/unnamed-chunk-31-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Wir sehen, dass die Konfidenzintervalle hier immer (in 100% der Fälle) den wahren Wert (hier die horizontale gestrichelte Linie) enthält und somit die Schätzung sich nicht signifikant vom wahren Wert unterscheidet. Somit liegt die Coverage bei 100% (für große Stichproben und viele Replikationen sollte sie bei 95% liegen, bzw. bei <span class="math inline">\(1-\alpha\)</span>). In <code>R</code> müssen wir prüfen, ob der wahre Wert oberhalb der unteren Grenze und unterhalb der oberen Grenze des Konfidenzintervalls liegt. Wir können mehrere <code>TRUE</code> oder <code>FALSE</code> Abfragen mit <code>&amp;</code> (<em>and</em>-Verknüpfung) verketten (es müssen beide <code>TRUE</code> sein, damit insgesamt <code>TRUE</code> entsteht). Die Coverage ergibt sich als:</p>
+<pre class="r"><code>mean(M - 1.96 * SE &lt;= 4 &amp; M + 1.96 * SE &gt;= 4)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<p>wobei links vom <code>&amp;</code> abgefragt wird, ob der wahre Wert (hier = 4) oberhalb (oder genau auf) der unteren Grenze (<code>M - 1.96 * SE</code>) liegt und rechts vom <code>6</code> wird abgefragt, ob der wahre Wert unterhalb (oder genau auf) der oberen Grenze (<code>M + 1.96 * SE</code>) liegt. Wenn wir uns ein paar Gedanken darüber machen, so erkennen wir, dass wir auch vom Mittelwert und von den Grenzen jeweils den wahren Wert abziehen können und anschließend prüfen können, ob die Null in diesem neuen Intervall liegt.</p>
+<p><img src="/post/2020-11-06-MSc5_Simulationsstudien_files/figure-html/unnamed-chunk-33-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Dies ist das Gleiche, wie zu prüfen, ob der absolute Bias pro Trial geteilt durch den jeweiligen <span class="math inline">\(SE\)</span> kleiner als/gleih 1.96 (und damit nicht signifikant von Null verschieden) ist:</p>
+<p><span class="math display">\[\frac{|\hat{\theta}_j-\theta_j|}{SE(\hat{\theta_j})}\le1.96\]</span></p>
+<p>bzw. in <code>R</code>:</p>
+<pre class="r"><code>mean(abs(M-4)/SE &lt;= 1.96)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<p>Welche Variante für die Coverage Sie nutzen wollen, ist selbstverständlich Ihnen überlassen! Siehe <a href="#AppendixA">Appendix A</a> für eine zusätzliche Möglichkeit die Coverage als Funktion zu nutzen.</p>
+<p>In <a href="#AppendixC">Appendix C</a> erfahren Sie, wie sie eine Verlaufsleiste (Progress Bar) hinzufügen, um zu wissen, wie lange Ihre Simulationen noch brauchen (falls Sie dazu Lust haben!).</p>
+<p>Andere Modelle, wie bspw. ein Regressionsmodell, simulieren Sie, indem Sie mehrere Variablen in <code>R</code> simulieren und diese dann durch z.B. Addition verknüpfen, um so Ihr Populationsmodell aufstellen zu können. Danach müssen Sie entscheiden, mit welchem Analysemodell Sie die generierten Daten untersuchen wollen.</p>
+<p>Interessante weitere Informationen bspw. zum Simulieren von SEM oder Multi-Level-Daten finden Sie bspw. in dem Online Buch <a href="https://bookdown.org/marklhc/notes/simulating-means-and-medians.html"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> Monte Carlo Simulation Examples</a>.</p>
+<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/1_Simulationsstudien_RCode.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
+</div>
+</div>
+</div>
+<div id="appendix" class="section level2">
+<h2>Appendix</h2>
+<div id="AppendixA" class="section level3">
+<h3>Appendix A</h3>
+<pre class="r"><code>calculate_mean_SE_short &lt;- function(X)
+{
+     return(list(&quot;Mean&quot; = mean(X), &quot;StdError&quot; = sd(X)/sqrt(length(X))))
+}
+calculate_mean_SE_short(X = X_data[[3]])</code></pre>
+<pre><code>## $Mean
+## [1] 3.354288
+## 
+## $StdError
+## [1] 1.067786</code></pre>
+<p>Durch eine so kurze Schreibweise wird das ganze Prozedere leider sehr fehleranfällig.</p>
+<p>Wir können auch eine Funktion für die Coverage definieren, welche als Argument das Est, den SE und den wahren Wert übergeben bekommt:</p>
+<pre class="r"><code>my_coverage_function &lt;- function(Ests, SEs, truth)
+{
+        absBias &lt;- abs(Ests-truth)
+        coverage &lt;- mean(absBias/SEs &lt;= 1.96)
+        return(coverage)
+}
+
+# ausprobieren:
+my_coverage_function(Est = M, SE = SE, truth = 4)</code></pre>
+<pre><code>## [1] 1</code></pre>
+</div>
+<div id="appendix-b-grafik-code" class="section level3">
+<h3>Appendix B: Grafik-Code</h3>
+<pre class="r"><code>Trial &lt;- 1:length(M) # Trial-Nr.
+MSE &lt;- data.frame(cbind(Trial, M, SE))
+
+library(ggplot2)
+ggplot(data = MSE,mapping = aes(x = Trial, y = M)) + geom_point(cex = 4)+geom_hline(yintercept = 4, lty = 3)+geom_errorbar(mapping = aes(ymin = M - 1.96*SE, ymax = M + 1.96*SE))+ggtitle(&quot;Konfidenzintervalle&quot;, subtitle = &quot;Coverage ist die Wahrscheinlichkeit den wahren Wert einzuschließen&quot;)</code></pre>
+<p><img src="/post/2020-11-06-MSc5_Simulationsstudien_files/figure-html/unnamed-chunk-37-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>Trial &lt;- 1:length(M) # Trial-Nr.
+M_transformed &lt;- M - 4
+MSE &lt;- data.frame(cbind(Trial, M_transformed, SE))
+
+library(ggplot2)
+ggplot(data = MSE, mapping = aes(x = Trial, y = M_transformed)) + geom_point(cex = 4)+geom_hline(yintercept = 0, lty = 3)+geom_errorbar(mapping = aes(ymin = M_transformed - 1.96*SE, ymax = M_transformed + 1.96*SE))+ggtitle(&quot;Konfidenzintervalle um den wahren Wert verschoben&quot;, subtitle = &quot;Coverage ist die Wahrscheinlichkeit den wahren Wert einzuschließen&quot;)</code></pre>
+<p><img src="/post/2020-11-06-MSc5_Simulationsstudien_files/figure-html/unnamed-chunk-38-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+<div id="AppendixC" class="section level3">
+<h3>Appendix C: Progess Bar</h3>
+<div id="progress-bar-für-for-loops" class="section level4">
+<h4>Progress Bar für <code>for</code>-Loops</h4>
+<p>Um eine Progress Bar in eine <code>for</code>-Schleife einzubauen, können wir das <code>R</code>-Paket <code>progress</code> verwenden. Dazu müssen wir dieses zunächst installieren (<code>install.packages("progress")</code>). Anschließend sollte folgender Code unserer <code>for</code>-Loop-Simulationsstudie eine Progress Bar hinzufügen, wobei wir die Replikationszahl erhöhen, da es sonst zu schnell geht!</p>
+<pre class="r"><code>library(progress) # Paket laden
+Reps &lt;- 10^5 # entspricht 100000
+pb &lt;- progress_bar$new(total = Reps, 
+                       format = &quot;  |:bar| :percent elapsed = :elapsed  ~ :eta&quot;, 
+                       width = 80) # Progressbar vorbereiten und als &quot;pb&quot; abspeichern
+M &lt;- rep(NA, Reps)
+set.seed(100) # Vergleichbarkeit
+for(i in 1:Reps)
+{
+     X &lt;- rnorm(n = 10, mean = 4, sd = 5)
+     M[i] &lt;- mean(X)
+     pb$tick() # Progress ausführen in der Schleife
+}</code></pre>
+<pre><code>## |=====&gt;--------------------------------------------|  12% elapsed =  4s  ~ 26s</code></pre>
+</div>
+<div id="progress-bar-für-apply" class="section level4">
+<h4>Progress Bar für <code>apply</code></h4>
+<p>Um eine Progress Bar in <code>apply</code>-Funktionen einzubauen, können wir das <code>R</code>-Paket <code>pbapply</code> verwenden (<code>pb</code> steht hierbei für progress bar!). Dazu müssen wir dieses zunächst installieren (<code>install.packages("pbapply")</code>). Das Paket ist super einfach zu nutzen. Wir müssen lediglich vor unsere <code>apply</code> Funktionen noch <code>pb</code> davor schreiben. Außerdem brauchen wir ein paar mehr Replikationen, da es sonst zu schnell geht! Anschließend sollte folgender Code unserer <code>sapply</code>-Simulationsstudie eine Progress Bar hinzufügen!</p>
+<pre class="r"><code>Reps &lt;- 10^6 # entspricht 1000000
+set.seed(100) # Vergleichbarkeit
+X_data &lt;- replicate(n = Reps, expr = rnorm(n = 10, mean = 4, sd = 5), simplify = F)
+sResults &lt;- pbsapply(X = X_data, FUN = calculate_mean_SE)</code></pre>
+<pre><code>## |+++++++++++++++++++                               | 38% ~10s</code></pre>
+<p>Hier ist nun auch deutlich zu sehen, dass <code>apply</code> schneller als die <code>for</code>-Schleife ist, wobei wir hier beachten müssen, dass bereits in <code>replicate</code> die Daten erzeugt werden, was auch sehr viel Zeit kostet.</p>
+</div>
+</div>
+</div>
