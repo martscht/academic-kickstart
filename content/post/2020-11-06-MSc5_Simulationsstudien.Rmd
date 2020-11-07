@@ -408,11 +408,23 @@ library(ggplot2)
 ggplot(data = MSE, mapping = aes(x = Trial, y = M_transformed)) + geom_point(cex = 4)+geom_hline(yintercept = 0, lty = 3)+geom_errorbar(mapping = aes(ymin = M_transformed - 1.96*SE, ymax = M_transformed + 1.96*SE))+ggtitle("Konfidenzintervalle um den wahren Wert verschoben", subtitle = "Coverage ist die Wahrscheinlichkeit den wahren Wert einzuschließen")
 ```
 
-Dies ist das Gleiche, wie zu prüfen, ob der absolute Bias pro Trial geteilt durch den jeweiligen $SE$ kleiner als/gleih 1.96 (und damit nicht signifikant von Null verschieden) ist: 
+Dies ist das Gleiche, wie zu prüfen, ob der absolute Bias pro Trial geteilt durch den jeweiligen $SE$ kleiner als/gleich 1.96 (und damit nicht signifikant von Null verschieden) ist: 
 
-$$\frac{|\hat{\theta}_j-\theta_j|}{SE(\hat{\theta_j})}\le1.96$$
+$$\frac{|\hat{\theta}_j-\theta|}{SE(\hat{\theta_j})}\le1.96$$
 
-bzw. in `R`:
+Damit ist ersichtlich, dass Bias, MCSE, MCSD und Coverage nicht unabhängig sind, denn ist der Bias groß und die Streuung klein, so sollte die Coverage ebenfalls klein sein. Bei erwartungstreuen Schätzern (jenen Schätzern, die [für große Stichproben] im Mittel beim wahren Wert rauskommen), sollte der Bias gerade nur in 5% der Fälle zufällig von 0 signifikant sein, ist das Verfahren jedoch verzerrt, so ist diese Wahrscheinlichkeit deutlich größer und die Coverage entsprechend klein. Genauso können Verzerrungen der Streuung Einflüsse auf die Coverage nehmen. Ist bspw. der SE zu klein, so ist die Coverage ebenfalls kleiner als 95% (in beiden Fällen ist jeweils angenommen, dass $\alpha = 5%$ gewählt wurde). Es sollte folglich im Idealfall gelten:
+
+\begin{align}
+\text{Coverage}&=\mathbb{P}\left(\theta \in \left[\hat{\theta}_j - 1.96SE(\hat{\theta_j});\ \ \hat{\theta}_j + 1.96SE(\hat{\theta_j})\right]\right)\\
+&=\mathbb{P}\left(\frac{|\hat{\theta}_j-\theta|}{SE(\hat{\theta_j})}\le1.96\right)\\
+&=0.95.
+\end{align}
+
+
+
+
+
+Das sieht in `R` so aus:
 ```{r}
 mean(abs(M-4)/SE <= 1.96)
 ```
