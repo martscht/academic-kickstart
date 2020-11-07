@@ -1,0 +1,554 @@
+---
+title: Meta-Analysen in R
+date: '2020-11-07'
+slug: meta-analysen-in-r
+categories:
+  - MSc5
+tags:
+  - Meta-Analyse
+  - Zusammenfassung
+  - Summary
+  - Korrelation
+  - Arbeits- und Organisationspsychologie
+  - A& O
+subtitle: ''
+summary: ''
+authors: [irmer]
+lastmod: '2020-11-07T15:21:58+02:00'
+featured: no
+header:
+  image: "/header/MSc5_Galaxy_post.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/1262166)"
+projects: []
+---
+
+
+
+<div id="einführung" class="section level2">
+<h2>Einführung</h2>
+<p>Mit Hilfe des <code>metafor</code>-Paketes (<em><strong>meta</strong><em>-analysis </em><strong>fo</strong><em>r </em><strong>r</strong></em>) von Viechtbauer (2010) lassen sich eindimensionale Meta-Analysen (in welchen ein Koeffizient über mehrere Studien “gemittelt” werden soll) leicht berechnen. Zunächst müssen wir dazu das <code>R</code>-Paket installieren.</p>
+<pre class="r"><code>install.packages(&quot;metafor&quot;)</code></pre>
+<p>Eine solche Installation ist nur einmalig vonnöten (es sei denn wir wollen eine ggf. neuerer Version des Pakets installieren). Anschließend lässt sich das Paket laden; wir machen es so in <code>R</code> verfügbar und können auf dessen Funktionen zugreifen.</p>
+<pre class="r"><code>library(metafor)</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre><code>## Loading &#39;metafor&#39; package (version 2.4-0). For an overview 
+## and introduction to the package please type: help(metafor).</code></pre>
+<p>Wie auch beim Laden des Paketes schon erwähnt wird (<code>For an overview and introduction to the package please type: help(metafor)</code>), können wir uns mit der sehr nützlichen <code>R</code>-internen Hilfe-Funktion einen Überblick über das Paket verschaffen.</p>
+<pre class="r"><code>help(&quot;metafor&quot;)</code></pre>
+<p>Wenn wir diesen Befehl ausführen, so geht in <code>R</code>-Studio ein Fenster mit der Überschrift “metafor: A Meta-Analysis Package for R” auf, in welchem die grundlegenden Funktionen erklärt werden.</p>
+</div>
+<div id="daten" class="section level2">
+<h2>Daten</h2>
+<p>In diesem kleinen Tutorial wollen wir einen von diesem Paket mitgelieferten Datensatz verwenden. Dieser heißt <code>dat.mcdaniel1994</code>. Wie wir eigene Daten einlesen, haben wir im zugehörigen Dokument <em>“Daten einlesen”</em> gelernt! Wir erhalten mit folgenden Befehl mehr Informationen über diesen Datensatz.</p>
+<pre class="r"><code>?dat.mcdaniel1994 # Studies on the Validity of Employment Interviews</code></pre>
+<p>Führen wir diese Zeile aus, geht in <code>R</code>-Studio erneut ein Erklärungfenster mit der Überschrift “Studies on the Validity of Employment Interviews” auf. Es geht also um eine Meta-Analysen über Studien, die die Validität von Einstellungsinterviews untersucht haben. Die Studie wurde von McDaniel, Whetzel, Schmidt und Maurer (1994) durchgeführt. Die Daten im Datensatz <code>dat.mcdaniel1994</code> stammen aus Tabelle A.2 in Rothstein, Sutton, and Borenstein (2005, p. 325-329). In dieser Übersicht sehen wir, dass es 5 Variablen in diesem Datensatz gibt. Mit <code>head</code> (zeigt die ersten 6 Zeilen des Datensatzes) oder mit <code>names</code> (zeigt die Variablennamen des <code>R</code>-Objektes) können wir uns einen Überblick über die Variablen im Datensatz verschaffen.</p>
+<pre class="r"><code>head(dat.mcdaniel1994)</code></pre>
+<pre><code>##   study   ni   ri type struct
+## 1     1  123 0.00    j      s
+## 2     2   95 0.06    p      u
+## 3     3   69 0.36    j      s
+## 4     4 1832 0.15    j      s
+## 5     5   78 0.14    j      s
+## 6     6  329 0.06    j      s</code></pre>
+<pre class="r"><code>names(dat.mcdaniel1994)</code></pre>
+<pre><code>## [1] &quot;study&quot;  &quot;ni&quot;     &quot;ri&quot;     &quot;type&quot;   &quot;struct&quot;</code></pre>
+<p>Mit Hilfe dieser Namen können wir explizit auf die Variablen im Datensatz zugreifen. Wir können bespielsweise die Korrelationen zwischen Einstellungsinterview und Job-Performanz pro Studie abgreifen, die im Datensatz als Variable <code>ri</code> gespeichert sind.</p>
+<pre class="r"><code>dat.mcdaniel1994$ri</code></pre>
+<pre><code>##   [1]  0.00  0.06  0.36  0.15  0.14  0.06  0.09  0.40  0.39  0.14  0.36  0.28
+##  [13]  0.62  0.07  0.18  0.42  0.08  0.18  0.43  0.04 -0.04  0.05 -0.14  0.05
+##  [25]  0.35 -0.08  0.24  0.16  0.25  0.68  0.61  0.81  0.99  0.66  0.45  0.71
+##  [37]  0.27 -0.02  0.29  0.13  0.03  0.00  0.09 -0.03  0.46  0.30  0.33  0.24
+##  [49]  0.64  0.12  0.15  0.44  0.00  0.16  0.21  0.29  0.19  0.04  0.56  0.14
+##  [61]  0.44  0.36  0.34  0.11  0.40  0.23  0.22  0.44  0.27  0.11  0.27 -0.07
+##  [73]  0.32  0.05  0.20  0.18  0.34  0.03  0.45  0.34  0.51  0.41  0.37  0.25
+##  [85] -0.17  0.47  0.32 -0.09  0.33  0.22  0.27  0.00  0.41  0.16  0.00  0.03
+##  [97]  0.01  0.03  0.14  0.11  0.08 -0.13  0.13  0.36  0.06  0.19  0.27  0.17
+## [109]  0.34  0.28  0.11  0.07 -0.13  0.12  0.12  0.37  0.26  0.42  0.37  0.17
+## [121]  0.19  0.32  0.33  0.24  0.09  0.36  0.26  0.42  0.62  0.87 -0.07  0.65
+## [133]  0.17  0.30  0.45  0.24  0.02  0.23  0.17  0.32  0.36  0.09  0.13  0.29
+## [145]  0.49  0.40  0.23  0.31  0.46 -0.12  0.22  0.59  0.21  0.02 -0.03  0.28
+## [157] -0.04  0.19  0.23  0.30</code></pre>
+<p>Die Variable heißt hier <code>ri</code>, da auch im zugehörigen Paper von Viechtbauer (2010) die Korrelation für die <span class="math inline">\(i\)</span>-te Studie mit <span class="math inline">\(r_i\)</span> bezeichnet wird. Insgesamt gibt es 160 Studien und somit Korrelationskoeffizienten in diesem Datensatz. Einen Überblick über solch einen Wust von Daten in diesem Vektor erhalten wir mit der <code>R</code>-internen <code>summary</code> Funktion.</p>
+<pre class="r"><code>summary(dat.mcdaniel1994$ri)</code></pre>
+<pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
+## -0.1700  0.0900  0.2300  0.2404  0.3600  0.9900</code></pre>
+<p>Die Korrelationskoeffizienten liegen also zwischen -0.17 und 0.99. Auch ein Mittelwert wird uns bereits ausgegeben: 0.24. Dies gibt uns ein erstes Gefühl dafür, wo der tatsächlich gepoolte mittlere Korrelationskoeffizient, der die Beziehung zwischen Einstellungsinterview und Job-Performanz quantifiziert, liegen könnte.</p>
+</div>
+<div id="grafische-veranschaulichung-der-beziehung-zwischen-einstellungsinterview-und-job-performanz" class="section level2">
+<h2>Grafische Veranschaulichung der Beziehung zwischen Einstellungsinterview und Job-Performanz</h2>
+<p>Wir wollen uns die Daten zunächst noch etwas genauer ansehen. Plotten wir zunächst die Korrelationskoeffizienten.</p>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-8-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Aus dieser Grafik lässt sich noch nicht so viel erkennen, vielleicht wäre ein Boxplot sinnvoller?</p>
+<pre class="r"><code>boxplot(dat.mcdaniel1994$ri, main = &quot;Empirische Korrelationen zwischen\n Interview Performanz und Job-Performanz&quot;)</code></pre>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Wir sehen, dass die meisten Korrelationen zwischen -0.17 und 0.71 liegen. 50% der Korrelationen liegen allerdings zwischen 0.09 und 0.36, also im positiven Bereich; der Median liegt bei 0.23.</p>
+<p>Wir wollen uns außerdem die Unterschiedlichkeit der Korrelationskoeffizienten als Darstellung der verschiendenen Einfach-Regressionen von Job-Performanz auf die Interview-Performanz anschauen. Hierzu plotten wir quasi eine standardisierte Regressiongerade (<span class="math inline">\(\beta_0=0\)</span> und <span class="math inline">\(\beta_1=r_i\)</span>, wobei <span class="math inline">\(r_i:=\)</span> Korrelationskoeffizient von Studie <span class="math inline">\(i\)</span>) pro Studie. Um den zu Grunde liegenden Code anzusehen, können Sie <a href="#AppendixA">Appendix A</a> nachschauen.</p>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>In diese Grafik würden wir gerne eine durchschnittliche Regressionsgerade hineinlegen.</p>
+</div>
+<div id="fishers-z-transformation" class="section level2">
+<h2>Fisher’s <span class="math inline">\(z\)</span>-Transformation</h2>
+<p>Allerdings können wir dazu, wie wir in den vergangenen inhaltlichen Sitzungen gelernt haben, nicht einfach alle Korrelationskoeffizienten mitteln. Die Korrelation ist außerdem ein besonderer Koeffizient, da er nur Werte zwischen -1 und 1 annehmen kann. Somit ist hier einfaches Mitteln der Korrelationskoeffizienten nicht ohne Weiteres möglich. Aus diesem Grund werden Korrelationskoeffizienten häufig mit Hilfe von Fisher’s <span class="math inline">\(z\)</span>-Transformation in <span class="math inline">\(z\)</span>-Werte übertragen. Dies haben wir vielleicht im ersten Semester schon einmal kennengelernt, als wir Korrelationskoeffizienten mitteln wollten. Der zugehörige <span class="math inline">\(z\)</span>-Wert zu einer Korrelation <span class="math inline">\(r_i\)</span> lässt sich wie folgt bestimmen:</p>
+<p><span class="math display">\[Z_i:=\frac{1}{2}\log\left(\frac{1+r_i}{1-r_i}\right)\]</span>.</p>
+<p>Das Schöne an den transformierten Daten (den <span class="math inline">\(z\)</span>-Werten) ist, dass wir nun die Varianz (bzw. die Standardfehler) der Korrelationskoeffienten kennen. Es gilt nämlich:</p>
+<p><span class="math display">\[\mathbb{V}ar[Z_i]:=\frac{1}{n_i-3},\]</span>
+wobei <span class="math inline">\(n_i\)</span> die Stichprobengröße der Studie <span class="math inline">\(i\)</span> ist. Der Standardfehler wäre <span class="math inline">\(\sqrt{\frac{1}{n_i-3}}=\frac{1}{\sqrt{n_i-3}}\)</span>. Wir sehen, dass die Variation der Korrelationskoeffizienten unabhängig von ihrer Höhe ist, aber wir im Idealfall die Stichprobengröße der Studie kennen sollten. Das macht es uns leicht, da wir nicht, wie beim Mittelwert bspw., noch die Standardabweichung aus den Studien kennen müssen. Wir müssen diese Transformation selbstverständlich nicht mit Hand durchführen, sondern können uns einfach der Funktion <code>escalc</code> aus dem <code>metafor</code> Paket bedienen.</p>
+<p>Um diese Funktion zu verwenden, um die Daten zu <span class="math inline">\(z\)</span>-transformieren, müssen wir folgende Argumente an die Funktion übergeben: <code>measure = "ZCOR"</code> bewirkt, dass auch tatsächlich die <span class="math inline">\(r\)</span>-to-<span class="math inline">\(z\)</span>-Transformation (Fisher’s <span class="math inline">\(z\)</span>-Transformation) durchgeführt wird. Das Argument <code>ri</code> nimmt die beobachteten Korrelationskoeffizienten entgegen (diese heißen hier auch <code>ri</code>), <code>ni</code> nimmt die Stichprobengröße pro Studie entgegen (diese heißen hier auch <code>ni</code>). Das Argument <code>data</code> nimmt, wie der Namen schon verrät, den Datensatz entgegen, in dem die Studien zusammengefasst sind (hier <code>dat.mcdaniel1994</code>). Die Funktion erzeugt einen neuen Datensatz erzeugt, welcher um die <span class="math inline">\(z\)</span>-Werte sowie deren Varianz erweitert wurde. Diesen wollen wir unter einem neuen Namen abspeichern. Als Beweis meines Einfallsreichtums nennen wir diesen Datensatz einfach <code>data_transformed</code>. Auch die Namen, der neu zu erstellenden Variablen lassen sich in der Funktion festlegen. Dies ergibt insbesondere dann Sinn, wenn wir mehrere Analysen an einem Datensatz durchführen. Dies geht mit dem <code>var.names</code>-Argument, welchem wir einen Vektor mit zwei Einträgen übergeben müssen: dem Namen der <span class="math inline">\(z\)</span>-Werte und dem Namen der Varianzen. Wir wollen sie <code>z_ri</code> und <code>v_ri</code> nennen: <code>var.names = c("z_ri", "v_ri")</code>. Der fertige Code sieht folglich so aus (mit <code>head</code> schauen wir uns wieder die ersten 6 Zeilen an):</p>
+<pre class="r"><code>data_transformed &lt;- escalc(measure=&quot;ZCOR&quot;, ri=ri, ni=ni, data=dat.mcdaniel1994, var.names = c(&quot;z_ri&quot;, &quot;v_ri&quot;))
+head(data_transformed)</code></pre>
+<pre><code>##   study   ni   ri type struct   z_ri   v_ri 
+## 1     1  123 0.00    j      s 0.0000 0.0083 
+## 2     2   95 0.06    p      u 0.0601 0.0109 
+## 3     3   69 0.36    j      s 0.3769 0.0152 
+## 4     4 1832 0.15    j      s 0.1511 0.0005 
+## 5     5   78 0.14    j      s 0.1409 0.0133 
+## 6     6  329 0.06    j      s 0.0601 0.0031</code></pre>
+<p>Wenn wir den Namen des Datensatzes nicht an die Funktion übergeben, und statt dessen nur die beobachteten Korrelationen und die Stichprobengrößen angeben, werden im erzeugten Datensatz nur die <span class="math inline">\(z\)</span>-Werte und die Varianzen gespeichert; die Werte werden nicht an den bestehenden Datensatz drangehängt (was für spätere Analysen weniger sinnvoll erscheint).</p>
+<pre class="r"><code>data_transformed_2 &lt;- escalc(measure=&quot;ZCOR&quot;, ri=dat.mcdaniel1994$ri, ni=dat.mcdaniel1994$ni, var.names = c(&quot;z_ri&quot;, &quot;v_ri&quot;))
+head(data_transformed_2)</code></pre>
+<pre><code>##     z_ri   v_ri 
+## 1 0.0000 0.0083 
+## 2 0.0601 0.0109 
+## 3 0.3769 0.0152 
+## 4 0.1511 0.0005 
+## 5 0.1409 0.0133 
+## 6 0.0601 0.0031</code></pre>
+<p>Wir entnehmen dem Output, dass die Benenung geklappt hat und das hier nur ein Datensatz mit den <span class="math inline">\(z\)</span>-Werten und den Varianzen entstanden ist.</p>
+<p>Aus unserem neuen Datensatz <code>data_transformed</code> können wir nun wieder die entsprechenden Werte herausziehen. Wir können bspw. die Berechnung der Streuung der <span class="math inline">\(z\)</span>-Werte überprüfen. Mit Hilfe von eckigen Klammern können die bezeichneten Einträge eines Vektors indiziert werden. Mit <code>data_transformed$v_ri[1:4]</code> werden entsprechend die ersten 4 Elemente im Vektor bezeichnet. Somit können wir uns mit <code>[1:4]</code> die ersten 4 Einträge der beiden Vektoren anschauen, um diese zu vergleichen:</p>
+<pre class="r"><code>1:4</code></pre>
+<pre><code>## [1] 1 2 3 4</code></pre>
+<pre class="r"><code>data_transformed$v_ri[1:4]</code></pre>
+<pre><code>## [1] 0.0083333333 0.0108695652 0.0151515152 0.0005467469</code></pre>
+<pre class="r"><code>1/(dat.mcdaniel1994$ni - 3)[1:4] </code></pre>
+<pre><code>## [1] 0.0083333333 0.0108695652 0.0151515152 0.0005467469</code></pre>
+<p>Wir sehen, dass unsere Berechnung mit Hand <span class="math inline">\(\left(\frac{1}{n_i-3}\right)\)</span> zum gleichen Ergebnis kommt, wie die Berechnung mit <code>escalc</code>, was daran liegt, dass die Funktion <code>escalc</code> mit den oben gewählten Zusatzargument genau das gemacht hat! Was genau hat nun die Transformation bewirkt?</p>
+<pre class="r"><code>plot(x = data_transformed$ri, y = data_transformed$z_ri, xlab = &quot;r&quot;, ylab = &quot;z&quot;,
+     main = &quot;Fisher&#39;s z-Transformation&quot;)</code></pre>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Der Grafik ist zu entnehmen, dass nach Transformation Korrelationswerte nahe 1 stärker gewichtet werden (sie haben größere <span class="math inline">\(z\)</span>-Ausprägungen). Dies war das Ziel, da es deutlich unwahrscheinlicher ist, in einer Studie einen Korrelationskoeffizient von .90 zu finden als einen von .20 und die Korrelation von .90 somit stärker ins Gewicht fallen sollte.
+Vor allem, wenn wir den mittleren Korrelationskoeffizienten gegen 0 testen wollen, sollte berücksichtigt werden, dass einige Korrelationskoeffizienten nahe 1 lagen. Sollten diese Werte aufgrund zufälliger Schwankungen gefunden worden sein, so sollte dies daran liegen, dass der Standardfehler groß, also die Stichprobengröße klein ist. Nach unseren Berechnungen können wir die Transformation natürlich auch wieder ganz leicht rückgängig machen (natürlich gibt es hier auch wieder eine Funktion die dies für uns übernimmt, welche wir uns anschauen, wenn es soweit ist):
+<span class="math display">\[r_i = \frac{e^{2z_i}-1}{e^{2z_i}+1}\]</span></p>
+</div>
+<div id="meta-analytische-modellierung" class="section level2">
+<h2>Meta-analytische Modellierung</h2>
+<p>In der inhaltlichen Sitzung haben sie bisher zwei Typen von meta-analytischen Modellen kennengelernt: das Fixed- und das Random Effects Modell (FEM und REM). Das FEM geht davon aus, dass die Studien sich nur durch zufällige, unsystematische Schwankungen unterscheiden. Ein beobachteter Koeffizient der <span class="math inline">\(i\)</span>-ten Studie <span class="math inline">\(\vartheta_i\)</span> (wird auch oft <span class="math inline">\(y_i\)</span> gennant, weswegen im <code>metafor</code>-<code>R</code>-Paket auch häufig das Argument der Koeffizenten <code>yi</code> genannt wird) lässt sich also zerlegen in einen globalen (wahren) Mittelwert <span class="math inline">\(\theta\)</span> (global, also für alle Studien gültig, daher kein Index <span class="math inline">\(i\)</span>) und zufällige Abweichungen <span class="math inline">\(\varepsilon_i\)</span>, welche homogen (mit gleicher Varianz) über alle Studien hinweg variieren. Hierbei hat <span class="math inline">\(\varepsilon_i\)</span> einen Mittelwert von 0 und eine Varianz <span class="math inline">\(\sigma^2\)</span>, zudem wird es als normalverteilt angenommen.</p>
+<p><span class="math display">\[\text{FEM}: \vartheta_i = \theta + \varepsilon_i.\]</span></p>
+<p>Das REM geht im Gegenteil davon aus, dass es Heterogenität zwischen den Effektmaßen gibt, also, dass sich die Studien systematisch unterscheiden - sie sind heterogen. Diese Annahme wird modelliert, indem ein weiterer Fehlerterm hinzugefügt wird <span class="math inline">\(u_i\)</span>, welcher studienspezifische systematische Abweichungen quantifiziert. Das Modell erweitert sich zu</p>
+<p><span class="math display">\[\text{REM}: \vartheta_i = \theta + u_i + \varepsilon_i.\]</span></p>
+<p><span class="math inline">\(u_i\)</span> hat wie <span class="math inline">\(\varepsilon_i\)</span> ebenfalls einen Mittelwert von 0, wird als normalverteilt angenommen und besitzt die Heterogenitätsvarianz <span class="math inline">\(\tau^2\)</span>. Dieses Modell sieht einer einfaktoriellen ANOVA recht ähnlich: <em>Hier hatten wir den Wert <span class="math inline">\(y_{ij}\)</span> einer Person <span class="math inline">\(i\)</span> aus Gruppe <span class="math inline">\(j\)</span> zerlegt in den globalen Mittelwert <span class="math inline">\(\mu\)</span>, die Abweichung von diesem <span class="math inline">\(\alpha_j\)</span> und ein Residuum (zufällige Abweichung) <span class="math inline">\(\varepsilon_{ij}\)</span>; manchmal haben wir auch direkt den gruppenspezifischen Mittelwert wie folgt geschrieben: <span class="math inline">\(\mu_j:=\mu+\alpha_j\)</span>. Der Wert einer Person ergab sich in diesem Modell wie folgt: <span class="math inline">\(y_{ij}=\mu+\alpha_j+\varepsilon_{ij}=\mu_j+\varepsilon_{ij}\)</span>.</em> Im sogenannten Mixed-Effects Modell (MEM) gilt es, diese Heterogenitätsvarianz <span class="math inline">\(\tau^2\)</span> weiter durch Moderatoren (<span class="math inline">\(X_1,X_2,\dots\)</span>) zu erklären <em>(im Analogon der ANOVA bedeutet dies, dass wir die Variation zwichen den Gruppen erklären wollen würden, also Kovariaten heranziehen wollen würden, die die Unterschiede zwischen den Gruppen beschreiben)</em>.</p>
+<p><span class="math display">\[\text{MEM}: \vartheta_i = \beta_0 +  \beta_1x_{1i} + \beta_2x_{2i}+\dots+ u_i&#39; + \varepsilon_i.\]</span></p>
+<p>Es wird also im Grunde eine Regression durchgeführt, wobei die zu erklärenden Beobachtungen hier Studienergebnisse sind. Wie genau gewichtet gemittelt wird oder wie sich “Fixed” und “Random” Effects Modelle unterscheiden, sehen sie skizzenhaft in <a href="#AppendixB">Appendix B</a>.</p>
+<div id="das-random-effects-modell" class="section level3">
+<h3>Das Random Effects Modell</h3>
+<p>Wir verwenden die zentrale Funktion <code>rma</code> des <code>metafor</code> Pakets, um ein REM zu schätzen. Dieser Funktion übergeben wir folgende Argumente: <code>yi</code> = die Effektmaße (hier unsere <span class="math inline">\(z\)</span>-transformierten Korrelationen), <code>vi</code> = die Streuung dieser Effektmaße, sowie <code>data</code> = den Datensatz.</p>
+<pre class="r"><code>REM &lt;- rma(yi = z_ri, vi = v_ri, data=data_transformed)
+REM</code></pre>
+<pre><code>## 
+## Random-Effects Model (k = 160; tau^2 estimator: REML)
+## 
+## tau^2 (estimated amount of total heterogeneity): 0.0293 (SE = 0.0049)
+## tau (square root of estimated tau^2 value):      0.1712
+## I^2 (total heterogeneity / total variability):   81.29%
+## H^2 (total variability / sampling variability):  5.35
+## 
+## Test for Heterogeneity:
+## Q(df = 159) = 789.7321, p-val &lt; .0001
+## 
+## Model Results:
+## 
+## estimate      se     zval    pval   ci.lb   ci.ub 
+##   0.2374  0.0170  13.9995  &lt;.0001  0.2042  0.2706  *** 
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Diesem Output können wir nun einige wichtige Informationen entnehmen. Als Überschrift lesen wir <code>Random-Effects Model</code>, wobei <code>k</code> die Anzahl der Studien angibt (hier <code>k</code>=160). Außerdem wird uns das Schätzverfahren für die Heterogenitätsvarianz <span class="math inline">\(\tau^2\)</span> angegeben unter <code>tau^2 estimator:</code> (hier REML).</p>
+<p>In den darunterliegenden Zeilen können wir die Heterogenitätsvarianz ablesen, welche bei 0.0293 liegt. Der Standardfehler (SE = 0.0049) gibt uns an, dass diese Heterogenitätsvarianz wahrscheinlich signifikant von 0 verschieden ist. In der Zeile von <code>I^2</code> wird die <span class="math inline">\(I^2\)</span>-Statistik ausgegeben, welche ein Maß für die Heterogenität in den Daten sein soll. Diese liegt hier bei 81.29% und deutet somit auf Heterogenität der Korrelationskoeffizienten hin.</p>
+<p>Auch wird die Heterogenitätsvarianz mit einer Signifikanztest auf Verschiedenheit von 0 geprüft. Die Ergebnisse hierzu entnehmen wir <code>Test for Heterogeneity</code>. Hier zeigt der p-Wert ein signifikantes (<span class="math inline">\(p&lt;0.05\)</span>) Ergebnis an: für die Population wird folglich die Null-Hypothese, dass es im Mittel keine Beziehung zwischen Interview und Job-Performanz gibt verworfen.</p>
+<p>Unter <code>Model Results</code> können wir nun (endlich) die Schätzergebnisse unseres REM ablesen. <code>estimate</code> steht hierbei für die gepoolte <span class="math inline">\(z\)</span>-transformierte Korrelation, <code>se</code> ist der Standardfehler, <code>zval</code> der zugehörige z-Wert <span class="math inline">\(\left(\frac{Est}{SE}\right)\)</span>, <code>pval</code> der p-Wert und <code>ci.lb</code> und <code>ci.ub</code> geben die untere und die obere Grenze eines 95%-igen Konfidenzintervall an. Hier ist zu erkennen, dass die mittlere Korrelation wohl von 0 verschieden ist. Den exakten vorhergesagten Wert kennen wir allerdings noch nicht; hierzu müssen wir den <span class="math inline">\(z\)</span>-Wert erst wieder in einen Korrelation retransformieren. Selbstverständlich können wir auf das Objekt <code>REM</code> mit <code>$</code> zugreifen und dadurch noch zahlreiche weitere Informationen erhalten. Welche dies genau sind erfahren wir wieder mit <code>names</code>:</p>
+<pre class="r"><code>names(REM)</code></pre>
+<pre><code>##  [1] &quot;b&quot;            &quot;beta&quot;         &quot;se&quot;           &quot;zval&quot;         &quot;pval&quot;        
+##  [6] &quot;ci.lb&quot;        &quot;ci.ub&quot;        &quot;vb&quot;           &quot;tau2&quot;         &quot;se.tau2&quot;     
+## [11] &quot;tau2.fix&quot;     &quot;tau2.f&quot;       &quot;k&quot;            &quot;k.f&quot;          &quot;k.eff&quot;       
+## [16] &quot;k.all&quot;        &quot;p&quot;            &quot;p.eff&quot;        &quot;parms&quot;        &quot;m&quot;           
+## [21] &quot;QE&quot;           &quot;QEp&quot;          &quot;QM&quot;           &quot;QMp&quot;          &quot;I2&quot;          
+## [26] &quot;H2&quot;           &quot;R2&quot;           &quot;vt&quot;           &quot;int.only&quot;     &quot;int.incl&quot;    
+## [31] &quot;allvipos&quot;     &quot;coef.na&quot;      &quot;yi&quot;           &quot;vi&quot;           &quot;X&quot;           
+## [36] &quot;weights&quot;      &quot;yi.f&quot;         &quot;vi.f&quot;         &quot;X.f&quot;          &quot;weights.f&quot;   
+## [41] &quot;M&quot;            &quot;ai.f&quot;         &quot;bi.f&quot;         &quot;ci.f&quot;         &quot;di.f&quot;        
+## [46] &quot;x1i.f&quot;        &quot;x2i.f&quot;        &quot;t1i.f&quot;        &quot;t2i.f&quot;        &quot;ni&quot;          
+## [51] &quot;ni.f&quot;         &quot;ids&quot;          &quot;not.na&quot;       &quot;subset&quot;       &quot;slab&quot;        
+## [56] &quot;slab.null&quot;    &quot;measure&quot;      &quot;method&quot;       &quot;weighted&quot;     &quot;test&quot;        
+## [61] &quot;dfs&quot;          &quot;s2w&quot;          &quot;btt&quot;          &quot;intercept&quot;    &quot;digits&quot;      
+## [66] &quot;level&quot;        &quot;control&quot;      &quot;verbose&quot;      &quot;add&quot;          &quot;to&quot;          
+## [71] &quot;drop00&quot;       &quot;fit.stats&quot;    &quot;formula.yi&quot;   &quot;formula.mods&quot; &quot;version&quot;     
+## [76] &quot;model&quot;        &quot;call&quot;         &quot;time&quot;</code></pre>
+<p>Beispielsweise können wir dem Objekt so auch die mittlere Schätzung (<code>$b</code>) oder <span class="math inline">\(\tau^2\)</span> (<code>$tau2</code>) entlocken.</p>
+<pre class="r"><code>REM$b</code></pre>
+<pre><code>##              [,1]
+## intrcpt 0.2373935</code></pre>
+<pre class="r"><code>REM$tau2</code></pre>
+<pre><code>## [1] 0.02931054</code></pre>
+<p>Diese Ergebnisse können wir mit Hilfe der <code>R</code>-internen <code>predict</code> Funktion unter Angabe des Zusatzarguments <code>transf=transf.ztor</code> (transformiere <span class="math inline">\(z_i\)</span> zu <span class="math inline">\(r_i\)</span>) retransformieren.</p>
+<pre class="r"><code>predict(REM, transf=transf.ztor)</code></pre>
+<pre><code>## 
+##    pred  ci.lb  ci.ub   cr.lb  cr.ub 
+##  0.2330 0.2014 0.2642 -0.0995 0.5187</code></pre>
+<p>Das Konfidenzintervall reicht von <code>ci.lb</code> (<em>confidence interval lower boundary</em>) bis <code>ci.ub</code> (<em>confidence interval upper boundary</em>). Die Aussage, die wir treffen können ist, dass, wenn wir diese Meta-Analyse an unabhängigen Stichproben unendlich häufig wiederholen könnten, so würde diese Intervall, welches sich in dieser Meta-Analyse von 0.2014 bis 0.2642 erstreckt, den wahren Populationsmittelwert enthalten. Auf Basis dieses Konfidenzintervalls würden wir die <strong>Null-Hypothese</strong>, dass es <strong>keine Beziehung</strong> zwischen Interviews und Job-Performanz gibt, auf dem 95% Signifikanzniveau verwerfen.</p>
+<p>Auch dieser Befehl lässt sich erneut als Objekt abspeichern und wir können dann auf diese zugreifen:</p>
+<pre class="r"><code>pred_REM &lt;- predict(REM, transf=transf.ztor)
+names(pred_REM)</code></pre>
+<pre><code>##  [1] &quot;pred&quot;   &quot;se&quot;     &quot;ci.lb&quot;  &quot;ci.ub&quot;  &quot;cr.lb&quot;  &quot;cr.ub&quot;  &quot;slab&quot;   &quot;digits&quot;
+##  [9] &quot;method&quot; &quot;transf&quot;</code></pre>
+<pre class="r"><code>pred_REM$pred # retransformierter gepoolter Korrelationskoeffizient</code></pre>
+<pre><code>## [1] 0.2330323</code></pre>
+<p>Wir sehen, dass sie der mittlere <span class="math inline">\(z\)</span>-Wert sich kaum vom mittleren Korrelationskoeffizienten unterscheidet. Dies ist im Allgemeinen auch so: <span class="math inline">\(z\)</span>-Wert und <span class="math inline">\(r\)</span>-Wert sind für betraglich kleine Korrelationen annähernd identisch, also für <span class="math inline">\(-.25&lt;r_i&lt;.25\)</span> (betragliche Differenz <span class="math inline">\(|r_i-Z_i|&lt;.005\)</span>).</p>
+</div>
+<div id="finales-ergebnis-des-random-effects-modells" class="section level3">
+<h3>Finales Ergebnis des Random Effects Modells</h3>
+<p>Schauen wir uns die Ergebnisse nun grafisch an:</p>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Es scheint wohl eine Beziehung zwischen Einstellungsinterviews und Job-Performanz zu geben. Allerdings ist diese Beziehung mit einer Korrelation von 0.233 nicht sehr stark; lediglich 5.43% der Variation an der Job-Performanz können durch die Interview-Performanz vorhergesagt werden. Das Credibility-Intervall zeigt an, in welchem Bereich ca. 80% der beobachteten Werte liegen.</p>
+</div>
+<div id="analyse-plots" class="section level3">
+<h3>Analyse Plots</h3>
+<p>Das <code>metafor</code> Paket bietet außerdem noch einige grafischen Veranschaulichungen der Daten. Beispielsweise lässt sich ganz leicht ein Funnel-Plot erstellen mit der <code>funnel</code> Funktion, welche lediglich unser Meta-Analyse Objekt <code>REM</code> entgegen nehmen muss. Der Funnel-Plot wird verwendet, um auf das bekannte Problem des Publication-Bias zu untersuchen. Hier wird der gefundene Effekt (hier die z-transformierte Korrelation) gegen den Standardfehler jeder Studie geplottet. Hier wird die Annahme zugrunde gelegt, dass alle Studien in der Meta-Analyse eine gewisse, zufällige Schwankung um den wahren Effekt haben, und dabei diese zufällige Schwankung größer ist, je größer der Standardfehler in einer Studie ist. Sofern eine Studie unabhängig von der Effektgröße sowie der Streuung (und damit auch der Signifikanz) publiziert wurde, sollte so das typische symmetrische Dreieck (Funnel = Trichter) entstehen.</p>
+<pre class="r"><code># funnel plot
+funnel(REM)</code></pre>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Der Grafik ist zu entnehmen, dass im positiven Bereich mehr Studien zu finden sind. Dies könnte Indizien auf einen Publication Bias zeigen. Jedoch ist es wenig verwunderlich, dass es mehr Studien gibt, in welchen es eine Beziehung zwischen Interview und Job-Performanz gibt, da die Interviews zum Teil nach diesem Kriterium durchgeführt wurden.</p>
+<p>Auch Forest-Plots funktionieren auf die gleiche Weise mit der <code>forest</code> Funktion. Der Forest-Plot stellt die unterschiedlichen Studien hinsichtlich ihrer Parameterschätzung (hier <span class="math inline">\(z\)</span>-Wert des Korrelationskoeffizienten) und die zugehörige Streuung grafisch dar. So können beispielsweise Studien identifiziert werden, welche besonders hohe oder niedrige Werte aufweisen oder solche, die eine besonders große oder kleine Streuung zeigen.</p>
+<pre class="r"><code># forest plot
+forest(REM, xlim = c(-1, 2))</code></pre>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Die Anzahl der Studien ist hierbei so enorm, dass wir die Achsenbeschriftungen nicht mehr lesen können. Mit <code>xlim = c(-1, 2)</code> legen wir das Minimun und das Maximum auf der x-Achse fest (dies machen wir, um Forest-Plots vergleichen zu können). Auch eine kumulative Forest-Plot wäre möglich. Dazu müssen wir auf unser <code>REM</code>-Objekt noch die Funktion <code>cumul.rma.uni</code> anwenden:</p>
+<pre class="r"><code># kumulativer Forest Plot
+forest(cumul.rma.uni(REM), xlim = c(-1, 2))</code></pre>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Hier wird skuzessive immer wieder eine Meta-Analyse durchgeführt und nach und nach eine Studie hinzugefügt. Wir sehen, dass sich sowohl mittlerer <span class="math inline">\(z\)</span>-Wert als auch Streuung von oben nach unten einpendeln. Das finale Ergebnis ist identisch mit unsere Meta-Analyse. Die gestrichelte Linie der Forest-Plots symbolisiert die 0, da in den meisten Fällen gegen 0 getestet wird und es daher von Interesse ist, wie viele Studien sich von 0 unterscheiden und ob sich der mittlere Effekt von 0 unterscheidet. Um die Beschriftungen des Forest-Plot einmal genauer zu sehen, führen wir eine Meta-Analyse nur über die ersten 20 Studien durch:</p>
+<pre class="r"><code>REM20 &lt;- rma(yi = z_ri, vi = v_ri, data=data_transformed[1:20, ]) # wähle Studie 1 bis 20
+# forest plot
+forest(REM20, xlim = c(-1, 2))</code></pre>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code># kumulativer Forest Plot
+forest(cumul.rma.uni(REM20), xlim = c(-1, 2))</code></pre>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-25-2.png" width="672" style="display: block; margin: auto;" />
+Wir sehen, dass auch hier der durchschnittliche Wert nicht weit von unserem finalen Durchschnitt entfernt lieg. Die kleine Raute in der letzten Zeile des normalen Forest-Plots symbolisiert den durchschnittlichen Wert und dessen Streuung.</p>
+</div>
+<div id="mixed-effects-modelle" class="section level3">
+<h3>Mixed Effects Modelle</h3>
+<p>Da die Heterogenitätsvarianz signifikant von 0 verschieden war, wollen wir versuchen die Variation in den Korrelationskoeffizienten zwischen den Studien mit Hilfe von Moderatoren vorherzusagen.</p>
+<div id="interviewtyp-als-moderator" class="section level4">
+<h4>Interviewtyp als Moderator</h4>
+<p>Es könnte sein, dass die Art (der Typ) des Interviews eine Rolle in der Bewertung der Performanz hat und dass die verschiedenen Interviewtypen unterschiedlich stark mit der späteren Job-Performanz zusammenhängen. Insgesamt gab es drei Arten von Interviews: <code>j</code> = job-related, <code>s</code> = situational und <code>p</code> = psychological. Diese Typen sind in der Variable <code>type</code> enthalten. Wir wollen uns die (<span class="math inline">\(z\)</span>-transformierte) Korrelation pro Interviewtyp anschauen:</p>
+<pre class="r"><code>data_transformed$type</code></pre>
+<pre><code>##   [1] &quot;j&quot; &quot;p&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;s&quot; &quot;s&quot; &quot;s&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;p&quot;
+##  [19] &quot;j&quot; &quot;j&quot; &quot;p&quot; &quot;p&quot; &quot;p&quot; &quot;j&quot; &quot;j&quot; &quot;p&quot; &quot;p&quot; &quot;p&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot;
+##  [37] &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;s&quot; &quot;s&quot; &quot;s&quot; &quot;p&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot;
+##  [55] &quot;p&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot;
+##  [73] &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;s&quot; &quot;j&quot; &quot;j&quot; &quot;s&quot; &quot;s&quot; &quot;s&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;s&quot; &quot;j&quot; &quot;j&quot;
+##  [91] &quot;s&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot;
+## [109] &quot;j&quot; &quot;s&quot; &quot;j&quot; &quot;j&quot; NA  &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;p&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;s&quot; NA  &quot;j&quot; NA  &quot;j&quot;
+## [127] &quot;s&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;s&quot; &quot;p&quot; &quot;p&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;p&quot; &quot;j&quot; &quot;j&quot;
+## [145] &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot; &quot;j&quot;</code></pre>
+<pre class="r"><code>plot(z_ri ~ factor(type), data=data_transformed, col = c(&quot;blue&quot;, &quot;gold3&quot;, &quot;red&quot;), xlab = &quot;Interviewtyp&quot;,
+     ylab = &quot;z-transformierte Korrelation&quot;, main = &quot;z-transformierte Korrelation pro Interviewtyp&quot;)</code></pre>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot(ri ~ factor(type), data=data_transformed, col = c(&quot;blue&quot;, &quot;gold3&quot;, &quot;red&quot;), xlab = &quot;Interviewtyp&quot;,
+     ylab = &quot;Korrelation&quot;, main = &quot;Korrelation pro Interviewtyp&quot;)</code></pre>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-26-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Ein Mixed Effects Model (MEM) können wir wieder mit der <code>rma</code> Funktion schätzen. Wir müssen lediglich dem Argument <code>mods = ~ factor(type)</code> die Namen der Moderatorvariablen übergeben. Die Tilde gibt an, dass es sich hier um eine regressive Beziehung handelt. <code>factor</code> gibt an, dass es sich um eine kategoriale Variable mit Abstufungen handelt und dass die Werte eine Gruppenzugehörigkeit symbolisieren sollen (auch falls <code>type</code> aus Zahlen bestehen würde). Wollen wir kontinuierliche (und nicht kategoriale) Prädiktoren als Moderatoren verwenden, so können wir <code>factor</code> weglassen (dazu müssen allerdings die Daten im richtigen Format vorliegen, also intervallskaliert sein: bspw. Alter, Zustimmung auf einer Likert-Skala mit hinreichend vielen Ausprägungen oder das Einkommen).</p>
+<pre class="r"><code>MEM_type &lt;- rma(yi = z_ri, vi = v_ri, mods = ~ factor(type), data = data_transformed)</code></pre>
+<pre><code>## Warning in rma(yi = z_ri, vi = v_ri, mods = ~factor(type), data =
+## data_transformed): Studies with NAs omitted from model fitting.</code></pre>
+<pre class="r"><code>MEM_type</code></pre>
+<pre><code>## 
+## Mixed-Effects Model (k = 157; tau^2 estimator: REML)
+## 
+## tau^2 (estimated amount of residual heterogeneity):     0.0282 (SE = 0.0049)
+## tau (square root of estimated tau^2 value):             0.1681
+## I^2 (residual heterogeneity / unaccounted variability): 79.62%
+## H^2 (unaccounted variability / sampling variability):   4.91
+## R^2 (amount of heterogeneity accounted for):            1.92%
+## 
+## Test for Residual Heterogeneity:
+## QE(df = 154) = 738.4411, p-val &lt; .0001
+## 
+## Test of Moderators (coefficients 2:3):
+## QM(df = 2) = 5.8455, p-val = 0.0538
+## 
+## Model Results:
+## 
+##                estimate      se     zval    pval    ci.lb    ci.ub 
+## intrcpt          0.2474  0.0187  13.2089  &lt;.0001   0.2107   0.2841  *** 
+## factor(type)p   -0.1228  0.0582  -2.1115  0.0347  -0.2368  -0.0088    * 
+## factor(type)s    0.0573  0.0598   0.9587  0.3377  -0.0599   0.1745      
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Wenn wir das Modell schätzen, bekommen wir die Warnmeldung ausgegeben, dass für einige Studien keine Angabe zu dem Moderator Interviewtyp vorliegen (bzw. diese Information nicht auffindbar war). Aus diesem Grund werden diese Studien komplett via listwise deletion (listenweiser Fallauschluss) aus den Analysen ausgeschlossen; es sind nur noch 157 anstatt 160 Studien in der Meta-Analyse enthalten (dies können wir dem Output entnehmen, welcher genauso aufgebaut ist, wie der Output des REM Modells; es ist ja auch die gleiche Funktion, die wir angewendet haben!). Der Output hat zwei Neuheiten: 1) <code>Test of Moderators (coefficients 2:3):</code> gibt einen Omnibustest an, ob die Moderatoren das Modell verbessern, 2) in den <code>Model Results</code> sind “<span class="math inline">\(\beta\)</span>”-Koeffizienten für die Moderatoren (hier als Dummy-kodierte Variablen) angegeben. Die Referenzkategorie für die Dummy-Variablen ist hier das “job-related” Interview. So gibt <code>factor(type)p</code> gerade den Effekt an, der durch Nutzen von psychologischen im Vergleich zu “job-related” Interviews entsteht. Hier ist die <span class="math inline">\(z\)</span>-transformierte Korrelation in den Studien mit psychologischen Interviewtyp um -0.1228 kleiner als in den “job-related” Interviewstudien. Entsprechend steht <code>factor(type)s</code> für den Effekt, der durch Nutzen von “situational” (also situationsbezogenen-) im Vergleich zu “job-related” Interviews entsteht. Hier ist die <span class="math inline">\(z\)</span>-transformierte Korrelation in den Studien mit “situational” Interviewtyp um 0.0573 größer als in den “job-related” Interviewstudien.</p>
+</div>
+<div id="modellvergleiche" class="section level4">
+<h4>Modellvergleiche</h4>
+<p>Wir können Modelle auch miteinander vergleichen, um so den inkrementellen Wert von Moderatoren zu prüfen. Dabei prüfen wir konkret, ob die Heterogenitätsvarianz zwischen den Studien bedeutsam durch die Moderatoren reduziert/aufgeklärt werden kann. So können wir bespielsweise das Modell mit und das ohne Moderatoren vergleichen (entspricht dann dem Omnibustest) oder wir vergleichen Modelle mit unterschiedlich vielen Moderatoren. Hierbei ist zu beachten, dass diese Modelle geschachtelt sind, da sonst keine Inferenz möglich ist. Um Modelle zu vergleichen, verwenden wir den <code>R</code>-internen <code>anova</code>-Befehl.</p>
+<pre class="r"><code>anova(REM, MEM_type)</code></pre>
+<p>Wenn wir diesen Befehl einfach so durchführen, bekommen wir eine Fehlermeldung:</p>
+<pre><code>## Error in anova.rma(REM, MEM_type) : Observed outcomes and/or sampling 
+##  variances not equal in the full and reduced model.</code></pre>
+<p>Dies liegt daran, dass die beiden Modelle auf unterschiedlichen Datengrundlagen beruhen. Beim MEM wurde durch listwise deletion die Stichprobengröße (welche hier der Anzahl an Studien entspricht) reduziert. Um die beiden Modelle dennoch miteinander vergleichen zu können, müssen wir also jene Fälle ausschließen, in welchen keine Information über den Interviewtyp besteht. Wir haben mit <code>data_transformed$type</code> auf den Interviewtyp zugegriffen. Hier steht <code>NA</code> für not available, also fehlend. Mit der Funktion <code>is.na</code> können wir abfragen, welche der Werte fehlend sind. Mit dem <code>which</code> Befehl können wir uns außerdem die Stellen im Vektor ausgeben lassen, in welchem die Werte fehlen.</p>
+<pre class="r"><code>is.na(data_transformed$type)        # fehlt ein Wert = TRUE</code></pre>
+<pre><code>##   [1] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+##  [13] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+##  [25] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+##  [37] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+##  [49] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+##  [61] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+##  [73] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+##  [85] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+##  [97] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+## [109] FALSE FALSE FALSE FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+## [121] FALSE FALSE  TRUE FALSE  TRUE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+## [133] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+## [145] FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE FALSE
+## [157] FALSE FALSE FALSE FALSE</code></pre>
+<pre class="r"><code>which(is.na(data_transformed$type)) # welche Werte fehlen?</code></pre>
+<pre><code>## [1] 113 123 125</code></pre>
+<p>Fügen wir ein <code>!</code> vor <code>is.na</code> ein, negieren wir den Befehl. <code>!is.na</code> entspricht also “nicht fehlend”. Darüber wählen wir Studien aus, in denen die Bedingung zutrifft, dass der Wert für type nicht fehlt. So können wir den Datensatz “reinigen” (mit <code>dim</code> können wir uns die Dimensionen des Datensatzes ansehen), indem wir nur die Beobachtungen (Studien) behalten, in denen der Typ vorliegt. Den Datensatz können wir beispielsweise unter <code>data_transformed_clean_type</code> abspeichern:</p>
+<pre class="r"><code>dim(data_transformed)</code></pre>
+<pre><code>## [1] 160   7</code></pre>
+<pre class="r"><code>data_transformed_clean_type &lt;- data_transformed[!is.na(data_transformed$type), ]
+dim(data_transformed_clean_type)</code></pre>
+<pre><code>## [1] 157   7</code></pre>
+<p>Nun fitten wir nochmal das REM mit den reduzierten Daten:</p>
+<pre class="r"><code>REM_reduced_type &lt;- rma(yi = z_ri, vi = v_ri, data = data_transformed_clean_type)
+REM_reduced_type</code></pre>
+<pre><code>## 
+## Random-Effects Model (k = 157; tau^2 estimator: REML)
+## 
+## tau^2 (estimated amount of total heterogeneity): 0.0288 (SE = 0.0049)
+## tau (square root of estimated tau^2 value):      0.1697
+## I^2 (total heterogeneity / total variability):   79.99%
+## H^2 (total variability / sampling variability):  5.00
+## 
+## Test for Heterogeneity:
+## Q(df = 156) = 747.1489, p-val &lt; .0001
+## 
+## Model Results:
+## 
+## estimate      se     zval    pval   ci.lb   ci.ub 
+##   0.2410  0.0170  14.1438  &lt;.0001  0.2076  0.2744  *** 
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Wir sehen nun, dass auch hier die Studienanzahl reduziert ist. Das Ergebnis ändert sich hingegen kaum. Nun können wir erneut versuchen einen Modellvergleich mit Hilfe des <code>anova</code>-Befehls anzufordern:</p>
+<pre class="r"><code>anova(REM_reduced_type, MEM_type)</code></pre>
+<p>Auch hier erkennen wir eine Warnung, weswegen wir uns die Ergebnisse noch nicht ansehen wollen:</p>
+<pre><code>## Warning in anova.rma(REM_reduced_type, MEM_type): Models with different fixed
+##  effects. REML comparisons are not meaningful.</code></pre>
+<p>Wenn wir eine andere Schätzmethoden wählen, wird dieses Problem umgangen. Wir können bespielsweise die “ML” (Maximum Likelihood) anstatt der “REML” (Restricted ML) Schätzmethode verwenden. Dazu müssen wir allerdings die Modelle erneut schätzen und müssen dem Argument <code>method</code> die Methode <code>"ML"</code> zuweisen. Der zugehörige Test, den wir anschließend mit <code>anova</code> durchführen wollen, ist unter Verwendung der “ML”-Schätzmethode gerade der Likelihood-Ratio-Test (LRT), welcher auch häufig <span class="math inline">\(\chi^2\)</span>-Differenzen-Test genannt wird. Diesen kennen wir bereits aus einigen weiteren Statistikveranstaltungen. Die Freiheitsgerade des <span class="math inline">\(\chi^2\)</span>-Tests sind in diesem Fall gerade die Anzahl der Parameter, die durch die Hinzunahme der Moderatoren zusätzlich geschätzt werden müssen. Hier sind dies also gerade die beiden Effekte der Vergleiche zwischen <code>p</code> vs. <code>j</code> und <code>s</code> vs. <code>j</code>, also 2.</p>
+<pre class="r"><code>REM_reduced_type_ML &lt;- rma(yi = z_ri, vi = v_ri, data = data_transformed_clean_type, method = &quot;ML&quot;)
+MEM_type_ML &lt;- rma(yi = z_ri, vi = v_ri, mods = ~ factor(type), data=data_transformed_clean_type, method = &quot;ML&quot;)
+anova(REM_reduced_type_ML, MEM_type_ML)</code></pre>
+<pre><code>## 
+##         df      AIC     BIC     AICc logLik    LRT   pval       QE  tau^2 
+## Full     4 -11.0523  1.1727 -10.7892 9.5262               738.4411 0.0274 
+## Reduced  2  -9.1793 -3.0668  -9.1014 6.5896 5.8730 0.0530 747.1489 0.0285 
+##             R^2 
+## Full 
+## Reduced 3.8338%</code></pre>
+<p>Unter <code>LRT</code> erkennen wir die Log-Likelihood-Differenz, welche die Loglikelihoods verechnet, welche wir unter <code>logLik</code> ablesen können (es gilt: <span class="math inline">\(LRT = -2*(LL_{\text{Reduced}}-LL_{\text{Full}}) = -2*(6.589-9.526)=5.873\)</span>). Der angegeben p-Wert des Modellvergleichs liegt bei 0.053 und zeigt somit keine signifikante Reduktion der Heterogenitätsvarianz durch den Moderator Interviewtyp an (dies ist im Übrigen fast identisch zum p-Wert des Omnibustest, der durch das Objekt <code>MEM_type_ML</code> selbst ausgegeben würde).</p>
+<pre class="r"><code>MEM_type_ML</code></pre>
+<pre><code>## 
+## Mixed-Effects Model (k = 157; tau^2 estimator: ML)
+## 
+## tau^2 (estimated amount of residual heterogeneity):     0.0274 (SE = 0.0047)
+## tau (square root of estimated tau^2 value):             0.1655
+## I^2 (residual heterogeneity / unaccounted variability): 79.13%
+## H^2 (unaccounted variability / sampling variability):   4.79
+## R^2 (amount of heterogeneity accounted for):            3.83%
+## 
+## Test for Residual Heterogeneity:
+## QE(df = 154) = 738.4411, p-val &lt; .0001
+## 
+## Test of Moderators (coefficients 2:3):
+## QM(df = 2) = 5.9232, p-val = 0.0517
+## 
+## Model Results:
+## 
+##                estimate      se     zval    pval    ci.lb    ci.ub 
+## intrcpt          0.2472  0.0185  13.3381  &lt;.0001   0.2109   0.2836  *** 
+## factor(type)p   -0.1223  0.0576  -2.1253  0.0336  -0.2352  -0.0095    * 
+## factor(type)s    0.0572  0.0592   0.9658  0.3341  -0.0589   0.1733      
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Die Beziehung zwischen Einstellungsinterview und Job-Performanz scheint sich also über die Interviewtypen nicht zu unterscheiden. Die Interviewtypen scheinen alle gleich valide zu sein.</p>
+<p>Wie wir beispielsweise Mittelwerte meta-analytisch verrechnen oder wie genau sich das “Fixed Effects” und das “Random Effects” Modell unterscheiden, sehen Sie im <a href="#AppendixB">Appendix B</a>.</p>
+<p>Die Meta-Analyse von Irmer, Kern, Schermelleh-Engel, Semmer und Zapf (2019) wurde mit diesem <code>R</code>-Paket durchgeführt. Sie behandelt die Validierung des Instrument zur stressbezogenen Tätigkeitsanalyse (ISTA) von Semmer, Zapf und Dunckel (1995, 1999), indem die linearen Beziehungen der Skalen des Instrument untereinander sowie mit Kriteriumsvariablen untersucht wurden. Außerdem wurden die Mittelwerte und und Standardabweichungen (meta-analytisch) gemittelt. Alle Koeffizienten (Mittelwerte, Standardabweichungen und Korrelationen) wurden hinsichtlich systematischer Unterschiede über das Geschlecht (% Frauen), der Publikationsstatus (publiziert vs. nicht publiziert), die ISTA-Version sowie die Branche (des Arbeitsplatzes) untersucht. Das genaue meta-analytische Vorgehen ist dem Appendix zu entnehmen.</p>
+</div>
+</div>
+</div>
+<div id="AppendixA" class="section level2">
+<h2>Appendix A</h2>
+<div id="codes" class="section level3">
+<h3>Codes</h3>
+<pre class="r"><code>plot(NA, xlim = c(-2,2), ylim = c(-2,2), xlab = &quot;Interview Performanz&quot;, ylab = &quot;Job-Performanz&quot;,
+     main = &quot;Empirische Korrelationen zwischen\n Interview Performanz und Job-Performanz&quot;) # erzeuge einen leeren Plot mit vorgegbenen Achsenabschnitten
+for(i in 1:length(dat.mcdaniel1994$ri))
+{
+     abline(a = 0, b = dat.mcdaniel1994$ri[i], col = &quot;grey80&quot;) # füge Gerade pro Studie hinzu
+}</code></pre>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-37-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot(NA, xlim = c(-2,2), ylim = c(-2,2), xlab = &quot;Interview Performanz&quot;, ylab = &quot;Job-Performanz&quot;,
+     main = &quot;Empirische Korrelationen zwischen\n Interview Performanz und Job-Performanz&quot;) # erzeuge einen leeren Plot mit vorgegbenen Achsenabschnitten
+for(i in 1:length(dat.mcdaniel1994$ri))
+{
+     abline(a = 0, b = dat.mcdaniel1994$ri[i], col = &quot;grey80&quot;) # füge Gerade pro Studie hinzu
+}
+abline(a = 0, b = pred_REM$ci.lb, col = &quot;blue&quot;, lwd = 5)
+abline(a = 0, b = pred_REM$ci.ub, col = &quot;blue&quot;, lwd = 5)
+abline(a = 0, b = pred_REM$cr.lb, col = &quot;gold3&quot;, lwd = 5)
+abline(a = 0, b = pred_REM$cr.ub, col = &quot;gold3&quot;, lwd = 5)
+abline(a = 0, b = pred_REM$pred, col = &quot;black&quot;, lwd = 5)
+legend(x = &quot;bottomright&quot;, col = c(&quot;black&quot;, &quot;blue&quot;, &quot;gold3&quot;, &quot;grey60&quot;), pch = NA, lwd = c(5,5,5,2),
+       legend = c(&quot;Mittlere Korr.&quot;, &quot;95% KI-Korr.&quot;, &quot;Credibility Interval&quot;, &quot;Emp. Korr.&quot;)) # Legende für Farbzuordnung</code></pre>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-38-1.png" width="672" style="display: block; margin: auto;" /></p>
+</div>
+</div>
+<div id="AppendixB" class="section level2">
+<h2>Appendix B</h2>
+<div id="andere-parameter-zusammenfassen-mittelwerte" class="section level3">
+<h3>Andere Parameter zusammenfassen: Mittelwerte</h3>
+<p>Genauso wie Korrelationskoeffizienten können auch Mittelwerte meta-analytisch zusammengefasst werden. Das Vorgehen bleibt weitgehend das gleiche. Wir müssen jedoch keine Transformation der Daten durchführen, um sie sinnvoll zu mitteln. Dazu verwenden wir diesmal den Datensatz <code>dat.bangertdrowns2004</code>. Mit <code>?dat.bangertdrowns2004</code> erhalten Sie weitere Informationen zu dieser Studie. Es geht in diesem Datensatz um die Wirksamkeit einer “Writing-to-Learn Intervention”. <code>yi</code> (Zugriff via <code>dat.bangertdrowns2004$yi</code>) enthält die standardisierte Mittelwertsdifferenz (<em>d</em>), <code>ni</code> ist die Stichprobengröße und <code>vi</code> ist die Varianz der Mittelwertsdifferenz (also <span class="math inline">\(SE_i^2\)</span>).</p>
+<pre class="r"><code>head(dat.bangertdrowns2004)</code></pre>
+<pre><code>##   id   author year grade length minutes wic feedback info pers imag meta 
+## 1  1 Ashworth 1992     4     15      NA   1        1    1    1    0    1 
+## 2  2    Ayers 1993     2     10      NA   1       NA    1    1    1    0 
+## 3  3   Baisch 1990     2      2      NA   1        0    1    1    0    1 
+## 4  4    Baker 1994     4      9      10   1        1    1    0    0    0 
+## 5  5   Bauman 1992     1     14      10   1        1    1    1    0    1 
+## 6  6   Becker 1996     4      1      20   1        0    0    1    0    0 
+##         subject  ni     yi    vi 
+## 1       Nursing  60  0.650 0.070 
+## 2 Earth Science  34 -0.750 0.126 
+## 3          Math  95 -0.210 0.042 
+## 4       Algebra 209 -0.040 0.019 
+## 5          Math 182  0.230 0.022 
+## 6    Literature 462  0.030 0.009</code></pre>
+<pre class="r"><code>dat.bangertdrowns2004$yi # std. Mittelwertsdiff.</code></pre>
+<pre><code>##  [1]  0.65 -0.75 -0.21 -0.04  0.23  0.03  0.26  0.06  0.06  0.12  0.77  0.00
+## [13]  0.52  0.54  0.20  0.20 -0.16  0.42  0.60  0.51  0.58  0.54  0.09  0.37
+## [25] -0.01 -0.13  0.18  0.27 -0.02  0.33  0.59  0.84 -0.32  0.12  1.12 -0.12
+## [37] -0.44 -0.07  0.70  0.49  0.20  0.58  0.15  0.63  0.04  1.46  0.04  0.25
+## attr(,&quot;measure&quot;)
+## [1] &quot;SMD&quot;
+## attr(,&quot;ni&quot;)
+##  [1]  60  34  95 209 182 462  38 542  99  77  40 190 113  50  47  44  24  78  46
+## [20]  64  57  68  40  68  48 107  58 225 446  77 243  39  67  91  36 177  20 120
+## [39]  16 105 195  62 289  25 250  51  46  56</code></pre>
+<pre class="r"><code>dat.bangertdrowns2004$ni # n</code></pre>
+<pre><code>##  [1]  60  34  95 209 182 462  38 542  99  77  40 190 113  50  47  44  24  78  46
+## [20]  64  57  68  40  68  48 107  58 225 446  77 243  39  67  91  36 177  20 120
+## [39]  16 105 195  62 289  25 250  51  46  56</code></pre>
+<pre class="r"><code>dat.bangertdrowns2004$vi # Varianz</code></pre>
+<pre><code>##  [1] 0.070 0.126 0.042 0.019 0.022 0.009 0.106 0.007 0.040 0.052 0.107 0.021
+## [13] 0.037 0.083 0.086 0.091 0.167 0.052 0.091 0.065 0.073 0.061 0.100 0.060
+## [25] 0.083 0.037 0.069 0.018 0.009 0.053 0.017 0.112 0.060 0.044 0.129 0.023
+## [37] 0.205 0.033 0.265 0.039 0.021 0.067 0.014 0.168 0.016 0.099 0.087 0.072</code></pre>
+<p>Wir können nun einfach eine Meta-Analyse mit Stichprobengewichtung durchführen. Wir mitteln (gewichtet) zunächst händisch via:
+<span class="math display">\[\sum_{i=1}^k\frac{n_iy_i}{\sum_{i=1}^kn_i}\]</span>
+Hier wird jede Mittelwertsdifferenz mit der Stichprobengröße multipliziert <span class="math inline">\(n_iy_i\)</span> und dann werden diese Werte aufsummiert (eine gewichtete Summe entsteht). Teilen wir diese Summe anschließend durch die Gesamtstichprobe <span class="math inline">\(\sum_{i=1}^kn_i\)</span> so erhalten wir einen gewichteten Mittelwert, der berücksichtigt, dass einige Stichproben größer sind und dort der Mittelwert präzisier ist. Dies sieht in <code>R</code> so aus:</p>
+<pre class="r"><code>sum(dat.bangertdrowns2004$ni*dat.bangertdrowns2004$yi)/sum(dat.bangertdrowns2004$ni)</code></pre>
+<pre><code>## [1] 0.1719405</code></pre>
+<p>Mit Hilfe der <code>rma</code> Funktion geht das Ganze so:</p>
+<pre class="r"><code>rma_n_FE &lt;- rma(yi = yi, vi =  1/ni, data = dat.bangertdrowns2004, method = &quot;FE&quot;)
+summary(rma_n_FE)</code></pre>
+<pre><code>## 
+## Fixed-Effects Model (k = 48)
+## 
+##    logLik   deviance        AIC        BIC       AICc 
+## -169.2493   460.8106   340.4985   342.3697   340.5855   
+## 
+## I^2 (total heterogeneity / total variability):   89.80%
+## H^2 (total variability / sampling variability):  9.80
+## 
+## Test for Heterogeneity:
+## Q(df = 47) = 460.8106, p-val &lt; .0001
+## 
+## Model Results:
+## 
+## estimate      se     zval    pval   ci.lb   ci.ub 
+##   0.1719  0.0134  12.8392  &lt;.0001  0.1457  0.1982  *** 
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Mit beiden Wegen kommt man zum selben Ergebnis. Allerdings haben wir in diesem Fall ein “Fixed Effects” Modell geschätzt, denn nur so ist zu sehen, dass dies nichts anderes als ein gewichteter Mittelwert ist. Wählen wir hingegen ein “Random Effects” Modell (so wie wir dies bei den Korrelationen getan haben), so müssen wir <code>method = "RE"</code> wählen (oder dieses Argument weglassen, da auch automatisch als Default “RE” eingestellt ist) und uns damit abfinden, dass beim “Random Effects” Modell die Heterogenitätsvarianz ebenfalls als Gewicht verwendet wird. Im “Fixed Effects” Modell wird <span class="math inline">\(w_i:=\frac{1}{v_i}\)</span> als Gewicht verwendet (<span class="math inline">\(v_i\)</span> ist die Varianz des Schätzer; beim Mittelwert ist dies dessen Standardfehler im Quadrat). Wenn wir der <code>R</code>-Funktion <code>v_i= 1/n_i</code> übergeben, so ist das Gewicht <span class="math inline">\(w_i:=\frac{1}{\frac{1}{n_i}}=n_i\)</span> einfach die Stichprobengröße (Studien mit größeren Stichproben erhalten mehr Gewicht). Im “Random Effects” Modell wird die Heterogenitätsvarianz <span class="math inline">\(\tau^2\)</span> ebenfalls als Gewichtung verwendet: <span class="math inline">\(w_i:=\frac{1}{v_i+\tau^2}\)</span>. Das Mitteln funktioniert für beide Modelle gleich, nämlich genau so wie der gewichtete Mittelwert, den wir uns zuvor angesehen haben:
+<span class="math display">\[\sum_{i=1}^k\frac{w_iy_i}{\sum_{i=1}^kw_i}.\]</span>
+Verwenden wir nun das “Random Effects” Modell, so ergibt sich ein etwas anderer Mittelwert (offentsichtlich scheinen die Mittelwertsdifferenz heterogen zu sein, denn das Wählen des “Random Effects” Modell hat einen Einfluss auf den geschätzen Mittelwert und die Heterogenitätsvarianz <span class="math inline">\(\tau^2\)</span> ist auch statistisch signifikant):</p>
+<pre class="r"><code>rma_n_RE &lt;- rma(yi = yi, vi =  1/ni, data = dat.bangertdrowns2004)
+summary(rma_n_RE)</code></pre>
+<pre><code>## 
+## Random-Effects Model (k = 48; tau^2 estimator: REML)
+## 
+##   logLik  deviance       AIC       BIC      AICc 
+## -22.1023   44.2046   48.2046   51.9049   48.4773   
+## 
+## tau^2 (estimated amount of total heterogeneity): 0.1277 (SE = 0.0295)
+## tau (square root of estimated tau^2 value):      0.3573
+## I^2 (total heterogeneity / total variability):   93.55%
+## H^2 (total variability / sampling variability):  15.52
+## 
+## Test for Heterogeneity:
+## Q(df = 47) = 460.8106, p-val &lt; .0001
+## 
+## Model Results:
+## 
+## estimate      se    zval    pval   ci.lb   ci.ub 
+##   0.2549  0.0547  4.6639  &lt;.0001  0.1478  0.3621  *** 
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Der mittlere Effekt liegt beim “Random Effects” Modell etwas höher (0.255) als beim “Fixed Effects” Modell (0.172). Da die Unsicherheit einer Mittelwertsdifferenz allerdings auch stark von der Streuung in der Stichprobe abhängt, wird häufig auch die Variation der Mittelwertsdifferenz verwendet, um die Stichproben zu gewichten. Dies ist quasi der quadrierte Standardfehler (<span class="math inline">\(SE\)</span>): <span class="math inline">\(v_i:=SE^2_i\)</span></p>
+<pre class="r"><code>rma_vi_RE &lt;- rma(yi = yi, vi =  vi, data = dat.bangertdrowns2004)
+summary(rma_vi_RE)</code></pre>
+<pre><code>## 
+## Random-Effects Model (k = 48; tau^2 estimator: REML)
+## 
+##   logLik  deviance       AIC       BIC      AICc 
+## -18.4943   36.9886   40.9886   44.6889   41.2613   
+## 
+## tau^2 (estimated amount of total heterogeneity): 0.0499 (SE = 0.0197)
+## tau (square root of estimated tau^2 value):      0.2235
+## I^2 (total heterogeneity / total variability):   58.37%
+## H^2 (total variability / sampling variability):  2.40
+## 
+## Test for Heterogeneity:
+## Q(df = 47) = 107.1061, p-val &lt; .0001
+## 
+## Model Results:
+## 
+## estimate      se    zval    pval   ci.lb   ci.ub 
+##   0.2219  0.0460  4.8209  &lt;.0001  0.1317  0.3122  *** 
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>In allen drei Analysen ist die mittlere Differenz positiv und signifikant von 0 verschieden. Höhere Mittelwertsdifferenzen sprechen für ein höheres mittleres <em>“academic achievment”</em>-Level in der Interventionsgruppe (Bangert-Drowns, Hurley, &amp; Wilkinson, 2004). Somit scheint es einen durchschnittlichen Effekt der Intervention zu geben!</p>
+<p>Dass es sich wirklich um den <span class="math inline">\(SE^2_i\)</span> handelt, ist folgender Grafik zu entnehmen:</p>
+<p><img src="/post/2020-11-07-MSc5_Meta-Analyse-in-R_files/figure-html/unnamed-chunk-44-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Offensichtlich fällt <span class="math inline">\(v_i\)</span> mit steigendem <span class="math inline">\(n_i\)</span> gleich der Funktion <span class="math inline">\(\frac{1}{x}\)</span> ab, was nur der <span class="math inline">\(SE\)</span> tut. Die Varianz einer Skala (Stichprobenvarianz) würde sich für steigende Stichprobengröße bei einem Wert “einpendeln”.</p>
+<p>Würden wir Skalenmittelwerte mitteln wollen, so könnten wir dies anhand der Stichprobengröße <span class="math inline">\(n_i\)</span> machen oder wir berechnen den Standardfehler des Mittelwerts via <span class="math inline">\(\frac{V_i}{n_i}\)</span>, wobei <span class="math inline">\(V_i\)</span> die Varianz der Skala ist (diese oder die Standardabweichung <span class="math inline">\(SD_i=\sqrt{V_i}\)</span> sollten in den Studien berichtet werden). Denn es gilt <span class="math display">\[\sqrt{\frac{V_i}{n_i}}=\frac{SD_i}{\sqrt{n_i}}=SE_i.\]</span> Somit würden wir dem Argument <code>vi</code> in der Funktion <code>rma</code> gerade <span class="math inline">\(SE^2=\frac{V_i}{n_i}=\frac{SD_i^2}{n_i}\)</span> übergeben.</p>
+</div>
+</div>
+<div id="literatur" class="section level2">
+<h2>Literatur</h2>
+<p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=edsjsr.3516060%7Cedsjsr">Bangert-Drowns, R. L., Hurley, M. M., &amp; Wilkinson, B. (2004).</a> The effects of school-based writing-to-learn interventions on academic achievement: A meta-analysis. <em>Review of Educational Research, 74</em>, 29–58.</p>
+<p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=2019-62894-003%7Cpsyh">Irmer, J. P., Kern, M., Schermelleh-Engel, K., Semmer, N. K., &amp; Zapf, D. (2019).</a> The instrument for stress oriented job analysis (ISTA) – a meta-analysis. <em>Zeitschrift für Arbeits- &amp; Organisationspsychologie – German Journal of Work and Organizational Psychology, 63</em>(4), 217-237.
+<a href="https://doi.org/10.1026/0932-4089/a000312">https://doi.org/10.1026/0932-4089/a000312</a></p>
+<p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=1995-03663-001%7Cedspdh">McDaniel, M. A., Whetzel, D. L., Schmidt, F. L., &amp; Maurer, S. D. (1994).</a> The validity of employment interviews: A comprehensive review and meta-analysis. <em>Journal of Applied Psychology, 79</em>, 599–616.</p>
+<p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=74773873%7Cedb">Rothstein, H. R., Sutton, A. J., &amp; Borenstein, M. (2005).</a> <em>Publication bias in meta-analysis: Prevention, assessment, and adjustments</em>. Chichester, England: Wiley.</p>
+<p>Semmer, N. K., Zapf, D., &amp; Dunckel, H. (1995). Assessing stress at work: A framework and an instrument. In O. Svane, &amp; C. Johansen (Eds.), <em>Work and health – scientific basis of progress in the working environment,</em> (pp. 105 – 113). Luxembourg, Luxembourg: Office for Official Publications of the European Communities.</p>
+<p>Semmer, N. K., Zapf, D., &amp; Dunckel, H. (1999). Instrument zur Stressbezogenen Tätigkeitsanalyse (ISTA) [Instrument for stress-oriented task analysis (ISTA)]. In <a href="https://hds.hebis.de/ubffm/Record/HEB060958421">H. Dunkel (Ed.), <em>Handbuch psychologischer Arbeitsanalyseverfahren</em></a> (pp. 179 – 204). Zürich, Switzerland: vdf Hochschulverlag an der ETH.</p>
+<p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.B90C267A%7Cedsbas">Viechtbauer, W. (2010).</a> Conducting meta-analyses in R with the metafor package. <em>Journal of Statistical Software</em>, <em>36</em>(3), 1–48. <a href="https://www.jstatsoft.org/v036/i03" class="uri">https://www.jstatsoft.org/v036/i03</a>.</p>
+<ul>
+<li><small> <em>Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.</em></li>
+</ul>
+</div>
