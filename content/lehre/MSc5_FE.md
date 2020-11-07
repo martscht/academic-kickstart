@@ -8,7 +8,7 @@ active = true  # Activate this widget? true/false
 weight = 40  # Order that this section will appear.
 
 title = "PsyMSc 5"
-subtitle = "Forschungsmethoden und Evaluation I"
+subtitle = "Forschungsmodul: Forschungsmethoden und Evaluation I"
 
 [content]
   # Page type to display. E.g. post, talk, or publication.
