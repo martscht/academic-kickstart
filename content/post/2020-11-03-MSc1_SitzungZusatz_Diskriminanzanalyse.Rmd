@@ -15,7 +15,7 @@ tags:
 subtitle: 'Deskriptive lineare Diskriminanzanalyse'
 summary: ''
 authors: [irmer]
-lastmod: '2020-11-03T10:22:58+02:00'
+lastmod: '2020-11-09T10:22:58+02:00'
 featured: no
 header:
   image: "/header/FEI_Sitzung_Zusatz_post.jpg"
@@ -78,13 +78,13 @@ library(ggplot2) # Grafiken
 
 
 ## Ziel der linearen Diskriminanzanalyse
-Wir wollen mit der Lebenszufriedenheit, der Depression, der Arbeitsbelastung und der Arbeitszufriedenheit die Zugehörigkeit zu den Therapiegruppen vorhersagen (ob dies inhaltlich sinnvoll ist, sei jetzt mal dahingestellt!). Die lineare Diskriminanzanalyse (LDA) funktioniert ähnlich wie die [PCA](/post/pca). Die PCA maximiert die Varianz auf jeder Hauptkomponente. Die LDA maximiert die Diskrimination entlang der Achsen, also quasi die Varianz zwischen den Gruppen auf den Achsen. Somit sind beide Verfahren de facto Varianzmaximierungsverfahren.
+Wir wollen mit der Lebenszufriedenheit, der Depression, der Arbeitsbeanspruchung und der Arbeitszufriedenheit die Zugehörigkeit zu den Therapiegruppen vorhersagen (ob dies inhaltlich sinnvoll ist, sei jetzt mal dahingestellt!). Die lineare Diskriminanzanalyse (LDA) funktioniert ähnlich wie die [PCA](/post/pca). Die PCA maximiert die Varianz auf jeder Hauptkomponente. Die LDA maximiert die Diskrimination entlang der Achsen, also quasi die Varianz zwischen den Gruppen auf den Achsen. Somit sind beide Verfahren de facto Varianzmaximierungsverfahren.
 
-Die LDA hat im Grunde die gleichen Annahmen wie die [MANOVA](/post/manova). Die Kovarianzmatrizen über die Gruppen müssen homogen sein. Die Daten sollten multivariat normalverteilt sein (diese Annahme lässt sich bspw. in Fisher's linearer Diskriminanzanalye lockern, sodass sie nicht so wichtig ist). Die Beobachtungen stammen aus einer *independent and identically distributed* ($i.i.d.$, deutsch: unabhängig und identisch verteilt) Population (dies bedeutet, dass alle Beobachtungen unabhängig sind und den gleichen Verteilungs- und Modellannahmen unterliegen). Die letzte Annahme können wir nicht prüfen. Sie kann nur nur über die sinnvolle Wahl des Designs (Randomisierung etc.) angenommen werden. Wie dies zu prüfen ist hatten wir in der Sitzung zur [MANOVA](/post/manova) kennengelernt. 
+Die LDA hat im Grunde die gleichen Annahmen wie die [MANOVA](/post/manova). Die Kovarianzmatrizen über die Gruppen müssen homogen sein. Die Daten sollten multivariat normalverteilt sein (diese Annahme lässt sich bspw. in Fisher's linearer Diskriminanzanalye lockern, sodass sie nicht so wichtig ist). Die Beobachtungen stammen aus einer *independent and identically distributed* ($i.i.d.$, deutsch: unabhängig und identisch verteilt) Population (dies bedeutet, dass alle Beobachtungen unabhängig sind und den gleichen Verteilungs- und Modellannahmen unterliegen). Die letzte Annahme können wir nicht prüfen. Sie kann nur über die sinnvolle Wahl des Designs (Randomisierung etc.) angenommen werden. Wie dies zu prüfen ist, hatten wir in der Sitzung zur [MANOVA](/post/manova) kennengelernt. 
 
 
 ## Analysen
-Der Befehl in `R` heißt `lda` für **l**ineare **D**iskriminanz**a**nalyse. Ihr übergeben wir wieder eine Gleichung, ähnlich der MANOVA-Gleichung der vergangenen Sitzung. Allerdings ist diesmal die `Intervention` die AV und die AVs der MANOVA (`LZ`, `Dep`, `AB` und `AZ`) sind die UVs, die zur Prädiktion herangezogen werden. Mit Hilfe von `$scaling` können wir die Gewichtungskoeffizienten der Variablen auf den Diskriminanzachsen einsehen. Insgesamt sind bei einer lineare Diskriminanzanalyse immer maximal $\min(p, k-1)$ Diskriminanzfunktionen/achsen möglich, wobei $p$ die Anzahl an UVs ist und $k$ die Anzahl an Gruppen beschreibt. Hier sind es $p=4$ UVs und $k=3$ Gruppen. Folglich können maximal $2$ Diskriminanzfunktionen bestimmt werden:
+Der Befehl in `R` heißt `lda` für **l**ineare **D**iskriminanz**a**nalyse. Ihr übergeben wir wieder eine Gleichung, ähnlich der MANOVA-Gleichung der vergangenen Sitzung. Allerdings ist diesmal die `Intervention` die AV und die AVs der MANOVA (`LZ`, `Dep`, `AB` und `AZ`) sind die UVs, die zur Prädiktion herangezogen werden. Mit Hilfe von `$scaling` können wir die Gewichtungskoeffizienten der Variablen auf den Diskriminanzachsen einsehen. Insgesamt sind bei einer linearen Diskriminanzanalyse immer maximal $\min(p, k-1)$ Diskriminanzfunktionen/achsen möglich, wobei $p$ die Anzahl an UVs ist und $k$ die Anzahl an Gruppen beschreibt. Hier sind es $p=4$ UVs und $k=3$ Gruppen. Folglich können maximal $2$ Diskriminanzfunktionen bestimmt werden:
 
 
 ```{r}
@@ -93,12 +93,12 @@ model_DA
 model_DA$scaling # Koeffizienten
 ```
 
-Für die erste Achse ist besonders `Dep` und `AB` relevant, während auf der zweiten  Achse `AZ` und `LZ` stärker ins Gewicht fallen. Wir können `predict` nutzen, um eine Vorhersage mittels diesen Modells (`model_DA`) zu erhalten. `predict` gibt hierbei 3 Listen aus: `$posterior` gibt die Wahrscheinlichkeit in die jeweilige Gruppe zu gelangen an, `$class` gibt die Vorhersage für die Gruppenzugehörigkeit an und `$x` gibt die vorhergesagte Ausprägung auf der jeweiligen Diskriminanzachse an. 
+Für die erste Achse sind besonders `Dep` und `AB` relevant, während auf der zweiten  Achse `AZ` und `LZ` stärker ins Gewicht fallen. Wir können `predict` nutzen, um eine Vorhersage mittels dieses Modells (`model_DA`) zu erhalten. `predict` gibt hierbei 3 Listen aus: `$posterior` gibt die Wahrscheinlichkeit an, in die jeweilige Gruppe zu gelangen, `$class` gibt die Vorhersage für die Gruppenzugehörigkeit an und `$x` gibt die vorhergesagte Ausprägung auf der jeweiligen Diskriminanzachse an. 
 
 ```{r}
-head(predict(model_DA)$posterior) # Wahrscheinlichkeit in jeweiliger Gruppe zu landen
+head(predict(model_DA)$posterior) # Wahrscheinlichkeit in der jeweiligen Gruppe zu landen
 head(predict(model_DA)$class)     # Vorhergesagte Klasse
-head(predict(model_DA)$x)         # vorhergesagte Ausprägung auf jeweiliger Diskriminanzachse
+head(predict(model_DA)$x)         # vorhergesagte Ausprägung auf der jeweiligen Diskriminanzachse
 ```
 
 Wir wollen uns die Ausprägungen auf den beiden Diskriminanzachsen grafisch ansehen. Dazu speichern wir diese unter `DA1` und `DA2` jeweils für 1. und 2. Diskriminanzachse ab.
@@ -119,7 +119,7 @@ ggplot(data = Therapy, aes(x = DA1, y = DA2, color = Intervention)) +
   ggtitle(label = "Diskriminanzachsen", subtitle = "mit Trennlinien")
 ```
 
-Was wir nun sehen ist, dass entlang der x-Achse besonders zwischen blau/grün vs rot unterschieden wird. D.h. die erste Diskriminanzachse hilft uns, zwischen den Interventionsgruppen und der Kontrollgruppe zu unterscheiden. Die zweite Achse trennt eher zwischen den beiden Interventionsgruppen, wobei diese Trennung nicht sehr eindeutig ist.
+Was wir nun sehen, ist, dass entlang der x-Achse besonders zwischen blau/grün vs rot unterschieden wird. D.h. die erste Diskriminanzachse hilft uns, zwischen den Interventionsgruppen und der Kontrollgruppe zu unterscheiden. Die zweite Achse trennt eher zwischen den beiden Interventionsgruppen, wobei diese Trennung nicht sehr eindeutig ist.
 
 Wir hätten auch einfach die `plot`-Funktion auf das `model_DA`-Objekt anwenden können:
 
@@ -135,7 +135,7 @@ abline(v = 0, lty = 3)
 abline(h = 0, lty = 3)
 ```
 
-Zu guter Letzt fügen wir noch die Trennlinien, die zwischen den Gruppen unterscheiden in die erste Grafik ein. Diese liegen immer auf halben Weg (durchgezogenen schwarzen Linien, hier für *Kontrollgruppe* vs. *VT-Coaching + Gruppenübung*) zwischen zwei Mittelwerten pro Gruppe (gestrichelten Linien) auf den jeweiligen Achsen:
+Zu guter Letzt fügen wir noch die Trennlinien, die zwischen den Gruppen unterscheiden, in die erste Grafik ein. Diese liegen immer auf halbem Weg (durchgezogenen schwarzen Linien, hier für *Kontrollgruppe* vs. *VT-Coaching + Gruppenübung*) zwischen zwei Mittelwerten pro Gruppe (gestrichelten Linien) auf den jeweiligen Achsen:
 
 ```{r}
 # Mittelwerte auf den DAs
@@ -165,7 +165,7 @@ ggplot(data = Therapy, aes(x = DA1, y = DA2, color = Intervention)) + geom_point
 
 
 
-Wir sehen auch aus den Grafiken erstellt mit `plot`, dass die Kontrollgruppe sich unterscheiden lässt von den Interventionsgruppen, die Interventionsgruppen sich allerdings nicht stark voneinander unterscheiden. Dies hatten wir insbesondere auch in der [Sitzung zur MANOVA](/post/manova) so herausgefunden.
+Wir sehen auch an den mit `plot` erstellten Grafiken, dass sich die Kontrollgruppe von den Interventionsgruppen unterscheiden lässt, während sich die Interventionsgruppen nicht stark voneinander unterscheiden. Dies hatten wir insbesondere auch in der [Sitzung zur MANOVA](/post/manova) so herausgefunden.
 
 ### Wie gut ist unsere Gruppenzuordnung?
 Um zu prüfen, wie gut wir die Gruppen zugeordnet haben, müssen wir untersuchen, wie häufig richtig zugeordnet wurde. Das können wir bspw. mit `table` machen und hier die Vorhersagen (`predict(model_DA)$class`) mit den Beobachtungen (`Therapy$Intervention`) vergleichen. Wir speichern `predict(model_DA)$class` zunächst als Variable ab und hängen es an den Datensatz dran:
@@ -207,7 +207,7 @@ model_DA2 <- lda(Intervention ~ LZ + AZ, data = Therapy)
 model_DA2
 model_DA2$scaling # Koeffizienten
 ```
-Wir sehen, dass jeweils eine Variable besonders stark auf einer Diskriminanzfunktion diskriminiert (großer Koeffizient). Um jetzt die Trennlinien einzeichnen zu können, brauchen wir ein Koordinatensystem, in dem für alle Kombinationen zwischen `LZ` und `AZ` entschieden wird, in welcher Gruppe ein/e Proband*in mit dieser Ausprägung landen würde. Dies übernimmt die `expand.grid` Funktion für uns. 
+Wir sehen, dass jeweils eine Variable besonders stark auf einer Diskriminanzfunktion diskriminiert (großer Koeffizient). Um jetzt die Trennlinien einzeichnen zu können, brauchen wir ein Koordinatensystem, in dem für alle Kombinationen von `LZ` und `AZ` entschieden wird, in welcher Gruppe ein/e Proband*in mit dieser Ausprägung landen würde. Dies übernimmt die `expand.grid` Funktion für uns. 
 
 ```{r, results = "hide"}
 # Ein Koordinatensystem erstellen von 0 bis 12 auf den beiden Variablen
@@ -225,7 +225,7 @@ $\vdots$
 knitr::kable(contour_data[(dim(contour_data)[1]-6):(dim(contour_data)[1]),])
 ```
 
-Die `predict`-Funktion sagt die modellimplizierten Werte vorher. Wir können dieser Funktion auch einen Wert übergeben, der so in den Daten noch nicht vorkam, nämlich dem Argument `newdata`. Somit bekommen wir die Vorhersage unter unserem Modell für die neuen Datenpunkte. Als letztes kann mit `stat_contour` die Gruppenzugehörigkeit eingezeichnet werden. Diese übergeben wir der 3. Dimension `z`in der `stat_contour`-Funktion. Bei diesem Plot ist es von Vorteil, wenn die Gruppierungsvariable im Originaldatensatz gleich heißt, die wie Prädiktion im neuen Datensatz. 
+Die `predict`-Funktion sagt die modellimplizierten Werte vorher. Wir können dieser Funktion auch einen Wert übergeben, der so in den Daten noch nicht vorkam, nämlich dem Argument `newdata`. Somit bekommen wir die Vorhersage unter unserem Modell für die neuen Datenpunkte. Als letztes kann mit `stat_contour` die Gruppenzugehörigkeit eingezeichnet werden. Diese übergeben wir der 3. Dimension `z` in der `stat_contour`-Funktion. Bei diesem Plot ist es von Vorteil, wenn die Gruppierungsvariable im Originaldatensatz gleich heißt wie die Prädiktion im neuen Datensatz. 
 
 
 ```{r}
