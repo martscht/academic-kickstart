@@ -16,7 +16,7 @@ tags:
 subtitle: 'MANOVA'
 summary: ''
 authors: [irmer]
-lastmod: '2020-11-03T08:32:21+02:00'
+lastmod: '2020-11-09T08:32:21+02:00'
 featured: no
 header:
   image: "/header/FEI_Sitzung5_post.jpg"
@@ -115,7 +115,7 @@ manova1 <- manova(cbind(LZ, AB, Dep, AZ) ~ Intervention,
 summary(manova1, test = "Wilks")
 ```
 
-Die Summary zeigt die Hypothesenfreiheitsgrad `Df`, welche die Freiheitsgrade der Mittelwertvergleiche anzeigt. Da es insgesamt 3 Gruppen sind, liegt dieser bei 2. `Wilks` zeigt den Wilks-$\Lambda$-Wert und `approx F` den zugehörigen $F$-Wert, in welchen $\Lambda$ (approx.) transformiert wurde. Außerdem werden die entsprechenden Zähler- (`num Df`, num = numerator) und Nennerfreiheitsgrade (`den Df`, den = denominator) von $F$ sowie der zugehörige $p$-Wert (`Pr(>F) `) angezeigt.
+Die Summary zeigt die Hypothesenfreiheitsgrade `Df`, welche die Freiheitsgrade der Mittelwertvergleiche anzeigt. Da es insgesamt 3 Gruppen sind, liegt dieser bei 2. `Wilks` zeigt den Wilks-$\Lambda$-Wert und `approx F` den zugehörigen $F$-Wert, in welchen $\Lambda$ (approx.) transformiert wurde. Außerdem werden die entsprechenden Zähler- (`num Df`, num = numerator) und Nennerfreiheitsgrade (`den Df`, den = denominator) von $F$ sowie der zugehörige $p$-Wert (`Pr(>F) `) angezeigt.
 
 Wir erkennen einen Wilks-$\Lambda$-Wert von `r round(summary(manova1, test = "Wilks")$stats[1,2], 3)`. Dieser wird mit Hilfe der $F$-Statistik auf Signifikanz geprüft, indem er transformiert wird. Der zugehörige $F$-Wert liegt bei $F(8, 168)=$ `r round(summary(manova1, test = "Wilks")$stats[1,3], 3)`, $p<0.001$. Wir können dem Summary-Objekt auch die Within und Between Kreuzproduktsummen-Matrizen entlocken, die zur Bestimmen von $\Lambda$ essentiell sind. Dazu speichern wir die Summmary in `sum_manova1` ab.
 
@@ -141,7 +141,7 @@ det(W)/(det(B + W)) # Wilks Lambda
 Der Befehl für die Determinante war `det`. Wir erkennen, dass der zu Fuß berechnete $\Lambda$_Wert, der exakt gleiche Wert ist, wie wir ihn in der Summary oben erhalten haben. $\Lambda$ ist ein inverses Maß, was bedeutet, dass kleine Werte gegen die Nullhypothese (also Mittelwertgleichheit) sprechen. Da wir die Null-Hypothese verworfen haben, bedeutet dies, dass mindestens ein Mittelwertsvektorpaar in der Population nicht gleich ist. Gleichzeitig ist dies der Fall sobald ein Mittelwertspaar innerhalb eines Mittelwertsvektorpaar über zwei Gruppen unterschiedlich ist. 
 
 #### Wie sehen die Mittelwerte aus?
-Wir wissen nun also, dass es Unterschiede gibt, nur noch nicht auf welchen Variablen und zwischen welchen Gruppen. Um eine Idee zu erhalten, schauen wir uns das ganze einmal grafisch an (der Code zur Grafik findet sich in [Appendix A](#AppendixA)). In dieser Grafik werden die SEs der Mittelwerte pro Variable dargestellt (nicht die Konfidenzintervalle). Die Fehlerbalken können also einen Indiz für mögliche signifikante Unterschiede liefern, allerdings können diese nicht die Signifikanzentscheidung ersetzen:
+Wir wissen nun also, dass es Unterschiede gibt, nur noch nicht auf welchen Variablen und zwischen welchen Gruppen. Um eine Idee zu erhalten, schauen wir uns das ganze einmal grafisch an (der Code zur Grafik findet sich in [Appendix A](#AppendixA)). In dieser Grafik werden die SEs der Mittelwerte pro Variable dargestellt (nicht die Konfidenzintervalle). Die Fehlerbalken können also ein Indiz für mögliche signifikante Unterschiede liefern, allerdings können diese nicht die Signifikanzentscheidung ersetzen:
 
 
 ```{r, echo = F}
@@ -201,7 +201,7 @@ summary(anovaLZ)
 
 Wir erkennen, dass die Summary komplett identisch ist, zu der ersten ANOVA im zuvor generierten `summary.aov`-Objekt - nämlich der Post-Hoc ANOVA der Lebenszufriedenheit (`LZ`).
 
-Um nun noch genauer zu erfahren, welche Gruppen sich unterscheiden, führen wir paar-weise $t$-Tests durch - jedoch nur für diejenigen AVs, deren ANOVA signifikant war. Der Befehl hierzu heißt `parwise.t.test`. Ihr übergeben wir die Variable `x`, die Gruppierung `g` und den Umgang mit den $p$-Werten `p.adjust.method = "none"` (hier wählen wir keine, da die MANOVAs und die ANOVAs bereits signifikant waren). Insgesamt schauen wir uns paar-weise $t$-Tests für Lebenszufriedenheit, Depression und Arbeitszufriedenheit an.
+Um nun noch genauer zu erfahren, welche Gruppen sich unterscheiden, führen wir paar-weise $t$-Tests durch - jedoch nur für diejenigen AVs, deren ANOVA signifikant war. Der Befehl hierzu heißt `pairwise.t.test`. Ihr übergeben wir die Variable `x`, die Gruppierung `g` und den Umgang mit den $p$-Werten `p.adjust.method = "none"` (hier wählen wir keine, da die MANOVAs und die ANOVAs bereits signifikant waren). Insgesamt schauen wir uns paar-weise $t$-Tests für Lebenszufriedenheit, Depression und Arbeitszufriedenheit an.
 
 ```{r}
 pairwise.t.test(x = Therapy$LZ, g = Therapy$Intervention, p.adjust.method = "none")
@@ -238,7 +238,7 @@ Die Ergebnisse der $t$-Tests und der Tukey's HSD stimmen überein und lassen sic
 | Depression | signifikant | signifikant | ns |
 | Arbeitszufriedenheit | signifikant | signifikant | ns |
 
-Somit ist ersichtlich, dass die Interventionen sich nicht gleich auf die AVs auswirken. VT-Coaching inklusive Gruppenübungen führte zu einer Verbesserung Lebenszufriedenheit (da gestiegen), Depressionssymptomatik (da gesunken) und Arbeitszufriedenheit (da gestiegen) im Vergleich zur Kontrollgruppe (die Richtung konnten wir den Mittelwerte und der Grafik entnehmen). Keine Unterschiede zwischen Kontrollgruppe und VT-Coaching ließen sich bzgl. der Lebenszufriedenheit finden, bzgl. der Depressionssymptomatik und der Arbeitszufriedenheit jedoch schon. Die zusätzliche Gruppenübung hat nur eine positive Auswirkung auf die Lebenszufriedenheit, negative Stimmung (Dep) oder Arbeitszufriedenheit profitiert davon nicht. Alle Aussagen sind statistischer Natur, unterliegen somit also einer Irrtumswahrscheinlichkeit! Keinen Einfluss hatten die Interventionen auf die Arbeitsbelastung.
+Somit ist ersichtlich, dass die Interventionen sich nicht gleich auf die AVs auswirken. VT-Coaching inklusive Gruppenübungen führte zu einer Verbesserung der Lebenszufriedenheit (da gestiegen), Depressionssymptomatik (da gesunken) und Arbeitszufriedenheit (da gestiegen) im Vergleich zur Kontrollgruppe (die Richtung konnten wir den Mittelwerten und der Grafik entnehmen). Keine Unterschiede zwischen Kontrollgruppe und VT-Coaching ließen sich bzgl. der Lebenszufriedenheit finden, bzgl. der Depressionssymptomatik und der Arbeitszufriedenheit jedoch schon. Die zusätzliche Gruppenübung hat nur eine positive Auswirkung auf die Lebenszufriedenheit, negative Stimmung (Dep) oder Arbeitszufriedenheit profitiert davon nicht. Alle Aussagen sind statistischer Natur, unterliegen somit also einer Irrtumswahrscheinlichkeit! Keinen Einfluss hatten die Interventionen auf die Arbeitsbelastung.
 
 ##### Interpretation
 
