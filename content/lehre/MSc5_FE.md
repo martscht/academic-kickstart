@@ -73,6 +73,6 @@ Die hier präsentierten Unterlagen sind während des [Forschungsmoduls F&E I - W
 
 |  |  |  |  | | |
 | --- | --- | --- | --- | --- | --- |
-| 1 | **Simulationsstudien in `R`** | Inhalte  |
-| 2 | **Selektionseffekte** | Inhalte  |
+| 1 | **Simulationsstudien in `R`** | [Inhalte](/post/simulationsstudien-in-r)  |
+| 2 | **Selektionseffekte** | [Inhalte](/post/selektionseffekte)  |
 |  |  |  |  | | |
