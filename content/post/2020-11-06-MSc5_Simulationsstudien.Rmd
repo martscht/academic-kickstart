@@ -15,7 +15,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer]
-lastmod: '2020-11-06T19:21:58+02:00'
+lastmod: '2020-11-10T19:21:58+02:00'
 featured: no
 header:
   image: "/header/MSc5_Simulation_post.jpg"
@@ -261,7 +261,7 @@ sResults
 ```
 
 ## Simulationsstudien evaluieren
-Wir haben zwei Wege kennengelernt eine einfache Simulationsstudie in `R` durchzuführen. Nun müssen wir eine Aussage über die Güte des Mittelwertschätzers treffen. Dazu müssen wir den Parameterbias sowie den relativen Parameterbias bestimmen und somit eine Aussage über die Konsistenz der Schätzung zu treffen. Ein Schätzer ist konsistent, wenn er für größer werdende Stichproben gegen den wahren Wert strebt (*mathematisch bzgl. Mittelwert*: $\bar{X}_n\underset{n\to\infty}{\longrightarrow}\mathbb{E}[X]$ [mindestens] in Wahrscheinlichkeit; hier ist $\bar{X}_n$ der Mittelwert einer Stichprobe der Größe $n$/ eines Datenvektors der Länge $n$; dieser Ausdruck wird auch das [schwache] Gesetz der großen Zahlen genannt). Außerdem variiert ein Schätzer. Diese Variation wollen wir mit dem $SE$ beschreiben. Dazu vergleichen wir den mittleren $SE$ (auch MC**SE** für Monte-Carlo-**SE**) mit der Standardabweichung über alle Schätzungen (auch MC**SD** für Monte-Carlo-**SD**). Ein Verfahren ist effizient, wenn seine (modellimplizierten) $SE$ klein sind und genau geschätzt werden, also nah an der wahren erwarteten Variation dran liegen (also MCSE und MCSD übereinstimmen). 
+Wir haben zwei Wege kennengelernt eine einfache Simulationsstudie in `R` durchzuführen. Nun müssen wir eine Aussage über die Güte des Mittelwertschätzers treffen. Dazu müssen wir den Parameterbias sowie den relativen Parameterbias bestimmen und somit eine Aussage über die Konsistenz der Schätzung zu treffen. Ein Schätzer ist konsistent, wenn er für größer werdende Stichproben gegen den wahren Wert strebt (*mathematisch bzgl. Mittelwert*: $\bar{X}_n\underset{n\to\infty}{\longrightarrow}\mathbb{E}[X]$ [mindestens] in Wahrscheinlichkeit; hier ist $\bar{X}_n$ der Mittelwert einer Stichprobe der Größe $n$/ eines Datenvektors der Länge $n$; dieser Ausdruck wird auch das [schwache] Gesetz der großen Zahlen genannt). Außerdem variiert ein Schätzer und hat somit eine Varianz $\mathbb{V}ar\left[\hat{\theta_j}\right]$. Die Variation eines Schätzer kann theoretisch hergeleitet werden: diese Variation wollen wir mit dem $SE(\hat{\theta_j})$ beschreiben. Allerdings muss der theoretische $SE$ nicht immer die Variation der Schätzer ideal abbilden, was an Verstößen im Modell o.ä. liegen kann. Folglich müssen wir die Variation des Schätzers auch noch auf andere Art und Weise in der Simulation untersuchen: damit wir den SE gut vergleichen können, bestimmen wir die Standardabweichung des Schätzers $SD(\hat{\theta_j})=\sqrt{\mathbb{V}ar\left[\hat{\theta_j}\right]}$. Somit vergleichen wir den mittleren $SE$ (auch MC**SE** für Monte-Carlo-**SE**) mit der Standardabweichung über alle Schätzungen (auch MC**SD** für Monte-Carlo-**SD**) und erhalten so eine Aussage darüber: 1) wie groß ist die Streuung der Schätzer und 2) wie genau können wir diese durch den $SE$ beschreiben, denn in einer Studie können wir eine Analyse in er Regel nur einmalig durchführen und müssen dann mit dem $SE$ eine Schätzung für die Streuung des Parameters erhalten -- dieser muss folglich möglichst nah an der $SD$ liegen! Ein Verfahren ist effizient, wenn seine (modellimplizierten) $SE$ klein sind und genau geschätzt werden, also nah an der wahren erwarteten Variation dran liegen (also MCSE und MCSD übereinstimmen). 
 
 Sei dazu $\hat{\theta}_j$ die Schätzung (hier der Mittelwert) der $j$-ten Studie ($j=1,\dots,k$, $k$ ist die Anzahl an Replikationen, in unserem Beispiel ist $k=10$) für den wahren Wert $\theta$ und $SE(\hat{\theta}_j)$ der zugehörige Standardfehler. Dann können wir (absoluten) Bias, relativen Bias, MCSD und MCSE wie folgt definieren:
 
@@ -272,8 +272,19 @@ Sei dazu $\hat{\theta}_j$ die Schätzung (hier der Mittelwert) der $j$-ten Studi
 \text{MCSE}&=\overline{SE(\hat{\theta}_j)},
 \end{align}
 
-wobei der Strich über den Variablen jeweils den Mittelwert symbolisiert. Der Hut \^ symbolisiert, dass hier etwas geschätzt wird.
+wobei der Strich über den Variablen jeweils den Mittelwert symbolisiert. Der Hut \^ symbolisiert, dass hier etwas geschätzt wird. Außerdem wird auch häufig der $RMSE$ (Root-Mean-Square-Error; [Wurzel aus] mittlerem quadratischen Fehler) bestimmt. Zunächst betrachten wir dazu den mittlere quadratischen Fehler $MSE$:
 
+$$MSE(\hat{\theta},\theta)=\mathbb{E}\left[(\hat{\theta}-\theta)^2\right]$$
+Der $MSE$ ist also die erwartete quadratische Abweichung. In der Stichprobe bestimmen wir den wie folgt:
+
+$$\hat{MSE}=\frac{1}{k}\sum_{j=1}^k(\hat{\theta}_j-\theta)^2,$$
+was im Grunde eine Art Varianz ist, wobei hier nicht die quadratische Differenz vom Mittelwert, sondern vom wahren Wert betrachtet wird. Somit fließen in den $MSE$ sowohl der Bias als auch die Streuung  des Schätzers ein, denn der $MSE$ kann auch wie folgt (theoretisch) beschrieben werden:
+
+<a id="Expansion_MSE"></a>
+$$MSE(\hat{\theta},\theta)=\mathbb{E}\left[(\hat{\theta}-\theta)^2\right]=\mathbb{V}ar\left[\hat{\theta}\right]+Bias(\hat{\theta},\theta)^2,$$
+er hängt also von der Streuung des Schätzers $\mathbb{V}ar\left[\hat{\theta}\right]$ sowie vom Bias $Bias(\hat{\theta},\theta)$ im Quadrat ab. Wir erwarten also einen großen $MSE$, wenn der Schätzer stark streut, wenn der Bias groß ist oder wenn beide stark ausgeprägt sind. Der $RMSE$ ist nun nichts weiteres als die Wurzel aus dem $MSE$, damit man diesen wieder in der Skala des Schätzers interpretieren kann:
+
+$$RMSE=\sqrt{MSE}.$$
 
 Führen wir einen Signifikanztest durch, so können wir die Power oder den Type I-Error eines Tests bestimmen (siehe auch [Einführungssitzung zu PsyMSc1](/post/einleitung-und-wiederholung), wo diese Begriffe bereits behandelt werden). Der Type I-Error ist der Fehler erster Art oder $\alpha$-Fehler. Wir messen in in Wahrscheinlichkeiten. Wir begehen einen $\alpha$-Fehler, wenn wir die $H_0$ verwerfen, obwohl diese gilt. Diese Wahrscheinlichkeit des $\alpha$-Fehlers sollte beim vorgegebenen $\alpha$-Niveau (i.d.R. $\alpha=5\%$) liegen. Gilt die $H_0$ nicht, so möchten wir, dass ein Test dies uns mit möglichst großer Wahrscheinlichkeit anzeigt. Die Wahrscheinlichkeit richtigerweise die $H_0$ zu verwerfen wird als *Power* bezeichnet. Hier können wir bspw. die Wahrscheinlichkeit bestimmen, dass das Konfidenzintervall nicht die 0 einschließt (somit der Effekt signifikant von 0 verschieden ist) - gleiches erreichen wir, indem wir einfach den Effekt durch seinen $SE$ teilen ($\left|\frac{Est}{SE}\right|$ und vergleiche bspw. mit 1.96). Untersuchen wir einen "richtigen" Test (z.B. ANOVA), so schauen wir uns die relative Häufigkeit eines signifikanten Ergebnisses an (also die relative Häufigkeit von $p<0.05$).  Die Power sollte möglichst groß sein (z.B. hätten Methodiker gerne, dass Power $\ge 80\%$ gilt). Liegt kein Effekt vor (was wir durch Vorgaben im Modell so entscheiden), so beschreibt die Power (so wie eben beschrieben) gerade den Type I-Error, also den Fehler erster Art. Dieser sollte gerade mit Wahrscheinlichkeit des $\alpha$-Niveaus auftreten. Somit sollte der Type I-Error möglichst nah an der $5\%$-Marke liegen:
 
@@ -351,6 +362,39 @@ MCSE - 5/sqrt(10)                   # Bias zum wahren SE
 ```
 
 Hier sehen wir nun, dass die $SE$s bereits gut funktionieren für eine Stichprobengröße von 10. Der relative Bias liegt bei unter $1\%$. Wenn wir gleiche Simulation mit wesentlich mehr Replikationen bei gleicher niedriger Stichprobengröße von 10 durchführen würden, dann sollte sich der MCSD ebenfalls bei $\frac{5}{\sqrt{10}}$ einpendeln! Insgesamt ist zu sagen, dass der Schätzer "Mittelwert" effizient ist.
+
+### RMSE
+Um nun sowohl Bias als auch Streuung des Schätzers in Einem beurteilen zu können, bestimmen wir den $RMSE$. Dazu bestimmen wir den Bias pro Replikation (also die Differenz vom wahren Wert) und berechnen davon dann die Standardabweichung:
+
+```{r}
+M - 4 # die Abweichungen
+(M-4)^2 # quadratischen Abweichungen
+MSE <- mean((M-4)^2) # mittleren quadratischen Abweichungen
+MSE
+RMSE <- sqrt(MSE) # Wurzel aus den mittleren quadratischen Abweichungen
+RMSE
+```
+
+Wir können auch prüfen, ob der MSE sich wirklich leicht aus dem Bias zum Quadrat und der Streuung des Parameters zusammensetzt, wie wir [oben](#Expansion_MSE) gesehen hatten. Dazu müssen wir lediglich den Bias addieren, dazu die $MCSD^2$ (im Quadrat) addieren und diese noch umgewichten, da die $SD$ in `R` per Default mit dem Vorfaktor $\frac{1}{n-1}$ bestimmt wird, wenn wir also mit $\frac{n-1}{n}$ erweitern, erhalten wir damit das Gewicht $\frac{1}{n}$ (hier $n=k=10\hat{=}$ Anzahl Replikationen).
+
+```{r}
+Bias
+MCSD^2
+```
+Beide Formeln kommen zum gleichen Ergebnis:
+```{r}
+Bias^2 + MCSD^2 * 9/10 
+MSE
+```
+
+
+Wir sehen, dass der $MSE$ hier groß ist, da die Streuung ($MCSD$) groß ist -- der Bias ist (im Quadrat) klein!
+```{r}
+RMSE
+```
+
+Der $RMSE$ sagt uns, dass die Standardabweichung um den wahren Wert bei `r round(sqrt(MSE), 2)` liegt. Da sehr viele Schätzer (asymptotisch) normalverteilt sind, können wir uns also unter dieser Standardabweichung etwas vorstellen! Jedoch hatten wir für die $MCSD$ bereits diskutiert, dass diese vermutlich so groß ist, da die Anzahl der Replikationen so klein war (hier $k=10$).
+
 
 ### Coverage, Power und Type I-Error
 Die Coverage kann für jeden Koeffizienten eines Modells bestimmt werden. Jedoch hängt es von der Ausprägung des Populationsparameters ab, ob wir die Power oder den Type I-Error bestimmen. Dies ist jedoch nur eine Namensentscheidung. Beides wir gleich bestimmt. 
