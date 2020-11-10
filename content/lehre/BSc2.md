@@ -68,15 +68,15 @@ subtitle = "Statistik I"
 
 In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestudium. Dafür gucken wir uns die Grundstruktur von R, Datenimport, einfache Grafiken, Deskriptivstatistiken, Verteilungsfunktionen und ein paar Tests an. Das dazugehörige Material taucht im Verlauf des Semesters hier auf.
 
-|  |  |  |  |
-| --- | --- | --- | --- |
-| 1 | **R-Intro** | [Inhalte](/post/r-crash-kurs) | [Aufgaben](/post/r-crash-kurs-aufgaben) |
-| 2 | **Deskriptives und Plots** | [Inhalte](/post/r-deskriptiv) | [Aufgaben](/post/r-deskriptiv-aufgaben) |
-| 3 | **Verteilungen** | Inhalte | Aufgaben |
-| 4 | **Tests und Konfidenzintervalle** | Inhalte | Aufgaben |
-| 5 | **Tests für Gruppenvergleiche** | Inhalte | Aufgaben |
-| 6 | **Korrelation und Regression** | Inhalte | Aufgaben |
-| *Zusatz* | **Hypothesen und Präregistrierung** | Inhalte | Aufgaben |
-| | | |
+|  |  |  |  |  |
+| --- | --- | --- | --- | --- |
+| 1 | **R-Intro** | [Inhalte](/post/r-crash-kurs) | [Aufgaben](/post/r-crash-kurs-aufgaben) | [Lösungen](/post/r-crash-kurs-loesungen)
+| 2 | **Deskriptives und Plots** | [Inhalte](/post/r-deskriptiv) | [Aufgaben](/post/r-deskriptiv-aufgaben) | [Lösungen](/post/r-deskriptiv-loesungen) |
+| 3 | **Verteilungen** | Inhalte | Aufgaben | Lösungen |
+| 4 | **Tests und Konfidenzintervalle** | Inhalte | Aufgaben | Lösungen |
+| 5 | **Tests für Gruppenvergleiche** | Inhalte | Aufgaben | Lösungen |
+| 6 | **Korrelation und Regression** | Inhalte | Aufgaben | Lösungen |
+| *Zusatz* | **Hypothesen und Präregistrierung** | Inhalte | Aufgaben | Lösungen |
+| | | | |
 
-Die Umfrage aus der ersten Woche gibt es [hier](https://psybsc2.formr.org/). Die Daten, die dabei in der ersten Sitzung entstanden sind, können Sie [<i class="fas fa-download"></i> hier runterladen](/post/fb20.csv). Was welche Variablen in diesem Datensatz bedeutet, wird in der [<i class="fas fa-download"></i>  Variablenübersicht erläutert](/post/variablen.pdf).
+Die Umfrage aus der ersten Woche gibt es [hier](https://psybsc2.formr.org/). Die Daten, die dabei in der ersten Sitzung entstanden sind, können Sie [<i class="fas fa-download"></i>  hier runterladen](/post/fb20.csv). Was welche Variablen in diesem Datensatz bedeutet, wird in der [<i class="fas fa-download"></i>  Variablenübersicht erläutert](/post/variablen.pdf).
