@@ -76,7 +76,7 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 | 4 | **Tests und Konfidenzintervalle** | Inhalte | Aufgaben | Lösungen |
 | 5 | **Tests für Gruppenvergleiche** | Inhalte | Aufgaben | Lösungen |
 | 6 | **Korrelation und Regression** | Inhalte | Aufgaben | Lösungen |
-| *Zusatz* | **Hypothesen und Präregistrierung** | Inhalte | Aufgaben | Lösungen |
+| *Zusatz* | **Gruppenprojekt** | [Inhalte](/post/gruppenprojekt) | -- | -- |
 | | | | |
 
-Die Umfrage aus der ersten Woche gibt es [hier](https://psybsc2.formr.org/). Die Daten, die dabei in der ersten Sitzung entstanden sind, können Sie [<i class="fas fa-download"></i>  hier runterladen](/post/fb20.csv). Was welche Variablen in diesem Datensatz bedeutet, wird in der [<i class="fas fa-download"></i>  Variablenübersicht erläutert](/post/variablen.pdf).
+Die Umfrage aus der ersten Woche gibt es [hier](https://psybsc2.formr.org/). Die Daten, die dabei in der ersten Sitzung entstanden sind, können Sie [<i class="fas fa-download"></i>   hier runterladen](/post/fb20.csv). Was welche Variablen in diesem Datensatz bedeutet, wird in der [<i class="fas fa-download"></i>   Variablenübersicht erläutert](/post/variablen.pdf).
