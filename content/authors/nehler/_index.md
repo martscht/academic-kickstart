@@ -1,6 +1,6 @@
 ---
 # Display name
-name: Kai Jannick Nehler
+name: Kai Jannik Nehler
 
 # Username (this should match the folder name)
 authors:
