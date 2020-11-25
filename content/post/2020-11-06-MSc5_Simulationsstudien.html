@@ -12,10 +12,13 @@ tags:
   - Bias
   - Signifikanztestung
   - Verteilungen
+  - Monte-Carlo
+  - MC
+  - Pi
 subtitle: ''
 summary: ''
 authors: [irmer]
-lastmod: '2020-11-10T19:21:58+02:00'
+lastmod: '2020-11-25T19:21:58+02:00'
 featured: no
 header:
   image: "/header/MSc5_Simulation_post.jpg"
@@ -27,7 +30,7 @@ projects: []
 
 <div id="einleitung" class="section level2">
 <h2>Einleitung</h2>
-<p>Simulationsstudien können Aufschluss darüber liefern, wie gut ein statistisches Verfahren oder auch ein Schätzer funktioniert. Wir wollen uns eine einfache Simulationsstudie ansehen, mit welcher wir das Schätzen der Erwartung (des Mittelwerts der Population) der Normalverteilung untersuchen wollen. Dazu schauen wir uns einfache Simulationstechniken und Wiederholungssfunktionen, wie etwa die <code>for</code>-Schleife, in <code>R</code> an. Bevor wir uns mit Simulationsstudien in <code>R</code> beschäftigen, sollten Sie sich etwas mit <code>R</code> vertraut gemacht sowie die nötige Software (<code>R</code> als Programmiersprache und <code>R</code>-Studio als schöneres Interface) installiert haben. Hierzu eignet sich hervorragend der ebenfalls auf <a href="https://pandar.netlify.com/"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> Pandar</a> zu findende <a href="/post/r-crash-kurs"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg><code>R</code>-Crash Kurs</a>. Auch in der <a href="/post/einleitung-und-wiederholung"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> ersten Sitzung aus dem Masterstudium der Psychologie</a> wurden einige Begriffe, die für Simulationsstudien von Relevanz sind, wiederholt und es wurde auch eine kleine Simulation zum Untersuchen des <span class="math inline">\(t\)</span>-Tests durchgeführt.</p>
+<p>Simulationsstudien können Aufschluss darüber liefern, wie gut ein statistisches Verfahren oder auch ein Schätzer funktioniert. Diese werden auch sehr häufig Monte-Carlo Simulationen oder MC-Simulationen genannt. Diese Methode wird neben der Untersuchung von statistischen Verfahren auch für die numerische Berechnung verwendet (bspw. können wir <span class="math inline">\(\pi\)</span> mit Hilfe von MC-Methoden bestimmen). Wir wollen uns eine einfache Simulationsstudie ansehen, mit welcher wir das Schätzen der Erwartung (des Mittelwerts der Population) der Normalverteilung untersuchen wollen. Dazu schauen wir uns einfache Simulationstechniken und Wiederholungssfunktionen, wie etwa die <code>for</code>-Schleife, in <code>R</code> an. Bevor wir uns mit Simulationsstudien in <code>R</code> beschäftigen, sollten Sie sich etwas mit <code>R</code> vertraut gemacht sowie die nötige Software (<code>R</code> als Programmiersprache und <code>R</code>-Studio als schöneres Interface) installiert haben. Hierzu eignet sich hervorragend der ebenfalls auf <a href="https://pandar.netlify.com/"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> Pandar</a> zu findende <a href="/post/r-crash-kurs"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg><code>R</code>-Crash Kurs</a>. Auch in der <a href="/post/einleitung-und-wiederholung"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> ersten Sitzung aus dem Masterstudium der Psychologie</a> wurden einige Begriffe, die für Simulationsstudien von Relevanz sind, wiederholt und es wurde auch eine kleine Simulation zum Untersuchen des <span class="math inline">\(t\)</span>-Tests durchgeführt.</p>
 </div>
 <div id="daten-simulieren" class="section level2">
 <h2>Daten simulieren</h2>
@@ -456,7 +459,8 @@ abs(M2/SE2) # identisch zu oben, also können wir uns auf eines der beiden konze
 <pre class="r"><code>mean(abs(M-4)/SE &lt;= 1.96)</code></pre>
 <pre><code>## [1] 1</code></pre>
 <p>Welche Variante für die Coverage Sie nutzen wollen, ist selbstverständlich Ihnen überlassen! Siehe <a href="#AppendixA">Appendix A</a> für eine zusätzliche Möglichkeit die Coverage als Funktion zu nutzen.</p>
-<p>In <a href="#AppendixC">Appendix C</a> erfahren Sie, wie sie eine Verlaufsleiste (Progress Bar) hinzufügen, um zu wissen, wie lange Ihre Simulationen noch brauchen (falls Sie dazu Lust haben!).</p>
+<p>In <a href="#AppendixC">Appendix C</a> erfahren Sie, wie Sie eine Verlaufsleiste (Progress Bar) hinzufügen, um zu wissen, wie lange Ihre Simulationen noch brauchen (falls Sie dazu Lust haben!).</p>
+<p>In <a href="#AppendixD">Appendix D</a> erfahren Sie, wie Sie <span class="math inline">\(\pi\)</span> mit MC-Methoden bestimmen.</p>
 <p>Andere Modelle, wie bspw. ein Regressionsmodell, simulieren Sie, indem Sie mehrere Variablen in <code>R</code> simulieren und diese dann durch z.B. Addition verknüpfen, um so Ihr Populationsmodell aufstellen zu können. Danach müssen Sie entscheiden, mit welchem Analysemodell Sie die generierten Daten untersuchen wollen.</p>
 <p>Interessante weitere Informationen bspw. zum Simulieren von SEM oder Multi-Level-Daten finden Sie bspw. in dem Online Buch <a href="https://bookdown.org/marklhc/notes/simulating-means-and-medians.html"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg> Monte Carlo Simulation Examples</a>.</p>
 <p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/1_Simulationsstudien_RCode.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
@@ -528,13 +532,65 @@ for(i in 1:Reps)
 </div>
 <div id="progress-bar-für-apply" class="section level4">
 <h4>Progress Bar für <code>apply</code></h4>
-<p>Um eine Progress Bar in <code>apply</code>-Funktionen einzubauen, können wir das <code>R</code>-Paket <code>pbapply</code> verwenden (<code>pb</code> steht hierbei für progress bar!). Dazu müssen wir dieses zunächst installieren (<code>install.packages("pbapply")</code>). Das Paket ist super einfach zu nutzen. Wir müssen lediglich vor unsere <code>apply</code> Funktionen noch <code>pb</code> davor schreiben. Außerdem brauchen wir ein paar mehr Replikationen, da es sonst zu schnell geht! Anschließend sollte folgender Code unserer <code>sapply</code>-Simulationsstudie eine Progress Bar hinzufügen!</p>
+<p>Um eine Progress Bar in <code>apply</code>-Funktionen einzubauen, können wir das <code>R</code>-Paket <code>pbapply</code> verwenden (<code>pb</code> steht hierbei für <strong>p</strong>rogress <strong>b</strong>ar!). Dazu müssen wir dieses zunächst installieren (<code>install.packages("pbapply")</code>). Das Paket ist super einfach zu nutzen. Wir müssen lediglich vor unsere <code>apply</code> Funktionen noch <code>pb</code> davor schreiben. Gleiches gilt auch für <code>replicate</code>, welches wir auch mit einer Progressbar versehen können. Außerdem brauchen wir ein paar mehr Replikationen, da es sonst zu schnell geht! Anschließend sollte folgender Code unserer <code>sapply</code>-Simulationsstudie eine Progress Bar hinzufügen!</p>
 <pre class="r"><code>Reps &lt;- 10^6 # entspricht 1000000
 set.seed(100) # Vergleichbarkeit
-X_data &lt;- replicate(n = Reps, expr = rnorm(n = 10, mean = 4, sd = 5), simplify = F)
-sResults &lt;- pbsapply(X = X_data, FUN = calculate_mean_SE)</code></pre>
+X_data &lt;- pbreplicate(n = Reps, expr = rnorm(n = 10, mean = 4, sd = 5), simplify = F)</code></pre>
+<pre><code>## |++++++++++++++++++++                              | 39% ~03s</code></pre>
+<pre class="r"><code>sResults &lt;- pbsapply(X = X_data, FUN = calculate_mean_SE)</code></pre>
 <pre><code>## |+++++++++++++++++++                               | 38% ~10s</code></pre>
-<p>Hier ist nun auch deutlich zu sehen, dass <code>apply</code> schneller als die <code>for</code>-Schleife ist, wobei wir hier beachten müssen, dass bereits in <code>replicate</code> die Daten erzeugt werden, was auch sehr viel Zeit kostet.</p>
+<p>Hier ist nun auch deutlich zu sehen, dass <code>apply</code> schneller als die <code>for</code>-Schleife ist, wobei wir hier beachten müssen, dass bereits in <code>replicate</code> die Daten erzeugt werden, was auch sehr viel Zeit kostet - allerdings nicht so viel wie die <code>for</code>-Schleife. Dies liegt ganz einfach daran, dass <code>R</code> nicht für Schleifen optimiert ist, sondern für vektorbasierte Verfahren und Operationen optimiert ist.</p>
+<p>Wir müssen allerdings auch beachten, dass die Progressbar natürlich auch leichte Einflüsse auf die Performanz nimmt und die Funktionen so ganz leicht langsamer werden! Wenn solche Funktionen sehr lange dauern, dann besteht die Möglichkeit die Prozesse auf mehrere Kerne der CPU zu verteilen und so gleichzeitig mehrere Replikationen zu verrechnen. Bei Interesse wenden Sie sich an <a href="/authors/irmer">Julien Irmer</a>.</p>
 </div>
+</div>
+<div id="AppendixD" class="section level3">
+<h3>Appendix D: Berechnung von <span class="math inline">\(\pi\)</span></h3>
+<p>Wir wissen, dass <span class="math inline">\(\pi\)</span> in etwa bei <span class="math inline">\(3.14159\)</span> liegt. Doch wie kommt man darauf? Eine Möglichkeit liefert hier die MC-Methode. Dazu brauchen wir eine Formel, in der <span class="math inline">\(\pi\)</span> vorkommt. Beispielsweise könnten wir einen Kreis mit Radius <span class="math inline">\(r=1\)</span> zeichnen:</p>
+<pre class="r"><code>plot(x = c(1,1,-1,-1,1), y = c(1,-1,-1,1,1), type = &quot;l&quot;, 
+     ylim = c(-1.2, 1.2), xlim = c(-1.2, 1.2), ylab = &quot;Y&quot;, 
+     xlab = &quot;X&quot;, col = &quot;red&quot;, lwd = 2, main = expression(&quot;Finding&quot;~pi~&quot;by MC-methods&quot;))
+x &lt;- seq(-1,1,0.01)
+lines(x = x, y = sqrt(1-x^2), lwd = 2, col = &quot;blue&quot;) # Formel eines Kreises,
+lines(x = x, y = -sqrt(1-x^2), lwd = 2, col = &quot;blue&quot;) # umgestellt nach x</code></pre>
+<p><img src="/post/2020-11-06-MSc5_Simulationsstudien_files/figure-html/unnamed-chunk-49-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Dann wissen wir aus der Schule, dass dieser Kreis einen Flächeninhalt von <span class="math inline">\(\pi r^2 = \pi\)</span> hat. Wenn wir also den Flächeninhalt bestimmen könnten, könnten wir diese Formel und damit <span class="math inline">\(\pi\)</span> prüfen. Dazu überlegen wir uns ein Zufallsexperiment. Wir haben außen um den Kreis bereits ein rotes Viereck gezeichnet. Was wir nun machen, ist den Anteil des Kreises an dem Viereck zu bestimmen. Dazu ziehen wir unabhängige uniform-verteilte Punkte auf dem Intervall <span class="math inline">\([-1,1]\)</span> sowohl in <span class="math inline">\(x\)</span>- als auch in <span class="math inline">\(y\)</span>-Richtung. Wir wissen, dass die Punkte in dem Kreis liegen, wenn sie maximal den Radius (also = 1) vom Ursprung (<span class="math inline">\((0,0)\)</span>) entfernt liegen. Also liegen Sie innerhalb des Kreises, wenn <span class="math inline">\(\sqrt{x^2+y^2}=1\)</span> gilt (die Wurzel könnten wir uns eigentlich schenken, da <span class="math inline">\(\sqrt{1}=1\)</span>, was wir im Folgenden auch tun!). Wenn wir nun die Wahrscheinlichkeit bestimmen, dass die Punkte im (oder auf dem) Kreis liegen, dann erhalten wir <span class="math inline">\(\pi\)</span>, denn diese Wahrscheinlichkeit ist einfach das Verhältnis der beiden Flächeninhalte. Der Flächeninhalt des Quadrats liegt bei <span class="math inline">\((1-(-1))^2=2^2=4\)</span>, der des Kreises bei <span class="math inline">\(\pi\)</span>. Somit erhalten wir:</p>
+<p><span class="math display">\[\mathbb{P}\left((x,y)\text{ liegt im Kreis}\right)=\mathbb{P}\left(x^2+y^2\le 1\right)=\frac{\pi}{4}.\]</span>
+Dies bedeutet, dass wir die Wahrscheinlichkeit im Kreis zu liegen, lediglich mit 4 multiplizieren müssen, um einen Schätzer für <span class="math inline">\(\pi\)</span> zu erhalten!</p>
+<p>Diese Wahrscheinlichkeit wird durch das Verhältnis der blauen zu den gesamten Punkten dargestellt:</p>
+<pre class="r"><code>plot(x = c(1,1,-1,-1,1), y = c(1,-1,-1,1,1), type = &quot;l&quot;, 
+     ylim = c(-1.2, 1.2), xlim = c(-1.2, 1.2), ylab = &quot;Y&quot;, 
+     xlab = &quot;X&quot;, col = &quot;red&quot;, lwd = 2, main = expression(&quot;Finding&quot;~pi~&quot;by MC-methods&quot;))
+x &lt;- seq(-1,1,0.01)
+lines(x = x, y = sqrt(1-x^2), lwd = 2, col = &quot;blue&quot;) # Formel eines Kreises,
+lines(x = x, y = -sqrt(1-x^2), lwd = 2, col = &quot;blue&quot;) # umgestellt nach x
+data &lt;- matrix(runif(n = 2*10^2, min = -1, max = 1), nrow = 10^2)
+x &lt;- data[,1]; y &lt;- data[,2]
+in_circle &lt;- x^2+y^2&lt;=1 # ! verneint eine boolsche (TRUE oder FALSE)-Variable:
+points(x[in_circle], y[in_circle], col = &quot;blue&quot;, pch = 16) # Punkte innerhalb des Kreises
+points(x[!in_circle], y[!in_circle], col = &quot;red&quot;, pch = 16) # Punkte außerhalb des Kreises</code></pre>
+<p><img src="/post/2020-11-06-MSc5_Simulationsstudien_files/figure-html/unnamed-chunk-50-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Um nun <span class="math inline">\(\pi\)</span> zu schätzen, erzeugen wir eine Matrix mit <span class="math inline">\(2*10^6\)</span> uniform auf [-1,1] verteilten Zufallsvariablen. Außerdem bestimmen wir eine Funktion <code>inner_circle</code>, mit welcher wir checken, ob ein Datenpunkt innerhalb des Kreises liegt, indem sie uns <code>TRUE</code> oder <code>FALSE</code> zurückgibt. Anschließend berechnen wir den relativen Anteil, dass die Punkte innerhalb des Kreises liegen mit <code>mean</code> (siehe auch relative Häufigkeit in 01-Folgen in der Sitzung zur <a href="/post/logistische-regression">logistischen Regression</a>) und multiplizieren diese dann mit 4.</p>
+<pre class="r"><code>data &lt;- matrix(runif(n = 2*10^6, min = -1, max = 1), nrow = 10^6)
+inner_circle &lt;- function(r, dat)
+{
+     x &lt;- dat[1]; y &lt;- dat[2]
+     return(x^2 + y^2 &lt;= r)
+}
+in_circle &lt;- pbapply(X = data, MARGIN = 1, FUN = inner_circle, r = 1)</code></pre>
+<pre><code>## |+++++                                             | 10% ~01m 50s</code></pre>
+<pre><code>## [1] 3.142232</code></pre>
+<pre class="r"><code>mean(in_circle)*4 # pi</code></pre>
+<pre><code>## [1] 3.142232</code></pre>
+<pre class="r"><code>pi # aus R</code></pre>
+<pre><code>## [1] 3.141593</code></pre>
+<p>Uns fallen 2 Dinge auf: die Simulation braucht extrem lang und ist nur auf 2 Nachkommastellen genau, denn in <code>R</code> liefert <code>pi</code> auch <span class="math inline">\(\pi\)</span> auf einige Nachkommastellen. Die lange Dauer liegt daran, dass dies umständlich programmiert ist. Wir können das Ganze stark verkürzen, indem wir mit Vektoren arbeiten:</p>
+<pre class="r"><code># in short
+x &lt;- data[,1]; y &lt;- data[,2]
+in_circle &lt;- x^2+y^2&lt;=1
+mean(in_circle)*4 # pi</code></pre>
+<pre><code>## [1] 3.142232</code></pre>
+<pre class="r"><code>pi # aus R</code></pre>
+<pre><code>## [1] 3.141593</code></pre>
+<p>Dieser Befehl dauert nicht einmal 2 Sekunden (im Vergleich zu oben <span class="math inline">\(\approx\)</span> 2 Minuten!). Hier wird vektorbasiert quadriert, addiert und “größer/kleiner evaluiert”, was super schnell ist und sich sogar reimt! Es lohnt sich also, immer offen zu sein für verschiedene Methoden der Auswertung.</p>
 </div>
 </div>

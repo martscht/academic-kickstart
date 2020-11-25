@@ -12,10 +12,13 @@ tags:
   - Bias
   - Signifikanztestung
   - Verteilungen
+  - Monte-Carlo
+  - MC
+  - Pi
 subtitle: ''
 summary: ''
 authors: [irmer]
-lastmod: '2020-11-10T19:21:58+02:00'
+lastmod: '2020-11-25T19:21:58+02:00'
 featured: no
 header:
   image: "/header/MSc5_Simulation_post.jpg"
@@ -32,7 +35,7 @@ library(ggplot2) # ggplot2 und dplyr werden nur für Grafiken benötigt
 ```
 
 ## Einleitung
-Simulationsstudien können Aufschluss darüber liefern, wie gut ein statistisches Verfahren oder auch ein Schätzer funktioniert. Wir wollen uns eine einfache Simulationsstudie ansehen, mit welcher wir das Schätzen der Erwartung (des Mittelwerts der Population) der Normalverteilung untersuchen wollen. Dazu schauen wir uns einfache Simulationstechniken und Wiederholungssfunktionen, wie etwa die `for`-Schleife, in `R` an. Bevor wir uns mit Simulationsstudien in `R` beschäftigen, sollten Sie sich etwas mit `R` vertraut gemacht sowie die nötige Software (`R` als Programmiersprache und `R`-Studio als schöneres Interface) installiert haben. Hierzu eignet sich hervorragend der ebenfalls auf [`r fontawesome::fa("graduation-cap")` Pandar](https://pandar.netlify.com/) zu findende [`r fontawesome::fa("graduation-cap")``R`-Crash Kurs](/post/r-crash-kurs). Auch in der [`r fontawesome::fa("graduation-cap")` ersten Sitzung aus dem Masterstudium der Psychologie](/post/einleitung-und-wiederholung) wurden einige Begriffe, die für Simulationsstudien von Relevanz sind, wiederholt und es wurde auch eine kleine Simulation zum Untersuchen des $t$-Tests durchgeführt.
+Simulationsstudien können Aufschluss darüber liefern, wie gut ein statistisches Verfahren oder auch ein Schätzer funktioniert. Diese werden auch sehr häufig Monte-Carlo Simulationen oder MC-Simulationen genannt. Diese Methode wird neben der Untersuchung von statistischen Verfahren auch für die numerische Berechnung verwendet (bspw. können wir $\pi$ mit Hilfe von MC-Methoden bestimmen). Wir wollen uns eine einfache Simulationsstudie ansehen, mit welcher wir das Schätzen der Erwartung (des Mittelwerts der Population) der Normalverteilung untersuchen wollen. Dazu schauen wir uns einfache Simulationstechniken und Wiederholungssfunktionen, wie etwa die `for`-Schleife, in `R` an. Bevor wir uns mit Simulationsstudien in `R` beschäftigen, sollten Sie sich etwas mit `R` vertraut gemacht sowie die nötige Software (`R` als Programmiersprache und `R`-Studio als schöneres Interface) installiert haben. Hierzu eignet sich hervorragend der ebenfalls auf [`r fontawesome::fa("graduation-cap")` Pandar](https://pandar.netlify.com/) zu findende [`r fontawesome::fa("graduation-cap")``R`-Crash Kurs](/post/r-crash-kurs). Auch in der [`r fontawesome::fa("graduation-cap")` ersten Sitzung aus dem Masterstudium der Psychologie](/post/einleitung-und-wiederholung) wurden einige Begriffe, die für Simulationsstudien von Relevanz sind, wiederholt und es wurde auch eine kleine Simulation zum Untersuchen des $t$-Tests durchgeführt.
 
 ## Daten simulieren
 Wir können in `R` verschiedene Verteilungen simulieren. Bspw. erzeugt der Befehl `rnorm` normalverteilte Zufallsvariablen. Für weitere Informationen und Verteilungen siehe bspw. [`r fontawesome::fa("graduation-cap")` `R`-Verteilungen auf Wiki](https://en.wikibooks.org/wiki/R_Programming/Probability_Distributions). Wir müssen  diesem Befehl lediglich übergeben wie viele Replikationen wir wünschen und welchen Mittelwert und Standardabweichung die Zufallsvariablen haben sollen. Wir wollen eine Normalverteilung mit Mittelwert 4 und Standardabweichung 5 $\mathcal{N}(4,5^2)$ simulieren und legen die generierte (realisierte) Zufallsvariable in einem Objekt mit dem Namen `X` ab, um später gezeigte Informationen wie den Mittelwert oder die Standardabweichung abrufen zu können - dies machen wir mit dem "Zuordnungspfeil" `<-` (zur Erinnerung: links davon steht der Name, den wir uns ausdenken; hier: `X`; rechts steht das zugeordnete Objekt). Wir wollen zunächst 10 Replikationen generieren und setzen einen Seed, der für die Replizierbarkeit von Simulationen gemacht wird. Auf diese Weise erhalten wir immer die gleichen Zufallszahlen:
@@ -478,7 +481,9 @@ mean(abs(M-4)/SE <= 1.96)
 
 Welche Variante für die Coverage Sie nutzen wollen, ist selbstverständlich Ihnen überlassen! Siehe [Appendix A](#AppendixA) für eine zusätzliche Möglichkeit die Coverage als Funktion zu nutzen.
 
-In [Appendix C](#AppendixC) erfahren Sie, wie sie eine Verlaufsleiste (Progress Bar) hinzufügen, um zu wissen, wie lange Ihre Simulationen noch brauchen (falls Sie dazu Lust haben!).
+In [Appendix C](#AppendixC) erfahren Sie, wie Sie eine Verlaufsleiste (Progress Bar) hinzufügen, um zu wissen, wie lange Ihre Simulationen noch brauchen (falls Sie dazu Lust haben!).
+
+In [Appendix D](#AppendixD) erfahren Sie, wie Sie $\pi$ mit MC-Methoden bestimmen.
 
 Andere Modelle, wie bspw. ein Regressionsmodell, simulieren Sie, indem Sie mehrere Variablen in `R` simulieren und diese dann durch z.B. Addition verknüpfen, um so Ihr Populationsmodell aufstellen zu können. Danach müssen Sie entscheiden, mit welchem Analysemodell Sie die generierten Daten untersuchen wollen.
 
@@ -559,13 +564,20 @@ message("|=====>--------------------------------------------|  12% elapsed =  4s
 
 
 #### Progress Bar für `apply`
-Um eine Progress Bar in `apply`-Funktionen einzubauen, können wir das `R`-Paket `pbapply` verwenden (`pb` steht hierbei für progress bar!). Dazu müssen wir dieses zunächst installieren (`install.packages("pbapply")`). Das Paket ist super einfach zu nutzen. Wir müssen lediglich vor unsere `apply` Funktionen noch `pb` davor schreiben. Außerdem brauchen wir ein paar mehr Replikationen, da es sonst zu schnell geht! Anschließend sollte folgender Code unserer `sapply`-Simulationsstudie eine Progress Bar hinzufügen!
+Um eine Progress Bar in `apply`-Funktionen einzubauen, können wir das `R`-Paket `pbapply` verwenden (`pb` steht hierbei für **p**rogress **b**ar!). Dazu müssen wir dieses zunächst installieren (`install.packages("pbapply")`). Das Paket ist super einfach zu nutzen. Wir müssen lediglich vor unsere `apply` Funktionen noch `pb` davor schreiben. Gleiches gilt auch für `replicate`, welches wir auch mit einer Progressbar versehen können. Außerdem brauchen wir ein paar mehr Replikationen, da es sonst zu schnell geht! Anschließend sollte folgender Code unserer `sapply`-Simulationsstudie eine Progress Bar hinzufügen!
 
 
 ```{r, eval = F}
 Reps <- 10^6 # entspricht 1000000
 set.seed(100) # Vergleichbarkeit
-X_data <- replicate(n = Reps, expr = rnorm(n = 10, mean = 4, sd = 5), simplify = F)
+X_data <- pbreplicate(n = Reps, expr = rnorm(n = 10, mean = 4, sd = 5), simplify = F)
+```
+
+```{r, echo = F}
+message("|++++++++++++++++++++                              | 39% ~03s")      
+```
+
+```{r, eval = F}
 sResults <- pbsapply(X = X_data, FUN = calculate_mean_SE)
 ```
 
@@ -573,5 +585,79 @@ sResults <- pbsapply(X = X_data, FUN = calculate_mean_SE)
 message("|+++++++++++++++++++                               | 38% ~10s")
 ```
 
-Hier ist nun auch deutlich zu sehen, dass `apply` schneller als die `for`-Schleife ist, wobei wir hier beachten müssen, dass bereits in `replicate` die Daten erzeugt werden, was auch sehr viel Zeit kostet.
+Hier ist nun auch deutlich zu sehen, dass `apply` schneller als die `for`-Schleife ist, wobei wir hier beachten müssen, dass bereits in `replicate` die Daten erzeugt werden, was auch sehr viel Zeit kostet - allerdings nicht so viel wie die `for`-Schleife. Dies liegt ganz einfach daran, dass `R` nicht für Schleifen optimiert ist, sondern für vektorbasierte Verfahren und Operationen optimiert ist.
 
+Wir müssen allerdings auch beachten, dass die Progressbar natürlich auch leichte Einflüsse auf die Performanz nimmt und die Funktionen so ganz leicht langsamer werden! Wenn solche Funktionen sehr lange dauern, dann besteht die Möglichkeit die Prozesse auf mehrere Kerne der CPU zu verteilen und so gleichzeitig mehrere Replikationen zu verrechnen. Bei Interesse wenden Sie sich an [Julien Irmer](/authors/irmer).
+
+
+### Appendix D: Berechnung von $\pi$ {#AppendixD}
+Wir wissen, dass $\pi$ in etwa bei $3.14159$ liegt. Doch wie kommt man darauf? Eine Möglichkeit liefert hier die MC-Methode. Dazu brauchen wir eine Formel, in der $\pi$ vorkommt. Beispielsweise könnten wir einen Kreis mit Radius $r=1$ zeichnen:
+
+```{r, fig.align="center",fig.height=7.3,fig.width=7}
+plot(x = c(1,1,-1,-1,1), y = c(1,-1,-1,1,1), type = "l", 
+     ylim = c(-1.2, 1.2), xlim = c(-1.2, 1.2), ylab = "Y", 
+     xlab = "X", col = "red", lwd = 2, main = expression("Finding"~pi~"by MC-methods"))
+x <- seq(-1,1,0.01)
+lines(x = x, y = sqrt(1-x^2), lwd = 2, col = "blue") # Formel eines Kreises,
+lines(x = x, y = -sqrt(1-x^2), lwd = 2, col = "blue") # umgestellt nach x
+```
+
+Dann wissen wir aus der Schule, dass dieser Kreis einen Flächeninhalt von $\pi r^2 = \pi$ hat. Wenn wir also den Flächeninhalt bestimmen könnten, könnten wir diese Formel und damit $\pi$ prüfen. Dazu überlegen wir uns ein Zufallsexperiment. Wir haben außen um den Kreis bereits ein rotes Viereck gezeichnet. Was wir nun machen, ist den Anteil des Kreises an dem Viereck zu bestimmen. Dazu ziehen wir unabhängige uniform-verteilte Punkte auf dem Intervall $[-1,1]$ sowohl in $x$- als auch in $y$-Richtung. Wir wissen, dass die Punkte in dem Kreis liegen, wenn sie maximal den Radius (also = 1) vom Ursprung ($(0,0)$) entfernt liegen. Also liegen Sie innerhalb des Kreises, wenn $\sqrt{x^2+y^2}=1$ gilt (die Wurzel könnten wir uns eigentlich schenken, da $\sqrt{1}=1$, was wir im Folgenden auch tun!). Wenn wir nun die Wahrscheinlichkeit bestimmen, dass die Punkte im (oder auf dem) Kreis liegen, dann erhalten wir $\pi$, denn diese Wahrscheinlichkeit ist einfach das Verhältnis der beiden Flächeninhalte. Der Flächeninhalt des Quadrats liegt bei $(1-(-1))^2=2^2=4$, der des Kreises bei $\pi$. Somit erhalten wir:
+
+$$\mathbb{P}\left((x,y)\text{ liegt im Kreis}\right)=\mathbb{P}\left(x^2+y^2\le 1\right)=\frac{\pi}{4}.$$
+Dies bedeutet, dass wir die Wahrscheinlichkeit im Kreis zu liegen, lediglich mit 4 multiplizieren müssen, um einen Schätzer für $\pi$ zu erhalten!
+
+Diese Wahrscheinlichkeit wird durch das Verhältnis der blauen zu den gesamten Punkten dargestellt:
+
+```{r, fig.align="center",fig.height=7.3,fig.width=7}
+plot(x = c(1,1,-1,-1,1), y = c(1,-1,-1,1,1), type = "l", 
+     ylim = c(-1.2, 1.2), xlim = c(-1.2, 1.2), ylab = "Y", 
+     xlab = "X", col = "red", lwd = 2, main = expression("Finding"~pi~"by MC-methods"))
+x <- seq(-1,1,0.01)
+lines(x = x, y = sqrt(1-x^2), lwd = 2, col = "blue") # Formel eines Kreises,
+lines(x = x, y = -sqrt(1-x^2), lwd = 2, col = "blue") # umgestellt nach x
+data <- matrix(runif(n = 2*10^2, min = -1, max = 1), nrow = 10^2)
+x <- data[,1]; y <- data[,2]
+in_circle <- x^2+y^2<=1 # ! verneint eine boolsche (TRUE oder FALSE)-Variable:
+points(x[in_circle], y[in_circle], col = "blue", pch = 16) # Punkte innerhalb des Kreises
+points(x[!in_circle], y[!in_circle], col = "red", pch = 16) # Punkte außerhalb des Kreises
+```
+
+
+Um nun $\pi$ zu schätzen, erzeugen wir eine Matrix mit $2*10^6$ uniform auf [-1,1] verteilten Zufallsvariablen. Außerdem bestimmen wir eine Funktion `inner_circle`, mit welcher wir checken, ob ein Datenpunkt innerhalb des Kreises liegt, indem sie uns `TRUE` oder `FALSE` zurückgibt. Anschließend berechnen wir den relativen Anteil, dass die Punkte innerhalb des Kreises liegen mit `mean` (siehe auch relative Häufigkeit in 01-Folgen in der Sitzung zur [logistischen Regression](/post/logistische-regression)) und multiplizieren diese dann mit 4.
+
+```{r, eval = F}
+data <- matrix(runif(n = 2*10^6, min = -1, max = 1), nrow = 10^6)
+inner_circle <- function(r, dat)
+{
+     x <- dat[1]; y <- dat[2]
+     return(x^2 + y^2 <= r)
+}
+in_circle <- pbapply(X = data, MARGIN = 1, FUN = inner_circle, r = 1)
+```
+
+```{r, echo = F}
+message("|+++++                                             | 10% ~01m 50s")
+# in short
+data <- matrix(runif(n = 2*10^6, min = -1, max = 1), nrow = 10^6)
+x <- data[,1]; y <- data[,2]
+in_circle <- x^2+y^2<=1
+mean(in_circle)*4
+```
+
+```{r}
+mean(in_circle)*4 # pi
+pi # aus R
+```
+
+Uns fallen 2 Dinge auf: die Simulation braucht extrem lang und ist nur auf 2 Nachkommastellen genau, denn in `R` liefert `pi` auch $\pi$ auf einige Nachkommastellen. Die lange Dauer liegt daran, dass dies umständlich programmiert ist. Wir können das Ganze stark verkürzen, indem wir mit Vektoren arbeiten: 
+
+```{r}
+# in short
+x <- data[,1]; y <- data[,2]
+in_circle <- x^2+y^2<=1
+mean(in_circle)*4 # pi
+pi # aus R
+```
+
+Dieser Befehl dauert nicht einmal 2 Sekunden (im Vergleich zu oben $\approx$ 2 Minuten!). Hier wird vektorbasiert quadriert, addiert und "größer/kleiner evaluiert", was super schnell ist und sich sogar reimt! Es lohnt sich also, immer offen zu sein für verschiedene Methoden der Auswertung.
