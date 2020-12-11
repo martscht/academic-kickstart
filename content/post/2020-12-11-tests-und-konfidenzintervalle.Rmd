@@ -1,0 +1,390 @@
+---
+title: Tests und Konfidenzintervalle
+date: '2020-12-11'
+slug: tests-und-konfidenzintervalle
+categories:
+  - BSc2
+tags:
+  - t-Test
+subtitle: ''
+summary: ''
+authors: [scheppa-lahyani]
+lastmod: '2020-12-11T19:04:08+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+  
+<details><summary>Kernfragen dieser Lehreinheit</summary>
+
+* Wie berechne ich, ob es einen **Unterschied zwischen einer Stichprobe und der dazugehörigen Population** gibt? 
+* Wann und wie rechne ich einen **z-Test (Einstichproben-Gauss-Test)**? Wie interpretiere ich die Ergebnisse?
+* Wie bestimme ich das **Konfidenzintervall** des wahren Werts $\mu$?
+* Wann und wie rechne ich einen **t-Test**? Welche Voraussetzungen hat dieser? Wie interpretiere ich die Ergebnisse?
+* Wie gehe ich mit **gerichteten vs. ungerichteten Hypothesen** um?
+* Was ist Cohen's *d* und wie berechne ich es? Wie interpretiere ich die Ergebnisse?
+</details>
+ 
+## Was erwartet Sie heute?
+  
+Nachdem wir uns die letzten Wochen mit der Deskriptivstatistik und Zusammenhangsmaßen beschäftigt haben, wird unser Thema nun Gruppenunterschiede sein. Wir interessieren uns heute vor allem für den Unterschied zwischen dem Mittelwert einer Stichprobe und dem Mittelwert der dazugehörigen Population, aus der die Stichprobe stammt.
+
+## Aufbau der Sitzung
+
+* z-Test
+* Konfidenzintervalle
+* t-Test
+* Beispiel am Datensatz
+* Effektgröße
+
+***
+
+## Let's start
+
+Der durchschnittliche IQ der Population ist $\mu_0$ = 100 und die Standardabweichung ist 15. Eine Forschungsgruppe glaubt aber, dass sich das verändert hat und entscheidet, diese Vermutung an der zufälligen Stichprobe von 75 Erwachsenen zu testen. Sie finden heraus, dass der durchschnittliche IQ der Stichprobe $\mu_1$ = 105 (*SD* = 17) ist.
+
+**Was wären hier $H_0$ und $H_1$?**
+  
+$\alpha$ = .05 
+
+$H_0$: Der durchschnittliche IQ der Stichprobe ist gleich oder geringer als zuvor.
+
+$H_0$: $\mu_0$ $\geq$ $\mu_1$
+  
+$H_1$: Der durchschnittliche IQ der Stichprobe ist höher als zuvor.
+
+$H_1$: $\mu_0$ $<$ $\mu_1$
+  
+Die Frage: Reicht dieses deskriptive Ergebnis (100 vs. 105) um daraus schlusszufolgern, dass der durchschnittliche IQ sich verändert hat?  
+  
+**Nein**. Erst mit Hilfe des z- oder t-Tests kann herausgefunden werden, wie (un)wahrscheinlich die beobachtete Diskrepanz (100 vs. 105) ist. 
+
+ABER: ob z- oder t-Test zum Einsatz kommt, hängt davon ab, ob neben dem Mittelwert auch die Standardabweichung (*SD*, $\sigma$) der Grundgesamtheit bekannt ist.  
+In diesem Fall ist die *SD* bekannt, demnach wäre ein z-Test an dieser Stelle anzuwenden.
+
+## z-Test
+
+Der **z-Test** oder **Einstichproben-Gauss-Test** setzt voraus, dass das Merkmal in der Population, auf die sich die Nullhypothese ($H_0$) bezieht, normalverteilt ist und der Mittelwert sowie die Standardabweichung bekannt sind.  
+Des Weiteren verwendet der Gauss-Test grundsätzlich die Standardnormalverteilung als Stichprobenkennwerteverteilung (SKV), deswegen ist er nicht für kleine Stichproben geeignet.  
+Der Einstichproben-Gauss-Test prüft anhand des arithmetischen Mittels einer Stichprobe, ob der Erwartungswert der zugehörigen Grundgesamtheit ungleich (bzw. kleiner oder größer) als ein vorgegebener Wert ist.
+
+Die Formel für den **empirischen *z-*Wert** $z_{emp}$ ist:
+  
+$$z_{emp} = |\frac{\bar{x} - {\mu}}{\sigma_{\bar{x}}}|$$
+  wobei sich der Standardfehler (*SE*) des Mittelwerts wie folgt berechnet:
+  
+$$\sigma_{\bar{x}} = {\frac{{\sigma}}{\sqrt{n}}}$$
+  
+Zunächst legen wir alle für den *z-*Wert relevanten Informationen in unser Environment ab, wobei wir auch schon den Standardfehler des Mittelwerts ($\sigma_{\bar{x}}$) berechnen.
+```{r}
+mean_IQ <- 100 #Mean Grundgesamtheit
+sd_IQ <- 15 #SD der Grundgesamtheit
+sample_size <- 75 #Stichprobengroesse
+se_IQ <- sd_IQ/sqrt(sample_size) #standard error (SE), also Standardfehler
+new_mean_IQ <- 105 #Stichprobenmittelwert
+new_sd_IQ <- 17 #SD der Stichprobe (Populationsschaetzer)
+```
+
+Demnach wird der empirische *z-*Wert $z_{emp}$ wie folgt berechnet (Bedenkt, dass es immer um den Betrag des Ergebnisses geht, weshalb wir die Funktion abs() verwenden.):
+  ```{r}
+z_IQ <- abs((new_mean_IQ-mean_IQ)/(sd_IQ/sqrt(sample_size))) #abs() berechnet den Betrag des Ergebnisses
+z_IQ
+```
+bzw.
+```{r}
+z_IQ <- abs((new_mean_IQ-mean_IQ)/se_IQ)
+z_IQ
+```
+
+Der empirische *z-*Wert $z_{emp}$ ist eine Angabe, um wie viele Standardabweichungen der Mittelwerte der SKV (*SE*) der Mittelwert der Stichprobe vom Mittelwert der Grundgesamtheit abweicht.  
+Der beobachtete Stichprobenmittelwert weicht demnach um **$z_{IQ}$ = 2.89** *SE* (nach oben) vom Mittelwert der Grundgesamtheit ab.  
+Um entscheiden zu können, ob es sich um eine signifikante Abweichung handelt, muss der **kritische *z-*Wert** $z_{krit}$ bestimmt werden.  
+Für eine Irrtumswahrscheinlichkeit von 5% und eine einseitige Hypothesentestung wäre dies:
+  
+```{r}
+z_krit <- qnorm(1-.05) #bei einer zweiseitigen Testung wuerden wir qnorm(1-(.05/2)) verwenden
+z_krit
+```
+
+Der **kritische *z-*Wert** beträgt demnach **$z_{krit}$ = 1.64**. Damit das Ergebnis als signifikant gewertet wird, muss der empirische *z-*Wert $z_{emp}$ größer sein als der kritsiche *z-*Wert (**$z_{IQ}$ > $z_{krit}$**). Hierfür können wir auch eine logische Abfrage nutzen:
+  
+```{r}
+z_IQ > z_krit
+```
+
+Das Ergebnis TRUE zeigt uns, dass es sich um einen signifikanten Unterschied handelt.
+Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen werden. Der durchschnittliche IQ der Stichprobe ist mit einer 95%igen Wahrscheinlichkeit höher als der durchschnittliche IQ der Grundgesamtheit.
+
+### Weitere Möglichkeit: pnorm
+
+Wie wahrscheinlich ist es angesichts der bekannten Normalverteilung der *z-*Werte den beobachteten empirischen *z-*Wert $z_{emp}$ zu erhalten?
+  
+Wie hoch ist die Wahrscheinlichkeit diesen oder einen GRÖßEREN (einseitig) *z-*Wert zu erreichen?
+  
+```{r}
+p_z_IQ_oneside <- pnorm(z_IQ, lower.tail = FALSE)
+p_z_IQ_oneside
+```
+
+Wie hoch ist die Wahrscheinlichkeit diesen oder einen EXTREMEREN (zweiseitig) *z-*Wert zu erreichen?
+  
+```{r}
+p_z_IQ_twoside <- 2*pnorm(z_IQ, lower.tail = FALSE) #verdoppeln, da zweiseitig
+p_z_IQ_twoside
+```
+
+Wir erkennen, dass in beiden Fällen der Wert kleiner als .05 (5%) ist. Demnach ist die Wahrscheinlichkeit, diesen Wert per Zufall erhalten zu haben, sehr gering.
+
+***
+
+## Konfidenzintervalle 
+
+Wir können auch ein Konfidenzintervall um den wahren Populationsmittelwert $\mu$ bestimmen. Es geht dabei darum, in welchem Wertebereich der wahre Wert $\mu$ mit einer gewissen vorgegebenen Wahrscheinlichkeit liegt.
+
+Dabei gilt:
+  
+$$\mu = \bar{x} \pm \frac{z_{krit}*\hat\sigma}{\sqrt{n}}$$
+  
+Ein 95%-Konfidenzintervall ist ein Intervall, welches in 95% der Fälle beim Ziehen aus der selben Grundgesamtheit den wahren Wert $\mu$ enthält.
+
+Wenn wir ein 95%-Konfidenzintervall bestimmen wollen, brauchen wir den **kritischen *z-*Wert** $z_{krit}$ aus der SNV (Standardnormalverteilung).  
+Für Konfidenzintervalle nutzen wir einen *z-*Wert für 2-seitiges Testen:
+  
+```{r}
+z_krit2 <- qnorm(1-(.05/2))
+z_krit2
+```
+
+```{r}
+positive_mean_IQ <- new_mean_IQ+((z_krit2*new_sd_IQ)/sqrt(sample_size))
+positive_mean_IQ
+
+negative_mean_IQ <- new_mean_IQ-((z_krit2*new_sd_IQ)/sqrt(sample_size))
+negative_mean_IQ
+
+conf_interval_IQ <- c(negative_mean_IQ, positive_mean_IQ )
+conf_interval_IQ
+```
+
+In diesem Fall liegt der wahre IQ Wert der Grundgesamtheit $\mu$, aus der die Stichprobe gezogen wurde, mit einer 95%igen Wahrscheinlichkeit zwischen 101.15 und 108.85.
+
+***
+
+## t-Test
+
+Der t-Test ersetzt den z-Test, wenn die Varianz in der Grundgesamtheit nicht bekannt ist. Mit dem t-Test für eine Stichprobe kann man den **Stichprobenmittelwert** einer Variablen mit einem **bekannten Populationsmittelwert** vergleichen. 
+
+Der Test hat die folgenden Voraussetzungen:
+  
+ 1. Metrisch skalierte abhängige Variable
+ 2. Bei *n* < 30 : Normalverteilung der abhängigen Variable in der Population.
+
+Unterschiedliche Quellen geben an, dass die durchschnittliche Größe der Männer in Deutschland 180 cm beträgt (z.B. https://www.laenderdaten.info/durchschnittliche-koerpergroessen.php). Eine Forschungsgruppe vermutet jedoch, dass die Männer in Deutschland eigentlich größer sind und ermittelt von zehn zufällig gezogenen Männer die Körpergröße.
+
+Die Größe der Männer beträgt: 183, 178, 175, 186, 185, 179, 181, 179, 182, 177 (gemessen in cm). 
+
+Kann die Vermutung der Forchungsgruppe bestätigt werden?
+  
+```{r}
+men.height <- c(183, 178, 175, 186, 185, 179, 181, 179, 182, 177)
+mean.men.height <- mean(men.height)
+sd.men.height <- sd(men.height)
+average.men.height <- 180
+n.men.height <- length(men.height)
+```
+
+```{r}
+mean.men.height
+sd.men.height
+average.men.height
+n.men.height
+```
+
+
+### Voraussetzungsprüfung
+
+*Normalverteilt?*
+  
+**Variante 1**: Inferenzstatistik: Der **Shapiro-Wilk Test** prüft auf die Normalverteilung von Variablen. 
+Der Wert *W* ist die Teststatistik. 
+Eine Normalverteilung in der Population liegt vor, wenn das Ergebnis NICHT signifikant ist.
+
+```{r}
+shapiro.test(men.height)
+```
+
+**Variante 2**: Grafisch: In einem sog. QQ-Plot werden die unter der Normalverteilung erwarteten Quantile und die tatsächlich beobachteten Quantile in einem Streudiagramm dargestellt. Je deutlicher die Punkte auf der Geraden liegen, desto näher ist die beobachtete Verteilung an der Normalverteilung.
+
+```{r}
+qqnorm(men.height) 
+qqline(men.height)
+```
+
+Beide Varianten lassen darauf schließen, dass die Annahme auf Normalverteilung nicht verworfen werden muss.
+
+### Signifikanz bestimmen
+
+Der t-Test basiert auf folgender Formel und unterscheidet sich damit nur minimal vom z-Test:
+  
+$$t_{emp} = |\frac{\bar{x} - {\mu}}{\hat\sigma_{\bar{x}}}|$$
+wobei sich der Standardfehler (*SE*)  des Mittelwerts wie folgt berechnet:
+  
+$$\hat\sigma_{\bar{x}} = {\frac{{\hat\sigma}}{\sqrt{n}}}$$
+  
+  
+Der Standardfehler des Mittelwerts wird demnach auf der Basis der Stichprobenvarianz geschätzt.
+```{r}
+se.men.height <- sd.men.height/sqrt(n.men.height)
+```
+
+Bestimmen des empirischen *t-*Wertes $t_{emp}$:
+  
+```{r}
+t.men.height <- abs((mean.men.height-average.men.height)/se.men.height)
+t.men.height
+```
+
+Bestimmen des kritischen *t-*Wertes $t_{krit}$:
+```{r}
+krit.t.men.height <- qt(0.95, df=n.men.height-1) 
+krit.t.men.height
+```
+
+Ist der empirische größer als der kritische *t-*Wert ($t_{emp} > t_{krit}$)?
+  
+```{r}
+t.men.height > krit.t.men.height
+```
+
+Der empirische *t-*Wert wird hier nicht überboten.
+
+Alternativ: Bestimmen des kritischen *p*-Wertes $p_{krit}$:
+```{r}
+p.t.men.height <- pt(t.men.height, n.men.height-1, lower.tail = F) #einseitige Testung
+p.t.men.height
+```
+
+Der empirische *p*-Wert liegt über .05 ($p_{emp} > p_{krit}$). 
+
+Die Differenz zwischen dem Mittelwert der Population $\mu$ und dem beobachteten Mittelwert $\bar{x}$ in der Stichprobe ist nicht signifikant. Demnach wird die $H_0$ mit einer Irrtumswahrscheinlichkeit von 5% beibehalten.
+
+### t-test mit t.test Funktion
+
+Natürlich geht alles auch noch einfacher:
+  
+```{r}
+t.test(men.height, mu=180, alternative="greater") #alternative bestimmt, ob die Hypothese gerichtet ist oder nicht. Siehe hierzu ?t.test.
+```
+
+Hier haben wir nun alle wichtigen Informationen gebündelt. 
+
+t = $t_{emp}$ = 0.44721
+
+df = Freiheitsgrade = 9
+
+p-value = $p_{emp}$ = 0.3326
+
+mean of x = $\bar{x}$ = 180.5
+
+Wir erkennen auch hier, dass der empirische *p*-Wert über .05 liegt ($p_{emp} > p_{krit}$). Demnach wird die $H_0$ mit einer Irrtumswahrscheinlichkeit von 5% beibehalten.
+
+Das 95%ige Konfidenzintervall wird uns ebenfalls ausgegeben. Basierend auf der Stichprobe liegt der wahre Wert $\mu$ zwischen 178.4505 und einer Zahl, die den Zahlenbereich von men.height übersteigt (unendlich). Man erkennt also, dass der Wert von 180 in diesem Konfidenzintervall liegt, was ebenso bestätigt, dass es keinen Unterschied gibt.
+
+## Beispiel mit unserem Datensatz
+
+```{r}
+load('fb20.rda')
+```
+
+**Unterscheidet sich unsere studentische Stichprobe in ihrem Neurotizismuswert von Studierenden im Allgemeinen?** 
+  Wir nehmen an, dass der mittlere Neurotizismuswert in der Population der Studierenden bei $\mu$ = 3.3 liegt. 
+
+ 1. Ist die erste Voraussetzung erfüllt?
+ 2. Normalverteilungsananahme darf verletzt sein (verzerrt das Ergebnis des t-Tests nicht) wenn die Stichprobe mindestens 30 Personen umfasst. Dann gilt der *zentrale Grenzwertsatz*: "Die Stichprobenkennwertverteilung nähert sich einer Normalverteilung an, selbst wenn diese nicht normalverteilt ist."
+
+An dieser Stelle führen wir eine Funktion ein, die uns alle deskriptiven Werte einer Variablen ausgeben kann:
+
+```{r}
+library(psych)
+describe(fb20$neuro)
+```
+
+### Hypothesengenerierung
+
+**Variante 1**:
+
+**Ungerichtete $H_1$**: "Der mittlere Neurotizismuswert unserer Stichprobe unterscheidet sich vom mittleren Neurotizismuswert der Studierenden-Population" 
+--> zweiseitiger t-Test
+
+**Ungerichtete $H_0$**: "Der mittlere Neurotizismuswert unserer Stichprobe unterscheidet sich nicht vom mittleren Neurotizismuswert der Studierenden-Population"
+
+**Variante 2**:
+
+**Gerichtete $H_1$**: "Der mittlere Neurotizismuswert unserer Stichprobe ist höher (niedriger) als der mittlere Neurotizismuswert der Studierenden-Population."
+--> einseitiger t-Test
+
+**Gerichtete $H_0$**: "Der mittlere Neurotizismuswert unserer Stichprobe ist gleich oder niedriger (höher) als der mittlere Neurotizismuswert der Studierenden-Population."
+
+In der Praxis würde man sich für eine der beiden Hypothesen-Varianten (*ungerichtet* vs. *gerichtet*) entscheiden. Zu Übungszwecken werden aber alle beide Varianten durchgespielt.
+
+```{r}
+t.test(fb20$neuro, mu=3.3) #ungerichtet
+t.test(fb20$neuro, mu=3.3, alternative="less") #gerichtet, Stichprobenmittelwert geringer
+t.test(fb20$neuro, mu=3.3, alternative="greater") #gerichtet, Stichprobenmittelwert hoeher
+```
+
+**Konfidenzintervall:** Wir erkennen, dass das 95%-ige Konfidenzintervall per Standardeinstellung berechnet wird. Falls wir dieses vergrößern oder verkleinern wollen, müssen wir dies explizit formulieren:
+  
+```{r}
+t.test(fb20$neuro, mu=3.3, conf.level=0.99) #99%-iges Konfidenzintervall fuer die ungerichtete Hypothese
+t.test(fb20$neuro, mu=3.3, alternative="less", conf.level=0.99) #99%-iges Konfidenzintervall fuer die gerichtete Hypothese (Stichprobenmittelwert geringer)
+t.test(fb20$neuro, mu=3.3, alternative="greater", conf.level=0.99) #99%-iges Konfidenzintervall fuer die gerichtete Hypothese (Stichprobenmittelwert hoeher)
+```
+
+Es zeigt sich, dass der Neurotizismuswert der Studierenden sich von der Studierenden-Population unterscheidet.
+
+**Ungerichtet**
+
+Die $H_0$ mit einer Irrtumswahrscheinlichkeit von 5% verworfen. Der Neurotizismuswert der Studierenden unterscheidet sich von der Studierenden-Population.
+
+**Gerichtet (niedriger)**
+
+Die $H_0$ mit einer Irrtumswahrscheinlichkeit von 5% beibehalten. Der Neurotizismuswert der Studierenden ist nicht kleiner als der der Studierenden-Population.
+*Bemerke*: Einen gerichteten t-Test würde man an dieser Stelle nicht durchführen, da die deskriptiven Werte schon gegen die Hypothese sprechen ($\bar{x} > \mu$).
+
+**Gerichtet (hoeher)***
+
+Die $H_0$ mit einer Irrtumswahrscheinlichkeit von 5% verworfen. Der Neurotizismuswert der Studierenden ist hoeher als der der Studierenden-Population.
+
+***
+
+## Effektgröße
+
+Als Effektgröße für Mittelwertsunterschiede kann **Cohen's d** (Cohen, 1988) verwendet werden. 
+
+Cohen, J. (1988). *Statistical power analysis for the Behavioral Sciences*. Routledge.
+
+Dieses statistische Effektmaß beschreibt die Relevanz von signifikanten Ergebnissen. Zudem kann es verwendet werden, um den Effekt über verschiedene Studien hinweg zu vergleichen.
+
+$$d = |\frac{\bar{x} - {\mu}}{\sigma}|$$
+
+```{r}
+mean_Neuro <- mean(fb20$neuro) #IQ der Stichprobe
+sd_Neuro <- sd(fb20$neuro, na.rm = T) #Stichproben SD (Populationsschaetzer)
+mean_Popu_Neuro <- 3.3 #IQ der Grundgesamtheit
+d <- abs((mean_Neuro-mean_Popu_Neuro)/sd_Neuro) #abs(), da Betrag
+d
+```
+
+Die Effektgröße ist in diesem Fall mit einem Wert von .2295 klein.
+
+Es gilt nach Cohen (1988):
+
+*d* $\geq$ 0.2 -> kleiner Effekt
+
+*d* $\geq$ 0.5 -> mittlerer Effekt
+
+*d* $\geq$ 0.8 -> großer Effekt

@@ -1,0 +1,211 @@
+---
+title: Tests und Konfidenzintervalle - Lösungen
+author: 
+date: '2020-12-11'
+slug: tests-und-konfidenzintervalle-loesungen
+categories:
+  - BSc2
+tags:
+  - t-Test
+subtitle: ''
+summary: ''
+authors: [scheppa-lahyani]
+lastmod: '2020-12-11T19:09:16+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+expiryDate: '2021-03-31'
+publishDate: '2020-12-18'
+---
+
+*Aufgrund der vereinfachten Lesbarkeit wird auf genderspezifische Formulierungen verzichtet.*
+
+## Installieren aller wichtigen Packages
+
+```{r, eval=F}
+install.packages("psych")
+install.packages("nortest")
+install.packages("car")
+```
+```{r}
+library(psych)
+library(nortest)
+library(car)
+
+load('fb20.rda')
+```
+
+## Aufgabe 1
+
+**Die mittlere Lebenszufriedenheit (`lz`) in Deutschland liegt bei $\mu$ = 4.7.**
+
+**1.1 Was ist der Mittelwert ($\bar{x}$), die Standardabweichung (*SD*, $\hat\sigma$) und der Standardfehler ($\sigma_{\bar{x}}$) der Lebenszufriedenheit in der Gruppe der Psychologie-Studenten?**
+
+**Variante 1**:
+
+```{r}
+mean.lz <- mean(fb20$lz, na.rm = T) #Mittelwert
+mean.lz
+
+sd.lz <- sd(fb20$lz, na.rm = T) #Standardabweichung
+sd.lz
+
+n.lz <- length(fb20$lz) #Stichprobengroesse
+se.lz <- sd.lz/sqrt(n.lz) #Standardfehler
+se.lz
+```
+
+**Variante 2**:
+
+```{r}
+describe(fb20$lz) #Funktion aus Paket "psych"
+```
+
+**1.2 Sind die Lebenszufriedenheitswerte normalverteilt? Veranschaulichen Sie dies mit einem geeigneten Plot. Benutzen Sie die qqPlot-Funktion aus dem car-Paket sowie die lillie.test-Funktion aus dem nortest-Paket. Wie unterscheiden Sie sich? Wann kann man in diesem Fall von einer Normalverteilung ausgehen?**
+
+```{r}
+#geeigneter Plot: QQ-Plot. Alle Punkte sollten auf einer Linie liegen.
+qqnorm(fb20$lz)
+
+#Die qqPlot-Funktion zeichnet ein Konfidenzintervall in den QQ-Plot. Dies macht es f?r den Betrachter einfacher zu entscheiden, ob alle Punkte in etwa auf einer Linie liegen. Die Punkte sollten nicht au?erhalb der blauen Linien liegen.
+qqPlot(fb20$lz)
+
+#Der Lillie-Test (Kolmogorov-Smirnov Test), testet die H0, dass eine Normalverteilung vorliegt. Daher sollte der Test nicht signifikant sein
+lillie.test(fb20$lz)
+```
+Sowohl der QQ-Plot als auch der Lilliefors-Test pruefen die Daten auf Normalverteilung, wobei der QQ-Plot grafisch und der Lilliefors-Test inferenzstatistisch vorgeht. Beide kommen in diesem Fall zu dem Ergebnis, dass die Daten **nicht** normalverteilt sind.
+
+**1.3 Unterscheidet sich die Lebenszufriedenheit der Psychologie-Studenten von der Lebenszufriedenheit der Gesamtbevoelkerung ($\mu$ = 4.7)? Bestimmen Sie das 99%ige Konfidenzintervall.**
+
+Da die Varianz der Grundgesamtheit nicht bekannt ist, wird ein t-Test herangezogen.
+Obwohl keine Normalverteilung vorliegt, können wir aufgrund des *zentralen Grenzwertsatzes* trotzdem einen t-Test rechnen.
+
+**Hypothesengenerierung:**
+
+$\alpha$ = .05 
+
+$H_0$: Die durchschnittliche Lebenzufriedenheit der Psychologie-Studenten $\mu_1$ unterscheidet sich nicht von der Lebenszufriedenheit der Gesamtbevoelkerung $\mu_0$.
+
+$H_0$: $\mu_0$ $=$ $\mu_1$
+
+$H_1$: Die durchschnittliche Lebenzufriedenheit der Psychologie-Studenten $\mu_1$ unterscheidet sich von der Lebenszufriedenheit der Gesamtbevoelkerung $\mu_0$.
+
+$H_1$: $\mu_0$ $\neq$ $\mu_1$
+
+```{r}
+t.test(fb20$lz, mu=4.7)
+t.test(fb20$lz, mu=4.7, conf.level = 0.99) #Default ist 95%, deshalb erhoehen wir auf 99%
+```
+
+Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen werden. Die Psychologie-Studenten unterscheiden sich in ihrer Lebenszufriedenheit von der Gesamtbevoelkerung. 
+
+## Aufgabe 2
+
+**Die durchschnittliche Abschlussnote im Fach Psychologie (Bachelor) ist 2.01 (*SD* = 0.57). Eine Forschungsgruppe vermutet, dass sich die durchschnittliche Abschlussnote ueber die Jahre veraendert hat und nun besser ist. Um dies zu ueberpruefen, untersucht die Forschergruppe eine zufuellige Stichprobe aus 140 Psychologie-Studenten (*N* = 140). Sie ermitteln eine durchschnittliche Abschlussnote von 1.81.**
+
+**2.1 Reicht diese Information aus, um nachzuweisen, dass sich die durchschnittliche Abschlussnote veraendert hat? Berechnen Sie wenn moeglich, ob es eine Veraenderung gab ($\alpha$ = .05).**
+
+Ja, diese Informationen reichen aus. Die Standardabweichung der Stichprobe wird nicht benoetigt.
+
+**Hypothesengenerierung:**
+
+$\alpha$ = .05 
+
+$H_0$: Die durchschnittliche Abschlussnote der Psychologie-Studenten $\mu_1$ ist schlechter oder gleich groß wie zuvor ($\mu_0$).
+
+$H_0$: $\mu_0$ $\leq$ $\mu_1$
+
+$H_1$: Die durchschnittliche Abschlussnote der Psychologie-Studenten $\mu_1$ ist besser als zuvor ($\mu_0$).
+
+$H_1$: $\mu_0$ $>$ $\mu_1$
+
+```{r}
+mean.note <- 2.01 #Mittelwert alt
+mean.sd <- 0.57 #Standardabweichung alt
+n.new.note <- 140 #Stichprobengroesse
+new.mean.note <- 1.81 #Mittelwert neu
+se.mean.note <- 0.57/sqrt(n.new.note) #Standardfehler
+z.note <- abs((new.mean.note-mean.note)/se.mean.note) #empirischer z-Wert
+z.note
+
+z_krit <- qnorm(1-.05) #kritischer z-Wert
+z_krit
+
+z.note > z_krit #Signifikanzentscheidung
+```
+
+Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ (keine Veraenderung) verworfen werden. Die Abschlussnote hat sich ueber die Jahre verbessert.
+
+**2.2 Wie wahrscheinlich ist angesichts der bekannten Normalverteilung der z-Werte dieser z-Wert?**
+
+```{r}
+pnorm(z.note)
+```
+
+## Aufgabe 3 (Zusatz)
+
+**3.1 Unterscheiden sich die Extraversionswerte (`extra`) der Studenten der Psychologie (1. Semester) von den Extraversionswerten der Gesamtbevoelkerung ($\mu$ = 3.5)? Bestimmen Sie das 95%ige Konfidenzintervall und die Effektgroeße.**
+
+**Hypothesengenerierung:**
+
+$\alpha$ = .05 
+
+$H_0$: Die durchschnittlichen Extraversionswerte der Psychologie-Studenten $\mu_1$ unterscheiden sich nicht von den Werten der Gesamtbevoelkerung $\mu_0$.
+
+$H_0$: $\mu_0$ $=$ $\mu_1$
+
+$H_1$: Die durchschnittlichen Extraversionswerte der Psychologie-Studenten $\mu_1$ unterscheiden sich von den Werten der Gesamtbevoelkerung $\mu_0$.
+
+$H_1$: $\mu_0$ $\neq$ $\mu_1$
+
+```{r}
+t.test(fb20$extra, mu=3.5)
+```
+
+Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ beibehalten werden. Die Psychologie-Studenten unterscheiden sich nicht in ihrer Extraversion von der Gesamtbevoelkerung. 
+Mit einer 95%-igen Wahrscheinlichkeit liegt der wahre Extraversionswert $\mu$ zwischen 3.34 und 3.60.
+
+**3.2 Sind die Prokrastinationswerte (`pro`) der Psychologie-Studenten (1. Semester) groeßer als die Prokrastinationswerte der Gesamtbevoelkerung ($\mu$ = 2.1)? Bestimmen Sie das 99%ige Konfidenzintervall und die Effektgroeße.**
+
+**Hypothesengenerierung:**
+
+$\alpha$ = .05 
+
+$H_0$: Die durchschnittlichen Prokrastinationswerte der Psychologie-Studenten $\mu_1$ sind geringer oder gleich groß wie die Werte der Gesamtbevoelkerung $\mu_0$.
+
+$H_0$: $\mu_0$ $\geq$ $\mu_1$
+
+$H_1$: Die durchschnittlichen Prokrastinationswerte der Psychologie-Studenten $\mu_1$ sind groeßer als die Werte der Gesamtbevoelkerung $\mu_0$.
+
+$H_1$: $\mu_0$ $<$ $\mu_1$
+
+```{r}
+t.test(fb20$pro, mu=2.1, alternative="greater", conf.level = 0.99)
+```
+
+Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen werden. Die Psychologie-Studenten haben hoehere Prokrastinationswerte im Vergleich zur Gesamtbevoelkerung.
+Mit einer 99%-igen Wahrscheinlichkeit liegt der wahre Prokrastinationswert $\mu$ zwischen 2.24 und Inf (Außerhalb des definierten Wertebereichs).
+
+**3.3 Sind die Psychologie-Studenten (1. Semester) vertraeglicher (`vertr`) als die Grundgesamtheit ($\mu$ = 3.99)? Bestimmen Sie das 95%ige Konfidenzintervall und die Effektgroeße.**
+
+**Hypothesengenerierung:**
+
+$\alpha$ = .05 
+
+$H_0$: Die durchschnittlichen Vertraeglichkeitswerte der Psychologie-Studenten $\mu_1$ sind geringer oder gleich groß wie die Werte der Gesamtbevoelkerung $\mu_0$.
+
+$H_0$: $\mu_0$ $\geq$ $\mu_1$
+
+$H_1$: Die durchschnittlichen Vertraeglichkeitswerte der Psychologie-Studenten $\mu_1$ sind groeßer als die Werte der Gesamtbevoelkerung $\mu_0$.
+
+$H_1$: $\mu_0$ $<$ $\mu_1$
+
+```{r}
+t.test(fb20$vertr, mu=3.99, alternative = "greater")
+```
+
+Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen werden. Die Psychologie-Studenten haben hoehere Vertraeglichkeitswerte im Vergleich zur Gesamtbevoelkerung.
+Mit einer 95%-igen Wahrscheinlichkeit liegt der wahre Vertraeglichkeitswert $\mu$ zwischen 4.01 und Inf (Außerhalb des definierten Wertebereichs).
