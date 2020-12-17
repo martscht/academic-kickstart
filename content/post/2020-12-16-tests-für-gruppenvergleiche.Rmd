@@ -1,0 +1,893 @@
+---
+title: Tests für Gruppenvergleiche
+date: '2020-12-16'
+slug: []
+categories:
+  - BSc2
+tags:
+  - t-Test
+subtitle: ''
+summary: ''
+authors: [Carmen Köhler]
+lastmod: '2020-12-16T17:00:20+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r setup, cache = FALSE, echo = FALSE, warning = FALSE, message = FALSE}
+knitr::opts_chunk$set(error = TRUE,warning = FALSE, message = FALSE)
+library(knitr)
+```
+
+<details><summary>Kernfragen dieser Lehreinheit</summary>
+
+* Wie fertige ich Deskriptivstatistiken (Grafiken, Kennwerte) zur Veranschaulichung des Unterschieds zwischen zwei Gruppen an? 
+
+**unabhängige Stichproben**
+
+* Was sind Voraussetzungen des _t_-Tests und wie prüfe ich sie?
+* Wie führe ich einen _t_-Test in R durch?  
+* Wie berechne ich die Effektstärke Cohen's _d_?  
+* Wie führe ich den Wilcoxon-Tests (auch "Mann-Whitney-Test", "U-Test" "Mann-Whitney-U-Test", "Wilcoxon-Rangsummentest") in R durch?  
+* Wie führe ich den Vierfelder-Chi-Quadrat-Tests in R durch?
+* Wie berichte ich die statistischen Ergebnisse formal? 
+
+**abhängige Stichproben**
+
+* Was sind Voraussetzungen des abhängigen _t_-Tests und wie prüfe ich sie?
+* Wie führe ich einen abhängigen _t_-Test in R durch?  
+* Wie berechne ich den standardisierten Populationseffekt für abhängige Stichproben?  
+* Wie führe ich den Wilcoxon-Test für abhängige Stichproben in R durch?  
+* Wie berichte ich die statistischen Ergebnisse formal? 
+</details>
+
+***
+## Was erwartet Sie?
+  
+Nachdem wir uns die letzten Wochen mit dem Unterschied zwischen dem Mittelwert einer Stichprobe und dem Mittelwert der dazugehörigen Population, aus der die Stichprobe stammt, auseinandergesetzt haben, fokussieren wir uns nun auf Unterschiede zwischen zwei Gruppen (also zwei Stichproben).
+
+## Aufbau der Sitzung 
+
+1. Fragestellung A: Unterscheidet sich die Anzahl erreichter Punkte in der Statistik-Klausur zwischen Personen, die das Tutorium regelmäßig besucht haben und denen, die nur unregelmäßig da waren? (_t-Test, Cohen's d_) 
+2. Fragestellung B: Sind Studentinnen verträglicher als Studenten? (_Wilcoxon-Test_)
+3. Fragestellung C: Haben Studierende mit Wohnort in Uninähe (Frankfurt) mit gleicher Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt? (_Vierfelder-$\chi^2$-Test_) 
+4. Fragestellung D: Sind jüngere Geschwister kooperativer als ältere?
+5. Fragestellung E: Geben Studierende in gleichem Masse an, dass es ihnen "nicht gut" geht bzw. sie "unzufrieden" sind, wie dass es ihnen "schlecht geht" bzw. sie sich "unwohl fühlen"? 
+
+***
+## 1. Fragestellung A: Unterscheidet sich die Anzahl erreichter Punkte in der Statistik-Klausur zwischen Personen, die das Tutorium regelmäßig besucht haben und denen, die nur unregelmäßig da waren?
+
+### Vorbereitung: Datenerzeugung
+
+Mithilfe unseres fb20-Datensatzes lässt sich diese Frage leider nicht beantworten. Wir nutzen daher die Funktion `rnorm()` und simulieren unsere Daten selbst, d.h. wir erstellen einen neuen Datensatz mit fiktiven Werten. 
+
+Dabei nehmen wir für unsere beiden Gruppen (regelmäßige Teilnahme: ja bzw. nein) folgendes an:
+
+* Stichprobengröße: 65 bzw. 53
+* Mittelwert der Punktzahl: 37.2 bzw. 33.8 
+* Standardabweichung der Punktzahl: 5.4 bzw. 6.2 
+
+```{r}
+set.seed(123)
+
+# Datensatz für die Gruppe der regelmäßigen Teilnehmer
+gruppe.regel <- data.frame(Gruppe = "ja",
+                           Punktzahl = round(rnorm(n = 65, mean = 37.2, sd = 5.4))) 
+
+# Datensatz für die Gruppe der unregelmäßigen Teilnehmer
+gruppe.unreg <- data.frame(Gruppe = "nein",
+                           Punktzahl = round(rnorm(n = 53, mean = 33.8, sd = 6.2)) )
+
+# Datensätze "untereinander" zusammenfügen mit rbind.data.frame()
+dataA <- rbind.data.frame(gruppe.regel, gruppe.unreg)  
+
+# Prüfen, ob es geklappt hat
+dim(dataA)
+head(dataA)
+tail(dataA)
+```
+
+
+### 1.1. Deskriptivstatistik
+
+#### 1.1.1. grafisch 
+
+```{r, fig.height = 10}
+# Gruppierter Boxplot:
+boxplot(dataA$Punktzahl ~ dataA$Gruppe)
+text("Achtung!", x=1, y=(median(dataA[(dataA$Gruppe=="ja"), "Punktzahl"]) + 1), col="red")
+text("Dies ist der Median.", x=1, y=(median(dataA[(dataA$Gruppe=="ja"), "Punktzahl"]) - 1), col="red")
+text("Das auch.", x=2, y=(median(dataA[(dataA$Gruppe=="nein"), "Punktzahl"]) + 1), col="red")
+text(";-)", x=2, y=(median(dataA[(dataA$Gruppe=="nein"), "Punktzahl"]) - 1), col="red")
+
+# Gruppierter Boxplot (aussagekräftiger):
+boxplot(dataA$Punktzahl ~ dataA$Gruppe, 
+        xlab="Regelmäßige Tutoriumsteilnahme", ylab="Punktzahl Statistikklausur", 
+        las=1, cex.lab=1.5, 
+        main="Tutoriumsteilnahme und Abschneiden in der Statistikklausur")
+
+# Je ein Histogramm pro Gruppe, untereinander dargestellt, vertikale Linie für den jeweiligen Mittelwert
+par(mfrow=c(2,1), mar=c(3,2,2,0))
+hist(dataA[(dataA$Gruppe=="ja"), "Punktzahl"], main="Punktzahl (regelmäßige Teilnahme)", 
+     xlim=c(0,50), xlab="", ylab="", las=1)
+abline(v=mean(dataA[(dataA$Gruppe=="ja"), "Punktzahl"], na.rm=T), col="aquamarine3", lwd=3)
+hist(dataA[(dataA$Gruppe=="nein"), "Punktzahl"], main="Punktzahl (unregelmäßige Teilnahme)", 
+     xlim=c(0,50), xlab="", ylab="", las=1)
+abline(v=mean(dataA[(dataA$Gruppe=="nein"), "Punktzahl"], na.rm=T), col="darksalmon", lwd=3)
+```
+
+```{r, results="hide"}
+dev.off()
+```
+
+#### 1.1.2. statistisch
+
+```{r}
+# umständlich:
+summary(dataA$Punktzahl[(dataA$Gruppe=="ja")])   # Gruppe 1: regelmäßige Teilnahme
+summary(dataA$Punktzahl[(dataA$Gruppe=="nein")]) # Gruppe 2: unregelmäßige Teilnahme
+
+# komfortabler:
+library(psych)
+describeBy(dataA$Punktzahl, dataA$Gruppe)        # beide Gruppen im Vergleich 
+```
+
+Achtung, bei den hier berichteten `sd` handelt es sich nicht um die Stichprobenkennwerte, sondern um die Populationsschätzer. Daher:
+
+```{r}
+punkte.regel <- dataA$Punktzahl[(dataA$Gruppe=="ja")]
+sigma.regel <- sd(punkte.regel)
+n.regel <- length(punkte.regel[!is.na(punkte.regel)])
+sd.regel <- sigma.regel * (n.regel-1) / n.regel
+sd.regel
+
+punkte.unreg <- dataA$Punktzahl[(dataA$Gruppe=="nein")]
+sigma.unreg <- sd(punkte.unreg)
+n.unreg <- length(punkte.unreg[!is.na(punkte.unreg)])
+sd.unreg <- sigma.unreg * (n.unreg-1) / n.unreg
+sd.unreg
+```
+
+
+### 1.2. Voraussetzungsprüfung
+
+**Voraussetzungen für die Durchführung des _t_-Tests**
+
+1. die abhängige Variable ist intervallskaliert $\rightarrow$ ok
+2. die einzelnen Messwerte sind voneinander unabhängig (Messwert einer Vpn hat keinen Einfluss auf den Messwert einer anderen) $\rightarrow$ ok  
+3. das untersuchte Merkmal ist in den Grundgesamtheiten der beiden Gruppen normalverteilt $\rightarrow$ (ggf.) optische Prüfung  
+4. Homoskedastizität: Varianzen der Variablen innerhalb der Populationen sind gleich $\rightarrow$ Levene-Test
+
+**zu 3): Optische Prüfung auf Normalverteilung in den beiden Gruppen**  
+
+Falls das Merkmal in der Population normalverteilt ist und die Stichproben (so wie hier) groß genug sind, darf diese Voraussetzung generell als erfüllt betrachtet werden ($\rightarrow$ Zentraler Grenzwertsatz). Für kleinere Stichproben empfiehlt sich eine optische Prüfung auf Normalverteilung. Zur optischen Prüfung auf Normalverteilung gibt es mehrere Möglichkeiten, von denen zwei im Folgenden erläutert und dann jeweils durchgeführt werden.
+
+* Möglichkeit 1: die bei Normalverteilung erwartete Dichtefunktion über das Histogramm legen und so die Übereinstimmung beurteilen  
+* Möglichkeit 2: QQ-Plot (quantile-quantile): es wird die beobachtete Position eines Messwerts gegen diejenige Position, die unter Gültigkeit der Normalverteilung zu erwarten wäre, abgetragen. Bei Normalverteilung liegen die Punkte (in etwa) auf einer Geraden.  
+
+```{r, fig.height=10, fig.align="center"}
+# Gruppe 1 (regelmäßige Teilnahme) 
+par(mfrow=c(1,2))
+punkte.regel <- dataA[(dataA$Gruppe=="ja"), "Punktzahl"]
+hist(punkte.regel, xlim=c(0,60), main="Punktzahl (regelmäßige TN)", xlab="", ylab="", las=1, prob=T)
+curve(dnorm(x, mean=mean(punkte.regel, na.rm=T), sd=sd(punkte.regel, na.rm=T)), col="blue", lwd=2, add=T)
+qqnorm(punkte.regel)
+qqline(punkte.regel, col="blue")
+```
+
+$\rightarrow$ Normalverteilung kann für Gruppe 1 (regelmäßige Teilnahme) angenommen werden
+
+```{r, fig.height=4, fig.align="center"}
+# Gruppe 2 (unregelmäßige Teilnahme)
+par(mfrow=c(1,2))
+punkte.unreg <- dataA[(dataA$Gruppe=="nein"), "Punktzahl"]
+hist(punkte.unreg, xlim=c(0,60), main="Punktzahl (unregmäßige TN)", xlab="", ylab="", las=1, prob=T)
+curve(dnorm(x, mean=mean(punkte.unreg, na.rm=T), sd=sd(punkte.unreg, na.rm=T)), col="blue", lwd=2, add=T)
+qqnorm(punkte.unreg)
+qqline(punkte.unreg, col="blue")
+```
+
+$\rightarrow$ Normalverteilung kann auch für Gruppe 2 (unregelmäßige Teilnahme) angenommen werden
+
+
+**zu 4) Test auf Homoskedastizität (Levene-Test)**  
+
+Das Hypothesenpaar im Levene-Test lautet:  
+
+* $H_0$: Homoskedastizität ist gegeben.  
+* $H_1$: Homoskedastizität ist nicht gegeben.  
+
+Ein nicht-signifikantes Ergebnis (_p_ > .05) zeigt also Homoskedastizität an. 
+
+```{r}
+library(car)
+leveneTest(dataA$Punktzahl ~ dataA$Gruppe)
+```
+
+_F_(1,116) = 0.499, _p_ = .482 $\rightarrow$ Das Ergebnis ist nicht signifikant, die $H_0$ wird beibehalten. Homoskedastizität wird angenommen.
+
+Für Fragestellung A sind somit alle Voraussetzungen für die Durchführung des _t_-Test erfüllt. :-)  Hätte der Levene-Test keine Homoskedastizität angezeigt (_p_ <. 05), so kann der _t_-Test trotzdem, nach Korrektur der Freiheitsgrade ("Welch-Korrektur"), durchgeführt werden (s.u.).
+
+
+### 1.3. Inferenzstatistik: _t_-Test
+
+Zur Erinnerung: 
+
+> Fragestellung A: "Unterscheidet sich die Anzahl erreichter Punkte in der Statistik-Klausur zwischen Personen, die das Tutorium regelmäßig besucht haben und denen, die nur unregelmäßig da waren?"   
+
+$\rightarrow$ Fragestellung ist ungerichtet, erfordert also auch ungerichtete Hypothesen.
+
+**Hypothesen**  
+
+* Art des Effekts: Unterschiedshypothese
+* Richtung des Effekts: Ungerichtet
+* Größe des Effekts: Unspezifisch
+
+Hypothesenpaar (inhaltlich):  
+
+* $H_0$: Studierende, die regelmäßig am Tutorium teilgenommen haben, unterscheiden sich nicht in der Punktzahl ihrer Statistikklausur von jenen, die nur unregelmäßig da waren.   
+* $H_1$: Studierende, die regelmäßig am Tutorium teilgenommen haben, unterscheiden sich in der Punktzahl ihrer Statistikklausur von jenen, die nur unregelmäßig da waren.  
+
+Hypothesenpaar (statistisch):  
+
+* $H_0$: $\mu_{regelmäßig} = \mu_{unregelmäßig}$  bzw.  $\mu_{regelmäßig} - \mu_{unregelmäßig} = 0$  
+* $H_1$: $\mu_{regelmäßig} \ne \mu_{unregelmäßig}$  bzw.  $\mu_{regelmäßig} - \mu_{unregelmäßig} \ne 0$
+
+**Signifikanzniveau**  
+
+Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 5% betragen. $\rightarrow \alpha=.05$ 
+
+**Durchführung des _t_-Tests in R: Funktion `t.test()`**
+
+```{r}
+t.test(dataA$Punktzahl ~ dataA$Gruppe,  # abhängige Variable ~ unabhängige Variable
+      paired = FALSE,                   # Stichproben sind unabhängig 
+      alternative = "two.sided",        # zweiseitige Testung (Default)
+      var.equal = TRUE,                 # Homoskedastizität liegt vor (-> Levene-Test)
+      conf.level = .95)                 # alpha = .05 (Default)
+```
+_t_(_df_ = 116, zweis.) = 3.396, _p_ < .001 $\rightarrow$ signifikant, $H_0$ wird verworfen, $H_1$ wird angenommen.  
+
+### 1.4. Berechnung der Effektstärke Cohen's _d_
+
+Cohen's _d_ gibt den standardisierten Mittelwertsunterschied zwischen zwei Gruppen an. "Standardisiert" bedeutet, dass wir uns nicht mehr auf der Originalmetrik befinden (hier: Skala der Extraversion), sondern mit Standardabweichungen arbeiten. Ein Wert von 1 zeigt also an, dass sich die Gruppenmittelwerte um eine Standardabweichung voneinander unterscheiden. Es berechnet sich wie folgt:
+
+$$ d = \frac{\bar{x}_1-\bar{x}_2} {\hat{\sigma}_{inn}} $$
+wobei
+
+$$ {\hat{\sigma}_{inn}} = \sqrt{ \frac{{\hat{\sigma}_1^2}*(n_1-1) + {\hat{\sigma}^2_2}*(n_2-1)} {(n_1-1) + (n_2-1)} }$$
+Cohen (1988) hat folgende Konventionen zur Beurteilung der Effektstärke _d_ vorgeschlagen, die man heranziehen kann, um den Effekt "bei kompletter Ahnungslosigkeit" einschätzen zu können:
+
+_d_ | Interpretation |
+:-: | :------: |
+~ .2 | kleiner Effekt |
+~ .5 | mittlerer Effekt |
+~ .8 | großer Effekt |
+
+
+**Berechnung von Hand**
+
+```{r}
+punkte.regel <- dataA[(dataA$Gruppe=="ja"), "Punktzahl"]
+mw.regel <- mean(punkte.regel, na.rm=T)
+n.regel <- length(punkte.regel[!is.na(punkte.regel)])
+sigma.regel <- var(punkte.regel) * (n.regel - 1)
+
+punkte.unreg <- dataA[(dataA$Gruppe=="nein"), "Punktzahl"]
+mw.unreg <- mean(punkte.unreg, na.rm=T)
+n.unreg <- length(punkte.unreg[!is.na(punkte.unreg)])
+sigma.unreg <- var(punkte.unreg) * (n.unreg - 1)
+
+sigma.inn <- sqrt((sigma.regel + sigma.unreg) / (n.regel-1 + n.unreg-1))
+
+d1 <- (mw.regel - mw.unreg) / sigma.inn
+d1
+```
+
+**Berechnung mit Funktion `cohen.d()`**
+
+```{r, results="hide"}
+#alternativ:
+#install.packages("effsize")
+library("effsize")
+```
+
+```{r}
+d2 <- cohen.d(dataA$Punktzahl, dataA$Gruppe)
+d2
+```
+
+Die Effektstärke für diesen Mittelwertsunterschied beträgt _d_ = `r round(d1,3)`.
+
+### 1.5. Ergebnisinterpretation
+Es wurde untersucht, ob sich Studierende, die regelmäßig am Tutorium teilgenommen haben und diejenigen, die nur unregelmäßig da waren, in der von ihnen in der Statistikklausur erreichten Punktzahl unterscheiden. Tatsächlich findet sich deskriptiv ein Unterschied: regelmäßig Teilnehmende weisen einen durchschnittlichen Wert von `r round(mean(gruppe.regel$Punktzahl),3)` (_SD_ = `r round(sd.regel,3)`) auf, während die unregelmäßig Teilnehmenden einen Wert von `r round(mean(gruppe.unreg$Punktzahl),3)` (_SD_ = `r round(sd.unreg,3)`) aufweisen. Dies entspricht einem nach Cohens Konvention (1988) mittleren bis großen Effekt (_d_ = `r round(d1,3)`).
+
+Zur Beantwortung der Fragestellung wurde ein _t_-Test unter Annahme von Homoskedastizität (_F_(1,116) = 0.499, _p_ = .482) durchgeführt. Der Gruppenunterschied ist signifikant (_t_(_df_ = 116, zweis.) = 3.396, _p_ < .001), somit wird die Nullhypothese verworfen und die Alternativhypothese angenommen. Studierende, die regelmäßig am Tutorium teilgenommen haben, unterscheiden sich im Ergebnis der Statistikklausur (erreichte Punktzahl) bedeutsam von jenen, die nur unregelmäßig da waren.
+
+***
+
+## 2. Fragestellung B: Sind Studentinnen verträglicher als Studenten?
+
+### 2.1 Vorbereitung (Daten einlesen, Daten aufbereiten)
+
+```{r echo=F}
+fb20 <- read.table('https://pandar.netlify.app/post/fb20.csv', 
+  header = TRUE,
+  sep = ',',
+  na.strings = '-99')
+```
+
+```{r eval=FALSE}
+setwd("...")
+load("fb20.rda")
+```
+
+```{r} 
+# Geschlecht als Faktor hinterlegen - aber nur dann, falls es noch keiner war
+if(is.factor(fb20$geschl) == FALSE){           # falls Geschlecht noch nicht als Faktor vorliegt...
+  fb20$geschl <- factor(fb20$geschl,           # ...wird ein Faktor erstellt
+                        levels = c(1, 2, 3),
+                        labels = c('weiblich', 'maennlich', 'anderes'))
+  }
+str(fb20)
+```
+
+Variable "geschl" liegt (nun) als Faktor vor.
+
+### 2.2. Deskriptivstatistik
+
+#### 2.2.1. grafisch 
+
+```{r}
+# nur Männer und Frauen auswählen:
+dataB <- fb20[ (fb20$geschl=="maennlich"|fb20$geschl=="weiblich"), ]  
+dataB$geschl <- droplevels(dataB$geschl)
+
+# Gruppierter Boxplot:
+boxplot(dataB$vertr ~ dataB$geschl, 
+        xlab="Geschlecht", ylab="Verträglichkeit", 
+        las=1, cex.lab=1.5, 
+        main="Verträglichkeit je nach Geschlecht")
+```
+
+Der Unterschied besteht in der erwarteten Richtung: höhere Verträglichkeit bei Studentinnen :-)
+
+#### 2.2.2. statistisch
+
+```{r}
+describeBy(dataB$vertr, dataB$geschl) # beide Gruppen im Vergleich
+
+# Interquartilsbereich (IBQ) über summary()
+summary( dataB[(dataB$geschl=="weiblich"), "vertr"])
+summary( dataB[(dataB$geschl=="maennlich"), "vertr"]) 
+```
+
+
+### 2.3. Voraussetzungsprüfung  
+
+**Voraussetzungen für die Durchführung des _t_-Tests:**
+
+1. die abhängige Variable ist intervallskaliert $\rightarrow$ ok    
+2. die einzelnen Messwerte sind voneinander unabhängig (Messwert einer Vpn hat keinen Einfluss auf den Messwert einer anderen) $\rightarrow$ ok   
+3. das untersuchte Merkmal ist in den Grundgesamtheiten der beiden Gruppen normalverteilt $\rightarrow$ (ggf.) optische Prüfung  
+4. Homoskedastizität: Varianzen der Variablen innerhalb der Populationen sind gleich $\rightarrow$ Levene-Test
+
+**zu 3): Optische Prüfung auf Normalverteilung in den beiden Gruppen** 
+
+(Hinweis: In diesem Datenbeispiel betragen die Stichprobengrößen 73 (Gruppe "weiblich") bzw. 20 (Gruppe "männlich"). Unter der Annahme von Normalverteilung des Merkmals "Verträglichkeit" in der Population könnte man bei diesen Stichprobengrößen von Normalverteilung ausgehen, ohne dies explizit zu prüfen, und einen _t_-Test durchführen (s.o.). Aus didaktischen Gründen betrachten wir hier die Normalverteilungsannahme als verletzt und führen daher den Wilcoxon-Test durch.)
+
+```{r, fig.height=4, fig.align="center"}
+#Gruppe 1 (weiblich) 
+par(mfrow=c(1,2))
+vertr.w <- dataB[(dataB$geschl=="weiblich"), "vertr"]
+hist(vertr.w, xlim=c(1,7), ylim=c(0,1), main="Verträglichkeit (weiblich)", xlab="", ylab="", las=1, prob=T)
+curve(dnorm(x, mean=mean(vertr.w, na.rm=T), sd=sd(vertr.w, na.rm=T)), col="red", lwd=2, add=T)
+qqnorm(vertr.w)
+qqline(vertr.w, col="red")
+```
+
+$\rightarrow$ Entscheidung: Normalverteilung in Gruppe 1 (weiblich) ist nicht gegeben $\rightarrow$ Wilcoxon-Test
+
+```{r, fig.height=4, fig.align="center"}
+#Gruppe 2 (männlich)
+par(mfrow=c(1,2))
+vertr.m <- dataB[(dataB$geschl=="maennlich"), "vertr"]
+hist(vertr.m, xlim=c(1,7), ylim=c(0,.7), main="Verträglichkeit (männlich)", xlab="", ylab="", las=1, prob=T)
+curve(dnorm(x, mean=mean(vertr.m, na.rm=T), sd=sd(vertr.m, na.rm=T)), col="red", lwd=2, add=T)
+qqnorm(vertr.m)
+qqline(vertr.m, col="red")
+```
+
+$\rightarrow$ Entscheidung: Normalverteilung in Gruppe 2 (männlich) ist auch nicht gegeben $\rightarrow$ Wilcoxon-Test
+
+**zu 4) Test auf Homoskedastizität (Levene-Test)**  
+
+Das Hypothesenpaar im Levene-Test lautet:  
+
+* $H_0$: Homoskedastizität ist gegeben.  
+* $H_1$: Homoskedastizität ist nicht gegeben.  
+
+Ein nicht-signifikantes Ergebnis (_p_ > .05) zeigt also Homoskedastizität an. 
+
+```{r}
+library(car)
+leveneTest(dataB$vertr ~ dataB$geschl)
+```
+
+$F(1,91) = 0.019, p = .891 \rightarrow H_0$ wird beibehalten: Homoskedastizität wird angenommen
+
+### 2.4. Inferenzstatistik: Wilcoxon-Test
+
+Zur Erinnerung:  
+
+> Fragestellung B: "Sind Studentinnen *verträglicher* als Studenten?"   
+
+$\rightarrow$ Fragestellung ist gerichtet, erfordert also auch gerichtete Hypothesen.
+
+**Hypothesen**  
+
+* Art des Effekts: Unterschiedshypothese
+* Richtung des Effekts: Gerichtet
+* Größe des Effekts: Unspezifisch
+
+Hypothesenpaar (inhaltlich):  
+
+* $H_0$: Studentinnen sind weniger oder genauso verträglich wie Studenten.  
+* $H_1$: Studentinnen sind verträglicher als Studenten.  
+
+Hypothesenpaar (statistisch):  
+
+* $H_0$: $\eta_{weiblich} \leq \eta_{männlich}$   bzw.   $\eta_{weiblich} - \eta_{männlich} \leq 0$  
+* $H_1$: $\eta_{weiblich} \gt  \eta_{männlich}$   bzw.   $\eta_{weiblich} - \eta_{männlich} \gt 0$
+
+**Signifikanzniveau**   
+
+Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 5% betragen. $\rightarrow \alpha = .05$ 
+
+**Durchführung des Wilcoxon-Tests in R: Funktion `wilcox.test()`**
+
+```{r}
+levels(dataB$geschl) # wichtig zu wissen: die erste der beiden Faktorstufen ist "weiblich" 
+
+wilcox.test(dataB$vertr ~ dataB$geschl,   # abhängige Variable ~ unabhängige Variable
+            paired = FALSE,               # Stichproben sind unabhängig
+            alternative = "greater",      # einseitige Testung, und zwar so, dass Gruppe1(w)-Gruppe2(m) > 0
+            conf.level = .95)             # alpha = .05
+
+```
+$W = 845, p = .139 \rightarrow$ Ergebnis ist nicht signfikant, $H_0$ wird beibehalten
+
+### 2.5. Ergebnisinterpretation
+
+Es wurde untersucht, ob Studentinnen verträglicher sind als Studenten. Tatsächlich besteht deskriptiv ein Unterschied in der erwarteten Richtung: Studentinnen weisen einen Median von 4.5 (_IQB_ = [4.0; 4.75]), Studenten hingegen einen Wert von nur 4.25 (_IQB_ = [3.75; 4.562]) auf. Zur Beantwortung der Fragestellung wurde ein Wilcoxon-Test durchgeführt. Demnach ist der Gruppenunterschied allerdings nicht signifikant (_W_ = 845, _p_ = .139). Somit wird die Nullhypothese beibehalten: Studentinnen sind nicht verträglicher als Studenten. 
+
+***
+
+## 3. Fragestellung C: Haben Studierende mit Wohnort in Uninähe (Frankfurt) mit gleicher Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt?
+
+Zusätzlich zur Gruppenvariable ist in diesem Beispiel auch die abhängige Variable nominalskaliert. Um Fragen wie diese zu beantworten, werden daher die Populationswahrscheinlichkeiten (job: ja vs. nein) zwischen den beiden Gruppen (ort: Frankfurt vs. außerhalb) miteinander verglichen. Diese Prüfung erfolgt mithilfe der $\chi^2$-Verteilung $\rightarrow \chi^2$-Test 
+
+### 3.1. Datenaufbereitung
+
+```{r}
+if(is.factor(fb20$ort) == FALSE){
+  fb20$ort <- factor(fb20$ort, levels=c(1,2), labels=c("FFM", "anderer"))
+}
+if(is.factor(fb20$job) == FALSE){
+  fb20$job <- factor(fb20$job, levels=c(1,2), labels=c("nein", "ja"))
+}
+```
+
+ 
+### 3.2. Deskriptivstatistik/Voraussetzungsprüfung  
+
+**Voraussetzungen:** 
+
+1. Die einzelnen Beobachtungen sind voneinander unabhängig $\rightarrow$ ok
+2. Jede Person lässt sich eindeutig einer Kategorie bzw. Merkmalskombination zuordnen $\rightarrow$ ok
+3. Zellbesetzung für alle $n_{ij}$ > 5 $\rightarrow$ Prüfung anhand von Häufigkeitstabelle 
+
+**zu Punkt 3) Zellbesetzung _n_ > 5**
+
+```{r}
+tab <- table(fb20$ort, fb20$job)
+tab
+```
+
+$\rightarrow n_{ij}$ > 5 in allen Zellen gegeben
+
+### 3.3. Inferenzstatistische Beantwortung der Fragestellung
+
+**Hypothesen**
+
+* Art des Effekts: Zusammenhangshypothese  
+* Richtung des Effekts: Ungerichtet  
+* Größe des Effekts: Unspezifisch 
+
+Hyothesenpaar (inhaltlich):  
+
+* $H_0$: Studierende mit Wohnort in Uninähe haben mit gleicher Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt.  
+* $H_1$: Studierende mit Wohnort in Uninähe haben mit einer höheren oder niedrigeren Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt.  
+
+Hypothesenpaar (statistisch):   
+
+* $H_0$: $\pi_{ij} =    \pi_{i\bullet} \cdot \pi_{\bullet j}$  
+* $H_1$: $\pi_{ij} \neq \pi_{i\bullet} \cdot \pi_{\bullet j}$ 
+
+**Signifikanzniveau $\alpha$**
+
+Die Irrtumswahrscheinlichkeit soll 5% betragen. $\rightarrow \alpha=.05$
+
+
+#### 3.3.1. Vierfelder-$\chi^2$-Test in R: "manuelle" Berechnung über Formel
+
+**erwartete Häufigkeiten berechnen**
+
+Für jede Zelle lassen sich die unter Gültigkeit der Nullhypothese erwarteten Häufigkeiten $e_{ij}$ bestimmen: 
+
+$$e_{ij} = \frac{n_{i\bullet} \cdot n_{\bullet j}}{n}$$
+```{r}
+tab_mar <- addmargins(tab) # Randsummen zu Tabelle hinzufügen
+tab_mar
+
+expected <- data.frame(nein=c((tab_mar[1,3]*tab_mar[3,1])/tab_mar[3,3],
+                              (tab_mar[2,3]*tab_mar[3,1])/tab_mar[3,3]),
+                       ja=c((tab_mar[1,3]*tab_mar[3,2])/tab_mar[3,3],
+                            (tab_mar[2,3]*tab_mar[3,2])/tab_mar[3,3]))
+expected
+```
+
+**Prüfgröße $\chi^2$ berechnen**
+
+Formel: 
+$$\chi^2 = \sum_{i=1}^{2}{ \sum_{j=1}^{2}{ \frac{(n_{ij}-e_{ij})^2} {e_{ij}}}}$$
+```{r}
+chi_quadrat_Wert <- (tab[1,1]-expected[1,1])^2/expected[1,1]+
+                    (tab[1,2]-expected[1,2])^2/expected[1,2]+
+                    (tab[2,1]-expected[2,1])^2/expected[2,1]+
+                    (tab[2,2]-expected[2,2])^2/expected[2,2]
+chi_quadrat_Wert
+```
+
+**Signfikanztestung: per Vergleich von empirischem und kritischem $\chi^2$**
+
+Die Freiheitsgrade berechnen sich aus der Anzahl der untersuchten Kategorien: $df = (p - 1) \cdot (k - 1)$. Hier, im Fall des Vierfelder-$\chi^2$-Tests also mit $df = 1$, wobei 
+
+* _p_: Anzahl Kategorien Variable "ort" = 2  
+* _k_: Anzahl Kategorien Variable "job" = 2
+
+Zur Bestimmung des kritischen Wertes und des $p$-Wertes:
+
+```{r}
+qchisq(.95, 1)
+pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE)
+```
+
+* _df_ = 1
+* $\chi^2_{krit}$ = 3.84
+* $\chi^2_{emp}$ = 'r round(chi_quadrat_Wert, 3)'
+* $\chi^2_{emp} < \chi^2_{krit}$ $\rightarrow H_0$ wird beibehalten
+* $p$ = 'r round(pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE), 3)'
+* $p$-Wert > $\alpha$-Fehlerniveau $\rightarrow H_0$ wird beibehalten
+
+
+#### 3.3.2. Vierfelder-$\chi^2$-Test in R: Funktion `chisq.test()`
+
+```{r}
+chisq.test(tab,        # Kreuztabelle
+           correct=F)  # keine Kontinuinitaetskorrektur nach Yates
+```
+
+### 3.4. Effektstärken
+
+**Yules Q**
+
+```{r}
+effekt_YulesQ <- (tab[1,1]*tab[2,2]-tab[1,2]*tab[2,1])/
+                 (tab[1,1]*tab[2,2]+tab[1,2]*tab[2,1])
+effekt_YulesQ
+```
+
+Wertebereich zwischen -1 und 1; Interpretation analog zu Korrelationen
+
+**Phi ($\phi$)**
+
+```{r}
+effekt_phi <- (tab[1,1]*tab[2,2]-tab[1,2]*tab[2,1])/
+  sqrt((tab[1,1]+tab[1,2])*(tab[1,1]+tab[2,1])*(tab[1,2]+tab[2,2])*(tab[2,1]+tab[2,2]))
+effekt_phi
+
+# alternativ mit psych Paket
+library(psych)
+phi(tab, digits = 8)
+
+# Äquivalentes Ergebnis mittels Pearson-Korrelation
+# (dichotome Variablen)
+ort_num <- as.numeric(fb20$ort)
+job_num <- as.numeric(fb20$job)
+cor(ort_num, job_num, use="pairwise")
+```
+
+Wertebereich zwischen -1 und 1; Interpretation analog zu Korrelationen
+
+
+### 3.5. Ergebnisinterpretation
+
+Es wurde untersucht, ob Studierende mit Wohnort in Uninähe (also in Frankfurt) mit gleicher Wahrscheinlichkeit einen Nebenjob haben wie Studierende, deren Wohnort außerhalb von Frankfurt liegt. Zur Beantwortung der Fragestellung wurde ein Vierfelder-Chi-Quadrat-Test für unabhängige Stichproben berechnet. Der Zusammenhang zwischen Wohnort und Nebenjob ist nicht signifikant ($\chi^2$(1) = 'r round(chi_quadrat_Wert, 3)', _p_ = 'r round(pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE), 3)'), somit wird die Nullhypothese beibehalten. Der Effekt ist von vernachlässigbarer Stärke ($\phi$ = 'r round(effekt_phi, 3)'). Studierende mit Wohnort in Uninähe haben mit gleicher Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt.
+
+***
+
+
+## 4. Fragestellung D: Sind jüngere Geschwister kooperativer als ältere?
+
+Datensatz aus: Eid, Gollwitzer & Schmitt: "Statistik und Forschungsmethoden" (4. Auflage, S. 370)  
+
+* AV: Kooperationsbereitschaft (stetige Variable mit Werten von 0 [nicht kooperativ] bis 1 [maximal kooperativ])
+* Gruppen: das jeweils ältere Geschwisterteil (Gruppe "Älter") vs. das jeweils jüngere Geschwisterteil (Gruppe "Jünger") 
+
+```{r}
+# Datensatz generieren
+dataKooperation <- data.frame(Paar = 1:10,  Juenger = c(0.49,0.25,0.51,0.55,0.35,0.54,0.24,0.49,0.38,0.50), Aelter = c(0.4,0.25,0.31,0.44,0.25,0.33,0.26,0.38,0.23,0.35))
+dataKooperation # überprüfen, ob alles geklappt hat
+```
+
+Ein Blick auf die Messwertpaare lässt bereits erkennen, dass die Stichproben (also die Messwerte in den beiden experimentellen Bedingungen) voneinander abhängig sind. Die Geschwisterpaare ähneln sich hinsichtlich ihrer kooperativen Verhaltenstendenzen.
+
+Welche Ursachen diese Ähnlichkeiten haben, ist unwichtig. Entscheidend
+ist, dass es sich um Faktoren handelt, die sowohl einen Teil der Varianz in der ersten Gruppe als auch einen Teil der Varianz in der
+zweiten Gruppe erzeugen.
+
+Relevant ist die Frage, ob die Differenz zwischen den beiden Mittelwerten (also zwischen  jüngeren und älteren Geschwistern) statistisch bedeutsam ist.
+
+### 4.1. Deskriptivstatistik
+
+#### 4.1.1. grafisch
+Mit Hilfe von Histogrammen
+```{r}
+# Je ein Histogramm pro Gruppe, untereinander dargestellt, vertikale Linie fuer den jeweiligen Mittelwert
+par(mfrow=c(2,1), mar=c(3,3,2,0))
+hist(dataKooperation[, "Juenger"], 
+     xlim=c(0,1), 
+     main="Kooperationsbereitschaft juengeres Geschwisterteil", 
+     xlab="", 
+     ylab="", 
+     las=1)
+abline(v=mean(dataKooperation[, "Juenger"]), 
+       lty=2, 
+       lwd=2)
+
+hist(dataKooperation[, "Aelter"], 
+     xlim=c(0,1), 
+     main="Kooperationsbereitschaft aelteres Geschwisterteil", 
+     xlab="", 
+     ylab="", 
+     las=1)
+abline(v=mean(dataKooperation[, "Aelter"]), 
+       lty=2, 
+       lwd=2)
+
+par(mfrow=c(1,1)) #Zuruecksetzen des Plotfensters
+```
+
+#### 4.1.2. statistisch
+```{r}
+summary(dataKooperation[, "Juenger"])
+summary(dataKooperation[, "Aelter"])
+#alternativ
+library(psych)
+describe(dataKooperation[, "Juenger"])
+describe(dataKooperation[, "Aelter"])
+```
+Achtung: Bei den hier berichteten SD handelt es sich (wie immer in R) den Populationsschätzer. 
+
+### 4.2. Voraussetzungsprüfung
+
+**Voraussetzungen für die Durchführung des _t_-Tests:**  
+
+1. Die abhängige Variable ist intervallskaliert $\rightarrow$ ok  
+2. Die Messwerte innerhalb der Paare dürfen sich gegenseitig beeinflussen/voneinander abhängig sein; keine Abhängigkeiten zwischen den Messwertpaaren $\rightarrow$ ok  
+3. Die Differenzvariable _d_ muss in der Population normalverteilt sein $\rightarrow$ ab _n_ => 30 meist gegeben (s. zentraler Grenzwertsatz), ggf. grafische Prüfung oder Hintergrundwissen  
+
+**zu 3. Normalverteilung von _d_**
+```{r}
+difference <- dataKooperation[, "Juenger"]-dataKooperation[, "Aelter"]
+hist(difference, 
+     xlim=c(-.3,.3), 
+     ylim = c(0,5.5),
+     main="Verteilung der Differenzen", 
+     xlab="Differenzen", 
+     ylab="", 
+     las=1)
+curve(dnorm(x, mean=mean(difference), sd=sd(difference)), 
+      col="blue", 
+      lwd=2, 
+      add=T)
+qqnorm(difference)
+qqline(difference, col="blue")
+```
+
+$\Rightarrow$ Differenzen sehen nicht normalverteilt aus! 
+
+Allerdings s. Info aus Eid, Gollwitzer & Schmitt: "Zur Messung zur Kooperationsbereitschaft verwendet [der Forscher] ein standardisiertes Instrument, das Messwerte auf Intervallskalenniveau liefert und in der Population normalverteilt ist."
+
+$\Rightarrow$ Es wird also Normalverteilung angenommen, somit sind alle drei Voraussetzungen für die Durchführung des _t_-Tests für abhängige Stichproben erfüllt.
+
+
+### 4.3. Inferenzstatistik: _t_-Test für abhängige Stichproben
+
+Zur Erinnerung:  
+
+> Fragestellung D: "Sind jüngere Geschwister kooperativer als Ältere?"   
+
+**Hypothesen:**
+
+* Art des Effekts: Unterschiedshypothese
+* Richtung des Effekts: Gerichtet - positiver Effekt
+* Grösse des Effekts: Unspezifisch
+
+Hyothesenpaar (inhaltlich):  
+
+* H0: Jüngere Geschwister sind genau so oder weniger kooperativ wie ältere Geschwister. 
+* H1: Jüngere Geschwister sind kooperativer als ältere Geschwister.  
+
+Hypothesenpaar (statistisch):  
+
+* H0: $\mu_{juenger} \le \mu_{aelter}$  bzw.  $\mu_{d} \le 0$  
+* H1: $\mu_{juenger} > \mu_{aelter}$    bzw.  $\mu_{d} > 0$
+
+**Signifikanzniveau**  
+
+Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 5% betragen. $\rightarrow$ $\alpha=.05$
+
+**Durchfürhung des abhängigen _t_-Tests in R:**
+
+```{r}
+t.test(x = dataKooperation[, "Juenger"], y  = dataKooperation[, "Aelter"], # die beiden abhaengigen Gruppen
+       paired = T,                                                         # Stichproben sind abhaengig
+       alternative = "greater",                                            # gerichtete Hypothese
+       conf.level = .95)                                                   # alpha = .05
+
+```
+
+_df_ bei _t_-test mit abhängigen Stichproben: $n - 1$ (wobei $n$ die Anzahl der Paare darstellt)  
+$\rightarrow$ _t_(9) = 4.63, _p_ < .001 $\rightarrow$ signifikant, H0 wird verworfen, H1 wird angenommen.
+
+
+### 4.4. Schätzung des standardisierten Populationseffekts
+
+Formel:  $$d_2'' = \frac{\bar{d}} {sd_{\hat{d}}}$$
+
+wobei  
+
+* $\bar{d}$: Mittelwert der Differenz aller Wertepaare  
+* $sd_{\hat{d}}$: geschätzte SD der Differenzen  
+
+```{r}
+mean_d <- mean(difference)
+sd.d.est <- sd(difference)
+d_Kooperation <- mean_d/sd.d.est
+```
+
+Konventionen nach Cohen (1988) für _t_-Test für abhängige Stichproben 
+(Achtung: Werte unterscheiden sich zw. abhängigem und unabhängigem t-Test):
+
+_d''_ | Interpretation |
+:-: | :------: |
+~ .14 | kleiner Effekt |
+~ .35 | mittlerer Effekt |
+~ .57 | grosser Effekt |
+
+$\Rightarrow$ der standardisierte Populationseffekt beträgt $d_2''$ = 1.46 und ist laut Konventionen gross. 
+
+
+### 4.5. Ergebnisinterpretation
+Es wurde an Geschwisterpaaren untersucht, ob jüngere Geschwister kooperativer sind als ältere Geschwister. Zunächst findet sich deskriptiv ein Unterschied: Jüngere Geschwister weisen einen durchschnittlichen Wert von 0.43 (_SD_ = 0.12) auf, während die älteren Geschwister einen Wert von 0.32 (_SD_ = 0.07) aufweisen. Zur Beantwortung der Fragestellung wurde ein gerichteter _t_-Test für abhängige Stichproben durchgeführt. Der Gruppenunterschied ist signifikant (_t_(9) = 4.63, _p_ < .001), somit wird die Nullhypothese verworfen. Jüngere Geschwister sind kooperativer als ihre älteren Geschwister.Dieser Unterschied ist nach dem standardisierte Populationseffekt von $d_2''$ = 1.46 gross.
+
+***
+
+## 5. Fragestellung E: Geben Studierende in gleichem Masse an, dass es ihnen "nicht gut" geht bzw. sie "unzufrieden" sind, wie dass es ihnen "schlecht geht" bzw. sie sich "unwohl fühlen"? 
+
+Wir prüfen also Unterschiede in der Antworttendenz: Fällt es leichter, bei positiv formulieren Items nicht zuzustimmen als bei negativ formulierten Items zuzustimmen (und umgekehrt)?
+
+```{r echo=F}
+load("fb20.rda")
+```
+
+```{r eval=FALSE}
+setwd("...")
+load("fb20.rda")
+```
+
+**Vorbereitungen**
+```{r}
+# Item mdbf4: Wie schlecht fuehlen Sie sich? Hohe Werte = schlecht
+# Item mdbf8: Wie gut fuehlen Sie sich? Hohe Werte = gut
+fb20$mdbf8_r <- -1 * (fb20$mdbf8 - 6) # Item mdbf8 umpolen
+# Item mdbf8_r: Umgepolt -> Wie "nicht gut" fuehlen Sie sich? Hohe Werte = schlecht
+
+# Item mdbf11: Wie unwohl fuehlen Sie sich? Hohe Werte = unwohl
+# Item mdbf1: Wie zufrieden fuehlen Sie sich? Hohe Werte = zufrieden
+fb20$mdbf1_r <- -1 * (fb20$mdbf1 - 6) # Item mdbf1 umpolen
+# Item mdbf1_r: Umgepolt -> Wie "unzufrieden" fuehlen Sie sich? Hohe Werte = unzufrieden
+
+#umgepolte positive Skalen mitteln ueber beide Items
+fb20$schlecht_r <- rowMeans(fb20[, c('mdbf1_r', 'mdbf8_r')])
+#negative Skalen mitteln ueber beide Items
+fb20$schlecht <- rowMeans(fb20[, c('mdbf4', 'mdbf11')])
+```
+
+Unterscheiden sich die Gruppen im Mittel nicht, geben die Studierenden auf den Skalen im gleichen Masse an, wie es ihnen geht (unabhängig von der Polung der Items). 
+
+### 5.1. Deskriptivstatistik  
+#### 5.1.1. grafisch  
+```{r, fig.height = 10}
+par(mfrow=c(2,1), mar=c(3,2,2,0))
+barplot(table(fb20$schlecht),
+        ylim = c(0,50),
+        ylab = 'Anzahl',
+        main = "Wie schlecht fuehlen sich Studierende?")
+barplot(table(fb20$schlecht_r),
+        ylim = c(0,50),
+        ylab = 'Anzahl',
+        main = paste('Wie "',"nicht gut", '" fuehlen sich Studierende?',
+                     sep=""))
+par(mfrow=c(1,1))
+```
+
+#### 5.1.2. statistisch  
+```{r}
+summary(fb20$schlecht)
+summary(fb20$schlecht_r)
+prop.table(table(fb20$schlecht))
+prop.table(table(fb20$schlecht_r))
+```
+
+
+### 5.2. Inferenzstatistik: Wilcoxon-Test für abhängige Stichproben
+
+Grund: Annahme von Intervallskalenniveau der AV ist verletzt
+
+Zur Erinnerung: 
+
+> Fragestellung E: Geben Studierende in gleichem Masse an, dass es ihnen "nicht gut" geht bzw. sie "unzufrieden" sind, wie dass es ihnen schlecht geht bzw. sie sich unwohl fühlen? 
+
+$\Rightarrow$ Fragestellung ist ungerichtet, erfordert also auch ungerichtete Hypothese.
+
+**Hypothesen**  
+
+Hypothesenpaar (inhaltlich):  
+
+* H0: Studierende geben im gleichen Ausmass ihr Befinden an (egal, wie rum Items formuliert sind).  
+* H1: Studenten geben nicht im gleichen Ausmass ihr Befinden an (es ist nicht egal, wie rum Items formuliert sind). 
+
+Hypothesenpaar (statitisch):  
+
+* H0: $\mu_{"nicht gut"/"unzufrieden"} = \mu_{schlecht/unwohl}$   bzw. $\mu_{d} = 0$
+* H1: $\mu_{"nicht gut"/"unzufrieden"} \ne \mu_{schlecht/unwohl}$ bzw. $\mu_{d} \ne 0$
+
+
+**Signifikanzniveau**
+
+Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 5% betragen. $\rightarrow$ $\alpha=.05$
+
+**Durchfuehrung des Wilcoxon-Tests für abhängige Stichproben in R:**
+
+```{r}
+wilcox.test(x = fb20$schlecht_r, y = fb20$schlecht,  
+            paired = T,                       # Stichproben sind abhaengig
+            alternative = "two.sided",        # zweiseitige Testung
+            conf.level = .95)                 # alpha = .05
+```
+
+_V_ = 1935, _p_ < .001 $\rightarrow$ H0 wird verworfen, H1 wird angenommen
+
+
+### 5.3. Ergebnisinterpretation  
+
+Es wurde untersucht, ob Studierende in gleichem Masse angeben, dass es ihnen "nicht gut" geht bzw. sie "unzufrieden" sind, wie dass es ihnen schlecht geht bzw. sie sich unwohl fühlen. Zur Beantwortung der Fragestellung wurde ein zweiseitiger Wilcoxon-Test für abhängige Stichproben durchgeführt. Der Unterschied wurde bei einem Signifikanzniveau von alpha = .05 signifikant (_V_ = 1935, _p_ < .001). Somit wird die Nullhypothese verworfen und die Alternativhypothese angenommen: Studierende machen also unterschiedliche Angaben zu ihrer Stimmung je nachdem, ob die Items positiv oder negativ formuliert sind.
+
+***
