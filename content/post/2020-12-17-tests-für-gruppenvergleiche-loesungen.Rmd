@@ -1,0 +1,518 @@
+---
+title: Tests für Gruppenvergleiche Loesungen
+date: '2020-12-17'
+slug: []
+categories:
+  - BSc2
+tags:
+  - t-Test
+subtitle: ''
+summary: ''
+authors: [Carmen Köhler]
+lastmod: '2020-12-17T13:15:14+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(error = TRUE)
+library(psych)
+library(car)
+library(effsize)
+```
+
+**Daten einlesen**
+
+```{r echo=F}
+fb20 <- read.table('https://pandar.netlify.app/post/fb20.csv', 
+  header = TRUE,
+  sep = ',',
+  na.strings = '-99')
+```
+
+```{r, eval=F}
+setwd("...")  
+load("fb20.rda")
+```
+
+**Daten aufbereiten**
+
+```{r}
+# Lieblingsfach als Faktor - falls es noch keiner war
+if(is.factor(fb20$fach) == FALSE){
+  fb20$fach <- factor(fb20$fach, 
+                      levels = 1:5,
+                      labels = c('Allgemeine', 'Biologische', 'Entwicklung',
+                                 'Klinische', 'Diag./Meth.'))
+}
+
+# Wohnort als Faktor - falls es noch keiner war
+if(is.factor(fb20$ort) == FALSE){
+  fb20$ort <- factor(fb20$ort, 
+                     levels = c(1, 2),
+                     labels = c('Frankfurt', 'anderer'))
+}
+
+# Geschlecht als Faktor - falls es noch keiner war
+if(is.factor(fb20$geschl)==FALSE){
+  fb20$geschl <- factor(fb20$geschl, 
+                        levels=c(1,2,3), 
+                        labels=c('weiblich', 'maennlich', 'anderes'))
+}
+```
+
+***
+
+## Aufgabe 1
+Unterscheiden sich Studierende, die sich für Allgemeine Psychologie (Variable "fach") interessieren, im Persönlichkeitsmerkmal Intellekt (auch: Offenheit für neue Erfahrungen, "intell") von Studierenden, die sich für Klinische Psychologie interessieren? Normalverteilung des Merkmals in der Population darf angenommen werden. 
+
+<details><summary>Lösung</summary>
+**Deskriptivstatistische Beantwortung der Fragestellung: grafisch**
+```{r, fig.height = 10}
+data1 <- fb20[ (which(fb20$fach=="Allgemeine"|fb20$fach=="Klinische")), ]
+data1$fach <- droplevels(data1$fach)
+boxplot(data1$intel ~ data1$fach,
+        xlab="Interessenfach", ylab="Intellekt", 
+        las=1, cex.lab=1.5, 
+        main="Interessenfach und Intellekt")
+```
+
+**Deskriptivstatistische Beantwortung der Fragestellung: statistisch**
+
+```{r}
+# Überblick
+
+library(psych)
+describeBy(data1$intel, data1$fach)
+
+# Berechnung der empirischen Standardabweichung
+
+intel.A <- data1$intel[(data1$fach=="Allgemeine")]
+sigma.A <- sd(intel.A)
+n.A <- length(intel.A[!is.na(intel.A)])
+sd.A <- sigma.A * sqrt((n.A-1) / n.A)
+sd.A 
+
+intel.B <- data1$intel[(data1$fach=="Klinische")]
+sigma.B <- sd(intel.B)
+n.B <- length(intel.B[!is.na(intel.B)])
+sd.B <- sigma.B * sqrt((n.B-1) / n.B)
+sd.B
+```
+
+Mittelwert der Allgemeinen Psychologen (_M_ = `r round(mean(intel.A), 2)`, _SD_ = `r round(sd.A, 2)`) unterscheidet sich deskriptivstatistisch vom Mittelwert der Klinischen (_M_ = `r round(mean(intel.B), 2)`, _SD_ = `r round(sd.B, 2)`).
+
+
+**Voraussetzungsprüfung: Normalverteilung**
+
+```{r}
+par(mfrow=c(1,2))
+intel.A <- data1[which(data1$fach=="Allgemeine"), "intel"]
+hist(intel.A, xlim=c(1,6), main="Intellekt (Allgemeine Psy.)", xlab="", ylab="", las=1, prob=T)
+curve(dnorm(x, mean=mean(intel.A, na.rm=T), sd=sd(intel.A, na.rm=T)), col="blue", lwd=2, add=T)
+qqnorm(intel.A)
+qqline(intel.A, col="blue")
+```
+
+$\rightarrow$ Entscheidung: Normalverteilung wird für Gruppe 1 (Allgemeine Psycholgie) angenommen  
+
+```{r}
+par(mfrow=c(1,2))
+intel.B <- data1[which(data1$fach=="Klinische"), "intel"]
+hist(intel.B, xlim=c(1,6), main="Intellekt (Klinische Psy.)", xlab="", ylab="", las=1, prob=T)
+curve(dnorm(x, mean=mean(intel.B, na.rm=T), sd=sd(intel.B, na.rm=T)), col="blue", lwd=2, add=T)
+qqnorm(intel.B)
+qqline(intel.B, col="blue")
+```
+
+$\rightarrow$ Entscheidung: Normalverteilung wird für Gruppe 2 (Klinische Psycholgie) nicht angenommen 
+
+**Hypothesen**
+
+* Art des Effekts: Unterschiedshypothese  
+* Richtung des Effekts: Ungerichtet $\rightarrow$ ungerichtete Hypothesen  
+* Größe des Effekts: Unspezifisch  
+
+Hypthesenpaar (statistisch):  
+
+* $H_0$: $\mu_{Allgemeine} =   \mu_{Klinische}$
+* $H_1$: $\mu_{Allgemeine} \ne \mu_{Klinische}$
+
+**Spezifikation des Signifikanzniveaus** 
+
+$\alpha = .05$
+
+**Durchführung des Wilcoxon-Tests**
+
+```{r}
+wilcox.test(data1$intel ~ data1$fach,  # abhängige Variable ~ unabhängige Variable
+       paired = F,                     # Stichproben sind unabhängig 
+       alternative = "two.sided",      # zweiseitige Testung 
+       conf.level = .95)               # alpha = .05 
+```
+
+
+**Formales Berichten des Ergebnisses**
+
+Es wurde untersucht, ob sich Studierende, die sich für Allgemeine Psychologie interessieren, im Persönlichkeitsmerkmal Intellekt (auch: Offenheit für neue Erfahrungen) von Studierenden, die sich für Klinische Psychologie interessieren, unterscheiden. Deskriptiv liegt ein solcher Unterschied vor: Die Mittelwerte betragen 3.72 (Allgemeine, _SD_ = 0.38) und 3.60 (Klinische, _SD_ = 0.65). Der entsprechende Wilcoxon-Test zeigt jedoch ein nicht signifikantes Ergebnis (_W_ = 370, _p_ = .362).
+</details>
+
+## Aufgabe 2
+Sind Studierende, die außerhalb von Frankfurt wohnen ("ort"), zufriedener im Leben ("lz") als diejenigen, die innerhalb von Frankfurt wohnen?  
+
+<details><summary>Lösung</summary>
+**Deskriptivstatistische Beantwortung der Fragestellung: grafisch**
+
+```{r, fig.height = 10}
+boxplot(fb20$lz ~ fb20$ort,
+        xlab="Wohnort", ylab="Lebenszufriedenheit", 
+        las=1, cex.lab=1.5, 
+        main="Wohnort und Lebenszufriedenheit")
+```
+
+**Deskriptivstatistische Beantwortung der Fragestellung: statistisch**
+
+```{r}
+library(psych)
+describeBy(fb20$lz, fb20$ort)
+summary(fb20[which(fb20$ort=="Frankfurt"), "lz"])
+summary(fb20[which(fb20$ort=="anderer"), "lz"])
+```
+
+Mittelwert der Nicht-Frankfurter ist deskriptiv  höher als der der Frankfurter.
+
+**Voraussetzungsprüfung: Normalverteilung**
+
+```{r, fig.height=4, fig.align="center"}
+par(mfrow=c(1,2))
+lz.F <- fb20[which(fb20$ort=="Frankfurt"), "lz"]
+hist(lz.F, xlim=c(1,9), main="Lebenzufriedenheit\n(Frankfurter)", xlab="", ylab="", las=1, prob=T)
+curve(dnorm(x, mean=mean(lz.F, na.rm=T), sd=sd(lz.F, na.rm=T)), col="red", lwd=2, add=T)
+qqnorm(lz.F)
+qqline(lz.F, col="red")
+```
+
+$\rightarrow$ Entscheidung: Normalverteilung wird angenommmen
+
+```{r, fig.height=4, fig.align="center"}
+par(mfrow=c(1,2))
+lz.a <- fb20[which(fb20$ort=="anderer"), "lz"]
+hist(lz.a, xlim=c(1,9), main="Lebenszufriedenheit\n(Nicht-Frankfurter)", xlab="", ylab="", las=1, prob=T)
+curve(dnorm(x, mean=mean(lz.a, na.rm=T), sd=sd(lz.a, na.rm=T)), col="red", lwd=2, add=T)
+qqnorm(lz.a)
+qqline(lz.a, col="red")
+```
+
+$\rightarrow$ Entscheidung: Normalverteilung wird angenommmen 
+
+**Voraussetzungsprüfung: Varianzhomogenität**
+
+```{r}
+library(car)
+leveneTest(fb20$lz ~ fb20$ort)
+```
+
+_F_(1,86) = 0.43, _p_ = .513 $\rightarrow$ Das Ergebnis ist nicht signifikant, die $H_0$ wird beibehalten und Varianzhomogenität angenommen.
+
+**Hypothesen**
+
+* Art des Effekts: Unterschiedshypothese  
+* Richtung des Effekts: Gerichtet $\rightarrow$ gerichtete Hypothesen  
+* Größe des Effekts: Unspezifisch  
+
+Hypthesenpaar (statistisch):  
+
+* $H_0$: $\eta_{Frankfurter} \ge \eta_{nicht-Frankfurter}$  
+* $H_1$: $\eta_{Frankfurter} <   \eta_{nicht-Frankfurter}$
+
+**Spezifikation des Signifikanzniveaus**
+
+$\alpha = .05$
+
+**Durchführung des _t_-Tests**
+
+```{r}
+levels(fb20$ort)
+t.test(fb20$lz ~ fb20$ort,           # abhängige Variable ~ unabhängige Variable
+       paired = F,                   # Stichproben sind unabhängig 
+       alternative = "less",         # einseitige Testung: Gruppe1 (Frankfurter) < Gruppe2 (Nicht-Frankfurter) 
+       var.equal = T,                # Varianzhomogenität ist gegeben (-> Levene-Test)
+       conf.level = .95)             # alpha = .05 
+```
+
+**Formales Berichten des Ergebnisses** 
+
+Es wurde untersucht, ob außerhalb von Frankfurt wohnende Studierende zufriedener im Leben sind als die in Frankfurt wohnenden. Deskriptiv  zeigt sich tatsächlich, dass die Nicht-Frankfurter zufriedener sind (_M_ = 5.17, _SD_ = 1.13) als die Frankfurter (_M_ = 5.05, _SD_ = 1.13). Der _t_-Test zeigt jedoch ein nicht signifikantes Ergebnis (_t_(_df_ = 86, eins.) = -.48, _p_ = .316). Die Nullhypothese konnte nicht verworfen werden und wird beibehalten. Die Studierenden sind gleich zufrieden, unabhängig von deren Wohnort.
+
+
+</details>
+
+## Aufgabe 3
+Ist die Wahrscheinlichkeit dafür, innerhalb von Frankfurt zu wohnen, die gleiche für weibliche wie für männliche Erstsemester-Studierende der Psychologie?
+
+<details><summary>Lösung</summary>
+Beide Variablen sind nominalskaliert $\rightarrow \chi^2$-Test
+
+**Voraussetungen**  
+
+1. Die einzelnen Beobachtungen sind voneinander unabhängig $\rightarrow$ ok
+2. Jede Person lässt sich eindeutig einer Kategorie bzw. Merkmalskombination zuordnen $\rightarrow$ ok
+3. Zellbesetzung für alle $n_{ij}$ > 5 $\rightarrow$ Prüfung anhand von Häufigkeitstabelle 
+
+```{r}
+fb20$geschlecht <- fb20$geschl[fb20$geschl=="weiblich"|fb20$geschl=="maennlich"]
+fb20$geschlecht <- droplevels(fb20$geschlecht)
+tab <- table(fb20$geschlecht, fb20$ort)
+tab
+```
+
+$\rightarrow n_{ij}$ > 5 in allen Zellen gegeben
+
+**Hypothesen**
+
+* Art des Effekts: Zusammenhangshypothese
+* Richtung des Effekts: Ungerichtet
+* Größe des Effekts: Unspezifisch
+
+Hyothesenpaar (inhaltlich):  
+
+* $H_0$: Weibliche und männliche Studierende der Psychologie wohnen mit gleicher Wahrscheinlichkeit innerhalb bzw. außerhalb von Frankfurt.  
+* $H_1$: Weibliche und männliche Studierende der Psychologie unterscheiden sich in der Wahrscheinlichkeit, innerhalb bzw. außerhalb von Frankfurt zu wohnen.  
+
+Hypothesenpaar (statistisch):  
+
+* $H_0$: $\pi_{ij} =    \pi_{i\bullet} \cdot \pi_{\bullet j}$  
+* $H_1$: $\pi_{ij} \neq \pi_{i\bullet} \cdot \pi_{\bullet j}$ 
+
+**Durchführung des $\chi^2$-Test in R**
+
+```{r}
+chisq.test(tab, correct=FALSE)
+```
+
+$\chi^2 = 0.320, df = 1, p = .572 \rightarrow H_0$
+
+**Effektstärke Phi ($\phi$)**
+
+```{r}
+library(psych)
+phi(tab)
+```
+
+**Ergebnisinterpretation**
+
+Es wurde untersucht, ob sich männliche und weibliche Studierende in ihrem Wohnort (Frankfurt vs. außerhalb) unterscheiden. Zur Beantwortung der Fragestellung wurde ein Vierfelder-Chi-Quadrat-Test für unabhängige Stichproben berechnet. Der Zusammenhang zwischen Wohnort und Geschlecht ist nicht signifikant ($\chi^2(1) = 0.320, p = .572$), somit wird die Nullhypothese beibehalten. Der Effekt ist von vernachlässigbarer Stärke ($\phi = .06$). Männliche und weibliche Studierende wohnen also mit gleicher Wahrscheinlichkeit in Frankfurt bzw. außerhalb von Frankfurt.
+
+</details>
+
+## Aufgabe 4
+Geben Studierende im gleichen Maße an, dass sie "nicht munter" bzw. "nicht ausgeruht" sind (munter: mdbf10; ausgeruht: mdbf2), wie dass sie sich "schlapp" bzw. "müde" fühlen (schlapp: mdbf5; müde: mdbf7)?   
+
+<details><summary>Lösung</summary>
+**Daten aufbereiten**
+
+Items umpolen
+```{r}
+fb20$mdbf10_r <- -1 * (fb20$mdbf10 - 6) # Item mdbf10 umpolen
+fb20$mdbf2_r <- -1 * (fb20$mdbf2 - 6) # Item mdbf2 umpolen
+```
+
+Bedeutung nach der Umpolung:
+
+Item mdbf10_r: Wie "nicht munter" fühlen Sie sich? Hohe Werte = nicht munter
+
+Item mdbf2_r: Wie "nicht ausgeruht" fühlen Sie sich? Hohe Werte = nicht ausgeruht
+
+
+Skalen mitteln über die jeweiligen Items:
+```{r}
+#umgepolte "wache" Skalen mitteln ueber beide Items
+fb20$muede_r <- rowMeans(fb20[, c('mdbf2_r', 'mdbf10_r')])
+#"muede" Skalen mitteln ueber beide Items
+fb20$muede <- rowMeans(fb20[, c('mdbf5', 'mdbf7')])
+```
+
+Unterscheiden sich die Gruppen im Mittel nicht, geben die Studierenden auf beiden Skalen im gleichen Maße an, wie wach bzw. müde sie sich fühlen.
+
+**Deskriptivstatistische Beantwortung der Fragestellung: grafisch**
+
+* Balkendiagramme (angemessen für Daten mit Rangskalenqualität)
+
+* Je ein Balkendiagramm pro Variable, untereinander dargestellt 
+```{r, fig.height = 10}
+par(mfrow=c(2,1), mar=c(3,3,3,0))
+barplot(table(fb20[, "muede_r"]), ylim = c(0,40), main="nicht müde", xlab="", ylab="", las=1)
+barplot(table(fb20[, "muede"]), ylim = c(0,40), main="müde", xlab="", ylab="", las=1)
+par(mfrow=c(1,1))
+```
+
+**Deskriptivstatistische Beantwortung der Fragestellung: statistisch**
+```{r}
+summary(fb20[, "muede_r"])
+summary(fb20[, "muede"])
+prop.table(table(fb20$muede_r))
+prop.table(table(fb20$muede))
+```
+Werte auf der umgepolten "wach" Skala leicht höher als Werte auf Skala "muede".
+
+**Voraussetzungen für t-Test für abhängige Stichproben**
+
+1. Die abhängige Variable ist intervallskaliert $\rightarrow$ nicht gegeben $\rightarrow$ Wilcoxon Test für abhängige Stichproben
+2. Die Messwerte innerhalb der Paare dürfen sich gegenseitig beeinflussen/voneinander abhängig sein; außerdem keine Abhängigkeiten zwischen den Messwertpaaren
+3. Die Differenzvariable _d_ muss in der Population normalverteilt sein
+
+(2. und 3. nicht mehr relevant, da wir Wilcoxon Test anwenden)
+
+**Hypothesen**
+
+Hypothesenpaar (inhaltlich):  
+
+H0: Studierende geben im gleichen Ausmaß an, dass sie "nicht munter" sind, wie dass sie sich "schlapp/müde" fühlen.  
+H1: Studenten geben eher an, dass sie "nicht munter" sind, als dass sie sich "schlapp/müde" fühlen bzw. umgekehrt.
+
+* Art des Effekts: Unterschiedshypothese  
+* Richtung des Effekts: Ungerichtet  
+* Größe des Effekts: Unspezifisch  
+
+Hypthesenpaar (statistisch):  
+
+* $H_0$: $\mu_{"nicht-munter"} =   \mu_{"schlapp"}$ bzw. $\mu_{d} = 0$
+* $H_1$: $\mu_{"nicht-munter"} \ne \mu_{"schlapp"}$ bzw. $\mu_{d} \ne 0$
+
+**Spezifikation des Signifikanzniveaus** 
+
+$\alpha = .05$
+
+**Durchführung des Wilcoxon-Tests für abhängige Stichproben in R**
+```{r}
+wilcox.test(x = fb20$muede_r, y = fb20$muede, # die beiden abhaengigen Items  
+            paired = T,                       # Stichproben sind abhaengig
+            alternative = "two.sided",        # zweinseitige Testung
+            conf.level = .95)                 # alpha = .05
+```
+
+**Formales Berichten des Ergebnisses**
+
+Es wurde untersucht, ob Studierende in gleichem Maße angeben, dass sie "nicht munter" bzw. "nicht ausgeruht" sind, wie dass sie sich schlapp bzw. müde fühlen.
+
+Zur Beantwortung der Fragestellung wurde ein zweinseitiger Wilcoxon-Test für abhängige Stichproben durchgeführt. Der Unterschied wurde bei einem Signifikanzniveau von alpha = .05 signifikant (V = 1709.5, _p_ = .002). Somit wird die Nullhypothese verworfen und die Alternativhypothese angenommen: Studenten geben eher an, dass sie "nicht munter" sind (d.h. niedrige Werte auf den Items "munter" und "ausgeruht"), als dass sie sich "schlapp/müde" fühlen.
+
+</details>
+
+## Aufgabe 5
+Ein Therapeut behauptet, dass eine von ihm entwickelte Meditation die Zufriedenheit von Menschen positiv beeinflusst. Er möchte dies mit wissenschaftlichen Methoden zeigen und misst die Zufriedenheit vor und nach der Meditation (Daten mit Intervallskalenqualität). Es ergeben sich folgende Werte für 18 Personen:   
+
+```{r echo = FALSE, results='asis'}
+library(knitr)
+kable(data.frame(Vpn = 1:18, Vorher = c(4,6,3,7,2,8,3,5,6,4,5,4,3,7,7,6,4,7), Nachher = c(6,7,8,7,4,7,6,6,8,5,9,6,6,7,6,4,5,8)))
+```
+
+Wirkt die Meditation auf die Zufriedenheit?
+
+<details><summary>Lösung</summary>
+**Datensatz generieren**
+```{r}
+dataMeditation <- data.frame(Vpn = 1:18, Vorher = c(4,6,3,7,2,8,3,5,6,4,5,4,3,7,7,6,4,7), Nachher = c(6,7,8,7,4,7,6,6,8,5,9,6,6,7,6,4,5,8))
+```
+
+**Deskriptivstatistische Beantwortung der Fragestellung: grafisch**
+
+Histogramme (weil Intervallskalenqualität):
+Je ein Histogramm pro Gruppe, untereinander dargestellt, vertikale Linie für den jeweiligen Mittelwert
+```{r}
+par(mfrow=c(2,1), mar=c(3,2,2,0))
+hist(dataMeditation[, "Vorher"], xlim=c(0,10), ylim=c(1,6), main="Zufriedenheit vor der Meditation", xlab="", ylab="", las=1)
+abline(v=mean(dataMeditation[, "Vorher"]), lty=2, lwd=2)
+hist(dataMeditation[, "Nachher"], xlim=c(0,10), ylim=c(1,6), main="Zufriedenheit nach der Meditation", xlab="", ylab="", las=1)
+abline(v=mean(dataMeditation[, "Nachher"]), lty=2, lwd=2)
+par(mfrow=c(1,1))
+```
+
+**Deskriptivstatistische Beantwortung der Fragestellung: statistisch**
+```{r}
+summary(dataMeditation[, "Vorher"])
+summary(dataMeditation[, "Nachher"])
+#alternativ
+library(psych)
+describe(dataMeditation[, "Vorher"])
+describe(dataMeditation[, "Nachher"])
+```
+Mittelwert vorher (_M_ = 5.1, _SD_ = 1.76) ist deskriptiv niedriger als Mittelwert nachher (_M_ = 6.4, _SD_ = 1.38).
+
+**Voraussetzungen für t-Test für abhängige Stichproben**
+
+1. Die abhängige Variable ist intervallskaliert $\rightarrow$ ok
+2. Die Messwerte innerhalb der Paare dürfen sich gegenseitig beeinflussen/voneinander abhängig sein; keine Abhängigkeiten zwischen den Messwertpaaren $\rightarrow$ ok
+3. Die Differenzvariable _d_ muss in der Population normalverteilt sein $\rightarrow$ ab _n_ => 30 gegeben, ansonsten grafische Prüfung oder Hintergrundwissen 
+
+**Voraussetzungsprüfung: Normalverteilung von _d_**
+```{r, fig.height = 10}
+par(mar=c(3,3,3,0)) #aendern der Raender (margins) des Plot-Fensters
+difference <- dataMeditation[, "Vorher"]-dataMeditation[, "Nachher"]
+hist(difference, xlim=c(-6,4), main="Verteilung der Differenzen", xlab="Differenzen", ylab="", las=1,freq=F)
+curve(dnorm(x, mean=mean(difference), sd=sd(difference)), col="blue", lwd=2, add=T)
+par(mfrow=c(1,1)) #Zuruecksetzens auf default
+qqnorm(difference,las=1)
+qqline(difference, col="blue")
+```
+
+$\Rightarrow$ Differenzen sehen einigermaßen normalverteilt aus
+
+**Hypothesen**
+
+* Art des Effekts: Unterschiedshypothese  
+* Richtung des Effekts: Gerichtet $\rightarrow$ gerichtete Hypothesen (Der Wissenschaftler erwartet eine positive Wirkung
+#    der Meditation auf die Zufriedenheit.) 
+* Größe des Effekts: Unspezifisch  
+
+
+Hyothesenpaar (inhaltlich):  
+H0: Die Meditation wirkt sich nicht oder negativ auf die Zufriedenheit aus.
+H1: Die Meditation wirkt sich positiv auf die Zufriedenheit aus.
+
+Hypthesenpaar (statistisch):  
+
+* $H_0$: $\eta_{vorher} \ge \eta_{nachher}$  bzw. $\mu_{d} \ge 0$
+* $H_1$: $\eta_{vorher} <   \eta_{nachher}$  bzw. $\mu_{d} < 0$
+
+**Spezifikation des Signifikanzniveaus**
+
+$\alpha = .05$
+
+**Durchführung des _t_-Tests für abhängige Stichproben in R**
+
+```{r}
+t.test(x = dataMeditation[, "Vorher"], y  = dataMeditation[, "Nachher"], # die beiden abhaengigen Gruppen
+       paired = T,                       # Stichproben sind abhaengig
+       alternative = "less",             # gerichtete Hypothese -> einseitige Testung
+       conf.level = .95)                 # alpha = .05
+```
+
+* Zur Erinnerung: _df_ bei _t_-test mit abhängigen Stichproben: _n_ - 1 (wobei _n_ die Anzahl der Paare darstellt)
+* _t_(0.05;17) = -3.174, _p_ < .05 $\rightarrow$ signifikant, H0 wird verworfen, H1 wird angenommen.
+
+**Schätzung des standardisierten Populationseffekts**
+
+```{r}
+mean_d <- mean(difference)
+sd.d.est <- sd(difference) #die geschaetzte SD der Differenzen
+d_Meditation <- mean_d/sd.d.est
+```
+
+$\Rightarrow$ Der standardisierte Populationseffekt beträgt _d2''_ = -0.75 und ist laut Konventionen nach Cohen (1988) groß. 
+
+**Formales Berichten des Ergebnisses**
+
+Es wurde in einer Wiederholungsmessung untersucht, ob sich Meditation auf Zufriedenheit auswirkt. Zunächst findet sich deskriptiv ein Unterschied: Vor der Meditation liegt der durchschnittliche Zufriedenheitswert bei 5.06 (_SD_ = 1.76), während er nach der Meditation bei 6.39 (_SD_ = 1.38) liegt. 
+
+Zur Beantwortung der Fragestellung wurde ein gerichteter _t_-Test für abhängige Stichproben durchgeführt. Der Gruppenunterschied ist signifikant (_t_(17) = -3.17, _p_ < .05), somit wird die Nullhypothese verworfen und die Alternativhypothese angenommen. Die Meditation hat einen Einfluss auf die Zufriedenheit.
+
+Dieser Einfluss ist nach dem standardisierte Populationseffekt von _d''_ = 0.75 groß.
+
+
+</details>
