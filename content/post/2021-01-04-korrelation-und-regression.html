@@ -1,0 +1,678 @@
+---
+title: Korrelation und Regression
+author: 
+date: '2021-01-04'
+slug: korrelation-und-regression
+categories:
+  - BSc2
+tags:
+  - Regression
+  - Korrelation
+subtitle: ''
+summary: ''
+authors: [winkler]
+lastmod: '2021-01-04T13:13:57+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+
+
+<details>
+<p><summary>Kernfragen dieser Lehreinheit</summary></p>
+<ul>
+<li>Wie können Kreuztabellen in R erstellt werden? Welche Varianten gibt es, relative Häufigkeitstabellen zu erstellen?</li>
+<li>Wie kann ein gemeinsames Balkendiagramm für zwei Variablen erstellt werden?</li>
+<li>Welche zwei Varianten gibt es, Varianzen und Kovarianzen zu bestimmen?</li>
+<li>Wie kann die Produkt-Moment-Korrelation, die Rang-Korrelation nach Spearman und Kendalls <span class="math inline">\(\tau\)</span> bestimmt werden?</li>
+<li>Wie wird bei der Berechnung von Korrelationen mit fehlenden Werten umgegangen?</li>
+<li>Wie kann ein Modell für den Zusammenhang von zwei Variablen erstellt werden?</li>
+<li>Wie können Streudiagramme in R erstellt werden? Wie kann die Regressionsgerade in den Plot eingefügt werden?</li>
+<li>Wie können standardisierte Regressionsgewichte geschätzt werden? Was ist der Unterschied zu nicht-standardisierten?</li>
+<li>Wie wird der Determinationskoeffizient <span class="math inline">\(R^2\)</span> berechnet und was sagt er aus?</li>
+<li>Wie werden der Korrelationskoeffizient <em>r</em> als auch das Regressionsparameter <em>b</em> inferenzstatistisch überprüft?</li>
+</ul>
+</details>
+<hr />
+<div id="datensatz-laden" class="section level2">
+<h2>Datensatz laden</h2>
+<p>Zu Beginn laden wir wie gewohnt den Datensatz (Sie können den Datensatz <a href="/post/fb20.rda">hier <i class="fas fa-download"></i> herunterladen</a>) und erstellen, falls nötig, Labels und Skalenwerte.</p>
+<pre><code>## Error in setwd(&quot;C:/Users/Nutzer/Documents/Lehre/Statistik&quot;): cannot change working directory</code></pre>
+<pre class="r"><code>setwd(...) #auf Pfad mit Datensatz</code></pre>
+<pre class="r"><code>load(&quot;fb20.rda&quot;)
+
+#Labels
+fb20$fach &lt;- factor(fb20$fach, levels = 1:5, labels = c (&#39;Allgemeine&#39;, &#39;Biologische&#39;, &#39;Entwicklung&#39;, &#39;Klinische&#39;, &#39;Diag./Meth.&#39;))
+fb20$ziel &lt;- factor(fb20$ziel, levels = 1:4, labels = c (&#39;Wirtschaft&#39;, &#39;Therapie&#39;, &#39;Forschung&#39;, &#39;Andere&#39;))
+
+#Rekodierung
+fb20$mdbf4_r &lt;- -1 * (fb20$mdbf4 - 6)
+fb20$mdbf11_r &lt;- -1 * (fb20$mdbf11 - 6)
+fb20$mdbf5_r &lt;- -1 * (fb20$mdbf5 - 6)
+fb20$mdbf7_r &lt;- -1 * (fb20$mdbf7 - 6)
+fb20$mdbf3_r &lt;- -1 * (fb20$mdbf3 - 6)
+fb20$mdbf9_r &lt;- -1 * (fb20$mdbf5 - 9)
+
+#Skalenwerte
+gut &lt;- fb20[,c(&#39;mdbf1&#39;,&#39;mdbf4_r&#39;,&#39;mdbf8&#39;,&#39;mdbf11_r&#39;)]
+fb20$gs &lt;- rowMeans(gut)
+wach &lt;- fb20[,c(&#39;mdbf2&#39;,&#39;mdbf5_r&#39;,&#39;mdbf7_r&#39;,&#39;mdbf10&#39;)]
+fb20$wm &lt;- rowMeans(wach)
+ruhig &lt;- fb20[,c(&#39;mdbf3_r&#39;,&#39;mdbf6&#39;,&#39;mdbf9_r&#39;,&#39;mdbf12&#39;)]
+fb20$ru &lt;- rowMeans(ruhig)</code></pre>
+<hr />
+</div>
+<div id="häufigkeitstabellen" class="section level2">
+<h2>Häufigkeitstabellen</h2>
+<p>Die Erstellung von <em>Häufigkeitstabellen</em> zur Darstellung univariater Häufigkeiten haben Sie schon kennengelernt. Dies funktioniert mit einfachen Befehlen für die Häufigkeiten und die zugehörigen relativen Prozentzahlen.</p>
+<pre class="r"><code>tab&lt;-table(fb20$fach)                 #Absolut
+tab</code></pre>
+<pre><code>## 
+##  Allgemeine Biologische Entwicklung   Klinische Diag./Meth. 
+##          23          13          23          28           6</code></pre>
+<pre class="r"><code>prop.table(tab)                       #Relativ</code></pre>
+<pre><code>## 
+##  Allgemeine Biologische Entwicklung   Klinische Diag./Meth. 
+##  0.24731183  0.13978495  0.24731183  0.30107527  0.06451613</code></pre>
+<p>Die Erweiterung für den bivariaten Fall ist dabei nicht schwierig und wird als <em>Kreuztabelle</em> bezeichnet. Sie liefert die Häufigkeit von Kombinationen von Ausprägungen in mehreren Variablen. In den Zeilen wird eine Variable abgetragen und in den Spalten die zweite. Im Unterschied zum univariaten Fall muss im <code>table()</code> Befehl nur die zweite interessierende Variable zusätzlich genannt werden. Tabellen können beliebig viele Dimensionen haben, werden dann aber sehr unübersichtlich.</p>
+<pre class="r"><code>tab&lt;-table(fb20$fach,fb20$ziel)       #Kreuztabelle
+tab</code></pre>
+<pre><code>##              
+##               Wirtschaft Therapie Forschung Andere
+##   Allgemeine           9        4         5      5
+##   Biologische          1        3         8      1
+##   Entwicklung          4        6        10      3
+##   Klinische            0       22         4      2
+##   Diag./Meth.          2        2         2      0</code></pre>
+<p>In eine Kreuztabelle können Randsummen mit dem <code>addmargins()</code> Befehl hinzugefügt werden. Randsummen erzeugen in der letzten Spalte bzw. Zeile die univariaten Häufigkeitstabellen der Variablen.</p>
+<pre class="r"><code>addmargins(tab)                       #Randsummen hinzufügen</code></pre>
+<pre><code>##              
+##               Wirtschaft Therapie Forschung Andere Sum
+##   Allgemeine           9        4         5      5  23
+##   Biologische          1        3         8      1  13
+##   Entwicklung          4        6        10      3  23
+##   Klinische            0       22         4      2  28
+##   Diag./Meth.          2        2         2      0   6
+##   Sum                 16       37        29     11  93</code></pre>
+<p>Auch für die Kreuztabelle ist die Möglichkeit der Darstellung der Häufigkeiten in Relation zur Gesamtzahl der Beobachtungen gegeben.</p>
+<pre class="r"><code>prop.table(tab)                       #Relative Häufigkeiten</code></pre>
+<pre><code>##              
+##               Wirtschaft   Therapie  Forschung     Andere
+##   Allgemeine  0.09677419 0.04301075 0.05376344 0.05376344
+##   Biologische 0.01075269 0.03225806 0.08602151 0.01075269
+##   Entwicklung 0.04301075 0.06451613 0.10752688 0.03225806
+##   Klinische   0.00000000 0.23655914 0.04301075 0.02150538
+##   Diag./Meth. 0.02150538 0.02150538 0.02150538 0.00000000</code></pre>
+<p>22 von insgesamt 93 (23.66%) wollen therapeutisch arbeiten <em>und</em> interessieren sich bisher am meisten für die klinische Psychologie.</p>
+<p><code>prob.table()</code> kann allerdings nicht nur an der Gesamtzahl relativiert werden, sondern auch an der jeweiligen Zeilen- oder Spaltensumme. Dafür gibt man im Argument <code>margin</code> für Zeilen <code>1</code> oder für Spalten <code>2</code> an.</p>
+<pre class="r"><code>prop.table(tab, margin = 1)           #relativiert an Zeilen</code></pre>
+<pre><code>##              
+##               Wirtschaft   Therapie  Forschung     Andere
+##   Allgemeine  0.39130435 0.17391304 0.21739130 0.21739130
+##   Biologische 0.07692308 0.23076923 0.61538462 0.07692308
+##   Entwicklung 0.17391304 0.26086957 0.43478261 0.13043478
+##   Klinische   0.00000000 0.78571429 0.14285714 0.07142857
+##   Diag./Meth. 0.33333333 0.33333333 0.33333333 0.00000000</code></pre>
+<p>Von 28 Personen, die sich am meisten für klinische Psychologie interessieren, wollen 78.57% (nämlich 22 Personen) später therapeutisch arbeiten.</p>
+<pre class="r"><code>prop.table(tab, margin = 2)           #relativiert an Spalten</code></pre>
+<pre><code>##              
+##               Wirtschaft   Therapie  Forschung     Andere
+##   Allgemeine  0.56250000 0.10810811 0.17241379 0.45454545
+##   Biologische 0.06250000 0.08108108 0.27586207 0.09090909
+##   Entwicklung 0.25000000 0.16216216 0.34482759 0.27272727
+##   Klinische   0.00000000 0.59459459 0.13793103 0.18181818
+##   Diag./Meth. 0.12500000 0.05405405 0.06896552 0.00000000</code></pre>
+<p>Von 37 Personen, die später therapeutisch arbeiten wollen, interessieren sich 59.46% (nämlich 22 Personen) für die klinische Psychologie.</p>
+<p><code>addmargins()</code>und <code>prop.table()</code> können beliebig kombiniert werden.
+<code>prop.table(addmargins(tab))</code> behandelt die Randsummen als eigene Kategorie (inhaltlich meist unsinnig!).
+<code>addmargins(prop.table(tab))</code> liefert die Randsummen der relativen Häufigkeiten.</p>
+<pre class="r"><code>addmargins(prop.table(tab))</code></pre>
+<pre><code>##              
+##               Wirtschaft   Therapie  Forschung     Andere        Sum
+##   Allgemeine  0.09677419 0.04301075 0.05376344 0.05376344 0.24731183
+##   Biologische 0.01075269 0.03225806 0.08602151 0.01075269 0.13978495
+##   Entwicklung 0.04301075 0.06451613 0.10752688 0.03225806 0.24731183
+##   Klinische   0.00000000 0.23655914 0.04301075 0.02150538 0.30107527
+##   Diag./Meth. 0.02150538 0.02150538 0.02150538 0.00000000 0.06451613
+##   Sum         0.17204301 0.39784946 0.31182796 0.11827957 1.00000000</code></pre>
+<hr />
+</div>
+<div id="balkendiagramme" class="section level2">
+<h2>Balkendiagramme</h2>
+<p>Grafisch kann eine solche Kreuztabelle durch gruppierte Balkendiagramme dargestellt werden. Das Argument <code>beside</code> sorgt für die Anordnung der Balken (bei <code>TRUE</code> nebeneinander, bei <code>FALSE</code> übereinander). Das Argument <code>legend</code> nimmt einen Vektor für die Beschriftung entgegen. Die Reihen des Datensatzes bilden dabei stets eigene Balken, während die Spalten die Gruppierungsvariable bilden. Deshalb müssen als Legende die Namen der Reihen <code>rownames()</code> unserer Tabelle <code>tab</code> ausgewählt werden.</p>
+<pre class="r"><code>barplot (tab,
+         beside = TRUE,
+         col = c(&#39;mintcream&#39;,&#39;olivedrab&#39;,&#39;peachpuff&#39;,&#39;steelblue&#39;,&#39;maroon&#39;),
+         legend = rownames(tab))</code></pre>
+<p><img src="/post/2021-01-04-korrelation-und-regression_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<hr />
+</div>
+<div id="varianz-kovarianz-und-korrelation" class="section level2">
+<h2>Varianz, Kovarianz und Korrelation</h2>
+<p>In der Vorlesungen haben Sie gelernt, dass es für <em>Kovarianzen</em> und <em>Varianzen</em> empirische und geschätzte Werte gibt. R berechnet standardmäßig für die Varianz und Kovarianz die <em>Populationsschätzer</em>, verwendet also folgende Formeln für Varianz</p>
+<p><span class="math display">\[\hat{\sigma}^2_{X} = \frac{\sum_{m=1}^n (y_m - \bar{y})^2}{n-1}\]</span></p>
+<p>und Kovarianz.</p>
+<p><span class="math display">\[\hat{\sigma}_{XY} = \frac{\sum_{m=1}^n (x_m - \bar{x}) \cdot (y_m - \bar{y})}{n-1}\]</span></p>
+<p>Die Funktionen für die Varianz ist dabei <code>var()</code>. Im Folgenden wird diese für die Variablen <code>gs</code> (Gut vs. Schlecht) und <code>gewis</code> (Gewissenhaftigkeit) aus dem Datensatz bestimmt. Als Argumente müssen jeweils die Variablennamen verwendet werden.</p>
+<pre class="r"><code>var(fb20$lz)                            #Varianz Lebenszufriedenheit</code></pre>
+<pre><code>## [1] NA</code></pre>
+<p>Wie bereits in vergangenen Sitzungen gesehen führen fehlende Werte zu der Ausgabe <code>NA</code>. Um dies zu beheben, wird im univariaten Fall <code>na.rm = TRUE</code> zum Ausschluss verwendet.</p>
+<pre class="r"><code>var(fb20$gs, na.rm = TRUE)               #Varianz Gut vs. Schlecht</code></pre>
+<pre><code>## [1] 0.5708813</code></pre>
+<pre class="r"><code>var(fb20$gewis, na.rm = TRUE)            #Varianz Gewissenhaftigkeit</code></pre>
+<pre><code>## [1] 0.4195837</code></pre>
+<p>Die Funktion <code>cov()</code> wird für die Kovarianz verwendet und benötigt als Argumente die Variablen.</p>
+<pre class="r"><code>cov(fb20$gs, fb20$gewis)                #Kovarianz Gut vs. Schlecht und Gewissenhaftigkeit</code></pre>
+<pre><code>## [1] NA</code></pre>
+<p>Natürlich haben auch bei der Kovarianzberechnung fehlende Werte einen Einfluss. Zur Bewältigung des Problems gibt es das Argument <code>use</code>. Bei Zusammenhangsmaßen gibt es in R mehrere Möglichkeiten für den Umgang mit fehlenden Werten, die sich nur unterscheiden, wenn mehr als zwei Variablen korreliert werden:</p>
+<ul>
+<li><em>Paarweiser Fallausschluss</em>: Personen, die auf (mindestens) einer von zwei Variablen <code>NA</code> haben, werden von der Berechnung ausgeschlossen.</li>
+<li><em>Listenweiser Fallausschluss</em>: Personen, die auf (mindestens) einer von allen Variablen <code>NA</code> haben, werden von der Berechnung ausgeschlossen.</li>
+<li><em>na.or.complete</em>: Zeilen, die einen fehlenden Wert (NA) enthalten, werden bei den Berechnungen ignoriert. Das entspricht der Angabe von na.rm = TRUE.</li>
+</ul>
+<p>Am besten lässt sich der Unterschied in einer <em>Kovarianzmatrix</em> veranschaulichen. Hier werden alle Varianzen und Kovarianzen von einer Menge an Variablen berechnet und in einer Tabelle darstellt. Dafür muss ein Datensatz erstellt werden, der nur die interessierenden Variablen enthält. Zu unseren beiden Variablen nehmen wir als drittes noch die Lebenszufriedenheit (<code>lz</code>) auf.</p>
+<pre class="r"><code>drei &lt;- fb20[, c(&#39;gs&#39;,&#39;lz&#39;,&#39;gewis&#39;)]         #Datensatzreduktion
+cov(drei)                                    #Kovarianzmatrix</code></pre>
+<pre><code>##       gs lz     gewis
+## gs    NA NA        NA
+## lz    NA NA        NA
+## gewis NA NA 0.4195837</code></pre>
+<p>Da die fehlenden Werte nicht entfernt wurden, gibt R kein Ergebnis aus.
+Nun folgt die Gegenüberstellung der beiden betrachteten Möglichkeiten zum Ausschluss.</p>
+<pre class="r"><code>cov(drei, use = &#39;pairwise&#39;)             #Paarweiser Fallausschluss</code></pre>
+<pre><code>##              gs        lz     gewis
+## gs    0.5708813 0.4592885 0.1401384
+## lz    0.4592885 1.3153640 0.1981305
+## gewis 0.1401384 0.1981305 0.4195837</code></pre>
+<pre class="r"><code>cov(drei, use = &#39;complete&#39;)             #Listenweiser Fallausschluss</code></pre>
+<pre><code>##              gs        lz     gewis
+## gs    0.5547644 0.4592885 0.1533116
+## lz    0.4592885 1.3179822 0.2038607
+## gewis 0.1533116 0.2038607 0.3884194</code></pre>
+<p>Wie wir sehen unterscheiden sich die Werte voneinander, da beim listenweisen Fallausschluss noch mehr Personen von Beginn an von der Berechnung ausgeschlossen werden.</p>
+<p>Der Zusammenhang zwischen zwei Variablen kann in einem <em>Scatterplot</em> bzw. <em>Streupunktdiagramm</em> dargestellt werden. Dafür kann man die <code>plot()</code> Funktion nutzen. Als Argumente können dabei <code>x</code> für die Variable auf der x-Achse, <code>y</code> für die Variable auf der y-Achse, <code>xlim</code>, <code>ylim</code> für eventuelle Begrenzungen der Achsen und <code>pch</code> für die Punktart angegeben werden.</p>
+<pre class="r"><code>plot(x = fb20$gs, y = fb20$gewis)</code></pre>
+<p><img src="/post/2021-01-04-korrelation-und-regression_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>Wie in der Vorlesung besprochen sind für verschiedene Skalenniveaus Zusammenhangsmaße verfügbar, die im Gegensatz zur Kovarianz auch eine Vergleichbarkeit zwischen zwei Zusammenhangswerten sicherstellen. Für zwei metrisch skalierte Variablen gibt es dabei die <em>Produkt-Moment-Korrelation</em>. In der Funktion <code>cor()</code> werden dabei die Argumente <code>x</code> und <code>y</code> für die beiden betrachteten Variablen benötigt. <code>use</code> beschreibt weiterhin den Umgang mit fehlenden Werten.</p>
+<pre class="r"><code>cor(x = fb20$gs, y = fb20$gewis, use = &#39;pairwise&#39;)</code></pre>
+<pre><code>## [1] 0.283576</code></pre>
+<p>Bei einer positiven Korrelation gilt „je mehr Variable x… desto mehr Variable y&quot; bzw. umgekehrt, bei einer negativen Korrelation „je mehr Variable x… desto weniger Variable y&quot; bzw. umgekehrt. Korrelationen sind immer ungerichtet, das heißt, sie enthalten keine Information darüber, welche Variable eine andere bedingt - beide Variablen sind gleichberechtigt. Korrelationen und Regressionen liefern keine Hinweise auf Kausalitäten. Sie sagen beide etwas über den Zusammenhang zweier Variablen aus.</p>
+<p>In R können wir uns auch eine <em>Korrelationsmatrix</em> ausgeben lassen. Dies geschieht äquivalent zu der Kovarianzmatrix mit dem Datensatz als Argument in der <code>cor()</code> Funktion. In der Diagonale stehen die Korrelationen der Variable mit sich selbst - also 1 - und in den restlichen Feldern die Korrelationen der Variablen untereinander.</p>
+<pre class="r"><code>cor(drei, use = &#39;pairwise&#39;)</code></pre>
+<pre><code>##              gs        lz     gewis
+## gs    1.0000000 0.5371264 0.2835760
+## lz    0.5371264 1.0000000 0.2799681
+## gewis 0.2835760 0.2799681 1.0000000</code></pre>
+<p>Die Stärke des korrelativer Zusammenhangs wird mit dem Korrelationskoeffizienten ausgedrückt, der zwischen -1 und +1 liegt.
+Die default Einstellung bei <code>cor()</code>ist die <em>Produkt-Moment-Korrelation</em>, also die Pearson-Korrelation.</p>
+<pre class="r"><code>cor(fb20$extra, fb20$lz, use = &quot;na.or.complete&quot;,method = c(&quot;pearson&quot;))</code></pre>
+<pre><code>## [1] 0.2154227</code></pre>
+<p>Achtung! Die Pearson-Korrelation hat gewisse Voraussetzungen, die vor der Durchführung überprüft werden sollten!</p>
+<p><strong>Voraussetzungen Pearson-Korrelation:</strong></p>
+<ol style="list-style-type: decimal">
+<li>Skalenniveau: intervallskalierte Daten <span class="math inline">\(\rightarrow\)</span> ok (Ratingskalen werden meist als intervallskaliert aufgefasst)<br />
+</li>
+<li>Linearität: Zusammenhang muss linear sein <span class="math inline">\(\rightarrow\)</span> Grafische Überprüfung (Scatterplot)<br />
+</li>
+<li>Normalverteilung <span class="math inline">\(\rightarrow\)</span> QQ-Plot, Histogramm oder Shapiro-Wilk-Test</li>
+</ol>
+<p><strong>zu 3. Normalverteilung</strong></p>
+<p><span class="math inline">\(\rightarrow\)</span> QQ-Plot, Histogramm &amp; Shapiro-Wilk-Test</p>
+<pre class="r"><code>#QQ
+qqnorm(fb20$extra)
+qqline(fb20$extra)</code></pre>
+<p><img src="/post/2021-01-04-korrelation-und-regression_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+<pre class="r"><code>qqnorm(fb20$lz)
+qqline(fb20$lz)</code></pre>
+<p><img src="/post/2021-01-04-korrelation-und-regression_files/figure-html/unnamed-chunk-21-2.png" width="672" /></p>
+<pre class="r"><code>#Histogramm
+par(mfrow = c(2,1))   #damit beide Histogrammme in einer Grafik angezeigt werden, siehe Sitzung 12)
+hist(fb20$extra, prob = T, ylim = c(0, 1))
+curve(dnorm(x, mean = mean(fb20$extra, na.rm = T), sd = sd(fb20$extra, na.rm = T)), col = &quot;blue&quot;, add = T)  
+hist(fb20$lz, prob = T, ylim = c(0,1))
+curve(dnorm(x, mean = mean(fb20$lz, na.rm = T), sd = sd(fb20$lz, na.rm = T)), col = &quot;blue&quot;, add = T)</code></pre>
+<p><img src="/post/2021-01-04-korrelation-und-regression_files/figure-html/unnamed-chunk-21-3.png" width="672" /></p>
+<pre class="r"><code>par(mfrow = c(1,1))
+
+#Shapiro
+shapiro.test(fb20$extra)</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  fb20$extra
+## W = 0.97493, p-value = 0.05771</code></pre>
+<pre class="r"><code>shapiro.test(fb20$lz)</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  fb20$lz
+## W = 0.96784, p-value = 0.01847</code></pre>
+<p><span class="math inline">\(p &lt; \alpha\)</span> <span class="math inline">\(\rightarrow\)</span> H1: Normalverteilung kann nicht angenommen werden. Somit ist diese Voraussetzung verletzt. Daher muss die Rangkorrelation nach Spearman genutzt werden. Dies geschieht über <code>method = &quot;spearman&quot;</code>.</p>
+<p><strong>Rangkorrelation in R</strong></p>
+<pre class="r"><code>r1 &lt;- cor(fb20$extra,fb20$lz,
+          method = &quot;spearman&quot;,     #Pearson ist default
+          use = &quot;complete.obs&quot;) 
+
+r1</code></pre>
+<pre><code>## [1] 0.2346132</code></pre>
+<pre class="r"><code>r1^2                               #R^2, Anteil an erklärter Varianz</code></pre>
+<pre><code>## [1] 0.05504334</code></pre>
+<p><strong>Interpretation des deskriptiven Zusammenhangs:</strong><br />
+Es handelt sich um eine positive Korrelation von <em>r</em> = .23. Der Effekt ist nach Cohens (1988) Konvention als schwach zu bewerten. Je höher die Ausprägung in Extraversion, desto höher ist die Ausprägung in der Lebenszufriedenheit.</p>
+<p><strong>Exkurs: Cohens (1988) Konvention zur Interpretation von <span class="math inline">\(|r|\)</span>:</strong></p>
+<ul>
+<li>~ .10: schwacher Effekt<br />
+</li>
+<li>~ .30: mittlerer Effekt<br />
+</li>
+<li>~ .50: starker Effekt</li>
+</ul>
+<p>Als letzte Variante gibt es noch Kendalls <span class="math inline">\(\tau\)</span> als Möglichkeit der “method” bei Korrelationen. Diese kann man mit <code>kendall</code> ansprechen.</p>
+<pre class="r"><code>cor(fb20$extra, fb20$lz, use = &#39;pairwise&#39;, method = &#39;kendall&#39;)</code></pre>
+<pre><code>## [1] 0.1783819</code></pre>
+<p><strong>Signifikanztestung des Korrelationskoeffizienten:</strong>
+Nachedem der Korrelationskoeffizient berechnet wurde, muss dieser noch auf Signifikanz geprüft werden.</p>
+<ul>
+<li>H0: <span class="math inline">\(\rho = 0\)</span> <span class="math inline">\(\rightarrow\)</span> es gibt keinen Zusammenhang zwischen Extraversion und Lebenszufriedenheit</li>
+<li>H1: <span class="math inline">\(\rho \neq 0\)</span> <span class="math inline">\(\rightarrow\)</span> es gibt einen Zusammenhang zwischen Extraversion und Lebenszufriedenheit</li>
+</ul>
+<pre class="r"><code>cor.test(fb20$extra, fb20$lz, 
+         alternative = &quot;two.sided&quot;, 
+         method = &quot;spearman&quot;,       #Da Voraussetzungen für Pearson verletzt
+         use = &quot;complete.obs&quot;)</code></pre>
+<pre><code>## Warning in cor.test.default(fb20$extra, fb20$lz, alternative = &quot;two.sided&quot;, :
+## Cannot compute exact p-value with ties</code></pre>
+<pre><code>## 
+##  Spearman&#39;s rank correlation rho
+## 
+## data:  fb20$extra and fb20$lz
+## S = 112849, p-value = 0.0214
+## alternative hypothesis: true rho is not equal to 0
+## sample estimates:
+##       rho 
+## 0.2346132</code></pre>
+<p><span class="math inline">\(p &lt; \alpha\)</span> <span class="math inline">\(\rightarrow\)</span> H1. Die Korrelation ist mit einer Irrtumswahrscheinlichkeit von 5% signifikant von 0 verschieden. –&gt; Bei der Rangkorrelation kann der exakte p-Wert jedoch nicht berechnet werden. Wenn die Voraussetzungen für die Pearson-Korrelation erfüllt wären, würde das Ganze so aussehen:</p>
+<pre class="r"><code>cor.test(fb20$extra, fb20$lz, 
+         alternative = &quot;two.sided&quot;, 
+         method = &quot;pearson&quot;,       
+         use = &quot;complete.obs&quot;)</code></pre>
+<pre><code>## 
+##  Pearson&#39;s product-moment correlation
+## 
+## data:  fb20$extra and fb20$lz
+## t = 2.1388, df = 94, p-value = 0.03504
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  0.01561103 0.39868959
+## sample estimates:
+##       cor 
+## 0.2154227</code></pre>
+<p><strong>Ergebnisinterpretation:</strong>
+Es wurde untersucht, ob Extraversion und Lebenszufriedenheit miteinander zusammenhängen. Der Pearson-Korrelationskoeffizient beträgt .22 und ist statistisch signifikant (<em>t</em> = 2.1388, <em>p</em> = .04). Folglich wird die Nullhypothese verworfen: Extraversion und Lebenszufriedenheit weisen einen signifikanten Zusammenhang auf.</p>
+</div>
+<div id="wie-können-zusammenhangsmaße-für-ordinalskalierte-daten-berechnet-werden" class="section level2">
+<h2>Wie können Zusammenhangsmaße für ordinalskalierte Daten berechnet werden?</h2>
+<p>Hierfür müssen wir das Paket <code>rococo</code> installieren, das verschiedene Konkordanz-basierte Zusammenhangsmaße enthält. Die Installation muss dem Laden des Paketes logischerweise vorausgestellt sein. Wenn R einmal geschlossen wird, müssen alle Zusatzpakete neu geladen, jedoch nicht neu installiert werden.</p>
+<pre class="r"><code>install.packages(&#39;rococo&#39;)          #installieren</code></pre>
+<pre class="r"><code>library(rococo)                     #laden</code></pre>
+<p>Wir erhalten hier als Message den Hinweis, unter welcher Version das Paket erstellt wurde.
+Übersichte über Pakete kann man mit <code>??</code>erhalten.</p>
+<pre class="r"><code>??rococo</code></pre>
+<p>Dank dem neuen Paket können wir nun den Koeffizienten <span class="math inline">\(\hat{\gamma}\)</span> zum Zusammenhang zwischen Entspannung (<code>mdbf12</code>) und Gut Fühlen (<code>mdbf8</code>) berechnen. Die beiden Variablen wurden ursprünglich auf einer Skala von 1 (<em>überhaupt nicht</em>) bis 5 (<em>sehr</em>) (also auf Ordinalskalenniveau) erfasst.</p>
+<pre class="r"><code>rococo(fb20$mdbf12, fb20$mdbf8)</code></pre>
+<pre><code>## [1] 0.7339647</code></pre>
+<p>Die Funktion heißt hier zufälligerweise genau gleich wie das Paket. Wenn man nur Informationen über die Funktion statt das Paket sucht, geht das anhand von <code>?</code>.</p>
+<pre class="r"><code>?rococo</code></pre>
+<hr />
+</div>
+<div id="lineare-regression" class="section level2">
+<h2>Lineare Regression</h2>
+<p>Nachdem wir mit der Korrelation mit der gemeinsamen Betrachtung von zwei Variablen begonnen haben, werden wir jetzt lineare Modelle erstellen, Plots inklusive Regressionsgerade für Zusammenhänge anzeigen lassen und Determinationskoeffizienten berechnen.
+Hierzu betrachten wir folgende Fragestellung:</p>
+<ul>
+<li>Hat die Extraversion (<em>extra</em>) einen Einfluss auf die Lebenszufriedenheit (<em>lz</em>)?</li>
+</ul>
+<div id="voraussetzungen" class="section level3">
+<h3>Voraussetzungen:</h3>
+<ol style="list-style-type: decimal">
+<li>Linearität: Zusammenhang muss linear sein <span class="math inline">\(\rightarrow\)</span> Grafische Überprüfung (Scatterplot)<br />
+</li>
+<li>Varianzhomogenität (Homoskedastizität) der Fehler: der Fehler jedes Wertes der UV hat annährend die gleiche Varianz<br />
+</li>
+<li>Normalverteilung der Fehlervariablen<br />
+</li>
+<li>Unabhängigkeit der Fehler</li>
+</ol>
+<p>Die Voraussetzungen 2-4 können erst geprüft werden, nachdem das Modell schon gerechnet wurde, weil sie sich auf die Fehler (Residuen: Differenz aus beobachtetem und vorhergesagtem Wert für y) beziehen!</p>
+<p><strong>zu 1. Linearität: Zusammenhang muss linear sein <span class="math inline">\(\rightarrow\)</span> Grafische Überprüfung (Scatterplot)</strong></p>
+<pre class="r"><code>plot(fb20$extra, fb20$lz, xlab = &quot;Extraversion&quot;, ylab = &quot;Lebenszufriedenheit&quot;, 
+     main = &quot;Zusammenhang zwischen Extraversion und Lebenszufriedenheit&quot;, xlim = c(0, 6), ylim = c(0, 7), pch = 19)
+lines(loess.smooth(fb20$extra, fb20$lz), col = &#39;blue&#39;)    #beobachteter, lokaler Zusammenhang
+fm &lt;- lm(lz ~ extra, fb20)                              #Modell erstellen und ablegen
+abline(fm, col = &quot;red&quot;)                                  #Modellierter linearer Zusammenhang in zuvor erstellten Plot einzeichnen</code></pre>
+<p><img src="/post/2021-01-04-korrelation-und-regression_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
+<ul>
+<li><code>pch</code> verändert die Darstellung der Datenpunkte</li>
+<li><code>xlim</code> und <code>ylim</code> veränderen die X- bzw. Y-Achse</li>
+<li>mit <code>cex</code> könnte man noch die Größe der Datenpunkte anpassen</li>
+</ul>
+<p><strong>zu Voraussetzungen 2-4:</strong></p>
+<pre class="r"><code>par(mfrow = c(2, 2)) #Vier Abbildungen gleichzeitig
+plot(fm)</code></pre>
+<p><img src="/post/2021-01-04-korrelation-und-regression_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+<pre class="r"><code>par(mfrow = c(1, 1)) #wieder auf eine Abbildung zurücksetzen</code></pre>
+<p><em>Interpretation der Abbildungen:</em></p>
+<ul>
+<li>Residuals vs. Fitted: geeignet um Abweichungen von der Linearität und Verletzungen der Homoskedastizität aufzudecken <span class="math inline">\(\rightarrow\)</span> soll möglichst unsystematisch aussehen, rote Anpassungslinie (y-MW bedingt auf X) verläuft parallel zur x-Achse<br />
+</li>
+<li>Normal Q-Q: Zeigt Annäherung der Normalverteilung durch Residuen <span class="math inline">\(\rightarrow\)</span> Punkte sollen auf die Diagonalen liegen<br />
+</li>
+<li>Scale-Location: Prüfung der Homoskedastizität, zeigt Zusammenhang zwischen Streuung der Residuen und vorhergesagten Werten <span class="math inline">\(\rightarrow\)</span> rote Anpassungslinie (y-MW bedingt auf X) verläuft parallel zur x-Achse<br />
+</li>
+<li>Residuals vs. Leverage: zur Identifikation einflussreicher Datenpunkte <span class="math inline">\(\rightarrow\)</span> es sollen keine Fälle außerhalb der Intervalle liegen, rote Anpassungslinie (y-MW bedingt auf X) verläuft parallel zur x-Achse</li>
+</ul>
+<p>In diesem Fall ist alles weitestgehend erfüllt.</p>
+<p>Beispiel für schlechte Ergebnisse: <a href="https://data.library.virginia.edu/diagnostic-plots/">https://data.library.virginia.edu/diagnostic-plots/</a></p>
+<p><strong>Alternativer Weg zur Prüfung der Normalverteilung der Residuen</strong></p>
+<pre class="r"><code>res1 &lt;- residuals(lm(extra ~ lz, fb20))   #Residuen speichern
+
+#QQ
+qqnorm(res1)
+qqline(res1)</code></pre>
+<p><img src="/post/2021-01-04-korrelation-und-regression_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
+<pre class="r"><code>#Histogramm
+hist(res1, prob = T,ylim = c(0,1))    #prob: TRUE, da wir uns auf die Dichte beziehen
+curve(dnorm(x, 
+            mean = mean(res1, na.rm = T), 
+            sd = sd(res1, na.rm = T)),
+      main = &quot;Histogram of residuals&quot;, ylab = &quot;Residuals&quot;,
+      col = &quot;blue&quot;, add = T)   #add: soll Kurve in Grafik hinzugefügt werden?</code></pre>
+<p><img src="/post/2021-01-04-korrelation-und-regression_files/figure-html/unnamed-chunk-33-2.png" width="672" /></p>
+<pre class="r"><code>#Shapiro
+shapiro.test(res1)</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  res1
+## W = 0.98829, p-value = 0.5598</code></pre>
+<p><span class="math inline">\(\rightarrow\)</span> Der p-Wert ist größer als .05 <span class="math inline">\(\rightarrow\)</span> Die Nullhypothese konnte nicht verworfen werden und wird beibehalten: Für die Residuen wird also Normalverteilung angenommen. Somit sind alle Voraussetzungen zur Durchführung der linearen Regression erfüllt.</p>
+</div>
+<div id="modellschätzung" class="section level3">
+<h3>Modellschätzung</h3>
+<p>Die Modellgleichung für die lineare Regression, wie sie in der Vorlesung besprochen wurde, lautet: <span class="math inline">\(y_i = b_0 + b_1 x_i + e_i\)</span></p>
+<p>In R gibt es eine interne Schreibweise, die sehr eng an diese Form der Notation angelehnt ist. Mit <code>?formula</code> können Sie sich detailliert ansehen, welche Modelle in welcher Weise mit dieser Notation dargestellt werden können. R verwendet diese Notation für (beinahe) alle Modelle, sodass es sich lohnt, sich mit dieser Schreibweise vertraut zu machen. Die Kernelemente sind im Fall der linearen Regression</p>
+<pre class="r"><code>y ~ 1 + x</code></pre>
+<p>Diese Notation enthält fünf Elemente:</p>
+<ul>
+<li><code>y</code>: die abhängige Variable</li>
+<li><code>~</code>: die Notation für “regressiert auf” oder “vorhergesagt durch”</li>
+<li><code>1</code>: die Konstante 1</li>
+<li><code>+</code>: eine additive Verknüpfung der Elemente auf der rechten Seite der Gleichung</li>
+<li><code>x</code>: eine unabhängige Variable</li>
+</ul>
+<p>Die Notation beschreibt also die Aussage “<span class="math inline">\(y\)</span> wird regressiert auf die Konstante <span class="math inline">\(1\)</span> und die Variable <span class="math inline">\(x\)</span>”. Die zu schätzenden Parameter <span class="math inline">\(b_0\)</span> und <span class="math inline">\(b_1\)</span> werden in dieser Notation nicht erwähnt, weil sie uns unbekannt sind.</p>
+<p>R geht generell davon aus, dass immer auch der Achsenabschnitt <span class="math inline">\(b_0\)</span> geschätzt werden soll, sodass <code>y ~ x</code> ausreichend ist, um eine Regression zu beschreiben. Wenn das Intercept unterdrückt werden soll, muss das mit <code>y ~ 0 + x</code> explizit gemacht werden.</p>
+<p>In unserem Beispiel ist <span class="math inline">\(x\)</span> die Extraversion (<code>extra</code>) und <span class="math inline">\(y\)</span> die Lebenszufriedenheit (<code>lz</code>). Um das Modell zu schätzen wird dann der <code>lm</code> (für “linear model”) Befehl genutzt:</p>
+<pre class="r"><code>lm(formula = lz ~ 1 + extra, data = fb20)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = lz ~ 1 + extra, data = fb20)
+## 
+## Coefficients:
+## (Intercept)        extra  
+##      3.8119       0.3538</code></pre>
+<p>So werden die Koeffizienten direkt ausgegeben. Wir haben das Modell bereits abgespeichern, da wir es für die Überprüfung der Voraussetzungen benötigt haben. Hierzu muss das Modell einem Objekt zugewiesen werden. Hier in verkürzter Schreibweise:</p>
+<pre class="r"><code>fm &lt;- lm(lz ~ extra, fb20)</code></pre>
+<p>Aus diesem Objekt können mit <code>coef</code> die geschätzten Koeffizienten extrahiert werden:</p>
+<pre class="r"><code>coef(fm)</code></pre>
+<pre><code>## (Intercept)       extra 
+##    3.811938    0.353777</code></pre>
+<p>Falls man sich unsicher ist, wie dieses Modell zustande gekommen ist, kann man dies ausdrücklich erfragen:</p>
+<pre class="r"><code>formula(fm)</code></pre>
+<pre><code>## lz ~ extra</code></pre>
+<p>Mit dem Befehl <code>formula</code> werden auch automatisch immer die Residuen geschätzt, die mit <code>residuals</code> abgefragt werden können.</p>
+<pre class="r"><code>residuals(fm)</code></pre>
+<pre><code>##           23           27           29           39           40           42 
+##  0.349842626  1.572954137 -0.050157374 -1.184824640  0.284509892  0.526731115 
+##           43           47           48           49           51           54 
+## -0.250157374 -1.627045863  0.038286871  0.349842626  1.507621403  0.038286871 
+##           64           65           66           67           68           70 
+## -0.227045863 -0.161713129  0.726731115 -1.719491906 -0.696380396 -2.915490108 
+##           71           72           73           78           79           81 
+##  1.372954137  0.861398381  1.261398381  0.707621403  0.749842626  0.796065647 
+##           84           85           86           89           90           93 
+## -2.580822842  0.149842626 -1.492378597 -0.627045863  1.303619604  1.549842626 
+##           94           95           97           98          103          105 
+##  0.861398381  0.172954137 -0.873268885  1.861398381 -1.673268885 -0.296380396 
+##          108          109          110          114          115          116 
+## -0.427045863 -2.715490108 -0.384824640  0.680508094  0.549842626 -0.273268885 
+##          117          118          119          120          121          122 
+##  1.303619604  0.684509892 -0.696380396  1.303619604  0.726731115 -0.473268885 
+##          124          125          128          131          132          133 
+##  0.349842626 -0.138601619 -0.584824640  0.284509892  1.526731115 -2.296380396 
+##          136          137          138          139          141          142 
+##  0.084509892  0.615175360  0.549842626 -0.227045863 -0.803934353 -2.273268885 
+##          143          145          146          147          148          149 
+## -1.803934353  1.926731115 -1.161713129 -0.803934353 -0.584824640 -1.496380396 
+##          151          152          155          156          157          159 
+##  0.684509892  1.172954137 -0.138601619  1.861398381 -2.073268885  0.749842626 
+##          162          163          164          166          170          173 
+## -0.873268885  2.015175360  0.949842626  0.103619604  0.749842626  0.572954137 
+##          174          176          178          181          183          184 
+##  1.038286871  0.749842626 -1.761713129 -0.761713129  0.484509892 -0.207936151 
+##          186          188          189          190          191          192 
+## -0.515490108 -0.519491906 -1.427045863 -0.473268885  1.461398381  0.372954137 
+##          193          198          200          201          203          208 
+## -0.584824640  0.172954137  0.149842626  0.615175360  1.326731115 -0.003934353</code></pre>
+<p>Die folgenden Ergebnisse aus <code>fm</code> werden wir verwenden. In <code>coef(fm)</code> stehen die Regressionskoeffizienten <span class="math inline">\(b_0\)</span> unter <code>(Intercept)</code> zur Konstanten gehörend und <span class="math inline">\(b_1\)</span> unter dem Namen der Variable, die wir als Prädiktor nutzen. In diesem Fall also <code>extra</code>. Die Regressionsgleichung hat daher die folgende Gestalt: <span class="math inline">\(y_i = 3.81 + 0.35 \cdot x + e_i\)</span>.</p>
+<p>Regressionsgleichung (unstandardisiert):</p>
+<p><span class="math display">\[\hat{y} = b_0 + b_1*x_i\]</span>
+<span class="math display">\[\hat{y} = 3.81 + 0.35*x_i\]</span></p>
+<p><strong>Interpretation der Regressionskoeffizienten:</strong></p>
+<ul>
+<li>b0 (Regressionsgewicht): beträgt die Extraversion 0, wird eine Lebenszufriedenheit von 3.02 vorhergesagt<br />
+</li>
+<li>b1 (Regressionsgewicht): mit jeder Steigerung der Extraversion um 1 Einheit wird eine um 0.35 Einheiten höhere (!) Lebenszufriedenheit vorhergesagt</li>
+</ul>
+</div>
+<div id="vorhergesagte-werte" class="section level3">
+<h3>Vorhergesagte Werte</h3>
+<p>Die vorhergesagten Werten <span class="math inline">\(\hat{y}\)</span> können mit <code>predict</code> ermittelt werden:</p>
+<pre class="r"><code>predict(fm)</code></pre>
+<pre><code>##       23       27       29       39       40       42       43       47 
+## 5.050157 5.227046 5.050157 4.784825 5.315490 4.873269 5.050157 5.227046 
+##       48       49       51       54       64       65       66       67 
+## 4.961713 5.050157 5.492379 4.961713 5.227046 4.961713 4.873269 4.519492 
+##       68       70       71       72       73       78       79       81 
+## 4.696380 5.315490 5.227046 5.138602 5.138602 5.492379 5.050157 5.403934 
+##       84       85       86       89       90       93       94       95 
+## 5.580823 5.050157 5.492379 5.227046 4.696380 5.050157 5.138602 5.227046 
+##       97       98      103      105      108      109      110      114 
+## 4.873269 5.138602 4.873269 4.696380 5.227046 5.315490 4.784825 4.519492 
+##      115      116      117      118      119      120      121      122 
+## 5.050157 4.873269 4.696380 5.315490 4.696380 4.696380 4.873269 4.873269 
+##      124      125      128      131      132      133      136      137 
+## 5.050157 5.138602 4.784825 5.315490 4.873269 4.696380 5.315490 4.784825 
+##      138      139      141      142      143      145      146      147 
+## 5.050157 5.227046 5.403934 4.873269 5.403934 4.873269 4.961713 5.403934 
+##      148      149      151      152      155      156      157      159 
+## 4.784825 4.696380 5.315490 5.227046 5.138602 5.138602 4.873269 5.050157 
+##      162      163      164      166      170      173      174      176 
+## 4.873269 4.784825 5.050157 4.696380 5.050157 5.227046 4.961713 5.050157 
+##      178      181      183      184      186      188      189      190 
+## 4.961713 4.961713 5.315490 4.607936 5.315490 4.519492 5.227046 4.873269 
+##      191      192      193      198      200      201      203      208 
+## 5.138602 5.227046 4.784825 5.227046 5.050157 4.784825 4.873269 5.403934</code></pre>
+<p>Per Voreinstellung werden hier die vorhergesagten Werte aus unserem ursprünglichen Datensatz dargestellt. <code>predict</code> erlaubt uns aber auch Werte von “neuen” Beobachtungen vorherzusagen. Nehmen wir an, wir würden die Extraversion von 5 neuen Personen beobachten (sie haben - vollkommen zufällig - die Werte 1, 2, 3, 4 und 5) und diese Beobachtungen in einem neuem Datensatz <code>extra_neu</code> festhalten:</p>
+<pre class="r"><code>extra_neu &lt;- data.frame(extra = c(1, 2, 3, 4, 5))</code></pre>
+<p>Anhand unseres Modells können wir für diese Personen auch ihre Lebenszufriedenheit vorhersagen, obwohl wir diese nicht beobachtet haben:</p>
+<pre class="r"><code>predict(fm, newdata = extra_neu)</code></pre>
+<pre><code>##        1        2        3        4        5 
+## 4.165715 4.519492 4.873269 5.227046 5.580823</code></pre>
+<p>Damit diese Vorhersage funktioniert, muss im neuen Datensatz eine Variable mit dem Namen <code>extra</code> vorliegen.</p>
+<p>Der Anteil der Variabilität, der durch das Modell nicht erklärt werden kann - die Residuen <span class="math inline">\(e_m\)</span> - können mit <code>resid</code> abgefragt werden:</p>
+<pre class="r"><code>resid(fm)</code></pre>
+<pre><code>##           23           27           29           39           40           42 
+##  0.349842626  1.572954137 -0.050157374 -1.184824640  0.284509892  0.526731115 
+##           43           47           48           49           51           54 
+## -0.250157374 -1.627045863  0.038286871  0.349842626  1.507621403  0.038286871 
+##           64           65           66           67           68           70 
+## -0.227045863 -0.161713129  0.726731115 -1.719491906 -0.696380396 -2.915490108 
+##           71           72           73           78           79           81 
+##  1.372954137  0.861398381  1.261398381  0.707621403  0.749842626  0.796065647 
+##           84           85           86           89           90           93 
+## -2.580822842  0.149842626 -1.492378597 -0.627045863  1.303619604  1.549842626 
+##           94           95           97           98          103          105 
+##  0.861398381  0.172954137 -0.873268885  1.861398381 -1.673268885 -0.296380396 
+##          108          109          110          114          115          116 
+## -0.427045863 -2.715490108 -0.384824640  0.680508094  0.549842626 -0.273268885 
+##          117          118          119          120          121          122 
+##  1.303619604  0.684509892 -0.696380396  1.303619604  0.726731115 -0.473268885 
+##          124          125          128          131          132          133 
+##  0.349842626 -0.138601619 -0.584824640  0.284509892  1.526731115 -2.296380396 
+##          136          137          138          139          141          142 
+##  0.084509892  0.615175360  0.549842626 -0.227045863 -0.803934353 -2.273268885 
+##          143          145          146          147          148          149 
+## -1.803934353  1.926731115 -1.161713129 -0.803934353 -0.584824640 -1.496380396 
+##          151          152          155          156          157          159 
+##  0.684509892  1.172954137 -0.138601619  1.861398381 -2.073268885  0.749842626 
+##          162          163          164          166          170          173 
+## -0.873268885  2.015175360  0.949842626  0.103619604  0.749842626  0.572954137 
+##          174          176          178          181          183          184 
+##  1.038286871  0.749842626 -1.761713129 -0.761713129  0.484509892 -0.207936151 
+##          186          188          189          190          191          192 
+## -0.515490108 -0.519491906 -1.427045863 -0.473268885  1.461398381  0.372954137 
+##          193          198          200          201          203          208 
+## -0.584824640  0.172954137  0.149842626  0.615175360  1.326731115 -0.003934353</code></pre>
+<p>Diese können auch als neue Variable im Datensatz angelegt werden und hätten dort die Bedeutung des “Ausmaßes an Lebenszufriedenheit, das nicht durch Extraversion vorhergesagt werden kann” - also die Differenz aus vorhergesagtem und tatsächlich beobachtetem Wert der y-Variable (Lebenszufriedenheit).</p>
+</div>
+<div id="streu-punktdiagramm-mit-regressionsgerade" class="section level3">
+<h3>Streu-Punktdiagramm mit Regressionsgerade</h3>
+<p>Das Streudiagramm haben wir zu Beginn schon abbilden lassen. Hier kann zusätzlich noch der geschätzte Zusammenhang zwischen den beiden Variablen als Regressiongerade eingefügt werden. Hierzu wird der Befehl <code>plot</code> durch <code>abline</code> ergänzt:</p>
+<pre class="r"><code># Scatterplot zuvor im Skript beschrieben
+plot(fb20$extra, fb20$lz, 
+  xlim = c(0, 6), ylim = c(0, 7), pch = 19)
+
+# Ergebnisse der Regression als Gerade aufnehmen
+abline(fm, col = &#39;red&#39;)</code></pre>
+<p><img src="/post/2021-01-04-korrelation-und-regression_files/figure-html/unnamed-chunk-44-1.png" width="672" /></p>
+</div>
+<div id="standardisierte-regressionsgewichte" class="section level3">
+<h3>Standardisierte Regressionsgewichte</h3>
+<p>Bei einer Regression (besonders wenn mehr als ein Prädiktor in das Modell aufgenommen wird) kann es sinnvoll sein, die standardisierten Regressionskoeffizienten zu betrachten, um die Erklärungs- oder Prognosebeiträge der einzelnen unabhängigen Variablen (unabhängig von den bei der Messung der Variablen gewählten Einheiten) miteinander vergleichen zu können, z. B. um zu sehen, welche Variable den größten Beitrag zur Prognose der abhängigen Variable leistet. Außerdem ist es hierdurch möglich die Ergebnisse zwischen verschiedenen Studien zu vergleichen, die <code>lz</code> und <code>extra</code> gemessen haben, jedoch in unterschiedlichen Einheiten. Durch die Standardisierung werden die Regressionskoeffizienten vergleichbar.
+Die Variablen werden mit <code>scale</code> standardisiert (z-Transformation; Erwartungswert gleich Null und die Varianz gleich Eins gesetzt). Mit <code>lm</code> wird das Modell berechnet. Die Koeffizienten können über das Ausführen von <code>sfm</code> abgefragt werden:</p>
+<pre class="r"><code>sfm &lt;- lm(scale(lz) ~ scale(extra), fb20)
+sfm</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = scale(lz) ~ scale(extra), data = fb20)
+## 
+## Coefficients:
+##  (Intercept)  scale(extra)  
+##     0.001836      0.213860</code></pre>
+<p>Das standardisierte Regressionsgewicht hat den gleichen <em>t</em>-Wert und <em>p</em>-Wert wie das unstandardisierte!</p>
+</div>
+<div id="determinationskoeffizient-r2" class="section level3">
+<h3>Determinationskoeffizient <span class="math inline">\(R^2\)</span></h3>
+<p>Der Determinationskoeffizient <span class="math inline">\(R^2\)</span> ist eine Kennzahl zur Beurteilung der Anpassungsgüte einer Regression. Anhand dessen kann bewertet werden, wie gut Messwerte zu einem Modell passen.
+Das Bestimmtheitsmaß ist definiert als der Anteil, der durch die Regression erklärten Quadratsumme an der zu erklärenden totalen Quadratsumme, und gibt an, wie viel Streuung in den Daten durch das vorliegende lineare Regressionsmodell „erklärt“ werden kann. Bei einer einfachen Regression entspricht <span class="math inline">\(R^2\)</span> dem Quadrat des Korrelationskoeffizienten.</p>
+<p>Um <span class="math inline">\(R^2\)</span> zu berechnen, gibt es verschiedene Möglichkeiten.</p>
+<p>Für die Berechnung per Hand werden die einzelnen Varianzen benötigt:</p>
+<p><span class="math inline">\(R^2 = \frac{s^2_{\hat{Y}}}{s^2_{Y}} = \frac{s^2_{\hat{Y}}}{s^2_{\hat{Y}} + s^2_{E}}\)</span></p>
+<pre class="r"><code># Anhand der Varianz von lz
+var(predict(fm)) / var(fb20$lz, use = &quot;na.or.complete&quot;)</code></pre>
+<pre><code>## [1] 0.04640696</code></pre>
+<pre class="r"><code># Anhand der Summe der Varianzen
+var(predict(fm)) / (var(predict(fm)) + var(resid(fm)))</code></pre>
+<pre><code>## [1] 0.04640696</code></pre>
+<p>Jedoch kann dieser umständliche Weg umgangen werden.
+Mit der Funktion <code>summary</code> kann ein Überblick über verschiedene Variablen und auch Funktionen generiert werden. Für lineare Funktionen werden mit diesem Befehl unter anderem auch die Koeffizienten angezeigt. Anhand des p-Werts kann hier auch die Signifikanz des <span class="math inline">\(R^2\)</span> überprüft werden.</p>
+<pre class="r"><code>#Detaillierte Modellergebnisse
+summary(fm)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = lz ~ extra, data = fb20)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.9155 -0.5954  0.1267  0.7498  2.0152 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   3.8119     0.5835   6.533 3.28e-09 ***
+## extra         0.3538     0.1654   2.139    0.035 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.126 on 94 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.04641,    Adjusted R-squared:  0.03626 
+## F-statistic: 4.575 on 1 and 94 DF,  p-value: 0.03504</code></pre>
+<p>Determinationskoeffizient <span class="math inline">\(R^2\)</span> ist signifikant, da <span class="math inline">\(p &lt; \alpha\)</span>.</p>
+<p>Der Determinationskoeffizient <span class="math inline">\(R^2\)</span> kann auch direkt über den Befehl <code>summary()$r.squared</code> ausgegeben werden:</p>
+<pre class="r"><code>summary(fm)$r.squared</code></pre>
+<pre><code>## [1] 0.04640696</code></pre>
+<p>4,6% der Varianz von <code>lz</code> können durch <code>extra</code> erklärt werden.Dieser Effekt ist nach Cohens (1988) Konvention als schwach zu bewerten.</p>
+<p><strong>Exkurs: Cohens (1988) Konvention zur Interpretation von <span class="math inline">\(R^2\)</span>:</strong></p>
+<ul>
+<li>~ .01: schwacher Effekt<br />
+</li>
+<li>~ .09: mittlerer Effekt<br />
+</li>
+<li>~ .25: starker Effekt</li>
+</ul>
+<hr />
+</div>
+</div>
+<div id="inferenzstatistische-überprüfung-des-regressionsparameter-b" class="section level2">
+<h2>Inferenzstatistische Überprüfung des Regressionsparameter <em>b</em></h2>
+<p><strong>Signifikanztestung der Regressionskoeffizienten:</strong></p>
+<p>Zuerst kann die Betrachtung der Konfidenzintervalle helfen. Der Befehl <code>confint</code> berechnet die Konfidenzintervalle der Regressionsgewichte.</p>
+<pre class="r"><code>#Konfidenzintervalle der Regressionskoeffizienten
+confint(fm)</code></pre>
+<pre><code>##                  2.5 %    97.5 %
+## (Intercept) 2.65345912 4.9704168
+## extra       0.02535619 0.6821978</code></pre>
+<p>Das Konfidenzintervall von 0.025 und 0.68 enthält mit einer 95%igen Wahrscheinlichkeit den wahren Wert für <span class="math inline">\(b_1\)</span>. Damit ist die 0 nicht eingeschlossen und das Betagewicht ist von 0 verschieden.</p>
+<ul>
+<li><span class="math inline">\(b_1\)</span>
+<ul>
+<li>H0: <span class="math inline">\(b_1 = 0\)</span>, das Regressionsgewicht ist nicht von Null verschieden.<br />
+</li>
+<li>H1: <span class="math inline">\(b_1 \neq 0\)</span>, das Regressionsgewicht ist von Null verschieden.</li>
+</ul></li>
+<li><span class="math inline">\(b_0\)</span> (häufig nicht von Interesse)
+<ul>
+<li>H0: <span class="math inline">\(b_0 = 0\)</span>, der Achsenabschnitt ist nicht von Null verschieden.<br />
+</li>
+<li>H1: <span class="math inline">\(b_0 \neq 0\)</span>, der Achsenabschnitt ist von Null verschieden.</li>
+</ul></li>
+</ul>
+<pre class="r"><code>#Detaillierte Modellergebnisse
+summary(fm)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = lz ~ extra, data = fb20)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -2.9155 -0.5954  0.1267  0.7498  2.0152 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   3.8119     0.5835   6.533 3.28e-09 ***
+## extra         0.3538     0.1654   2.139    0.035 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.126 on 94 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.04641,    Adjusted R-squared:  0.03626 
+## F-statistic: 4.575 on 1 and 94 DF,  p-value: 0.03504</code></pre>
+<p>Aus <code>summary()</code>: <span class="math inline">\(p &lt; \alpha\)</span> <span class="math inline">\(\rightarrow\)</span> H1: Das Regressionsgewicht für den Prädiktor Extraversion ist signifikant von Null verschieden. Extraversion hat einen Einfluss auf die Lebenszufriedenheit.</p>
+<p>Aus <code>summary()</code>: <span class="math inline">\(p &lt; \alpha\)</span> <span class="math inline">\(\rightarrow\)</span> H1: der Achsenabschnitt ist signifikant von Null verschieden. Beträgt die Extraversion Null wird eine von 0 verschiedene Lebenszufriedenheit vorhergesagt.</p>
+</div>
