@@ -74,7 +74,7 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 | 2 | **Deskriptives und Plots** | [Inhalte](/post/r-deskriptiv) | [Aufgaben](/post/r-deskriptiv-aufgaben) | [Lösungen](/post/r-deskriptiv-loesungen) |
 | 3 | **Verteilungen** | [Inhalte](/post/verteilungen) | [Aufgaben](/post/verteilungen-aufgaben) | [Lösungen](/post/verteilungen-loesungen) |
 | 4 | **Tests und Konfidenzintervalle** | [Inhalte](/post/tests-und-konfidenzintervalle) | [Aufgaben](/post/tests-und-konfidenzintervalle-aufgaben) | [Lösungen](/post/tests-und-konfidenzintervalle-loesungen) |
-| 5 | **Tests für Gruppenvergleiche** | Inhalte | Aufgaben | Lösungen |
+| 5 | **Tests für Gruppenvergleiche** | [Inhalte](/post/gruppenvergleiche) | [Aufgaben](/post/gruppenvergleiche-aufgaben) | [Lösungen](/post/gruppenvergleiche-loesungen) |
 | 6 | **Korrelation und Regression** | [Inhalte](/post/korrelation-und-regression) | [Aufgaben](/post/korrelation-und-regression-aufgaben) | [Lösungen](/post/korrelation-und-regression-loesungen) |
 | *Zusatz* | **Gruppenprojekt** | [Inhalte](/post/gruppenprojekt) | -- | -- |
 | | | | |
