@@ -80,3 +80,5 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 | | | | |
 
 Die Umfrage aus der ersten Woche gibt es [hier](https://psybsc2.formr.org/). Die Daten, die dabei in der ersten Sitzung entstanden sind, können Sie [<i class="fas fa-download"></i>   hier runterladen](/post/fb20.csv). Was welche Variablen in diesem Datensatz bedeutet, wird in der [<i class="fas fa-download"></i>   Variablenübersicht erläutert](/post/variablen.pdf).
+
+Falls Sie ein wenig Orientierungshilfe für das Gruppenprojekt benötigen, finden Sie [<i class="fas fa-download"></i>   hier ein Beispiel](/post/aspredicted_example.pdf) für eine Präregistrierung mit [AsPredicted](https://aspredicted.org/) und [<i class="fas fa-download"></i>   hier den fertigen Bericht](/post/bericht_example.pdf) von der gleichen Gruppe aus dem Wintersemester 2019/2020.
