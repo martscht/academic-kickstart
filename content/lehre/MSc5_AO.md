@@ -5,7 +5,7 @@
 widget = "blank"  # See https://sourcethemes.com/academic/docs/page-builder/
 headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
-weight = 50  # Order that this section will appear.
+weight = 60  # Order that this section will appear.
 
 title = "PsyMSc 5"
 subtitle = "Forschungsmodul: Arbeits- und Organisationspsychologie"
@@ -26,7 +26,7 @@ subtitle = "Forschungsmodul: Arbeits- und Organisationspsychologie"
   # Filter posts by a taxonomy term.
   [content.filters]
     tag = ""
-    category = "MSc 5"
+    category = "MSc5"
     publication_type = ""
     exclude_featured = false
 
