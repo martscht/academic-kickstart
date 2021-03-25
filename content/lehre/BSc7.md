@@ -5,7 +5,7 @@
 widget = "blank"  # See https://sourcethemes.com/academic/docs/page-builder/
 headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
-weight = 20  # Order that this section will appear.
+weight = 25  # Order that this section will appear.
 
 title = "PsyBSc 7"
 subtitle = "Statistik II"
@@ -26,7 +26,7 @@ subtitle = "Statistik II"
   # Filter posts by a taxonomy term.
   [content.filters]
     tag = ""
-    category = "BSc2"
+    category = "BSc7"
     publication_type = ""
     exclude_featured = false
 
@@ -66,6 +66,7 @@ subtitle = "Statistik II"
  css_class = ""
 +++
 
+<a id="PsyBSc7"></a>
 Das Modul PsyBSc7 vertieft die im Modul PsyBSc2 vermittelten Grundlagen. Behandelt werden u.a. Matrixalgebra, spezielle Typen von Korrelationskoeffizienten, multiple Regression, deren Voraussetzungen und Erweiterungen, Varianzanalysen, das Testen komplexer Hypothesen, Messwiederholungsdesigns, Tests für kategoriale Variablen sowie forschungslogische Aspekte bei der Anwendung statistischer Modelle. Aufbauend auf den theoretischen Grundlagen der Regressions- und Varianzanalyse lernen Studierende, empirische Fragestellungen in die Form statistischer Modelle zu übertragen, komplexe Hypothesen zu testen und multiple Variablenzusammenhänge differenziert zu beurteilen. Einige dieser Inhalte werden hier in `R` umgesetzt und vertieft.
 
 |  |  |  |  |  |
