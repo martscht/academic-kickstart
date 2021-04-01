@@ -77,7 +77,7 @@ Das Modul PsyBSc7 vertieft die im Modul PsyBSc2 vermittelten Grundlagen. Behande
 | 4 | **Regressionsanalyse I: multiple Regression** | Inhalte |
 | 5 | **Regressionsanalyse II: Modelloptimierung** | Inhalte |
 | 6 | **Regressionanalyse III: Voraussetzungen** | Inhalte |
-| 7 | **Regressionanalyse IV: quadratische und Interaktionseffekte** | Inhalte |
+| 7 | **Regressionanalyse IV: quadratische und Interaktionseffekte** | [Inhalte](/post/210330_PsyBSc7_Reg4) |
 | 8 | **Regressionanalyse V: nichtlineare Regression** | Inhalte |
 | 9 | **ANOVA I: einfaktorielle Varianzanalyse** | Inhalte |
 | 10 | **ANOVA II: zweifaktorielle Varianzanalyse** | Inhalte |
