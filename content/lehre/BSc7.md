@@ -70,7 +70,7 @@ subtitle = "Statistik II"
 Das Modul PsyBSc7 vertieft die im Modul PsyBSc2 vermittelten Grundlagen. Behandelt werden u.a. Matrixalgebra, spezielle Typen von Korrelationskoeffizienten, multiple Regression, deren Voraussetzungen und Erweiterungen, Varianzanalysen, das Testen komplexer Hypothesen, Messwiederholungsdesigns, Tests für kategoriale Variablen sowie forschungslogische Aspekte bei der Anwendung statistischer Modelle. Aufbauend auf den theoretischen Grundlagen der Regressions- und Varianzanalyse lernen Studierende, empirische Fragestellungen in die Form statistischer Modelle zu übertragen, komplexe Hypothesen zu testen und multiple Variablenzusammenhänge differenziert zu beurteilen. Einige dieser Inhalte werden hier in `R` umgesetzt und vertieft.
 
 |  |  |  |  |  |
-| --- | --- | --- | --- | --- |
+| 0 | **Wiederholung von Grundlagen in R** | [Inhalte](/post/wiederholung-von-grundlagen-in-r) |
 | 1 | **Einleitung und Loops und Funktionen** | Inhalte |
 | 2 | **Grafiken mit ggplot2** | [Inhalte](/post/grafiken-mit-ggplot2) |
 | 3 | **Partial- & Semipartialkorrelation** | Inhalte |
