@@ -1,0 +1,460 @@
+---
+title: "Loops und Funktionen"
+date: '2021-03-30'
+slug: loops-und-funktionen
+categories:
+ - MSc1
+tags:
+ - Loops
+ - Funktionen
+subtitle: ''
+summary: ''
+authors: [wallot, schueller]
+lastmod: '2021-01-28T08:32:21+02:00'
+featured: no
+header:
+ image: "/header/PsyBSc7_Loops.jpg"
+ caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/1457161)"
+projects: []
+---
+
+---
+title: "Loops und Funktionen"
+author: "Johanna Schüller"
+date: "4/1/2021"
+output: html_document
+---
+
+In diesem Block werden Sie verschiedene Arten von Loops kennenlernen, und lernen, vertieft mit Funktionen zu arbeiten. Vorab beschäftigen wir uns noch mit einigen Grundlagen zum Thema logische Abfragen. 
+
+
+```{r setup, include = FALSE}
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+load("mdbf.rda")
+```
+
+
+# Logische Abfragen und Bedingungen: `if` und `else`
+
+Im Prozess der Datenaufbereitung und -auswertung kommt man häufig an den Punkt, an dem ein bestimmter Befehl nur unter bestimmten Bedingungen ausgeführt werden soll, oder in dem abhängig von einer Bedingung unterschiedliche Aktionen ausgeführt werden sollen. Dabei bezieht sich die Bedingung auf einen Wert in einer bestimmten Variable, der sich zwischen den Versuchspersonen unterscheidet. Dafür können wir so genannte *Wenn-Dann-Bedingungen*, oder auch *if-Abfragen* nutzen, in denen wir definieren, unter welchen Bedingungen ein folgender Befehl ausgeführt werden soll.
+>Beispiel: In einer neuen Variable *Med* wollen wir für alle Versuchspersonen eine 1 vergeben, die in der Variable "Dosis" einen gültigen Wert haben, und eine 0 vergeben für alle Personen, die in der Variable "Dosis" ein NA haben. 
+
+## if-Abfragen 
+### Einfache if-Abfrage
+
+Wie in eigentlich allen Programmiersprachen werden *Wenn-Dann-Bedingungen* auch in R mit dem Befehl `if` erzeugt. Dabei folgt auf ein `if` in runden Klammern die Bedingung, die entweder wahr (`TRUE`) oder falsch (`FALSE`) sein kann, und dann in geschwungenen Klammern die Konsequenz. Die Konsequenz wird nur ausgeführt, wenn die Bedingung das Ergebnis `TRUE` erbringt. Zum Beispiel könnten wir für eine Variable `a` testen, ob diese einen bestimmten Wert enthält, und daraus eine Konsequenz ziehen. 
+
+```{r}
+a = 3 #Zunächst definieren wir eine Variable
+if (a == 3) {
+  print("Ja, die Variable a enthält den Wert 3")
+}
+```
+
+Für das Verständnis solcher Abfragen ist es hilfreich, die verschiedenen Schritte der Syntax einzeln zu betrachten. Das gilt auch für die restlichen Themen dieses Blocks. In R-Studio können Sie einzelne Abschnitte des Codes markieren und ausführen, um zu testen, was diese beinhalten. Füren Sie Ihren Code immer in kleinen Schnipseln aus, wenn Sie verstehen wollen, was passiert.
+Hier wird im ersten Schritt die Bedingung evaluiert: 
+
+```{r}
+(a == 3)
+```
+
+In diesem Fall stimmt die logische Abfrage (`a` enthält tatsächlich den Wert 3), und wir erhalten in der Konsole den Output `TRUE`. Deshalb wird der danach definierte `print`-Befehl ausgeführt.
+
+Wenn jedoch a einen anderen Wert enthält, trifft die Bedingung nicht zu (`FALSE`) und der folgende Befehl wird deshalb nicht ausgeführt. 
+
+```{r}
+a = 5
+if (a == 3) {
+  print("Ja, die Variable a enthält den Wert 3")
+}
+```
+
+Testen Sie was passiert, wenn Sie nur die Zeile mit dem print-Befehl markieren und ausführen. Was passiert, wenn Sie lediglich die Abfrage (ohne runde Klammern) markieren und ausführen? Verdeutlichen Sie sich so die Zusammenhänge innerhalb der if-Abfrage. 
+
+### if-Abfrage mit mehreren Möglichkeiten
+Wir können auch testen, ob ein Wert sich in einer Liste wiederfindet. Wenn wir beispielsweise herausfinden wollen, ob die Person, die in der Variable `person` gespeichert ist, ein Hauptcharakter aus der Serie *Friends* ist, können wir dies mit dem folgenden Befehl tun:
+
+```{r}
+person = "Monica"
+if (person %in%  c("Monica", "Rachel", "Chandler",  "Phoebe", "Ross", "Joey")) {
+  print("Yes, this is a character from Friends.")
+}
+```
+Hier erhalten wir die Antwort, ja, Monica ist eine Figur aus der Serie. Der Ausdruck `%in%` steht sinngemäß für "ist ein Element aus der folgenden Auswahl".
+
+Wenn wir die gleiche Abfrage auf eine andere Person anwenden, trifft die Bedingung nicht zu, und der Befehl wird nicht ausgeführt.  
+```{r}
+person = c("Marcus")
+if (person %in%  c("Monica", "Rachel", "Chandler",  "Phoebe", "Ross", "Joey")) {
+  print("Yes, this is a character from Friends.")
+}
+```
+
+### Abgleich mit einem Datum
+
+Es sind beispielsweise auch logische Abfragen mit Zeitpunkten und Daten möglich. Zum Beispiel können wir mit dem Befehl `weekdays(Sys.Date())` ermitteln, welcher Wochentag grade ist, und dann abgleichen, ob Donnerstag ist. Wenn sie diesen Befehl selbst testen, achten Sie darauf, ob nach der Voreinstellung ihres Rechners der aktuelle Wochentag auf Englisch oder Deutsch ausgegeben wird. Das finden Sie heraus, indem Sie nur den kleinen Codeabschnitt `weekdays(Sys.Date()` ausführen.
+
+
+```{r}
+if (weekdays(Sys.Date()) == 'Thursday') {
+  'R Kurs um 8!'
+}
+```
+
+
+### Verknüpfung logischer Abfragen 
+Wie im letzten Semester bereits besprochen, können logische Bedingungen mit `&` (logisches "und") und `|` (logisches "oder") verknüpft werden. Wenn die gesamte logische Abfrage als Ergebnis `TRUE` zurückgibt, wird die R-Syntax in den geschwungenen Klammern ausgeführt; wenn es `FALSE` ergibt, passiert nichts. Zum Beispiel könnten wir so testen, ob *entweder* Samstag *oder* Sonntag ist und herausfinden, ob wir uns freuen dürfen. 
+
+```{r}
+if (weekdays(Sys.Date()) == 'Saturday' | weekdays(Sys.Date()) == 'Sunday') {
+  print("Hoch die Hände, Wochenende!")
+}
+```
+
+Durch die logische Verknüpfung mit `|` (logisches "oder") wird die gesamte Abfrage wahr, wenn entweder der erste oder der zweite Teil zutrifft (in Worten "ist heute entweder Samstag **oder** Sonntag?"). Hätten wir an dieser Stelle stattdessen eine Verknüpfung mit `&` (logisches "und") gewählt, könnte die Bedingung "ist heute Samstag **und** Sonntag?" nicht zutreffen, würde also immer `FALSE` zurückgeben. An anderer Stelle ist das `&` aber notwendig, wenn mehrere Bedingungen erfüllt sein sollen. 
+
+Bei der Verknüpfung dieser logischen Abfragen muss auf Klammersetzung geachtet werden, wenn die Verknüpfung komplizierter wird. Beispiel: "Ist heute (Samstag **oder** Sonntag) **und** scheint die Sonne?". Versuchen Sie diese logische Abfrage mit fiktiven Variablen in Code auszudrücken.
+
+## Abgleich mit mehreren Alternativen: if-else-Abfragen
+
+Häufig wollen wir nicht nur konditional einen Befehl ausführen, oder nicht ausführen, sondern möchten einen anderen Befehl angeben, der ausgeführt wird, wenn die Bedingung nicht zutrifft. Um zwischen zwei alternativen Befehlen auszuwählen, ergänzen wir das `else`. Der Befehl nach dem `else` kommt zum Tragen, wenn die Bedingung *nicht* zutrifft. Dies lässt sich fast wörtlich lesen "If the condition is true, then do  one thing. Otherwise (else), do the other thing."
+
+```{r}
+if (weekdays(Sys.Date()) == 'Thursday') {
+  'R Kurs um 8!'
+} else {
+  'Ausschlafen'
+}
+```
+Hier ist es wichtig, die geschweiften Klammern korrekt zu setzen. Nach der Bedingungsabfrage öffnen sich geschweifte Klammern, die den ersten konditionalen Befehl einschließen. Das `else` folgt darauf. Danach wird der alternative Befehl wieder in geschweiften Klammern eingefasst. Der `else`-Befehl muss in der gleichen Zeile stehen wie die geschlossene geschweifte Klammer. 
+
+Bearbeiten Sie die logische Abfrage der Friends-Charaktere von weiter oben so, dass `"No, this is not a character from Friends."` ausgegeben wird, wenn die Bedingung nicht wahr ist. 
+
+### `else if`-Bedingungen
+
+Häufig werden mehrere Abfragen ineinander geschachtelt, sodass die Ausdrücke schnell sehr kompliziert werden können. Falls in mehreren Schritten verschiedene Bedingungen abgefragt werden, und verschiedene Konsequenzen folgen sollen, kann auch das `else if` verwendet werden. Hierbei werden verschiedene Möglichkeiten abgefragt, für die verschiedene Befehle ausgeführt werden sollen. Wenn die erste Bedingung nicht zutrifft, wird die zweite Bedingung (nach dem `else if`) geprüft, wenn diese auch nicht zutrifft, wird das nächste `else if` geprüft. Der Befehl nach dem `else` wird dann nur ausgeführt, wenn keine der vorherigen Bedingungen zutrifft. 
+
+```{r, echo=FALSE, out.width = '70%'}
+knitr::include_graphics("date.jpg")
+```
+
+Hier sehen Sie ein Beispiel für eine if-else-Abfrage, die Sie jeden Morgen nutzen können, um herauszufinden, wie Sie sich heute fühlen sollten. 
+
+```{r}
+if (weekdays(Sys.Date()) %in% c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')) {
+  if (weekdays(Sys.time()) == 'Monday') {
+    'Go back to bed...'
+    } else if (weekdays(Sys.time()) == 'Wednesday') { 
+    'Wuhu, it`s Hump-Day!'
+      } else if (weekdays(Sys.time()) == 'Friday') { 
+    'Yeah, it`s TGIF-Day!'
+        } else {
+    'It`s some other day!'
+        }
+  } else {
+  "It`s the weekend!"
+}
+```
+
+Versuchen Sie, nachzuvollziehen, was in dieser verschachtelten `if-else-Abfrage` passiert. *Hinweis*: Hier werden zum Einen zwei separate Abfragen ineinander verschachtelt (sichtbar durch die Einrückung), und in der Schachtelung wird dann eine mehrstufige `else if`-Bedingung angewandt.
+
+Natürlich sind Wenn-Dann-Abfragen eigentlich hauptsächlich dann nützlich, wenn Code für verschiedene Daten, Objekte oder Funktionen mehrfach genutzt werden soll und man nicht in jedem Einzelfall schon vorher weiß, welche Inhalte die Objekte haben, mit denen man arbeitet. Ein einfaches Beispiel mit einer zufällig gezogenen Zahl könnte so aussehen:
+
+```{r}
+x <- sample(1:10, 1)
+if (x > 5) {
+  y <- 1
+} else {
+  y <- 0
+}
+x
+y
+```
+
+### Funktion `ifelse`
+Wenn nur eine Bedingung abgefragt werden soll, und je nach Ergebnis einer von zwei Befehlen folgen soll, kann der Code abgekürzt werden. Für einzelne Ereignisse kann in R die Notation mithilfe der `ifelse`-Funktion verwendet werden. Diese ist (anders als die `if-Abfragen`) eine klassische Funktion mit Argumenten. Die Funktion nimmt drei Argumente entgegen:
+
+* `test`: die Bedingung
+* `yes`: was getan werden soll, wenn die Bedingung zutrifft
+* `no`: was getan werden soll, wenn die Bedingung nicht zutrifft
+  
+```{r if-else-II, exercise=TRUE, exercise.lines = 3}
+ifelse(test = weekdays(Sys.Date()) == 'Friday', yes = 'Yeah, it`s TGIF-Day!', no = 'It some other boring day...')
+```
+
+So wird die gleiche `if-else-Abfrage` verkürzt dargestellt. Grade für komplexere Abfragen kann aber nicht immer diese verkürzte Form gewählt werden. Die längere Version ist immer dann von Vorteil, wenn der auszuführende R-Code mehrere Zeilen lang ist oder z.B. weitere Bedingungen enthält. 
+
+## Loops (Schleifen)
+
+Beim Programmieren kommt es häufig vor, dass der gleiche Befehl mehrfach angewandt werden muss. Loops (oder Schleifen) bieten die Möglichkeit, den gleichen R-Code mehrmals anzuwenden, ohne ihn wiederholt schreiben zu müssen. 
+
+> Wichtiges Grundprinzip des Programmierens: DRY = Don't Repeat Yourself (Hunt & Thomas, "The Pragmatic Programmer")
+
+Gerade in Kombination mit `if` und `else` kann man so sehr kurze, leserliche Skripte verfassen und potentielle Fehler, die sich in sehr lange Skripte gerne einschleichen, umgehen. In R werden drei Arten von Loops unterschieden: `for`-Loops, `while`-Loops und `repeat`-Loops.
+
+### `for`-Loops
+
+In `for`-Loops wird ein Abschnitt von R-Syntax für jedes Element in einem vorab festgelegten Objekt durchgeführt. Mit dem `for`-Loop wird ein Befehl für jedes Element dieses Objekts bzw. Vektors durchgeführt. Das funktoiniert über den Befehl `for (i in vekt) {}`. Das `i` ist hierbei ein willkürlicher Platzhalter für die Elemente im Vektor `vekt`, über die dann iteriert wird. `i` nimmt nacheinander alle vorhandenen Werte in `vekt` an und durchläuft mit jedem dieser Elemente die Befehle in den geschweiften Klammern. 
+
+Dies lässt sich anschaulich darstellen, wenn der Befehl, der für jedes Element im Vektor ausgeführt wird, die `print`-Funktion ist. `i` wird nacheinander als jedes der drei Elemente (hier Wörter/Sätze) des Vektors definiert, und dann durch `print(i)` in die Konsole geschrieben. 
+
+```{r}
+vekt <- c("Hallo!", "Viel Spaß im R Praktikum.", "Viel Erfolg für das weitere Semester.")
+for (i in vekt) {
+  print(i)
+}
+```
+
+Es ist für den For-Loop nötig, vorher zu wissen, für welche Fälle ein Skript durchgeführt werden muss. In diesem Beispiel sind die Fälle die drei Elemente des Vektors `vekt`.
+
+*Anwendungsbeispiel:* Loops sind zum Beispiel nützlich für das Rekodieren von Items. Der `mdbf` Datensatz enthält 98 Beobachtungen in 12 Variablen, allesamt Items des **M**ehr**d**imensionalen **B**efindlichkeits**f**ragebogens. In diesem Fragebogen werden Adjektive zur Beschreibung der aktuellen Stimmung genutzt um die drei Dimensionen der Stimmung - Gut vs. Schlecht, Wach vs. Müde und Ruhig vs. Unruhig - zu erheben. Dafür laden wir zunächst den mdbdf-Datensatz, und schauen uns die ersten Zeilen an.
+
+```{r}
+load("mdbf.rda")
+head(mdbf)
+```
+
+
+Variable | Adjektiv | Richtung | Dimension 
+-------- | -------- | -------- | --------- 
+`stim1` | zufrieden | positiv | Gut vs. Schlecht
+`stim2` | ausgeruht | positiv | Wach vs. Müde
+`stim3` | ruhelos | negativ | Ruhig vs. Unruhig
+`stim4` | schlecht | negativ | Gut vs. Schlecht
+`stim5` | schlapp | negativ | Wach vs. Müde
+`stim6` | gelassen | positiv | Ruhig vs. Unruhig
+`stim7` | müde | negativ | Wach vs. Müde
+`stim8` | gut | positiv | Gut vs. Schlecht
+`stim9` | unruhig | negativ | Ruhig vs. Unruhig
+`stim10` | munter | positiv | Wach vs. Müde
+`stim11` | unwohl | negativ | Gut vs. Schlecht
+`stim12` | entspannt | positiv | Ruhig vs. Unruhig
+
+In der Spalte *Dimension* sehen wir, dass die Items 3 verschiedene Dimensionen abbilden: *Gut vs. Schlecht*, *Wach vs. Müde* und *Ruhig vs. Unruhig*. Die Items sind dabei unterschiedlich gepolt - die Adjektiv "ausgeruht" und "schlapp" erfasst beide die Dimension *Wach vs. Müde*, jedoch in unterschiedlicher Ausrichtung. Um die drei Skalenwerte berechnen zu können müssen die jeweils "negativen" Adjektive ins Positive umgepolt werden. Hierzu gibt es zum Beispiel folgende zwei Möglichkeiten. Zum Einen können wir bei den entsprechenden Items die Skalenwerte ersetzen: 
+
+```{r}
+mdbf$stim4_r[mdbf$stim4 == 1] <- 4
+mdbf$stim4_r[mdbf$stim4 == 2] <- 3
+mdbf$stim4_r[mdbf$stim4 == 3] <- 2
+mdbf$stim4_r[mdbf$stim4 == 4] <- 1
+```
+
+Oder wir können das Vorgehen verkürzen, indem wir die folgende Berechnungsweise anwenden:
+
+```{r}
+mdbf$stim4_r <- -1 * (mdbf$stim4 - 5)
+```
+
+Aber trotz der Verkürzung haben wir nun erst ein einziges Item umcodiert. Mit Hilfe von Loops können wir uns die Arbeit ersparen, diesen Abschnitt für jedes negative Adjektiv schreiben zu müssen. *Wir erinnern uns: Für den `for`-Loop müssen wir wissen, für welche Fälle ein Skript durchgeführt werden muss.* Für die Umcodierung der Items speichern wir also alle negativen Items (bzw. ihre jeweilige Spaltennummer) in einem Vektor `neg`:
+
+```{r}
+# Kopie des Datensatzes erstellen, um Datenverlust vorzubeugen
+mdbf_r <- mdbf
+
+# Vektor der negativen Items
+neg <- c(3, 4, 5, 7, 9, 11)
+```
+
+In `neg` wird kodiert, welche Items negativ formuliert sind, und in die Umcodierung einbezogen werden sollen. Danach wenden wir die oben bereits gezeigte Formel erneut an, hier jedoch nacheinander auf jedes der Elemente, die in `neg` gespeichert sind. Dabei nimmt i nacheinander die Werte 3, 4, 5, 7... an, und codiert also in jedem Schritt die jeweilige Spalte `mdbf_r[, i]` um, also im ersten Schritt mit `mdbf_r[, 3]` die dritte Spalte, also das dritte Item. Der Platzhalter `i`iteriert also durch die Elemente von `neg`.
+
+```{r}
+for (i in neg) {
+  mdbf_r[, i] <- -1 * (mdbf_r[, i] - 5)
+}
+```
+
+Zur Prüfung des Erfolges berechnen wir die Korrelation des Items `stim3` im originalen Datensatz und im umcodierten Zustand.  
+
+```{r check, exercise=TRUE, exercise.lines = 3}
+cor(mdbf[, 3], mdbf_r[, 3])
+```
+
+Um Ihr Verständnis zu überprüfen, versuchen Sie, in einer neuen Kopie des Datensatzes jetzt stattdessen alle positiven Items umzucodieren!
+
+Das `i` ist hier ein willkürlich gewählter Platzhalter, dafür kann auch jeder andere Buchstabe (oder Zeichenkombination) gewählt werden. Zudem können `for`-Loops ineinander geschachtelt werden. Dabei wird für die zweite Iteration häufig `ii` als Platzhalter verwendet. Im Befehl kann dann auf `i` und `ii` Bezug genommen werden. Hier sehen Sie beispielsweie, wie Sie ineinander geschachtelt durch einen Vektor aus Buchstaben und einen Vektor aus Zahlen iterieren. Was passiert, wenn Sie den ersten `print`-Befehl außerhalb des inneren Loops platzieren? Versuchen Sie, den Unterschied nachzuvollziehen. 
+
+```{r}
+buchst <- c("A", "B", "C")
+zahl <- c(1,2)
+for (i in buchst) {
+  for (ii in zahl) {
+    print(i)
+    print(ii) 
+  }
+}
+```
+
+#### Kombination mit if-Abfrage
+
+Versuchen Sie, den oben gezeigten `for`-Loop so um eine `if`-Abfrage zu erweitern, dass er automatisch prüft, welche Items umcodiert werden müssen. 
+
+### `while`-Loops
+
+In `while`-Loops wird der Code so lange ausgeführt, wie eine vorab definierte Bedingung erfüllt ist. Ein einfaches Beispiel wäre es, so lange einen Münzwurf zu simulieren, bis man 10 mal "Kopf" geworfen hat. Dafür müssen wir zum Einen die Münze als Objekt mit zwei Auswahlmöglichkeiten *Kopf* und *Zahl* anlegen, und ein leeres Objekt, in das wir die Ergebnisse der Münzwürfe speichern können.
+
+```{r}
+# Münze erstellen
+coin <- c('Kopf', 'Zahl')
+
+# Leeres Objekt für die Aufzeichnung erstellen
+toss <- NULL
+```
+
+Als nächstes schreiben wir den eigentlichen Loop. Dieser enthält eine logische Abfrage, die abfragt, ob die Anzahl der Kopf-Würfe unter 10 ist. Führen Sie nacheinander die Codeabschnitte `toss == 'Kopf'`, `sum(toss == 'Kopf')` und `sum(toss == 'Kopf')<10` aus, um zu verstehen, wie sich die logische Abfrage zusammensetzt. (*Hinweis*: den logischen Werten `TRUE` und `FALSE` sind die Zahlen 1 und 0 zugeordet.) 
+
+```{r}
+# Loop
+while (sum(toss == 'Kopf')<10) {
+  toss <- c(toss, sample(coin, 1))
+}
+
+# Würfe ansehen
+toss
+```
+
+### `repeat`-Loops
+
+Im Gegensatz zu `for` und `while` wird bei `repeat` zunächst kein explizites Abbruchkriterium definiert. Stattdessen wird `repeat` häufig genutzt, wenn es verschiedene oder veränderliche Abbruchkriterien für den Loop gibt. Diese Kriterien werden bei `repeat` allerdings innerhalb des Loops definiert - in den meisten Fällen wird dazu über `if` mindestens eine Bedingung definiert, unter der die Ausführung abgebrochen werden soll.
+
+Ein einfaches Beispiel hierfür ist es, eine Fibonacci-Sequenz zu bilden (eine Sequenz in der eine Zahl immer die Summe der vorherigen beiden Zahlen ist) und die Sequenz abzubrechen, wenn die letzte Zahl z.B. größer als 1000 ist. Wir können nicht vorab bestimmen, welches Element das sein wird, bzw. nach wie vielen Schritte dies passiert, wodurch es geschickter ist, innerhalb des Loops das Kriterium zu evaluieren.
+
+```{r}
+fibo <- c(1, 1)
+
+repeat {
+  n <- length(fibo)
+  fibo <- c(fibo, fibo[n] + fibo[n - 1])
+  if (fibo[n+1] > 1000) break
+}
+
+fibo
+```
+
+Loops können mit `break` unterbrochen werden - das gilt nicht nur für `repeat`, sondern auch für die anderen beiden Formen von Loops. Hier wurde eine `if`-Bedingung in den Loop geschachtelt. In jedem einzelnen Durchlauf des Loops wird geprüft, ob die Bedingung erfüllt ist, und die Durchführung wird beendet (`break`), sobald dies der Fall ist. 
+
+Ergänzen Sie `print(fibo)` vor der if-Abfrage, und schauen Sie sich das Ergebnis an. Dies zeigt Ihnen gewissermaßen das "Innenleben" Ihres Loops. Sie sehen so genauer, was in jedem Schritt des Loops passiert, und können oftmal leichter nachvollziehen, wodurch beispielsweise Fehler entstehen. 
+
+*Anmerkung:* Generell sollten Loops in R nur genutzt werden, wenn keine Vektor-basierte Alternative zur Verfügung steht. Zum Beispiel: um eine Variable zu zentrieren sollte nicht ein Loop genutzt werden, der von jedem Element des Vektors den Mittelwert abzieht. Stattdessen ist R in der Lage den Mittelwert direkt von jedem Element des Vektors abzuziehen (elementeweise Anwendung) - diese Umsetzung ist also direkt Vektor-basiert und in R (beinahe ausnahmslos) die schnellere und effizientere Variante.
+
+## Funktionen
+
+Sie haben bereits gelernt, dass (fast) alle Aktionen, die in R ausgeführt werden, sich sogenannte Funktionen zunutze machen. Hier wollen wir noch einen Schritt weiter gehen, und lernen, wie Sie *selbst Funktionen schreiben* können. Funktionen, die in R angewendet werden können, sind ebenfalls Objekte. Dadurch können eigene Funktionen wie andere Objekte auch angelegt werden - dazu müssen sie lediglich mit der `function`-Funktion erstellt werden. Im Allgemeinen sieht das wie folgt aus:
+
+```{r, eval = FALSE}
+eigene_funktion <- function(argument1, argument2, ...) {
+  # Durchgeführte Operationen
+}
+```
+
+Der Name der erstellen Funktion steht hier ganz am Anfang. `function` ist die Funktion, die dafür zuständig ist, neue Funktionen zu definieren. In den runden Klammern dahinter müssen Sie angeben, welche *Argumente* Ihre Funktion annehmen soll. Auf diese Argumente können Sie in der Beschreibung der Operationen zugreifen. In geschweiften Klammern geben Sie als nächstes an, welche Operationen mit den genannten Argumenten durchgeführt werden sollen. Als Argumente können beliebig viele Einstellungen für die Funktion definiert werden, auf die dann in der Funktion Bezug genommen wird. Wichtig ist dabei, dass Funktionen keinen generellen Zugriff auf den Workspace haben, sondern alle Objekte, die sie benötigen, durch die Argumente an sie weitergegeben werden müssen. 
+
+### Beispiel Varianzfunktion
+In R wird mit der `var`-Funktion die Schätzung für die Populationsvarianz $\widehat{\sigma}^2$ und nicht die empirische Varianz $s$ bestimmt. Wir könnten also eine eigene Funktion anlegen, die die empirische Varianz schätzt. Dafür können wir die Formel zur Varianzberechnung einfach in R-Code übersetzen:
+
+$$s^2 = \frac{\sum_{i=1}^n(x_i - \bar{x})^2}{n}$$
+
+Als R-Code würde wir also zunächst die einzelnen Elemente definieren, und dann nach dem Vorbild der Formel die Varianz berechnen.
+
+```{r}
+x <- mdbf[, 1]
+n <- length(x)
+s2 <- sum((x - mean(x))^2) / n
+s2
+```
+
+Dieser Code funktioniert allerdings nur für eine einzige Variable mit dem Namen `x` und wir müssten den Code für jede einzelne Anwendung wiederholen. Um das abzukürzen, können wir eine eigene, *wiederverwendbare* Funktion anlegen. Dafür nutzen wir wie oben beschrieben die Funktion `function`. Unsere neue Funktion soll `empVar` heißen, und erhält nur ein einziges Argument `x`. In den geschweiften Klammern definieren wir, wie die Berechnung funktionieren soll.  
+
+```{r}
+empVar <- function(x) {
+  n <- length(x)
+  s2 <- sum((x - mean(x))^2)/n
+}
+
+empVar(mdbf[, 1])
+
+s2 
+```
+
+Nun erhalten wir jedoch kein Ergebnis, wenn wir diese Funktion auf `empVar(mdbf[, 1])` anwenden. Dafür müssen wir zusätzlich mit `return` definieren, was der *Ausgabewert* der Funktion sein soll. In diesem Fall wird das Ergebnis der Berechnung ausgegeben. Wenn kein `return`-Wert definiert wird, gibt die Funktion bei der Anwendung kein Ergebnis in die Konsole aus. Wir haben auch keinen Zugriff auf das Objekt s2. Eine Funktion ohne `return` wird zwar ausgeführt, man hat aber keinen Zugriff auf das Ergebnis, weil alle innerhalb der Funktion angelegten Objekte entfernt werden, sobald die Durchführung der Funktion abgeschlossen ist. Funktionen sollten also prinzipiell mit `return` Ergebnisse nach außen geben:
+
+```{r}
+empVar <- function(x) {
+  n <- length(x)
+  s2 <- sum((x - mean(x))^2)/n
+  return(s2)
+}
+```
+
+Diese Funktion kann jetzt auf jede beliebige Variable angewendet werden:
+
+```{r}
+empVar(mdbf[, 1])
+empVar(mdbf[, 2])
+```
+
+Das Einzige, was diese Funktion von in R implementierten Paketen unterscheidet ist, dass sie explizit im Workspace bzw. Environment angezeigt wird. Dies können Sie mit dem `ls()`-Befehl ausprobieren. Weil beim Durchführen von Funktionen als erstes der Workspace nach definierten Funktionen durchsucht wird, sollten Funktionen möglichst einzigartig benannt werden, weil sonst nicht mehr (so leicht) auf die R-internen Funktionen zugegriffen werden kann.
+
+Zusätzlich sollte beachtet werden, dass `return` nur ein einziges Argument entgegennimmt: Funktionen in R können also nur ein einziges Objekt als Ergebnis liefern. Wenn mehrere Ergebnisse ausgegeben werden sollen, müssen diese vorher innerhalb der Funktion zu einem Objekt (meistens einer Liste) zusammengefasst werden.
+
+```{r}
+empVar <- function(x) {
+  n <- length(x)
+  s2 <- sum((x - mean(x))^2)/n
+  out <- list(s2 = s2, n = n)
+  return(out)
+}
+empVar(mdbf[, 2])
+```
+
+Funktionen können eine beliebige Anzahl von Argumente entgegennehmen, aber nur ein einziges Objekt als Ergebnis liefern. Um eine gemeinsame Funktion für beide Formen der Varianz zu haben, könnten wir die Anzahl der Argumente erweitern. 
+
+```{r}
+Vari <- function(x, empirical) {
+  n <- length(x)
+  if (empirical) {
+    s2 <- sum((x - mean(x))^2)/n
+  } else {
+    s2 <- sum((x - mean(x))^2)/(n-1)
+  }
+  return(s2)
+}
+```
+
+Das Argument namens `empirical` kann in dieser Funktion genutzt werden, um zu entscheiden, welche Varianz-Formel angewandt werden soll. In diesem Fall wird also eine Einstellung für `empirical` benötigt, die dann von `if` als `TRUE` oder `FALSE` bewertet werden kann:
+
+```{r}
+Vari(mdbf[, 2], TRUE)
+Vari(mdbf[, 2], FALSE)
+```
+
+Wenn wir die Einstellung vergessen, wird - wie bei allen anderen R Funktionen auch - ein Fehler produziert. Probieren Sie dies aus, und beachten Sie den Wortlaut der Fehlermeldung. Jetzt sollten Sie verstehen, was diese aussagt und wie der Fehler behoben werden kann!
+
+```{r}
+#Vari(mdbf[, 2])
+```
+
+Die Fehlermeldung beinhaltet die Worte *with no default*. Dies impliziert, dass eine Voreinstellung für das Argument gesetzt werden könnte. Dann müssen Nutzer:innen das Argument nicht mehr zwingend angeben. Wenn Voreinstellungen für Argumente festgelegt werden sollen, erreichen wir das, indem in der runden Klammer direkt der default-Wert für ein Argument mit angegeben wird. 
+
+```{r build-function-XI, exercise=TRUE, exercise.lines = 11}
+Vari <- function(x, empirical = TRUE) {
+  n <- length(x)
+  if (empirical) {
+    s2 <- sum((x - mean(x))^2)/n
+  } else {
+    s2 <- sum((x - mean(x))^2)/(n-1)
+  }
+  return(s2)
+}
+```
+
+```{r build-function-XII, exercise=TRUE, exercise.lines = 3}
+Vari(mdbf[, 2])
+```
+
+Solange jetzt nicht explizit etwas bei der Anwendung der Funktion für `empirical` deklariert wird, wird von der Voreinstellung `TRUE` ausgegangen. 
+
+Versuchen Sie, die Varianzfunktion so umzuschreiben, dass in jedem Fall beide Varianzarten berechnet werden und beide in einem Objekt `out` zusammengefasst, und mit `return` ausgegeben werden. Wählen Sie die Bezeichnungen innerhalb der Funktion so, dass bei der Anwendung klar wird, welcher Teil des Ausgabeobjektes welche Varianz ist. 
+
+## Kombination 
+
+Wie hier schon an einem einfachen Beispiel gezeigt, ist es häufig sinnvoll, if-else-Abfragen, Loops, und Funktionen miteinander zu kombininieren. Versuchen Sie, das Beispiel der Item-Umcodierung in eine Funktion zu schreiben, die als Argument den Datensatz erhält, den Vektor mit umzucodierenden Variablen, und die Grenzen der Skala. 
