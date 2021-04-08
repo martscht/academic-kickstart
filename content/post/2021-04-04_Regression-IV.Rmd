@@ -3,7 +3,7 @@ title: "Regression IV: quadratische und moderierte Regression"
 date: '2021-03-30'
 slug: quadratische-und-moderierte-regression
 categories:
-  - MSc1
+  - BSc7
 tags:
   - quadratisch
   - moderiert
@@ -13,7 +13,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer, hartig]
-lastmod: '2021-01-28T08:32:21+02:00'
+lastmod: '2021-04-08T08:32:21+02:00'
 featured: no
 header:
   image: "/header/PsyBSc7_Reg4.jpg"
@@ -196,6 +196,46 @@ interact_plot(model = mod_reg, pred = IQ, modx = math)
 
 Uns wird nun ein Plot mit drei Linien ausgegeben. Dieser wird auch häufig "simple slopes" Plot genannt. Dargestellt sind drei Beziehungen zwischen `IQ` und `reading` für unterschiedliche Ausprägungen von `math`; nämlich einmal für einen durchschnittlichen `math`-Wert, sowie für jeweils Werte, die eine Standardabweichung (SD) oberhalb oder unterhalb des Mittelwertes liegen. Damit bekommen wir ein Gefühl dafür, wie sehr sich die Beziehung (und damit Interzept und Slope) zwischen der Leseleistung und der Intelligenz verändert für unterschiedliche Ausprägungen der Matheleistung --- nämlich für eine durchschnittliche (`Mean`) Ausprägung sowie für eine unter- (`- SD`) und eine überdurchschnittliche (`+ SD`) Ausprägung. Die Signifikanzentscheiden oben zeigte uns, dass diese Unterschiede bedeutsam sind und somit die Matheleistung entscheidend ist, wie genau die Leseleistung mit der Intelligenz zusammenhängt. Die einzelnen Regressiongerade lassen sich ebenfalls auf signifikante Unterschiede prüfen. Es kann auch untersucht werden, welche Ausprägungen des Moderators zu unterschiedlichen "bedingten" Regressionsgewichten führen, also ab wann sich Interzept oder Slope des Prädiktors signifikant verändert, wenn sich der Moderator verändert. Interessierte Leser können sich bei Interesse, die über diesen Kurs hinaus geht, dazu das `R`-Paket `reghelper` mit der Funktion `simple_slopes` ansehen. Nach laden des Pakets kann mit `?simple_slopes` die Hilfe zu dieser Funktion aufgerufen werden, die den Umgang damit etc. erklärt.
 
+Die folgende Grafik stellt den Sachverhalt noch einmal als 3D Grafik (mit dem Paket `plot3D`) dar (ziemlich cool oder?). Der Code zu den Grafiken lässt sich in [Appendix B](#AppendixB) nachlesen.
+
+```{r, echo = F, fig.align="center", fig.height=6, message=F, warning = F}
+library(plot3D)
+# x, y, z variables
+x <- Schulleistungen_std$IQ
+y <- Schulleistungen_std$reading
+z <- Schulleistungen_std$math
+fit <- lm(y ~ x*z)
+# predict values on regular xy grid
+grid.lines = 26
+x.pred <- seq(min(x), max(x), length.out = grid.lines)
+z.pred <- seq(min(z), max(z), length.out = grid.lines)
+xz <- expand.grid( x = x.pred, z = z.pred)
+y.pred <- matrix(predict(fit, newdata = xz), 
+                 nrow = grid.lines, ncol = grid.lines)
+# fitted points for droplines to surface
+fitpoints <- predict(fit)
+# scatter plot with regression plane
+scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
+          theta = 0, phi = 0, ticktype = "detailed",
+          xlab = "IQ", ylab = "math", zlab = "reading",  
+          surf = list(x = x.pred, y = z.pred, z = y.pred,  
+                      facets = NA, fit = fitpoints), 
+          main = "Moderierte Regression")
+```
+
+Hier ist die x-Achse ($-links\longleftrightarrow rechts+$) der IQ und in die Tiefe ist die Matheleistung dargestellt (oft z-Achse: ($-vorne\longleftrightarrow hinten+$)). Die y-Achse (im Plot heißt diese blöderweise z-Achse) ist die Leseleistung dargestellt ($-unten\longleftrightarrow oben+$). Wir erkennen in dieser Ansicht ein wenig die Simple-Slopes von zuvor, denn die Achse der Matheleistung läuft ins negative "aus dem Bilderschirm hinaus", während sie ins positive "in den Bildschirm hinein" verläuft. Der nähere Teil der "Hyperebene" weißt eine geringere Beziehung zwischen IQ und Leseleistung auf, während der Teil, der weiter entfernt liegt, eine stärkere Beziehung aufweist. Genau das haben wir auch in den Simple Slopes zuvor gesehen. Dort war für hohe Matheleistung die Beziehung zwischen IQ und Leseleistung auch stärker. Wichtig ist, dass in diesem Plot die Beziehung zwischen IQ und Leseleistung für eine fest gewählte Ausprägung der Matheleistung tatsächlich linear verläuft. Es ist also so, dass die wir quasi ganz viele Linien aneinander kleben, um diese gewölbte Ebene zu erhalten. Die Ausprägung der Matheleistung ist im nächsten Plot noch besser zu erkennen, wo der Plot etwas gedreht dargestellt wird. Farblich ist außerdem die Ausprägung der Leseleistung dargestellt, damit die Werte leichter zu vergleichen sind. 
+
+```{r, echo =F, fig.align="center", fig.height=6, message=F, warning = F}
+scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
+          theta = 20, phi = 20, ticktype = "detailed",
+          xlab = "IQ", ylab = "math", zlab = "reading",  
+          surf = list(x = x.pred, y = z.pred, z = y.pred,  
+                      facets = NA, fit = fitpoints), 
+          main = "Moderierte Regression")
+```
+
+Diese Plots gegeben einen noch besseren Eindruck, was genau bei einer Interaktion passiert und wie "austauschbar" eigentlich der Moderator oder der Prädiktor ist.
+
 Mit Hilfe von `I()` lassen sich innerhalb des `lm` Befehls zu dem noch weitere Funktionale hinzufügen, ohne diese vorher erzeugen zu müssen. Beispielsweise ließe sich durch `lm(Y ~ X + I(sin(X))) + I(exp(sqrt(X))` folgendes Regressionsmodell schätzen: $Y = \beta_0+\beta_1X + \beta_2\sin(X) + \beta_3e^{\sqrt{X}} + \varepsilon$. Allerdings lassen sich so nicht Wachstumsraten modellieren (z.B. exponentielles oder logarithmisches Wachstum) - hierzu müssten die Variablen tatsächlich transformiert werden. Dies wollen wir uns in der [nächsten Sitzung](/post/nichtlineare-Regression) genauer ansehen.
 
 Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/4_Log_Reg_RCode.R).
@@ -351,6 +391,45 @@ ggplot(data = data_ME, aes(x = std_ME,  y = pred_effect_ME)) + geom_point(pch = 
 
 Wir verwenden `scale`, um die linearen und quadratischen Anteile des Bildungsabschlusses der Mutter zu standardisieren und speichern sie in `X`. Anschließend ist das Interzept der quadratischen Funktion 0 ($c=0$, da wir standardisiert haben). Die zugehörigen standardisierten Koeffizienten sind $b=0.1588$ und $a=-0.1436$, die wir aus der standardisierten `summary` abgelesen haben. Somit wissen wir, dass es sich um eine invers-u-förmige Beziehung handelt (ohne die Grafik zu betrachten). Wir speichern die standardisierten Koeffizienten unter `std_par_ME` ab und verwenden anschließend das Matrixprodukt ` X %*% std_par_ME`, um die vorhergesagten Werte via $y_{std,i}=0.1588 ME - 0.1436ME^2$ zu berechnen. Diese vorhergesagten Werte `pred_effect_ME` plotten wir nun gegen die standardisierten Werte des Bildungsabschlusses der  Mutter `std_ME`, welche in der ersten Spalte von `X` stehen: `X[, 1]`.
 
+
+## Appendix B {#AppendixB}
+### Code zu 3D Grafiken
+
+```{r, echo = T, fig.align="center", fig.height=6, message=F, warning = F}
+library(plot3D)
+# Übersichtlicher: Vorbereitung
+x <- Schulleistungen_std$IQ
+y <- Schulleistungen_std$reading
+z <- Schulleistungen_std$math
+fit <- lm(y ~ x*z)
+grid.lines = 26
+x.pred <- seq(min(x), max(x), length.out = grid.lines)
+z.pred <- seq(min(z), max(z), length.out = grid.lines)
+xz <- expand.grid( x = x.pred, z = z.pred)
+y.pred <- matrix(predict(fit, newdata = xz), 
+                 nrow = grid.lines, ncol = grid.lines)
+fitpoints <- predict(fit)
+
+# Plot:
+scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
+          theta = 0, phi = 0, ticktype = "detailed",
+          xlab = "IQ", ylab = "math", zlab = "reading",  
+          surf = list(x = x.pred, y = z.pred, z = y.pred,  
+                      facets = NA, fit = fitpoints), 
+          main = "Moderierte Regression")
+```
+
+
+```{r, echo =T, fig.align="center", fig.height=6, message=F, warning = F}
+scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
+          theta = 20, phi = 20, ticktype = "detailed",
+          xlab = "IQ", ylab = "math", zlab = "reading",  
+          surf = list(x = x.pred, y = z.pred, z = y.pred,  
+                      facets = NA, fit = fitpoints), 
+          main = "Moderierte Regression")
+```
+
+Für weitere Informationen zum Umgang mit diesem Plot siehe bspw. hier: [3D Grafiken mit `plot3D` `r fontawesome::fa("graduation-hat")`](http://www.sthda.com/english/wiki/impressive-package-for-3d-and-4d-graph-r-software-and-data-visualization).
 
 ## Literatur
 [Eid, M., Gollwitzer, M., & Schmitt, M. (2017).](https://hds.hebis.de/ubffm/Record/HEB366849158) *Statistik und Forschungsmethoden* (5. Auflage, 1. Auflage: 2010). Weinheim: Beltz. 
