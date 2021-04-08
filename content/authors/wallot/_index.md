@@ -10,11 +10,11 @@ authors:
 superuser: false
 
 # Role/position
-role: Dozentin
+role: Dozent
 
 # Organizations/Affiliations
 organizations:
-- name: Leuphana Universität Lüneburg
+- name: Leuphana Universit√§t L√ºneburg
   url: "https://www.leuphana.de/institute/ifp/personen/sebastian-wallot.html"
 
 # Short bio (displayed in user profile at end of posts)
