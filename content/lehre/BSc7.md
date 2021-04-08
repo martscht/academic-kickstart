@@ -72,7 +72,7 @@ Das Modul PsyBSc7 vertieft die im Modul PsyBSc2 vermittelten Grundlagen. Behande
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
 | 0 | **Wiederholung von Grundlagen in R** | [Inhalte](/post/wiederholung-grundlagen) |
-| 1 | **Einleitung und Loops und Funktionen** | [Inhalte](/post/loops-und-funktionen) |
+| 1 | **Loops und Funktionen** | [Inhalte](/post/loops-und-funktionen) |
 | 2 | **Grafiken mit ggplot2** | [Inhalte](/post/grafiken-mit-ggplot2) |
 | 3 | **Partial- & Semipartialkorrelation** | Inhalte |
 | 4 | **Regressionsanalyse I: multiple Regression** | Inhalte |
