@@ -8,7 +8,7 @@ active = true  # Activate this widget? true/false
 weight = 40  # Order that this section will appear.
 
 title = "PsyMSc 1"
-subtitle = "Forschungsmethoden und Evaluation I"
+subtitle = "Forschungsmethoden und Evaluation I & II"
 
 [content]
   # Page type to display. E.g. post, talk, or publication.
@@ -78,4 +78,15 @@ Das Modul PsyMSc1 ist in zwei Teile untergliedert: Forschungsmethoden und Evalua
 | 4 | **Logistische Regressionsanalyse** | [Inhalte](/post/logistische-regression)  | [Übungsdaten](/post/MSc1-Daten) |
 | 5 | **Multivariate Varianzanalyse** | [Inhalte](/post/manova)  | [Übungsdaten](/post/MSc1-Daten) |
 | *Zusatz* | **Diskriminanzanalyse** | [Inhalte](/post/diskriminanzanalyse)  | --- |
+|  |  |  |  | | |
+
+Die zweite Hälfte des Moduls, F&E II, befasst sich vor allem mit Ansätzen zur Modellierung latenter Variablen und deren Beziehungen zu einander. Darunter fallen z.B. explorative und konfirmatorische Faktorenanalysen, die die Beziehung zwischen manifesten Variablen und den, ihnen zugrundeliegenden latenten Variablen modellieren. Aber auch die Modellierung der Beziehung zwischen latenten psychologischer Konstrukten (Strukturgleichungsmodelle) und die Vergleiche von Modellen zwischen verschiedenen Gruppen, z.B. für interkulturelle Studien, ist Bestandteil dieses Semesters.
+
+|  |  |  |  | | |
+| --- | --- | --- | --- | --- | --- |
+| 1 | **Einführung in lavaan** | Inhalte  | [Übungsdaten](/post/fairplayer.rda) |
+| 2 | **Explorative Faktorenanalyse** | Inhalte  | Übungsdaten |
+| 3 | **Konfirmatorische Faktorenanalyse** | Inhalte  | Übungsdaten |
+| 4 | **Strukturgleichungsmodelle** | Inhalte  | Übungsdaten |
+| 5 | **Multgruppen Modelle** | Inhalte  | Übungsdaten |
 |  |  |  |  | | |
