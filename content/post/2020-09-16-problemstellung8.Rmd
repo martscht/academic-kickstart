@@ -21,11 +21,13 @@ header:
   caption: '[Unsplash](https://images.unsplash.com/photo-1527474305487-b87b222841cc?ixlib=rb-1.2.1&ixid=eyJhcHBfaWQiOjEyMDd9&auto=format&fit=crop&w=1267&q=80)'
 ---
 
-Die Aufgabe in diesem Projekt teilt sich, wie im Projekt [ShinyR](/post/uebersicht7), in die User Interface und das Backend/ den Server. Wir werden zunächst auf das Backend eingehen, wie du die Daten über eine API einlesen kannst und so aufbereiten kannst, dass du sie auf einer User Interface ansprechend darstellen kannst. Außerdem werden wir `Plotly` als neue Darstellungsmethode für die UI kennenlernen.
+## Daten herunterladen
 
-Zunächst müssen wir uns die Pakete herunterladen, die für dieses Projekt benötigt werden: `data.table`, `OData`. Für die Übung aus der Vorbereitung benötigt du `httr` und `jsonlite`. Später für die User Interface benötigst du außerdem: PACKETE FÜR UI
+Die Aufgabe in diesem Projekt teilt sich, wie im Projekt [ShinyR](/post/uebersicht7), in das User Interface und das Backend/ den Server. Wir werden zunächst auf das Backend eingehen, wie du die Daten über eine API einlesen kannst und so aufbereiten kannst, dass du sie auf einer User Interface ansprechend darstellen kannst. Außerdem werden wir `Plotly` als neue Darstellungsmethode für die UI kennenlernen.
 
-Ich habe als Variable die Lebenserwartung der Menschen in den verschiedenen Ländern über die Jahre hinweg ausgewählt. Dies ist die Variable `WHOSIS_000001`. Die verschiedenen Variablen kannst du dir anschauen, indem du über den Befehl `retrieveData` die Daten mit dem Link für die Indikatoren herunterlädst. Diesen findest du auf der [Seite der WHO](https://www.who.int/data/gho/info/gho-odata-api). Wenn du hier nicht weiterkommst, kannst du dir auch den [ersten Tipp](/post/tipps8) anschauen. Dabei kannst du gerne eine andere Variable als die Lebenserwartung nehmen. Die heruntergeladenen Daten sollten in einer langen Liste mit zwei Elementen gespeichert sein. Zum einen findest du hier die Variable `@odata.context` und die Variable `value`. Letzteres ist in unserem Fall besonders wichtig, weil hier drin die verschiedenen Variablen stehen. Um die verschiedenen Zeilen aufzurufen musst du doppelte eckige Klammern verwenden, sprich [[x]]. Für eine bessere Übersicht, kannst du die Variable auch in ein Dataframe oder eine Matrix konvertieren. Am besten probierst du beides einmal aus und entscheidest dich für die deiner Meinung nach übersichtlichere Methoden.
+Zunächst müssen wir uns die Pakete herunterladen, die für dieses Projekt benötigt werden: `data.table`, `OData`. Für die Übung aus der Vorbereitung benötigt du `httr` und `jsonlite`. Später für das User Interface und die Umsetzung der Grafiken benötigst du außerdem: `plotly`, `shiny` und `tidyverse` (beinhaltet unter anderem `ggplot2` und `dplyr`).
+
+Wir haben als Variable die Lebenserwartung der Menschen in den verschiedenen Ländern über die Jahre hinweg ausgewählt. Dies ist die Variable `WHOSIS_000001`. Die verschiedenen Variablen kannst du dir anschauen, indem du über den Befehl `retrieveData` die Daten mit dem Link für die Indikatoren herunterlädst. Diesen findest du auf der [Seite der WHO](https://www.who.int/data/gho/info/gho-odata-api). Wenn du hier nicht weiterkommst, kannst du dir auch den [ersten Tipp](/post/tipps8) anschauen. Dabei kannst du gerne eine andere Variable als die Lebenserwartung nehmen. Die heruntergeladenen Daten sollten in einer langen Liste mit zwei Elementen gespeichert sein. Zum einen findest du hier die Variable `@odata.context` und die Variable `value`. Letzteres ist in unserem Fall besonders wichtig, weil hier drin die verschiedenen Variablen stehen. Um die verschiedenen Zeilen aufzurufen musst du doppelte eckige Klammern verwenden, sprich [[x]]. Für eine bessere Übersicht, kannst du die Variable auch in ein Dataframe oder eine Matrix konvertieren. Am besten probierst du beides einmal aus und entscheidest dich für die deiner Meinung nach übersichtlichere Methoden.
 
 Wenn du dir eine Variable ausgesucht hast, kannst du den Link für deine API generieren. Dabei ist der Grundbefehl unserer Seite: `https://ghoapi.azureedge.net/api/`. Je nachdem, was du dahinter schreibst, wirst du unterschiedliche Daten herunterladen. In den meisten Fällen schreibst du als erstes den Variablennamen. Es ist wichtig, dies mit einem `/` von dem restlichen Link zu trennen. Außerdem kannst du die Daten weiter filtern, indem du mit `?$filter=` nach bestimmten Daten suchst. Hier könntest du zum Beispiel sagen, dass du nur die Daten eines bestimmten Landes haben möchtest, indem du `?$filter=SpacialDim eq „BEL“` verwendest. In diesem Fall würden wir mit `"BEL"` nur die Daten von Belgien herunterladen. Dabei steht **eq** für *equal*, weshalb alle Zeilen herausgesucht werden, in denen ein `BEL` in der Spalte `SpacialDim` steht. Außerdem gibt es die Befehle:
 
@@ -37,11 +39,43 @@ Wenn du dir eine Variable ausgesucht hast, kannst du den Link für deine API gen
 
 * **and** = verknüpft verschiedene Bedingungen
 
-Es gibt noch viele weitere Möglichkeiten, deine URL zu erweitern. Weitere Informationen dazu erhältst du im [fünften Kapitel dieses Dokuments]( http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part2-url-conventions.pdf). Mit deinen Daten kannst du erstmal nicht besonders viel machen, weil es sich um verschachtelte Listen handelt, sprich Listen in Listen mit Listen. Hier kommt das `data.table`-Paket mit dem Befehl `rbindlist` zum Einsatz. Dieser Befehl macht aus deiner geschachtelten Liste ein Dataframe. Mit diesem Dataframe hast du deine Daten so weit aufbereitet, dass du nun mit der UI anfangen kannst. 
+Es gibt noch viele weitere Möglichkeiten, deine URL zu erweitern. Weitere Informationen dazu erhältst du im [fünften Kapitel dieses Dokuments]( http://docs.oasis-open.org/odata/odata/v4.01/odata-v4.01-part2-url-conventions.pdf). Mit deinen Daten kannst du erstmal nicht besonders viel machen, weil es sich um verschachtelte Listen handelt, sprich Listen in Listen mit Listen. Das kann man mithilfe des `data.table`-Paketes mit dem Befehl `rbindlist` vereinfachen. Dieser Befehl macht aus deiner geschachtelten Liste ein Dataframe. Mit diesem Dataframe hast du deine Daten so weit aufbereitet, dass du nun mit den Grafiken und dem User Interface anfangen kannst. 
 
-## Interaktive Grafik
+<a id="Abschnitt2"></a>
 
+## Interaktive Grafiken
 
+Damit dieser Abschnitt etwas übersichtlicher für dich ist, werden wir diesen unterteilen in die Bereiche "Grafiken erstellen mit `plotly`" und "Umsetzung einer `shiny`-App". Falls du Probleme mit dem Laden der Daten hast oder die Website die Zugriffsmöglichkeiten verändert hat (Stand Dezember 2020: Frei verfügbar sind nur noch die Datenpunkte 2000, 2005, 2010 und 2015), findest du [hier](https://raw.githubusercontent.com/martscht/projekte/master/content/post/GHO-Daten.xlsx) einen von uns heruntergeladenen Datensatz mit Daten von 2000 bis 2016 (17 Datenpunkte pro Land). Falls du es nicht schaffst, den richtigen Datensatz von Excel in R Studio zu übertragen, dann kannst du dir Hilfe in unseren [Lösungen](/post/loesungen8#Excel) suchen.
+
+(<b>WICHTIG:</b> `plotly`-Abbildungen können nicht innerhalb von R im sogenannten "Viewer" betrachtet werden. Um `plotly` Abbildung anzuschauen, musst du auf den Button "show in new window" im Viewer-Fenster klicken. Dieser Button öffnet die `plotly`-Abbildung in einem neuen Fenster in deinem Browser.)
+
+### Grafiken erstellen mit `plotly`
+Nehmen wir an, dein Ziel ist es, mit den Daten der WHO eine Abbildung zu erstellen, die möglichst viele Daten veranschaulicht. Dabei sollte die Grafik jedoch nicht zu unübersichtlich werden und einen maximalen Informationsgehalt (Details) vermitteln. Standard R Grafiken haben hierbei ein gewisses Limit. Ein Liniendiagramm wird zum Beispiel ab einer bestimmten Anzahl an Fällen (Linien) sehr unübersichtlich und liefert nur noch einen Gesamteindruck und keine detailierten Informationen. An diesem Punkt kommt `plotly` sehr gelegen. Grafiken, die mit `plotly` erstellt wurden, ermöglichen es dem Betrachter, an gewisse Abschnitte heranzuzoomen, über die Legende gewisse Fälle einzeln anzuschauen und detaillierte Information über einzelne Datenpunkte durch eine `hover`-Info zu erlangen (Information, die erscheint, wenn man mit der Maus auf einen Datenpunkt zeigt).
+
+Damit du dich mit `plotly` etwas vertraut machen kannst, sind hier ein paar Vorschläge für mögliche Abbildungen mit den Daten der WHO zur Lebenserwartung (WHOSIS_000001):
+
+- Liniendiagramm zu einem Land, mit der Gendervariable als Unterscheidung der verschiedenen "Fälle" (Linien)
+- Liniendiagramm zu einem bestimmten Gender (`Male` <b>oder</b> `Female` <b>oder</b> `Both Sexes`) mit allen Ländern eines Kontinents (Besonderheit: Versuche hier auch die `hover`-Info anzupassen!)
+- mehrere Liniendiagramme in einer Abbildung zu 1. (Gendervergleich mehrerer Länder) oder 2. (Ländervergleich mit allen drei Genderbezeichnungen) [benötigte Funktion: `subplot()`]
+- Kartendarstellung, bei der die Länder nach der Lebenserwartung eines bestimmten Geschlechts zu einem bestimmten Zeitpunkt eingefärbt sind
+- animierte Kartendarstellung über eine bestimmte Zeitspanne
+
+Hinweis: Bevor du mit dem Umsetzen der Grafiken beginnst, solltest du den Datensatz vorbereiten. Entferne leere Spalten, benenne die Variablen neu und erstelle die zwei neuen Variablen "Ländername" und "Kontinent". Hierbei helfen die beiden Pakete "ISOcodes" und "countrycode".
+
+### Umsetzung einer `shiny`-App
+`shiny` bietet die Möglichkeit, `plotly`-Abbildungen in Apps zu implementieren. Dafür existieren die beiden Befehle `plotlyOutput` und `renderPlotly`. Nun kannst du die Abbildungen aus dem ersten Abschnitt in eine App einbinden und dabei jeweils verschiedene Variablen reaktiv gestalten.
+
+Auf einer etwas einfacheren Ebene wären da folgende Inputs zu nennen:
+
+- die Auswahl der Art der Abbildung
+- die Auswahl des Geschlechts der angezeigten Daten
+- die Bestimmung der betrachteten Zeitspanne
+- der Titel der Abbildung sowie auch
+- ein Button, um jene reaktiven Inputs auf die Abbildung zu übertragen.
+
+Schwieriger wird es, wenn man dem Anwender die Möglichkeit geben möchte, die Daten räumlich einzugrenzen, da diese Eingrenzung auf mehreren Ebenen stattfinden kann (zunächst einmal konzeptuell Länder vs. WHO-Regionen [`SpatialDimType`], aber auch spezifisch Kontinente und Länder). Hierbei kann es außerdem helfen, wenn dem Anwender zunächst die Möglichkeit gegeben wird, die Auswahlmöglichkeiten einzugrenzen (siehe `uiOutput`/`renderUI`) - so kann man den Anwender bei der Auswahl eines Landes insofern unterstützen, dass man eine Eingrenzung auf einen Kontinent voranstellt. Bei der Erstellung der Kartendarstellung stellt sich außerdem die Herausforderung, welches Ausmaß die Karte haben soll (die ganze Welt oder nur ein Kontinent?) - hierfür sollte unter Umständen ein eigener `selectInput` verwendet werden.
+
+Bemerkung: Je nach Art der Darstellung werden unterschiedliche Inputs benötigt. Aus diesem Grund sollte sich das User Interface je nach Auswahl verändern. Um das zu bewerkstelligen, kannst du den Befehl `conditionalPanel` verwenden.
 
 ## Hilfe und Lösungen
 

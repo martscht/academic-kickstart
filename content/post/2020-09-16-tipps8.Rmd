@@ -26,7 +26,7 @@ header:
 
 Achtung! Im Folgenden geben wir dir ein paar Tipps, die auch Teile der Lösung enthalten können. Deshalb sollten diese nur dann benutzt werden, wenn du bei einer Aufgabe nicht weiterkommst.
 
-***
+## Abschnitt 1 - Daten herunterladen
 
 #### Tipp 1
 
@@ -61,14 +61,131 @@ dataframe <- rbindlist(data, fill = TRUE)
 ```
 </details>
 
+## Abschnitt 2 - Interaktive Grafiken
 
-#### Tipp 4
-
+#### Tipp 1 
+Hier erhältst du Hinweise zu der Umsetzung der in der Problemstellung erwähnten Anpassungen des Datensatzes.
 
 <details><summary>Abschnitt anzeigen</summary>
+Zuerst schaust du dir am besten die Struktur des Datensatzes an. Dafür empfehle ich dir, den Datensatz mit `as_tibble` in ein `tibble` umzuwandeln. Schaust du dir den Datensatz nun an, wird dir direkt auch das `Format` aller Variablen angezeigt. Es fällt auf, dass einige Variablen im Format `lgl`, also `logical`, vorliegen. Schaust du dir jetzt alle Ausprägung einer dieser Variablen mithilfe einer Tabelle an, dann fällt auf, dass diese Variable nur aus fehlenden Wert besteht. Nutze diese Information (leere Zeile = Format `logical`), um leere Zeilen zu löschen. Außerdem gibt es einige Zeitvariablen - davon brauchst du auch keine. Die einzige Zeitvariable, die du brauchst, ist die Jahreszahl.
 
+Kommen wir jetzt zu den Zeilen: Theoretisch sollten zu jedem Land 51 Datenpunkte (17 Zeitpunkte x 3 Geschlechter) vorliegen und zu jeder Region 15 (5 Zeitpunkte x 3 Geschlechter). Teste das mit einer Tabelle zu den Ländercodes! - Es wird dir auffallen, dass ein Land häufiger vertreten ist als alle anderen. Finde heraus welches und lösch die überschüssigen Daten.
+
+Zuletzt kommst du vermutlich zum Erstellen der neuen Variablen. Die Variable, die die vollständigen Ländernamen enthalten soll, wird dabei jedoch Probleme bereiten. Das liegt daran, dass die Ländercodes der WHO-Regionen (+GLOBAL) keine standardmäßige ISO-3-Codes sind. Diese musst du per Hand umkodieren (->Wenn-Dann-Funktion).
+</details>
+
+#### Tipp 2 
+Hier erhältst du einen Tipp zu Erstellung deiner ersten `plotly`-Abbildung.
+
+<details><summary>Abschnitt anzeigen</summary>
+Bei deiner ersten `plotly`-Abbildung brauchst du nur die Daten EINES Landes. Nutze dafür die `filter`-Funktion.
+
+Ansonsten ähnelt der Aufbau einer `plotly`-Abbildung dem typischen Prozedere. Du musst angeben, welche Variable auf x- und y-Achse stehen sollen und welche die verschiedenen Linien unterscheidet. Die Angabe der Variablen erfolgt dabei jeweils mit einem `~` davor (bspw. x = ~SEX).
+
+Die Farbe der Linien kannst du manuell über das `colors`-Argument in der `plot_ly`-Funktion bestimmen.
+
+Möchtest du sonstige Formatierungen an der Abbildung vornehmen musst du die `plot_ly`-Funktion abschließen und mit der `layout`-Funktion weitermachen. Welche Anpassungsmöglichkeit es da gibt, findest du unter [diesem Link](https://plotly.com/r/reference/layout/).
+
+Hast du das beides erstellt - ein `plot_ly`-Objekt und ein `layout`-Objekt - dann stellt sich noch die Frage, wie diese beiden Funktionen miteinander verbunden werden können. Wie kann man beides miteinander verbinden, dass die Layout-Vorgaben auf die Abbildung angewendet werden? Schau dir dafür im Internet Informationen zu dieser Zeichenkombination an: `%>%`. Dieser Befehl kommt aus dem `dplyr`-Paket, das Bestandteil des `tidyverse` ist.
+</details>
+
+#### Tipp 3 
+Hier erhältst du einen Tipp, wie du die `hover`-Info in der zweiten Abbildung modifizierst.
+
+<details><summary>Abschnitt anzeigen</summary>
+Für die `hover`-Info benötigst du nur zwei Argumente, die beide innerhalb der `plot_ly`-Funktion Anwendung finden: `text` und `hoverinfo`. Außerdem wirst du womöglich `paste0` benötigen.
+</details>
+
+#### Tipp 4 
+Hier erhältst du Hinweise für die Erstellung der `subplot`s. 
+
+<details><summary>Abschnitt anzeigen</summary>
+Der `subplot`-Befehl ist prinzipiell ziemlich simpel, jedoch sehr aufwändig. Zunächst musst du alle Abbildungen einzeln erstellen und einem Objekt abspeichern. Dann kannst du diese Objekte in der `subplot`-Funktion auflisten und es entsteht eine Abbildung nach den Default-Einstellungen. Hier solltest du womöglich bei allen Plots die Legende verbergen (`showlegend = FALSE`) - das musst du jedoch für jeden Plot einzeln tun. Weiterhin können hier die Argumente `nrows`, `heights`, `shareX` und `shareY` von Nutzen sein. Für Erklärungen dazu nutze einfach die R-interne Hilfe (`?sublot`)
+</details>
+
+#### Tipp 5 
+Hier gibt es einige Hilfen zur Erstellung einer eingefärbten Karte.
+
+<details><summary>Abschnitt anzeigen</summary>
+Für dieses Unterfangen brauchst du in erster Linie den `plot_geo`-Befehl. Dieser Befehl wird deine Abbildung mit einer Karte "unterlegen". Modifikation an dieser Karte und welche genau gezeigt wird steuerst du über den `layout`-Befehl unter dem Argument `geo`.
+
+Darüber (quasi auf einer höheren Ebene wie bei `ggplot2`) fügst du die Färbung hinzu. Das funktioniert mithilfe des `add_trace`-Befehls. Alle weiteren Argumente hierin ähneln denen von `plot_ly`.
+</details>
+
+#### Tipp 6 
+Hier erfährst du etwas zur Animation der Kartendarstellung und wie du diese Animation modifizieren kannst.
+
+<details><summary>Abschnitt anzeigen</summary>
+Für die Animation der Karte benötigst du das `frame`-Argument im `add_trace`-Befehl. Damit gibst du an, über welche Variable hinweg die Karte animiert werden soll. Das ist in unserem Fall logischerweise die Zeit (`YEAR`).
+
+Weitere Funktionen die hier von Nutzen sein können sind: `animation_opts`, `animation_slider` und `animation_button`. Mit diesen Funktionen kannst du die Animationsbestandteile modifizieren.
+
+-`animation_opts` ermöglicht eine Anpassung der Animation selbst, besonders wichtig ist hier das `redraw`-Argument.
+-`animation_slider` ermöglicht Veränderungen des Zeitstrahls, der es ermöglicht, zwischen den verschiedenen Frames manuell zu wechseln.
+-`animation_button` ermöglicht Formatierungen des Knopfes, mit dem man die Animation starten kann.
 
 </details>
 
+#### Tipp 7 
+Hier geben wir dir einen Hinweis darauf, wie wir unser User Interface umgesetzt haben. Dazu gibt es ein kurzes Beispiel, das die Funktion des `conditionalPanel`s verdeutlicht.
+
+<details><summary>Abschnitt anzeigen</summary>
+Das User Interface kann auf verschiedenste Weisen umgesetzt werden. Unser Ziel ist es, eine App zu programmieren, die an EINEM Ort die gewünschte Abbildung anzeigt - es soll also nur ein Output-Fenster geben. Am einfachsten ist das vermutlich, indem alle Inhalte untereinander angeordnet werden (und nicht nebeneinander wie bei einer `pageWithSidebar`).
+
+Jetzt kannst du direkt unter dem Titel der App einfach einen Input (`selectInput`) mit den verschiedenen Abbildungstypen erstellen. Je nach Auswahl sollen dann mithilfe des `conditionalPanel`-Befehls unterschiedliche Inputs erscheinen, mit denen man dann im darunterliegenden Output-Fenster die gewünschte Grafik auf Knopfdruck erzeugen kann. Das heißt, dass du jetzt für jede einbezogene Grafik ein eigenes User Interface mit Inputs erstellen musst, das in ein `conditionalPanel` eingebettet ist.
+
+Sowas kann dann beispielsweise so aussehen (-> führe den folgenden Code einfach in deiner R Sitzung aus):
+
+```{r, eval = FALSE}
+library(shiny)
+ui <- pageWithSidebar(
+  headerPanel ("My first"),
+  sidebarPanel (
+    selectInput("se", "ty", choices = c("norm", "exp")),
+    sliderInput("Samplesize", "sel", min = 100, max = 5000, value = 1000, step = 100),
+    conditionalPanel(condition = "input.se == 'norm'",
+                     textInput("Mean", "selme", 10),
+                     textInput("sd", "selsd", 1)),
+    conditionalPanel(condition = "input.se == 'exp'",
+                     textInput("lamb", "sellam", 1))
+  ),
+  mainPanel(plotOutput("myplot"))
+)
+server <- function(input, output, session){
+  output$myplot <- renderPlot({
+    distType <- input$se
+    size <- input$Samplesize
+      
+    if (distType == "norm") {
+      randomve <- rnorm(size, mean = as.numeric(input$Mean), sd = as.numeric(input$sd))
+    } else {
+      randomve <- rexp(size, rate = 1/as.numeric(input$lamb))
+    }
+      
+    hist(randomve, col = "blue")
+  })
+}
+shinyApp(ui, server)
+```
+
+</details>
+
+#### Tipp 8 
+Hier gibt es eine kurze Hilfestellung zur Erstellung der reaktiven Inputs im Server.
+
+<details><summary>Abschnitt anzeigen</summary>
+In unserem Beispiel wollen wir, das ein `selectInput` mit Ländern als Auswahlmöglichkeiten auf ein anderes `selectInput` mit Kontinenten als Auswahlmöglichkeiten reagiert. Wenn im einen "Afrika" ausgewählt wurde, dann sollen im anderen nur afrikanische Länder zur Auswahl stehen. Außerdem ist wichtig, dass diese Auswahlmöglichkeiten des Länder-Inputs immer dann aktualisiert werden sollen, wenn sich der Kontinenten-Input verändert. Dafür benötigt man eine `observeEvent`-Funktion, die den Kontinenten-Input "beobachtet" und alle restlichen Operationen umschließt.
+
+Nun brauchst du ein reaktives Objekt (-> mithilfe der `reactive`-Funktion), das die jeweiligen Auswahlmöglichkeiten für den Länder-Input anhand des Kontinenten-Inputs ermittelt und abspeichert. Jetzt kann man innerhalb von `renderUI` den `selectOutput` erstellen, wobei man beim `choices`-Argument das zuvor erstellte reaktive Objekt einsetzen muss. (Wichtig: Mit `reactive` erstellte reaktive Objekte müssen als Funktion aufgerufen werden - egal wie man jenes Objekt also genannt hat, muss man bei der Verwendung im `choices`-Argument diesem Namen `()` anhängen.)
+
+</details>
+
+#### Tipp 9 
+Hier gibt es einen Tipp zu der Erstellung der reaktiven Abbildungen.
+
+<details><summary>Abschnitt anzeigen</summary>
+Bei jeder Abbildung müssen zuerst die reaktiven Datenfilter auf den Datensatz angewendet werden. Dafür verwendet man die `reactiveValues`-Funktion. Andere Inputs wie der Titel können direkt in der Abbildungs-Funktion eingesetzt werden. Hier ist jeweils wichtig, dass reaktive Objekte immer in geschwungenen Klammern stehen müssen (`{}`).
+
+</details>
 
 ### [Weiter zu den Lösungen](/post/loesungen8/)
