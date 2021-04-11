@@ -11,12 +11,13 @@ tags:
   - Regression
 subtitle: 'Das Instrument für die multivariate Datenanalyse'
 summary: ''
-authors: [schultze]
+authors: [schultze, irmer]
 lastmod: '2021-04-08T10:30:02+02:00'
 featured: no
 header:
   image: "/header/FEII_Sitzung1.jpg"
   caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/762408)"
+toc: true
 ---
 
 ```{r, echo = FALSE, results = 'hide', message=FALSE, warning=FALSE}
@@ -51,13 +52,13 @@ abbrev <- function(X, begin = 'Latent Variables', end = NULL, ellipses = 'both',
 
 Im Verlauf dieses Seminars soll neben der Einführung in die Theorie und Hintergründe multivariater Verfahren auch eine Einführung in deren Umsetzung gegeben werden, sodass Sie in der Lage sind, diese Verfahren in Ihrem zukünftigen akademischen und beruflichen Werdegang zu benutzen. Diese Umsetzung möchten wir Ihnen mit `lavaan` zeigen - dem meistverbreiteten Paket für multivariate Verfahren wie z.B. konfirmatorische Faktorenanalyse (CFA), Pfadanalyse oder Strukturgleichungsmodellierung (SEM) in R. Allein im März 2021 wurde `lavaan` über 50 000 mal heruntergeladen; es wird in allen Bereichen der psychologischen Forschung genutzt und wurde in über 7 500 sozialwissenschaftflichen Veröffentlichungen zitiert.
 
-Dieses Tutorial bietet eine Einführung in `lavaan`. Im Zentrum stehen dabei die Grundgedanken und die typische Weise, in der man in `lavaan` bei Analysen vorgeht. Um diese Ideen und Vorgehensweisen zu erkunden, betrachten wir ein Beispiel aus dem letzten Semester mal aus dieser neuen Perspektive.
+Dieses Tutorial bietet eine Einführung in `lavaan`. Im Zentrum stehen dabei die Grundgedanken und die typische Vorgehensweise, in der man in `lavaan` bei Analysen vorgeht. Um diese Ideen und Vorgehensweisen zu erkunden, betrachten wir ein Beispiel aus dem letzten Semester mal aus dieser neuen Perspektive.
 
-Wir beginnen das Tutorial aber zunächst mit einer [Auffrischung Ihrer R-Fähigkeiten](#Wiederbelebung). Auch wenn Sie im Umgang mit `R` sehr geübt sind, nehmen Sie sich bitte trotzdem ein paar Minuten, um sich noch einmal intensiv mit den Befehlen auseinanderzusetzen, die für dieses Semester von zentraler Bedeutung sind. Sollten Sie wenig Übung im Umgang mit `R` haben, oder wenn Sie einfach noch einmal eine etwas detaillierte Einführung in `R` lesen möchten, finden Sie [hier auch die R-Einführung aus dem Bachelorstudiengang](./r-crash-kurs/).
+Wir beginnen das Tutorial aber zunächst mit einer [Auffrischung Ihrer R-Fähigkeiten](#Wiederbelebung). Auch wenn Sie im Umgang mit `R` sehr geübt sind, nehmen Sie sich bitte trotzdem ein paar Minuten Zeit, um sich noch einmal intensiv mit den Befehlen auseinanderzusetzen, die für dieses Semester von zentraler Bedeutung sind. Sollten Sie wenig Übung im Umgang mit `R` haben, oder wenn Sie einfach noch einmal eine etwas detaillierte Einführung in `R` lesen möchten, finden Sie [hier auch die R-Einführung aus dem Bachelorstudiengang](/post/r-crash-kurs/).
 
 Nach dem Ende der Übung finden Sie im [OLAT Kurs](https://olat-ce.server.uni-frankfurt.de/olat/auth/RepositoryEntry/11412111381) ein kurzes Quiz mit Bezug zu den Inhalten dieser Sitzung.
 
-Den gesamten R-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](./FEII_intro.R).
+Den gesamten R-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](/post/FEII_intro.R).
 
 ## `R` Grundlagen Wiederbelebung {#Wiederbelebung}
 
@@ -65,7 +66,7 @@ In diesem Abschnitt gucken wir uns zur Wiederholung noch einmal ein paar Grundz�
 
 ### Beispieldatensatz
 
-Der Datensatz, den wir in dieser Sitzung benutzen, stammt aus einer Studie von Bull, Schultze & Scheithauer (2009), in der die Effektivität eines Interventionsprogramms zur Bullyingprävention bei Jugendlichen untersucht wurde. Der Datensatz liegt bereits im R-eigenen `.rda`-Format vor, sodass uns ein Import der Daten erspart bleibt. Sie können den Datensatz entweder [`r fontawesome::fa("download")` hier herunterladen](./fairplayer.rda) und mit einfach mit `load` arbeiten, um die Daten zu laden:
+Der Datensatz, den wir in dieser Sitzung benutzen, stammt aus einer Studie von Bull, Schultze & Scheithauer (2009), in der die Effektivität eines Interventionsprogramms zur Bullyingprävention bei Jugendlichen untersucht wurde. Der Datensatz liegt bereits im R-eigenen `.rda`-Format vor, sodass uns ein Import der Daten erspart bleibt. Sie können den Datensatz entweder [`r fontawesome::fa("download")` hier herunterladen](/post/fairplayer.rda) und mit einfach mit `load` arbeiten, um die Daten zu laden:
 
 ```{r}
 load('fairplayer.rda')
@@ -94,7 +95,7 @@ str(fairplayer)
 head(fairplayer)
 ```
 
-Der Datensatz, den wir hier betrachten, enthält verhaltensbezogene Selbstberichte auf jeweils drei Items zur relationalen Aggression (`ra`), Empathie (`em`) und sozialen Intelligenz (`si`). Diese insgesamt 9 Indikatoren liegen zu drei Messzeitpunkten (`t1`, `t2` und `t3`) vor. Die über `str` angeforderte Struktur verrät uns außerdem, dass diese Variablen allesamt integer (`int`), also ganzzahlig, sind. Über die Items hinaus sind vier weitere Variablen im Datensatz enthalten, die den Personenidentifikator (`id`), die Klasse (`class`), die Interventionsgruppe (`grp`) und das Geschlecht (`sex`) der Jugendlichen kodieren.
+Der Datensatz, den wir hier betrachten, enthält verhaltensbezogene Selbstberichte auf jeweils drei Items zur relationalen Aggression (`ra`), Empathie (`em`) und sozialen Intelligenz (`si`). Diese insgesamt 9 Indikatoren liegen zu drei Messzeitpunkten (`t1`, `t2` und `t3`) vor. Die über den Befehl `str` angeforderte Struktur verrät uns außerdem, dass diese Variablen allesamt integer (`int`), also ganzzahlig, sind. Über die Items hinaus sind vier weitere Variablen im Datensatz enthalten, die den Personenidentifikator (`id`), die Klasse (`class`), die Interventionsgruppe (`grp`) und das Geschlecht (`sex`) der Jugendlichen kodieren.
 
 ### Datenmanagement
 
@@ -124,7 +125,7 @@ fairplayer$sit1 <- rowMeans(fairplayer[, c('si1t1', 'si2t1', 'si3t1')],
 
 ### Deskriptivstatistik
 
-Die drei Skalenwerte aus dem letzten Abschnitt sollten wir uns - zusammen mit ein paar anderen Variablen - mal genauer angucken, um ein Gefühl dafür zu entwickeln, wie die Lage in dieser Erhebung ist. Der Klassiker, um sich einen Überblick zu verschaffen, ist die R-eigene `summary` Funktion. Bei dieser handelt es sich um eine generische Funktion, die man auf viele verschiedene Objekte in `R` anwenden kann. Die Aufbereitung des Ergebnisses hängt dabei immer davon ab, auf was für ein Objekt man sie angewendet hat.
+Die drei Skalenwerte aus dem letzten Abschnitt sollten wir uns - zusammen mit ein paar anderen Variablen - mal genauer angucken, um ein Gefühl dafür zu entwickeln, wie die Lage in dieser Erhebung ist. Der Klassiker, um sich einen Überblick zu verschaffen, ist die R-eigene `summary` Funktion. Dabei handelt es sich um eine generische Funktion, die man auf viele verschiedene Objekte in `R` anwenden kann. Die Aufbereitung des Ergebnisses hängt dabei immer davon ab, auf was für ein Objekt man sie angewendet hat.
 
 Nehmen wir unsere drei Skalenwerte: bei allen handelt es sich um numerische Variablen (in R: `num`) - in `R` wird also davon ausgegangen, dass es Variablen mit mindestens Intervallskalenniveau sind (mehr Informationen zu Skalenniveaus in der psychologischen Methodenlehre finden Sie in [Eid, Gollwitzer und Schmitt (2017) im Kapitel 5](https://hds.hebis.de/ubffm/Record/HEB366849158)). Für solche Variablen wird in `R` mit `summary` eine sogenannte Fünf-Punkt-Zusammenfassung ausgegeben:
 
@@ -140,11 +141,11 @@ Für nominalskalierte Variablen, wie z.B. die Gruppenzugehörigkeit `grp`, sieht
 summary(fairplayer$grp)
 ```
 
-Weil diese Variable in `R` als `factor` angelegt ist, wird sie als nominalskaliert behandelt und es werden keine Statistiken berechnet, die für solche Variablen nicht aussagekräftig sind. Stattdessen wird lediglich eine Häufigkeitstabelle erzeugt. Neben diesen globalen Funktionen, können diverse Deskriptivstatistiken natürlich auch einzeln erzeugt werden, z.B. mit `mean`, `median` oder `sd`.
+Weil diese Variable in `R` als `factor` angelegt ist, wird sie als nominalskaliert behandelt und es werden keine Statistiken berechnet, die für solche Variablen nicht aussagekräftig sind. Stattdessen wird lediglich eine Häufigkeitstabelle erzeugt. Neben diesen globalen Funktionen können diverse Deskriptivstatistiken natürlich auch einzeln erzeugt werden, z.B. mit `mean`, `median` oder `sd`.
 
 ### Kovarianzen und Korrelationen
 
-Neben univariaten Statistiken sind für eine Veranstaltung mit dem Titel "Multivariate Verfahren" natürlich Zusammenhangsmaße von zentraler Bedeutung. Die beiden gängigsten Formen um Zusammenhänge in der Psychologie zu untersuchen, sind Kovarianzen und Korrelationen. Bivariat können wir diese in `R` sehr einfach über `cov` bzw. `cor` anfordern:
+Neben univariaten Statistiken sind für eine Veranstaltung mit dem Titel "Multivariate Verfahren" natürlich Zusammenhangsmaße von zentraler Bedeutung. Die beiden gängigsten Formen, um Zusammenhänge in der Psychologie zu untersuchen, sind Kovarianzen und Korrelationen. Bivariat können wir diese in `R` sehr einfach über `cov` bzw. `cor` anfordern:
 
 ```{r}
 cov(fairplayer$rat1, fairplayer$sit1, use = 'complete')
@@ -171,7 +172,7 @@ Das Gleiche funktioniert natürlich auch mit der Kovarianzmatrix:
 cov(scales, use = 'complete')
 ```
 
-Letztere ist für viele Analysen, die wir in diesem Semester behandeln werden zentral, weil sie in einer Matrix (beinahe) alle relevanten Informationen über interindividuelle Unterschiede (Varianzen) und deren Zusammenhänge (Kovarianzen) enthält. Die Verwendung von `use = 'complete'` bewirkt hier, dass nur Personen in die Berechnung aufgenommen werden, die auf keiner der drei Variablen fehlende Werte haben. In unserem Fall bleiben also von den ursprünglich `r nrow(fairplayer)` Personen noch `r nrow(na.omit(scales))` übrig.
+Letztere ist für viele Analysen, die wir in diesem Semester behandeln werden, zentral, weil sie in einer Matrix (beinahe) alle relevanten Informationen über interindividuelle Unterschiede (Varianzen) und deren Zusammenhänge (Kovarianzen) enthält. Die Verwendung von `use = 'complete'` bewirkt hier, dass nur Personen in die Berechnung aufgenommen werden, die auf keiner der drei Variablen fehlende Werte haben. In unserem Fall bleiben also von den ursprünglich `r nrow(fairplayer)` Personen noch `r nrow(na.omit(scales))` übrig.
 
 Varianzen sind in der Diagonale der Matrix enthalten:
 
@@ -188,7 +189,7 @@ Einen Überblick über die Befehle für Matrix-Algebra in `R` finden Sie auf der
   - `formula`: Das Modell in klassischer R-Formelschreibweise
   - `data`: Der Datensatz, auf den dieses Modell angewendet werden soll
   
-Die Formelschreibweise folgt in `R` einer einfachen Grundstruktur: `Y ~ X`. Gelesen werden kann $Y$ "vorhergesagt durch" $X$. Mehrere unabhängige Variablen, z.B. $X_1$ und $X_2$ können im Wesentlichen durch drei Operatoren verbunden sein:
+Die Formelschreibweise folgt in `R` einer einfachen Grundstruktur: `Y ~ X`. Gelesen werden kann $Y$ "vorhergesagt durch" $X$. Mehrere unabhängige Variablen, z.B. $X_1$ und $X_2$, können im Wesentlichen durch drei Operatoren verbunden sein:
 
   - `X1 + X2`: Für additive Modelle (nur Haupteffekte von $X_1$ und $X_2$)
   - `X1 : X2`: Für Interaktionen (nur der Interaktionseffekt $X_1 \cdot X_2$)
@@ -198,7 +199,7 @@ Darüber hinaus können noch einige andere Operatoren genutzt werden (mehr Infor
 
 ### Modell erstellen
 
-Im Beispiel geht es um die drei Konstrukte relationale Aggression, soziale Intelligenz und Empathie von Jugendlichen. Da durch Interventionen soziale Intelligenz als Kompetenz gut vermittelbar ist, ist von Interesse, wie sich höhere soziale Intelligenz auf relationale Aggression auswirkt. Wichtig ist dabei, dass auch Empathie in die Gleichung einbezogen wird, weil diese konsistent ein negativer Prädiktor relationaler Aggression ist; wenn ich negative Empfindungen anderer mitfühlen kann, ist es weniger wahrscheinlich, dass ich durch mein Verhalten solche negativen Empfindungen hervorrufen möchte. Die Beziehung zu sozialer Intelligenz war in der Literatur lange aber nicht so eindeutig - erst in den späten 2000er Jahren wurde die Befundlage hierzu eindeutig (aus dieser Zeit stammt der Datensatz).
+Im Beispiel geht es um die drei Konstrukte relationale Aggression, soziale Intelligenz und Empathie von Jugendlichen. Da durch Interventionen soziale Intelligenz als Kompetenz gut vermittelbar ist, ist von Interesse, wie sich höhere soziale Intelligenz auf relationale Aggression auswirkt. Wichtig ist dabei, dass auch Empathie in die Gleichung einbezogen wird, weil diese konsistent ein negativer Prädiktor relationaler Aggression ist; wenn ich negative Empfindungen anderer mitfühlen kann, ist es weniger wahrscheinlich, dass ich durch mein Verhalten solche negativen Empfindungen hervorrufen möchte. Die Beziehung zu sozialer Intelligenz war in der Literatur lange aber nicht so eindeutig - erst in den späten 2000er Jahren wurde die Befundlage hierzu klarer (aus dieser Zeit stammt der Datensatz).
 
 Um diese Fragestellung zu bearbeiten, können wir mit dem Datensatz eine multiple Regression zur Vorhersage relationaler Aggression durch Empathie und soziale Intelligenz durchführen. 
 
@@ -237,7 +238,7 @@ summary(mod)$coef
 
 Die Zeilennamen dieser Tabelle (`r paste(rownames(summary(mod)$coef))`) geben an, zu welchem Prädiktor das Regressiongewicht gehört. In der Spalte `Estimate` wird das Regressionsgewicht angegeben. Hier wird also für zwei Jugendliche, die sich um eine Einheit in sozialer Intelligenz (`sit1`) unterscheiden, aber das gleiche Ausmaß an Empathie (`emt1`) haben, ein Unterschied in der relationalen Aggression von `r formatC(coef(mod)[2], format = 'f', digits = 2)` Einheiten vorhergesagt. Bei gleicher Empathie führt höhere soziale Intelligenz also zu *mehr* relationaler Aggression. Die nächste Spalte `Std. Error` gibt den Standardfehler an, welcher das Ausmaß an Unsicherheit quantifiziert, das wir in der Schätzung des Populationswertes dieses Regressionsgewichts aufgrund unserer Stichprobe haben. Das Verhältnis aus Regressionsgewicht und Standardfehler ($\frac{`r formatC(coef(mod)[2], format = 'f', digits = 2)`}{`r formatC(summary(mod)$coef[2,2], format = 'f', digits = 2)`} = `r formatC(summary(mod)$coef[2,3], format = 'f', digits = 2)`$) folgt - wenn die Voraussetzungen der Regressionsanalyse halten - einer $t$-Verteilung mit $n - k - 1$ Freiheitsgraden und wird deswegen in der Tabelle als `t Value` geführt. Bei der Bestimmung der Freiheitsgrade entspricht $n$ der Anzahl der Beobachtungen und $k$ der Anzahl der Prädiktoren. Bei ausreichend großer Anzahl von Freiheitsgraden ist die $t$-Verteilung nicht mehr von der Standardnormalverteilung unterscheidbar, sodass in anderer Software hier häufig der $z$-Test genutzt wird.
 
-Weil wir wissen, wie wahrscheinlich es ist, unter der $t$-Verteilung mit `r summary(mod)$df[2]` Freiheitsgraden einen Wert von `r formatC(summary(mod)$coef[2,3], format = 'f', digits = 2)` zu beobachten, können wir (in der letzten Spalte) einen $p$-Wert bestimmen. In diesem Fall heißt es also, dass, wenn in der Population der wahre Wert dieses Regressionsgewichts 0 wäre, die Wahrscheinlichkeit in unserer Stichprobe ein Regressionsgewicht von `r formatC(coef(mod)[2], format = 'f', digits = 2)` oder extremer zu finden `r formatC(summary(mod)$coef[2,4], format = 'f', digits = 5)` ist. "Extremer" heißt hierbei, dass das Regressionsgewicht vom Betrag her größer sein müsste.
+Weil wir wissen, wie wahrscheinlich es ist, unter der $t$-Verteilung mit `r summary(mod)$df[2]` Freiheitsgraden einen Wert von `r formatC(summary(mod)$coef[2,3], format = 'f', digits = 2)` zu beobachten, können wir (in der letzten Spalte) einen $p$-Wert bestimmen. In diesem Fall heißt es also, dass, wenn in der Population der wahre Wert dieses Regressionsgewichts 0 wäre, die Wahrscheinlichkeit, in unserer Stichprobe ein Regressionsgewicht von `r formatC(coef(mod)[2], format = 'f', digits = 2)` oder extremer zu finden, `r formatC(summary(mod)$coef[2,4], format = 'f', digits = 5)` ist. "Extremer" heißt hierbei, dass das Regressionsgewicht vom Betrag her größer sein müsste.
 
 Nach dem gleichen Prinzip lassen sich auch andere Parameter aus der Zusammenfassung extrahieren, z.B. das $R^2$:
 
@@ -267,19 +268,19 @@ Die Model-Syntax von `lavaan` ist eine grafische Sprache. Das heißt, dass die S
 <!-- <img src="https://raw.githubusercontent.com/martscht/PsyMSc1/master/inst/tutorials/intro/images/shapes.png" width="65%"/> -->
 ![](/post/FEII_shapes.png){width=65%}
 
-Mit diesen fünf sehr grundlegenden Elementen lassen sich erstaunlich viele Modelle darstellen, die in der psychologischen Forschung genutzt werden. Wir können z.B. eine einfache Regression zur Vorhersagen eines Kriteriums $Y$ durch einen Prädiktor $X$ aufstellen. Wir haben also zwei manifeste Variablen (in Rechtecken) und eine gerichtete Verbindung zwischen den beiden (die Regression). Wie üblich, benennen wir die Regression mit $\beta$:
+Mit diesen fünf sehr grundlegenden Elementen lassen sich erstaunlich viele Modelle darstellen, die in der psychologischen Forschung genutzt werden. Wir können z.B. eine einfache Regression zur Vorhersage eines Kriteriums $Y$ durch einen Prädiktor $X$ aufstellen. Wir haben also zwei manifeste Variablen (in Rechtecken) und eine gerichtete Verbindung zwischen den beiden (die Regression). Wie üblich, benennen wir die Regression mit $\beta$:
 
 <!-- <img src="https://raw.githubusercontent.com/martscht/PsyMSc1/master/inst/tutorials/intro/images/step1.png" width="50%"/> -->
 
 ![](/post/FEII_step1.png){width=50%}
 
-Was diese Abbildung also darstellt ist $Y = \beta \cdot X$. Für eine vollständige Regressionsgleichung fehlen allerdings noch ein paar Dinge. Als erstes nehmen wir das Intercept hinzu - also der Wert, der für $Y$ bei $X = 0$ vorhergesagt wird. Wie in der Übersicht oben dargestellt, fügen wir Konstanten hinzu, indem wir das Dreieick nutzen:
+Was diese Abbildung also darstellt, ist $Y = \beta \cdot X$. Für eine vollständige Regressionsgleichung fehlen allerdings noch ein paar Dinge. Als erstes nehmen wir das Intercept hinzu - also der Wert, der für $Y$ bei $X = 0$ vorhergesagt wird. Wie in der Übersicht oben dargestellt fügen wir Konstanten hinzu, indem wir das Dreieick nutzen:
 
 <!-- <img src="https://raw.githubusercontent.com/martscht/PsyMSc1/master/inst/tutorials/intro/images/step2.png" width="50%"/> -->
 
 ![](/post/FEII_step2.png){width=50%}
 
-Wir fügen also eine zweite Regression hinzu (der Pfeil), in der $X$ auf 1 regressiert wird. In der Regressionsgleichung sieht das so aus: $Y = \alpha \cdot 1 + \beta \cdot X$. Wir nutzen hier $\alpha$ und nicht $\beta_0$ für das Intercept, weil das die von `lavaan` verwendete Notation ist. An der Bedeutung ändert sich dadurch aber nichts. Weil $\alpha \cdot 1 = \alpha$ können wir Regressionsgleichung auf $Y = \alpha + \beta \cdot X$ kürzen. Jetzt fehlt noch das Residuum, also die Komponenten in $Y$, die nicht durch $X$ vorhergesagt werden können. Bei diesem Residuum handelt es sich um eine nicht-beobachtbare bzw. latente Variable. Diese Variable entsteht durch unsere Berechnung, sie existiert ohne das Modell nicht im Datensatz. In der Abbildung fügen wir also eine Ellipse hinzu und nutzen diese zur Vorhersage von $Y$:
+Wir fügen also eine zweite Regression hinzu (der Pfeil), in der $X$ auf 1 regressiert wird. In der Regressionsgleichung sieht das so aus: $Y = \alpha \cdot 1 + \beta \cdot X$. Wir nutzen hier $\alpha$ und nicht $\beta_0$ für das Intercept, weil das die von `lavaan` verwendete Notation ist. An der Bedeutung ändert sich dadurch aber nichts. Weil $\alpha \cdot 1 = \alpha$ ergibt, können wir die Regressionsgleichung auf $Y = \alpha + \beta \cdot X$ kürzen. Jetzt fehlt noch das Residuum, also die Komponenten in $Y$, die nicht durch $X$ vorhergesagt werden können. Bei diesem Residuum handelt es sich um eine nicht-beobachtbare bzw. latente Variable. Diese Variable entsteht durch unsere Berechnung, sie existiert ohne das Modell nicht im Datensatz. In der Abbildung fügen wir also eine Ellipse hinzu und nutzen diese zur Vorhersage von $Y$:
 
 <!-- <img src="https://raw.githubusercontent.com/martscht/PsyMSc1/master/inst/tutorials/intro/images/step3.png" width="65%"/> -->
 
@@ -342,7 +343,7 @@ mod <- '
   rat1 ~~ rat1'
 ```
 
-Wie Sie sehen, können wir in `lavaan` Modellen auch weiterhin mit `#` Kommentaren beginnen. Diese aufgeschlüsselte Variante ist mit der kürzeren Schreibweise oben identisch. Welche Sie bevorzugen, ist ganz allein Ihnen überlassen.
+Wie Sie sehen, können wir in `lavaan` Modellen auch weiterhin mit `#` Kommentare beginnen. Diese aufgeschlüsselte Variante ist mit der kürzeren Schreibweise oben identisch. Welche Sie bevorzugen, ist ganz allein Ihnen überlassen.
 
 ### Modellschätzung
 
@@ -351,13 +352,13 @@ Den ersten der [drei Schritte](#Schritte) bei der Modellierung mit `lavaan` habe
   - `model`: Das zu schätzende Modell
   - `data`: Der Datensatz auf den das Modell angepasst werden soll
   
-Alle anderen Argumente haben - für die meisten Analysen sinnvolle - Voreinstellungen. Weil die Modellschätzung mit `lavaan` sehr viele Ergebnisse und Details zum Schätzverfahren erzeugt, ist es ratsam das angepasste Modell in einem Objekt abzulegen.
+Alle anderen Argumente haben - für die meisten Analysen sinnvolle - Voreinstellungen. Weil die Modellschätzung mit `lavaan` sehr viele Ergebnisse und Details zum Schätzverfahren erzeugt, ist es ratsam, das angepasste Modell in einem Objekt abzulegen.
 
 ```{r}
 fit <- lavaan(mod, fairplayer)
 ```
 
-Sofern keine Warn- oder Fehlermeldungen erzeugt werden, war die Schätzung des Modells erfolgreich. Wie auch bei `lm` oder anderen Funktionen aus dem letzten Semester, kann der Datensatz, der an `lavaan` gegeben wird, auch Variablen enthalten, die für das Modell irrelevant sind. Alle manifesten Variablen, auf die im Modell bezug genommen wird, sucht sich `lavaan` aus dem Datensatz heraus.
+Sofern keine Warn- oder Fehlermeldungen erzeugt werden, war die Schätzung des Modells erfolgreich. Wie auch bei `lm` oder anderen Funktionen aus dem letzten Semester kann der Datensatz, der an `lavaan` gegeben wird, auch Variablen enthalten, die für das Modell irrelevant sind. Alle manifesten Variablen, auf die im Modell bezug genommen wird, sucht sich `lavaan` aus dem Datensatz heraus.
 
 ### Ergebnisinspektion
 
@@ -386,7 +387,7 @@ Dann springen wir direkt runter zu den Modellergebnissen, die mit der Zeile `Reg
 abbrev(fit, 'Regressions', 'Intercepts')
 ```
 
-Dieser Abschnitt beginnt mit der Zeile `rat1 ~`, was uns verdeutlichen soll, dass die folgenden Regressionsergebnisse sich auf eine Regression mit relationaler Aggression als abhängige Variable beziehen. Die anschließende Tabelle enthält die gleichen vier Spalten, die wir schon bei der [Wiederholung der Regression](#Regressionergebnisse) gesehen haben: das geschätzte Regressionsgewicht (`Estimate`), den Standardfehler (`Std.Err.`), den $z$-Wert (`z-value`) und den daraus resultierenden $p$-Wert (`P(>|z|)`). Wie Ihnen mit Sicherheit sofort aufgefallen ist, arbeitet `lavaan` nicht mit $t$- sondern mit $z$-Werten. Das heißt, dass hier von vornherein eine größere Stichprobe angenommen wird, um korrekte inferenzstatistische Schlüsse ziehen zu können. Wir können diese Ergebnisse direkt noch einmal mit den Ergebnissen aus `lm` vergleichen:
+Dieser Abschnitt beginnt mit der Zeile `rat1 ~`, was uns verdeutlichen soll, dass die folgenden Regressionsergebnisse sich auf eine Regression mit relationaler Aggression als abhängige Variable beziehen. Die anschließende Tabelle enthält die gleichen vier Spalten, die wir schon bei der [Wiederholung der Regression](#Regressionergebnisse) gesehen haben: das geschätzte Regressionsgewicht (`Estimate`), den Standardfehler (`Std.Err.`), den $z$-Wert (`z-value`) und den daraus resultierenden $p$-Wert (`P(>|z|)`). Wie Ihnen mit Sicherheit sofort aufgefallen ist, arbeitet `lavaan` nicht mit $t$-, sondern mit $z$-Werten. Das heißt, dass hier von vornherein eine größere Stichprobe angenommen wird, um korrekte inferenzstatistische Schlüsse ziehen zu können. Wir können diese Ergebnisse direkt noch einmal mit den Ergebnissen aus `lm` vergleichen:
 
 ```{r, echo = FALSE}
 summary(lm(rat1 ~ sit1 + emt1, fairplayer))$coef
@@ -428,4 +429,4 @@ Dieser Befehl wird im Verlauf des Semesters noch sehr praktisch, weil wir uns so
 
 Rosseel, Y. (2012). [lavaan](http://lavaan.org/): [An R Package for Structural Equation Modeling]. Journal of Statistical Software, 48(2), 1 - 36. [doi:http://dx.doi.org/10.18637/jss.v048.i02](https://www.jstatsoft.org/article/view/v048i02)
 
-* <small> *Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.*
+<small> *Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.* </small>
