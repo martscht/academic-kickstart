@@ -84,7 +84,7 @@ Die zweite Hälfte des Moduls, F&E II, befasst sich vor allem mit Ansätzen zur 
 
 |  |  |  |  | | |
 | --- | --- | --- | --- | --- | --- |
-| 1 | **Einführung in lavaan** | Inhalte  | [Übungsdaten](/post/fairplayer.rda) |
+| 1 | **Einführung in lavaan** | [Inhalte](/post/lavaan-intro)  | [Übungsdaten](/post/fairplayer.rda) |
 | 2 | **Explorative Faktorenanalyse** | Inhalte  | Übungsdaten |
 | 3 | **Konfirmatorische Faktorenanalyse** | Inhalte  | Übungsdaten |
 | 4 | **Strukturgleichungsmodelle** | Inhalte  | Übungsdaten |
