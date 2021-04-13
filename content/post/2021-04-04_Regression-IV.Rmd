@@ -79,7 +79,7 @@ Die Effekte von Sozialstatus und Büchern werden durch das lineare Modell gut wi
 
 Auch dem Histogramm war eine Schiefe zu entnehmen, welche durch nichtlineare Terme entstehen können (im niederen Bereich liegen mehr Werte; eine Linksschiefe/Rechtssteile ist zu erkennen). 
 
-```{r, fig.height=6, fig.align="center"}
+```{r, fig.height=4, fig.align="center"}
 res <- studres(m1) # Studentisierte Residuen als Objekt speichern
 df_res <- data.frame(res) # als Data.Frame für ggplot
 # Grafisch: Histogramm mit Normalverteilungskurve
@@ -130,6 +130,8 @@ residualPlots(m1.b, pch = 16)
 ```
 
 Was bedeutet nun dieser Effekt inhaltlich? Um dies genauer zu verstehen, stellen wir die um die anderen Variablen bereinigte Beziehung zwischen dem Bildungsabschluss der Mutter und der Leseleistung grafisch dar. 
+
+
 ```{r, echo= F, fig.align="center", fig.height=6}
 X <- scale(poly(PISA2009$MotherEdu, 2))
 std_par_ME <- c(0.1588, -0.1436)
@@ -140,6 +142,8 @@ ggplot(data = data_ME, aes(x = std_ME,  y = pred_effect_ME)) + geom_point(pch = 
      labs(y = "std. Leseleistung | Others", x =  "std. Bildungsabschluss der Mutter | Others",
           title = "Standardisierte bedingte Beziehung zwischen\n Bildungsabschluss der Mutter und Leseleistung")
 ```
+
+
 Für den Grafik-Code sowie weitere Informationen zu quadaratischen Effekten und Funktionen siehe [Appendix A](#AppendixA). Die Grafik zeigt die vorhergesagte Beziehung zwischen den standardisierten Werten des Bildungsabschlusses der Mutter sowie der Leseleistung. Hierbei steht erneut `|` für "gegeben" (wie etwa beim Partialplot mit `avPlots` aus der vergangenen Sitzung). Wir sehen also den um die anderen Variablen im Modell bereinigten Effekt zwischen Bildungsabschluss und Leseleistung. Hierbei ist ein starker mittlerer Anstieg der Leseleistung (-1 bis ca. 0.1) für einen Anstieg des Bildungsabschlusses von deutlich unterdurchschnittlich bis durchschnittlich (von -2.5 bis 0) zu sehen. Danach ist die Beziehung zwischen Leseleistung und Bildungsabschluss fast horizontal (Veränderung geringer als 0.1), was dafür spricht, dass es für einen durchschnittlichen bis überdurchschnittlichen Bildungsabschluss der Mutter (von 0 bis 1.5) kaum eine Beziehung zwischen den Variablen gibt. Dies bedeutet, dass besonders im unterdurchschnittlichen Bereich der mütterlichen Bildung Unterschiede zwischen Müttern einen starken Zusammenhang mit der Leseleistung ihrer Kinder zeigen. Wenn das Bildungsniveau der Mutter jedoch durchschnittlich oder überdurchschnittlich ist, scheint der Zusammenhang beinahe zu verschwinden. 
 
 Die grobe Gestalt der Beziehung hätten wir auch aus dem Koeffizienten ablesen können. Der Koeffizient des quadratischen Teils war negativ, was für eine invers-u-förmige (konkave) Funktion steht. Das Einzeichnen hilft uns jedoch, das genaue Ausmaß zu verstehen (siehe auch [Appendix A](#AppendixA)). Auch hatten wir gesehen, dass der lineare Teil des Bildungsabschlusses der Mutter keinen statistisch signifikanten Beitrag zur Vorhersage geleistet hat. Jedoch gehört zu einer quadratischen Funktion immer auch ihr linearer Anteil dazu. Aus diesem Grund können wir unsere Stichprobe nur angemessen beschreiben, wenn wir den linearen Trend des Bildungsabschlusses der Mutter im Regressionsmodell beibehalten. Um das genaue Ausmaß besser zu verstehen, manipulieren Sie doch einmal die Beziehung, die wir soeben grafisch gesehen haben, indem Sie den Code aus dem folgenden Block kopieren und die Inputvariablen verändern. Hierbei können Sie den linearen und den quadratischen Effekt verändern und sich die Auswirkungen auf die Grafik (die Beziehung zwischen Bildungsabschluss der Mutter und Leseleistung) ansehen. Die Default-Einstellungen sind identisch zu der oberen Grafik. `curve` plottet eine Linie und nimmt `x` automatisch als Argument der Funktion, somit wird $f(x)=\text{linear}*x+\text{quadratisch}*x^2$ geplottet. Probieren Sie doch einmal aus, was passiert, wenn Sie den linearen Teil auf 0 setzen oder das Vorzeichen des quadratischen Anteils ändern!
@@ -160,7 +164,7 @@ mean(PISA2009$MotherEdu_centered) # sehr kleine Zahl
 
 `e-17` steht hierbei für $10^{-17}$ also eine Verschiebung des Kommas um 17 Stellen nach links, was eine sehr kleine Zahl ausdrückt. Der Mittelwert ist hier nicht exakt Null, da `R` intern immer auf die sogenannte Maschienengenauigkeit rundet (das sind ca 16 Nachkommastellen). `_centered` steht hierbei für zentriert, also Mittelwert = 0.
 
-### Interaktionsterme
+## Interaktionsterme: moderierte Regression {#modReg}
 Außerdem können auch Interaktionen zwischen Variablen in ein Regressionsmodell aufgenommen werden. Für weiter inhaltliche Details siehe [Eid et al. (2017) Kapitel 19.9](https://hds.hebis.de/ubffm/Record/HEB366849158). Eine Regression mit einem Interaktionsterm wird auch häufig moderierte Regression genannt. Häufig wird dann von einem Moderator gesprochen, der die Beziehung eines Prädiktores mit dem Kriterium "moderiert", allerdings gibt es keinen Beweis dafür, ob der Prädiktor tatsächlich ein Prädiktor oder ein Moderator ist. Dies ist leicht einzusehen, wenn wir uns die Modellgleichungen ansehen. Wir nennen den Prädiktor $X$, den Moderator $Z$ und das Kriterium $Y$. Dann ergibt sich folgende Regressionsgleichung (für eine Person $i$):
 
 $$Y_i=\beta_0 + \beta_1X_i + \beta_2Z_i + \beta_3X_iZ_i + \varepsilon_i.$$
@@ -169,9 +173,13 @@ Der Interaktionsterm trägt also den Koeffizienten $\beta_3$ in diesem Beispiel.
 $$Y_i=\underbrace{(\beta_0 + \beta_2Z_i)}_{\text{Interzept}(Z_i)} + \underbrace{(\beta_1 + \beta_3Z_i)}_{\text{Slope}(Z_i)}X_i + \varepsilon_i.$$
 Hier ist eigentlich gar nichts passiert - wir haben lediglich die Gleichung umgestellt. Allerdings sieht dies nun so aus, als würde von ein Interzept $(\beta_0 + \beta_2Z_i)$ und vor $X_i$ eine Slope (Steigungskoeffizient) $(\beta_1 + \beta_3Z_i)$ stehen - beide abhängig von $Z_i$, deshalb haben wir sie gleich mal $\text{Interzept}(Z_i)$ und $\text{Slope}(Z_i)$ genannt. Genauso könnten wir allerdings auch alles nach $X$ umstellen: $Y_i=(\beta_0 + \beta_1X_i) + (\beta_2 + \beta_3X_i)Z_i + \varepsilon_i.$ Somit ist ersichtlich, dass es keine mathematische Begründung gibt, welcher der beiden Variablen der Prädiktor und welcher der Moderator ist! Manche sagen auch, dass dieses Modell "symmetrisch" in den beiden Variablen ist, man sie also leicht hinsichtlich der inhaltlichen Interpretation austauschen kann. Das ganze in `R` sich anzuschauen geht sehr einfach. Wir wollen dies am Datensatz `Schulleistungen.rda` durchführen, den wir bereits aus vorherigen Sitzungen kennen. Wie genau wir an den Datensatz herankommen, können Sie sich in der entsprechenden Sitzung ansehen. Wir laden den Datensatz wie folgt über die Website:
 
-```{r, eval = T}
+```{r, eval = T, results="hide"}
 load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
 head(Schulleistungen)
+```
+
+```{r, echo = F}
+knitr::kable(head(Schulleistungen))
 ```
 
 Auch bei Interaktionen ist es wichtig, dass die Daten zentriert sind, also einen Mittelwert von 0 aufweisen. Das erleichtert die Interpretation und verändert die Korrelation des Interaktionsterms (oben $X_i*Z_i$) mit den Haupteffekten von $X_i$ und $Z_i$. Daher verwenden wir die `scale` Funktion, um den gesamten Datensatz zu standardisieren (also zu zentrieren und gleich noch die Varianz auf 1 zu setzen) und speichern diesen unter dem Namen `Schulleistungen_std`.
@@ -196,7 +204,7 @@ library(interactions)
 interact_plot(model = mod_reg, pred = IQ, modx = math)
 ```
 
-Uns wird nun ein Plot mit drei Linien ausgegeben. Dieser wird auch häufig "simple slopes" Plot genannt. Dargestellt sind drei Beziehungen zwischen `IQ` und `reading` für unterschiedliche Ausprägungen von `math`; nämlich einmal für einen durchschnittlichen `math`-Wert, sowie für jeweils Werte, die eine Standardabweichung (SD) oberhalb oder unterhalb des Mittelwertes liegen. Damit bekommen wir ein Gefühl dafür, wie sehr sich die Beziehung (und damit Interzept und Slope) zwischen der Leseleistung und der Intelligenz verändert für unterschiedliche Ausprägungen der Matheleistung --- nämlich für eine durchschnittliche (`Mean`) Ausprägung sowie für eine unter- (`- SD`) und eine überdurchschnittliche (`+ SD`) Ausprägung. Die Signifikanzentscheiden oben zeigte uns, dass diese Unterschiede bedeutsam sind und somit die Matheleistung entscheidend ist, wie genau die Leseleistung mit der Intelligenz zusammenhängt. Die einzelnen Regressiongerade lassen sich ebenfalls auf signifikante Unterschiede prüfen. Es kann auch untersucht werden, welche Ausprägungen des Moderators zu unterschiedlichen "bedingten" Regressionsgewichten führen, also ab wann sich Interzept oder Slope des Prädiktors signifikant verändert, wenn sich der Moderator verändert. Interessierte Lesende können sich bei Interesse, die über diesen Kurs hinaus geht, dazu das `R`-Paket `reghelper` mit der Funktion `simple_slopes` ansehen. Nach laden des Pakets kann mit `?simple_slopes` die Hilfe zu dieser Funktion aufgerufen werden, die den Umgang damit etc. erklärt.
+Uns wird nun ein Plot mit drei Linien ausgegeben. Dieser wird auch häufig "simple slopes" Plot genannt. Dargestellt sind drei Beziehungen zwischen `IQ` und `reading` für unterschiedliche Ausprägungen von `math`; nämlich einmal für einen durchschnittlichen `math`-Wert, sowie für jeweils Werte, die eine Standardabweichung (SD) oberhalb oder unterhalb des Mittelwerts liegen. Damit bekommen wir ein Gefühl dafür, wie sehr sich die Beziehung (und damit Interzept und Slope) zwischen der Leseleistung und der Intelligenz verändert für unterschiedliche Ausprägungen der Matheleistung --- nämlich für eine durchschnittliche (`Mean`) Ausprägung sowie für eine unter- (`- 1 SD`) und eine überdurchschnittliche (`+ 1 SD`) Ausprägung. Die Signifikanzentscheidung oben zeigte uns, dass diese Unterschiede bedeutsam sind und somit die Matheleistung entscheidend ist, wie genau die Leseleistung mit der Intelligenz zusammenhängt. Die einzelnen Regressionsgerade lassen sich ebenfalls auf signifikante Unterschiede prüfen. Es kann auch untersucht werden, welche Ausprägungen des Moderators zu unterschiedlichen "bedingten" Regressionsgewichten führen, also ab wann sich Interzept oder Slope des Prädiktors signifikant verändert, wenn sich der Moderator verändert. Interessierte Lesende können sich bei Interesse, das über diesen Kurs hinaus geht, dazu das `R`-Paket `reghelper` mit der Funktion `simple_slopes` ansehen. Nach laden des Pakets kann mit `?simple_slopes` die Hilfe zu dieser Funktion aufgerufen werden, die den Umgang damit etc. erklärt.
 
 Die folgende Grafik stellt den Sachverhalt noch einmal als 3D Grafik (mit dem Paket `plot3D`) dar (ziemlich cool oder?). Der Code zu den Grafiken lässt sich in [Appendix B](#AppendixB) nachlesen.
 
@@ -225,7 +233,7 @@ scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
           main = "Moderierte Regression")
 ```
 
-Hier ist die x-Achse ($-links\longleftrightarrow rechts+$) der IQ und in die Tiefe ist die Matheleistung dargestellt (oft z-Achse: ($-vorne\longleftrightarrow hinten+$)). Die y-Achse (im Plot heißt diese blöderweise z-Achse) ist die Leseleistung dargestellt ($-unten\longleftrightarrow oben+$). Wir erkennen in dieser Ansicht ein wenig die Simple-Slopes von zuvor, denn die Achse der Matheleistung läuft ins negative "aus dem Bilderschirm hinaus", während sie ins positive "in den Bildschirm hinein" verläuft. Der nähere Teil der "Hyperebene" weißt eine geringere Beziehung zwischen IQ und Leseleistung auf, während der Teil, der weiter entfernt liegt, eine stärkere Beziehung aufweist. Genau das haben wir auch in den Simple Slopes zuvor gesehen. Dort war für hohe Matheleistung die Beziehung zwischen IQ und Leseleistung auch stärker. Wichtig ist, dass in diesem Plot die Beziehung zwischen IQ und Leseleistung für eine fest gewählte Ausprägung der Matheleistung tatsächlich linear verläuft. Es ist also so, dass die wir quasi ganz viele Linien aneinander kleben, um diese gewölbte Ebene zu erhalten. Die Ausprägung der Matheleistung ist im nächsten Plot noch besser zu erkennen, wo der Plot etwas gedreht dargestellt wird. Farblich ist außerdem die Ausprägung der Leseleistung dargestellt, damit die Werte leichter zu vergleichen sind. 
+Hier ist die x-Achse ($-links\longleftrightarrow rechts+$) der IQ und in die Tiefe ist die Matheleistung dargestellt (oft z-Achse: ($-vorne\longleftrightarrow hinten+$)). Die y-Achse (im Plot heißt diese blöderweise z-Achse) ist die Leseleistung dargestellt ($-unten\longleftrightarrow oben+$). Wir erkennen in dieser Ansicht ein wenig die Simple-Slopes von zuvor, denn die Achse der Matheleistung läuft ins negative "aus dem Bilderschirm hinaus", während sie ins positive "in den Bildschirm hinein" verläuft. Der nähere Teil der "Hyperebene" weißt eine geringere Beziehung zwischen IQ und Leseleistung auf, während der Teil, der weiter entfernt liegt, eine stärkere Beziehung aufweist. Genau das haben wir auch in den Simple Slopes zuvor gesehen. Dort war für hohe Matheleistung die Beziehung zwischen IQ und Leseleistung auch stärker. Wichtig ist, dass in diesem Plot die Beziehung zwischen IQ und Leseleistung für eine fest gewählte Ausprägung der Matheleistung tatsächlich linear verläuft. Es ist also so, dass wir quasi ganz viele Linien aneinander kleben, um diese gewölbte Ebene zu erhalten. Die Ausprägung der Matheleistung ist im nächsten Plot noch besser zu erkennen, wo der Plot etwas gedreht dargestellt wird. Farblich ist außerdem die Ausprägung der Leseleistung dargestellt, damit die Werte leichter zu vergleichen sind. 
 
 ```{r, echo =F, fig.align="center", fig.height=6, message=F, warning = F}
 scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
@@ -236,15 +244,16 @@ scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
           main = "Moderierte Regression")
 ```
 
-Diese Plots gegeben einen noch besseren Eindruck, was genau bei einer Interaktion passiert und wie "austauschbar" eigentlich der Moderator oder der Prädiktor ist.
+Diese Plots gegeben einen noch besseren Eindruck, was genau bei einer Interaktion passiert und wie "austauschbar" eigentlich der Moderator oder der Prädiktor ist. Außerdem kann man mit den Überlegungen aus diesem Abschnitt leicht einsehen, dass das quadratische Modell von oben tatsächlich ein Spezialfall dieses moderierten Modells ist, in welchem der Prädiktor mit sich selbst interagiert (sich selbst moderiert). Darüber, wie genau man moderierte Regressionen durchführt, gibt es viel Literatur. Einige Forscher sagen, dass man neben der Interaktion auch immer die quadratischen Effekte mit aufnehmen sollte, um auszuschließen, dass die Interaktion ein Artefakt ist, der nur auf quadratische Effekte zurückzuführen ist. Diese Überlegungen gehen jedoch hier über diesen Kurs hinaus! Für eine Abschlussarbeit sollte man sich das aber ggf. nochmals genauer ansehen.
 
-Mit Hilfe von `I()` lassen sich innerhalb des `lm` Befehls zu dem noch weitere Funktionale hinzufügen, ohne diese vorher erzeugen zu müssen. Beispielsweise ließe sich durch `lm(Y ~ X + I(sin(X))) + I(exp(sqrt(X))` folgendes Regressionsmodell schätzen: $Y = \beta_0+\beta_1X + \beta_2\sin(X) + \beta_3e^{\sqrt{X}} + \varepsilon$. Allerdings lassen sich so nicht Wachstumsraten modellieren (z.B. exponentielles oder logarithmisches Wachstum) - hierzu müssten die Variablen tatsächlich transformiert werden. Dies wollen wir uns in der [nächsten Sitzung](/post/nichtlineare-Regression) genauer ansehen.
+Mit Hilfe von `I()` lassen sich innerhalb des `lm` Befehls zu dem noch weitere Funktionale hinzufügen, ohne diese vorher erzeugen zu müssen. Beispielsweise ließe sich durch `lm(Y ~ X + I(sin(X))) + I(exp(sqrt(X))` folgendes Regressionsmodell schätzen: $Y = \beta_0+\beta_1X + \beta_2\sin(X) + \beta_3e^{\sqrt{X}} + \varepsilon$. Allerdings lassen sich so nicht Wachstumsraten modellieren (z.B. exponentielles oder logarithmisches Wachstum) - hierzu müssten die Variablen tatsächlich transformiert werden. Dies wollen wir uns in der [nächsten Sitzung zur nichtlinearen Regression](/post/nichtlineare-Regression) genauer ansehen.
 
 Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](https://raw.githubusercontent.com/jpirmer/PsyBSc7/master/R-Scripts/PsyBSc7_Reg4_RCode.R).
 
 
 ## Appendix A {#AppendixA}
-### Exkurs: Was genau macht `poly`?
+<details><summary> **Exkurs: Was genau macht `poly`?** </summary>
+
 ```{r}
 X <- 1:10   # Variable X
 X2 <- X^2   # Variable X hoch 2
@@ -284,7 +293,12 @@ rbind(summary(m1.b2)$r.squared,summary(m1.c2)$r.squared) # vgl R^2
 
 Wir erkennen, dass die Funktion `poly` keinen Einfluss auf die Güte des Modells hat (dies lässt sich bspw. auch an $R^2$ der jeweiligen Modelle ablesen). Auch die Effekte der anderen Variablen sind identisch über die Modelle hinweg.
 
-### Einordnung quadratischer Verläufe
+Ähnliches hätten wir auch bewirken können, hätten wir die Variablen zentriert, anstatt sie mit `poly` zu transformieren.
+
+</details>
+
+
+<details><summary> **Einordnung quadratischer Verläufe** </summary>
 Wie kommen wir nun auf die Interpretation der quadratischen Beziehung?
 
 Eine allgemeine quadratische Funktion $f$ hat folgende Gestalt
@@ -378,7 +392,9 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
 ```
 $\longrightarrow$ so ähnlich sieht die bedingte Beziehung (kontrolliert für die weiteren Prädiktoren im Modell) zwischen Bildungsabschluss der Mutter und Leseleistung aus.
 
-### Code für quadratische Verlaufsgrafik
+</details>
+
+<details><summary> **Code für quadratische Verlaufsgrafik** </summary>
 Der Code, der die Grafik des standardisierten vorhergesagten bedingten Verlaufs des Bildungsabschlusses der Mutter erzeugt, sieht folgendermaßen aus:
 ```{r, fig.align="center", fig.height=6}
 X <- scale(poly(PISA2009$MotherEdu, 2))
@@ -393,9 +409,11 @@ ggplot(data = data_ME, aes(x = std_ME,  y = pred_effect_ME)) + geom_point(pch = 
 
 Wir verwenden `scale`, um die linearen und quadratischen Anteile des Bildungsabschlusses der Mutter zu standardisieren und speichern sie in `X`. Anschließend ist das Interzept der quadratischen Funktion 0 ($c=0$, da wir standardisiert haben). Die zugehörigen standardisierten Koeffizienten sind $b=0.1588$ und $a=-0.1436$, die wir aus der standardisierten `summary` abgelesen haben. Somit wissen wir, dass es sich um eine invers-u-förmige Beziehung handelt (ohne die Grafik zu betrachten). Wir speichern die standardisierten Koeffizienten unter `std_par_ME` ab und verwenden anschließend das Matrixprodukt ` X %*% std_par_ME`, um die vorhergesagten Werte via $y_{std,i}=0.1588 ME - 0.1436ME^2$ zu berechnen. Diese vorhergesagten Werte `pred_effect_ME` plotten wir nun gegen die standardisierten Werte des Bildungsabschlusses der  Mutter `std_ME`, welche in der ersten Spalte von `X` stehen: `X[, 1]`.
 
+</details>
 
 ## Appendix B {#AppendixB}
-### Code zu 3D Grafiken
+<details><summary> **Code zu 3D Grafiken** </summary>
+
 
 ```{r, echo = T, fig.align="center", fig.height=6, message=F, warning = F}
 library(plot3D)
@@ -432,6 +450,11 @@ scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
 ```
 
 Für weitere Informationen zum Umgang mit diesem Plot siehe bspw. hier: [3D Grafiken mit `plot3D` `r fontawesome::fa("graduation-hat")`](http://www.sthda.com/english/wiki/impressive-package-for-3d-and-4d-graph-r-software-and-data-visualization).
+
+</details>
+
+
+***
 
 ## Literatur
 [Eid, M., Gollwitzer, M., & Schmitt, M. (2017).](https://hds.hebis.de/ubffm/Record/HEB366849158) *Statistik und Forschungsmethoden* (5. Auflage, 1. Auflage: 2010). Weinheim: Beltz. 
