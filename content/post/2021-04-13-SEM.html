@@ -1,0 +1,657 @@
+---
+title: Gerichtete Beziehungen mit Pfadanalysen und Strukturgleichungsmodelle
+author: ''
+date: '2021-04-13'
+slug: sem
+categories: 
+  - MSc1
+tags: 
+  - lavaan
+  - SEM
+  - Pfadanalysen
+  - PA
+  - Strukturgleichungsmodelle
+  - Regression
+subtitle: 'PA und SEM'
+summary: ''
+authors: [irmer, schultze]
+lastmod: '2021-04-13T10:30:02+02:00'
+featured: no
+header:
+  image: "/header/FEII_SEM.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/790809)"
+---
+
+
+
+<p>In dieser Sitzung beschäftigen wir uns mit Pfadanalysen und Strukturgleichungsmodellen (engl. <strong>S</strong>tructural <strong>E</strong>quation <strong>M</strong>odeling, SEM). Diese werden beispielsweise in <a href="https://hds.hebis.de/ubffm/Record/HEB36808809X">Werner, Schermelleh-Engel, Gerhard und Gäde (2016, Kapitel 17 in Döring &amp; Bortz, 2016)</a> oder <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, Gollwitzer und Schmitt (2017)</a> in Kapitel 26 ausführlich beschrieben.</p>
+<p>Pfadanalysen sind im Grunde genommen mehrere Regressionsanalysen, welche simultan geschätzt werden können. So werden auch mehrere Abhängigkeiten zwischen Variablen berücksichtigt. Strukturgleichungsmodelle kombinieren Pfadanalysen mit Messmodellen und berücksichtigen somit die Reliabilität der Messungen. Wir könnten also sagen: “<em>SEM = CFA + Pfadanalyse</em>”!</p>
+<p>Mit SEM können ganz verschiedene Modelle spezifiziert werden, was im Grunde ein Wissenschaft für sich darstellt. Wir wollen uns die Grundlagen der SEM-Modellierung ansehen und einige wichtige Modelle kennenlernen!</p>
+<p>In dieser Sitzung erweitern wir dafür unsere Kenntnisse mit dem <code>R</code>-Paket <code>lavaan</code> um gerichtete Abhängigkeiten. Möchten Sie die Grundlagen im Umgang damit wiederholen, so empfiehlt es sich die erste Sitzung nochmals anzusehen (<a href="/post/lavaan-intro">Einführungssitzung zu <code>lavaan</code></a>). Auch baut diese Sitzung auf der vergangenen <a href="/post/cfa">Sitzung zur CFA</a> auf.</p>
+<p>Bevor wir mit den Analysen beginnen können, laden wir zunächst alle Pakete, welche wir im Folgenden benötigen werden.</p>
+<pre class="r"><code>library(lavaan)
+library(semPlot) # grafische Darstellung von Pfadanalyse- und Strukturgleichungsmodellen</code></pre>
+<div id="datensatz" class="section level2">
+<h2>Datensatz</h2>
+<p>Der Datensatz <code>StressAtWork</code>, den wir im Folgenden untersuchen wollen, ist eine Zusammenstellung aus mehreren Studien der Arbeits- und Organisationspsychologie- Abteilung der Goethe-Universität, in welchen Call-Center-Mitarbeiter untersucht wurden. Wir können diesen wie gewohnt laden:
+Sie können den im Folgenden verwendeten <a href="https://pandar.netlify.app/post/StressAtWork.rda"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> Datensatz “StressAtWork.rda” hier herunterladen</a>.</p>
+<p>Wir laden zunächst die Daten: entweder lokal von Ihrem Rechner:</p>
+<pre class="r"><code>load(&quot;C:/Users/Musterfrau/Desktop/StressAtWork.rda&quot;)</code></pre>
+<p>oder wir laden sie direkt über die Website:</p>
+<pre class="r"><code>load(url(&quot;https://pandar.netlify.app/post/StressAtWork.rda&quot;))</code></pre>
+<p>Verschaffen wir uns einen Überblick über die Datenlage:</p>
+<pre class="r"><code>head(StressAtWork)</code></pre>
+<pre><code>##   sex zd1 zd2 zd6 aop3 aop4 aop8 bf1 bf2 bf3 bf4 bf5 bf6 bf7 bf8 bf9 bf10 bf11
+## 1   1   2   2   4    5    3    4   2   1   1   1   1   1   1   1   1    1    1
+## 2   1   4   3   4    5    3    4   5   4   4   1   2   5   3   5   5    2    3
+## 3   1   2   2   3    3    1    3   3   3   4   1   3   1   1   3   2    2    2
+## 4   2   3   2   2    2    4    5   3   3   2   1   4   4   2   3   3    2    2
+## 5   1   4   3   3    4    2    4   4   4   3   1   1   2   2   2   2    2    1
+## 6   1   3   4   4    2    1    1   4   4   4   1   1   2   3   2   1    1    1
+##   bf12 bf13 bf14 bf15 bf16 bf17 bf18 bf19 bf20 bo1 bo6 bo12 bo19 bo7 bo8 bo21
+## 1    2    2    2    1    1    1    1    2    2   2   1    1    1   4   5    7
+## 2    4    4    3    2    3    2    1    4    2   3   1    2    2   2   2    2
+## 3    2    3    3    1    2    1    2    4    1   4   3    1    2   3   3    4
+## 4    3    3    3    5    3    3    1    3    3   4   2    2    1   6   6    4
+## 5    2    2    2    1    3    3    2    3    4   3   1    1    2   5   4    6
+## 6    4    3    2    2    3    1    3    3    1   2   3    1    2   5   3    6</code></pre>
+<pre class="r"><code>names(StressAtWork)</code></pre>
+<pre><code>##  [1] &quot;sex&quot;  &quot;zd1&quot;  &quot;zd2&quot;  &quot;zd6&quot;  &quot;aop3&quot; &quot;aop4&quot; &quot;aop8&quot; &quot;bf1&quot;  &quot;bf2&quot;  &quot;bf3&quot; 
+## [11] &quot;bf4&quot;  &quot;bf5&quot;  &quot;bf6&quot;  &quot;bf7&quot;  &quot;bf8&quot;  &quot;bf9&quot;  &quot;bf10&quot; &quot;bf11&quot; &quot;bf12&quot; &quot;bf13&quot;
+## [21] &quot;bf14&quot; &quot;bf15&quot; &quot;bf16&quot; &quot;bf17&quot; &quot;bf18&quot; &quot;bf19&quot; &quot;bf20&quot; &quot;bo1&quot;  &quot;bo6&quot;  &quot;bo12&quot;
+## [31] &quot;bo19&quot; &quot;bo7&quot;  &quot;bo8&quot;  &quot;bo21&quot;</code></pre>
+<pre class="r"><code>dim(StressAtWork)</code></pre>
+<pre><code>## [1] 305  34</code></pre>
+<p>Der Datensatz enthält das Geschlecht der Probanden (<code>sex</code>, <code>1</code>=weiblich, <code>2</code>=männlich) sowie ausgewählte Messungen der Variablen <em>Zeitdruck</em> (<code>zd1</code>, <code>zd2</code> und <code>zd6</code>) und <em>Arbeitsorganisationale Probleme</em> (<code>aop3</code>, <code>aop4</code> und <code>aop8</code>) aus dem Instrument zur stressbezogenen Tätigkeitsanalyse (ISTA) von Semmer, Zapf und Dunckel (1999), <em>Psychosomatische Beschwerden</em> (auch Befindlichkeit: <code>bf1</code>,…,<code>bf20</code>) aus der Psychosomatischen Beschwerdenliste von Mohr (1986) sowie Messungen zu Subskalen von Burnout: <em>Emotionale Erschöpfung</em> (<code>bo1</code>, <code>bo6</code>, <code>b12</code> und <code>b19</code>) und <em>Leistungserfüllung</em> (<code>bo7</code>, <code>bo8</code> und <code>bo21</code>) aus Maslachs Burnout-Inventar (Maslach &amp; Jackson, 1986) in der deutschen Übersetzung von Büssing und Perrar (1992). Insgesamt wurden 305 Personen befragt.</p>
+<div id="skalenbeschreibungen-und-beispielitems" class="section level3">
+<h3>Skalenbeschreibungen und Beispielitems</h3>
+<p>Unter <em>Zeitdruck</em> verstehen wir hier zusätzliche Zeiteinschränkungen, die dazu führen, dass mehr Energie nötig ist, um eine Handlung durchzuführen. Gleichzeitig kann dies auch dazu führen, dass eine Handlung nicht mehr oder nicht mehr rechtzeitig durchführbar ist. Ein Beispielitem ist: <em>“Wie häufig passiert es, dass Sie schneller arbeiten, als sie es normalerweise tun, um die Arbeit zu schaffen?”</em> Die Items wurden auf einer 5-Punkt-Likert Skala beantwortet (Semmer, et al., 1999).</p>
+<p><em>Arbeitsorganisationale Probleme</em> hindern bei der Durchführung einer Handlung durch zum Beispiel veraltete Informationen, schlechte Arbeitsgeräte oder organisationale Probleme, die zu einem Mehraufwand führen. Ein Beispielitem ist: <em>“A kann die Arbeitsaufträge gut erledigen, wenn er/sie sich an die vom Betrieb vorgesehenen Wege hält. B kann die Arbeitsaufträge nur bewältigen, wenn er/sie von den vom Betrieb vorgesehenen Wegen abweicht. Welcher der beiden Arbeitsplätze ist Ihrem am ähnlichsten?”</em> Die Items wurden auf einer 5-Punkt-Likert-Skala beantwortet (Semmer, et al., 1999).</p>
+<p><em>Psychosomatische Beschwerden</em> beschreiben körperliche Befindlichenkeiten, die mögliche Langzeitfolgen von Stress sind, wie etwa Schlaflosigkeit, Kopfschmerzen oder Nervosität. Im Gegensatz zu allen anderen Skalen, die hier verwendet werden, handelt es sich bei den <em>psychosomatischen Beschwerden</em> um einen Index, welchem ein formatives Messmodell (im Gegensatz zu reflexiven Messmodellen) zu Grunde liegt (siehe dazu Abschnitt <a href="#formvsreflMessmodell">reflexive vs. formative Messmodelle</a>). Ein Beispielitem ist: <em>“Ermüden Sie schnell?”</em> Die Items wurden auf einer 5-Punkt-Likert-Skala beantwortet (Mohr, 1986).</p>
+<p><em>Emotionale Erschöpfung</em> ist hier das Gefühl, erschöpft, niedergeschlagen und frustriert durch die Arbeit zu sein und die Zusammenarbeit mit anderen als besonders anstrengend anzusehen. Ein Beispielitem ist: <em>“Am Ende eines Arbeitstages fühle ich mich verbraucht.”</em> Die Items wurden auf einer 7-Punkt-Likert-Skala beantwortet (Maslach &amp; Jackson, 1986, in der deutschen Übersetzung von Büssing und Perrar, 1992).</p>
+<p>Wir verstehen unter <em>Leistungserfüllung</em> energetische Gefühle, Dinge anzupacken und das Gefühl, die Möglichkeit zu haben, die eigenen Ambitionen zu erfüllen. Ein Beispielitem ist: <em>“Ich fühle mich sehr tatkräftig.”</em> Die Items wurden auf einer 7-Punkt-Likert-Skala beantwortet (Maslach &amp; Jackson, 1986, in der deutschen Übersetzung von Büssing und Perrar, 1992).</p>
+</div>
+<div id="Hypothesen" class="section level3">
+<h3>Theoretische Grundlage</h3>
+<p>Pfadanalysen und Strukturgleichungsmodelle gehören, wie auch die CFA, zu den konfirmatorischen, also Theorie bestätigenden, Verfahren und sollen ganz im Popper’schen Sinn durch Vergleiche der Daten mit theoretischen Modellen wissenschaftliche Erkenntnis gewinnen. Wir haben in unseren Daten drei Arten von Variablen: Zeitdruck und Arbeitsorganisationale Probleme sind Stressoren und sollten also mit einer gewissen Wahrscheinlichkeit in einem Individuum zu einer Stressreaktion führen. Emotionale Erschöpfung ist eine Facette von Burnout und gehört somit zu den kurzfristigeren Stressfolgen. Psychosomatische Beschwerden treten unter anderem auf, wenn Stress über einen langen Zeitraum auf ein Individuum einwirkt. Somit können wir postulieren, dass Stress über emotionale Erschöpfung auf psychosomatische Beschwerden wirkt und somit nur einen indirekten Effekt auf die psychosomatischen Beschwerden hat (hierbei ist zu sagen, dass wir durch unsere Hypothesen kausale Beziehungen annehmen, die wir allerdings nicht durch SEM in diesem querschnittlichen Design prüfen können; dies ist ein gängies Problem in Querschnittsdaten):</p>
+<center>
+<img src="https://raw.githubusercontent.com/martscht/PsyMSc1/master/inst/tutorials/SEM/images/Wolken.png" width="50%"/>
+</center>
+<p>Das hier dargestellte schematische Modell postuliert also eine sogenannte <em>vollständige Mediation</em> (dazu mehr im nächsten Abschnitt zur <a href="#Pfadanalyse">Pfadanalyse</a>) vom Stressor über die kurzfristige (Erschöpfung) auf die langfristigen (Beschwerden) Stressfolgen.
+Der Einfachheit halber wollen wir diese Hypothesen zunächst nur mit drei Variablen untersuchen: Zeitdruck, emotionale Erschöpfung und psychosomatische Beschwerden.</p>
+</div>
+</div>
+<div id="Pfadanalyse" class="section level2">
+<h2>Pfadanalyse</h2>
+<p>Wir möchten die Hypothesen aus der <a href="#Hypothesen">letzten Sektion</a> zunächst mit Skalenmittelwerten und einer Pfadanalyse untersuchen. Wir wollen außerdem den indirekten Effekt quantifizieren und inferenzstatistisch untersuchen. Dazu müssen wir pro Proband einen Skalenmittelwert pro Variable berechnen. Dazu verwenden wir die bereits in der ersten Sitzung kennengelernte (bzw. aus dem letzten Semester bekannten) Funktion <code>rowMeans</code> und berechnen so den Mittelwert der psychosomatischen Beschwerden als <code>BFs</code>, den Zeitdruck als <code>ZDs</code> und die emotionale Erschöpfung als <code>BOEEs</code>; das kleine “s” hängen wir an die Skalennamen dran, um zu signialisieren, dass es sich hier um manifeste <strong>S</strong>kalenmittelwerte handelt:</p>
+<pre class="r"><code>StressAtWork$ZDs &lt;- rowMeans(StressAtWork[,paste0(&quot;zd&quot;,c(1, 2, 6))])
+StressAtWork$BOEEs &lt;- rowMeans(StressAtWork[,paste0(&quot;bo&quot;,c(1, 6, 12, 19))])
+StressAtWork$BFs &lt;- rowMeans(StressAtWork[,paste0(&quot;bf&quot;,1:20)])</code></pre>
+<p>Hierbei hilft uns <code>paste0</code> die Schreibweise abzukürzen: wir müssen nicht alle Itemnamen einzeln tippen, sondern die “Strings” werden automatisch erzeugt. Um dies genauer zu verstehen, könnten wir bspw. <code>paste0("zd",c(1, 2, 6))</code> einmal ausführen. Dies kommt zum gleichen Ergebnis, wie wenn wir <code>c("zd1", "zd2", "zd6")</code> getippt hätten. Das Modell wird nun, ähnlich dem Regressionsmodell aus der ersten Sitzung, aufgestellt. In <code>lavaan</code> werden gerichtete Beziehung zwischen Variablen mit <code>~</code> dargestellt, wobei links der <em>Tilde</em> die abhängige Variable (das Kriterium) und rechts der <em>Tilde</em> die unabhängige Variable (der Prädiktor) steht. Für unser angenommenes Modell gibt es folgende Beziehung: Zeitdruck wirkt auf emotionale Erschöpfung und auf psychosomatische Beschwerden. Emotionale Erschöpfung wirkt auf psychosomatische Beschwerden. In diesem Modell wird Zeitdruck die <strong>unabhängige Variable</strong> genannt, emotionale Erschöpfung ist der <strong>Mediator</strong>, der die Beziehung der unabhängigen auf die <strong>abhängige Variable</strong> psychosomatische Beschwerden mediiert. Hier hat Zeitdruck eine direkte Beziehung mit emotionaler Erschöpfung. Emotionale Erschöpfung hat eine direkte Beziehung mit psychosomatischen Beschwerden und Zeitdruck hat eine direkte und eine indirekte (über emotionale Erschöpfung) Beziehung mit psychosomatischen Beschwerden.</p>
+<p>Es muss folglich zwei Gleichungen geben: in einer Gleichung ist <code>BOEEs</code> die abhängige Variable und wird durch <code>ZDs</code> vorhergesagt. In der zweiten Gleichung ist <code>BFs</code> die abhängige Variable und wird durch <code>BOEEs</code> und <code>ZDs</code> vorhergesagt. Nun hängt es außerdem von der Schätzfunktion ab, welche weiteren Beziehungen wir in unserem Modell spezifizieren müssen. Wir wollen die <code>sem</code> Funktion verwenden, um das Modell zu schätzen: <code>sem</code> ist, wie <code>cfa</code> (diese kennen Sie aus dem Themenblock <a href="/post/cfa">CFA</a>, um CFAs zu schätzen) auch eine “Convenience”-Funktion, die gewisse Voreinstellungen verwendet und diese an die <code>lavaan</code>-Funktion, die Sie in der ersten Sitzung kennengelernt hatten, übergibt. Sie hatten damals eine Regression mit <code>lavaan</code> geschätzt und mussten dabei bspw. mit <code>Y ~ 1 + X</code> die Regression anfordern, mit welcher durch <code>X</code> die abhängige Variable <code>Y</code> vorhergesagt wurde. Sie mussten hierbei explizit das Interzept (also den durch X bedingten Mittelwert von Y) sowie die Residualvarianz von <code>Y</code> anfordern via <code>Y ~~ Y</code> (für eine Wiederholung schauen Sie gerne in der <a href="/post/">Einführungssitzung</a> vorbei). Wie auch die <code>cfa</code>-Funktion übernimmt die <code>sem</code> Funktion einige dieser Einstellungen für uns. So müssen wir bspw. Residualvarianzen nicht explizit anfragen. Die Mittelwertsstruktur wird in <code>sem</code> per Default nicht mitmodelliert. Wenn wir Mittelwerte betrachten wollen, können wir allerdings der <code>sem</code>-Funktion die Zusatzeinstellung <code>meanstructure = TRUE</code> übergeben. Die Default-Einstellungen für Messmodelle sind identisch mit jenen der Funktion <code>cfa</code>. Wir wiederholen diese, wenn es soweit ist. Somit landen wir bei dieser sehr effizienten Schreibweise für unser Modell:</p>
+<pre class="r"><code>model_paths &lt;- &#39;
+BOEEs ~ ZDs
+BFs ~  BOEEs + ZDs
+&#39;</code></pre>
+<p>Hätten wir dieses Modell mit <code>lavaan</code> (hier ist natürlich die Funktion ohne Convenience-Einstellungen und nicht das Paket gemeint) schätzen wollen, so hätten wir folgendes formulieren müssen (wir wollen die Mittelwertsstruktur auch hier ignorieren und lassen daher <code>~1</code> weg!):</p>
+<pre class="r"><code>model_paths_lavaan &lt;- &#39;
+BOEEs ~ ZDs
+BFs ~  BOEEs + ZDs
+BOEEs ~~ BOEEs
+BFs ~~ BFs
+&#39;</code></pre>
+<p>Wir können dieses Modell nun schätzen, indem wir die Funktion <code>lavaan</code> verwenden und ihr unser Modell sowie die Daten übergeben.</p>
+<p>Mit <code>summary</code> erhalten wir detaillierte Informationen über Modellfit, Parameterschätzungen und deren Signifikanz. Mit <code>rsq = T</code> fordern wir dazu extra in der Summary das <span class="math inline">\(R^2\)</span> pro Variable sowie mit <code>fit.measures = T</code> die Fit-Indizes in ausführlicher Darstellung an.</p>
+<pre class="r"><code>fit_paths &lt;- sem(model_paths, data = StressAtWork)
+summary(fit_paths, rsq = T, fit.measures = T)</code></pre>
+<pre><code>## lavaan 0.6-7 ended normally after 17 iterations
+## 
+##   Estimator                                         ML
+##   Optimization method                           NLMINB
+##   Number of free parameters                          5
+##                                                       
+##   Number of observations                           305
+##                                                       
+## Model Test User Model:
+##                                                       
+##   Test statistic                                 0.000
+##   Degrees of freedom                                 0
+## 
+## Model Test Baseline Model:
+## 
+##   Test statistic                               194.672
+##   Degrees of freedom                                 3
+##   P-value                                        0.000
+## 
+## User Model versus Baseline Model:
+## 
+##   Comparative Fit Index (CFI)                    1.000
+##   Tucker-Lewis Index (TLI)                       1.000
+## 
+## Loglikelihood and Information Criteria:
+## 
+##   Loglikelihood user model (H0)               -763.458
+##   Loglikelihood unrestricted model (H1)       -763.458
+##                                                       
+##   Akaike (AIC)                                1536.916
+##   Bayesian (BIC)                              1555.518
+##   Sample-size adjusted Bayesian (BIC)         1539.660
+## 
+## Root Mean Square Error of Approximation:
+## 
+##   RMSEA                                          0.000
+##   90 Percent confidence interval - lower         0.000
+##   90 Percent confidence interval - upper         0.000
+##   P-value RMSEA &lt;= 0.05                             NA
+## 
+## Standardized Root Mean Square Residual:
+## 
+##   SRMR                                           0.000
+## 
+## Parameter Estimates:
+## 
+##   Standard errors                             Standard
+##   Information                                 Expected
+##   Information saturated (h1) model          Structured
+## 
+## Regressions:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##   BOEEs ~                                             
+##     ZDs               0.481    0.066    7.271    0.000
+##   BFs ~                                               
+##     BOEEs             0.329    0.028   11.682    0.000
+##     ZDs               0.073    0.035    2.081    0.037
+## 
+## Variances:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##    .BOEEs             1.455    0.118   12.349    0.000
+##    .BFs               0.352    0.029   12.349    0.000
+## 
+## R-Square:
+##                    Estimate
+##     BOEEs             0.148
+##     BFs               0.380</code></pre>
+<p>Wie oben beschrieben kommt <code>sem(model_paths, data = StressAtWork)</code> und <code>lavaan(model_paths_lavaan, data = StressAtWork)</code> zum selben Ergebnis. Schauen Sie sich das doch einmal selbst an!</p>
+<p>Nun zum Output der Summary: An</p>
+<pre><code>## [...]
+##  Model Test User Model:
+##                                                       
+##   Test statistic                                 0.000
+##   Degrees of freedom                                 0 
+## [...]</code></pre>
+<p>erkennen wir, dass es sich hier um das saturierte Modell handelt (df = 0, <span class="math inline">\(\chi^2=0\)</span>). Die Korrelationen zwischen den Skalenmittelwerten sind also nur retransformiert, um unser Modell abzubilden. Ein Modellfit-Test ist nicht möglich.</p>
+<pre><code>## [...]
+##  User Model versus Baseline Model:
+## 
+##   Comparative Fit Index (CFI)                    1.000
+##   Tucker-Lewis Index (TLI)                       1.000
+## 
+## Loglikelihood and Information Criteria:
+## 
+##   Loglikelihood user model (H0)               -763.458
+##   Loglikelihood unrestricted model (H1)       -763.458
+##                                                       
+##   Akaike (AIC)                                1536.916
+##   Bayesian (BIC)                              1555.518
+##   Sample-size adjusted Bayesian (BIC)         1539.660
+## 
+## Root Mean Square Error of Approximation:
+## 
+##   RMSEA                                          0.000
+##   90 Percent confidence interval - lower         0.000
+##   90 Percent confidence interval - upper         0.000
+##   P-value RMSEA &lt;= 0.05                             NA
+## 
+## Standardized Root Mean Square Residual:
+## 
+##   SRMR                                           0.000 
+## [...]</code></pre>
+<p>Alle Fit-Indizes zeigen perfekten Fit an (CFI = 1, TLI = 1, RMSEA = 0, SRMR = 0). Das ist auch nicht verwunderlich, da es keine Diskrepanz (ausgedrückt durch den <span class="math inline">\(\chi^2\)</span>-Wert) zwischen modellimplizierter und beobachteter Kovarianzmatrix der Daten; also keine Abweichung zwischen unserem Modell und den beobachteten Daten; gibt.</p>
+<pre><code>## [...]
+##  Regressions:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##   BOEEs ~                                             
+##     ZDs               0.481    0.066    7.271    0.000
+##   BFs ~                                               
+##     BOEEs             0.329    0.028   11.682    0.000
+##     ZDs               0.073    0.035    2.081    0.037 
+## [...]</code></pre>
+<p>Im Gegensatz zur CFA wird uns nun ein Block in der Summary gezeigt, welcher die Regressionskoeffizienten unseres Modells enthält (ohne Interzept). Hier ist zu erkennen, dass alle Koeffizienten auf dem 5% Niveau signifikant von 0 verschieden sind. Es kann sich also maximal um eine partielle Mediation handeln, da die direkte Beziehung zwischen Zeitdruck und psychsomatischen Beschwerden laut dieser Signifikanzentscheidung mit einer Irrtumswahrscheinlichkeit von 5% auch in der Population besteht und somit der Effekt von Zeitdruck auf die Psychosomatischen Beschwerden nicht vollständig über die emotionale Erschöpfung mediiert wird.</p>
+<p>Von einer vollständigen Mediation würden wir sprechen, wenn die direkte Beziehung zwischen Zeitdruck und psychosomatischen Beschwerden (also zwischen unabhängiger und abhängiger Variable) nicht bedeutsam von 0 verschieden ist und der indirekte Effekt von Zeitdruck über emotionale Erschöpfung auf psychsomatische Beschwerden signifikant von Null verschieden ist (dies war unsere Hypothese, die wir im <a href="#Hypothesen">vorherigen Abschnitt</a> postuliert hatten). Für die Population würden wir also bei einer vollständigen Mediation davon ausgehen, dass die unabhängige Variable nur über den Mediator mit der abhängigen Variable zusammenhängt, also jegliche Veränderung in der unabhängigen Variable mit Veränderungen im Mediator zusammenhängt und durch diese Beziehung auch mit der abhängigen Variable kovariiert.</p>
+<pre><code>## [...]
+##  R-Square:
+##                    Estimate
+##     BOEEs             0.148
+##     BFs               0.380 
+## [...]</code></pre>
+<p>Insgsamt ist die Vorhersage der emotionalen Erschöpfung und der psychosomatischen Beschwerden zwar statistisch signifikant, allerdings werden “nur” ca. 14.8% der Variation von <code>BOEEs</code> erklärt sowie ca. 38% der Variation von
+<code>BFs</code>.</p>
+<p>Im nächsten Abschnitt wollen wir unser Modell grafisch veranschaulichen. In der darauf folgenden Sektion wollen wir zusätzlich prüfen, ob der indirekte Effekt von Zeitdruck auf die psychosomatischen Beschwerden signfikant ist.</p>
+<div id="grafische-veranschaulichung-des-modells-und-der-ergebnisse" class="section level3">
+<h3>Grafische Veranschaulichung des Modells und der Ergebnisse</h3>
+<p>Das Paket <code>semPlot</code> bietet die Möglichkeit, Regressionen, CFAs, Pfadanalysen und Strukturgleichungsmodelle, die bspw. mit <code>lavaan</code> geschätzt wurden, grafisch zu veranschaulichen. Diese Grafiken sind denen, die wir in den inhaltlichen Sitzungen kennen gelernt haben, sehr ähnlich. <code>semPaths</code> (aus dem <code>semPlot</code>-Paket) ist die Funktion, welche wir hierzu nutzen wollen. Sie nimmt als Argument das geschätzte Objekt, welches in unserem Fall die Pfadanalyse enthält, entgegen; hier: <code>fit_paths</code>. Ohne weitere Zusatzeinstellungen sieht dieses so aus:</p>
+<pre class="r"><code>semPaths(fit_paths)</code></pre>
+<p><img src="/post/2021-04-13-SEM_files/figure-html/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Der Default stellt also einfach nur das Modell grafisch dar, was sehr praktisch ist, um bspw. zu prüfen, ob alle wichtigen Beziehung im Modell enthalten sind. Gestrichelte Pfeile stehen hierbei für Restriktionen, hier wird also nichts geschätzt: in unserem Bespiel wird die Varianz von <code>ZDs</code> nicht geschätzt, da die Varianz der unabhängigen Variable nur implizit in die Regressionskoeffizenten einfließt, aber keinen (testbaren) Koeffizient des Modells darstellen. Würden wir wollen, dass die Varianz von <code>ZDs</code> geschätzt wird, so könnten wir prinzipiell <code>ZDs ~~ ZDs</code> in unser Modell mit aufnehmen.</p>
+<p>Gerichtete Pfeile sind regressive Beziehung (also Regressionsparameter, Pfadkoeffizienten oder Faktorladungen). Ungerichtete Pfeile stellen Kovarianzen oder Residualvarianzen dar. Hierbei wird immer dann von einer Kovarianz im Gegensatz zu einer Residualkovarianz gesprochen, wenn es sich um eine exogene (unabhängige) Variable handelt. Salopp gesprochen: <em>hier kommen keine gerichteten Pfeile an!</em> Ein weiteres wichtiges Argument, welches <code>semPaths</code> entgegennimmt ist <code>what</code>. Hiermit wird festgelegt, was genau geplottet werden soll. Wählen wir <code>what = "model"</code>, so wird das Modell ohne Parameterschätzungen und Einfärbungen grafisch dargestellt - dies ist der Default, welchen wir bereits oben gesehen haben. Wählen wir hingegen <code>what = "est"</code>, so werden alle geschätzten Parameter in das Modell eingezeichnet; diese werden auch farblich hinsichtlich ihrere Ausprägung kodiert.</p>
+<pre class="r"><code>semPaths(fit_paths, what = &quot;est&quot;)</code></pre>
+<p><img src="/post/2021-04-13-SEM_files/figure-html/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Probieren Sie doch selbst einmal aus, was die folgenden Zusatzeinstellungen bewirken. Dazu müssen Sie nur den Code kopieren und die Einstellungen verändern. Das Ziel einer solchen Grafik sollte sein, dass man die Gleichungen, die im Hintergrund stehen (wie in der Einführung in lavaan beschrieben), leicht zu verstehen sind und man alle Beziehungen zwischen den Variablen gut erkennen kann:</p>
+<pre class="r"><code>semPaths(object = fit_paths, what = &quot;model&quot;, layout = &quot;tree2&quot;, rotation = 2,
+         col = list(man = &quot;skyblue&quot;),  edge.label.cex=1, sizeMan = 5)</code></pre>
+<p><img src="/post/2021-04-13-SEM_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p>Sie können die Argumente der Funktion <code>semPaths</code> nachlesen, indem sie <code>??semPaths</code> in einem neuen <code>R</code>-Studio Fenster ausführen und dann <code>semPlot::semPaths</code> in der Übersicht auswählen oder sie schauen sich die <a href="https://www.rdocumentation.org/packages/semPlot/versions/1.1.2/topics/semPaths">Dokumentation online hier an</a>.</p>
+<pre class="r"><code>semPaths(object = fit_paths, what = &quot;est&quot;, layout = &quot;tree2&quot;, rotation = 2,
+         col = list(man = &quot;skyblue&quot;),  edge.label.cex=1, sizeMan = 5)</code></pre>
+<p><img src="/post/2021-04-13-SEM_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p>Wenn Sie eine solche Grafik in <code>R</code>-Studio erzeugen, gibt es viele Möglichkeiten, diese abzuspeichern. Bspw. können Sie mit <code>dev.print(device = pdf, "MeinPlot.pdf")</code> die Grafik als PDF abspeichern und ihr den Namen “MeinPlot.pdf” geben. Die Endung “.pdf” ist hierbei obligatorisch. Eine andere Möglichkeit ist in <code>R</code>-Studio im Grafikfenster auf “Export” zu klicken und dann den Anweisungen zu folgen. Natürlich wären auch andere Dateiformate, wie bspw. “.jpg” oder “.png” möglich!</p>
+</div>
+<div id="berechnen-und-testen-des-indirekten-effektes-von-zeitdruck-über-emotionale-erschöpfung-auf-psychosomatische-beschwerden" class="section level3">
+<h3>Berechnen und Testen des indirekten Effektes von Zeitdruck über emotionale Erschöpfung auf psychosomatische Beschwerden</h3>
+<p>Der indirekte Effekt ist der Effekt, der von der unabhängigen Variable über den Mediator auf die abhängige Variable wirkt. Der Effekt der unabhängigen Variable auf den Mediator wird häufig mit <strong>a</strong> bezeichnet. Der Effekt des Mediators wird häufig <strong>b</strong> genannt. Der verbleibende direkte Effekte der unabhängigen auf die abhängige Variable wird, sie haben es sich womöglich schon gedacht, mit <strong>c</strong> bezeichnet. Nach diesem Schema wollen wir auch die Koeffizienten in unserem Modell benennen. Schauen wir uns dazu einmal die Gleichungen an (der Vollständigkeit halber führen wir auch die Interzepts <span class="math inline">\(a_0\)</span> und <span class="math inline">\(c_0\)</span> mit, <span class="math inline">\(i\)</span> symbolisiert hier den Index, z.B. für eine Person <span class="math inline">\(i\)</span>):</p>
+<p><span class="math display">\[BOEE_i = a_0 + aZD_i + \varepsilon_{BOEE,i},\]</span>
+<span class="math display">\[BF_i = c_0 + bBOEE_i + cZD_i + \varepsilon_{BF,i}.\]</span>
+Nun haben wir allerdings eine Gleichung für <span class="math inline">\(BOEE_i\)</span>, also können wir diese in die Gleichung von <span class="math inline">\(BF_i\)</span> einsetzen und erhalten den indirekten Effekt (<em>IE</em>) als Produkt der Parameter <span class="math inline">\(IE:=ab\)</span>; der direkte Effekt (<em>DE</em>) verbleibt <span class="math inline">\(DE:=c\)</span>:</p>
+<p><span class="math display">\[\begin{align}
+BF_i &amp;= c_0 + b(a_0 + aZD_i + \varepsilon_{BOEE,i}) + cZD_i + \varepsilon_{BF,i}\\[1.5ex]
+&amp;= \underbrace{(c_0 + ba_0)}_{\text{Interzept}} + \underbrace{ab}_{_{\text{IE}}}ZD_i + \underbrace{c}_{_{\text{DE}}}ZD_i + \underbrace{(b \varepsilon_{BOEE,i}+ \varepsilon_{BF,i})}_\text{Residuum}.
+\end{align}\]</span></p>
+<p>Der totale Effekt von Zeitdruck auf die psychosomatischen Beschwerden ergibt sich als <span class="math inline">\(TE:=IE + DE = ab+c\)</span>. Da wir bisher in <code>lavaan</code> die Mittelwertstruktur nicht mitmodelliert hatten, haben wir <span class="math inline">\(a_0\)</span> und <span class="math inline">\(c_0\)</span> auch noch nicht untersucht. Für weitere inhaltliche Informationen zu Pfadanalysen, direkten, indirekten und totalen Effekten lesen Sie gerne in <a href="https://hds.hebis.de/ubffm/Record/HEB36808809X">Werner et al. (2016, pp. 952-)</a> oder <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid et al. (2017, pp. 952-)</a>. <em>Man bemerke den unfassbaren Zufall, dass beide Bücher an der gleichen Seitenzahl beginnend über Mediationen etc. sprechen!</em></p>
+<p>In <code>lavaan</code> Koeffizienten zu benennen, ist ganz einfach. Sie haben es vielleicht schon im Appendix der letzten Sitzung zur <a href="/post/cfa">CFA</a> gesehen: der Variable wird der Koeffizientenname gefolgt von dem Multiplikationszeichen <code>*</code> vorangestellt. Also wird die Beziehung zwischen <code>BOEEs</code> und <code>ZDs</code> um das Präfix <code>a*</code> ergänzt zu: <code>BOEEs ~ a*ZDs</code>, usw.:</p>
+<pre class="r"><code>model_paths_abc &lt;- &#39;
+BOEEs ~ a*ZDs
+BFs ~  b*BOEEs + c*ZDs
+&#39;</code></pre>
+<p>Der Output bleibt nach Schätzen des Modells identisch, allerdings werden die Namen der Koeffizienten im Output mitgeführt. So lässt sich leicht prüfen, ob die Bennungen an den richtigen Stellen gelandet sind:</p>
+<pre class="r"><code>fit_paths_abc &lt;- sem(model_paths_abc, data = StressAtWork)
+summary(fit_paths_abc)</code></pre>
+<pre><code>## [...]
+##  Regressions:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##   BOEEs ~                                             
+##     ZDs        (a)    0.481    0.066    7.271    0.000
+##   BFs ~                                               
+##     BOEEs      (b)    0.329    0.028   11.682    0.000
+##     ZDs        (c)    0.073    0.035    2.081    0.037 
+## [...]</code></pre>
+<p>Um nun den indirekten Effekt <span class="math inline">\(ab\)</span> und den totalen Effeket <span class="math inline">\(ab + c\)</span> mit aufzunehmen, können wir diese in das <code>lavaan</code> Modell inkludieren. Diese neu definierten Parameter stellen allerdings keine weiteren Modellparameter dar, es gehen also keine Freiheitsgrade verloren. Die <code>lavaan</code>-Syntax, die hinzukommt, ist <code>:=</code>; das mathematische “definiert als”-Zeichen. Links davon steht der Namen, den wir dem neuen definierten Parameter geben wollen und rechts steht die Funktion der anderen Parameter aus unserem Modell. Beispielsweise können wir den indirekten Effekt wie folgt definieren: <code>IE := a*b</code>; das Produkt der beiden Pfadkoeffizienten, die wir bereits benannt haben.</p>
+<pre class="r"><code>model_paths_IE_TE &lt;- &#39;
+BOEEs ~ a*ZDs
+BFs ~  b*BOEEs + c*ZDs
+
+# Neue Parameter
+IE := a*b
+TE := IE + c
+&#39;</code></pre>
+<p>Wenn wir nun das Modell erneut schätzen, erhalten wir einen neuen Teil im Output der Summary, welcher unsere definierten Parameter und deren Standardfehler, sowie die zugehörigen p-Werte enthält.</p>
+<pre class="r"><code>fit_paths_IE_TE &lt;- sem(model_paths_IE_TE, data = StressAtWork)
+summary(fit_paths_IE_TE)</code></pre>
+<pre><code>## [...]
+##  Defined Parameters:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##     IE                0.158    0.026    6.173    0.000
+##     TE                0.232    0.039    5.916    0.000 
+## [...]</code></pre>
+<p><strong>Achtung!</strong> Leider können wir den angezeigten Standardfehlern und dem zugehörigen p-Wert nicht unbedingt vertrauen, da einige Studien gezeigt haben, dass der indirekte Effekt asymptotisch nicht immer normalverteilt bzw. symmetrisch verteilt ist, weswegen ein einfaches Teilen des Estimates durch SE und der Vergleich mit der <span class="math inline">\(z\)</span>-Verteilung (so wie wir dies eigentlich immer tun; also die einfache Parametersignifikanzentscheidung in komplexen Modellen) in diesem Fall nicht sinnvoll erscheint. Aus diesem Grund möchten wir dieser Problematik entgehen, indem wir die Bootstrap-Methode verwenden. Der Output sollte also nur für die Entnahme der Parameterwerte genutzt werden - nicht aber für die Signifikanzentscheidung!</p>
+</div>
+<div id="Bootstrapping" class="section level3">
+<h3>Bootstrapping</h3>
+<p><strong>Bootstrapping</strong> ist das wiederholte Ziehen <em>mit Zurücklegen</em> aus unserer Stichprobe, solange, bis wir eine neue Stichprobe erhalten, die genauso groß ist, wie die ursprünglich Beobachtete. In dieser neuen, gezogenen Stichproben schätzen wir erneut unser Modell und notieren uns den indirekten Effekt. Dieses Vorgehen wiederholen wir sehr häufig (es hat sich irgendwie so ergeben, dass in der Statistik sehr häufig bei ungefähr und ziemlich genau <em>1000</em> liegt), sodass wir die Verteilung des indirekten Effektes und den wahren Standardfehler (also die Streuung des indirekten Effekts) annähern können. Dieses Vorgehen sollte, wenn unsere Stichprobe unabhängig gezogene Personen enthält und repräsentativ für die Gesamtpopulation ist, eine gute Schätzung der Verteilung des indirekten Effektes liefern, welcher Schlüsse auf die Gesamtpopulation zulässt. Wir können dann einfach den 2.5-ten und den 97.5-ten Prozentrang dieser Verteilung verwenden und erhalten ein 95%-Konfidenzintervall für den indirekten Effekt (dieses muss nicht immer symmetrisch sein, da der indirekte Effekt ja nicht unbedingt normalverteilt, bzw. symmetrisch verteilt ist!). Zum Glück müssen wir dies nicht mit Hand programmieren, sondern können einfach unserer Parameterschätzung mit <code>sem</code> die Zusatzargumente <code>se = "boot"</code> und <code>bootstrap = 1000</code> hinzufügen. Es empfiehlt sich, diese Objekt anschließend anders zu nennen. Wir lassen unsere Phantasie freien Lauf und nennen die neue “gebootstrapte” Schätzung <code>fit_paths_IE_TE_boot</code>. Wenn wir dann auf das geschätzte (neue) Objekt die Funktion <code>parameterEstimates</code> mit der Zusatzeinstellung <code>ci = TRUE</code> anwenden, so werden uns alle Parameter inklusive Konfidenzintervall zurückgegeben. Da es sich hierbei um einen Zufallsprozess handelt, werden die Werte bei mehrmaligem Wiederholen (leicht) unterschiedlich sein. Möchten wir das Ergebnis replizierbar machen, so können wir <code>set.seed()</code> verwenden, wir müssen dieser Funktion lediglich eine beliebige natürliche Zahl übergeben (wie wäre es bspw. mit 1234? <em>Wenn Sie die gleiche R-Version haben, sollte der folgende Code zum <strong>selben</strong> Ergebnis kommen!</em>).</p>
+<pre class="r"><code>set.seed(1234)
+fit_paths_IE_TE_boot  &lt;- sem(model_paths_IE_TE, data = StressAtWork, se = &quot;boot&quot;, bootstrap = 1000)
+parameterEstimates(fit_paths_IE_TE_boot, ci = TRUE)</code></pre>
+<pre><code>## [...]</code></pre>
+<pre><code>##   lhs op  rhs label   est    se     z pvalue ci.lower ci.upper
+## 7  IE :=  a*b    IE 0.158 0.026 6.123      0    0.108    0.208
+## 8  TE := IE+c    TE 0.232 0.040 5.717      0    0.145    0.304</code></pre>
+<pre><code>## [...]</code></pre>
+<p>Der Output zeigt die Konfidenzintervalle (sowie weitere Informationen) für alle Parameter in unserem Modell sowie für den indirekten und den totalen Effekt. Hierbei steht <code>ci.lower</code> für die untere Grenze und <code>ci.upper</code> für die obere Grenze des Konfidenzintervalls. Die Nummern <code>7</code> und <code>8</code> am Anfang der Zeilen zeigen an, dass hier insgesamt 8 Zeilen ausgegeben werden, wir uns aber nur die 7. und die 8. ansehen. Zeile 1 bis 6 (hier nicht dargestellt) zeigen den gleichen Output für alle weiteren Parameter im Modell (wir können <code>help("parameterEstimates")</code> für weitere Informationen in <code>R</code>-Studio ausführen, nachdem wir <code>lavaan</code> via <code>library(lavaan)</code> geladen haben). Das “gebootstrapte” Konfidenzintervall des indirekten Effekts erstreckt sich von 0.108 bis 0.208 und schließt die 0 somit nicht ein. Dies bedeutet, dass auf dem 5%-Signifikanzniveau der indirekte Effekt in der Population nicht 0 ist.</p>
+<p>Dem Output zufolge scheint es also in der Population einen indirekten Effekt zu geben. Der totale Effekt ist auch signifikant. Die zugehörigen Grafiken unterscheiden sich kaum von denen, die wir uns zuvor angesehen hatten. Schauen wir uns die Modellstruktur an, so werden uns allerdings die Parameternamen mit eingezeichnet, was durchaus von Nutzen sein kann. Der indireke oder der totale Effekt sind keine Modellparameter, weswegen sie auch nicht in der Grafik dargestellt werden können.</p>
+<pre class="r"><code>semPaths(object = fit_paths_IE_TE, what = &quot;model&quot;, layout = &quot;tree2&quot;, rotation = 2,
+         col = list(man = &quot;skyblue&quot;),  edge.label.cex=1)</code></pre>
+<p><img src="/post/2021-04-13-SEM_files/figure-html/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Die hier durchgeführten Analysen unterliegen leider einigen Einschränkungen. Bspw. wird beim Mitteln zu Skalenwerten davon ausgegangen, dass jede Messung (jede Variable pro Skala) gleichermaßen aus der dahinterliegenden latenten Variable besteht. Dies hatten wir in der <a href="/post/cfa">letzten Sitzung im Anhang</a> unter essentieller <span class="math inline">\(\tau\)</span>-Äquivalenz kennengelernt (gleiche <span class="math inline">\(\lambda\)</span>s in einem [CFA-] Messmodell). Essentielle <span class="math inline">\(\tau\)</span>-Äquivalenz ist eine strenge Annahme, welche wir prüfen müssten, um den Analysen mit Skalenwerten komplett vertrauen zu können. Außerdem werden durch das Mitteln die Messfehler nicht vollständig modelliert, auch wenn die Analysen somit reliabler als <em>Einzelitemanalysen</em> (z.B. hätten wir auch jeweils ein Item pro Skala verwenden können) sind.
+Hierbei ist es nun so, dass Effekte stochastischer Regressoren konsistent unterschätzt werden, wenn diese messfehlerbehaftet sind. Wären die Variablen messfehlerfrei, würden die Effekte (die Regressionsparameter) größer ausfallen. Leider können wir nicht davon ausgehen, dass unsere beobachteten Variablen messfehlerfrei sind, wenn wir sie mit Fragebögen erheben! Aus diesem Grund ist in der multiplen Regression bspw. auch eine der Voraussetzungen die Messfehlerfreiheit der (stochastischen) Regressoren (siehe <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, et al., 2017</a>, Kapitel 19.13).</p>
+<p>Wir können die Analysen auf die latente Ebene heben und Messmodelle für die latenten Variablen aufstellen, welche dann die unterschiedlichen Messgenauigkeiten pro Messung berücksichtigen und die Beziehung zwischen den latenten Variablen um die Ungenauigkeit der Einzelitems bereinigen.</p>
+</div>
+</div>
+<div id="strukturgleichungsmodelle" class="section level2">
+<h2>Strukturgleichungsmodelle</h2>
+<p>Strukturgleichungsmodelle (SEM) kombinieren Pfadanalysen mit Messmodellen, also CFAs. Wir können mit SEM in unseren Analysen Messfehler berücksichtigen, aber dennoch gerichtete Beziehungen zwischen den latenten Variablen untersuchen. Bevor wir Messmodelle für unsere latenten Variablen aufstellen, müssen wir uns überlegen, ob dies denn für alle Variablen sinnvoll ist.</p>
+<div id="formvsreflMessmodell" class="section level3">
+<h3>Reflexive vs. formative Messmodelle</h3>
+<p>Wenn es um Messmodelle geht, kann zwischen <strong>reflexiven</strong> und <strong>formativen</strong> Messmodellen unterschieden werden. Reflexive Messmodelle sind die Messmodelle, die wir in der <a href="/post/cfa">letzten Sitzung zur CFA</a> detailliert besprochen haben. Darin sind z.B. Eigenschaften von Personen latente Variable, die sich nicht direkt beobachten lassen, sich aber in Verhalten und Aussagen niederschlagen. “Konservativismus” ist eine Einstellung von Personen (latente Variable), die sich z.B. darin äußert, dass Personen einer Aussage wie “Ein noch so geschulter und kritischer Verstand kann letzten Endes doch keine echte innere Befriedigung geben.” eher zustimmen (Item 36 der <a href="https://zis.gesis.org/skala/Cloetta-Machiavellismus-Konservatismus">Machiavellismus-Konservatismus Skala</a>; Cloetta, 2014). Die Annahme ist also, dass die latente Variable ursächlich für die Ausprägung bestimmter beobachtbarer (manifester) Variablen ist. Wie wir in der <a href="/post/cfa">Sitzung zur CFA</a> gesehen haben, sieht ein entsprechendes Pfaddiagramm so aus:</p>
+<center>
+<img src="https://raw.githubusercontent.com/martscht/PsyMSc1/master/inst/tutorials/SEM/images/Reflexiv.png" width="40%"/>
+</center>
+<p>Die Variable <span class="math inline">\(X_1\)</span> ist also eine abhängige Variable, deren Ausprägung von der Ausprägung der latenten Variable <span class="math inline">\(\xi\)</span> und vom Messfehler <span class="math inline">\(\delta_1\)</span> abhängt: <span class="math inline">\(X_1=\lambda_{1}\xi + \delta_1\)</span>. Deswegen gehen die Pfeile im Pfaddiagramm von den latenten Variablen (UV) zu den Items (AVs). Faktorladungen wurden in der Grafik <strong>nicht</strong> dargestellt, aber in der Formel der Vollständigkeit halber ergänzt.</p>
+<p>Bei formativen Messmodellen ist es so, dass die latente Variable erst “geformt” wird. Sie ist eine Zusammensetzung aus den manifesten (beobachteten) Items, die als die (gewichtete) Summe (oder [gewichteter] Mittelwert) ihrer Items aufgefasst wird. Das zugehörige Pfaddiagramm sieht folgendermaßen aus:</p>
+<center>
+<img src="https://raw.githubusercontent.com/martscht/PsyMSc1/master/inst/tutorials/SEM/images/Formativ.png" width="38%"/>
+</center>
+<p><span class="math inline">\(\\\)</span></p>
+<p>Es können keine Messfehler berücksichtigt werden und die “Kompositvariable” (deshalb auch die Benennung <span class="math inline">\(\mathcal{C}\)</span>, engl. composite) ist eine Linearkombination der Items: <span class="math inline">\(\mathcal{C}=X_1+X_2+X_3\)</span> oder <span class="math inline">\(\mathcal{C}=\lambda_1^\mathcal{C}X_1+\lambda_2^\mathcal{C}X_2+\lambda_3^\mathcal{C}X_3\)</span> (also auch: <span class="math inline">\(\mathcal{C}=\frac{X_1+X_2+X_3}{3}\)</span>)). Somit wirken sich Unterschiede zwischen Personen in bspw. <span class="math inline">\(X_1\)</span> (und gleichen <span class="math inline">\(X_2\)</span> und <span class="math inline">\(X_3\)</span>) auf Unterschiede in <span class="math inline">\(\mathcal{C}\)</span> aus. Es lassen sich also Unterschiede in der latenten Variable auf unterschiedliche Kombinationen von Ausprägungen der Beobachtungen zurückführen. Gerade in den Wirtschaftswissenschaften und der Soziologie sind solche formativen Variablen sehr verbreitet. Ein bekanntes Beispiel ist der <a href="http://hdr.undp.org/en/content/human-development-index-hdi">Human Development Index</a>, der aus verschiedenen Komponenten wie Lebenserwartung, Schulbildung und Bruttoinlandsprodukt eine Kennzahl für den Entwicklungsstand eines Landes ermittelt. Ein psychologisches Beispiel für ein formatives Messmodell ist die Variable <em>Umgebungsbelastung</em>, welche auch mit dem ISTA erhoben werden kann (Semmer, et al., 1999). Mit dieser Variable sollen Umwelteinflüsse erfasst werden, die die Arbeit erschweren. Dies könnten z.B. schlechte Lichtverhältnisse oder Lärmbelästigung sein, welche durch längeres Auftreten Stress zur Folge haben können. Allerdings ist es in der Regel nicht so, dass an einem Arbeitsplatz immer dann Lärm auftritt, wenn auch die Lichtverhältnisse schlecht sind. Wenn jedoch beides auftritt, so ist die Umgebungsbelastung an diesem Arbeitsplatz besonders ausgeprägt. Demnach müssen beide Aspekte berücksichtigt werden, um eine gute Schätzung für die Umgebungsbelastung eines Arbeitsplatzes zu erhalten. Würden wir von einem reflexiven Messmodell ausgehen, würde eine hohe Ausprägung auf der latenten Variable <em>Umgebungsbelastung</em> auch zu einer erhöhten Antworttendenz auf beiden Items (Licht- und Lärmverhältnisse) führen.</p>
+<p><em>Wem dieses Konzept bekannt vorkommt, hat sich wahrscheinlich an die Unterscheidung zwischen <a href="/post/efa">EFA</a> und <a href="/post/PCA">PCA</a> zurückerinnert: Hier war es so, dass bei der PCA die Hauptkomponenten Linearkombinationen, also gewichtete Summen, der beobachteten Items waren, während bei EFA ein Messmodell mit dahinterliegenden latenten Variablen formuliert wurde und somit Messfehler modeliert werden konnten.</em></p>
+<p>Bei Zeitdruck und emotionaler Erschöpfung handelt es sich um reflexive Messmodelle. Bei psychosomatischen Beschwerden werden unterschiedliche Beschwerden wie bspw. Kopfschmerzen und Rückenschmerzen abgefragt. Demnach handelt es sich bei dieser Variable eher um ein ein formatives Messmodell. Entsprechend könnten wir die Kompositformulierung in <code>lavaan</code> (<code>&lt;~</code>) nutzen, um eine latente Kompositvariable zu erzeugen oder wir behalten der Einfachheit halber unseren Skalenmittelwert <code>BFs</code> bei.</p>
+</div>
+<div id="das-modell" class="section level3">
+<h3>Das Modell</h3>
+<p>Das Modell in SEM unterscheidet sich im Vergleich zu CFAs: Es wird zwischen Messmodell und Strukturmodell unterschieden. Im Strukturmodell gibt es gerichtete Beziehungen, in welchen zwischen unabhängigen und abhängigen latenten Variablen unterschieden werden kann. Diese werden häufig auch exogene (unabhängige) und endogene (abhängige) latente Variablen genannt. Entsprechend gibt es zwei Arten von Messmodellen: ein exogenes und ein endogenes Messmodell. Diese Messmodelle sind quasi CFAs für die exogenen und die endogenen latenten Variablen; spezifizieren also die Beziehungen zwischen den latenten und den manifesten unabhängen bzw. abhängen Variablen. Wir wollen uns die Messmodelle sowie das Strukturmodell unserer Analyse ansehen:</p>
+<ul>
+<li>Exogenes Messmodell
+<span class="math display">\[\begin{pmatrix}ZD_1\\ZD_2\\ZD_6\end{pmatrix}=\begin{pmatrix}\tau_1^{x}\\\tau_2^{x}\\\tau_6^{x}\end{pmatrix}+\begin{pmatrix}\lambda_{11}^{x}=1\\\lambda_{21}^{x}\\\lambda_{31}^{x}\end{pmatrix}\xi_{\text{ZD}} + \begin{pmatrix}\delta_1\\\delta_2\\\delta_6\end{pmatrix}\]</span></li>
+<li>Endogenes Messmodell
+<span class="math display">\[\begin{pmatrix}BO_1\\BO_6\\BO_{12}\\BO_{19}\end{pmatrix}=\begin{pmatrix}\tau_1^{y}\\\tau_6^{y}\\\tau_{12}^{y}\\\tau_{19}^{y}\end{pmatrix}+\begin{pmatrix}\lambda_{11}^{y}=1\\\lambda_{21}^{y}\\\lambda_{31}^{y}\\\lambda_{41}^{y}\end{pmatrix}\eta_{\text{BOEE}} + \begin{pmatrix}\varepsilon_1\\\varepsilon_6\\\varepsilon_{12}\\\varepsilon_{19}\end{pmatrix}\]</span></li>
+<li>Strukturmodell in Matrixnotation (wobei wir <span class="math inline">\(BFs\)</span> als latente Variable mitführen)
+<span class="math display">\[\begin{pmatrix}\eta_\text{BOEE}\\BF_s\end{pmatrix}=\begin{pmatrix}\gamma_{11}\\\gamma_{21}\end{pmatrix}\xi_\text{ZD} + \begin{pmatrix}0&amp;0\\\beta_{21}&amp;0\end{pmatrix}\begin{pmatrix}\eta_\text{BOEE}\\BF_s\end{pmatrix} + \begin{pmatrix}\zeta_\text{BOEE}\\\zeta_{BF_s}\end{pmatrix}\]</span></li>
+</ul>
+<p>Für die einzelnen abhängigen latenten Variablen erhalten wir also:</p>
+<p><span class="math display">\[\eta_\text{BOEE}=\gamma_{11}\xi_\text{ZD} + \zeta_\text{BOEE}\]</span>
+und</p>
+<p><span class="math display">\[BFs = \gamma_{21}\xi_\text{ZD} + \beta_{21}\eta_\text{BOEE} + \zeta_{BFs}.\]</span></p>
+<p>Durch Einsetzten folgt:
+<span class="math display">\[BFs = \gamma_{21}\xi_\text{ZD} + \beta_{21}\gamma_{11}\xi_\text{ZD}+ \beta_{21}\zeta_\text{BOEE} + \zeta_{BFs}.\]</span></p>
+<p>Wenn wir nun genauer hinschauen, erkennen wir, dass <span class="math inline">\(\gamma_{11}\)</span> dem Pfad <span class="math inline">\(a\)</span>, <span class="math inline">\(\beta_{21}\)</span> dem Pfad <span class="math inline">\(b\)</span> und <span class="math inline">\(\gamma_{21}\)</span> dem Pfad <span class="math inline">\(c\)</span> aus dem Mediationspfadmodell entspricht! Entsprechend quantifiziert <span class="math inline">\(\beta_{21}\gamma_{11}\)</span> den indirekten Effekt von <span class="math inline">\(\xi_\text{ZD}\)</span> über <span class="math inline">\(\eta_\text{BOEE}\)</span> auf <span class="math inline">\(BFs\)</span>. Wir wollen das Modell <code>model_paths_IE_TE</code>, welches so aussah:</p>
+<pre class="r"><code>model_paths_IE_TE &lt;- &#39;
+BOEEs ~ a*ZDs
+BFs ~  b*BOEEs + c*ZDs
+
+# Neue Parameter
+IE := a*b
+TE := IE + c
+&#39;</code></pre>
+<p>so umstellen, dass es nicht mehr die Beziehung von manifesten Skalenwerten, sondern die Beziehungen zwischen latenten Variablen untersucht. Wir wenden dazu unser Wissen um die CFA aus der letzten Sitzung an und kombinieren dieses mit dem, was gerade in der <a href="#Pfadanalyse">Pfadaanalyse</a> besprochen wurde. Wir nennen dazu die latente Variable für Zeitdruck am besten <code>ZD</code> (Items: <code>zd1</code>, <code>zd2</code> und <code>zd6</code>) und die latente Variable emotionale Erschöpfung <code>BOEE</code> (Items: <code>bo1</code>, <code>bo6</code>, <code>bo12</code> und <code>bo19</code>; <em>Achtung: ohne “s” - diese Variablen gibt es nämlich im Datensatz - das waren die Skalenmittelwerte für Zeitdruck und emotionale Erschöpfung</em>). Außerdem nehmen wir als Platzhalter der psychosomatischen Beschwerden die Variable <code>BFs</code> in das Modell auf. Zudem inkludieren wir die Berechnung des indirekten und des totalen Effekts mit den gleichen Bezeichnungen. Wir brauchen folglich 2 Messmodelle, eine Regression für die Beziehung zwischen <code>ZD</code> und <code>BOEE</code>, sowie eine Regression für die Beziehung zwischen <code>ZD</code>, <code>BOEE</code> und <code>BFs</code>. Zum Schluss brauchen wir noch die neu definierten Koeffizienten für den indirekten und den totalen Effekt (vgl. oben). Wir schätzen das Modell mit <code>sem</code> und schauen uns die Summary an! Im Modell ist es sehr sinnvoll die Kommentarfunktion zu nutzen - das <code>#</code>. Alles was in der Zeile dahinter steht, wird von <code>lavaan</code> ignoriert.</p>
+<pre class="r"><code>model_sem_IE_TE &lt;- &#39;
+# Messmodelle
+ZD =~ zd1 + zd2 + zd6
+BOEE =~ bo1 + bo6 + bo12 + bo19
+
+# Strukturmodell
+BOEE ~ a*ZD
+BFs ~  b*BOEE + c*ZD
+
+# Neue Parameter
+IE := a*b
+TE := IE + c
+&#39;
+
+fit_sem_IE_TE &lt;- sem(model_sem_IE_TE, StressAtWork)</code></pre>
+<p>Falls Sie diese Analysen an Ihrem Rechner nachprogrammieren, so sollten Sie folgenden Modellfit erhalten:</p>
+<pre><code>## [...]
+##  Model Test User Model:
+##                                                       
+##   Test statistic                                18.444
+##   Degrees of freedom                                18
+##   P-value (Chi-square)                           0.427
+## 
+## Model Test Baseline Model:
+## 
+##   Test statistic                              1297.870
+##   Degrees of freedom                                28
+##   P-value                                        0.000
+## 
+## User Model versus Baseline Model:
+## 
+##   Comparative Fit Index (CFI)                    1.000
+##   Tucker-Lewis Index (TLI)                       0.999
+## 
+## Loglikelihood and Information Criteria:
+## 
+##   Loglikelihood user model (H0)              -3395.988
+##   Loglikelihood unrestricted model (H1)      -3386.766
+##                                                       
+##   Akaike (AIC)                                6827.976
+##   Bayesian (BIC)                              6894.942
+##   Sample-size adjusted Bayesian (BIC)         6837.855
+## 
+## Root Mean Square Error of Approximation:
+## 
+##   RMSEA                                          0.009
+##   90 Percent confidence interval - lower         0.000
+##   90 Percent confidence interval - upper         0.052
+##   P-value RMSEA &lt;= 0.05                          0.937
+## 
+## Standardized Root Mean Square Residual:
+## 
+##   SRMR                                           0.028 
+## [...]</code></pre>
+<p>Falls dem so ist - herzlichen Glückwunsch, Sie haben gerade ein vollständiges Strukturgleichungsmodell formuliert und geschätzt! Jetzt bleibt nur noch die leichteste Übung: Ergebnisse korrekte interpretieren.</p>
+<p>Dem Modelfit ist zu entnehmen, dass wir, anders als im Beispiel der Pfadanalyse, nun die Passung zwischen Modell und Daten untersuchen können: der <span class="math inline">\(\chi^2\)</span>-Wert liegt bei 18.444 bei <span class="math inline">\(df=\)</span> 18 mit zugehörigem <span class="math inline">\(p\)</span>-Wert von 0.427. Demnach verwerfen unsere Daten das Modell nicht.</p>
+<p>Die Fit-Indizes zeigen hier allesamt einen guten Fit des Modells an. Dies war Aufgrund des <span class="math inline">\(\chi^2\)</span>-Wertes zu erwarten, da die Stichprobengröße ausreichend Power liefert (sodass das Modell sinnvoll geschätzt werden kann) und der <span class="math inline">\(\chi^2\)</span>-Wert trotzdem nicht signifikant auf dem 5%-Niveau war. Es gibt also keinen Grund an der <span class="math inline">\(H_0\)</span> (auf Modellpassung zwischen Daten und Modell) zu zweifeln. Denn <strong>nur in solchen Modellen</strong>, in denen tatsächlich die <span class="math inline">\(H_1\)</span>-Hypothese gilt, wächst der <span class="math inline">\(\chi^2\)</span>-Wert mit der Stichprobengröße (dies steht im Widerspruch zu einigen Textbüchern, welche propagieren, dass der <span class="math inline">\(\chi^2\)</span>-Wert immer mit der Stichprobengröße wächst!). <em>Es empfiehlt sich sehr über die Beziehung zwischen Stichprobengröße, <span class="math inline">\(\chi^2\)</span>-Wert und den Fit-Indizes noch einmal im entsprechenden <a href="/post/Exkurs-Modellfit">Exkurs zum Modellfit</a> nachzulesen!</em></p>
+<p>Für die Messmodelle ergibt sich Folgendes:</p>
+<pre><code>## [...]
+##  Latent Variables:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##   ZD =~                                               
+##     zd1               1.000                           
+##     zd2               0.836    0.063   13.273    0.000
+##     zd6               0.823    0.061   13.568    0.000
+##   BOEE =~                                             
+##     bo1               1.000                           
+##     bo6               0.915    0.054   17.068    0.000
+##     bo12              0.960    0.057   16.806    0.000
+##     bo19              1.051    0.060   17.574    0.000 
+## [...]</code></pre>
+<p>Diesen entnehmen wir, dass die Variablen auf der latenten Dimension ähnlich stark differenzieren (ähnlich große Faktorladungen). Wir sehen außerdem, dass die ersten Faktorladungen jeweils auf 1 gesetzt sind und hier entsprechend keine Signifikanzentscheidung vonnöten ist (wir haben den Wert hier “ohne Unsicherheit” aus Skalierungsgründen vorgegeben). Um die (Item-)Reliabilität beurteilen zu können, schauen wir uns die erklärten Varianzanateile an:</p>
+<pre><code>## [...]
+##  R-Square:
+##                    Estimate
+##     zd1               0.786
+##     zd2               0.553
+##     zd6               0.581
+##     bo1               0.742
+##     bo6               0.658
+##     bo12              0.644
+##     bo19              0.683
+##     BFs               0.420
+##     BOEE              0.185 
+## [...]</code></pre>
+<p>Die beobachteten Variablen zeigen Reliabilitäten zwischen 0.553 und 0.786.</p>
+<p>Nun wollen wir die Ergebnisse mit den Ergebnissen der Pfadanalyse vergleichen. Dazu schauen wir uns die gerichteten Beziehungen zwischen den latenten Variablen an:</p>
+<pre><code>## [...]
+##  Regressions:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##   BOEE ~                                              
+##     ZD         (a)    0.500    0.075    6.717    0.000
+##   BFs ~                                               
+##     BOEE       (b)    0.365    0.035   10.536    0.000
+##     ZD         (c)    0.055    0.039    1.432    0.152 
+## [...]</code></pre>
+<p>Hier werden uns erneut die Label “(a)”, “(b)” und “(c)” angezeigt. Der direkte Effekt (c) von Zeitdruck auf psychosomatische Beschwerden scheint, im Gegensatz zu den Ergebnissen der Pfadanalyse im Abschnitt zuvor, nicht signifikant von 0 verschieden zu sein. Die beiden anderen Pfade sind statistisch signifikant:</p>
+<p>Auch für diese Analysen ist der <span class="math inline">\(R^2\)</span>-Output interessant:</p>
+<pre><code>## [...]
+##  R-Square:
+##                    Estimate
+##     zd1               0.786
+##     zd2               0.553
+##     zd6               0.581
+##     bo1               0.742
+##     bo6               0.658
+##     bo12              0.644
+##     bo19              0.683
+##     BFs               0.420
+##     BOEE              0.185 
+## [...]</code></pre>
+<p>Im Bezug auf die latenten Regressionen enthält der <code>R-Square</code> Output die Anteile erklärter Varianzen von <code>BOEE</code> und <code>BFs</code>. Demnach können 42.03% der Variation der psychosomatischen Beschwerden durch die emotionale Erschöpfung und Zeitdruck (obwohl die Beziehung nicht signifikant ist) erklärt werden. 18.52% der Variation der emotionale Erschöpfung werden durch Zeitdruck erklärt. Somit kann etwas mehr Variation erklärt werden als im Pfadanalysefall (dort: 38.02% der Variation der psychosomatischen Beschwerden durch die emotionale Erschöpfung und Zeitdruck sowie 14.77% der Variation der emotionale Erschöpfung durch Zeitdruck).</p>
+</div>
+<div id="berechnen-und-testen-des-indirekten-effektes-von-zeitdruck-über-emotionale-erschöpfung-auf-psychosomatische-beschwerden-im-sem" class="section level3">
+<h3>Berechnen und Testen des indirekten Effektes von Zeitdruck über emotionale Erschöpfung auf psychosomatische Beschwerden im SEM</h3>
+<p>Der indirekte und der totale Effekt liegen bei:</p>
+<pre><code>## [...]
+##  Defined Parameters:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##     IE                0.183    0.031    5.878    0.000
+##     TE                0.238    0.042    5.694    0.000 
+## [...]</code></pre>
+<p>Der indirekte Effekt aus dem Pfadanalysemodell lag bei 0.158 und der totale bei 0.232. Somit liegen auch diese beiden Werte (deskriptiv gesehen) etwas höher, wenn wir latente Modellierung nutzen im Vergleich zu ausschließlich Skalenmittelwerten! Um den indirekten Effekt auf Signifikanz zu prüfen, benutzten wir wieder die Bootstrap-Methode (<code>set.seed</code> soll die Analyse replizierbar machen; schauen Sie dazu noch einmal im Abschnitt zur <a href="#Pfadanalyse">Pfadanalyse</a> nach):</p>
+<pre class="r"><code>set.seed(12345)
+fit_sem_IE_TE_boot  &lt;- sem(model_sem_IE_TE, data = StressAtWork, se = &quot;boot&quot;, bootstrap = 1000)
+parameterEstimates(fit_sem_IE_TE_boot, ci = TRUE)</code></pre>
+<pre><code>##    lhs op  rhs label   est    se     z pvalue ci.lower ci.upper
+## 21  IE :=  a*b    IE 0.198 0.033 5.965      0    0.135    0.267
+## 22  TE := IE+c    TE 0.258 0.043 6.028      0    0.171    0.340</code></pre>
+<p>Die Nummern <code>21</code> und <code>22</code> am Anfang der Zeilen zeigen an, dass hier insgesamt 22 Zeilen ausgegeben werden, wir uns aber nur die 21. und die 22. ansehen. Auch hier ist zu sehen, dass der indirekte Effekt signifikant von 0 abweicht. Da der direkte Effekt von Zeitdruck auf die psychosomatischen Beschwerden nicht signifikant ist, handelt es sich in diesem Zusammenhang um eine vollständige Mediation. Die vollständige lineare Beziehung zwischen Zeitdruck und psychosomatischen Beschwerden “fließt” über die emotionale Erschöpfung. Die Frage ist nun, warum es hier zu Unterschieden zwischen der Pfadanalyse und SEM kommt. Naiverweise würde wir zunächst erwarten, dass alle Effekte eher signifikant werden, wenn für Messfehler kontrolliert wird. So hatten wir zuvor mit messfehlerbehaften Regressoren in einer Regressionsanalyse argumentiert. Demnach würden wir eher erwarten, dass der direkte Effekt mit SEM signifikant ist. Allerdings haben wir in der Pfadanalyse die Daten unter der Annahme der essentiellen <span class="math inline">\(\tau\)</span>-Äquivalenz zusammengefasst: wir haben einfach Mittelwerte ohne bestimmte Gewichtung verwendet. Im SEM haben wir die Faktorladungen frei Schätzen lassen - wir haben also statt eines gleichgewichteten formativen Konstrukts ein reflexives Konstrukt aus den Beziehungen in den Daten schätzen lassen. Zusammenfassend gehen wir also von einer vollständigen Mediation aus.</p>
+</div>
+<div id="grafische-repräsentation" class="section level3">
+<h3>Grafische Repräsentation</h3>
+<p>Wir können diese Modelle auch wieder grafisch darstellen. Probieren Sie doch einmal aus, was in diesem Zusammenhang durch die folgendenen weiteren Einstellungen passiert:</p>
+<pre class="r"><code>semPaths(object = fit_sem_IE_TE,  what = &quot;model&quot;, layout = &quot;tree2&quot;,
+         rotation = 2, curve = T, col = list(man = &quot;skyblue&quot;, lat = &quot;yellow&quot;),
+         curvePivot = T,  edge.label.cex=1.2, sizeMan = 5, sizeLat = 8)</code></pre>
+<p><img src="/post/2021-04-13-SEM_files/figure-html/exercise_graph_sem1-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>semPaths(object = fit_sem_IE_TE, what = &quot;est&quot;, layout = &quot;tree2&quot;,
+         rotation = 2, curve = T, col = list(man = &quot;skyblue&quot;, lat = &quot;yellow&quot;),
+         curvePivot = T,  edge.label.cex=1.2, sizeMan = 5, sizeLat = 8)</code></pre>
+<p><img src="/post/2021-04-13-SEM_files/figure-html/exercise_graph_sem2-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><em><code>curve = T</code> und <code>curvePivot = T</code> haben in diesem Modell <strong>keinen Effekt</strong>, da es hierbei um die Kovarianzen geht und wird nur der Vollständigkeit halber aufgeführt.</em> Der Effekt dieser beiden kann im <a href="/post/Exkurs-Modellfit">Exkurs zum Modellfit</a> der ersten Grafik des <span class="math inline">\(H_0\)</span>-Modells entnommen werden: diese Einstellungen bewirken die nicht vollständig runde Kurve der Fehlerkovarianz (durch <code>curvePivot = T</code>), welche vor allem dann die Übersichtlichkeit erhöht, wenn mehrere Kovarianzen vorhanden sind. Mit <code>curve = F</code> würden alle Fehlerkovarianzen und Kovarianzen (wenn vorhanden) als gerade Linien eingezeichnet werden.</p>
+<p><code>BFs</code> wird hier als Viereck dargestellt, da wir hier Werte gemittelt haben und diesen Skalenwert als direkt beobachtbare Variable in das Modell aufgenommen haben.</p>
+<p>Konkurrierende Modelle können, wie auch in der Sitzung zur <a href="/post/cfa">CFA</a>, mit Hilfe des Likelihood-Ratio Tests (<span class="math inline">\(\chi^2\)</span>-Differenzen-Test/ Likelihood-Ratio-Test, LRT) gegeneinander getestest werden mit der Funktion <code>lavTestLRT</code>.</p>
+</div>
+<div id="modellpassung" class="section level3">
+<h3>Modellpassung</h3>
+<p>Die Modellpassung ist bei Modellvergleichen von großer Wichtigkeit. Es macht keinen Sinn zwei überhaupt nicht zu den Daten passende Modelle miteinander zu vergleichen. Demnach sollten wir uns zunächst einigermaßen sicher sein, dass unser Modell sinnvoll zu den Daten passt. Da allerdings auch kleinste Abweichungen zwischen Daten und Modell zu signifikanten <span class="math inline">\(\chi^2\)</span>-Werten führen, vor allem für große Stichproben, haben wir uns auch immer die Fit-Indizes angesehen, die entweder für die Stichprobengröße korrigieren oder noch weitere Informationen heranziehen (z.B. das Modell mit dem schlechtesten Modell vergleichen). Dazu können Sie noch weiteres im <a href="/post/Exkrus-Modellfit">Exkurs zum Modellfit</a> erfahren.
+Wann genau die Fit-Indizes für eine deutliche Abweichung zwischen Daten und Modell sprechen, hängt von vielen Dingen ab. Im Artikel von Schermelleh et al. (2003) wurden Cut-Kriterien für spezifische Modelle entwickelt (<span class="math inline">\(CFI &lt; .97\)</span> und <span class="math inline">\(RMSEA &gt; .05\)</span>), welche nicht notwendigerweise auf alle anderen Modelle mit unterschiedlicher Komplexität, Stichprobengröße und Anzahl manifester Variablen, etc. übertragbar sind. Diesem Umstand geschuldet wurde das <code>R</code>-Paket <code>ezCutoffs</code> entwickelt, welches simulationsbasierte Cut-Kriterien speziell angepasst an das vorliegende Modell berechnet. Der <code>ezCutoffs</code>-Funktion müssten wir dazu einfach unser angenommenes Modell sowie die Daten übergeben. Schauen wir uns dem Output zu unserem <code>model_sem</code> Modell, in welchem die Mediation von Zeitdruck über emotionale Erschöpfung auf Burnout modelliert wurde, an:</p>
+<pre class="r"><code>library(ezCutoffs)
+ezCutoffs(model = model_sem, data = StressAtWork)</code></pre>
+<pre><code>## Data Generation
+## 
+##   |==================================================| 100% elapsed = 11s  ~  0s
+## 
+## Model Fitting
+## 
+##   |==================================================| 100% elapsed =  8s  ~  0s
+## 
+## 
+##       Empirical fit Cutoff (alpha = 0.05)
+## chisq  18.444008456           29.49324699
+## cfi     0.999650351            0.97982435
+## tli     0.999456102            0.96861566
+## rmsea   0.008993101            0.04575465
+## srmr    0.027500985            0.04021870</code></pre>
+<p><code>Emprircal fit</code> ist hier gerade der Modelfit, den wir auch in unseren Daten beobachtet haben. Der <span class="math inline">\(\chi^2\)</span>-Wert von 18.444 kommt uns auch sehr bekannt vor! In der Spalte <code>Cutoff (alpha = 0.05)</code> steht der zugehörige Cut-Off-Wert, ab welchem von keinem guten Fit mehr zu sprechen wäre. Hierbei ist zu beachten, dass für <span class="math inline">\(TLI\)</span> und <span class="math inline">\(CFI\)</span> kleine Werte (also kleiner als der Cut-Off-Wert) für einen schlechten Fit sprechen, während für <span class="math inline">\(RMSEA\)</span> und <span class="math inline">\(SRMR\)</span> große Werte (also größer als der Cut-Off-Wert) für einen schlechten Fit sprechen.</p>
+<p>Wer davon noch nicht genug hat, ist herzlich eingeladen im <a href="#AppendixA">Appendix A</a> sich die mit dem Test auf essentielle <span class="math inline">\(\tau\)</span>-Äquivalenz vertraut machen. Die Annahme der essentiellen <span class="math inline">\(\tau\)</span>-Äquivalent wurde in der <a href="/post/cfa">Sitzung zur CFA</a> bereits angesprochen unterliegt implizit dem Zusammenfassen zu Skalenmittelwert.</p>
+<p>Den gesamten R-Code, der in dieser Sitzung genutzt wird, können Sie <a href="https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/SEM.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
+<hr />
+</div>
+</div>
+<div id="AppendixA" class="section level2">
+<h2>Appendix A</h2>
+<details>
+<p><summary><strong>Essentielle <span class="math inline">\(\tau\)</span>-Äquivalenz</strong></summary></p>
+<p>Das Pfadanalysemodell auf Basis von Skalenmittelwerten hatte als Voraussetzung, dass alle Messungen der selben latenten Variable essentiell <span class="math inline">\(\tau\)</span>-äquivalent sind, also alle <span class="math inline">\(\lambda\)</span>s gleich sind pro latenter Variable. Dies können wir in unserem Modell prüfen, indem wir den Faktorladungen Namen geben, analog zur Benennung der gerichteten Beziehungen zwischen den latenten Variablen, die wir zur Berechnung des indirekten etc. Effekts gebraucht haben. Das letzte Modell sah so aus:</p>
+<pre class="r"><code>model_sem_IE_TE &lt;- &#39;
+# Messmodelle
+ZD =~ zd1 + zd2 + zd6
+BOEE =~ bo1 + bo6 + bo12 + bo19
+
+# Strukturmodell
+BOEE ~ a*ZD
+BFs ~  b*BOEE + c*ZD
+
+# Neue Parameter
+IE := a*b
+TE := IE + c
+&#39;</code></pre>
+<p>Wenn wir weiterhin die Defaulteinstellungen der Funktion <code>sem</code> nutzen wollen (1. Faktorladung = 1, etc.), dann müssen wir bei der Bennenung der Faktorladungen etwas aufpassen. Wenn nun alle Faktorladungen gleich sein sollen, so können wir einfach den Präfix <code>1*</code> vor alle Faktorladungen schreiben. Dies kommt zum äquivalenten Ergebnis wie das Schreiben von bspw. <code>l1*</code> vor alle Messungen der selben latenten Variable (z.B. Zeitdruck): alle Faktorladungen würden auch so per Default auf 1 gesetzt und würden das Label <code>l1</code> tragen. Das Vergeben von dem Label <code>l1</code> ist der allgemeinere Ansatz, weswegen wir diesen hier verwenden wollen. Achtung, wenn wir hier die gleichen Labels über die latenten Variablen (auch <code>l1</code>) verwendet hätten, so wären die Faktorladungen gleich mit denen des Zeitdruck, was wir allerdings nicht wollen. Die essentielle <span class="math inline">\(\tau\)</span>-Äquivalenzannahme gilt nur pro latenter Variable.</p>
+<pre class="r"><code>model_sem_IE_TE_tau &lt;- &#39;
+# Messmodelle
+ZD =~ l1*zd1 + l1*zd2 + l1*zd6
+BOEE =~ l2*bo1 + l2*bo6 + l2*bo12 + l2*bo19
+
+# Strukturmodell
+BOEE ~ a*ZD
+BFs ~  b*BOEE + c*ZD
+
+# Neue Parameter
+IE := a*b
+TE := IE + c
+&#39;
+
+fit_sem_IE_TE_tau &lt;- sem(model_sem_IE_TE_tau, StressAtWork)
+summary(fit_sem_IE_TE_tau, fit.measures = T, rsq = T)</code></pre>
+<p>Als Modellfit erhalten wir:</p>
+<pre><code>## [...]
+##  Model Test User Model:
+##                                                       
+##   Test statistic                                33.002
+##   Degrees of freedom                                23
+##   P-value (Chi-square)                           0.081
+## 
+## Model Test Baseline Model:
+## 
+##   Test statistic                              1297.870
+##   Degrees of freedom                                28
+##   P-value                                        0.000
+## 
+## User Model versus Baseline Model:
+## 
+##   Comparative Fit Index (CFI)                    0.992
+##   Tucker-Lewis Index (TLI)                       0.990
+## 
+## Loglikelihood and Information Criteria:
+## 
+##   Loglikelihood user model (H0)              -3403.267
+##   Loglikelihood unrestricted model (H1)      -3386.766
+##                                                       
+##   Akaike (AIC)                                6832.534
+##   Bayesian (BIC)                              6880.898
+##   Sample-size adjusted Bayesian (BIC)         6839.669
+## 
+## Root Mean Square Error of Approximation:
+## 
+##   RMSEA                                          0.038
+##   90 Percent confidence interval - lower         0.000
+##   90 Percent confidence interval - upper         0.065
+##   P-value RMSEA &lt;= 0.05                          0.745
+## 
+## Standardized Root Mean Square Residual:
+## 
+##   SRMR                                           0.048 
+## [...]</code></pre>
+<p>Sowie folgenden Ergebnisse für die Messmodelle:</p>
+<pre><code>## [...]
+##  Latent Variables:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##   ZD =~                                               
+##     zd1       (l1)    1.000                           
+##     zd2       (l1)    1.000                           
+##     zd6       (l1)    1.000                           
+##   BOEE =~                                             
+##     bo1       (l2)    1.000                           
+##     bo6       (l2)    1.000                           
+##     bo12      (l2)    1.000                           
+##     bo19      (l2)    1.000                            
+## [...]</code></pre>
+<p>Wir erkennen durch die gleiche Bennenung, dass es sich hier um restringierte Koeffizienten handelt. Auch erkennen wir, dass die Faktorladungen von <code>ZD</code> und <code>BOEE</code> alle gleich heißen und auf 1 gesetzt wurden.</p>
+<p>Dem Modellfit ist zu entnehmen, dass das Modell immer noch zu den Daten passt: der <span class="math inline">\(\chi^2\)</span>-Wert liegt bei 33.002 bei <span class="math inline">\(df=\)</span> 23 mit zugehörigem <span class="math inline">\(p\)</span>-Wert von 0.081. Demnach verwerfen unsere Daten das Modell nicht. Außerdem sind die <span class="math inline">\(df\)</span> genau um 5 größer als im unrestringierten Modell (ohne die Annahme der essentiellen <span class="math inline">\(\tau\)</span>-Äquivalenz pro latenter Variable). Wir können diese Differenz leicht prüfen: es mussten 2 Faktorladungen weniger für <code>ZD</code> geschätzt werden und 3 weniger für <code>BOEE</code> - aus diesem Grund unterscheiden sich die <span class="math inline">\(df\)</span> gerade um 5! Da das Modell nicht durch die Daten verworfen wird, müssen wir uns auch nicht unbedingt die Fit-Indizes ansehen. Diese sind hier nämlich auch unauffällig. Ob sie überhaupt im Bezug zu diesem Modell interpretiert werden sollten, wird im <a href="/post/Exkurs-Modellfit">Exkurs zum Modellfit</a> näher beleuchtet.</p>
+<p>Auch wenn die Daten unser Modell nicht verwerfen, können wir die beiden Modelle mit und ohne essentieller <span class="math inline">\(\tau\)</span>-Äquivalenzannahme inferenzstatistisch miteinander vergleichen. Dazu verwenden wir wieder die Funktion <code>lavTestLRT</code> und führen also einen Likelihood-Ratio-Test (<span class="math inline">\(\chi^2\)</span>-Differenzentest) durch.</p>
+<pre class="r"><code>lavTestLRT(fit_sem_IE_TE_tau, fit_sem_IE_TE)</code></pre>
+<pre><code>## Chi-Squared Difference Test
+## 
+##                   Df    AIC    BIC  Chisq Chisq diff Df diff Pr(&gt;Chisq)  
+## fit_sem_IE_TE     18 6828.0 6894.9 18.444                                
+## fit_sem_IE_TE_tau 23 6832.5 6880.9 33.002     14.558       5    0.01243 *
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Dem Modellvergleich ist zu entnehmen, dass das <span class="math inline">\(\tau\)</span>-Äquivalenz-Modell signifikant schlechter zu den Daten passt. Der <span class="math inline">\(p\)</span>-Wert liegt bei 0.012 und ist somit <span class="math inline">\(&lt;.05\)</span>. Auch die Differenz der <span class="math inline">\(df\)</span> lässt sich diesem Output entnehmen. Dies zeigt erneut, dass die Annahme der essentiellen <span class="math inline">\(\tau\)</span>-Äquivalenz, auf welcher das Pfadanalysemodell untersucht wurde, auf dem 5% Signifikanzniveau nicht haltbar ist.</p>
+<p>Auf die gleiche Art und Weise können wir auch Invarianz (zu Invarianz über Gruppen siehe <a href="/post/msa">Sitzung zur MSA</a>) über die Zeit oder über Gruppen hinweg untersuchen. Über die Zeit würden wir zwei latente Variablen formulieren, welche einmal <span class="math inline">\(t_1\)</span> und einmal <span class="math inline">\(t_2\)</span> symbolisiert. Die Annahme, dass zu beiden Zeitpunkte die Messmodelle gleich sind, ist tatsächlich in vielen Situation sinnvoll.</p>
+</details>
+<hr />
+</div>
+<div id="literatur" class="section level2">
+<h2>Literatur</h2>
+<p><a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, M., Gollwitzer, M., &amp; Schmitt, M. (2017).</a> <em>Statistik und Forschungsmethoden</em> (5. Auflage, 1. Auflage: 2010). Weinheim: Beltz.</p>
+<p>Schermelleh-Engel, K., Moosbrugger, H., &amp; Müller, H. (2003). Evaluation the fit of structural equation models: tests of significance and descriptive goodness-of-fit measures. <em>Methods of Psychological Research Online,</em> <em>8</em>(2), 23-74.</p>
+<p><a href="https://hds.hebis.de/ubffm/Record/HEB36808809X">Werner, C. S., Schermelleh-Engel, K., Gerhard, C., &amp; Gäde, J. C. (2016).</a> Strukturgleichungsmodelle. In N. Döring &amp; J. Bortz, <em>Forschungsmethoden und Evaluation (5., vollständig überarbeitete und erweiterte Auflage, pp. 945–975)</em>. Berlin: Springer.</p>
+<div id="inhaltliche-literatur" class="section level3">
+<h3>Inhaltliche Literatur</h3>
+<p>Büssing, A., &amp; Perrar, K.-M. (1992). Die Messung von Burnout. Untersuchung einer deutschen Fassung des Maslach Burnout Inventory (MBI-D) [The measurement of Burnout. The study of a German version of the Maslach Burnout Inventory (MBI-D)]. <em>Diagnostica</em>, <em>38</em>, 328 – 353.</p>
+<p>Cloetta, B. (2014). Machiavellismus-Konservatismus. <em>Zusammenstellung sozialwissenschaftlicher Items und Skalen (ZIS).</em> <a href="https://doi.org/10.6102/zis82">https://doi.org/10.6102/zis82</a></p>
+<p>Maslach, C., &amp; Jackson, S.E. (1986). <em>Maslach Burnout Inventory</em> (Vol. 2). Palo Alto, CA: Consulting Psychologists Press.</p>
+<p>Mohr, G. (1986). <em>Die Erfassung psychischer Befindensbeeinträchtigungen bei Arbeitern</em> [Assessment of impaired psychological well-being in industrial workers]. Frankfurt am Main, Fermany: Lang.</p>
+<p>Semmer, N. K., Zapf, D., &amp; Dunckel, H. (1999). Instrument zur Stressbezogenen Tätigkeitsanalyse (ISTA) [Instrument for stress-oriented task analysis (ISTA)]. In H. Dunkel (Ed.), <em>Handbuch psychologischer Arbeitsanalyseverfahren (pp. 179 – 204)</em>. Zürich, Switzerland: vdf Hochschulverlag an der ETH.</p>
+<ul>
+<li><small> <em>Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.</em></li>
+</ul>
+</div>
+</div>
