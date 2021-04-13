@@ -1,0 +1,242 @@
+---
+title: Modell-Fit, Stichprobengröße und Fehlspezifikation
+author: ''
+date: '2021-04-13'
+slug: Exkurs-Modellfit
+categories: 
+  - MSc1
+  - Zusatz
+tags: 
+  - Modellfit
+  - Strukturgleichungsmodelle
+  - latente Modellierung
+  - SEM
+  - Exkurs
+subtitle: 'Ein Exkurs'
+summary: ''
+authors: [irmer, schultze]
+lastmod: '2021-04-13T10:30:02+02:00'
+featured: no
+header:
+  image: "/header/FEII_modelfit_puzzle.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/893341)"
+---
+
+
+
+<p>Der Likelihood-Ratio-Test (<span class="math inline">\(\chi^2\)</span>-Differenzentest) vergleicht die Likelihoods zweier Modelle und somit implizit eigentlich die Kovarianzmatrizen (und Mittelwerte). In Lehrbüchern steht häufig <em>der <span class="math inline">\(\chi^2\)</span>-Wert ist stichprobenabhängig und wächst mit der Stichprobengröße</em>, was ebenfalls als Grund für die Fit-Indizes genannt wird. Das ist allerdings nur teilweise richtig, denn der <span class="math inline">\(\chi^2\)</span>-Wert ist nur für Modelle stichprobenabhängig, in welchen die <span class="math inline">\(H_0\)</span>-Hypothese <strong>nicht</strong> gilt. In einigen Lehrbüchern steht zudem die Formel für den <span class="math inline">\(\chi^2\)</span>-Wert wie folgt: Wir definieren zunächst die sogennante Fit-Funktion <span class="math inline">\(F\)</span>, welche die Differenz zwischen der Kovarianzmatrix der Daten sowie der modellimplizierten Kovarianzmatrix quantifiziert (für die Formeln siehe gerne auch bspw. in Schermelleh-Engel, Moosbrugger &amp; Müller, 2003):
+<span class="math display">\[F(\hat{\Sigma}_M,S) = \log(\hat{\Sigma}_M)-\log(S)+\text{Spur}\left[S\hat{\Sigma}_M^{-1}\right] - p,\]</span>
+wobei <span class="math inline">\(\hat{\Sigma}_M\)</span> die modellimplizierte Kovarianzmatrix und <span class="math inline">\(S\)</span> die Kovarianzmatrix der Daten ist und <span class="math inline">\(p\)</span> die Anzahl an beobachteten Variablen. <span class="math inline">\(\text{Spur}\)</span> bezeichnet hierbei die Summe der Diagonalelemente des jeweiligen Objekts (der resultierenden quadratischen Matrix). Die Null-Hypothese besagt:
+<span class="math display">\[H_0:S=\Sigma_M\]</span>
+Diese Null-Hypothese sagt also, dass sich die Kovarianzmatrix der Daten durch die modellimplizierte Kovarianzmatrix des Modells darstellen lässt, also dass sich die Variation in den Daten durch das Modell abbilden lässt. Der <span class="math inline">\(\chi^2\)</span>-Wert ergibt sie wie folgt:
+<span class="math display">\[\chi^2:=(n-1)F(\hat{\Sigma}_M,S)\]</span>
+Somit wirkt es so, dass der <span class="math inline">\(\chi^2\)</span>-Wert zwangsläufig mit der Stichprobengröße wachsen muss. Allerdings ist für wachsendes (<span class="math inline">\(n\to\infty\)</span>) <span class="math inline">\(F(\hat{\Sigma}_M,S)\to0\)</span>, solange die Null-Hypothese gilt. Dies liegt daran, dass <span class="math inline">\(F(\hat{\Sigma}_M,S)\)</span> gerade die Differenz zwischen den beiden Matrizen quantifiziert und diese Differenz unter der Null-Hypothese im Mittel gegen 0 konvergiert. Diese Differenz geht für steigende Stichprobengröße gegen den Wert 0, wird also kleiner mit steigender Stichprobengröße. Um eine Verteilung als Referenz verwenden zu können (hier: die kritischen Werte der <span class="math inline">\(\chi^2\)</span>-Verteilung), ist eine Art Reskalierung vonnöten. Aus diesem Grund wird <span class="math inline">\(F(\hat{\Sigma}_M,S)\)</span> mit <span class="math inline">\(n-1\)</span> multipliziert und die bekannte <span class="math inline">\(\chi^2\)</span>-Verteilung entsteht. Gilt nun eine Alternativ-Hypothese:
+<span class="math display">\[H_1:S\neq\Sigma_M\]</span>
+dann konvergiert <span class="math inline">\(F(\hat{\Sigma}_M,S)\)</span> im Mittel nicht mehr gegen Null; es gilt also (<span class="math inline">\(n\to\infty\)</span>) <span class="math inline">\(F(\hat{\Sigma}_M,S)\nrightarrow0\)</span>, sondern <span class="math inline">\(F(\hat{\Sigma}_M,S)\to d\)</span>, wobei <span class="math inline">\(d&gt;0\)</span> gerade die wahre Differenz zwischen den beiden Modellen quantifiziert. Das bedeutet gleichzeitig, dass für den zugehörigen mittleren <span class="math inline">\(\chi^2\)</span>-Wert unter <span class="math inline">\(H_1\)</span> gilt: <span class="math inline">\(\chi^2_{H_1}\to dn \to \infty\)</span>, der <span class="math inline">\(\chi^2\)</span>-Wert also mit der Stichprobengröße wächst (da <span class="math inline">\(dn\)</span> gerade proportional zu <span class="math inline">\(n\)</span> wächst)! Wir wollen uns dies an folgendem Modell klar machen:</p>
+<p><img src="/post/2021-04-13-Modelfit_files/figure-html/unnamed-chunk-1-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Als Populationsmodell wählen wir das Folgende:</p>
+<pre class="r"><code>pop_model_H0 &lt;- &#39;
+# Messmodelle
+Xi1 =~ x1 + 0.7*x2 + 0.6*x3
+Eta1 =~ y1 + 0.8*y2
+Eta2 =~ y3 + 0.9*y4
+
+# Strukturmodell
+Eta1 ~ 0.5*Xi1
+Eta2 ~ 0.54*Xi1 + 0.4*Eta1
+
+# Fehlerkovarianzen
+x1 ~~ 0.4*x2
+&#39;
+
+set.seed(123456)
+data &lt;- simulateData(model = pop_model_H0, meanstructure = F, sample.nobs = 200)</code></pre>
+<p>Die Werte, die in diesem Modell stehen, symbolisieren die wahren Populationsparameter. Bspw. bedeutet <code>Xi1 =~ x1 + 0.7*x2 + 0.6*x3</code>, dass in der Population gilt: <span class="math inline">\(\lambda_{11}=1,\lambda_{21}=.7\)</span> und <span class="math inline">\(\lambda_{31}=.6\)</span> (wobei <span class="math inline">\(\lambda_{11}=1\)</span> auch der Skalierer ist!). Oder <code>Eta2 ~ 0.54*Xi1 + 0.4*Eta1</code> steht für: <span class="math inline">\(\eta_2=0.54\xi_1+0.4\eta_1+\zeta_2\)</span> in der Population. <code>x1 ~~ 0.4*x2</code> symbolisert eine Fehlerkovarianz von 0.4, also <span class="math inline">\(\theta_{21}=.4\)</span>.
+Wenn ein Modell in dieser Form vorliegt, so kann die <code>simulateData</code> Funktion in <code>lavaan</code> verwendet werden, um dieses Modell zu simulieren. Wir übergeben der Funktion dazu das Modell <code>model = pop_model_H0</code>, spezifizieren, dass alle Mittelwerte im Mittel 0 sind <code>meanstructure = F</code> und legen die Stichprobengröße fest <code>sample.nobs = 200</code>. In <code>data</code> liegen nun die simulierten manifesten Variablen (die latenten Variablen werden nicht abgespeichert). Hierbei entscheiden die Kürzel, die wir vergeben (z.B. <code>x1</code> oder <code>y2</code>) über die Namen in <code>data</code>:</p>
+<pre class="r"><code>head(data)</code></pre>
+<pre><code>##           x1          x2         x3          y1          y2         y3
+## 1 -0.5118338  1.11104804 -0.0729622 -2.46234468 -0.30571231 -1.2051386
+## 2  0.4893225 -0.03456975 -0.2210260 -0.09834857 -0.03301419  0.7306844
+## 3 -0.4599010 -0.11154386 -1.0774381  0.35941394 -0.11804480  0.3918804
+## 4 -0.1563487 -1.94395700  0.5893962  0.34173255  0.32207594  0.1185581
+## 5 -3.9850494 -1.34148731 -3.8810032 -0.24632514 -0.68642627 -2.3917236
+## 6 -1.7981084 -0.66823365  0.6577428  1.37194245  0.25453754 -2.3033950
+##            y4
+## 1 -0.97309774
+## 2  0.42660131
+## 3  2.04007846
+## 4 -0.07890436
+## 5 -2.65022281
+## 6 -1.43756669</code></pre>
+<p>In <code>data</code> liegen nun simulierte Daten mit <span class="math inline">\(n=200\)</span>. Wir erkennen außerdem, dass hier kontinuierliche Daten simuliert wurden. Dass kategoriale Variablen Fehlspezifikationen mitsich bringen können, ist eine Diskussion, die wir hier nicht führen wollen! Wir verwenden das <span class="math inline">\(H_0\)</span> Modell auch, um die Daten zu analysieren (dies ist das Modell von oben ohne jegliche Zahlen, also in dem Format, welches wir bereits kennen!):</p>
+<pre class="r"><code>model_H0 &lt;- &#39;
+# Messmodelle
+Xi1 =~ x1 + x2 + x3
+Eta1 =~ y1 + y2
+Eta2 =~ y3 + y4
+
+# Strukturmodell
+Eta1 ~ Xi1
+Eta2 ~ Xi1 + Eta1
+
+# Fehlerkovarianzen
+x1 ~~ x2
+&#39;</code></pre>
+<p>Das Pfaddiagramm sieht so aus (hier wurden die Zusatzeinstellungen <code>curve = T, curvePivot = T</code> im <code>semPlot</code> verwenden):</p>
+<pre class="r"><code>fit_H0 &lt;- sem(model = model_H0, data = data)
+semPaths(fit_H0, curve = T, curvePivot = T)</code></pre>
+<p><img src="/post/2021-04-13-Modelfit_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Schätzen wir nun das Modell und gucken uns den den <span class="math inline">\(\chi^2\)</span>-Wert an.</p>
+<pre class="r"><code>fit_H0 &lt;- sem(model = model_H0, data = data)
+summary(fit_H0)</code></pre>
+<pre><code>## lavaan 0.6-7 ended normally after 45 iterations
+## 
+##   Estimator                                         ML
+##   Optimization method                           NLMINB
+##   Number of free parameters                         18
+##                                                       
+##   Number of observations                           200
+##                                                       
+## Model Test User Model:
+##                                                       
+##   Test statistic                                 4.739
+##   Degrees of freedom                                10
+##   P-value (Chi-square)                           0.908
+## 
+## Parameter Estimates:
+## 
+##   Standard errors                             Standard
+##   Information                                 Expected
+##   Information saturated (h1) model          Structured
+## 
+## Latent Variables:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##   Xi1 =~                                              
+##     x1                1.000                           
+##     x2                0.699    0.108    6.497    0.000
+##     x3                0.846    0.187    4.524    0.000
+##   Eta1 =~                                             
+##     y1                1.000                           
+##     y2                0.914    0.152    6.004    0.000
+##   Eta2 =~                                             
+##     y3                1.000                           
+##     y4                0.815    0.126    6.469    0.000
+## 
+## Regressions:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##   Eta1 ~                                              
+##     Xi1               0.426    0.150    2.834    0.005
+##   Eta2 ~                                              
+##     Xi1               0.643    0.177    3.643    0.000
+##     Eta1              0.455    0.113    4.030    0.000
+## 
+## Covariances:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##  .x1 ~~                                               
+##    .x2                0.409    0.149    2.753    0.006
+## 
+## Variances:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##    .x1                0.992    0.203    4.897    0.000
+##    .x2                1.068    0.153    6.983    0.000
+##    .x3                0.890    0.152    5.846    0.000
+##    .y1                1.020    0.231    4.418    0.000
+##    .y2                0.681    0.186    3.664    0.000
+##    .y3                1.214    0.238    5.098    0.000
+##    .y4                1.142    0.178    6.428    0.000
+##     Xi1               0.832    0.234    3.561    0.000
+##    .Eta1              1.207    0.274    4.410    0.000
+##    .Eta2              0.663    0.216    3.071    0.002</code></pre>
+<p>Besonders von Interesse sind der <span class="math inline">\(\chi^2\)</span>-Wert, die <span class="math inline">\(df\)</span> und der zugehörige <span class="math inline">\(p\)</span>-Wert, die wir auch so erhalten:</p>
+<pre class="r"><code>fitmeasures(fit_H0, c(&quot;chisq&quot;, &#39;df&#39;, &quot;pvalue&quot;))</code></pre>
+<pre><code>##  chisq     df pvalue 
+##  4.739 10.000  0.908</code></pre>
+<p>Außerdem wollen wir zwei fehlspezifizierte Modell betrachten. Unter <code>model_H1_kov</code> speichern wir ein Modell, welches, bis auf die fehlende Fehlerkovarianz, äquivalent zu <code>model_H0</code> ist.</p>
+<pre class="r"><code>model_H1_kov &lt;- &#39;
+# Messmodelle
+Xi1 =~ x1 + x2 + x3
+Eta1 =~ y1 + y2
+Eta2 =~ y3 + y4
+
+# Strukturmodell
+Eta1 ~ Xi1
+Eta2 ~ Xi1 + Eta1
+&#39;</code></pre>
+<pre class="r"><code>semPaths(sem(model_H1_kov, data))</code></pre>
+<p><img src="/post/2021-04-13-Modelfit_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Unter <code>model_H1_Struk</code>speichern wir ein Modell, welches erneut äquivalent zu <code>model_H0</code>ist, bis auf die fehlende gerichtete Beziehung zwischen <span class="math inline">\(\xi_1\)</span> und <span class="math inline">\(\eta_2\)</span>.</p>
+<pre class="r"><code>model_H1_Struk &lt;- &#39;
+# Messmodelle
+Xi1 =~ x1 + x2 + x3
+Eta1 =~ y1 + y2
+Eta2 =~ y3 + y4
+
+# Strukturmodell
+Eta1 ~ Xi1
+Eta2 ~ Eta1
+
+# Fehlerkovarianzen
+x1 ~~ x2
+&#39;</code></pre>
+<pre class="r"><code>semPaths(sem(model_H1_Struk, data))</code></pre>
+<p><img src="/post/2021-04-13-Modelfit_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Hierbei ist die Fehlerkovarianz wegzulassen ein “kleiner” Fehler, während eine vollständige Mediation anzunehmen hier zu einem deutlichen Fehler führen sollte, da in die Fehlervarianz nur zwei Variablen involviert sind, während die gerichtete Beziehung zwischen den beiden latenten Variablen <span class="math inline">\(\xi_1\)</span> und <span class="math inline">\(\eta_2\)</span> mindestens alle manifesten Variabel, die Messungen von <span class="math inline">\(\xi_1\)</span> und <span class="math inline">\(\eta_2\)</span> sind, betrifft. Wir gucken uns den Modellfit für alle drei Modelle an:</p>
+<pre class="r"><code>fit_H1_kov &lt;- sem(model_H1_kov, data)
+fit_H1_Struk &lt;- sem(model_H1_Struk, data)
+
+fitmeasures(fit_H0, c(&quot;chisq&quot;, &#39;df&#39;, &quot;pvalue&quot;))
+fitmeasures(fit_H1_kov, c(&quot;chisq&quot;, &#39;df&#39;, &quot;pvalue&quot;))
+fitmeasures(fit_H1_Struk, c(&quot;chisq&quot;, &#39;df&#39;, &quot;pvalue&quot;))</code></pre>
+<pre><code>## H0:</code></pre>
+<pre><code>##  chisq     df pvalue 
+##  4.739 10.000  0.908</code></pre>
+<pre><code>## H1: Fehlerkovarianz</code></pre>
+<pre><code>##  chisq     df pvalue 
+##  9.474 11.000  0.578</code></pre>
+<pre><code>## H1: Vollständige Mediation</code></pre>
+<pre><code>##  chisq     df pvalue 
+## 23.174 11.000  0.017</code></pre>
+<p>Nun wiederholen wir das ganze für eine größere Stichprobengröße von <span class="math inline">\(n=1000\)</span>.</p>
+<pre class="r"><code>set.seed(123456)
+data &lt;- simulateData(model = pop_model_H0, meanstructure = F, sample.nobs = 1000)
+fit_H0 &lt;- sem(model = model_H0, data = data)
+fit_H1_kov &lt;- sem(model_H1_kov, data)
+fit_H1_Struk &lt;- sem(model_H1_Struk, data)</code></pre>
+<pre class="r"><code>fitmeasures(fit_H0, c(&quot;chisq&quot;, &#39;df&#39;, &quot;pvalue&quot;))
+fitmeasures(fit_H1_kov, c(&quot;chisq&quot;, &#39;df&#39;, &quot;pvalue&quot;))
+fitmeasures(fit_H1_Struk, c(&quot;chisq&quot;, &#39;df&#39;, &quot;pvalue&quot;))</code></pre>
+<pre><code>## H0:</code></pre>
+<pre><code>##  chisq     df pvalue 
+##  9.754 10.000  0.462</code></pre>
+<pre><code>## H1: Fehlerkovarianz</code></pre>
+<pre><code>##  chisq     df pvalue 
+##  22.57  11.00   0.02</code></pre>
+<pre><code>## H1: Vollständige Mediation</code></pre>
+<pre><code>##  chisq     df pvalue 
+## 58.973 11.000  0.000</code></pre>
+<p>Wir sehen, dass das Weglassen der gerichteten Beziehung zu einem größeren mittleren Fehler führt, also zu einem größeren mittleren <span class="math inline">\(\chi^2\)</span>-Wert. Gilt die Null-Hypothese, so sollte der mittlere <span class="math inline">\(\chi^2\)</span>-Wert bei der Anzahl der <span class="math inline">\(df\)</span> liegen. Nun wollen wir uns die mittleren <span class="math inline">\(\chi^2\)</span>-Werte ansehen für verschiedene <span class="math inline">\(n\)</span>. Da diese Simulation länger dauern würde, schauen wir uns nur die Ergebnisse an:</p>
+<center>
+<img src="https://raw.githubusercontent.com/martscht/PsyMSc1/master/inst/tutorials/SEM/images/chi2_vs_n.png" width="100%"/>
+</center>
+<p>Wir sehen deutlich, dass in beiden <span class="math inline">\(H_1\)</span>-Bedingungen der mittlere <span class="math inline">\(\chi^2\)</span>-Wert mit der Stichprobengröße wächst. Nur in der <span class="math inline">\(H_0\)</span>-Bedingung pendelt sich der mittlere <span class="math inline">\(\chi^2\)</span>-Wert gerade bei den <span class="math inline">\(df\)</span> ein. Die gestrichelte Linie repräsentiert den <span class="math inline">\(\chi^2_\text{krit}(df=11)\)</span>, somit ist ersichtlich, dass beide <span class="math inline">\(H_1\)</span>-Modelle ab einer gewissen Stichprobengröße verworfen werden. Nun ist es aber so, dass in der Wissenschaft Daten häufig nicht perfekt vorliegen, sondern kleine Fehlspezifikationen (also Abweichungen von der Theorie, die aber an sich nicht bedeutsam sind) vorhanden sind. Aus diesem Grund wurden Fit-Indizes entwickelt, welche kleine Fehlspezifikationen relativieren sollen. Ansonsten würde das Verhalten dieses Tests die Wissenschaft dazu bringen kleinere Stichproben zu untersuchen, was allerdings das Aufdecken von Effekten erschwert. Um diesem Dilemma aus dem Weg zu gehen, wird auf die Fit-Indizes zurückgegriffen.</p>
+<p>Beispielhaft gucken wir uns nun das Verhalten des <span class="math inline">\(CFI\)</span> und des <span class="math inline">\(RMSEA\)</span> an. Die Definition des <span class="math inline">\(CFI\)</span> ist:
+<span class="math display">\[CFI:= 1- \frac{\max(\chi^2_t-df_t,0)}{\max(\chi^2_t-df_t,\chi^2_i-df_i,0)},\]</span></p>
+wobei die Subskripts <span class="math inline">\(t\)</span> und <span class="math inline">\(i\)</span> für das <span class="math inline">\(target\)</span>-Modell, also unser Modell und das <span class="math inline">\(independence\)</span>-Modell stehen, welches keine Beziehung zwischen den manifesten Variablen annimmt (das Unabhängigkeitsmoell, also das am schlechtesten passende Modell). Einen Ausdruck wie <span class="math inline">\(\max(\chi^2_t-df_t,0)\)</span> bzw. <span class="math inline">\(\max(\chi^2_t-df_t,\chi^2_i-df_i,0)\)</span> oder einfacher <span class="math inline">\(\max(a,0)\)</span> bzw. <span class="math inline">\(\max(a,b,0)\)</span> lesen wir so: hier wird das Maximum zwischen 2 bzw. 3 Ausdrücken bestimmt und damit weitergerechnet; dadurch, dass einer der 2 bzw. 3 Ausdrücke gerade die 0 ist, bedeutet dies, dass dieses Maximum immer größer oder gleich 0 sein wird (<span class="math inline">\(\ge0\)</span>).
+Der <span class="math inline">\(CFI\)</span> ist ein Vergleich zwischen dem schlechtesten und dem betrachteten Modell. Der mittlere <span class="math inline">\(CFI\)</span> unter der <span class="math inline">\(H_0\)</span>-Hypothese sollte bei 1 liegen für große <span class="math inline">\(n\)</span>, da für große <span class="math inline">\(n\)</span> der <span class="math inline">\(\chi^2\)</span>-Wert im Mittel bei den <span class="math inline">\(df\)</span> liegt und somit <span class="math inline">\(\chi^2_t-df_t=0\)</span>, also der Bruch im Mittel bei 0 liegt (somit wird von der 1 im Mittel nichts abgezogen unter der <span class="math inline">\(H_0\)</span>). Dies erkennen wir in der Grafik daran, dass im <span class="math inline">\(H_0\)</span>-Modell der mittlere <span class="math inline">\(CFI\)</span>-Wert gegen 1 geht (dies bedeutet gleichzeitig, dass kleine <span class="math inline">\(CFI\)</span>s gerade für einen schlechten Fit sprechen!):
+<center>
+<img src="https://raw.githubusercontent.com/martscht/PsyMSc1/master/inst/tutorials/SEM/images/CFI_vs_n.png" width="100%"/>
+</center>
+<p>Der <span class="math inline">\(RMSEA\)</span> wird wie folgt definiert
+<span class="math display">\[RMSEA:= \sqrt{\max\left(\frac{F(S,\hat{\Sigma}_M)}{df}-\frac{1}{n-1}, 0\right)}.\]</span>
+und ist die mittlere Abweichung pro Freiheitsgrad kontrolliert für die Stichprobengröße. Der mittlere <span class="math inline">\(RMSEA\)</span> unter der <span class="math inline">\(H_0\)</span>-Hypothese sollte bei 0 liegen für große <span class="math inline">\(n\)</span>, da für große <span class="math inline">\(n\)</span>, <span class="math inline">\(F(S,\hat{\Sigma}_M)\)</span> nahe 0 liegt (das hatten wir weiter oben bereits disskutiert, als es darum ging, dass unter <span class="math inline">\(H_0\)</span> gilt: <span class="math inline">\(F(S,\hat{\Sigma}_M)\to0\)</span>) und damit <span class="math inline">\(\frac{F(S,\hat{\Sigma}_M)}{df}-\frac{1}{n-1} &lt; 0\)</span> also negativ ist. Das Maximum wiederum zwischen einer negativen Zahl und 0 liegt gerade bei 0. In der Grafik erkennen wir dies daran, dass der mittlere <span class="math inline">\(RMSEA\)</span>-Wert des <span class="math inline">\(H_0\)</span>-Modells gegen 0 geht (dies bedeutet gleichzeitig, dass große <span class="math inline">\(RMSEA\)</span>s gerade für einen schlechten Fit sprechen!):</p>
+<center>
+<img src="https://raw.githubusercontent.com/martscht/PsyMSc1/master/inst/tutorials/SEM/images/RMSEA_vs_n.png" width="100%"/>
+</center>
+<p>Der <span class="math inline">\(CFI\)</span> sowie der <span class="math inline">\(RMSEA\)</span> pendeln sich für die <span class="math inline">\(H_1\)</span>-Modelle gerade bei den “wahren” Abweichungen des Modells unabhängig von der Stichprobengröße ein. Somit ist ersichtlich, dass dies nicht die tatsächlichen Modelle sind, welche den Daten zugrunde liegen, aber zumindest wird quantifiziert, wie stark diese Modelle vom wahren Modell abweichen — unabhängig von der Stichprobengröße.
+Die gestrichelten Linien geben jeweils die Grenze an, ab welchem Wert nicht mehr von einem “guten” Fit gesprochen werden sollte: <span class="math inline">\(CFI &lt; .97\)</span> und <span class="math inline">\(RMSEA &gt; .05\)</span> (Schermelleh-Engel et al., 2003).
+Die Abweichungen von 0 bzw. 1 beim <span class="math inline">\(RMSEA\)</span> sowie bei <span class="math inline">\(CFI\)</span> sind allerdings nur für eines der beiden <span class="math inline">\(H_1\)</span> Modelle “extrem”. Nur in diesem würde von keinem guten Fit mehr gesprochen werden: nämlich beim Modell, in welchem fälschlicherweise eine vollständige Mediation angenommen wird (keine gerichtete Beziehung zwischen <span class="math inline">\(\xi_1\)</span> und <span class="math inline">\(\eta_2\)</span>). Allerdings sind diese Cut-Off-Werte, die von Schermelleh-Engel et al. (2003) postuliert wurden, keine in Stein gemeiselten Größen sondern Richtwerte. Schermelleh-Engel et al. haben ein ganz bestimmtest SEM herangezogen und haben sich dann angeschaut, ab wann die Fit-Indizes so stark vom erwarteten Wert unter der <span class="math inline">\(H_0\)</span>-Hypothese abweichen, als das nicht mehr von einem guten Modellfit gesprochen werden kann. Auch andere Autoren wie etwa Hu und Bentler (1999) haben solche Fit-Kriterien postuliert. Allerdings haben auch diese Autoren spezielle Modelle herangezogen und an diesen Cut-Off Werte abgeleitet. Diese Kriterien mögen für viele Modelle “ganz gut” passen, allerdings besteht immer die Möglichkeit, dass sie ggf. für bestimmte Modelle oder Stichprobengröße zu konservativ oder zu liberal sind. Aus diesem Grund wurde das <code>R</code>-Paket <code>ezCutoffs</code> entwickelt, welches simulationsbasierte Cut-Kriterien speziell angepasst an das vorliegende Modell berechnet. Dieses Paket wurde in der Sitzung zu <a href="/post/sem">Pfadanalysen und SEM</a> kurz vorgestellt.</p>
+<div id="literatur" class="section level2">
+<h2>Literatur</h2>
+<p>Hu, L. T., &amp; Bentler, P. M. (1999). Cutoff criteria for fit indexes in covariance structure analysis: Conventional criteria versus new alternatives. <em>Structural Equation Modeling: A Multidisciplinary Journal, 6</em>(1), 1-55.</p>
+<p>Schermelleh-Engel, K., Moosbrugger, H., &amp; Müller, H. (2003). Evaluation the fit of structural equation models: tests of significance and descriptive goodness-of-fit measures. <em>Methods of Psychological Research Online,</em> <em>8</em>(2), 23-74.</p>
+</div>
