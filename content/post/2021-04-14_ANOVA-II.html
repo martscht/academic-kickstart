@@ -1,0 +1,620 @@
+---
+title: "ANOVA II: zweifaktorielle ANOVA"
+date: '2021-03-30'
+slug: zweifaktorielle-ANOVA
+categories:
+  - BSc7
+tags:
+  - ANOVA
+  - zweifaktoriell
+  - Interaktion
+  - Haupteffekt
+  - Mittelwertsvergleiche
+  - Normalverteilung
+subtitle: '2-fakt. ANOVA'
+summary: ''
+authors: [irmer,schultze]
+lastmod: '2021-04-14T08:32:21+02:00'
+featured: no
+header:
+  image: "/header/PsyBSc7_ANOVA2.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/1293359)"
+projects: []
+---
+
+
+
+<p>In der letzten Sitzung haben wir die einfaktorielle Varianzanalyse behandelt. Die spezifische Benennung als <em>einfaktoriell</em> verdeutlicht schon, dass wir hier ansetzen und Erweiterungen vornehmen können. In dieser Sitzung geht es vor allem um die <em>zweifaktorielle</em> Varianzanalyse. Ziel dieser Analyse ist es gleichzeitig Gruppenunterschiede auf mehreren (um genau zu sein 2 im zweifaktoriellen Fall) Variablen zu untersuchen und dabei zu überprüfen, ob Kombinationen von Gruppen besondere Auswirkungen haben. Für weitere Inhalte siehe bspw. auch <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, Gollwitzer und Schmitt (2017, Kapitel 13 und insb. 13.2 und folgend)</a>.</p>
+<p>Wir arbeiten wieder mit dem <code>conspiracy</code> Datensatz. Sie können den im Folgenden verwendeten <a href="https://pandar.netlify.app/post/conspiracy.rda"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> Datensatz “conspiracy.rda” hier herunterladen</a>.</p>
+<div id="daten-laden" class="section level3">
+<h3>Daten laden</h3>
+<p>Wir laden zunächst die Daten: entweder lokal von Ihrem Rechner:</p>
+<pre class="r"><code>load(&quot;C:/Users/Musterfrau/Desktop/conspiracy.rda&quot;)</code></pre>
+<p>oder wir laden sie direkt über die Website:</p>
+<pre class="r"><code>load(url(&quot;https://pandar.netlify.app/post/conspiracy.rda&quot;))</code></pre>
+<p>Eine kurze Übersicht über den Datensatz zeigt:</p>
+<pre class="r"><code>dim(conspiracy)</code></pre>
+<pre><code>## [1] 2451    9</code></pre>
+<p>Der Datensatz enthält die Werte von 2451 Personen auf 9 Variablen.</p>
+<pre class="r"><code>head(conspiracy)</code></pre>
+<pre><code>##              edu    urban gender age       GM       MG       ET       PW
+## 2     highschool suburban female  14 4.000000 5.000000 4.666667 3.333333
+## 3        college suburban female  26 2.000000 4.000000 1.500000 2.000000
+## 4        college    rural   male  25 5.000000 4.333333 1.000000 3.333333
+## 5 not highschool suburban   male  37 5.000000 4.333333 2.333333 3.333333
+## 6        college    rural   male  34 1.000000 1.000000 1.000000 1.000000
+## 7 not highschool suburban   male  17 3.333333 2.666667 3.000000 2.666667
+##         CI
+## 2 4.666667
+## 3 3.333333
+## 4 4.666667
+## 5 4.666667
+## 6 1.000000
+## 7 3.666667</code></pre>
+<p>Er stammt aus einer Untersuchung zum Thema verschwörungstheoretische Überzegungen. Die ersten vier Variablen enthalten Informationen über den demographischen Hintergrund der Personen: höchster Bildungsabschluss, Typ des Wohnortes, Geschlecht und Alter. Die fünf restlichen Variablen sind Skalenwerte bezüglich verschiedener subdimensionen verschwörungstheoretischer Überzeugungen: GM (goverment malfeasance), MG (malevolent global conspiracies), ET (extraterrestrial cover-up), PW (personal well-being) und CI (control of information).</p>
+</div>
+<div id="einfaktorielle-anova" class="section level2">
+<h2>Einfaktorielle ANOVA</h2>
+<p>In der letzten Sitzung zeigte sich, dass die Überzeugung, dass die Existenz von Außerirdischen durch eine globale Verschwörung verdeckt wird (<code>ET</code>), von dem höchsten Bildungsabschluss (<code>edu</code>) und von der Art des Wohngebiets (<code>urban</code>) abhängig ist. Zur Berechnung der einfaktoriellen ANOVAs wurde das <code>ez</code>-Paket verwendet. Dieses Paket brauchen wir weiterhin:</p>
+<pre class="r"><code>library(ez)</code></pre>
+<p>Wie schon in der letzten Sitzung, ist es zunächst erforderlich eine Personen-ID zu erzeugen. In diesem Fall kann einfach die Zeilennummer einer Person genutzt werden:</p>
+<pre class="r"><code>conspiracy$id &lt;- as.factor(1:nrow(conspiracy))</code></pre>
+<p>Wir führen zur kurzen Wiederholung noch einmal die einfaktorielle ANOVA bezüglich des Wohnortes durch, um uns zu vergegenwärtigen, wie der <code>ezANOVA</code>-Befehl funktioniert! Der <code>ezANOVA</code> Befehl, um eine einfaktorielle ANOVAs durchzuführen, braucht vier Argumente: <code>data</code> übergeben wir unseren Datensatz (<code>data = conspiracy</code>), <code>wid</code> kennzeichnet den Within-Identifier, eine Personen ID Variable, weswegen wir diesem Argument unsere ID-Variable übergeben (<code>wid = id</code>), <code>dv</code> steht für “Dependent Variable”, also abhängige Variable, weswegen wir hier die Überzeugung, dass die Existenz von Außerirdischen durch eine globale Verschwörung verdeckt wird, übergeben (<code>dv = ET</code>), <code>between</code> ist die unabhängige Variable, die zwischen Personen unterscheidet, also die Gruppierungsvariable für deren Effekt wir uns interessieren, hier die Art des Wohngebiets (<code>between = urban</code>).</p>
+<pre class="r"><code>ezANOVA(data = conspiracy, wid = id, dv = ET, between = urban)</code></pre>
+<pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
+## well-considered value for the type argument to ezANOVA().</code></pre>
+<pre><code>## Coefficient covariances computed by hccm()</code></pre>
+<pre><code>## $ANOVA
+##   Effect DFn  DFd        F          p p&lt;.05         ges
+## 1  urban   2 2448 3.434118 0.03240931     * 0.002797802
+## 
+## $`Levene&#39;s Test for Homogeneity of Variance`
+##   DFn  DFd     SSn      SSd        F         p p&lt;.05
+## 1   2 2448 3.62836 1752.977 2.533469 0.0795913</code></pre>
+<p>Die Ergebnisse zeigen, dass die Annahme der Homoskedastizität nicht verworfen werden muss und dass es bedeutsame Unterschiede zwischen verschiedenen Wohnorten hinsichtlich der verschwörungstheoretischen Überzeugung gibt, dass die Existenz Außerirdischer absichtlich verschleiert wird.</p>
+<p>Die Ergebnisse aus den Übungsaufgaben ergaben bezüglich des Bildungabschlusses:</p>
+<pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
+## well-considered value for the type argument to ezANOVA().</code></pre>
+<pre><code>## Coefficient covariances computed by hccm()</code></pre>
+<pre><code>## $ANOVA
+##   Effect DFn  DFd        F            p p&lt;.05
+## 1    edu   2 2448 37.10788 1.329579e-16     *
+## 
+## $`Levene&#39;s Test for Homogeneity of Variance`
+##   DFn  DFd     SSn     SSd        F            p p&lt;.05
+## 1   2 2448 33.5895 1808.96 22.72773 1.659556e-10     *</code></pre>
+<p>Hier musste die Annahme der Homoskedastizität verworfen werden, sodass eine Adjustierung der Inferenzstatistik durchgeführt werden sollte (<code>white.adjust = TRUE</code>). In beiden Fällen erhalten wir das generalisierte <span class="math inline">\(\eta^2\)</span>, also einen Schätzer der Effektstärke. Um dies in der Skala der ursprünglichen Variablen zu interpretieren, können wir uns rein deskriptiv die gruppenspezifischen Mittelwerte angucken. Dazu kann mit einer Vielzahl von Funktionen gearbeitet werden. Eine gängige Variante ist der <code>tapply</code>-Befehl:</p>
+<pre class="r"><code>tapply(X = conspiracy$ET, INDEX = conspiracy$urban, FUN = mean)</code></pre>
+<pre><code>##    rural suburban    urban 
+## 2.194386 2.150963 2.307286</code></pre>
+<pre class="r"><code>tapply(X = conspiracy$ET, INDEX = conspiracy$edu, FUN = mean)</code></pre>
+<pre><code>## not highschool     highschool        college 
+##       2.369340       2.443033       1.937717</code></pre>
+<p>Dieser Funktion muss jeweils die Daten (<code>X</code>), ein Index für Gruppierung (<code>INDEX</code>) sowie eine Funktion die auf die Subgruppen angewendet werden soll (<code>FUN</code>, hier, der Mittelwert, deshalb <code>FUN = mean</code>), übergeben werden. Es gibt jedoch noch unzählbar viele andere Wege zum selben Ergebnis zu kommen. Hier einige Beispiele:</p>
+<pre class="r"><code># Mithilfe des aggregate-Befehls
+aggregate(ET ~ urban, data = conspiracy, mean)</code></pre>
+<pre><code>##      urban       ET
+## 1    rural 2.194386
+## 2 suburban 2.150963
+## 3    urban 2.307286</code></pre>
+<pre class="r"><code>aggregate(ET ~ edu, data = conspiracy, mean)</code></pre>
+<pre><code>##              edu       ET
+## 1 not highschool 2.369340
+## 2     highschool 2.443033
+## 3        college 1.937717</code></pre>
+<pre class="r"><code># Mithilfe des aggregate-Befehls mit anderer Schreibweise (wie bei tapply)
+aggregate(conspiracy$ET, list(conspiracy$urban), mean)</code></pre>
+<pre><code>##    Group.1        x
+## 1    rural 2.194386
+## 2 suburban 2.150963
+## 3    urban 2.307286</code></pre>
+<pre class="r"><code>aggregate(conspiracy$ET, list(conspiracy$edu), mean)</code></pre>
+<pre><code>##          Group.1        x
+## 1 not highschool 2.369340
+## 2     highschool 2.443033
+## 3        college 1.937717</code></pre>
+<pre class="r"><code># Mithilfe des describeBy-Befehls aus dem psych-Paket
+library(psych)
+describeBy(conspiracy$ET, conspiracy$urban)</code></pre>
+<pre><code>## 
+##  Descriptive statistics by group 
+## group: rural
+##    vars   n mean   sd median trimmed  mad min max range skew kurtosis   se
+## X1    1 475 2.19 1.32   1.67    2.02 0.99   1   5     4 0.74    -0.81 0.06
+## ------------------------------------------------------------ 
+## group: suburban
+##    vars    n mean  sd median trimmed  mad min max range skew kurtosis   se
+## X1    1 1125 2.15 1.3   1.67    1.97 0.99   1   5     4 0.81    -0.65 0.04
+## ------------------------------------------------------------ 
+## group: urban
+##    vars   n mean   sd median trimmed  mad min max range skew kurtosis   se
+## X1    1 851 2.31 1.36      2    2.15 1.48   1   5     4 0.62    -0.98 0.05</code></pre>
+<pre class="r"><code>describeBy(conspiracy$ET, conspiracy$edu)</code></pre>
+<pre><code>## 
+##  Descriptive statistics by group 
+## group: not highschool
+##    vars    n mean   sd median trimmed  mad min max range skew kurtosis   se
+## X1    1 1060 2.37 1.36      2    2.23 1.48   1   5     4 0.54    -1.07 0.04
+## ------------------------------------------------------------ 
+## group: highschool
+##    vars   n mean   sd median trimmed  mad min max range skew kurtosis   se
+## X1    1 433 2.44 1.36   2.33    2.32 1.98   1   5     4 0.48    -1.11 0.07
+## ------------------------------------------------------------ 
+## group: college
+##    vars   n mean   sd median trimmed  mad min max range skew kurtosis   se
+## X1    1 958 1.94 1.22   1.33    1.72 0.49   1   5     4 1.11    -0.01 0.04</code></pre>
+</div>
+<div id="deskriptive-darstellung-der-kombinationen" class="section level2">
+<h2>Deskriptive Darstellung der Kombinationen</h2>
+<p>In der mehrfaktoriellen ANOVA steht nicht nur der Vergleich von Gruppen anhand <em>einer</em> unabhängigen Variable im Mittelpunkt, sondern der Fokus liegt auf der <em>Kombination von Gruppierungen</em> anhand mehrerer unabhängiger Variablen. Deksriptiv können die Mittelwerte aus Gruppenkombinationen ebenfalls mit der <code>tapply</code>-Funktion bestimmt werden:</p>
+<pre class="r"><code># Gruppierungskombinationen erstellen
+kombi &lt;- conspiracy[, c(&#39;urban&#39;, &#39;edu&#39;)]
+
+# Kombinationsspezifische Mittelwertetabelle
+tapply(X = conspiracy$ET, INDEX = kombi, FUN = mean)</code></pre>
+<pre><code>##           edu
+## urban      not highschool highschool  college
+##   rural          2.402778   2.333333 1.911458
+##   suburban       2.244748   2.382902 1.914868
+##   urban          2.510870   2.601990 1.979465</code></pre>
+<p>Im <code>ez</code>-Paket sind neben den Funktionen zur direkten Berechnung von Varianzanalysen auch einige zusätzliche Hilfefunktionen integriert. Dazu gehört die <code>ezStats</code>-Funktion, die die Darstellung von Gruppengrößen, Mittelwerten und Standardabweichungen innerhalb der einzelnen Gruppenkombinationen erlaubt. Die Argumente, die diese Funktion erwartet sind analog zu denen in der <code>ezANOVA</code>-Funktion:</p>
+<ul>
+<li><code>data =</code>: der genutzte Datensatz</li>
+<li><code>wid =</code>: eine Personen ID-Variable</li>
+<li><code>dv =</code>: die abhängige Variable (dependent variable)</li>
+<li><code>between =</code>: eine Gruppierungsvariable (die <em>zwischen</em> Personen unterscheidet)</li>
+</ul>
+<p>Um mehrere Variablen als unabhängige Variablen zu deklarieren, kann mit dem <code>c()</code> ein Vektor eröffnet werden, der an das Argument <code>between</code> weitergegeben wird.</p>
+<pre class="r"><code>ezStats(conspiracy, dv = ET, wid = id, between = c(urban, edu))</code></pre>
+<pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
+## well-considered value for the type argument to ezANOVA().</code></pre>
+<pre><code>## Coefficient covariances computed by hccm()</code></pre>
+<pre><code>## Warning in ezStats(conspiracy, dv = ET, wid = id, between = c(urban, edu)):
+## Unbalanced groups. Mean N will be used in computation of FLSD</code></pre>
+<pre><code>##      urban            edu   N     Mean       SD      FLSD
+## 1    rural not highschool 216 2.402778 1.376271 0.2195306
+## 2    rural     highschool  67 2.333333 1.363300 0.2195306
+## 3    rural        college 192 1.911458 1.181458 0.2195306
+## 4 suburban not highschool 476 2.244748 1.324632 0.2195306
+## 5 suburban     highschool 232 2.382902 1.341716 0.2195306
+## 6 suburban        college 417 1.914868 1.217532 0.2195306
+## 7    urban not highschool 368 2.510870 1.391729 0.2195306
+## 8    urban     highschool 134 2.601990 1.373747 0.2195306
+## 9    urban        college 349 1.979465 1.249384 0.2195306</code></pre>
+<p>Neben <span class="math inline">\(N\)</span>, <span class="math inline">\(\bar{X}\)</span> und <span class="math inline">\(\hat{\sigma}\)</span> wird in der Ausgabe auch Fisher’s Least Significant Difference (FLSD) ausgegeben. Diese kennzeichnet den minimalen Mittelwertsunterschied, der im direkten Vergleich zweier Gruppen signifikant wäre. Schon an dieser Stelle werden wir von <code>ez</code> darauf hingewiesen, dass die Gruppen ungleich groß sind und dies in der ANOVA zu Problemen führen könnte.</p>
+<p>Für eine grafische Darstellung der Mittelwerte, kann <code>ezPlot</code> benutzt werden. Der Befehl nimmt die gleichen Argumente entgegen wie <code>ezStats</code>, benötigt aber zusätzlich eine Aussage darüber, welche Variable auf der x-Achse abgetragen werden soll (<code>x =</code>) und welche Variable farblich unterschieden werden soll (<code>split =</code>). Mit dieser Funktion wird dann ein <code>ggplot</code> erstellt. Diesen könnten Sie mit dem, was wir in der <a href="/post/grafiken-mit-ggplot2">Sitzung zu <code>ggplot2</code></a> besprochen haben auch händisch erstellen! <code>ezPlot</code> nimmt Ihnen hier aber ein wenig Arbeit ab:</p>
+<pre class="r"><code>ezPlot(conspiracy, dv = ET, wid = id, between = c(urban, edu),
+  x = urban, split = edu)</code></pre>
+<pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
+## well-considered value for the type argument to ezANOVA().</code></pre>
+<pre><code>## Coefficient covariances computed by hccm()</code></pre>
+<pre><code>## Warning in ezStats(data = data, dv = dv, wid = wid, within = within, within_full
+## = within_full, : Unbalanced groups. Mean N will be used in computation of FLSD</code></pre>
+<p><img src="/post/2021-04-14_ANOVA-II_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Die FLSD wird hier in Form von Error-Bars dargestellt - durch diese kann also abgeschätzt werden, welche Mittelwerte sich statistisch bedeutsam unterscheiden.</p>
+</div>
+<div id="zweifaktorielle-varianzanalyse" class="section level2">
+<h2>Zweifaktorielle Varianzanalyse</h2>
+<p>Mithilfe der zweifaktoriellen Varianzanalyse können drei zentralen Fragen beantwortet werden (<a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid et al., 2017</a>, S. 432):</p>
+<ol style="list-style-type: decimal">
+<li>Lassen sich Unterschiede in der AV auf Unterschiede in der 1. UV zurückführen? (Haupteffekt 1, manchmal auch Haupteffekt Faktor A)</li>
+<li>Lassen sich Unterschiede in der AV auf Unterschiede in der 2. UV zurückführen? (Haupteffekt 2, manchmal auch Haupteffekt Faktor B)</li>
+<li>Hängt der Einfluss der 1. UV auf die AV von der 2. UV ab, bzw. hängt der Einfluss der 2. UV von der 1. UV ab? (Interaktionseffekt, manchmal auch Interaktionseffekt A*B)</li>
+</ol>
+<p>Im Beispiel wären die Fragen also:</p>
+<ol style="list-style-type: decimal">
+<li>Lassen sich Unterschiede in der ET-Überzeugung (<code>ET</code>) auf die Art des Wohnorts (<code>urban</code>) zurückführen?</li>
+<li>Lassen sich Unterschiede in der ET-Überzeugung (<code>ET</code>) auf das Bildungsniveau (<code>edu</code>) zurückführen?</li>
+<li>Unterschieden sich die Unterschiede aufgrund der Art des Wohnorts (<code>urban</code>) zwischen den Bildungsniveaus (<code>edu</code>)?</li>
+</ol>
+<p>Deskriptiv lässt sich ein Hinweis auf eine Antwort zur 3. Frage in der Abbildung der Mittelwerte darin erkennen, dass innerhalb der Gruppe mit ländlichem Wohnort (<code>rural</code>) Personen ohne Highschool Abschluss eine höhere verschwörungstheoretische Überzeugung aufweisen als Personen mit höheren Bildungsabschlüssen, wohingegen sie in den beiden anderen Wohnort-Gruppen einen niedrigeren ET-Wert aufweisen als Personen mit Highschool Abschluss.</p>
+<p>Etwas technischer Ausgedrückt, lassen sich die drei Fragen in Hypothesenpaaren formulieren (<a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid et al., 2017</a>, S. 442):</p>
+<ol style="list-style-type: decimal">
+<li><span class="math inline">\(H_0: \mu_{j \bullet} - \mu = 0\)</span>, <span class="math inline">\(H_1: \mu_{j \bullet} - \mu \neq 0\)</span></li>
+<li><span class="math inline">\(H_0: \mu_{\bullet k} - \mu = 0\)</span>, <span class="math inline">\(H_1: \mu_{\bullet k} - \mu \neq 0\)</span></li>
+<li><span class="math inline">\(H_0: \mu_{jk} - \mu_{j \bullet} - \mu_{\bullet k} + \mu = 0\)</span>, <span class="math inline">\(H_0: \mu_{jk} - \mu_{j \bullet} - \mu_{\bullet k} + \mu \neq 0\)</span></li>
+</ol>
+<p>Die drei Nullhypothesen werden in der zweifaktoriellen ANOVA geprüft. Die für <code>ezStats</code> genutzten Argumente können auch für <code>ezANOVA</code> benutzt werden. Um eine etwas detailliertere Ausgabe zu erhalten, kann zudem <code>detailed = TRUE</code> gesetzt werden.</p>
+<pre class="r"><code>ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), detailed = TRUE)</code></pre>
+<pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
+## well-considered value for the type argument to ezANOVA().</code></pre>
+<pre><code>## Coefficient covariances computed by hccm()</code></pre>
+<pre><code>## $ANOVA
+##      Effect DFn  DFd        SSn      SSd         F            p p&lt;.05
+## 1     urban   2 2442  15.286269 4167.541  4.478549 1.144325e-02     *
+## 2       edu   2 2442 124.645422 4167.541 36.518431 2.359355e-16     *
+## 3 urban:edu   4 2442   5.704855 4167.541  0.835700 5.023239e-01      
+##           ges
+## 1 0.003654530
+## 2 0.029040076
+## 3 0.001367007
+## 
+## $`Levene&#39;s Test for Homogeneity of Variance`
+##   DFn  DFd      SSn      SSd        F            p p&lt;.05
+## 1   8 2442 35.01704 2002.067 5.338958 1.141927e-06     *</code></pre>
+<p>Der Levene Test fällt in diesem Fall statistisch bedeutsam aus, sodass die Homoskedastizitätsannahme (in diesem Fall: die Varianz ist in allen 9 Gruppen identisch) verworfen werden muss. <code>ezANOVA</code> liefert eine eingebaute Korrekturmöglichkeit (HC3 von MacKinnon &amp; White, 1985), die mithilfe <code>white.adjust = TRUE</code> angefordert werden kann.</p>
+<pre class="r"><code>ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), detailed = TRUE, white.adjust = TRUE)</code></pre>
+<pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
+## well-considered value for the type argument to ezANOVA().</code></pre>
+<pre><code>## Coefficient covariances computed by hccm()</code></pre>
+<pre><code>## $ANOVA
+##      Effect DFn  DFd         F            p p&lt;.05
+## 1     urban   2 2442  4.030804 1.787834e-02     *
+## 2       edu   2 2442 37.575166 8.460068e-17     *
+## 3 urban:edu   4 2442  0.836493 5.018262e-01      
+## 
+## $`Levene&#39;s Test for Homogeneity of Variance`
+##   DFn  DFd      SSn      SSd        F            p p&lt;.05
+## 1   8 2442 35.01704 2002.067 5.338958 1.141927e-06     *</code></pre>
+<p>In diesem Fall werden beide Haupteffekte statistisch bedeutsam, die Interaktion allerdings nicht. Inhaltlich heißt das, dass sowohl die Art des Wohnorts als auch das Bildungsniveau einen Einfluss auf die verschwörungstheoretische Überzeugung haben. Über die jeweiligen Effekte hinaus, ist die spezifische Kombination aus Wohnort und Bildungsniveau für diese Überzeugung irrelevant.</p>
+<p>Wenn Interaktionen von 0 verschieden sind, wird davon abgeraten die Haupteffekte zu interpretieren. Ähnliches hatten wir bemerkt, als wir die <a href="quadratische-und-moderierte-regression">quadratische und moderierte Regression</a> kennengelernt hatten. Hier war es auch wenig sinnvoll den linearen Effekt ohne den quadratischen zu interpretieren, bzw. den Effekt des Prädiktors unabhängig vom Moderator zu interpretieren — genauso ist es hier auch!</p>
+<p>Welche unterschiedlichen Kombinationen an Signifikanzen und was diese schematisch bedeuten, kann bspw. in <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid et al. (2017</a>, p. 436, Abbildung 13.6) nachgelesen werden.</p>
+</div>
+<div id="post-hoc-analyse-und-kontraste" class="section level2">
+<h2>Post-Hoc Analyse und Kontraste</h2>
+<div id="alle-gruppenvergleiche" class="section level3">
+<h3>Alle Gruppenvergleiche</h3>
+<p>Mit Tukeys Honest Significant Difference können, wie auch letzte Sitzung, alle möglichen Gruppenkombinationen verglichen werden.</p>
+<pre class="r"><code>TukeyHSD(aov(ET ~ urban*edu, conspiracy))</code></pre>
+<pre><code>##   Tukey multiple comparisons of means
+##     95% family-wise confidence level
+## 
+## Fit: aov(formula = ET ~ urban * edu, data = conspiracy)
+## 
+## $urban
+##                      diff         lwr       upr     p adj
+## suburban-rural -0.0434230 -0.21106066 0.1242147 0.8160596
+## urban-rural     0.1128996 -0.06256717 0.2883663 0.2868556
+## urban-suburban  0.1563226  0.01713930 0.2955059 0.0230965
+## 
+## $edu
+##                                  diff         lwr        upr    p adj
+## highschool-not highschool  0.08171642 -0.09301366  0.2564465 0.516161
+## college-not highschool    -0.43415436 -0.57072569 -0.2975830 0.000000
+## college-highschool        -0.51587078 -0.69327810 -0.3384635 0.000000
+## 
+## $`urban:edu`
+##                                                      diff         lwr
+## suburban:not highschool-rural:not highschool -0.158029879 -0.49075525
+## urban:not highschool-rural:not highschool     0.108091787 -0.23953951
+## rural:highschool-rural:not highschool        -0.069444444 -0.63658691
+## suburban:highschool-rural:not highschool     -0.019875479 -0.40334545
+## urban:highschool-rural:not highschool         0.199212272 -0.24677039
+## rural:college-rural:not highschool           -0.491319444 -0.89358775
+## suburban:college-rural:not highschool        -0.487909672 -0.82790283
+## urban:college-rural:not highschool           -0.423312639 -0.77442641
+## urban:not highschool-suburban:not highschool  0.266121666 -0.01539691
+## rural:highschool-suburban:not highschool      0.088585434 -0.44061752
+## suburban:highschool-suburban:not highschool   0.138154400 -0.18658306
+## urban:highschool-suburban:not highschool      0.357242151 -0.03937571
+## rural:college-suburban:not highschool        -0.333289566 -0.68002431
+## suburban:college-suburban:not highschool     -0.329879794 -0.60191020
+## urban:college-suburban:not highschool        -0.265282761 -0.55109052
+## rural:highschool-urban:not highschool        -0.177536232 -0.71623569
+## suburban:highschool-urban:not highschool     -0.127967266 -0.46796103
+## urban:highschool-urban:not highschool         0.091120485 -0.31808248
+## rural:college-urban:not highschool           -0.599411232 -0.96047401
+## suburban:college-urban:not highschool        -0.596001460 -0.88607366
+## urban:college-urban:not highschool           -0.531404427 -0.83443481
+## suburban:highschool-rural:highschool          0.049568966 -0.51292443
+## urban:highschool-rural:highschool             0.268656716 -0.33817945
+## rural:college-rural:highschool               -0.421875000 -0.99734818
+## suburban:college-rural:highschool            -0.418465228 -0.95226757
+## urban:college-rural:highschool               -0.353868195 -0.89482150
+## urban:highschool-suburban:highschool          0.219087751 -0.22096767
+## rural:college-suburban:highschool            -0.471443966 -0.86713075
+## suburban:college-suburban:highschool         -0.468034193 -0.80021425
+## urban:college-suburban:highschool            -0.403437160 -0.74699082
+## rural:college-urban:highschool               -0.690531716 -1.14706139
+## suburban:college-urban:highschool            -0.687121944 -1.08985622
+## urban:college-urban:highschool               -0.622524911 -1.03469045
+## suburban:college-rural:college                0.003409772 -0.35030503
+## urban:college-rural:college                   0.068006805 -0.29641011
+## urban:college-suburban:college                0.064597033 -0.22963969
+##                                                      upr     p adj
+## suburban:not highschool-rural:not highschool  0.17469549 0.8674832
+## urban:not highschool-rural:not highschool     0.45572308 0.9888501
+## rural:highschool-rural:not highschool         0.49769802 0.9999880
+## suburban:highschool-rural:not highschool      0.36359449 1.0000000
+## urban:highschool-rural:not highschool         0.64519493 0.9030684
+## rural:college-rural:not highschool           -0.08905114 0.0048260
+## suburban:college-rural:not highschool        -0.14791651 0.0003000
+## urban:college-rural:not highschool           -0.07219887 0.0058080
+## urban:not highschool-suburban:not highschool  0.54764025 0.0811231
+## rural:highschool-suburban:not highschool      0.61778839 0.9998677
+## suburban:highschool-suburban:not highschool   0.46289186 0.9253454
+## urban:highschool-suburban:not highschool      0.75386001 0.1168434
+## rural:college-suburban:not highschool         0.01344518 0.0707540
+## suburban:college-suburban:not highschool     -0.05784939 0.0053488
+## urban:college-suburban:not highschool         0.02052499 0.0936241
+## rural:highschool-urban:not highschool         0.36116323 0.9837367
+## suburban:highschool-urban:not highschool      0.21202650 0.9629765
+## urban:highschool-urban:not highschool         0.50032345 0.9989009
+## rural:college-urban:not highschool           -0.23834846 0.0000098
+## suburban:college-urban:not highschool        -0.30592925 0.0000000
+## urban:college-urban:not highschool           -0.22837404 0.0000020
+## suburban:highschool-rural:highschool          0.61206236 0.9999991
+## urban:highschool-rural:highschool             0.87549288 0.9075139
+## rural:college-rural:highschool                0.15359818 0.3572013
+## suburban:college-rural:highschool             0.11533712 0.2659691
+## urban:college-rural:highschool                0.18708511 0.5217326
+## urban:highschool-suburban:highschool          0.65914317 0.8337309
+## rural:college-suburban:highschool            -0.07575718 0.0068453
+## suburban:college-suburban:highschool         -0.13585414 0.0004320
+## urban:college-suburban:highschool            -0.05988350 0.0083262
+## rural:college-urban:highschool               -0.23400204 0.0000975
+## suburban:college-urban:highschool            -0.28438766 0.0000046
+## urban:college-urban:highschool               -0.21035937 0.0001008
+## suburban:college-rural:college                0.35712457 1.0000000
+## urban:college-rural:college                   0.43242372 0.9997005
+## urban:college-suburban:college                0.35883375 0.9990084</code></pre>
+<p>Leider ist das Ergebnis etwas unübersichtlich, weil sich in diesem Fall 36 Vergleiche ergeben. Mit ein paar Funktionen aus dem <code>emmeans</code>-Paket können wir versuchen, das optisch etwas aufzubereiten. Dafür müssen wir zunächst das Paket laden:</p>
+<pre class="r"><code>library(emmeans)</code></pre>
+<p>In diesem Paket gibt es, die wenig überraschend benannte <code>emmeans</code>-Funktion, mit der wir alle weiteren Analysen vorbereiten müssen:</p>
+<pre class="r"><code>emm &lt;- emmeans(aov(ET ~ urban*edu, conspiracy), ~ urban * edu)</code></pre>
+<p>Diese Funktion nimmt als erstes Argument das gleiche <code>aov</code>-Objekt entgegen wie <code>TukeyHSD</code>. Als Zweites müssen wir definieren, welche unabhängigen Variablen uns in der Post-Hoc Analyse interessieren. Weil wir hier alle Gruppen betrachten möchten, können wir einfach die gleiche Struktur der unabhängigen Variablen wiederholen: <code>~ urban * edu</code>.</p>
+<p>Wenn wir uns das entstandene Objekt angucken, sehen wir eine Tabelle mit 7 Spalten:</p>
+<pre class="r"><code>emm</code></pre>
+<pre><code>##  urban    edu            emmean     SE   df lower.CL upper.CL
+##  rural    not highschool   2.40 0.0889 2442     2.23     2.58
+##  suburban not highschool   2.24 0.0599 2442     2.13     2.36
+##  urban    not highschool   2.51 0.0681 2442     2.38     2.64
+##  rural    highschool       2.33 0.1596 2442     2.02     2.65
+##  suburban highschool       2.38 0.0858 2442     2.21     2.55
+##  urban    highschool       2.60 0.1129 2442     2.38     2.82
+##  rural    college          1.91 0.0943 2442     1.73     2.10
+##  suburban college          1.91 0.0640 2442     1.79     2.04
+##  urban    college          1.98 0.0699 2442     1.84     2.12
+## 
+## Confidence level used: 0.95</code></pre>
+<p>Die ersten beiden Spalten (<code>urban</code>, <code>edu</code>) geben an, welche Ausprägungen unsere beiden unabhängigen Variablen haben. Die erste Zeile bezieht sich also auf Personen aus einem ländlichen Gebiet, die keinen Highschool-Abschluss haben. Die dritte Spalte (<code>emmean</code>) ist der Gruppenmittelwert, die vierte der dazugehörige Standardfehler (<code>SE</code>), dann die fünfte die Freiheitsgrade (<code>df</code>) und in die letzten beiden Spalten geben das Konfidenzintervall des Mittelwerts an (<code>lower.CL</code> ist die untere und <code>upper.CL</code> die obere Grenze des Konfidenzintervalls).</p>
+<p>Mittelwerte und Konfidenzintervalle können wir uns sehr einfach direkt plotten lassen:</p>
+<pre class="r"><code>plot(emm)</code></pre>
+<p><img src="/post/2021-04-14_ANOVA-II_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Diese Abbildung können wir um eine Aussage über die direkten Vergleiche erweitern:</p>
+<pre class="r"><code>plot(emm, comparisons = TRUE)</code></pre>
+<p><img src="/post/2021-04-14_ANOVA-II_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Die neu hinzugekommenen roten Pfeile geben uns einen Hinweis dazu, welche Gruppen sich unterscheiden. Wenn zwei rote Pfeile überlappen, gibt es keinen statistisch bedeutsamen Unterschied. Wenn Sie das nicht tun, unterscheiden sich die beiden Gruppenmittelwerte auf dem festgeleten <span class="math inline">\(\alpha\)</span>-Fehlerniveau (per Voreinstellung 5%) statistisch bedeutsam.</p>
+<p>Eine zweite Möglichkeit, die Ergebnisse ein wenig übersichtlicher zu gestalten sind <em>pairwise <span class="math inline">\(p\)</span>-value plots</em>. Im <code>emmeans</code>-Paket werden diese über <code>pwpp</code> angefordert:</p>
+<pre class="r"><code>pwpp(emm)</code></pre>
+<p><img src="/post/2021-04-14_ANOVA-II_files/figure-html/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>In dieser Abbildung ist auf der x-Achse der <span class="math inline">\(p\)</span>-Wert des Mittelwertvergleichs dargestellt. Auf der y-Achse werden die Gruppen anhand ihrer deskriptiven Mittelwerte sortiert und abgetragen (dabei sind alle Abstände zwischen zwei Gruppen gleich groß, egal wie groß der Mittelwertsunterschied auf der abhängigen Variable tatsächlich ist). Eine Verbindung besteht immer zwischen jenen Gruppen, die auf dem jeweiligen Niveau signifikant sind (<code>Tuckey-adjusted P value</code>). Die <code>x</code>-Achse ist gestaucht dargestellt, um möglichst gut darstellen zu können, welche Gruppen sich jeweils auf welchem Niveau unterscheiden. Bspw. hat der Gruppenvergleich <code>urban highschool</code> vs. <code>suburban not highschool</code> einen <code>Tuckey-adjusted P value</code> von etwas mehr als 0.1.</p>
+</div>
+<div id="kontraste" class="section level3">
+<h3>Kontraste</h3>
+<p>In Situationen mit vielen Gruppen ist es außerordentlich ineffizient alle Vergleiche durchzuführen. Durch die Grundgedanken des Nullhypothesentestens muss das <span class="math inline">\(\alpha\)</span>-Fehlerniveau auf alle <em>durchgeführten</em> Tests korrigiert werden. Nach klassischer Bonferroni-Korrektur wäre das korrigierte <span class="math inline">\(\alpha\)</span>-Fehlerniveau in diesem Fall also <span class="math inline">\(\frac{.05}{36} = 0.0014\)</span> um eine echte Irrtumswahrscheinlichkeit von 5% aufrecht zu erhalten. An dieser Stelle können daher <em>geplante Kontraste</em> genutzt werden, um a-priori definierte, theoretisch relevante Vergleiche durchzuführen. So kann die Anzahl der Tests auf die theoretisch notwendigen reduziert werden und mit einer weniger restriktiven Korrektur gerechnet werden.</p>
+<p>Um Kontraste definieren zu können, müssen wir zunächst in Erfahrung bringen, in welcher Reihenfolge die Gruppenkombinationen intern repräsentiert werden. Diese Reihenfolge haben wir bereits im <code>emm</code>-Objekt gesehen:</p>
+<pre class="r"><code>emm</code></pre>
+<pre><code>##  urban    edu            emmean     SE   df lower.CL upper.CL
+##  rural    not highschool   2.40 0.0889 2442     2.23     2.58
+##  suburban not highschool   2.24 0.0599 2442     2.13     2.36
+##  urban    not highschool   2.51 0.0681 2442     2.38     2.64
+##  rural    highschool       2.33 0.1596 2442     2.02     2.65
+##  suburban highschool       2.38 0.0858 2442     2.21     2.55
+##  urban    highschool       2.60 0.1129 2442     2.38     2.82
+##  rural    college          1.91 0.0943 2442     1.73     2.10
+##  suburban college          1.91 0.0640 2442     1.79     2.04
+##  urban    college          1.98 0.0699 2442     1.84     2.12
+## 
+## Confidence level used: 0.95</code></pre>
+<p>Mithilfe eines 9 Elemente langen Vektors können Kontraste festgelegt werden. Um z.B. die Gruppe “rural, not highschool” mit der Gruppe “suburban, not highschool” zu vergleichen, kann folgender Vektor angelegt werden:</p>
+<pre class="r"><code>cont1 &lt;- c(1, -1, 0, 0, 0, 0, 0, 0, 0)</code></pre>
+<p>Die Nullhypothese, die durch diesen Vektor geprüft wird, lässt sich mithilfe der Reihenfolge der Gruppen leicht zusammenstellen. Wenn <span class="math inline">\(j\)</span> die drei Stufen von <code>urban</code> indiziert (1 = rural, 2 = suburban, 3 = urban) und <span class="math inline">\(k\)</span> die drei Stufen von <code>edu</code> (1 = not highschool, 2 = highschool, 3 = college), ist die durch <code>cont1</code> festgelegte Nullhypothese:</p>
+<p><span class="math inline">\(H_0: 1 \cdot \mu_{11} - 1 \cdot \mu_{21} + 0 \cdot \mu_{31} + 0 \cdot \mu_{12} + 0 \cdot \mu_{22} + 0 \cdot \mu_{32} + 0 \cdot \mu_{13} + 0 \cdot \mu_{23} + 0 \cdot \mu_{33} = 0\)</span></p>
+<p>Oder gekürzt:</p>
+<p><span class="math inline">\(H_0: \mu_{11} - \mu_{21} = 0\)</span></p>
+<p>Mit dem <code>contrast</code>-Befehl kann der festgelegte Kontrast geprüft werden, indem wir das Mittelwertsobjekt <code>emm</code> übergeben und anschließend die Gruppenzugehörigkeit via Kontrast als Liste <code>list(cont1)</code> übergeben:</p>
+<pre class="r"><code>contrast(emm, list(cont1))</code></pre>
+<pre><code>##  contrast                      estimate    SE   df t.ratio p.value
+##  c(1, -1, 0, 0, 0, 0, 0, 0, 0)    0.158 0.107 2442 1.475   0.1405</code></pre>
+<p>Dieser Kontrast entspricht dem ersten Vergleich des oben durchgeführten <code>TukeyHSD</code>, unterscheidet sich jedoch im <span class="math inline">\(p\)</span>-Wert. Der hier bestimmte <span class="math inline">\(p\)</span>-Wert ist nicht korrigiert (weil nur ein Kontrast geprüft wurde), der oben aufgeführte ist hingegen auf 36 Tests Tukey-korrigiert. Genauso können andere Gruppen miteinander verglichen werden, indem die jeweiligen Stellen von <code>cont1</code> verändert werden. Eine generelle Daumenregel besagt, dass die Summe des Kontrastvektors 0 sein sollte:</p>
+<pre class="r"><code>sum(cont1)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>sum(cont1) == 0</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Falls dies nicht der Fall ist, dann ist der Kontrast nicht richtig gewählt!</p>
+<p>Mithilfe der Kontrast-Vektoren können auch komplexe Hypothesen geprüft werden. Beispielsweise könnten wir vergleichen, inwiefern sich Personen aus städtischer Umgebung (<span class="math inline">\(j = 3\)</span>) mit mindestens High School Abschluss von Personen ohne High School Abschluss unterscheiden:</p>
+<pre class="r"><code>cont2 &lt;- c(0, 0, 1, 0, 0, -.5, 0, 0, -.5)</code></pre>
+<p>oder in Hypothesenform: <span class="math inline">\(H_0: \mu_{31} - .5 \cdot \mu_{32} - .5 \cdot \mu_{33} = 0\)</span> bzw. <span class="math inline">\(H_0: \mu_{31} - \frac{\mu_{32} + \mu_{33}}{2} = 0\)</span>.</p>
+<p>Weil sowohl <code>cont1</code> als auch <code>cont2</code> durchgeführt werden, muss für das multiple Testen der beiden korrigiert werden. Das kann dadurch erreicht werden, dass im <code>contrast</code>-Befehl alle Kontraste gleichzeitig eingeschlossen werden und mit <code>adjust = 'bonferroni'</code> z.B. die Bonferroni-Korrektur ausgewählt wird:</p>
+<pre class="r"><code>contrast(emm, list(cont1, cont2), adjust = &#39;bonferroni&#39;)</code></pre>
+<pre><code>##  contrast                           estimate     SE   df t.ratio p.value
+##  c(1, -1, 0, 0, 0, 0, 0, 0, 0)         0.158 0.1072 2442 1.475   0.2809 
+##  c(0, 0, 1, 0, 0, -0.5, 0, 0, -0.5)    0.220 0.0951 2442 2.315   0.0414 
+## 
+## P value adjustment: bonferroni method for 2 tests</code></pre>
+<p>Den gesamten R-Code, der in dieser Sitzung genutzt wird, können Sie <a href="https://raw.githubusercontent.com/jpirmer/PsyBSc7/master/R-Scripts/PsyBSc7_Anova2_RCode.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
+<hr />
+</div>
+</div>
+<div id="appendix-a" class="section level2">
+<h2>Appendix A</h2>
+<details>
+<p><summary><strong>Quadratsummen-Typ</strong></summary></p>
+<p>Bei mehrfaktoriellen ANOVAs können die Quadratsummen auf unterschiedliche Arten berechnet werden. Verbreitet sind dabei 3 Typen, zwischen denen man sich anhand der inhaltlichen Hypothesen entscheiden sollte.</p>
+<div id="typ-i" class="section level3">
+<h3>Typ I</h3>
+<p>Typ I berücksichtigt in der Berechnung der Quadratsummen nur die vorherigen unabhängigen Variablen. Dies entspricht konzeptuell der sequentiellen Aufnahme von Prädiktoren in der Regression.</p>
+<pre class="r"><code># QS-Typ 1, Reihenfolge 1
+ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), type = 1)</code></pre>
+<pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
+## well-considered value for the type argument to ezANOVA().</code></pre>
+<pre><code>## Warning: Using &quot;type==1&quot; is highly questionable when data are unbalanced and
+## there is more than one variable. Hopefully you are doing this for demonstration
+## purposes only!</code></pre>
+<pre><code>## $ANOVA
+##      Effect DFn  DFd         F            p p&lt;.05         ges
+## 1     urban   2 2442  3.532848 2.937100e-02     * 0.002885058
+## 2       edu   2 2442 36.518431 2.359355e-16     * 0.029040076
+## 3 urban:edu   4 2442  0.835700 5.023239e-01       0.001367007</code></pre>
+<pre class="r"><code># QS-Typ 1, Reihenfolge 2
+ezANOVA(conspiracy, dv = ET, wid = id, between = c(edu, urban), type = 1)</code></pre>
+<pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
+## well-considered value for the type argument to ezANOVA().
+
+## Warning: Using &quot;type==1&quot; is highly questionable when data are unbalanced and
+## there is more than one variable. Hopefully you are doing this for demonstration
+## purposes only!</code></pre>
+<pre><code>## $ANOVA
+##      Effect DFn  DFd         F            p p&lt;.05         ges
+## 1       edu   2 2442 35.572731 5.911919e-16     * 0.028309329
+## 2     urban   2 2442  4.478549 1.144325e-02     * 0.003654530
+## 3 edu:urban   4 2442  0.835700 5.023239e-01       0.001367007</code></pre>
+<p>Dies ist im Übrigen auch der Default im <code>lm</code>-Befehl, an den auch einfach eine <code>factor</code>-Variable übergeben werden kann. Auf das <code>lm</code>-Objekt wird dann die <code>anova</code>-Funktion angewandt, um den gängigen ANOVA-Output zu erhalten. Jedoch sollte hier aufgepasst werden, falls Interaktionen bestimmt werden. Der Default ist immer Typ I!</p>
+<pre class="r"><code># QS-Typ 1, Reihenfolge 1 mit lm
+anova(lm(ET ~ urban*edu, data = conspiracy))</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Response: ET
+##             Df Sum Sq Mean Sq F value    Pr(&gt;F)    
+## urban        2   12.1   6.029  3.5328   0.02937 *  
+## edu          2  124.6  62.323 36.5184 2.359e-16 ***
+## urban:edu    4    5.7   1.426  0.8357   0.50232    
+## Residuals 2442 4167.5   1.707                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code># QS-Typ 1, Reihenfolge 2 mit lm
+anova(lm(ET ~ edu*urban, data = conspiracy))</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Response: ET
+##             Df Sum Sq Mean Sq F value    Pr(&gt;F)    
+## edu          2  121.4  60.709 35.5727 5.912e-16 ***
+## urban        2   15.3   7.643  4.4785   0.01144 *  
+## edu:urban    4    5.7   1.426  0.8357   0.50232    
+## Residuals 2442 4167.5   1.707                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p><code>*</code> fügt immer neben der Interaktion automatisch noch die Haupteffekte hinzu. Das gleiche funktioniert selbstverständlich auch mit dem <code>aov</code> Befehl:</p>
+<pre class="r"><code># QS-Typ 1, Reihenfolge 1 mit aov
+summary(aov(ET ~ urban*edu, data = conspiracy))</code></pre>
+<pre><code>##               Df Sum Sq Mean Sq F value   Pr(&gt;F)    
+## urban          2     12    6.03   3.533   0.0294 *  
+## edu            2    125   62.32  36.518 2.36e-16 ***
+## urban:edu      4      6    1.43   0.836   0.5023    
+## Residuals   2442   4168    1.71                     
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code># QS-Typ 1, Reihenfolge 2 mit aov
+summary(aov(ET ~ edu*urban, data = conspiracy))</code></pre>
+<pre><code>##               Df Sum Sq Mean Sq F value   Pr(&gt;F)    
+## edu            2    121   60.71  35.573 5.91e-16 ***
+## urban          2     15    7.64   4.479   0.0114 *  
+## edu:urban      4      6    1.43   0.836   0.5023    
+## Residuals   2442   4168    1.71                     
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Wir sehen deutlich, dass sich der <span class="math inline">\(F\)</span>-Wert ändert, je nach dem in welcher Reihenfolge die Prädiktoren in die Gleichung genommen werden. Demnach kann es sein, dass die Reihenfolge die Signifikanzentscheidung beeinflusst.</p>
+</div>
+<div id="typ-ii" class="section level3">
+<h3>Typ II</h3>
+<p>Typ II berücksichtigt in der Berechnung alle anderen unabhängigen Variablen. In der Berechnung der einzelnen Quadratsummen wird allerdings angenommen, dass alle Interaktionen, an denen dieser Term beteiligt ist, 0 sind. Typ II ist in <code>ezANOVA</code> voreingestellt.</p>
+<pre class="r"><code># QS-Typ 2
+ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), type = 2)</code></pre>
+<pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
+## well-considered value for the type argument to ezANOVA().</code></pre>
+<pre><code>## Coefficient covariances computed by hccm()</code></pre>
+<pre><code>## $ANOVA
+##      Effect DFn  DFd         F            p p&lt;.05         ges
+## 1     urban   2 2442  4.478549 1.144325e-02     * 0.003654530
+## 2       edu   2 2442 36.518431 2.359355e-16     * 0.029040076
+## 3 urban:edu   4 2442  0.835700 5.023239e-01       0.001367007
+## 
+## $`Levene&#39;s Test for Homogeneity of Variance`
+##   DFn  DFd      SSn      SSd        F            p p&lt;.05
+## 1   8 2442 35.01704 2002.067 5.338958 1.141927e-06     *</code></pre>
+<p>Die Quadratsummen mit <code>lm</code> zu replizieren, ist extrem aufwendig. Es geht aber auch noch bspw. mit dem <code>Anova</code> Befehl aus dem <code>car</code>-Paket, welcher auf ein <code>lm</code> oder ein <code>aov</code>-Objekt angewandt wird.</p>
+<p>Zunächst laden wir das Paket:</p>
+<pre class="r"><code>library(car)</code></pre>
+<p>Anschließend verwenden wir <code>Anova</code> aus dem <code>car</code>-Paket wie zuvor <code>anova</code> auf das <code>lm</code>-Objekt oder wie die <code>summary</code> auf das <code>aov</code>-Objekt an. Mit dem Zusatzargument <code>type = "II"</code>, stellen wir, analog zu <code>ezANOVA</code>, den Quadratsummentyp ein. Die Reihenfolge der Prädiktoren spielt nun keine Rolle mehr!</p>
+<pre class="r"><code>Anova(lm(ET ~ urban*edu, data = conspiracy), type = &quot;II&quot;)</code></pre>
+<pre><code>## Anova Table (Type II tests)
+## 
+## Response: ET
+##           Sum Sq   Df F value    Pr(&gt;F)    
+## urban       15.3    2  4.4785   0.01144 *  
+## edu        124.6    2 36.5184 2.359e-16 ***
+## urban:edu    5.7    4  0.8357   0.50232    
+## Residuals 4167.5 2442                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>Anova(aov(ET ~ urban*edu, data = conspiracy), type = &quot;II&quot;)</code></pre>
+<pre><code>## Anova Table (Type II tests)
+## 
+## Response: ET
+##           Sum Sq   Df F value    Pr(&gt;F)    
+## urban       15.3    2  4.4785   0.01144 *  
+## edu        124.6    2 36.5184 2.359e-16 ***
+## urban:edu    5.7    4  0.8357   0.50232    
+## Residuals 4167.5 2442                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+</div>
+<div id="typ-iii" class="section level3">
+<h3>Typ III</h3>
+<p>Typ III unterscheidet sich von Typ II nur darin, dass bei der Berechnung nicht angenommen wird, dass die Interaktionen 0 sind. Typ III ist z.B. in SPSS voreingestellt.</p>
+<pre class="r"><code># QS-Typ 3
+ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), type = 3)</code></pre>
+<pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
+## well-considered value for the type argument to ezANOVA().</code></pre>
+<pre><code>## Coefficient covariances computed by hccm()</code></pre>
+<pre><code>## $ANOVA
+##      Effect DFn  DFd         F            p p&lt;.05         ges
+## 2     urban   2 2442  4.184991 1.533166e-02     * 0.003415803
+## 3       edu   2 2442 32.850744 8.349353e-15     * 0.026199884
+## 4 urban:edu   4 2442  0.835700 5.023239e-01       0.001367007
+## 
+## $`Levene&#39;s Test for Homogeneity of Variance`
+##   DFn  DFd      SSn      SSd        F            p p&lt;.05
+## 1   8 2442 35.01704 2002.067 5.338958 1.141927e-06     *</code></pre>
+<p>Wir wollen dies nun noch für den <code>lm</code> und den <code>aov</code>-Befehl replizieren. Hier müssen wir allerdings einige Einstellungen abändern, damit die Quadratsummen auch den richtigen Typ haben. Da dies eine leichte Fehlerquelle darstellt, wird es hier der Vollständigkeit halber präsentiert.</p>
+<pre class="r"><code># verstelle die Art, wie Kontraste bestimmt werden --- Achtung! Immer wieder zurückstellen
+options(contrasts=c(unordered=&quot;contr.sum&quot;, ordered=&quot;contr.poly&quot;)) 
+Anova(lm(ET ~ urban*edu, data = conspiracy), type = &quot;III&quot;)</code></pre>
+<pre><code>## Anova Table (Type III tests)
+## 
+## Response: ET
+##             Sum Sq   Df   F value    Pr(&gt;F)    
+## (Intercept) 8824.4    1 5170.7229 &lt; 2.2e-16 ***
+## urban         14.3    2    4.1850   0.01533 *  
+## edu          112.1    2   32.8507 8.349e-15 ***
+## urban:edu      5.7    4    0.8357   0.50232    
+## Residuals   4167.5 2442                        
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>Anova(aov(ET ~ urban*edu, data = conspiracy), type = &quot;III&quot;)</code></pre>
+<pre><code>## Anova Table (Type III tests)
+## 
+## Response: ET
+##             Sum Sq   Df   F value    Pr(&gt;F)    
+## (Intercept) 8824.4    1 5170.7229 &lt; 2.2e-16 ***
+## urban         14.3    2    4.1850   0.01533 *  
+## edu          112.1    2   32.8507 8.349e-15 ***
+## urban:edu      5.7    4    0.8357   0.50232    
+## Residuals   4167.5 2442                        
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code># Einstellungen zurücksetzen zum Default:
+options(contrasts=c(unordered=&quot;contr.treatment&quot;, ordered=&quot;contr.poly&quot;))
+
+# Der Default kann getestet werden via
+options(&quot;contrasts&quot;)</code></pre>
+<pre><code>## $contrasts
+##         unordered           ordered 
+## &quot;contr.treatment&quot;      &quot;contr.poly&quot;</code></pre>
+<p>An den globalen Einstellungen in <code>R</code> herum zu spielen erscheint etwas riskant. Daher freuen wir uns, dass die <code>ezANOVA</code>-Funktion uns das alles erspart!</p>
+</div>
+<div id="welcher-typ-ist-der-richtige" class="section level3">
+<h3>Welcher Typ ist der Richtige?</h3>
+<p>Generell ist Typ II besser geeignet um die Quadratsummen von Haupteffekten zu bestimmen, wenn Interaktionen empirisch nicht von 0 verschieden sind. Wenn Interaktionen von 0 verschieden sind, wird (unabhängig vom QS-Typ) davon abgeraten die Haupteffekte zu interpretieren, sodass deren Bestimmung in diesem Fall wenig Relevanz hat. Ähnliches hatten wir bemerkt, als wir die <a href="quadratische-und-moderierte-regression">quadratische und moderierte Regression</a> kennengelernt hatten. Hier war es auch wenig sinnvoll den linearen Effekt ohne den quadratischen zu interpretieren, bzw. den Effekt des Prädiktors unabhängig vom Moderator zu interpretieren — genauso ist es hier auch! Die Terme höchster Ordnung (hier die Interaktion) sind zwischen Typ II und Typ III identisch, sodass die Interpretation der Interaktion durch die Wahl nicht beeinflusst wird. Von Typ I wird generell abgeraten (wie Ihnen <code>ezANOVA</code> auch direkt mitteilt). In einigen Online-Foren steht sogar, dass Typ I nur zu Demonstrationszwecken genutzt werden sollte, dass viel schief gehen kann.</p>
+</details>
+<hr />
+</div>
+</div>
+<div id="literatur" class="section level2">
+<h2>Literatur</h2>
+<p><a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, M., Gollwitzer, M., &amp; Schmitt, M. (2017).</a> <em>Statistik und Forschungsmethoden</em> (5. Auflage, 1. Auflage: 2010). Weinheim: Beltz.</p>
+<ul>
+<li><small> <em>Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.</em></li>
+</ul>
+</div>
