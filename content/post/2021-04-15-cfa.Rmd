@@ -975,6 +975,201 @@ Mit den Restriktionen der Messmodelle können wir jetzt über Modellvergleiche p
 
 </details>
 
+<details><summary>Esentiell $\tau$-äquivalentes Modell</summary>
+
+Der erste Schritt, der bei der Restriktion von Messmodellen stets vorgenommen werden muss, ist die Gleichsetzung der Diskriminationsparameter. Nur so kann garantiert werden, dass andere Gleichsetzungen sinnvoll interpretierbar und von der Skala, mit der wir die Ergebnisse beschreiben, unabhängig sind.
+
+Weil wir zur Skalierung unserer latenten Variable die erste Faktorladung auf 1 setzen und das essentiell $\tau$-äquivalente Messmodell postuliert, dass alle Faktorladungen gleich sein sollen, können wir alle Faktorladungen auf 1 fixieren. Dafür können wir händisch den jeweiligen Parameter festlegen:
+
+```{r}
+# Modell
+mod2 <- 'stat =~ 1*test1 + 1*test2 + 1*test3'
+
+# Schätzung
+fit2 <- cfa(mod2, stat_test,
+  meanstructure = TRUE)
+```
+
+Der Abschnitt zu den Parametern sieht in der Zusammenfassung dann so aus:
+
+```{r, eval = FALSE}
+summary(fit2)
+```
+
+```{r echo = FALSE}
+abbrev(fit2, shift = 1)
+```
+
+Alle Faktorladungen sind nun identisch. Das heißt, dass die Linien der unterschiedlichen Tests im Bild parallel verlaufen sollten, weil wir jetzt den Einfluss der latenten Variable auf die manifesten Variablen gleichgesetzt haben:
+
+
+```{r, fig = TRUE, echo = FALSE}
+tmp <- inspect(fit2, 'est')
+plottable <- data.frame(stat = seq(-.5, .5, .001))
+plottable <- cbind(plottable, t(tmp$lambda %*% plottable$stat + as.vector(tmp$nu)))
+plottable <- reshape(plottable,
+  varying = list(c('test1', 'test2', 'test3')),
+  v.names = 'manifest',
+  timevar = 'variable',
+  times = c('Test 1', 'Test 2', 'Test 3'),
+  idvar = 'stat',
+  direction = 'long')
+plottable$variable <- factor(plottable$variable, levels = c('Test 1', 'Test 2', 'Test 3'))
+
+ggplot(plottable, aes(x = stat, y = manifest, group = variable)) +
+  geom_line(aes(color = variable)) +
+  theme_minimal() +
+  labs(y = 'Manifeste Variablen', x = 'Latente Variable (stat)',
+    color = 'Variable') +
+  scale_color_goethe()
+```
+
+Das bedeutet, dass sich der Unterschied zwischen Urs und Hans in der statistischen Fähigkeit in allen drei Tests im gleichen Punkteunterschied äußern *sollte*. Das *sollte* ist dabei wichtig, weil es natürlich in jedem Einzelfall aufgrund von Messfehlern zu Unterschieden kommen kann, wenn wir den Test aber unendlich häufig durchführen würden, wäre der Unterschied zwischen beiden immer gleich, egal welchen der drei Tests wir nutzen.
+
+Ist diese Annahme haltbar? Wir können sie mit dem Modellvergleich explizit prüfen:
+
+```{r}
+lavTestLRT(fit1, fit2)
+```
+
+Der Test hat 2 Freiheitsgrade, weil wir nun nicht mehr die beiden Ladungen für `test2` und `test3` schätzen müssen, sondern diese einen vorgegebenen Wert angenommen haben. Bei einem $\alpha$-Fehlerniveau von 5% muss diese Annahme also nicht verworfen werden und wir können das sparsamere, essentiell $\tau$-äquivalente Messmodell für diese drei Tests beibehalten.
+
+</details>
+
+<details><summary>$\tau$-äquivalentes Modell</summary>
+
+In der Hierarchie der Messmodelle haben wir zwei Möglichkeiten vorzugehen: wir können im Anschluss an das essentiell $\tau$-äquivalente Messmodell entweder die Intercepts restringieren und so beim $\tau$-äquivalenten Messmodell ankommen oder uns die Residualvarianzen vornehmen und so beim essentiell $\tau$-parallelen Messmodell angelangen. Wir entscheiden uns hier für den häufiger genutzten linken Weg der Abbildung und beziehen uns zunächst auf die Mittelwertsstruktur:
+
+
+```{r}
+# Modell
+mod3 <- 'stat =~ 1*test1 + 1*test2 + 1*test3
+  test1 ~ (alp)*1
+  test2 ~ (alp)*1
+  test3 ~ (alp)*1'
+
+# Schätzung
+fit3 <- cfa(mod3, stat_test,
+  meanstructure = TRUE)
+```
+
+Mit `(...)` wird in `lavaan` einem Parameter ein Label gegeben. Diese Labels können beliebige benannt sein, sie müssen nur mit einem Buchstaben beginnen. In der Zeile `test1 ~ (alp)*1` wird also das Intercept von `test1` angefordert und diesem Intercept der Name `alp` gegeben. In der nächsten Zeile machen wir für `test2` das Gleiche. Dadurch, dass wir hier den gleichen Namen nutzen werden die beiden Parameter zur Gleichheit gezwungen. In der Zusammenfassung tauchen diese Labels auch wieder auf, um zu verdeutlichen welche Parameter absichtlich gleich sind:
+
+```{r, eval = FALSE}
+summary(fit3)
+```
+
+```{r echo = FALSE}
+abbrev(fit3, shift = 1)
+```
+
+Diese Restriktion können wir erneut mit dem LRT prüfen:
+
+```{r}
+lavTestLRT(fit2, fit3)
+```
+
+Erneut erhalten wir 2 Freiheitsgrade beim Modellvergleich: jetzt müssen wir statt drei Intercepts nur noch Eines schätzen (den Wert von `alp`). Und wieder ist bei einem $\alpha$-Fehlerniveau von 5% der Modellvergleich nicht statistisch bedeutsam, sodass wir auch hier wieder das sparsamere Modell beibehalten können.
+
+Inhaltlich heißt dieses Ergebnis, dass wir für zwei Personen, die die gleiche statistische Fähigkeit haben auch den gleichen Wert in einem Test - egal welchem der drei - *erwarten*. Auch hier können Messfehler natürlich dazu führen, dass im Einzelfall Unterschiede entstehen. Über unendlich viele Wiederholungen hinweg sind die Erwartungswerte dieser Personen aber gleich. Wichtig ist, dass das nicht nur innerhalb eines Tests gilt, sondern auch über Tests hinweg. Wir können unterschiedlichen Personen also unterschiedliche Tests vorlegen - wenn Sie die gleiche Fähigkeit haben, dann erwarten wir für beide das gleiche Ergebnis. Die Ergebnisse der drei verschiedenen Formen der Modulprüfung sind also vergleichbar. Wenn die Annahme des $\tau$-äquivalenten Messmodells allerdings nicht hält, sind die Prüfungen nicht direkt vergleichbar.
+
+Auch in der Abbildung zeigt sich jetzt, dass die Tests äquivalent sind:
+
+```{r, fig = TRUE, echo = FALSE}
+tmp <- inspect(fit3, 'est')
+plottable <- data.frame(stat = seq(-.5, .5, .001))
+plottable <- cbind(plottable, t(tmp$lambda %*% plottable$stat + as.vector(tmp$nu)))
+plottable <- reshape(plottable,
+  varying = list(c('test1', 'test2', 'test3')),
+  v.names = 'manifest',
+  timevar = 'variable',
+  times = c('Test 1', 'Test 2', 'Test 3'),
+  idvar = 'stat',
+  direction = 'long')
+plottable$variable <- factor(plottable$variable, levels = c('Test 1', 'Test 2', 'Test 3'))
+
+ggplot(plottable, aes(x = stat, y = manifest, group = variable)) +
+  geom_line(aes(color = variable)) +
+  theme_minimal() +
+  labs(y = 'Manifeste Variablen', x = 'Latente Variable (stat)',
+    color = 'Variable') +
+  scale_color_goethe()
+```
+
+</details>
+
+<details><summary>Essentiell $\tau$-paralleles Modell</summary>
+
+Im Essentiell $\tau$-parallelen Modell werden die Restriktionen bezüglich der Intercepts zunächst außer Acht gelassen. Stattdessen wird das essentiell $\tau$-äquivalente Modell bezüglich der Kovarianzstruktur so restringiert, dass die Varianzzerteilung aller manifester Variablen gleich ist. Das bewirkt inhaltlich, dass alle drei Tests jetzt die gleiche Reliabilität haben. 
+
+Wie schon im letzten Abschnitt müssen wir erneute mit Labels arbeiten, nur dass sie sich in diesem Fall auf die Residualvarianzen beziehen:
+
+```{r}
+mod4 <- 'stat =~ 1*test1 + 1*test2 + 1*test3
+  test1 ~~ (eps)*test1
+  test2 ~~ (eps)*test2
+  test3 ~~ (eps)*test3'
+fit4 <- cfa(mod4, stat_test,
+  meanstructure = TRUE)
+```
+
+
+Das entstehende Ergebnis, können wir uns wieder mit `summary` angucken. In diesem Fall nehmen wir mit `rsq = TRUE` die Reliabilitätsschätzungen auf, um meine Behauptung auf den Prüfstand zu stellen:
+
+```{r, eval = FALSE}
+summary(fit4, rsq = TRUE)
+```
+
+```{r echo = FALSE}
+abbrev(fit4, shift = 1, rsq = TRUE)
+```
+
+Um einen Test dieser Restriktion durchführen zu können, ist es wichtig zu bedenken, dass das $\tau$-äquivalente Modell und das esentiell $\tau$-parallele Modell nicht direkt miteinander verglichen werden können. Das liegt daran, dass keines der beiden durch die Einführung von Restriktionen in das Andere überführt werden kann. Allerdings kann auch das $\tau$-parllele Modell durch die Restriktion der Residualvarianzen aus dem essentiell $\tau$-äqauivalenten Modell gewonnen werden. Daher muss auch hiermit der Modellvergleich erfolgen, um die Zusatzannahme (die Gleichheit der Residualvarianzen) inferenzstatistisch zu prüfen:
+
+```{r}
+lavTestLRT(fit2, fit4)
+```
+Wir sehen in diesem Fall, dass die Annahme gleicher Residualvarianzen (und somit gleicher Reliabilitäten) verworfen werden muss.
+
+</details>
+
+<details><summary>$\tau$-paralleles Modell</summary>
+
+Das $\tau$-parallele Messmodell ist das restriktivste Messmodell. Hier sind Ladungen, Intercepts und Residualvarianzen über die drei Tests hinweg gleich gesetzt. Das bedeutet, dass die beiden Annahmen aus dem $\tau$-äquivalenten Messmodell und dem essentiell $\tau$-parallelen Messmodell zusammengeführt werden.
+
+In `lavaan` sieht das folgendermaßen aus:
+
+```{r}
+mod5 <- 'stat =~ 1*test1 + 1*test2 + 1*test3
+  
+  test1 ~ (alp)*1
+  test2 ~ (alp)*1
+  test3 ~ (alp)*1
+  
+  test1 ~~ (eps)*test1
+  test2 ~~ (eps)*test2
+  test3 ~~ (eps)*test3'
+
+fit5 <- cfa(mod5, stat_test,
+  meanstructure = TRUE)
+```
+
+Erneut können wir den Likelihood-Ratio Test nutzen. Wie auch bei der `anova`-Funktion, die Sie letztes Semester genutzt haben, um Regressionsmodelle zu vergleichen, können Sie bei `lavTestLRT` sequentiell mehrere Modell testen lassen. Für den Überblick über den linken Pfad der Hierarchie:
+
+```{r}
+lavTestLRT(fit1, fit2, fit3, fit5)
+```
+
+Wir sehen also, dass wir in diesem Fall bei `fit3` den Schlussstrich ziehen sollten und das $\tau$-äquivalente Messmodell annehmen können, weil dessen Restriktionen nicht verworfen werden (gegenüber dem Modell mit essentiell $\tau$-äquivalenten Messungen), aber die zusätzliche Restriktion der gleichen Residualvarianzen bei einem $\alpha$-Fehlerniveau von 5% abgelehnt wird.
+
+`fit3` und `fit4` können über den LRT nicht direkt miteinander verglichen werden, weil keins der Beiden ein Sonderfall des Anderen ist - daher stehen Sie in der Hierarchie auch auf der gleichen Stufe. Sie können aber natürlich auch den rechten Pfad prüfen:
+
+```{r}
+lavTestLRT(fit1, fit2, fit4, fit5)
+```
+
+</details>
+
 ## Literatur
 Eid, M., Gollwitzer, M., & Schmitt, M. (2017).](https://hds.hebis.de/ubffm/Record/HEB366849158) *Statistik und Forschungsmethoden* (5. Auflage, 1. Auflage: 2010). Weinheim: Beltz.
 
