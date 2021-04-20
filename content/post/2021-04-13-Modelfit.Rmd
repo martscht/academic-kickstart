@@ -32,9 +32,11 @@ Der Likelihood-Ratio-Test ($\chi^2$-Differenzentest) vergleicht die Likelihoods 
 $$F(\hat{\Sigma}_M,S) = \log(\hat{\Sigma}_M)-\log(S)+\text{Spur}\left[S\hat{\Sigma}_M^{-1}\right] - p,$$
 wobei $\hat{\Sigma}_M$ die modellimplizierte Kovarianzmatrix und $S$ die Kovarianzmatrix der Daten ist und $p$ die Anzahl an beobachteten Variablen. $\text{Spur}$ bezeichnet hierbei die Summe der Diagonalelemente des jeweiligen Objekts (der resultierenden quadratischen Matrix). Die Null-Hypothese besagt:
 $$H_0:S=\Sigma_M$$
-Diese Null-Hypothese sagt also, dass sich die Kovarianzmatrix der Daten durch die modellimplizierte Kovarianzmatrix des Modells darstellen lässt, also dass sich die Variation in den Daten durch das Modell abbilden lässt. Der $\chi^2$-Wert ergibt sie wie folgt:
+Diese Null-Hypothese sagt also, dass die Kovarianzmatrix der Daten ($S$) und die modellimplizierte Kovarianzmatrix ($\Sigma_M$) identisch sind. Es wird also behauptet, dass interindividuelle Unterschiede und deren Zusammenhänge durch die modellierte Struktur abgebildet werden können. Der $\chi^2$-Wert ergibt sie wie folgt:
 $$\chi^2:=(n-1)F(\hat{\Sigma}_M,S)$$
-Somit wirkt es so, dass der $\chi^2$-Wert zwangsläufig mit der Stichprobengröße wachsen muss. Allerdings ist für wachsendes ($n\to\infty$) $F(\hat{\Sigma}_M,S)\to0$, solange die Null-Hypothese gilt. Dies liegt daran, dass $F(\hat{\Sigma}_M,S)$ gerade die Differenz zwischen den beiden Matrizen quantifiziert und diese Differenz unter der Null-Hypothese im Mittel gegen 0 konvergiert. Diese Differenz geht für steigende Stichprobengröße gegen den Wert 0, wird also kleiner mit steigender Stichprobengröße. Um eine Verteilung als Referenz verwenden zu können (hier: die kritischen Werte der $\chi^2$-Verteilung), ist eine Art Reskalierung vonnöten. Aus diesem Grund wird $F(\hat{\Sigma}_M,S)$ mit $n-1$ multipliziert und die bekannte $\chi^2$-Verteilung entsteht. Gilt nun eine Alternativ-Hypothese:
+Somit wirkt es so, dass der $\chi^2$-Wert zwangsläufig mit der Stichprobengröße wachsen muss. Allerdings ist für wachsendes ($n\to\infty$) $F(\hat{\Sigma}_M,S)\to0$, solange die Null-Hypothese gilt. Dies liegt daran, dass $F(\hat{\Sigma}_M,S)$ gerade die Differenz zwischen den beiden Matrizen quantifiziert und diese Differenz unter der Null-Hypothese im Mittel gegen 0 konvergiert. Diese Differenz geht für steigende Stichprobengröße gegen den Wert 0, wird also kleiner mit steigender Stichprobengröße. Wenn das Modell korrekt ist, sollten Abweichungen zwischen den beiden Matrizen durch zufällige Schwankungen in der Stichprobe zustande kommen - wenn diese Stichprobe größer wird, werden diese stichprobenbedingten Schwankungen geringer. 
+
+Um eine Verteilung als Referenz verwenden zu können (hier: die kritischen Werte der $\chi^2$-Verteilung), ist eine Art Reskalierung vonnöten. Aus diesem Grund wird $F(\hat{\Sigma}_M,S)$ mit $n-1$ multipliziert und die bekannte $\chi^2$-Verteilung entsteht. Gilt nun eine Alternativ-Hypothese:
 $$H_1:S\neq\Sigma_M$$
 dann konvergiert $F(\hat{\Sigma}_M,S)$ im Mittel nicht mehr gegen Null; es gilt also  ($n\to\infty$) $F(\hat{\Sigma}_M,S)\nrightarrow0$, sondern $F(\hat{\Sigma}_M,S)\to d$, wobei $d>0$ gerade die wahre Differenz zwischen den beiden Modellen quantifiziert. Das bedeutet gleichzeitig, dass für den zugehörigen mittleren $\chi^2$-Wert unter $H_1$ gilt: $\chi^2_{H_1}\to dn \to \infty$, der $\chi^2$-Wert also mit der Stichprobengröße wächst (da $dn$ gerade proportional zu $n$ wächst)! Wir wollen uns dies an folgendem Modell klar machen:
 
@@ -103,7 +105,7 @@ set.seed(123456)
 data <- simulateData(model = pop_model_H0, meanstructure = F, sample.nobs = 200)
 ```
 Die Werte, die in diesem Modell stehen, symbolisieren die wahren Populationsparameter. Bspw. bedeutet `Xi1 =~ x1 + 0.7*x2 + 0.6*x3`, dass in der Population gilt: $\lambda_{11}=1,\lambda_{21}=.7$ und $\lambda_{31}=.6$ (wobei $\lambda_{11}=1$ auch der Skalierer ist!). Oder `Eta2 ~ 0.54*Xi1 + 0.4*Eta1` steht für: $\eta_2=0.54\xi_1+0.4\eta_1+\zeta_2$ in der Population. `x1 ~~ 0.4*x2` symbolisert eine Fehlerkovarianz von 0.4, also $\theta_{21}=.4$.
-Wenn ein Modell in dieser Form vorliegt, so kann die `simulateData` Funktion in `lavaan` verwendet werden, um dieses Modell zu simulieren. Wir übergeben der Funktion dazu das Modell `model = pop_model_H0`, spezifizieren, dass alle Mittelwerte im Mittel 0 sind `meanstructure = F` und legen die Stichprobengröße fest `sample.nobs = 200`. In `data` liegen nun die simulierten manifesten Variablen (die latenten Variablen werden nicht abgespeichert). Hierbei entscheiden die Kürzel, die wir vergeben (z.B. `x1` oder `y2`) über die Namen in `data`:
+Wenn ein Modell in dieser Form vorliegt, so kann die `simulateData` Funktion in `lavaan` verwendet werden, um dieses Modell zu simulieren. Wir übergeben der Funktion dazu das Modell `model = pop_model_H0`, spezifizieren, dass alle Mittelwerte im Mittel 0 sind `meanstructure = F` und legen die Stichprobengröße fest `sample.nobs = 200`. In `data` liegen nun die $N = 200$ Beobachtungen der simulierten manifesten Variablen (die latenten Variablen werden nicht abgespeichert). Hierbei entscheiden die Kürzel, die wir vergeben (z.B. `x1` oder `y2`) über die Namen in `data`:
 
 ```{r, eval = F}
 head(data)
@@ -114,7 +116,7 @@ print(head(data))
 ```
 
 
-In `data` liegen nun simulierte Daten mit $n=200$. Wir erkennen außerdem, dass hier kontinuierliche Daten simuliert wurden. Dass kategoriale Variablen Fehlspezifikationen mitsich bringen können, ist eine Diskussion, die wir hier nicht führen wollen! Wir verwenden das $H_0$ Modell auch, um die Daten zu analysieren (dies ist das Modell von oben ohne jegliche Zahlen, also in dem Format, welches wir bereits kennen!):
+Wir verwenden das $H_0$ Modell auch, um die Daten zu analysieren (dies ist das Modell von oben ohne jegliche Zahlen, also in dem Format, welches wir bereits kennen!):
 
 ```{r}
 model_H0 <- '
@@ -142,14 +144,14 @@ semPaths(fit_H0, curve = T, curvePivot = T)
 Schätzen wir nun das Modell und gucken uns den den $\chi^2$-Wert an.
 ```{r, results = "hide", fig.align="center", fig.height=6}
 fit_H0 <- sem(model = model_H0, data = data)
-summary(fit_H0)
+fit_H0
 ```
 
 ```{r, echo = F}
-lavaan::summary(fit_H0)
+fit_H0
 ```
 
-Besonders von Interesse sind der $\chi^2$-Wert, die $df$ und der zugehörige $p$-Wert, die wir auch so erhalten:
+Wie bereits im [Beitrag zur CFA](/post/cfa) besprochen, können wir den $\chi^2$-Wert, die $df$ und den zugehörigen $p$-Wert auch über die `fitmeasures`-Funktion erhhalten:
 
 ```{r}
 fitmeasures(fit_H0, c("chisq", 'df', "pvalue"))
