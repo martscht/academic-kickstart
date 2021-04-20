@@ -1,5 +1,5 @@
 ---
-title: Multi Sample Analysis - Multigruppenvergleich
+title: Modelle für Gruppenvergleiche 
 author: ''
 date: '2021-04-13'
 slug: msa
@@ -12,7 +12,7 @@ tags:
   - Invarianztestung
   - Strukturgleichungsmodelle
   - Regression
-subtitle: 'MSA'
+subtitle: 'Multi Sample Analysis'
 summary: ''
 authors: [irmer, schultze]
 lastmod: '2021-04-13T10:30:02+02:00'
@@ -22,6 +22,7 @@ header:
   caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/644378)"
 ---
 
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <p>In einer Multi-Sample-Analysis wird in mehreren Gruppen gleichzeitig ein Strukturgleichungsmodell geschätzt. Wir könnten uns bspw. fragen, ob die gleichen Beziehungen zwischen Zeitdruck, Emotionaler Erschöpfung und psychosomatischen Beschwerden, wie wir sie in der letzten Sitzung zu <a href="/post/sem">SEM</a> beobachtet haben, gleichermaßen für Männer und Frauen gelten. Im Datensatz <code>StressAtWork</code> der <a href="/post/sem">SEM</a> Sitzung ist die Variable <code>sex</code> enthalten. Hier sind Frauen mit <code>1</code> und Männer mit <code>2</code> kodiert. Wir können diesen wie gewohnt laden:
@@ -72,9 +73,9 @@ summary(fit_sem_MSA)</code></pre>
 ##     1                                           21.400
 ##     2                                           14.403 
 ## [...]</code></pre>
-<p>Der <span class="math inline">\(\chi^2\)</span>-Wert für das gesamte Modell liegt bei 35.803 bei <span class="math inline">\(df=\)</span> 36 mit zugehörigem <span class="math inline">\(p\)</span>-Wert von 0.478. Demnach verwerfen unsere Daten das Modell nicht. Die Freiheitsgrade sind doppelt so hoch, wie im Ein-Stichprobenfall, da wir alle Parameter für beide Stichproben schätzen müssen. Die <span class="math inline">\(\chi^2\)</span>-Werte der beiden Stichproben waren 21.400 für die Frauen und 14.403 für die Männer. Der <span class="math inline">\(\chi^2\)</span>-Wert für das gesamte Modell ist also einfach die Summe der subpopulationsspezifischen <span class="math inline">\(\chi^2\)</span>-Werte (<span class="math inline">\(\chi^2_{g=1}\)</span> und <span class="math inline">\(\chi^2_{g=2}\)</span>, wobei <span class="math inline">\(g=1\)</span> und <span class="math inline">\(g=2\)</span> für die erste und zweite Gruppe steht):
-<span class="math display">\[\chi^2=\chi^2_{g=1}+\chi^2_{g=2}.\]</span>
-Wir haben hier keine Koeffizienten mehr benannt, da in einem Update von <code>lavaan</code> verändert wurde, dass eine einzelne Bezeichnung direkt zwei Koeffizienten aus zwei Gruppen gleichsetzt (als invariant annimmt). Wie man dies dennoch machen kann, schauen wir uns auch gleich an!</p>
+<p>Der <span class="math inline">\(\chi^2\)</span>-Wert für das gesamte Modell liegt bei 35.803 bei <span class="math inline">\(df=\)</span> 36 mit zugehörigem <span class="math inline">\(p\)</span>-Wert von 0.478. Demnach verwerfen unsere Daten das Modell nicht. Die Freiheitsgrade sind doppelt so hoch, wie im Ein-Stichprobenfall, da wir alle Parameter für beide Stichproben schätzen müssen. Die <span class="math inline">\(\chi^2\)</span>-Werte der beiden Stichproben waren 21.400 für die Frauen und 14.403 für die Männer. Der <span class="math inline">\(\chi^2\)</span>-Wert für das gesamte Modell ist also einfach die Summe der subpopulationsspezifischen <span class="math inline">\(\chi_g^2\)</span>-Werte (wobei <span class="math inline">\(g=1\)</span> und <span class="math inline">\(g=2\)</span> für die erste und zweite Gruppe steht):
+<span class="math display">\[\chi^2=\chi^2_{1}+\chi^2_{2}.\]</span>
+Wenn wir uns jetzt die Ergebnisse des Modells etwas genauer ansehen, erhalten wir für jede Gruppe eine detaillierte Ausgabe:</p>
 <pre><code>## [...]
 ##  Group 1 [1]:
 ## 
@@ -147,8 +148,8 @@ Wir haben hier keine Koeffizienten mehr benannt, da in einem Update von <code>la
 ##     ZD                0.000                           
 ##    .BOEE              0.000                            
 ## [...]</code></pre>
-<p>Uns fällt auf, dass sowohl die Faktorladungen als auch die Pfadkoeffizienten sich kaum über die Gruppen hinweg unterscheiden. Da sich die Subpopulationen auch hinsichtlich der Mittelwerte unterscheiden können, werden diese nun per Default im Output mit ausgegeben. Natürlich können sich die Subpopulationen auch in allen weiteren Koeffizienten unterscheiden (Faktorladungen, Pfadkoeffizienten, Interzept, (Residual-)Varianzen).</p>
-<p>Eben hatten wir angesprochen, dass das einfache Setzen eines Labels für einen Koeffizienten automatisch zu dessen Invarianz über die Gruppen führt. Um nun doch die Parameter über die Gruppen hinweg zu benennen, ohne diese gleichzusetzen, müssen wir die Labels als Vektor schreiben, also bspw. <code>BOEE ~ c(a1, a2)*ZD</code>, um den Effekt der unabhängigen Variable auf den Mediator in den Gruppen jeweils <code>a1</code> und <code>a2</code> zu nennen.</p>
+<p>Uns fällt auf, dass sowohl die Faktorladungen als auch die Pfadkoeffizienten sich kaum über die Gruppen hinweg unterscheiden. Da sich die Subpopulationen auch hinsichtlich der Mittelwerte unterscheiden können, werden diese nun per Default im Output mit ausgegeben (es ist also nicht mehr notwendig mit <code>meanstructure = TRUE</code> zu arbeiten). Natürlich können sich die Subpopulationen auch in allen weiteren Koeffizienten unterscheiden.</p>
+<p>Im <a href="/post/sem">Beitrag zu den Strukturgleichungsmodellen</a> hatten wir Parameterlabel benutzt, um den indirekten Effekt als neuen Modellparameter bestimmen zu können. Da wir nun zwei Gruppen haben, müssen wir die Labels als Vektor schreiben, also bspw. <code>BOEE ~ c(a1, a2)*ZD</code>, um den Effekt der unabhängigen Variable auf den Mediator in den Gruppen jeweils <code>a1</code> und <code>a2</code> zu nennen.</p>
 <p>Wir nutzen diese Schreibweise, um den indirekten Effekt sowohl für Frauen als auch für Männer zu berechnen und erweitern unser Modell entsprechend:</p>
 <pre class="r"><code>model_sem_IE_TE_MSA &lt;- &#39;
 # Messmodelle
@@ -168,23 +169,9 @@ TE2 := IE2 + c2
 &#39;
 fit_sem_IE_TE_MSA &lt;- sem(model_sem_IE_TE_MSA, StressAtWork, group = &quot;sex&quot;)
 summary(fit_sem_IE_TE_MSA)</code></pre>
-<p>Nun sind alle Pfadkoeffizienten benannt:</p>
+<p>Nun sind alle Pfadkoeffizienten benannt. In Gruppe 1 (Frauen):</p>
 <pre><code>## [...]
-##  Group 1 [1]:
-## 
-## Latent Variables:
-##                    Estimate  Std.Err  z-value  P(&gt;|z|)
-##   ZD =~                                               
-##     zd1               1.000                           
-##     zd2               0.861    0.073   11.853    0.000
-##     zd6               0.830    0.068   12.214    0.000
-##   BOEE =~                                             
-##     bo1               1.000                           
-##     bo6               0.900    0.063   14.356    0.000
-##     bo12              0.936    0.067   14.011    0.000
-##     bo19              1.033    0.070   14.667    0.000
-## 
-## Regressions:
+##  Regressions:
 ##                    Estimate  Std.Err  z-value  P(&gt;|z|)
 ##   BOEE ~                                              
 ##     ZD        (a1)    0.499    0.087    5.751    0.000
@@ -192,22 +179,9 @@ summary(fit_sem_IE_TE_MSA)</code></pre>
 ##     BOEE      (b1)    0.348    0.041    8.548    0.000
 ##     ZD        (c1)    0.049    0.046    1.072    0.284 
 ## [...]</code></pre>
+<p>Und in Gruppe 2 (Männer):</p>
 <pre><code>## [...]
-##  Group 2 [2]:
-## 
-## Latent Variables:
-##                    Estimate  Std.Err  z-value  P(&gt;|z|)
-##   ZD =~                                               
-##     zd1               1.000                           
-##     zd2               0.682    0.123    5.555    0.000
-##     zd6               0.725    0.129    5.637    0.000
-##   BOEE =~                                             
-##     bo1               1.000                           
-##     bo6               0.941    0.099    9.472    0.000
-##     bo12              1.011    0.106    9.525    0.000
-##     bo19              1.082    0.108   10.041    0.000
-## 
-## Regressions:
+##  Regressions:
 ##                    Estimate  Std.Err  z-value  P(&gt;|z|)
 ##   BOEE ~                                              
 ##     ZD        (a2)    0.519    0.145    3.580    0.000
@@ -224,16 +198,16 @@ summary(fit_sem_IE_TE_MSA)</code></pre>
 ##     IE2               0.217    0.065    3.320    0.001
 ##     TE2               0.240    0.077    3.114    0.002 
 ## [...]</code></pre>
-<p>hat sich nichts am Output geändert. Wir haben ja auch nur Labels vergeben und neu definierte Parameter hinzugefügt, die allerdings, wie zuvor schon erwähnt, die Modellstruktur (und somit auch die <span class="math inline">\(df\)</span>) nicht tangieren. Auch können wir die Modelle in den beiden Gruppen darstellen via (die Dreiecke haben eine 1 in der Mitte stehen und stellen die Mittelwertsstruktur dar, die Kante/das Gewicht eines Dreiecks auf bspw die manifesten Variablen stellt dann den Mittelwert dieser manifesten Variable dar):</p>
+<p>hat sich nichts am Output geändert. Wir haben ja auch nur Labels vergeben und neu definierte Parameter hinzugefügt, die allerdings, wie im <a href="/post/sem">Beitrag zu SEM</a> schon erwähnt, die Modellstruktur (und somit auch die <span class="math inline">\(df\)</span>) nicht tangieren. Auch können wir die Modelle in den beiden Gruppen darstellen via (die Dreiecke haben eine 1 in der Mitte stehen und stellen die Mittelwertsstruktur dar, die Kante/das Gewicht eines Dreiecks auf bspw die manifesten Variablen stellt dann den Mittelwert dieser manifesten Variable dar):</p>
 <pre class="r"><code>semPaths(object = fit_sem_IE_TE_MSA, what = &quot;est&quot;, layout = &quot;tree2&quot;,
          rotation = 2, curve = T, col = list(man = &quot;skyblue&quot;, lat = &quot;yellow&quot;),
          curvePivot = T,  edge.label.cex=1, sizeMan = 5, sizeLat = 8)</code></pre>
-<p><img src="/post/2021-04-13-MSA_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /><img src="/post/2021-04-13-MSA_files/figure-html/unnamed-chunk-11-2.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Die totalen und die indirekten Effekte müssten in einer wissenschaftlichen Untersuchung erneut mithilfe von Bootstrapping inferenzstatistisch geprüft werden. Diesen Schritt überlassen wir an dieser Stelle dem/der aufmerksamen Leser/in. Auch können die indirekten Effekten, bspw., gegeneinander untersucht werden via Bootstrapping, indem geschaut wird, ob die Konfidenzintervalle sich überschneiden. Allerdings können wir auch mittels des <span class="math inline">\(\chi^2\)</span>-Tests einen “richtigen” Invarianztest durchführen. Das schauen wir uns im Folgenden genauer an:</p>
+<p><img src="/post/2021-04-13-MSA_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /><img src="/post/2021-04-13-MSA_files/figure-html/unnamed-chunk-12-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Die totalen und die indirekten Effekte müssten in einer wissenschaftlichen Untersuchung erneut mithilfe von Bootstrapping inferenzstatistisch geprüft werden. Diesen Schritt überlassen wir an dieser Stelle dem/der aufmerksamen Leser/in. Auch können die indirekten Effekten, bspw., gegeneinander untersucht werden via Bootstrapping, indem die Differenz der Effekte als neuer Parameter definiert wird. Allerdings können wir auch mittels des <span class="math inline">\(\chi^2\)</span>-Tests einen “richtigen” Invarianztest durchführen. Das schauen wir uns im Folgenden genauer an.</p>
 <div id="invarianzstufen" class="section level3">
 <h3>Invarianzstufen</h3>
-<p>Mit Invarianz meinen wir die Gleichheit von Parametern über Gruppen hinweg, also bspw., dass es keine Unterschiede über das Geschlecht hinweg gibt. Welche Stufen der Invarianz es gibt, was diese bedeuten und wie wir diese spezifizieren, gucken wir uns im Folgenden nochmal kurz an.</p>
-<p>So wie wir die indirekten Effekte bestimmt und die Koeffizienten für beide Gruppen benannt haben, lassen sich auch Invarianzen händisch prüfen. Wenn zwei Koeffizienten das selbe Label tragen, werden diese Parameter in den Gruppen auf den gleichen Wert gesetzt. Wir könnten nun für die jeweiligen Invarianzstufen die Parameter händisch gleichsetzen. Dieses ganze Prozedere erscheint recht aufwendig. Allerdings kann so in jedem Schritt überprüft werden, dass die Parameter richtig restringiert wurden. Auch lassen sich so auch leicht partielle Invarianz einbauen, in welchen bspw. nicht alle Faktorladungen über die Gruppen hinweg gleich sind. Außerdem könnten Invarianzen nur für bestimmte Variablen angenommen werden. Diesen kompletten, händischen Prozess sehen Sie in <a href="#AppendixA">Appendix A</a>. Glücklicherweise enthält das <code>lavaan</code>-Paket aber Möglichkeiten, Invarianzen global zu definieren. Dazu müssen wir lediglich in der Schätzung unserer Modelle in <code>sem</code> das Zusatzargument <code>group.equal</code> spezifizieren. Für partielle Invarianzen gibt es zusätzlich <code>group.partial</code>. Bevor wir mit den Analysen beginnen, sehen Sie in der folgenden Tabelle noch einmal eine Übersicht über die Invarianzstufen. Eine detaillierte Wiederholung dessen, was auch in den inhaltlichen Sitzungen zu den Invarianzstufen behandelt wurde, finden Sie im <a href="/post/Exkurs-Invarianztestungen">Exkurs zu Invarianztestungen</a>. Die beiden Spalten “Annahme” und “Implikation” sind kumulativ: Invarianzstufen, die weiter unten stehen, enthalten immer auch alle vorherigen Annahmen und erlauben auch immer alle vorherigen Aussagen. Die jeweiligen Einträge einer Zeile sind lediglich für diese Stufe <strong><em>zusätzlich</em></strong>.</p>
+<p>Mit Invarianz meinen wir die Gleichheit von Parametern über Gruppen hinweg, also bspw., dass es keine Unterschiede über das Geschlecht hinweg gibt. Ein ähnliches Konzept hatten wir im <a href="/post/cfa">Beitrag zur CFA</a> schon einmal gesehen, als es im Appendix um die Hierarchie der Messmodelle ging. Welche Stufen der Invarianz es in der MSA gibt, was diese bedeuten und wie wir diese spezifizieren, gucken wir uns im Folgenden nochmal kurz an.</p>
+<p>So wie wir die indirekten Effekte bestimmt und die Koeffizienten für beide Gruppen benannt haben, lassen sich auch Invarianzen händisch prüfen. Wenn zwei Koeffizienten das selbe Label tragen, werden diese Parameter in den Gruppen auf den gleichen Wert gesetzt. Wir könnten nun für die jeweiligen Invarianzstufen die Parameter händisch gleichsetzen. Dieses ganze Prozedere erscheint recht aufwendig. Allerdings kann so in jedem Schritt überprüft werden, dass die Parameter richtig restringiert wurden. Auch lassen sich so auch leicht partielle Invarianz einbauen, in welchen bspw. nicht alle Faktorladungen über die Gruppen hinweg gleich sind. Außerdem könnten Invarianzen nur für bestimmte Variablen angenommen werden. Diesen kompletten, händischen Prozess sehen Sie in <a href="#AppendixA">Appendix A</a>. Glücklicherweise enthält das <code>lavaan</code>-Paket aber Möglichkeiten, Invarianzen global zu definieren. Dazu müssen wir lediglich in der Schätzung unserer Modelle in <code>sem</code> das Zusatzargument <code>group.equal</code> spezifizieren. Für partielle Invarianzen gibt es zusätzlich <code>group.partial</code>. Bevor wir mit den Analysen beginnen, sehen Sie in der folgenden Tabelle noch einmal eine Übersicht über die Invarianzstufen. Eine detaillierte Wiederholung dessen, was auch in den inhaltlichen Sitzungen zu den Invarianzstufen behandelt wurde, finden Sie im <a href="/post/exkurs-invarianztestungen">Exkurs zu Invarianztestungen</a>. Die beiden Spalten “Annahme” und “Implikation” sind kumulativ: Invarianzstufen, die weiter unten stehen, enthalten immer auch alle vorherigen Annahmen und erlauben auch immer alle vorherigen Aussagen. Die jeweiligen Einträge einer Zeile sind lediglich für diese Stufe <strong><em>zusätzlich</em></strong>.</p>
 <table>
 <colgroup>
 <col width="21%" />
@@ -270,6 +244,7 @@ summary(fit_sem_IE_TE_MSA)</code></pre>
 </tr>
 </tbody>
 </table>
+<p>Die zwei verschiedenen Bezeichnungstypen für die beiden mittleren Invarianzstufen (entweder schwach und stark oder metrisch und skalar) kommen aus unterschiedlichen Traditionen in der MSA Literatur und können austauschbar benutzt werden.</p>
 <p>Probieren wir dies doch gleich einmal aus (das Modell sollte hierzu keine Parameterbenennungen haben, da diese die gloablen Invarianzeinstellungen in <code>sem</code> überschreiben könnten):</p>
 <pre class="r"><code>model_sem &lt;- &#39;
 # Messmodelle
@@ -520,7 +495,8 @@ summary(fit_sem_sex_skalar, fit.measures = T)</code></pre>
 ##     ZD               -0.288    0.143   -2.013    0.044
 ##    .BOEE              0.103    0.165    0.624    0.533 
 ## [...]</code></pre>
-<p>Wir erkennen, dass nun <code>lavaan</code> sogar nur Zahlen zwischen zwei Punkten als Labels vergibt. Diese Nummer enspricht weiterhin der Parameternummer. Hier greift nun tatsächlich die Einstellung <code>"BFs~1"</code> in <code>group.partial</code>. <code>BFs</code> hat zwei unterschiedlichte Interzepte. Bei <code>ZD</code> und <code>BOEE</code> fällt auf, dass diese in Gruppe 1 auf 0 gesetzt sind (ohne Unsicherheit) und in Gruppe 2 hier eine Effektkodierung durchgeführt wurde: hier wurden die Interzepte geschätzt. Unterscheidet sich dieser Interzept nun von 0, so unterscheiden sich die Gruppe in ihren Interzepten ([möglicherweise bedingten] Mittelwerten). Dazu später mehr!</p>
+<p>In dieser Ausgabe tauchen jetzt mitunter nur Zahlen zwischen den Punkten auf, dabei handelt es sich aber lediglich um eine Abkürzung im Output. In <code>lavaan</code> werden konsistent alle diese Label als <code>.p</code>[Parameternummer]<code>.</code> vergeben. (Wenn Sie sich davon selbst überzeugen möchten, nutzen Sie z.B. die <code>parameterEstimates</code>-Funktion, um eine detaillierte Ausgabe über die Parameter zu erhalten.)</p>
+<p>Hier greift nun tatsächlich die Einstellung <code>"BFs~1"</code> in <code>group.partial</code>. <code>BFs</code> hat zwei unterschiedlichte Interzepte. Bei <code>ZD</code> und <code>BOEE</code> fällt auf, dass diese in Gruppe 1 auf 0 gesetzt sind (ohne Unsicherheit) und in Gruppe 2 hier eine Effektkodierung durchgeführt wurde: hier wurden die Interzepte geschätzt. Unterscheidet sich dieser Interzept nun von 0, so unterscheiden sich die Gruppe in ihren Interzepten ([möglicherweise bedingten] Mittelwerten). Dazu später mehr!</p>
 <p>Nun wollen wir untersuchen, ob das metrisch- und das skalar-invariante Modell sich signifikant in der Modellbeschreibung unterscheiden.</p>
 <pre class="r"><code>lavTestLRT(fit_sem_sex_skalar, fit_sem_sex_metrisch)</code></pre>
 <pre><code>## Chi-Squared Difference Test
@@ -566,7 +542,7 @@ Dies bedeutet nun, dass Unterschiede in der Varianz der manifesten Variablen tat
 ## fit_sem_sex_voll   62 6844.0 6940.7 73.14      25.29       9   0.002667 **
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p>erhalten wir diesmal eine große <span class="math inline">\(\chi^2\)</span>-Differenz (25.29) und der p-Wert zeigt an, dass es sich um eine signifikante Verschlechterung des Modells handelt p = 0.003 <span class="math inline">\(&lt; 0.05\)</span>, wenn wir die Restriktion der vollständigen Invarianz in das Modell aufnehmen. Die Null-Hypothese, dass alle Parameter im Modell über das Geschlecht hinweg gleich sind, wird somit verworfen (die Null-Hypothese war: <span class="math inline">\(H_0: \Sigma_{strikt}=\Sigma_{vollständig}\)</span>). Dies bedeutet also, dass es Geschlechtsunterschiede in den Beziehungen zwischen den latenten Variablen gibt.</p>
+<p>erhalten wir diesmal eine große <span class="math inline">\(\chi^2\)</span>-Differenz (25.29) und der p-Wert zeigt an, dass es sich um eine signifikante Verschlechterung des Modells handelt <span class="math inline">\(p = 0.003 &lt; 0.05\)</span>, wenn wir die Restriktion der vollständigen Invarianz in das Modell aufnehmen. Die Null-Hypothese, dass alle Parameter im Modell über das Geschlecht hinweg gleich sind, wird somit verworfen (die Null-Hypothese war: <span class="math inline">\(H_0: \Sigma_{strikt}=\Sigma_{vollständig}\)</span>). Dies bedeutet also, dass es Geschlechtsunterschiede in den Beziehungen zwischen den latenten Variablen gibt.</p>
 <p>Natürlich ist es nun interessant, wo diese Unterschiede leigen. Deshalb schauen wir uns dies an, indem wir uns den Output der Summary des strikt-invarianten Modells ansehen, da sich hier Pfadkoeffizienten, sowie die Mittelwerte und Varianzen der latenten Variablen (bzw. von <code>BFs</code>, was wir als latente Variable mitführen) noch unterscheiden:</p>
 <pre class="r"><code>summary(fit_sem_sex_strikt)</code></pre>
 <pre><code>## [...]
@@ -646,38 +622,171 @@ Dies bedeutet nun, dass Unterschiede in der Varianz der manifesten Variablen tat
 <pre class="r"><code>semPaths(object = fit_sem_sex_strikt, what = &quot;est&quot;, layout = &quot;tree2&quot;,
          rotation = 2, curve = T, col = list(man = &quot;skyblue&quot;, lat = &quot;yellow&quot;),
          curvePivot = T,  edge.label.cex=1, sizeMan = 5, sizeLat = 8)</code></pre>
-<p><img src="/post/2021-04-13-MSA_files/figure-html/unnamed-chunk-32-1.png" width="672" style="display: block; margin: auto;" /><img src="/post/2021-04-13-MSA_files/figure-html/unnamed-chunk-32-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-04-13-MSA_files/figure-html/unnamed-chunk-33-1.png" width="672" style="display: block; margin: auto;" /><img src="/post/2021-04-13-MSA_files/figure-html/unnamed-chunk-33-2.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Wir erkennen deutlich, dass einige Koeffizienten gleich sind und bspw. der Mittelwert von <code>ZD</code> in einer Gruppe auf 0 ist (kein Pfeil) und in der zweiten Gruppe bei -0.29 liegt. Wenn wir hier <code>what = "model"</code> wählen, können wir das Modell mit allen Gleichsetzungen betrachten.</p>
+<!-- ### Was bedeutet es, wenn ein Pfadkoeffizient nicht invariant über Gruppen ist? -->
 </div>
-<div id="was-bedeutet-es-wenn-ein-pfadkoeffizient-nicht-invariant-über-gruppen-ist" class="section level3">
-<h3>Was bedeutet es, wenn ein Pfadkoeffizient nicht invariant über Gruppen ist?</h3>
-<p>Wir wollen uns trotzdem noch kurz die Frage stellen, was es eigentlich bedeutet, falls ein Pfadkoeffizient über Gruppen hinweg nicht gleich ist. Das haben wir zwar in unseren Daten nicht beobachtet, es stellt aber eine interessante Fragestellung dar. <em>Wir gehen dazu davon aus, dass der (Regressions-)Koeffizient des Zeitdruck auf Burnout (Emotionale Erschöpfung) nicht invariant über das Geschlecht wäre.</em> Dann bedeutet dies, dass es für das Geschlecht unterschiedlich starke Beziehung zwischen Zeitdruck und Burnout gibt. Damit sprechen wir eigentlich von einer “Interaktion” zwischen Geschlecht und Zeitdruck im Effekt auf Burnout. Dies ist somit gleichbedeutend wie eine in eine Regression involvierte Interaktion à la <code>lm(BF~1 + factor(sex) + ZD + factor(sex):ZD)</code>. Hierbei steht <code>:</code> für Interaktion, also Produkt, zwischen der Dummy-Variable <code>sex</code> (deshalb auch <code>factor</code> außen herum) und dem Zeitdruck. In einer solchen Regression lassen wir also im Grunde 2 Steigungskoeffizienten für den Zeitdruck zu. In <em>Regressionsschreibweise</em> (Achtung, diese weicht von der Strukturmodellsschreibweise ab!):</p>
+<div id="multi-gruppen-modelle-und-moderierte-regression" class="section level2">
+<h2>Multi Gruppen Modelle und moderierte Regression</h2>
+<p>Auch wenn in unserem Beispiel die Regressionsgewichte über beide Gruppen hinweg gleich waren, ist das bei weitem nicht immer der Fall. In vielen Fällen zielen inhaltliche Fragestellungen genau darauf ab, in welchem Ausmaß es Unterschiede in den Beziehungen latenter Variablen über Gruppen hinweg gibt. Wir hatten bereits gesehen, dass Männer im Mittel weniger Zeitdruck erleben. Könnte es daher sein, dass Männer die - entgegen der üblichen männlichen Erfahrung - erhöhten Zeitdruck empfinden stärker mit psychosomatischen Beschwerden darauf reagieren als Frauen? Diese Frage impliziert einen <em>Interkationseffekt</em> wie er schon <a href="/post/regression-und-ausreisserdiagnostik">im letzten Semester</a> behandelt wurde. Gleichzeitig bedeutet diese Frage auch nichts anderes als: “Gibt es einen Unterschied in den Regressionsgewichten zwischen Männern und Frauen?”. In diesem Abschnitt gucken wir uns an, wie diese beiden Ansätze in Bezug zueinander stehen.</p>
+<p>Vereinfachen wir unser Beispiel für einen Moment auf die manifeste Ebene, wie es schon bei den <a href="/post/sem#Pfadanalysen">Pfadanalysen im letzten Beitrag</a> der Fall war. Dazu nutzen wir neben den Skalenwerten der psychosomatischen Beschwerden (<code>BFs</code>) auch einen Skalenwert des Zeitdrucks (<code>ZDs</code>). Generell hält die folgende Beschreibung auch für den Fall mit latenten Variablen, aber für den Vergleich der beiden Ansätze ist ein übersichtliches Beispiel sinnvoller.</p>
+<pre class="r"><code>StressAtWork$ZDs &lt;- rowMeans(StressAtWork[,paste0(&quot;zd&quot;,c(1, 2, 6))])</code></pre>
+<p>Das einfache Multi Gruppen Modell sieht für diesen Fall in <code>lavaan</code> so aus:</p>
+<pre class="r"><code>model_pfad_msa &lt;- &#39;BFs ~ ZDs&#39;
+fit_pfad_msa &lt;- sem(model_pfad_msa, StressAtWork,
+  group = &#39;sex&#39;)</code></pre>
+<p>Als Ergebnis erhalten wir zwei gruppenspezifische Regressionen, die so notiert werden können:</p>
 <p><span class="math display">\[\begin{align}
-BF_i&amp;=\beta_0 + \beta_1ZD_i + \beta_2sex_i + \beta_3ZD_isex_i + \varepsilon_i\\
-BF_i&amp;=\underbrace{(\beta_0 + \beta_2sex_i)}_{\text{Interzept}(sex_i)} + \underbrace{(\beta_1 +  + \beta_3sex_i)}_{\text{Slope}(sex_i)}ZD_i + \varepsilon_i\\
-\end{align}\]</span>
-In der zweiten Schreibweise/Zeile erkennen wir, dass es eigentlich eine geschlechtsspezifische Slope gibt, welche sich mit 2 Parametern (also <span class="math inline">\(df=2\)</span>) ergibt: <span class="math inline">\(\beta_1 + \beta_3sex_i\)</span>, also in der einen Gruppe ist die Beziehung <span class="math inline">\(\beta_1\)</span> (<span class="math inline">\(sex=0\)</span>, da dummykodiert wird, entspricht dies den Frauen) und in der anderen <span class="math inline">\(\beta_1 + \beta_3\)</span> (<span class="math inline">\(sex=1\)</span>, da dummykodiert wird, entspricht dies den Männern)! Genauso kann man auch zwei Gleichungen für das Interzept formulieren. (Wer sich weiter für Interaktionen interessiert, kann sich ansehen wie Interaktionen in Regressionen mit kontinuierlichen Variablen aussehen: <a href="/post/quadratische-und-moderierte-regression/#modReg">quadaratische und moderierte Regression</a> — dies ist eine Sitzung aus dem Bachelor!).
-Analog zur Regressionsschreibweise werden nun bei der Invarianztestung auch die beiden Koeffizienten in den beiden Gruppen auf den selben Wert gesetzt und es wird geschaut, ob diese Annahme die Passung des Modells zu den Daten stark verschlechtert. Die oben gewählte Regressionsschreibweise erleichtert nur das Ablesen eines signifikanten Unterschiedes über die Gruppe via Signifikanzentscheidung von <span class="math inline">\(\beta_3\)</span>, für SEM geschiet dies durch eine Invarianztestung! Da wir nun angenommen hatten, dass dies der Fall ist, wird also für die beiden Gruppen, also für Männer und für Frauen, eine eigene Beziehung zwischen Zeitdruck und Burnout angenommen (und ggf. auch ein eigenes Interzept). Dies sieht doch der Schreibweise in der Regression sehr ähnlich — damit erkennen wir, dass dies eigentlich eine <strong>Interkation zwischen Geschlecht und Zeitdruck</strong> darstellt! Um das nochmals zu veranschaulichen, stellen wir die empirischen Beziehungen grafisch dar, indem wir zwei Gerade zeichnen, welche so in den beiden Subpopulationen beobachtet wurden (diese sind allerdings nicht signifikant verschieden von einander). Wir plotten dazu das strikt invariante Modell: Die Beziehung zwischen Zeitdruck und emotionaler Erschöpfung beläuft sich empirisch auf: <span class="math inline">\(\hat{\gamma}_{11}^{Frauen}=\)</span>.490 und <span class="math inline">\(\hat{\gamma}_{11}^{Männer}=\)</span> .583. Die latente Interzepte liegen bei: <span class="math inline">\(\hat{\kappa}_{11}^{Frauen}=\)</span> 0 und <span class="math inline">\(\hat{\kappa}_{11}^{Männer}=\)</span> 0.104. Somit haben wir alle Informationen, die nötig sind, um für Frauen und Männer jeweils eine Regressionsgerade einzuzeichnen.</p>
-<pre class="r"><code>plot(NA,                                                                     # leeren Plot erstellen
-     xlim = c(-1, 1), ylim = c(-1, 1),                                       # festlegen, von wo bis wo der Plot dargestellt werden soll                             
-     main = &quot;Beziehung zwischen Zeitdruck\n und emotionaler Erschöpfung&quot;,    # Titel vergeben
-     xlab = &quot;ZD&quot;, ylab = &quot;EE&quot;)                                               # Achsenbeschriftung vergeben 
-abline(a = 0, b = .490, col = &quot;red&quot;, lwd = 2)                                # eigene Gerade für Frauen einzeichnen
-abline(a = 0.104, b = .583, col = &quot;blue&quot;, lwd = 2)                            # eigene Gerade für Männer einzeichnen
-                                                                             # a = Interzept, b = Steigung, col = Farbe, lwd = Liniendicke
-legend(x=&quot;topleft&quot;, col = c(&quot;red&quot;, &quot;blue&quot;), lwd = c(2, 2), lty = c(1, 1),    # Legende einzeichnen oben links mit Farben
-       legend = c(&quot;Frauen&quot;, &quot;Männer&quot;))                                       # und Liniendicken von abline
-abline(v = 0, lty = 3)                                                       # vertikale Linie bei 0 einzeichnen (y-Achse)</code></pre>
-<p><img src="/post/2021-04-13-MSA_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
-<p>Der Grafik entnehmen wir die deskriptiven Unterschiede zwischen den Interzepten (<span class="math inline">\(\hat{\kappa}_{11}^{Männer} &gt; \hat{\kappa}_{11}^{Frauen}\)</span>) und zwischen den Slopes (<span class="math inline">\(\hat{\gamma}_{11}^{Männer}&gt;\hat{\gamma}_{11}^{Frauen}\)</span>), allerdings sind diese Unterschiede nicht statistisch signifikant und werden hier nur für illustrationszwecke so dargestellt!</p>
-<p>Eine detaillierte Wiederholung dessen, was auch in den inhaltlichen Sitzungen zu den Invarianzstufen behandelt wurde, finden Sie im <a href="/post/Exkurs-Invarianzstufen">Exkurs zu Invarianztestungen</a>. Für weiterführende Literatur, die zum Teil für diesen Abschnitt aufgearbeitet wurde, siehe bspw. Gregorich (2006) - <em>dies ist keine Prüfungsliteratur</em>.</p>
+  BF &amp;= \beta_{01} + \beta_{11} ZD + \varepsilon \\
+  BF &amp;= \beta_{02} + \beta_{12} ZD + \varepsilon 
+\end{align}\]</span></p>
+<p>Auf die Daten angepasst erhalten wir folgende Parameterschätzungen:</p>
+<pre class="r"><code>summary(fit_pfad_msa)</code></pre>
+<pre><code>## [...]
+##  Regressions:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##   BFs ~                                               
+##     ZDs               0.220    0.045    4.885    0.000
+## 
+## Intercepts:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##    .BFs               1.710    0.166   10.310    0.000 
+## [...]</code></pre>
+<pre><code>## [...]
+##  Regressions:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##   BFs ~                                               
+##     ZDs               0.213    0.078    2.742    0.006
+## 
+## Intercepts:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##    .BFs               1.487    0.262    5.677    0.000 
+## [...]</code></pre>
+<p>Die beiden Gruppen unterscheiden sich geringfügig im Regressionsgewicht und Intercept. Um uns die Mühe zu ersparen einfache Subtraktion per Hand betreiben zu müssen, können wir diese Differenzen mit in das Modell aufnehmen. Dazu können wir wieder mit Labels arbeiten und neue Parameter definieren:</p>
+<pre class="r"><code>model_pfad_msa &lt;- &#39;
+  # Regressionen
+  BFs ~ c(b11, b12)*ZDs
+
+  # Interzepte
+  BFs ~ c(b01, b02)*1
+
+  # Differenzen
+  b0d := b02 - b01
+  b1d := b12 - b11&#39;
+
+fit_pfad_msa &lt;- sem(model_pfad_msa, StressAtWork,
+  group = &#39;sex&#39;)</code></pre>
+<pre><code>## [...]
+##  Defined Parameters:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##     b0d              -0.223    0.310   -0.720    0.472
+##     b1d              -0.007    0.090   -0.077    0.939 
+## [...]</code></pre>
+<p>Wir behalten diese Ergebnisse mal im Hinterkopf und gucken uns die moderierte Regression als Möglichkeit an, die gleiche Frage zu bearbeiten.</p>
+<p>Für die moderierte Regression benötigen wir einen Interaktionsterm, der in das Modell aufgenommen werden muss. In unserem Datensatz ist das Geschlecht mit 1 und 2 kodiert, sodass wir hier etwas nachhelfen müssen, bevor wir einen sinnvollen Interaktionsterm bestimmen können:</p>
+<pre class="r"><code>StressAtWork$sexDum &lt;- StressAtWork$sex - 1
+StressAtWork$Int &lt;- StressAtWork$ZDs * StressAtWork$sexDum</code></pre>
+<p>Durch die Subtraktion der 1 wird die Variable in eine <em>dummy-kodierte</em> Variable umgewandelt. Das hat folgende Auswirkungen auf die Variablen, die in die Regression eingehen:</p>
+<pre class="r"><code>head(StressAtWork[, c(&#39;ZDs&#39;, &#39;sexDum&#39;, &#39;Int&#39;)])</code></pre>
+<pre><code>##        ZDs sexDum      Int
+## 1 2.666667      0 0.000000
+## 2 3.666667      0 0.000000
+## 3 2.333333      0 0.000000
+## 4 2.333333      1 2.333333
+## 5 3.333333      0 0.000000
+## 6 3.666667      0 0.000000</code></pre>
+<p>Personen mit einer <code>0</code> auf <code>sexDum</code> erhalten also eine <code>0</code> im Interaktionsterm, Personen mit <code>sexDum = 1</code> hingegen erhalten dort ihren ursprünglichen <code>ZDs</code>-Wert. Diese drei Variablen können wir dann im Rahmen einer moderierten Regression nutzen:</p>
+<p><span class="math display">\[\begin{align}
+  BF &amp;= \beta_{0} + \beta_{1} ZD + \beta_2 sex + \beta_3 (ZD \cdot sex) + \varepsilon
+\end{align}\]</span></p>
+<p>die in <code>lavaan</code> folgendermaßen aussieht:</p>
+<pre class="r"><code>model_pfad_moderiert &lt;- &#39;BFs ~ ZDs + sexDum + Int&#39;
+fit_pfad_moderiert &lt;- sem(model_pfad_moderiert, StressAtWork)</code></pre>
+<p>Als Ergebnis dieser moderierten Regression ergibt sich dann:</p>
+<pre><code>## [...]
+##  Regressions:
+##                    Estimate  Std.Err  z-value  P(&gt;|z|)
+##   BFs ~                                               
+##     ZDs               0.220    0.044    4.986    0.000
+##     sexDum           -0.223    0.323   -0.692    0.489
+##     Int              -0.007    0.094   -0.074    0.941 
+## [...]</code></pre>
+<p>Diese Ergebnisse sollten Ihnen außerordentlich bekannt vorkommen, weil wir alle drei Parameterschätzer vor wenigen Zeilen im Multi Gruppen Modell gesehen haben. Das liegt daran, dass beide Ansätze sich sehr leicht ineinander überführen lassen. Für die Gruppe der Frauen (<span class="math inline">\(sex = 0\)</span>):</p>
+<p><span class="math display">\[\begin{align}
+  BF &amp;= \beta_{0} + \beta_{1} ZD + \beta_2 0 + \beta_3 (ZD \cdot 0) + \varepsilon \\
+  BF &amp;= \beta_{0} + \beta_{1} ZD
+\end{align}\]</span></p>
+<p>und für die Gruppe der Männer (<span class="math inline">\(sex = 1\)</span>):</p>
+<p><span class="math display">\[\begin{align}
+  BF &amp;= \beta_{0} + \beta_{1} ZD + \beta_2 1 + \beta_3 (ZD \cdot 1) + \varepsilon \\
+  BF &amp;= \beta_{0} + \beta_2 + (\beta_{1} + \beta_3) ZD
+\end{align}\]</span></p>
+<p>Zusammengefasst ergibt sich also:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Gruppe</th>
+<th>Parameter</th>
+<th>MSA</th>
+<th>Mod. Reg</th>
+<th>Ergebnis</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Frauen</td>
+<td>Interzept</td>
+<td><span class="math inline">\(\beta_{01}\)</span></td>
+<td><span class="math inline">\(\beta_{0}\)</span></td>
+<td>1.710</td>
+</tr>
+<tr class="even">
+<td>Frauen</td>
+<td>Gewicht</td>
+<td><span class="math inline">\(\beta_{11}\)</span></td>
+<td><span class="math inline">\(\beta_{1}\)</span></td>
+<td>0.220</td>
+</tr>
+<tr class="odd">
+<td>Männer</td>
+<td>Interzept</td>
+<td><span class="math inline">\(\beta_{02}\)</span></td>
+<td><span class="math inline">\(\beta_{0} + \beta_2\)</span></td>
+<td>1.487</td>
+</tr>
+<tr class="even">
+<td>Männer</td>
+<td>Gewicht</td>
+<td><span class="math inline">\(\beta_{12}\)</span></td>
+<td><span class="math inline">\(\beta_{1} + \beta_3\)</span></td>
+<td>0.213</td>
+</tr>
+<tr class="odd">
+<td>Differenz</td>
+<td>Interzept</td>
+<td><span class="math inline">\(\beta_{02} - \beta_{01}\)</span></td>
+<td><span class="math inline">\(\beta_2\)</span></td>
+<td>-0.223</td>
+</tr>
+<tr class="even">
+<td>Differenz</td>
+<td>Gewicht</td>
+<td><span class="math inline">\(\beta_{12} - \beta_{11}\)</span></td>
+<td><span class="math inline">\(\beta_3\)</span></td>
+<td>-0.007</td>
+</tr>
+</tbody>
+</table>
+<p>Dieses Prinzip gilt in der MSA für alle Parameter: wir implizieren eine Interaktion mit der Gruppierungsvariable, wenn wir keine Gleichheit über die Gruppen hinweg annehmen. Im Umkehrschluss gilt also auch: wenn wir eine Gruppenvariable als einen Prädiktor in ein SEM aufnehmen, ohne sie als Gruppierungsvariable in einer MSA einzuarbeiten, behaupten wir, dass es keinerlei Interaktionseffekt gibt. Dies gilt auf der Ebene des Messmodells genauso wie auf der Ebene des Strukturmodells.</p>
 <p>Den gesamten R-Code, der in dieser Sitzung genutzt wird, können Sie <a href="https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/MSA.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
 <hr />
 </div>
 <div id="AppendixA" class="section level2">
 <h2>Appendix A</h2>
 <details>
-<p><summary> <strong>MSA zu Fuß</strong> </summary></p>
+<summary>
+<strong>MSA zu Fuß</strong>
+</summary>
 <p>Wir wollen uns die Invarianztestung auch noch einmal zu Fuß ansehen. Um das ganze abzukürzen, schauen wir uns immer mit <code>fitMeasures</code> nur den <span class="math inline">\(\chi^2\)</span>-Wert, die <span class="math inline">\(df\)</span> sowie den <span class="math inline">\(p\)</span>-Wert an und vergleichen diese mit den bereits geschätzten Modell aus dem Abschnitt zur <a href="#MSA">MSA</a>.</p>
 <div id="konfigurale-invarianz-1" class="section level4">
 <h4>Konfigurale Invarianz</h4>
