@@ -22,7 +22,6 @@ header:
   caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/644378)"
 ---
 
-<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <p>In einer Multi-Sample-Analysis wird in mehreren Gruppen gleichzeitig ein Strukturgleichungsmodell geschätzt. Wir könnten uns bspw. fragen, ob die gleichen Beziehungen zwischen Zeitdruck, Emotionaler Erschöpfung und psychosomatischen Beschwerden, wie wir sie in der letzten Sitzung zu <a href="/post/sem">SEM</a> beobachtet haben, gleichermaßen für Männer und Frauen gelten. Im Datensatz <code>StressAtWork</code> der <a href="/post/sem">SEM</a> Sitzung ist die Variable <code>sex</code> enthalten. Hier sind Frauen mit <code>1</code> und Männer mit <code>2</code> kodiert. Wir können diesen wie gewohnt laden:
@@ -628,8 +627,8 @@ Dies bedeutet nun, dass Unterschiede in der Varianz der manifesten Variablen tat
 </div>
 <div id="multi-gruppen-modelle-und-moderierte-regression" class="section level2">
 <h2>Multi Gruppen Modelle und moderierte Regression</h2>
-<p>Auch wenn in unserem Beispiel die Regressionsgewichte über beide Gruppen hinweg gleich waren, ist das bei weitem nicht immer der Fall. In vielen Fällen zielen inhaltliche Fragestellungen genau darauf ab, in welchem Ausmaß es Unterschiede in den Beziehungen latenter Variablen über Gruppen hinweg gibt. Wir hatten bereits gesehen, dass Männer im Mittel weniger Zeitdruck erleben. Könnte es daher sein, dass Männer die - entgegen der üblichen männlichen Erfahrung - erhöhten Zeitdruck empfinden stärker mit psychosomatischen Beschwerden darauf reagieren als Frauen? Diese Frage impliziert einen <em>Interkationseffekt</em> wie er schon <a href="/post/regression-und-ausreisserdiagnostik">im letzten Semester</a> behandelt wurde. Gleichzeitig bedeutet diese Frage auch nichts anderes als: “Gibt es einen Unterschied in den Regressionsgewichten zwischen Männern und Frauen?”. In diesem Abschnitt gucken wir uns an, wie diese beiden Ansätze in Bezug zueinander stehen.</p>
-<p>Vereinfachen wir unser Beispiel für einen Moment auf die manifeste Ebene, wie es schon bei den <a href="/post/sem#Pfadanalysen">Pfadanalysen im letzten Beitrag</a> der Fall war. Dazu nutzen wir neben den Skalenwerten der psychosomatischen Beschwerden (<code>BFs</code>) auch einen Skalenwert des Zeitdrucks (<code>ZDs</code>). Generell hält die folgende Beschreibung auch für den Fall mit latenten Variablen, aber für den Vergleich der beiden Ansätze ist ein übersichtliches Beispiel sinnvoller.</p>
+<p>Auch wenn in unserem Beispiel die Regressionsgewichte über beide Gruppen hinweg gleich waren, ist das bei weitem nicht immer der Fall. In vielen Fällen zielen inhaltliche Fragestellungen genau darauf ab, in welchem Ausmaß es Unterschiede in den Beziehungen latenter Variablen über Gruppen hinweg gibt. Wir hatten bereits gesehen, dass Männer im Mittel weniger Zeitdruck erleben. Könnte es daher sein, dass Männer die - entgegen der üblichen männlichen Erfahrung - erhöhten Zeitdruck empfinden stärker mit psychosomatischen Beschwerden darauf reagieren als Frauen? Diese Frage impliziert einen <em>Interkationseffekt</em> wie er schon <a href="/post/quadratische-und-moderierte-regression">in der Bachelor-Sitzung zur quadratischen und moderierten Regression</a> behandelt wurde. Gleichzeitig bedeutet diese Frage auch nichts anderes als: “Gibt es einen Unterschied in den Regressionsgewichten zwischen Männern und Frauen?”. In diesem Abschnitt gucken wir uns an, wie diese beiden Ansätze in Bezug zueinander stehen.</p>
+<p>Vereinfachen wir unser Beispiel für einen Moment auf die manifeste Ebene, wie es schon bei den <a href="/post/sem/#Pfadanalyse">Pfadanalysen im letzten Beitrag</a> der Fall war. Dazu nutzen wir neben den Skalenwerten der psychosomatischen Beschwerden (<code>BFs</code>) auch einen Skalenwert des Zeitdrucks (<code>ZDs</code>). Generell hält die folgende Beschreibung auch für den Fall mit latenten Variablen, aber für den Vergleich der beiden Ansätze ist ein übersichtliches Beispiel sinnvoller.</p>
 <pre class="r"><code>StressAtWork$ZDs &lt;- rowMeans(StressAtWork[,paste0(&quot;zd&quot;,c(1, 2, 6))])</code></pre>
 <p>Das einfache Multi Gruppen Modell sieht für diesen Fall in <code>lavaan</code> so aus:</p>
 <pre class="r"><code>model_pfad_msa &lt;- &#39;BFs ~ ZDs&#39;
@@ -777,6 +776,33 @@ fit_pfad_moderiert &lt;- sem(model_pfad_moderiert, StressAtWork)</code></pre>
 </tr>
 </tbody>
 </table>
+<p>Analog hätten wir auch eine Regression mit <code>factor(sex)</code> verwenden können, wie es <a href="/post/quadratische-und-moderierte-regression">in der Bachelor-Sitzung zur quadratischen und moderierten Regression</a> gemacht wurde; allerdings war die Umsetzung in <code>lavaan</code> überaus sinnvoll.</p>
+<pre class="r"><code>reg &lt;- lm(BFs ~ factor(sex)*ZDs, data = StressAtWork)
+summary(reg)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = BFs ~ factor(sex) * ZDs, data = StressAtWork)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.31507 -0.50409 -0.05418  0.49895  2.58601 
+## 
+## Coefficients:
+##                   Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)       1.710453   0.163628  10.453  &lt; 2e-16 ***
+## factor(sex)2     -0.223201   0.324913  -0.687    0.493    
+## ZDs               0.220296   0.044477   4.953 1.22e-06 ***
+## factor(sex)2:ZDs -0.006929   0.094498  -0.073    0.942    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.7103 on 301 degrees of freedom
+## Multiple R-squared:  0.1233, Adjusted R-squared:  0.1145 
+## F-statistic: 14.11 on 3 and 301 DF,  p-value: 1.256e-08</code></pre>
+<p>Grafisch sehen wir, dass sich die Regressionsgerade über die Gruppen hinweg nur geringfügig unterscheiden (signifikant war der Unterschied nicht!). Allerdings ist dies eine gängige Form eine solche Interaktion darzustellen:</p>
+<pre class="r"><code>print(&quot;Insert graphic here !!!!!&quot;)</code></pre>
+<pre><code>## [1] &quot;Insert graphic here !!!!!&quot;</code></pre>
+<p>Abgetragen sehen wir auch die Gruppenunterschiede.</p>
 <p>Dieses Prinzip gilt in der MSA für alle Parameter: wir implizieren eine Interaktion mit der Gruppierungsvariable, wenn wir keine Gleichheit über die Gruppen hinweg annehmen. Im Umkehrschluss gilt also auch: wenn wir eine Gruppenvariable als einen Prädiktor in ein SEM aufnehmen, ohne sie als Gruppierungsvariable in einer MSA einzuarbeiten, behaupten wir, dass es keinerlei Interaktionseffekt gibt. Dies gilt auf der Ebene des Messmodells genauso wie auf der Ebene des Strukturmodells.</p>
 <p>Den gesamten R-Code, der in dieser Sitzung genutzt wird, können Sie <a href="https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/MSA.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
 <hr />
@@ -784,9 +810,7 @@ fit_pfad_moderiert &lt;- sem(model_pfad_moderiert, StressAtWork)</code></pre>
 <div id="AppendixA" class="section level2">
 <h2>Appendix A</h2>
 <details>
-<summary>
-<strong>MSA zu Fuß</strong>
-</summary>
+<p><summary> <strong>MSA zu Fuß</strong> </summary></p>
 <p>Wir wollen uns die Invarianztestung auch noch einmal zu Fuß ansehen. Um das ganze abzukürzen, schauen wir uns immer mit <code>fitMeasures</code> nur den <span class="math inline">\(\chi^2\)</span>-Wert, die <span class="math inline">\(df\)</span> sowie den <span class="math inline">\(p\)</span>-Wert an und vergleichen diese mit den bereits geschätzten Modell aus dem Abschnitt zur <a href="#MSA">MSA</a>.</p>
 <div id="konfigurale-invarianz-1" class="section level4">
 <h4>Konfigurale Invarianz</h4>

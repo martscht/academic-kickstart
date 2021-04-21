@@ -380,9 +380,9 @@ Wir erkennen deutlich, dass einige Koeffizienten gleich sind und bspw. der Mitte
 
 ## Multi Gruppen Modelle und moderierte Regression
 
-Auch wenn in unserem Beispiel die Regressionsgewichte über beide Gruppen hinweg gleich waren, ist das bei weitem nicht immer der Fall. In vielen Fällen zielen inhaltliche Fragestellungen genau darauf ab, in welchem Ausmaß es Unterschiede in den Beziehungen latenter Variablen über Gruppen hinweg gibt. Wir hatten bereits gesehen, dass Männer im Mittel weniger Zeitdruck erleben. Könnte es daher sein, dass Männer die - entgegen der üblichen männlichen Erfahrung - erhöhten Zeitdruck empfinden stärker mit psychosomatischen Beschwerden darauf reagieren als Frauen? Diese Frage impliziert einen *Interkationseffekt* wie er schon [im letzten Semester](/post/regression-und-ausreisserdiagnostik) behandelt wurde. Gleichzeitig bedeutet diese Frage auch nichts anderes als: "Gibt es einen Unterschied in den Regressionsgewichten zwischen Männern und Frauen?". In diesem Abschnitt gucken wir uns an, wie diese beiden Ansätze in Bezug zueinander stehen.
+Auch wenn in unserem Beispiel die Regressionsgewichte über beide Gruppen hinweg gleich waren, ist das bei weitem nicht immer der Fall. In vielen Fällen zielen inhaltliche Fragestellungen genau darauf ab, in welchem Ausmaß es Unterschiede in den Beziehungen latenter Variablen über Gruppen hinweg gibt. Wir hatten bereits gesehen, dass Männer im Mittel weniger Zeitdruck erleben. Könnte es daher sein, dass Männer die - entgegen der üblichen männlichen Erfahrung - erhöhten Zeitdruck empfinden stärker mit psychosomatischen Beschwerden darauf reagieren als Frauen? Diese Frage impliziert einen *Interkationseffekt* wie er schon [in der Bachelor-Sitzung zur quadratischen und moderierten Regression](/post/quadratische-und-moderierte-regression) behandelt wurde. Gleichzeitig bedeutet diese Frage auch nichts anderes als: "Gibt es einen Unterschied in den Regressionsgewichten zwischen Männern und Frauen?". In diesem Abschnitt gucken wir uns an, wie diese beiden Ansätze in Bezug zueinander stehen.
 
-Vereinfachen wir unser Beispiel für einen Moment auf die manifeste Ebene, wie es schon bei den [Pfadanalysen im letzten Beitrag](/post/sem#Pfadanalysen) der Fall war. Dazu nutzen wir neben den Skalenwerten der psychosomatischen Beschwerden (`BFs`) auch einen Skalenwert des Zeitdrucks (`ZDs`). Generell hält die folgende Beschreibung auch für den Fall mit latenten Variablen, aber für den Vergleich der beiden Ansätze ist ein übersichtliches Beispiel sinnvoller.
+Vereinfachen wir unser Beispiel für einen Moment auf die manifeste Ebene, wie es schon bei den [Pfadanalysen im letzten Beitrag](/post/sem/#Pfadanalyse) der Fall war. Dazu nutzen wir neben den Skalenwerten der psychosomatischen Beschwerden (`BFs`) auch einen Skalenwert des Zeitdrucks (`ZDs`). Generell hält die folgende Beschreibung auch für den Fall mit latenten Variablen, aber für den Vergleich der beiden Ansätze ist ein übersichtliches Beispiel sinnvoller.
 
 ```{r}
 StressAtWork$ZDs <- rowMeans(StressAtWork[,paste0("zd",c(1, 2, 6))])
@@ -496,6 +496,20 @@ Männer | Interzept | $\beta_{02}$ | $\beta_{0} + \beta_2$ | `r d3(tmp$est[tmp$l
 Männer | Gewicht | $\beta_{12}$ | $\beta_{1} + \beta_3$ | `r d3(tmp$est[tmp$label == 'b12'])`
 Differenz | Interzept | $\beta_{02} - \beta_{01}$ | $\beta_2$ |  `r d3(tmp2$est[tmp2$op == '~' & tmp2$rhs == 'sexDum'])`
 Differenz | Gewicht | $\beta_{12} - \beta_{11}$ | $\beta_3$ |  `r d3(tmp2$est[tmp2$op == '~' & tmp2$rhs == 'Int'])`
+
+Analog hätten wir auch eine Regression mit `factor(sex)` verwenden können, wie es [in der Bachelor-Sitzung zur quadratischen und moderierten Regression](/post/quadratische-und-moderierte-regression) gemacht wurde;  allerdings war die Umsetzung in `lavaan` überaus sinnvoll.
+```{r}
+reg <- lm(BFs ~ factor(sex)*ZDs, data = StressAtWork)
+summary(reg)
+```
+
+Grafisch sehen wir, dass sich die Regressionsgerade über die Gruppen hinweg nur geringfügig unterscheiden (signifikant war der Unterschied nicht!). Allerdings ist dies eine gängige Form eine solche Interaktion darzustellen:
+
+```{r}
+print("Insert graphic here !!!!!")
+```
+
+Abgetragen sehen wir auch die Gruppenunterschiede.
 
 Dieses Prinzip gilt in der MSA für alle Parameter: wir implizieren eine Interaktion mit der Gruppierungsvariable, wenn wir keine Gleichheit über die Gruppen hinweg annehmen. Im Umkehrschluss gilt also auch: wenn wir eine Gruppenvariable als einen Prädiktor in ein SEM aufnehmen, ohne sie als Gruppierungsvariable in einer MSA einzuarbeiten, behaupten wir, dass es keinerlei Interaktionseffekt gibt. Dies gilt auf der Ebene des Messmodells genauso wie auf der Ebene des Strukturmodells.
 
