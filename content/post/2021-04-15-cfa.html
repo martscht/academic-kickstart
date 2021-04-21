@@ -19,7 +19,6 @@ header:
   caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/478836)"
 ---
 
-<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <div id="einleitung" class="section level2">
@@ -74,7 +73,6 @@ header:
 </tbody>
 </table>
 <p><a href="/post/lavaan-intro">In der ersten Sitzung</a> hatten wir nur mit <code>~</code>, <code>~1</code> und <code>~~</code> für Regressionen, Intercepts und Residualvarianzen gearbeitet. Heute kommen Faktorladungen dazu.</p>
-<p>Wie schon für die letzten beiden Sitzungen, können Sie das komplette R-Skript <a href="/post/FEII_cfa.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
 <p>Diese Sitzung schließt mit einem <a href="#AppendixA">Appendix</a> zur Hierarchie der Messmodelle ab. Wenn Sie ihre inhaltlichen Kenntnisse vertiefen wollen oder durch ein bisschen zusätzliche Übung Ihre <code>lavaan</code>-Fähigkeiten verbessern möchten, empfehlen wir Ihnen, sich diesen Abschnitt anzugucken!</p>
 </div>
 <div id="datensatz" class="section level2">
@@ -245,12 +243,13 @@ str(conspiracy)</code></pre>
 </table>
 <p>Es wird also behauptet, dass es eine grundlegende Eigenschaft von Personen gibt, die das Ausmaß bestimmt, in dem Personen diese Aussagen als wahr einschätzen. Mithilfe der CFA können wir versuchen, diese Behauptung zu prüfen.</p>
 <p>Als Pfadmodell dargestellt sieht das zunächst so aus:</p>
-<p><img src="/post/cfa1.png" style="width:33.0%" /></p>
+<p><img src="/post/cfa1.png" style="width:33.0%" />
+Hier stellen wir das Modell zunächst ohne Gewichtungen dar — es werden lediglich die Beziehungen/Zusammensetzungen zwischen den Variablen verdeutlicht: die Messungen Q2, Q7 und Q12 setzen sich alle aus der zugrundeliegenden latenten Variable GC und dem itemspezifischen Messfehler zusammen.</p>
 <div id="modellsyntax" class="section level3">
 <h3>Modellsyntax</h3>
-<p>Wie wir es in der ersten Sitzung für die Regression gesehen haben, können wir dieses Pfaddiagramm in <code>lavaan</code> Modellsyntax übersetzen. Zunächst haben wir eine latente Variable, die wir nach Belieben benennen können. Weil es sich anbietet, nenne ich sie hier <code>GC</code> für “global conspiracy”. Diese latente Variable wirkt sich auf drei manifesten Variablen aus. Bei diesen Variablen habe ich nicht die gleichen Freiheiten in der Benennung, weil es sich hier um manifeste Variablen handelt, die im Datensatz bereits existieren. Daher muss ich hier auch die Namen verwenden, die im Datensatz für die Variablen genutzt werden. Mit dem <code>=~</code> wird die Beziehung zwischen einer latenten Variable (links) und beliebig vielen manifesten Variablen (rechts) dargestellt. Diese Beziehung wird allgemein in Form von Faktorladungen quantifiziert. Mehrere manifeste Variablen, die der gleichen latenten Variable zugeordnet werden, können mit einem <code>+</code> verbunden werden. Für die Faktorstruktur sieht der Modellsyntax-Abschnitt also so aus:</p>
+<p>Wie wir es in der ersten Sitzung für die Regression gesehen haben, können wir dieses Pfaddiagramm in <code>lavaan</code> Modellsyntax übersetzen. Zunächst haben wir eine latente Variable, die wir nach Belieben benennen können. Weil es sich anbietet, nennen wir sie <code>GC</code> für “global conspiracy”. Diese latente Variable wirkt sich auf drei manifesten Variablen aus. Bei diesen Variablen haben wir nicht die gleichen Freiheiten in der Benennung, weil es sich bei diesen um manifeste Variablen handelt, die im Datensatz bereits existieren. Daher müssen wir hier auch die Namen verwenden, die im Datensatz für die Variablen genutzt werden. Mit dem <code>=~</code> wird die Beziehung zwischen einer latenten Variable (links) und beliebig vielen manifesten Variablen (rechts) dargestellt. Diese Beziehung wird allgemein in Form von Faktorladungen quantifiziert. Mehrere manifeste Variablen, die der gleichen latenten Variable zugeordnet werden, können mit einem <code>+</code> verbunden werden. Für die Faktorstruktur sieht der Modellsyntax-Abschnitt also so aus:</p>
 <pre class="r"><code>&#39;GC =~ Q2 + Q7 + Q12&#39;</code></pre>
-<p>Wie schon in der Sitzung zur Regression müssen wir außerdem explizit Residualvarianzen anfordern, weil das Modell sonst behaupten würde, dass die latente Variable eine Varianzaufklärung von 100% an unseren manifesten Variablen leistet. Obwohl das zwar außerordentlich schön für die Entwickler des Fragebogens wäre, wenn es so wäre, ist beinahe jede manifeste Variable in der psychologischen Forschung mit einem gewissen Maß an Messfehler behaftet. Dieser wird in der CFA als Residualvarianz abgebildet. Daher erweitert sich unser Modell um die folgenden drei Zeilen:</p>
+<p>Wie schon in der Sitzung zur Regression müssen wir außerdem explizit Residualvarianzen anfordern, weil das Modell sonst behaupten würde, dass die latente Variable eine Varianzaufklärung von 100% an unseren manifesten Variablen leistet. Obwohl das zwar außerordentlich schön für die Entwickler des Fragebogens wäre, wenn dem so wäre, ist beinahe jede manifeste Variable in der psychologischen Forschung mit einem gewissen Maß an Messfehler behaftet. Dieser wird in der CFA als Residualvarianz abgebildet. Daher erweitert sich unser Modell um die folgenden drei Zeilen:</p>
 <pre class="r"><code>&#39;# Faktorladungen
 GC =~ Q2 + Q7 + Q12
 
@@ -258,7 +257,7 @@ GC =~ Q2 + Q7 + Q12
 Q2 ~~ Q2
 Q7 ~~ Q7
 Q12 ~~ Q12&#39;</code></pre>
-<p>Um das Modell ein wenig zu gliedern, habe ich mit dem <code>#</code> Kommentare in die Modellsyntax eingefügt, die die einzelnen Abschnitte voneinander abgrenzen. Auch dieses Modell ist noch nicht ganz vollständig. Weil die Varianz der latenten Variable <code>GC</code> nicht explizit angesprochen wird, wird - wie schon bei den Residuen - per Voreinstellung davon ausgegangen, dass diese Varianz 0 ist. Um Varianz auf der latenten Variable zuzulassen, müssen wir also auch diese explizit in das Modell aufnehmen:</p>
+<p>Um das Modell ein wenig zu gliedern, haben wir mit dem <code>#</code> Kommentare in die Modellsyntax eingefügt, die die einzelnen Abschnitte voneinander abgrenzen. Auch dieses Modell ist noch nicht ganz vollständig. Weil die Varianz der latenten Variable <code>GC</code> nicht explizit angesprochen wird, wird - wie schon bei den Residuen - per Voreinstellung davon ausgegangen, dass diese Varianz 0 ist. Um Varianz auf der latenten Variable zuzulassen, müssen wir also auch diese explizit in das Modell aufnehmen:</p>
 <pre class="r"><code>&#39;# Faktorladungen
 GC =~ Q2 + Q7 + Q12
 
@@ -340,7 +339,7 @@ GC ~~ GC&#39;</code></pre>
 <div id="Modellidentifikation" class="section level3">
 <h3>Modellidentifikation</h3>
 <p>Sie wissen inzwischen bestimmt, wo sich das Problem in diesem Fall verbirgt. Aber haben Sie trotzdem etwas Geduld - wir werden uns hier ein generelles Vorgehen in <code>lavaan</code> ansehen, mit dem man solche Probleme auch in komplizierteren Situationen lösen kann.</p>
-<p>Zunächst wissen Sie aus der Theorie-Sitzung, dass die Anzahl bekannter Informationen sich einfach als <span class="math inline">\(s = \frac{p(p + 1)}{2}\)</span> berechnen lässt. Dabei ist <span class="math inline">\(s\)</span> die Anzahl bekannter Informationen und <span class="math inline">\(p\)</span> die Anzahl von manifesten Variablen im Modell. In unserem Fall also</p>
+<p>Zunächst wissen Sie aus der Theorie-Sitzung, dass die Anzahl bekannter Informationen sich einfach als <span class="math inline">\(s = \frac{p(p + 1)}{2}\)</span> berechnen lässt. Dabei ist <span class="math inline">\(s\)</span> die Anzahl bekannter Informationen (Anzahl der Varianzen und Kovarianzen der manifesten Variablen) und <span class="math inline">\(p\)</span> die Anzahl von manifesten Variablen im Modell. In unserem Fall also</p>
 <pre class="r"><code>3 * (3 + 1) / 2</code></pre>
 <pre><code>## [1] 6</code></pre>
 <p>Wir können uns auch genau angucken, welche 6 Informationen wir haben, indem wir uns die Kovarianzmatrix aus unseren Daten (<em>sample statistics</em>) ansehen:</p>
@@ -378,10 +377,12 @@ GC ~~ GC&#39;</code></pre>
 ## $psi
 ##    GC
 ## GC 7</code></pre>
-<p>Hier sehen wir, wie in <code>lavaan</code> die Modell-Matrizen dargestellt werden:
-- <code>$lambda</code>: die Matrix der Faktorladungen (<span class="math inline">\(\Lambda\)</span>)
-- <code>$theta</code>: die Residualkovarianzmatrix (<span class="math inline">\(\Theta\)</span>)
-- <code>$psi</code>: die latente Kovarianzmatrix (<span class="math inline">\(\Psi\)</span>)</p>
+<p>Hier sehen wir, wie in <code>lavaan</code> die Modell-Matrizen dargestellt werden:</p>
+<ul>
+<li><code>$lambda</code>: die Matrix der Faktorladungen (<span class="math inline">\(\Lambda\)</span>)</li>
+<li><code>$theta</code>: die Residualkovarianzmatrix (<span class="math inline">\(\Theta\)</span>)</li>
+<li><code>$psi</code>: die latente Kovarianzmatrix (<span class="math inline">\(\Psi\)</span>)</li>
+</ul>
 <p>Die latente Kovarianzmatrix haben wir in der Theoriesitzung (aus einer anderen Tradition in der Literatur kommend) als <span class="math inline">\(\Phi\)</span> bezeichnet - beides sind aber unterschiedliche Bezeichnungen für die gleiche Matrix. Das Ergebnis von <code>inspect</code> ist hier eine Liste dieser drei Matrizen. Wenn wir diese Liste in einem Objekt ablegen, können wir die Matrizen mit dem <code>$</code> auch einzeln inspizieren:</p>
 <pre class="r"><code>free &lt;- inspect(fit1, &#39;free&#39;)
 free$theta</code></pre>
@@ -416,7 +417,7 @@ GC ~~ 1*GC&#39;</code></pre>
 <p>Auch hier ist die Festlegung auf <code>1</code> üblich, weil diese Zahl viele folgenden Berechnungen dramatisch vereinfacht. Von der puren Anwendung in <code>lavaan</code> her, können Sie aber jeder beliebige Zahl vor das <code>*</code> schreiben.</p>
 </div>
 <div id="ErgebnisseZwei" class="section level3">
-<h3>Modellschätzung und Ergebnisse - Zweiter Versuch</h3>
+<h3>Modellschätzung und -ergebnisse - Zweiter Versuch</h3>
 <p>Das Modell mit der eingeführten Restriktion, dass die 1. Faktorladung auf 1 fixiert ist (<span class="math inline">\(\lambda_{2} = 1\)</span>), sollte nun nur noch 6 zu schätzende Parameter enthalten. Demzufolge müsste die Warnmeldung, die beim letzten Versuch entstanden ist, verschwinden:</p>
 <pre class="r"><code>fit1 &lt;- lavaan(mod1, conspiracy)</code></pre>
 <p>So weit, so gut. Wenn wir uns wieder angucken, welche Parameter geschätzt werden mussten, sehen wir,</p>
@@ -491,7 +492,7 @@ GC ~~ 1*GC&#39;</code></pre>
 <p><img src="/post/2021-04-15-cfa_files/figure-html/unnamed-chunk-21-1.png" width="672" />
 Die Ausprägung der manifesten Variable wird vorhergesagt durch die Ausprägung der latenten Variable - für <span class="math inline">\(GC = 2\)</span> sagen wir also <span class="math inline">\(Q2 = 2\)</span> vorher, weil die Faktorladung dieses Items auf 1 fixiert ist (<span class="math inline">\(\lambda_{2} = 1\)</span>). Für Q7 ist die Ladung allerdings <span class="math inline">\(\lambda_{7} = 1.062\)</span>, sodass die gelbe Regressionsgerade in der Abbildung ein bisschen steiler verläuft.</p>
 <p>Das heißt, dass zwei Personen, die sich in der latenten Variable um eine Einheit unterscheiden, im <em>vorhergesagten</em> Ausmaß der Zustimmung zur Aussage “The power held by heads of state is second to that of small unknown groups who really control world politics” (Q2) ebenfalls um eine Einheit unterscheiden. Bezüglich der Aussage “A small, secret group of people is responsible for making all major world decisions, such as going to war” (Q7) unterscheiden sich die gleichen beiden Personen im vorhergesagten Wert aber um 1.062 Einheiten. Weil der Unterschied auf dem latenten Konstrukt GC sich also stärker in Q7 manifestiert als in Q2 (gleiche Unterschiede in GC führen zu stärkeren Unterschieden in Q7 als in Q2), spricht man davon, dass Q7 stärker auf der latenten Dimension <em>diskriminiert</em>. Daher wird die Faktorladung häufig als <em>Diskriminationsparameter</em> bezeichnet. Durch die Festlegung von <span class="math inline">\(\lambda_2 = 1\)</span> sind die “Einheiten”, von denen hier gesprochen wird, die Einheiten der Skala, die genutzt wurde, um Q2 zu erheben - in unserem Fall also eine 5-Punkt Likert-Skala.</p>
-<p>Wie Sie in der Theorie-Sitzung gesehen haben, sind die einzelnen Messgleichungen:</p>
+<p>Wie Sie in der Theorie-Sitzung gesehen haben, sind die einzelnen Messgleichungen (wobei in der Theorie-Sitzung ggf. die vollständige Matrixnotation der Faktorladungen verwendet wurde, bei diesen also ggf. zwei Indizes für jeweils die Zeilen und Spalten der <span class="math inline">\(\Lambda\)</span>-Matrix stehen; dies würde die Sache hier allerdings unnötig kompliziert machen, weshalb wir der Einfachheit halber darauf verzichten):</p>
 <p><span class="math display">\[
 \begin{align}
   Q2 &amp;= \tau_2 + \lambda_2 \cdot GC + \delta_2 \\
@@ -508,10 +509,12 @@ Die Ausprägung der manifesten Variable wird vorhergesagt durch die Ausprägung 
 ##    .Q12               0.416    0.026   15.743    0.000
 ##     GC                1.440    0.062   23.401    0.000</code></pre>
 <p>Wie schon <a href="/post/lavaan-intro">bei der Regression in Sitzung 1</a> wird mit dem <code>.</code> vor dem Variablennamen deutlich gemacht, dass diese Variable in irgendeiner Form im Modell eine abhängige Variable ist. Das heißt, dass es sich bei der berichteten Varianz um eine <em>Residualvarianz</em> handelt. Für <code>GC</code> ist das nicht der Fall, weil - wie gerade besprochen - die latente Variable in der CFA die unabhängige Variable ist.</p>
-<p>Was bringt uns das Wissen um die latente Varianz und die Residualvarianzen inhaltlich? Ein Kernkonzept der klassischen Messtheorie (KTT) ist die <em>Reliabilität</em>, also das Ausmaß in dem unser Instrument wahre Unterschiede zwischen Personen misst. Für unser Modell lässt sie sich einfach ausdrücken, für Q7 z.B.:</p>
-<p><span class="math display">\[
-  rel(Q7) = \frac{\lambda_7^2 var(GC)}{var(Q7)} = \frac{\lambda_7^2 var(GC)}{\lambda_7^2 var(GC) + var(\delta_7)} = 1 - \frac{var(\delta_7)}{\lambda_7^2 var(GC) + var(\delta_7)}
-\]</span></p>
+<p>Was bringt uns das Wissen um die latente Varianz und die Residualvarianzen inhaltlich? Ein Kernkonzept der klassischen Messtheorie (KTT; auch, <strong>k</strong>lassische <strong>T</strong>est<strong>t</strong>heorie) ist die <em>Reliabilität</em>, also das Ausmaß in dem unser Instrument wahre Unterschiede zwischen Personen misst. Für unser Modell lässt sie sich einfach ausdrücken, für Q7 z.B.:</p>
+<p><span class="math display">\[\begin{align}
+  rel(Q7) &amp;= \frac{\lambda_7^2 var(GC)}{var(Q7)} \\
+  &amp;= \frac{\lambda_7^2 var(GC)}{\lambda_7^2 var(GC) + var(\delta_7)} \\
+  &amp;= 1 - \frac{var(\delta_7)}{\lambda_7^2 var(GC) + var(\delta_7)}
+\end{align}\]</span></p>
 <p>Besonders die erste Version der Reliabilitätsbestimmung sieht dem klassischen <span class="math inline">\(R^2\)</span> einer Regression sehr ähnlich - was daran liegt, dass es das Gleiche ist. Wenn wir also die Reliabilität einer unserer manifesten Variablen bestimmen wollen, können wir entweder händisch die Paramater verrechnen oder uns das <span class="math inline">\(R^2\)</span> von <code>lavaan</code> ausgeben lassen, so wie wir es in der <a href="/post/cfa">1. Sitzung</a> für die Regression gemacht haben:</p>
 <pre class="r"><code>inspect(fit1, &#39;rsquare&#39;)</code></pre>
 <pre><code>##    Q2    Q7   Q12 
@@ -560,7 +563,7 @@ Q12 ~ 1&#39;</code></pre>
 ## [...]</code></pre>
 <p>Wie bei der Regression und bei den Varianzen schon gesehen, markiert der <code>.</code> Variablen, die im Modell abhängige Variablen sind, sodass der dargestellte Wert als <em>Intercept</em> (sprich bedingter Mittelwert) und nicht als <em>Mittelwert</em> interpretiert werden sollte. Wie bei Intercepts in Regressionen auch, ist das hier dargestellte Intercept von Q7 der Wert, den wir erwarten, wenn eine Person auf dem Prädiktor (GC) den Wert 0 hat. Durch die Festlegung des Mittelwerts von GC auf 0 bedeutet das Intercept also, dass es der erwartete Wert einer durchschnittlichen Person ist. Genau genommen ist das dann in diesem Fall also lediglich eine sehr umständliche Variante, doch den Mittelwert von Q7 zu meinen. Wenn wir die Darstellung als Regression um diese Intercepts erweitern, ergibt sich folgendes Bild:</p>
 <p><img src="/post/2021-04-15-cfa_files/figure-html/unnamed-chunk-30-1.png" width="672" /></p>
-<p>Die gestrichelte Linie stellt den Mittelwert der latenten Variable dar. Der Punkt, an dem die jeweilige Regressionsgerade diese Linie schneidet, ist also das Intercept. Erneut ist eine berechtigte Frage: “Aber was soll mir das jetzt bringen?” Die Intercepts werden im Rahmen der klassischen Testtheorie als <em>Leichtigkeitsparameter</em> interpretiert. Der Aussage “The power held by heads of state is second to that of small unknown groups who really control world politics” (Q2) weist eine Person mit durchschnittlicher Ausprägung auf der Dimension <em>malevolent global conspiracies</em> einen Wahrheitsgehalt von 2.979 zu (auf einer Skala von 1 bis 5). Die gleiche, durchschnittliche Person schätzt den Wahrheitsgehalt der Aussage “A small, secret group of people is responsible for making all major world decisions, such as going to war” (Q7) auf einer Skala von 1 bis 5 mit 2.673 ein. Q2 wird also in größerem Ausmaß zugestimmt - die Aussage ist <em>leichter</em> zu bejahen, daher die Bezeichnung als <em>Leichtigkeitsparameter</em>.</p>
+<p>Die gestrichelte Linie stellt den Mittelwert der latenten Variable dar. Der Punkt, an dem die jeweilige Regressionsgerade diese Linie schneidet, ist also das Intercept. Erneut ist eine berechtigte Frage: “Aber was soll mir das jetzt bringen?” Die Intercepts werden im Rahmen der klassischen Testtheorie als <em>Leichtigkeitsparameter</em> interpretiert. Der Aussage “The power held by heads of state is second to that of small unknown groups who really control world politics” (Q2) weist eine Person mit durchschnittlicher Ausprägung auf der Dimension <em>malevolent global conspiracies</em> einen Wahrheitsgehalt von 2.979 zu (auf einer Skala von 1 bis 5). Die gleiche, durchschnittliche Person schätzt den Wahrheitsgehalt der Aussage “A small, secret group of people is responsible for making all major world decisions, such as going to war” (Q7) auf einer Skala von 1 bis 5 mit 2.673 ein. Q2 wird also in größerem Ausmaß zugestimmt - die Aussage ist <em>leichter</em> zu bejahen, daher die Bezeichnung als <em>Leichtigkeitsparameter</em>. Manchmal wird dieser Parameter auch ins Verhältnis zur Range der Skala gesetzt (also zur Differenz zwischen Maximum und Minimum der Skala) und dann in <span class="math inline">\(\%\)</span> interpretiert. Vielleicht kennen Sie diesen Koeffizienten auch unter dem Namen <em>Itemschwierigkeit</em>. Da allerdings zumeist die Leichtigkeit quantifiziert wird, macht das die Sache kompliziert. Auch müssen wir hier kein Verhältnis zur Range der Skala verwenden, da alle Items auf der gleichen gemessen wurden und damit die Werte direkt vergleichbar sind.</p>
 </div>
 </div>
 <div id="zweifaktorielles-modell" class="section level2">
@@ -585,7 +588,7 @@ Q12 ~ 1&#39;</code></pre>
 - <code>auto.cov.lv.x = TRUE</code>: Kovarianzen zwischen exogenen latenten Variablen werden automatisch frei geschätzt.</p>
 <p>Das heißt, dass dies Dinge sind, die wir in der Modellsyntax nicht mehr explizit ansprechen müssen. Die Syntax des <code>mod1</code> aus dem letzten Abschnitt verkürzt sich daher auf nur eine Zeile:</p>
 <pre class="r"><code>mod1_simple &lt;- &#39;GC =~ Q2 + Q7 + Q12&#39;</code></pre>
-<p>Wenn Sie dieses Modell an <code>cfa</code> weitergeben, entstehen genau die gleichen Ergebnisse, die wir im <a href="#ErgebnisseZwei">zweiten Anlauf erzeugt hatten</a>. Probieren Sie es gerne aus, um zu prüfen, ob ich Sie anlüge. Was hierbei erneut fehlt ist die Mittelwertsstruktur, die nicht per Voreinstellung mit in das Modell aufgenommen wird. Diese können wir aber per Argument von <code>cfa</code> anfordern:</p>
+<p>Wenn Sie dieses Modell an <code>cfa</code> weitergeben, entstehen genau die gleichen Ergebnisse, die wir im <a href="#ErgebnisseZwei">zweiten Anlauf erzeugt hatten</a>. Probieren Sie es gerne aus, um zu prüfen, ob Sie angeschwindelt wurden. Was hierbei erneut fehlt ist die Mittelwertsstruktur, die nicht per Voreinstellung mit in das Modell aufgenommen wird. Diese können wir aber per Argument von <code>cfa</code> anfordern:</p>
 <pre class="r"><code>fit2_simple &lt;- cfa(mod1_simple, conspiracy,
   meanstructure = TRUE)</code></pre>
 <p>Dann erhalten wir erneut den zusätzlichen Abschnitt mit den Intercepts, den wir im <a href="#Mittelwertsstruktur">letzten Abschnitt per Hand erzeugt hatten</a>.</p>
@@ -834,7 +837,7 @@ emp</code></pre>
 <pre><code>## unrestricted.logl 
 ##          33.24343</code></pre>
 <pre class="r"><code># p-Wert
-pchisq(emp, 8, lower.tail = FALSE)</code></pre>
+pchisq(q = emp, df = 8, lower.tail = FALSE)</code></pre>
 <pre><code>## unrestricted.logl 
 ##      5.566811e-05</code></pre>
 <p>In diesem Fall wird unser Modell also verworfen. Wie Ihnen bestimmt bewusst ist, können wir uns den Prozess der händischen Bestimmung des <span class="math inline">\(p\)</span>-Wertes in <code>lavaan</code> auch sparen, weil der <span class="math inline">\(\chi^2\)</span>-Test sowohl in <code>modelfit</code> als auch in der <code>summary</code> direkt mit ausgegeben wird:</p>
@@ -863,12 +866,12 @@ fit_two</code></pre>
 <div id="deskriptive-und-relative-gütekriterien" class="section level3">
 <h3>Deskriptive und relative Gütekriterien</h3>
 <p>Wie jeder inferenzstatistischer Test ist auch der <span class="math inline">\(\chi^2\)</span>-Modelltest von der Stichprobengröße abhängig. Komplexe Modelle, die an kleinen Stichproben geprüft werden, müssen nicht verworfen werden, einfache Modelle, die an riesigen Stichproben ausprobiert werden, werden auch bei sehr kleinen Diskrepanzen zwischen Annahme und Realität verworfen. Weil prinzipiell nicht belohnt werden soll so wenige Informationen aus der Empirie heranzuziehen wie möglich (also eine möglichst kleine Stichprobe zu haben), gibt es diverse Gütekriterien mit denen versucht wird die Beurteilung eines Modells von der Größe der Stichprobe unabhängig zu machen.</p>
-<p>Die bekanntesten Gütekriterien sind der RMSEA (root mean square error of approximation) und der SRMR (standardized root mean square residual). Der RMSEA ist eine Skalierung von <span class="math inline">\(F_{ML}\)</span> anhand der Stichprobengröße, welcher nur Werte von 0 oder größer annehmen kann. Der SRMR hingegen ist eine standardisierte Summe der Differenzen zwischen den beiden Matrizen <span class="math inline">\(\mathbf{S}\)</span> und <span class="math inline">\(\mathbf{\Sigma(\widehat{\theta})}\)</span>, hängt also nicht direkt von <span class="math inline">\(F_{ML}\)</span> ab. Das hat den Vorteil, dass der SRMR auch bei anderen Schätzverfahren zum Einsatz kommen kann und trotzdem über verschiedene Situationen hinweg vergleichbar bleibt. Allerdings haben Studien gezeigt, dass der RMSEA eine höhere Trennschärfe hat, um zwischen “guten” und “schlechten” Modellen zu unterscheiden. Für beide gilt: je höher der Werte, desto schlechter die Modellpassung. Auch diese beiden Kriterien sind in <code>modelfit</code> enthalten:</p>
+<p>Die bekanntesten deskriptiven Gütekriterien sind der RMSEA (root mean square error of approximation) und der SRMR (standardized root mean square residual). Der RMSEA ist eine Skalierung von <span class="math inline">\(F_{ML}\)</span> anhand der Stichprobengröße, welcher nur Werte von 0 oder größer annehmen kann. Der SRMR hingegen ist eine standardisierte Summe der Differenzen zwischen den beiden Matrizen <span class="math inline">\(\mathbf{S}\)</span> und <span class="math inline">\(\mathbf{\Sigma(\widehat{\theta})}\)</span>, hängt also nicht direkt von <span class="math inline">\(F_{ML}\)</span> ab. Das hat den Vorteil, dass der SRMR auch bei anderen Schätzverfahren zum Einsatz kommen kann und trotzdem über verschiedene Situationen hinweg vergleichbar bleibt. Allerdings haben Studien gezeigt, dass der RMSEA eine höhere Trennschärfe hat, um zwischen “guten” und “schlechten” Modellen zu unterscheiden. Für beide gilt: je höher der Werte, desto schlechter die Modellpassung. Auch diese beiden Kriterien sind in <code>modelfit</code> enthalten:</p>
 <pre class="r"><code>modelfit[c(&#39;rmsea&#39;, &#39;srmr&#39;)]</code></pre>
 <pre><code>##      rmsea       srmr 
 ## 0.03584388 0.01364878</code></pre>
 <p>Für beide wird häufig das Kriterium von <span class="math inline">\(&lt; .05\)</span> als Daumenregel für gute Modellpassung angenommen. Deskriptiv scheint unser Modell anhand dieser Regeln also sehr gut zu sein.</p>
-<p>Als relative Gütekriterien haben Sie in der Theoriesitzung GFI, TLI und CFI kennengelernt. Allen drei ist gemeinsam, dass Sie als Vergleichsmodell nicht ein saturiertes bzw. unrestringiertes Modell nutzen, sondern das genaue Gegenteil: das Unabhängigkeitsmodell in dem alle Korrelationen der beobachteten Variablen auf 0 gesetzt werden. Statt also unser postuliertes Modell mit optimaler Passung zu vergleichen und uns nur unsere Fehler vorzuhalten, betrachten diese Kriterien das schlechtest mögliche Modell und geben eine Aussage darüber wie viel besser unser Modell ist. Auch diese drei Fitkriterien können wir uns natürlich von <code>lavaan</code> ausgeben lassen:</p>
+<p>Als relative Gütekriterien haben Sie in der Theoriesitzung CFI, TLI und GFI kennengelernt. Allen drei ist gemeinsam, dass Sie als Vergleichsmodell nicht ein saturiertes bzw. unrestringiertes Modell nutzen, sondern das genaue Gegenteil: das Unabhängigkeitsmodell in dem alle Korrelationen der beobachteten Variablen auf 0 gesetzt werden. Statt also unser postuliertes Modell mit optimaler Passung zu vergleichen und uns nur unsere Fehler vorzuhalten, betrachten diese Kriterien das schlechtest mögliche Modell und geben eine Aussage darüber wie viel besser unser Modell ist. Auch diese drei Fitkriterien können wir uns natürlich von <code>lavaan</code> ausgeben lassen:</p>
 <pre class="r"><code>modelfit[c(&#39;cfi&#39;, &#39;tli&#39;, &#39;gfi&#39;)]</code></pre>
 <pre><code>##       cfi       tli       gfi 
 ## 0.9962118 0.9928971 0.9992813</code></pre>
@@ -902,7 +905,7 @@ cutoff &lt;- ezCutoffs(mod_two, conspiracy)</code></pre>
 ## tli      0.99289710           0.997694635
 ## rmsea    0.03584388           0.020291241
 ## srmr     0.01547626           0.009364649</code></pre>
-<p>Wir sehen hier, dass die Cut-Off Werte, die für unsere Situation erzeugt wurden, sehr viel restriktiver sind als die generellen Leitlinien. Für den RMSEA ergibt sich ein Cut-Off von ca. 0.02, statt der üblichen 0.05, für den SRMR sogar 0.01. Anhand dieser spezifischen Cut-Off Werte muss unser Modell abgelehnt werden.</p>
+<p>Wir sehen hier, dass die Cut-Off Werte, die für unsere Situation erzeugt wurden (dargestellt in der <code>Cutoff (alpha = 0.05)</code> Spalte), sehr viel restriktiver sind als die generellen Leitlinien. Für den RMSEA ergibt sich ein Cut-Off von ca. 0.02, statt der üblichen 0.05, für den SRMR sogar 0.01. Anhand dieser spezifischen Cut-Off Werte muss unser Modell abgelehnt werden.</p>
 </div>
 <div id="Lokal" class="section level3">
 <h3>Lokalisierung von Misfit</h3>
@@ -1077,14 +1080,14 @@ meanstructure = TRUE)</code></pre>
 <p>In diesem Fall hat der Modellvergleich einen Freiheitsgrad, weil <code>fit_two</code> genau <em>eine Restriktion</em> gegenüber <code>fit_three</code> vornimmt: die Querladung von Q5 wird auf 0 fixiert. Diese eine Restriktion macht <code>fit_two</code> um einen Freiheitsgrad sparsamer, weil es einen Parameter weniger gibt, der frei geschätzt werden muss.</p>
 <p>Der letzten Spalte können wir entnehmen, dass der Modellvergleich signifikant ausfällt. Das bedeutet, dass die Restriktionen in <span class="math inline">\(M_R\)</span> verworfen werden müssen und wir stattdessen <span class="math inline">\(M_U\)</span> nutzen sollten. Wäre der Vergleich nicht bedeutsam ausgefallen, könnten wir - aufgrund des Sparsamkeitsprinzips - <span class="math inline">\(M_R\)</span> beibehalten.</p>
 <p>Mit den Modellvergleichen können Sie nun neben dem direkten Test eines Modells, dass aus einer Theorie abgeleitet wird nun auch Modelle vergleichen, die aus konkurrierenden Theorien abgeleitet werden können. Dazu sei allerdings angemerkt, dass in einigen Publikationen der Likelihood-Ratio Test genutzt wird, um zu prüfen, ob z.B. ein Einfaktor-Modell oder ein Zwei-Faktormodell einen Satz von Items besser abbildet. Diese Modellvergleiche sind mit dem LRT als problematisch einzustufen, weil die Likelihood-Differenz bei Restriktionen an den Grenzen des zulässigen Parameterraums (Varianzen gleich 0 setzen, Korrelationen auf 1 setzen, usw.) nicht der postulierten <span class="math inline">\(\chi^2\)</span>-Verteilung folgt.</p>
+<p>Außerdem müssen wir an dieser Stelle anmerken, dass wir unser Modell mit Hilfe der Modifikationsindizes datengetrieben verändert haben. Somit verliert diese Analyse an konfirmatorischen Charakter — wir sind hier explorativ vorgegangen. Um die Kreuzladung als mögliche Modellerweiterung zu untersuchen, müssten wir dies erneut an einem unabhängigen (z.B. neu erhobenen) Datensatz untersuchen. Dies wird auch Kreuzvalidierung genannt, da wir die neue Theorie an einem neuen Datensatz einer neuen Validierung unterziehen.</p>
+<p>Wie schon für die letzten beiden Sitzungen, können Sie das komplette R-Skript <a href="/post/FEII_cfa.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
 </div>
 </div>
 <div id="Residuals" class="section level2">
 <h2>Appendix A</h2>
 <details>
-<summary>
-Lokalisierung von Misfit in Kovarianzmatrizen
-</summary>
+<p><summary>Lokalisierung von Misfit in Kovarianzmatrizen</summary></p>
 <p>Im <a href="#Lokal">Abschnitt zur Lokalisierung von Misfit</a> haben wir die Residuen in Kovarianzmatrizen schon angeschnitten. Hier noch einmal die standardisierten Residuen:</p>
 <pre class="r"><code>residuals(fit_two, &#39;standardized&#39;)$cov</code></pre>
 <pre><code>##     Q2     Q7     Q12    Q5     Q10    Q15   
@@ -1131,15 +1134,13 @@ diag(resi)</code></pre>
 ## Q5  3.62934589  0.7901981  3.147702
 ## Q10 0.05757449 -0.7841579 -2.426346
 ## Q15 0.95100604 -2.3732611 -3.055803</code></pre>
-<p>Sowohl mit Q2 als auch mit Q7 scheint es höher zu korrelieren, als durch unser Modell abgebildet werden kann. Ein möglicher Grund könnte hier sein, dass Q5 in seiner Formulierung impliziert, dass die Täuschung im Auftrag der kleinen, geheimen Gruppen durchgeführt wird, welche der zentrale Bestandteil des Faktor <em>malevolent global conspiracies</em> sind. Q10 und Q15 hingegen verdeutlichen, dass solche Täuschung aus Selbstinteresse geschieht. Es könnte also sein, dass Q5 nicht eindeutig genug auf <em>control of information</em> zurückzuführen ist, sondern auch Elemente der <em>malevolent global conspiracies</em> enthält und eigentlich eine Querladung auf diesen Faktor zugelassen werden müsste.</p>
+<p>Sowohl mit Q2 als auch mit Q12 scheint es höher zu korrelieren, als durch unser Modell abgebildet werden kann. Ein möglicher Grund könnte hier sein, dass Q5 in seiner Formulierung impliziert, dass die Täuschung im Auftrag der kleinen, geheimen Gruppen durchgeführt wird, welche der zentrale Bestandteil des Faktor <em>malevolent global conspiracies</em> sind. Q10 und Q15 hingegen verdeutlichen, dass solche Täuschung aus Selbstinteresse geschieht. Es könnte also sein, dass Q5 nicht eindeutig genug auf <em>control of information</em> zurückzuführen ist, sondern auch Elemente der <em>malevolent global conspiracies</em> enthält und eigentlich eine Querladung auf diesen Faktor zugelassen werden müsste.</p>
 </details>
 </div>
 <div id="AppendixA" class="section level2">
 <h2>Appendix B</h2>
 <details>
-<summary>
-Hierarchie der Messmodelle
-</summary>
+<p><summary>Hierarchie der Messmodelle</summary></p>
 <p>In vielen Bereichen der Psychologie ist es wichtig nicht nur festzuhalten, dass mehrere beobachtbare Variablen ein gemeinsames latentes Konstrukt erheben, sondern auch sicherzustellen, dass sie dies in gleicher Weise tun. Nehmen wir an, sie kämen in die Situation für einen, nicht näher benannten, Statistik-lastigen Kurs im Master der Psychologie drei parallele Formen einer Modulprüfung entwickeln zu müssen. In dem Fall würden Sie im Interesse der Kursteilnehmer und -teilnehmerinnen versuchen sicherzustellen, dass die drei Formen die statistischen Kompetenzen (das latente Konstrukt) auch in gleicher Weise erheben und sich nicht z.B. in der mittleren Schwierigkeit unterscheiden.</p>
 <p>Verschiedene Formen der “Gleichheit” dieser drei Messungen werden in der Hierarchie der Messmodelle festgehalten:</p>
 <p><img src="/post/mess1.png" style="width:66.0%" /></p>
@@ -1158,9 +1159,7 @@ Hierarchie der Messmodelle
 <p>Die Werte stellen auf einer Skala von ca. -3 bis 3 die geschätzte Fähigkeit in drei verschiedenen Versionen des Tests dar.</p>
 </details>
 <details>
-<summary>
-<span class="math inline">\(\tau\)</span>-kongenerisches Modell
-</summary>
+<p><summary><span class="math inline">\(\tau\)</span>-kongenerisches Modell</summary></p>
 <p>Das am weitesten verbreitete Messmodell in der Psychologie ist das <span class="math inline">\(\tau\)</span>-kongenerische Messmodell. Dieses haben wir z.B. auch in den anderen Abschnitten dieser Sitzung gesehen. Für unsere fiktive Statstikprüfung können wir es wie folgt anlegen:</p>
 <pre class="r"><code># Modell
 mod1 &lt;- &#39;stat =~ test1 + test2 + test3&#39;
@@ -1198,9 +1197,7 @@ fit1 &lt;- cfa(mod1, stat_test,
 <p>Mit den Restriktionen der Messmodelle können wir jetzt über Modellvergleiche prüfen, ob diese Unterschiede statistisch bedeutsam oder nur zufällige Schwankung aufgrund der Stichprobenziehung sind.</p>
 </details>
 <details>
-<summary>
-Esentiell <span class="math inline">\(\tau\)</span>-äquivalentes Modell
-</summary>
+<p><summary>Esentiell <span class="math inline">\(\tau\)</span>-äquivalentes Modell</summary></p>
 <p>Der erste Schritt, der bei der Restriktion von Messmodellen stets vorgenommen werden muss, ist die Gleichsetzung der Diskriminationsparameter. Nur so kann garantiert werden, dass andere Gleichsetzungen sinnvoll interpretierbar und von der Skala, mit der wir die Ergebnisse beschreiben, unabhängig sind.</p>
 <p>Weil wir zur Skalierung unserer latenten Variable die erste Faktorladung auf 1 setzen und das essentiell <span class="math inline">\(\tau\)</span>-äquivalente Messmodell postuliert, dass alle Faktorladungen gleich sein sollen, können wir alle Faktorladungen auf 1 fixieren. Dafür können wir händisch den jeweiligen Parameter festlegen:</p>
 <pre class="r"><code># Modell
@@ -1246,11 +1243,10 @@ fit2 &lt;- cfa(mod2, stat_test,
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>Der Test hat 2 Freiheitsgrade, weil wir nun nicht mehr die beiden Ladungen für <code>test2</code> und <code>test3</code> schätzen müssen, sondern diese einen vorgegebenen Wert angenommen haben. Bei einem <span class="math inline">\(\alpha\)</span>-Fehlerniveau von 5% muss diese Annahme also nicht verworfen werden und wir können das sparsamere, essentiell <span class="math inline">\(\tau\)</span>-äquivalente Messmodell für diese drei Tests beibehalten.</p>
+<p>Die Annahme der essentielle <span class="math inline">\(\tau\)</span>-Äquivalenz spielt eine wichtige Rolle, wenn Skalen aus Itemsummen oder -mittelwerten bestimmt werden — sie muss mindestens gelten, damit einfaches Aufsummieren oder Mitteln zulässig ist. Genauso ist sie Voraussetzung für das bekannte Reliabilitätsmaß Cronbach’s <span class="math inline">\(\alpha\)</span> (neben bspw. Eindimensionaltität der Skala). Gilt diese Annahme auf essentielle <span class="math inline">\(\tau\)</span>-Äquivalenz nicht, so führen Analysen, die einfache Skalensummen oder -mittelwerte verwenden zu verzerrten Schlüssen und die Reliabilitätsschätzung unterliegt ebenfalls Verzerrungen. Alternativen bilden hier die latente Modellierung und als Skalenreliabilität könnte bspw. McDonald’s <span class="math inline">\(\omega\)</span> verwendet werden.</p>
 </details>
 <details>
-<summary>
-<span class="math inline">\(\tau\)</span>-äquivalentes Modell
-</summary>
+<p><summary><span class="math inline">\(\tau\)</span>-äquivalentes Modell</summary></p>
 <p>In der Hierarchie der Messmodelle haben wir zwei Möglichkeiten vorzugehen: wir können im Anschluss an das essentiell <span class="math inline">\(\tau\)</span>-äquivalente Messmodell entweder die Intercepts restringieren und so beim <span class="math inline">\(\tau\)</span>-äquivalenten Messmodell ankommen oder uns die Residualvarianzen vornehmen und so beim essentiell <span class="math inline">\(\tau\)</span>-parallelen Messmodell angelangen. Wir entscheiden uns hier für den häufiger genutzten linken Weg der Abbildung und beziehen uns zunächst auf die Mittelwertsstruktur:</p>
 <pre class="r"><code># Modell
 mod3 &lt;- &#39;stat =~ 1*test1 + 1*test2 + 1*test3
@@ -1300,9 +1296,7 @@ fit3 &lt;- cfa(mod3, stat_test,
 <p><img src="/post/2021-04-15-cfa_files/figure-html/unnamed-chunk-84-1.png" width="672" /></p>
 </details>
 <details>
-<summary>
-Essentiell <span class="math inline">\(\tau\)</span>-paralleles Modell
-</summary>
+<p><summary>Essentiell <span class="math inline">\(\tau\)</span>-paralleles Modell</summary></p>
 <p>Im Essentiell <span class="math inline">\(\tau\)</span>-parallelen Modell werden die Restriktionen bezüglich der Intercepts zunächst außer Acht gelassen. Stattdessen wird das essentiell <span class="math inline">\(\tau\)</span>-äquivalente Modell bezüglich der Kovarianzstruktur so restringiert, dass die Varianzzerteilung aller manifester Variablen gleich ist. Das bewirkt inhaltlich, dass alle drei Tests jetzt die gleiche Reliabilität haben.</p>
 <p>Wie schon im letzten Abschnitt müssen wir erneute mit Labels arbeiten, nur dass sie sich in diesem Fall auf die Residualvarianzen beziehen:</p>
 <pre class="r"><code>mod4 &lt;- &#39;stat =~ 1*test1 + 1*test2 + 1*test3
@@ -1353,9 +1347,7 @@ fit4 &lt;- cfa(mod4, stat_test,
 <p>Wir sehen in diesem Fall, dass die Annahme gleicher Residualvarianzen (und somit gleicher Reliabilitäten) verworfen werden muss.</p>
 </details>
 <details>
-<summary>
-<span class="math inline">\(\tau\)</span>-paralleles Modell
-</summary>
+<p><summary><span class="math inline">\(\tau\)</span>-paralleles Modell</summary></p>
 <p>Das <span class="math inline">\(\tau\)</span>-parallele Messmodell ist das restriktivste Messmodell. Hier sind Ladungen, Intercepts und Residualvarianzen über die drei Tests hinweg gleich gesetzt. Das bedeutet, dass die beiden Annahmen aus dem <span class="math inline">\(\tau\)</span>-äquivalenten Messmodell und dem essentiell <span class="math inline">\(\tau\)</span>-parallelen Messmodell zusammengeführt werden.</p>
 <p>In <code>lavaan</code> sieht das folgendermaßen aus:</p>
 <pre class="r"><code>mod5 &lt;- &#39;stat =~ 1*test1 + 1*test2 + 1*test3
@@ -1397,6 +1389,6 @@ fit5 &lt;- cfa(mod5, stat_test,
 </div>
 <div id="literatur" class="section level2">
 <h2>Literatur</h2>
-<p>Eid, M., Gollwitzer, M., &amp; Schmitt, M. (2017).](<a href="https://hds.hebis.de/ubffm/Record/HEB366849158" class="uri">https://hds.hebis.de/ubffm/Record/HEB366849158</a>) <em>Statistik und Forschungsmethoden</em> (5. Auflage, 1. Auflage: 2010). Weinheim: Beltz.</p>
-<p>Brotherton, R., French, C. C., &amp; Pickering, A. D. (2013)](<a href="https://www.frontiersin.org/articles/10.3389/fpsyg.2013.00279/full" class="uri">https://www.frontiersin.org/articles/10.3389/fpsyg.2013.00279/full</a>). Measuring belief in conspiracy theories: the generic conspiracist beliefs scale. <em>Frontiers in Psychology</em>, 4, 279, DOI: 10.3389/fpsyg.2013.00279.</p>
+<p><a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, M., Gollwitzer, M., &amp; Schmitt, M. (2017).</a> <em>Statistik und Forschungsmethoden</em> (5. Auflage, 1. Auflage: 2010). Weinheim: Beltz.</p>
+<p><a href="https://www.frontiersin.org/articles/10.3389/fpsyg.2013.00279/full">Brotherton, R., French, C. C., &amp; Pickering, A. D. (2013)</a>. Measuring belief in conspiracy theories: the generic conspiracist beliefs scale. <em>Frontiers in Psychology</em>, 4, 279, DOI: 10.3389/fpsyg.2013.00279.</p>
 </div>
