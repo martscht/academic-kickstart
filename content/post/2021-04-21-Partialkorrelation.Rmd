@@ -1,0 +1,237 @@
+---
+title: "Partial- & Semipartialkorrelation"
+output:
+  html_document
+
+date: '2021-04-26'
+slug: partial
+categories:
+     - BSc7
+tags:
+- Partialkorrelation
+- Semipartialkorrelation
+- geteilte Varianz
+- Zusammenhangsanalyse
+subtitle: ''
+summary: ''
+authors: [schroeder, gruetzmacher]
+lastmod: '2021-04-20 12:00:12 CEST'
+featured: no
+header:
+     image: "/header/FEI_Sitzung4_post.jpg"
+     caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/1324327)"
+projects: []
+---
+## Vorbereitung
+
+```{r include=TRUE}
+#Pakete laden
+library(MASS)
+library(ppcor)
+library(ggplot2)
+
+#Daten abrufen
+load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
+
+```
+
+## Einleitung
+
+Liebe Studierende,
+
+sicher haben Sie in der Vorlesung bereits von der positiven Korrelation zwischen der Zahl der Störche und der Anzahl an Geburten gehört. Aber wussten Sie, dass auch der Konsum von Eiscreme und die Anzahl der Morde in New York oder die Anzahl von Nicolas-Cage-Filmauftritten mit der Anzahl weiblicher Redakteure beim Harvard Law Review positiv korreliert sind?^1^ Die Frage ist jedoch, ob mit den korrelativen Zusammenhängen der Beweis erbracht wurde, dass Störche Babys bringen, der Eiskonsum zu einer erhöhten Mordrate führt oder die Anzahl der Filme in denen Nicolas Cage mitspielt einen Effekt auf die Frauenquote bei der Harvard Law Review hat. Nein! Korrelationen liefern keine Belege für Kausalität. Zum einen gibt eine Korrelation keine Auskunft darüber, ob eine Variable *x* eine Variable *y* beeinflusst oder umgekehrt. Zum anderen kann der Zusammenhang zwischen zwei Variablen durch eine Drittvariable beeinflusst sein. So wird z.B. die Korrelation zwischen der Zahl der Störche und der Anzahl an Geburten durch die ländliche Region verursacht, da in ländlichen Regionen mehr Störche nisten und die Geburtenrate tendenziell höher ist als im städtischen Raum.
+In dieser Sitzung beschäftigen wir uns daher mit der Partial- und der Semipartialkorrelation, d.h. Methoden mit denen der Einfluss einer oder mehrerer Drittvariablen kontrolliert werden kann, um hierdurch Scheinkorrelationen, redundante oder maskierte Zusammenhänge aufzudecken.
+
+
+
+*Anmerkungen:*
+
+^1^ Es gibt einen ganzen Blog, der sich mit solchen Scheinkorrelationen (bzw. [`spurious Correlations`](http://tylervigen.com/spurious-correlations)) befasst.
+
+
+## Wiederholung Korrelationen
+In der Psychologie werden häufig statistische Zusammenhänge (bzw. stochastische Abhängigkeiten)  zwischen Variablen ermittelt. Der statistische Zusammenhang kann mithilfe verschiedener Zusammenhangsmaße gemessen werden, z.B. mit der bivariaten Produkt-Moment-Korrelation, die die Beziehung zwischen zwei metrischen Variablen (bzw. eine metrische und eine dichotome Variable) berechnet.
+
+$r_{xy} = corr(X,Y) = \dfrac {\sum\limits_{i=1}^n (X_i - \bar{X})(Y_i - \bar{Y})}{\sqrt{\sum\limits_{i=1}^n (X_i - \bar{X})^2 \cdot \sum\limits_{i=1}^n (Y_i - \bar{Y})^2}}$
+
+Der Korrelationskoeffizient r~xy~ misst die Stärke und Richtung einer linearen Beziehung zwischen zwei Variablen *x* und *y*. Der Wert von r~xy~ liegt dabei immer im Wertebereich zwischen +1 und -1. Eine Korrelation von 1 bedeutet ein perfekter positiver Zusammenhang, d.h. mit der Zunahme der eine Variablen, nimmt auch die anderen Variable zu und umgekehrt. Eine Korrelation von -1 bedeutet ein perfekter negativer Zusammenhang bei dem die Zunahme der einen Variablen mit der Abnahme der anderen Variablen einhergeht. Eine Korrelation von 0 hingegen bedeutet, dass es keinen Zusammenhang zwischen den Variablen gibt. Je höher der absolute Wert einer Korrelation zweier Variablen ist, desto mehr Varianz teilen die beiden Variablen miteinander.     
+
+![](images/VisualisierungderKorrelation.png){width="90%"}
+
+Der Zusammenhang zwischen zwei Variablen *x* und *y* kann aber auch durch eine Drittvariable *z* beeinflusst werden. Methoden zur Kontrolle von Drittvariablen und zur Aufdeckung von Scheinkorrelationen, redundanten oder maskierten Zusammenhängen, sind die Partial- und Semipartialkorrelation.  
+
+![](images/Bild1.png){width="50%"}
+
+
+## Partialkorrelation
+
+Die Partialkorrelation ist die bivariate Korrelation zweier Variablen *x* und *y*, die bestehen würde, wenn zuvor der Einfluss einer weiteren Variable *z* statistisch kontrolliert (d.h. "auspartialisiert" oder "herausgerechnet") wird. Die Partialkorrelation r~xy.z~ kann gebildet werden als Korrelation der Regressionsresiduen von *x* bei Vorhersage durch *z* und *y* bei Vorhersage durch *z*.  
+
+![](images/Bild2.png){width="50%"}
+
+**Beispiel: Testleistung**
+
+Sie arbeiten an einer Schule und sind dafür zuständig das Lernkonzept der Schule mit psychologischen Erkenntnissen zu unterstützen und zu verbessern. Die Schulleitung hat die erfahrungsbasierte Meinung, dass die Schüler:innen, die gut in Mathematik sind auch gut in Lesetests abschneiden. Die Schulleitung möchte daher die Didaktik der beiden Fächer vereinen, um mehr von dieser Synergie zu profitieren. Sie als Psycholog:in vermuten jedoch, dass der Zusamenhang nur besteht, da Schüler:innen mit einem hohen IQ gut in beiden Bereichen sind. 
+
+Um die Fragestellung zu klären, bevor ein neues Didaktikkonzept entwickelt werden muss, hat eine Stichprobe von 100 Schüler:innen einen Lesetest (`reading`, *x*), einen Mathematiktest (`math`, *y*) und einen allgemeinen Intelligenztest (`IQ`, *z*) beantwortet. Sie möchten in einem ersten Schritt wissen, ob die Leistung im Lesetest mit der Leistung im Mathematiktest zusammenhängt, um Aussagen über die erfahrungsbasierte Annahme der Schulleitung treffen zu können. 
+
+```{r}
+
+# Übersicht Datensatz und Korrelationen aller Variablen im Datensatz
+str(Schulleistungen)
+cor(Schulleistungen)
+
+```
+
+**1) Korrelation zwischen Lese- und Mathematikleistung**
+
+Zur Berechnung einer einfachen bivariaten Korrelation, nutzen Sie den `cor.test` Befehl in R.
+
+```{r}
+# 1a) grafische Darstellung mittels Scatterplot
+ggplot(Schulleistungen, aes(x=reading, y=math)) + geom_point() + labs(x= "Leseleistung", y= "Mathematikleistung")
+
+# 1b) Test der Korrelation zwischen Lese- und Mathematikleistung (r~xy~)
+cor.test(Schulleistungen$reading, Schulleistungen$math)
+
+```
+
+**Interpretation der Ergebnisse:**
+
+* der Korrelationskoeffiziert von .37 zeigt, dass die
+  beiden fachspezifischen Tests für Lesen und Mathematik
+  positiv miteinander korrelieren
+* der p-Wert beträgt .000, ist also kleiner als .05 und zeigt somit, dass die
+  Korrelation signifikant ist
+  + bzw. die formal korrekte Interpretation: Der p-Wert beträgt .000, ist also kleiner als
+    .05 , und somit signifikant auf einem Alpha-Fehlerniveau von 5 %. Das bedeutet, dass die
+    Wahrscheinlichkeit, die Nullhypothese fälschlicherweise abzulehnen (bzw. den
+    Alpha-Fehler zu begehen), geringer als 5 % ist.
+* Der Zusammenhang, den die Schulleitung beobachtet hat, existiert tatsächlich. Schüler:innen, die gute Mathematikleistungen erbringen, zeigen ebenfalls eine bessere Leseleistung.
+
+Nun heißt es näher zu betrachten, wie der IQ mit den einzelnen Leistungsbereichen zusammenhängt. Dazu nutzen wir die Regression (siehe nächstes Pandar Kapitel), da wird so ebenfalls die Residuen abspreichern können, die wir für die Berechnung der Partialkorrelation benötigen.
+
+**2) Regression zur Vorhersage von                                                               (a) der Leseleistung durch die allgemeine Intelligenz und                                   (b) der Mathematikleistung durch die allgemeine Intelligenz**
+
+```{r}
+# 2a) Regression zur Vorhersage der Leseleistung durch die allgemeine Intelligenz
+reg.reading.IQ <- lm(reading ~ IQ, data = Schulleistungen)
+summary(reg.reading.IQ)
+
+# Residuen speichern (Residuen x)
+res.reading.IQ <- reg.reading.IQ$residuals
+```
+
+```{r}
+# 2b) Regression zur Vorhersage der Mathematikleistung durch die allgemeine Intelligenz
+reg.math.IQ <- lm(math ~ IQ, data = Schulleistungen)
+summary(reg.math.IQ)
+
+# Residuen speichern (Residuen y)
+res.math.IQ <- reg.math.IQ$residuals
+```
+
+**Interpretation der Ergebnisse:**
+
+* Regression zur Vorhersage der Leseleistung (Rechnung 2a) durch die allgemeine Intelligenz:
+  + der Steigungsparameter (β~1~) beträgt 3.84, demzufolge steigt pro IQ-Punkt die
+    Leseleistung um ca. 3.84 Punkte  
+* Regression zur Vorhersage der Mathematikleistung (Rechnung 2b) durch die allgemeine Intelligenz:
+  + der Steigungsparameter (β~1~) beträgt 5.17, demzufolge steigt pro IQ-Punkt die
+    Mathematikleistung um ca. 5.17 Punkte
+
+--> die allgemeine Intelligenz hat demzufolge einen Effekt auf die Lese- und
+   Mathematikleistung und stellt daher eine mögliche konfundierende Drittvariable dar. Diese Vermutung können wir nun mit einer Partialkorrelation überprüfen.
+
+
+**3) Partialkorrelation (Korrelation zwischen den Residuen)**
+
+```{r}
+# 3a) Test der Korrelation zwischen den Residuen (r~xy.z~)
+cor.test(res.reading.IQ, res.math.IQ)
+
+```
+
+Mit der Funktion `pcor.test()` lässt sich die Partialkorrelation direkt ermitteln:
+
+```{r}
+# 3b) Partialkorrelation, d.h. der Zusammenhang von Lese- und Mathematikleistung
+# unter Kontrolle der allgemeinen Intelligenz (r~xy.z~)
+
+   #Paket für die Partial- und Semipartialkorrelation laden
+   #library(ppcor)
+
+pcor.test(x=Schulleistungen$reading, y=Schulleistungen$math, z=Schulleistungen$IQ)
+```
+
+**Interpretation der Ergebnisse:**
+
+* Partialkorrelation:
+  + der Korrelationskoeffizient (r~xy.z~) beträgt -.038, ist jedoch nicht
+    signifikant (p=.712)
+  + es zeigt sich also, dass der ursprüngliche Zusammenhang zwischen der Lese-
+    und Mathematikleistung (*r~xy~*=.37) unter Kontrolle der allgemeinen Intelligenz verschwindet. Es handelt sich also um eine Scheinkorrelation.
+    
+**Auswirkungen auf die ursprüngliche Korrelation**
+
+Wird eine Partialkorrelation berechnet, kann die ursprüngliche Korrelation sich auf drei Arten verhalten:
+
+1. Sie wird kleiner
+
+Wie in unserem Bespiel teilen alle drei Variablen miteinander Varianz. Partialisiert man nun eine Variable aus dem Zusammenhang der beiden anderen Variablen heraus, wird die geteilte Varianz weniger, womit die Korrelation sinkt. Dieser Fall ist der am häufigsten eintretende, da in der Forschung oft Variablen auspartialisiert werden, weil es theoretische Annahme gibt, warum die Variablen Varianz teilen sollten, man aber einen isolierten Effekt von *x* auf *y* betrachten möchte.
+
+2. Sie bleibt gleich
+
+Ist die Partialkorrelation r~xy.z~ genauso groß (nicht signifikant unterschiedlich) wie die Ausgangskorrelation r~xy~, ist *z* mit *x* und *y* unkorreliert. Die Drittvariable *z* würde also keinen Zusammenhang und damit keine geteilte Varianz mit *x* und *y* haben.
+
+
+3. Sie wird größer
+
+In einem solchen Fall liegt meist ein Suppressoreffekt vor (ein Teil der Varianz in *x* wird durch die Drittvariable unterdrückt bzw. supprimiert, der für den Zusammenhang mit *y* irrelevant ist). Der klassische Suppressoreffekt tritt dann auf wenn *z* mit *y* zu 0 korreliert (was nicht immer der Fall sein muss), mit *x* aber eine bedeutende Korrelation aufweist (Sonderformen eines Suppressoreffekts finden Interessierte in Eid & Gollwitzer 2017, Kap.18,19). In solch einem Fall wird der für *y* irrelevante Varianzanteil in *x* durch den Supressor *z* gebunden, wodurch der relative Anteil an geteilter Varianz zwischen *x* und *y* größer wird. Ein Beispiel: Sie untersuchen den Zusammenhang von Sport (x), Kalorienzufuhr(z) und Gewichtsverlust (y). Sporttreiben korreliert positiv mit Gewichtsverlust und Kalorienzufuhr, Kalorienzufuhr aber nicht mit Gewichtsverlust. In einer Partialkorrelation wird die Korrelation von Sporttreiben mit Gewichtsverlust unter der Kontrolle von Kalorienzufuhr größer. Sie können daraus schließen, dass die Kalorienzuführ in diesem Beispiel als Suppressor agiert. Die Inhaltliche ErklärunBegründung dafür wäre, dass mit einer erhöhten sportlichen Aktivität eine erhöhte Kalorienzufuhr einhergeht. Dieser Zusammenhang hat den positiven Effekt von Sport supprimiert.
+
+
+## Semipartialkorrelation
+
+Wird aus inhaltlichen Gründen angenommen, dass die Drittvariable nur eine der Variablen *x* oder *y* beeinflusst, kann auf eine weitere Methode zur Aufdeckung von Scheinkorrelationen, redundanten oder maskierten Zusammenhängen zurückgegriffen werden; die Semipartialkorrelation. Bei dieser Methode wird der Einfluss der Drittvariablen nur aus einer der beiden Variablen herausgerechtet. Die Semipartialkorrelation r~x(y.z)~ entspricht der Korrelation zwischen x und dem Residuum von y bei Vorhersage durch z.
+
+![](images/Bild3.png){width="50%"}
+
+
+```{r}
+# Semipartialkorrelation von Lesen- und Mathematikleistung unter Kontrolle der
+# allgemeinen Intelligenz auf die Mathematikleistung (Korrelation von x ('reading')
+# mit dem Residuum y ('res.math.IQ'))
+cor.test(Schulleistungen$reading, res.math.IQ)
+
+```
+
+Mit der Funktion `spcor.test` lässt sich die Semipartialkorrelation direkt ermitteln:
+
+```{r}
+# b Semipartialkorrelation von Lese- und Mathematikleistung unter Kontrolle der
+# allgemeinen Intelligenz auf die Mathematikleistung
+spcor.test(x=Schulleistungen$reading, y=Schulleistungen$math, z=Schulleistungen$IQ)
+
+```
+
+**Interpretation der Ergebnisse:**
+
+* der Korrelationskoeffizient (r~x(y.z)~) beträgt -.031 ist jedoch nicht
+  signifikant (p=.762)
+* es zeigt sich also, dass der ursprüngliche Zusammenhang zwische Lese- und
+  Mathematikleistung (*r~xy~*= .37) verschwindet, wenn der Einfluss der
+  allgemeinen Intelligenz auf die Mathematikleistung kontrolliert wird
+* Auch hier wird die Scheinkorrelation ersichtlich
+
+**Wann wähle ich die Partial- und wann die Semipartialkorrelation**
+
+Ob Sie in Ihren Untersuchungen die Partial- oder Semipartialkorrelation zur Kontrolle von Drittvariablen verwenden, begründet sich primär in theoretische Annahmen. Bei der Partialkorrelation nehmen Sie an, dass die Drittvariable *z* beide Variablen *x* und *y* ursächlich beeinflusst. In unserem Beispiel stellen wir uns IQ als Ursache für die Leistungen in Mathematik und Lesen vor, daher wäre eine Partialkorrelation angebracht. 
+Die Semipartialkorrelation ist dann das Mittel der Wahl, wenn die Drittvariable nur eine der beiden Variablen *x* oder *y* theoretisch kausal bedingt und zwischen den anderen Variablen lediglich ein ungerichteter Zusammenhang angenommen wird. In unserem Beispiel würde dies bedeuten, dass wir beispielsweise lediglich annehmen, dass IQ die Matehmatikleistung bedingt, jedoch nicht die Leseleitung. Eine mögliche Begründung könnte sein, dass Mathematik stark von der abstrakten Vorstellungkraft profitiert, die im IQ abgebildet ist, die Leseleistung hingegen eine Fertigkeit ist, die vorallem erlernt wird. Da diese Annahme schwer empirisch zu stützen ist, eignet sich die Semipartialkorrelation in unserem Beispiel weniger als die Partialkorrelaton.
+
+
+
+## Zusammenfassung
+
+![](images/Bild4.png){width="90%"}
+
+
