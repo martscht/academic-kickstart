@@ -1,0 +1,256 @@
+---
+title: "Regressionsanalyse I"
+output:
+  html_document
+  
+date: '2021-04-26'
+slug: reg1
+categories:
+     - BSc7
+tags:
+- Regression
+- Zusammenhangsanalyse
+- Gerichtete Zusammenhänge
+subtitle: ''
+summary: ''
+authors: [schroeder, gruetzmacher]
+lastmod: '2021-04-20 12:00:12 CEST'
+featured: no
+header:
+     image: "/header/FEI_Sitzung5_post.jpg"
+     caption: "[Courtesy of pexels](https://www.pexels.com/photo/man-looking-in-binoculars-during-sunset-802412/)"
+projects: []
+  
+---
+
+
+
+<pre class="r"><code># Datensatz laden
+load(url(&quot;https://pandar.netlify.app/post/Schulleistungen.rda&quot;))</code></pre>
+<div id="einleitung" class="section level2">
+<h2>Einleitung</h2>
+<p>Liebe Studierende,</p>
+<p>in der letzten Sitzung haben wir unter anderem Korrelationen zwischen zwei Variablen behandelt. Zur Wiederholung: mithilfe einer Korrelation kann die Stärke des Zusammenhangs zwischen zwei Variablen quantifiziert werden. Dabei haben beide Variablen den gleichen Stellenwert, d.h. eigentlich ist es egal welche Variable die x- und welche Variable die y-Variable ist. Wir haben außerdem Methoden kennengelernt, mit denen der Einfluss einer (oder mehrerer) Drittvariablen kontrolliert werden kann; die Partial- und Semipartialkorrelation. In der heutigen Sitzung wollen wir uns hingegen mit gerichteten Zusammenhängen, d.h. mit Regressionen, beschäftigen.</p>
+</div>
+<div id="lineare-regression" class="section level2">
+<h2>Lineare Regression</h2>
+<p>Das Ziel einer Regression besteht darin, eine Variable durch eine oder mehrere andere Variablen vorherzusagen (Prognose). Die vorhergesagte Variable wird als Kriterium, Regressand oder auch abhängige Variable (AV) bezeichnet und üblicherweise mit <em>y</em> symbolisiert. Die Variablen zur Vorhersage der abhängigen Variablen werden als Prädiktoren, Regressoren oder unabhängige Variablen (UV) bezeichnet und üblicherweise mit <em>x</em> symbolisiert.
+Die häufigste Form der Regressionsanalyse ist die lineare Regression, bei der der Zusammenhang über eine Gerade bzw. eine Ebene (bei zwei Prädiktoren) beschrieben wird. Demzufolge kann die lineare Beziehung zwischen den vorgesagten Werten und den Werten der unabhängigen Variablen mathematisch folgendermaßen beschreiben werden:</p>
+<p><span class="math display">\[y_i = b_0 +b_{1}x_{i1} + ... +b_{m}x_{im} + e_i\]</span></p>
+<ul>
+<li><span class="math inline">\(b_0\)</span> = y-Achsenabschnitt/ Ordinatenabschnitt/ Konstante/ Interzept:
+<ul>
+<li>Der Wert von y bei einer Ausprägung von 0 in allen <em>x</em>-Variablen</li>
+</ul></li>
+<li><span class="math inline">\(b_{1}/ b_m\)</span> = Regressionsgewichte der Prädiktoren:
+<ul>
+<li>beziffern die Steigung der Regressionsgeraden</li>
+<li>Interpretation: die Steigung der Geraden lässt erkennen, um wie viele Einheiten <em>y</em> zunimmt, wenn <em>x</em> um eine Einheit zunimmt</li>
+</ul></li>
+<li><span class="math inline">\(e_i\)</span> = Regressionsresiduum (kurz: Residuum), Residualwert oder Fehlerwert:
+<ul>
+<li>die Differenz zwischen einem vorhergesagten (<span class="math inline">\(\hat{y}\)</span>) und beobachteten (<span class="math inline">\(y\)</span>) y-Wert</li>
+<li>je größer die Fehlerwerte, umso größer ist die Abweichung eines beobachteten vom vorhergesagten Wert</li>
+</ul></li>
+</ul>
+<p><strong>Einfache lineare Regression</strong></p>
+<div class="figure">
+<img src="images/Bild1.png" alt="Grafische Darstellung einer einfachen linearen Regression" style="width:80.0%" />
+<p class="caption">Grafische Darstellung einer einfachen linearen Regression</p>
+</div>
+<p><span class="math inline">\(\hat{y_i} = b_0 +b_{1}x_{i1}\)</span> (Regressiongerade = vorhergesagte Werte)</p>
+<p><strong>Multiple Regression (mehrere Prädiktoren)</strong></p>
+<div class="figure">
+<img src="images/Bild2.png" alt="Grafische Darstellung einer multiplen Regression" style="width:80.0%" />
+<p class="caption">Grafische Darstellung einer multiplen Regression</p>
+</div>
+<p><span class="math inline">\(y_i = b_0 +b_{1}x_{i1} + b_{2}x_{i2} + e_i\)</span></p>
+</div>
+<div id="berechnung-der-regressionsgewichte-b_i-per-hand" class="section level2">
+<h2>Berechnung der Regressionsgewichte <span class="math inline">\(b_i\)</span> “per Hand”</h2>
+<p>Eine Stichprobe von 100 Schülerinnen und Schülern hat einen Lese- und einen Mathematiktest beantwortet, zusätzlich einen allgemeinen Intelligenztest. Die Testleistungen sind untereinander alle positiv korreliert. Auch die beiden fachspezifischen Tests für Lesen (<code>reading</code>) und Mathematik (<code>math</code>) korrelieren substanziell.</p>
+<p>Oft wird argumentiert, dass zum Lösen von mathematischen Textaufgaben auch Lesekompetenz erforderlich ist (z. B. bei Textaufgaben). Anhand des Datensatzes soll untersucht werden, wie stark sich die Mathematikleistungen durch Lesekompetenz und allgemeine Intelligenz vorhersagen lassen.</p>
+<p>Die Formel lautet demnach:</p>
+<p><span class="math display">\[y_{i,math} = b_0 +b_{reading}x_{i,reading} + b_{IQ}x_{i,IQ} + e_i\]</span>
+oder in Matrixform:</p>
+<p><span class="math display">\[\begin{align}
+\begin{bmatrix} y_1\\y_2\\y_3\\y_4\\...\\y_{100}\end{bmatrix} = b_{0} *
+\begin {bmatrix}1\\1\\1\\1\\...\\1\end{bmatrix} + b_{reading} *
+\begin {bmatrix}x_{reading1}\\x_{reading2}\\x_{reading3}\\x_{reading4}\\...\\y_{reading100}\end{bmatrix} + b_{IQ} *
+\begin {bmatrix}x_{IQ1}\\x_{IQ2}\\x_{IQ3}\\x_{IQ4}\\...\\x_{IQ100}\end{bmatrix} +
+\begin {bmatrix}e_1\\e_2\\e_3\\e_4\\...\\e_{100}\end{bmatrix}
+\end{align}\]</span></p>
+<pre class="r"><code># Vektor Y
+y &lt;- Schulleistungen$math
+head(y)</code></pre>
+<pre><code>## [1] 451.9832 589.6540 509.3267 560.4300 659.4524 602.8577</code></pre>
+<pre class="r"><code># Matrix X vorbereiten (Spalten mit beiden Prädiktoren + Spalte mit Einsen anfügen)
+X &lt;- as.matrix(Schulleistungen[,c(&quot;reading&quot;, &quot;IQ&quot;)])       
+X &lt;- cbind(rep(1,nrow(X)), X)                         
+head(X)</code></pre>
+<pre><code>##         reading        IQ
+## [1,] 1 449.5884  81.77950
+## [2,] 1 544.8495 106.75898
+## [3,] 1 331.3466  99.14033
+## [4,] 1 531.5384 111.91499
+## [5,] 1 604.3759 116.12682
+## [6,] 1 308.7457 106.14127</code></pre>
+<p><span class="math display">\[\begin{align}y = \begin{bmatrix}451,98\\589,65\\509,33\\560,43\\...\\603,18\end{bmatrix}\end{align}\]</span></p>
+<p><span class="math display">\[\begin{align}X = \begin{bmatrix}1 &amp; 449,59 &amp; 81,78\\1 &amp; 544,85 &amp; 106,76\\1 &amp; 331,35 &amp; 99,14\\1 &amp; 531,54 &amp; 111,91\\ ... &amp; ... &amp; ... \\1 &amp; 487,22 &amp; 106,13\end{bmatrix}\end{align}\]</span></p>
+<p><strong>Vorgehen bei der Berechnung der Regressionsgewichte:</strong></p>
+<ol style="list-style-type: decimal">
+<li>Berechnung der Kreuzproduktsumme (X’X)</li>
+<li>Berechnung der Inversen der Kreuzproduktsumme (<span class="math inline">\((X&#39;X)^{-1}\)</span>)</li>
+<li>Berechnung des Kreuzproduksummenvektors (X’y)</li>
+<li>Berechnung des Einflussgewichtsvektor</li>
+</ol>
+<p><strong>1. Berechnung der Kreuzproduktsumme (X’X)</strong></p>
+<p>Die Kreuzproduktsumme (X’X) wird berechnet, indem die transponierte Matrix X (X’) mit der Matrix X multipliziert wird. Die transponierte Matrix X’ erhalten Sie in R durch die Befehl <code>t(X)</code>.</p>
+<p><span class="math display">\[\begin{align}X=\begin{bmatrix}1 &amp; 449,59 &amp; 81,78\\1 &amp; 544,85 &amp; 106,76\\1 &amp; 331,35 &amp; 99,14\\1 &amp; 531,54 &amp; 111,91\\... &amp; ... &amp; ... \\1 &amp; 487,22 &amp; 106,13\end{bmatrix}\end{align}\]</span></p>
+<p><span class="math display">\[\begin{align}X&#39;=\begin{bmatrix} 1 &amp; 1 &amp; 1 &amp; 1 &amp; ... &amp; 1\\449,58 &amp; 544,85 &amp; 331,35 &amp; 531,54 &amp; ... &amp; 487,22\\81,78 &amp; 106,76 &amp; 99,14 &amp; 111,91 &amp; ... &amp; 106,13\end{bmatrix}\end{align}\]</span></p>
+<p><span class="math display">\[\begin{align}X&#39;X=\begin{bmatrix}100,00 &amp; 49606,60 &amp; 9813,43\\49606,61 &amp; 25730126,10 &amp; 4962448,08\\9813,43 &amp; 4962448,10 &amp; 987595,82\end{bmatrix}\end{align}\]</span></p>
+<pre class="r"><code># Berechnung der der Kreuzproduktsumme X’X in R
+X.X &lt;- t(X) %*% X        # X&#39; erhalten Sie durch t(X)
+X.X</code></pre>
+<pre><code>##                      reading          IQ
+##           100.000    49606.6    9813.425
+## reading 49606.605 25730126.1 4962448.077
+## IQ       9813.425  4962448.1  987595.824</code></pre>
+<p><strong>2. Berechnung der Inversen der Kreuzproduktsumme <span class="math inline">\(((X&#39;X)^{-1})\)</span></strong></p>
+<p>Die Inverse der Kreuzproduktsumme kann in R durch den <code>solve()</code> Befehl berechnet werden.</p>
+<pre class="r"><code># Berechnung der Inversen (mit Regel nach Sarrus) in R
+solve(X.X)</code></pre>
+<pre><code>##                             reading            IQ
+##          0.4207610612 -1.568521e-04 -3.392822e-03
+## reading -0.0001568521  1.316437e-06 -5.056210e-06
+## IQ      -0.0033928220 -5.056210e-06  6.013228e-05</code></pre>
+<p><span class="math display">\[\begin{align}(X&#39;X)^{-1}= \begin{bmatrix}0,42 &amp; -1,56e^{-04} &amp; -3,39^{-03}\\-0,00 &amp; 1,32e^{-06} &amp; -5,06e^{-06}\\-0,00 &amp; -5,06e^{-06} &amp; 6,01e^{-05}\end{bmatrix}\end{align}\]</span></p>
+<p><strong>3. Berechnung des Kreuzproduktsummenvektors (X’y)</strong></p>
+<p>Der Kreuzproduktsummenvektor (X’y) wird durch die Multiplikation der transponierten X Matrix (X’) und des Vektors y berechnet.</p>
+<p><span class="math display">\[\begin{align}X&#39;=\begin{bmatrix}1 &amp; 1 &amp; 1 &amp; 1 &amp; ... &amp; 1\\449,58 &amp; 544,85 &amp; 331,35 &amp; 531,54 &amp; ... &amp; 487,22\\81,78 &amp; 106,76 &amp; 99,14 &amp; 111,91 &amp; ... &amp; 106,13\end{bmatrix}\end{align}\]</span></p>
+<p><span class="math display">\[\begin{align}y=\begin{bmatrix}451,98\\589,65\\509,33\\560,43\\...\\603,18\end{bmatrix}\end{align}\]</span></p>
+<p><span class="math display">\[\begin{align}X&#39;y=\begin{bmatrix}56146,45\\28313059,77\\5636931,00\end{bmatrix}\end{align}\]</span></p>
+<pre class="r"><code>#Berechnung des Kreuzproduksummenvektors X`y in R
+X.y &lt;- t(X) %*% y        
+X.y</code></pre>
+<pre><code>##                [,1]
+##            56146.45
+## reading 28313059.77
+## IQ       5636931.00</code></pre>
+<p><strong>4. Berechnung des Einflussgewichtsvektors</strong></p>
+<p>Die geschätzten Regressionsgewichte nach dem Kriterium der kleinsten Quadrate werden berechnet, indem die Inverse der Kreuzproduktsumme <span class="math inline">\(((X&#39;X)^{-1})\)</span> mit dem Kreuzproduktsummenvektor (X’y) multipliziert wird. Den Vektor mit den vorhergesagten Werten von y (<span class="math inline">\(\hat{y}\)</span>) können Sie durch die Multiplikation der X Matrix mit den Regressionsgewichten (<span class="math inline">\(\hat{b}\)</span>) berechnen.</p>
+<p><span class="math display">\[\begin{align}(X&#39;X)^{-1}= \begin{bmatrix}0,42 &amp; -1,56e^{-04} &amp; -3,39^{-03}\\-0,00 &amp; 1,32e^{-06} &amp; -5,06e^{-06}\\-0,00 &amp; -5,06e^{-06} &amp; 6,01e^{-05}\end{bmatrix}\end{align}\]</span></p>
+<p><span class="math display">\[\begin{align}X&#39;y=\begin{bmatrix}56146,45\\28313059,77\\5636931,00\end{bmatrix}\end{align}\]</span></p>
+<p><span class="math display">\[\begin{align}\hat{b}=\begin{bmatrix}58,17\\-0,04\\5,31\end{bmatrix}\end{align}\]</span></p>
+<pre class="r"><code># Berechnung des Einflussgewichtsvektor in R
+b.hat &lt;- solve(X.X) %*% X.y     # Vektor der geschätzten Regressionsgewichte
+b.hat</code></pre>
+<pre><code>##                [,1]
+##         58.17167003
+## reading -0.03584686
+## IQ       5.30981976</code></pre>
+<p><strong>Vorhersage der Mathematikleistung</strong></p>
+<pre class="r"><code>y.hat &lt;- as.vector(X %*% b.hat) # Vorhersagewerte für jede einzelne Person 
+head(y.hat)</code></pre>
+<pre><code>## [1] 476.2897 605.5115 572.7112 633.3661 653.1192 610.6951</code></pre>
+<p><span class="math display">\[\begin{align}
+\hat{y}_{math} = \begin{bmatrix}476,29\\605,51\\572,71\\633,37\\...\\604,22\end{bmatrix}
+\end{align}\]</span></p>
+<p><strong>Berechnung der standardisierten Regressionsgewichte</strong></p>
+<p>Bisher wurden aber nur die <em>unstandardisierten Regressionsgewichte</em> berechnet. Diese haben den Vorteil leichter interpretierbar zu sein. So wird das unstandardisierte Regressionsgewicht folgendermaßen interpretiert: wenn sich die unabhängige Variable um eine Einheit verändert, verändert sich die abhängige Variable um den unstandardisierten Koeffizienten. Der Nachteil dieser unstandardisierten Regressionsgewichte ist jedoch, dass die Regressionsgewichte nicht zwischen verschiedenen Prädiktoren vergleichbar sind. Demzufolge kann anhand der Größe der Regressionsgewichte nicht gesagt werden, welcher Regressionskoeffizient, d.h. welcher Prädiktor, eine stärkere Erklärungskraft hat.
+Daher werden die Regressionsgewichte häufig standardisiert. Durch die Standardisierung sind die Regressionsgewichte nicht mehr von der ursprünglichen Skala abhängig und haben daher den Vorteil, dass sie miteinander verglichen werden können. Allerdings sind die <em>standardisierten Regressionsgewichte</em> nicht mehr so leicht zu interpretieren. Die Interpretation der standardisierten Regressionsgewichte lautet: wenn sich die unabhängige Variable um eine Standardabweichung erhöht (und unter Kontrolle weiterer unabhängiger Variablen), so beträgt die erwartete Veränderung in der abhängigen Variable <span class="math inline">\(\beta\)</span> Standardabweichungen (das standardisierte Interzept ist Null).
+Die standardisierten Regressionsgewichte können über den standardisierten y Vektor und die standardisierte Matrix (zur Standardisierung <code>scale()</code> Befehl in R verwenden) ermittelt werden.</p>
+<pre class="r"><code>#Berechnung der standardisierten Regressionsgewichte
+y.s &lt;- scale(y) # Standardisierung y
+X.s &lt;- scale(X) # Standardisierung X
+X.s[,1] &lt;- 1    # Einsenvektor ist nach Standardisierung zunächst NaN, muss wieder gefüllt werden
+
+#Kombination der Einzelschritte zur Bestimmung der Regressionsgewichte
+b.hat.s &lt;- solve(t(X.s)%*% X.s) %*% t(X.s)%*%y.s #Regressionsgewichte aus den standardisierten Variablen
+round(b.hat.s, 3)</code></pre>
+<pre><code>##           [,1]
+##          0.000
+## reading -0.033
+## IQ       0.716</code></pre>
+<p><strong>Berechnung des globalen Signifikanztest</strong></p>
+<p><em>Determinationskoeffizient <span class="math inline">\(R^2\)</span></em></p>
+<p>Der Determinationskoeffizient <span class="math inline">\(R^2\)</span> gibt an wieviel Varianz in der abhängigen Variable durch die unabhängigen Variablen erklärt werden kann:</p>
+<p><span class="math inline">\(R^2= \dfrac{Q_d}{Q_d + Q_e}\)</span></p>
+<pre class="r"><code># Determinationskoeffizient R2
+Q.d &lt;- sum((y.hat - mean(y))^2)    # Regressionsquadratsumme
+Q.e &lt;- sum((y - y.hat)^2)          # Fehlerquadratsumme
+R2 &lt;- Q.d / (Q.d + Q.e)            # Determinationskoeffizient R^2</code></pre>
+<p><span class="math inline">\(R^2= \dfrac{Q_d}{Q_d + Q_e} = \dfrac{6.5805169\times 10^{5}}{6.5805169\times 10^{5} + 6.9223863\times 10^{5}} = 0.49\)</span></p>
+<p><em>F-Wert</em></p>
+<p>Der F-Wert dient zur Überprüfung der Gesamtsignifikanz des Modells. Er sagt aus, ob der Determinationskoeffizient <span class="math inline">\(R^2\)</span> signifikant von 0 verschieden ist.</p>
+<pre class="r"><code># F-Wert
+n &lt;- length(y)                     # Fallzahl (n=100)
+m &lt;- ncol(X)-1                     # Zahl der Prädiktoren (m=2)
+F.omn &lt;- (R2/m) / ((1-R2)/(n-m-1))   # F-Wert
+F.krit &lt;- qf(.95, df1=m, df2=n-m-1)  # kritischer F-Wert (alpha=5%)
+p &lt;- 1-pf(F.omn, m, n-m-1)           # p-Wert</code></pre>
+<p><span class="math inline">\(F_{omn} = \dfrac{\dfrac{R^2}{m}}{\dfrac{1-R^2}{n-m-1}} = \dfrac{\dfrac{0.49}{2}}{\dfrac{1-0.49}{100-2-1}} = 46.1\)</span></p>
+<p><span class="math inline">\(df_1 = 2, df_1 = n-m-1 = 100-2-1 =97\)</span></p>
+<p><span class="math inline">\(F_{krit}(\alpha=.05, df_1=2, df_2= 97)= 3.09\)</span></p>
+<p><span class="math inline">\(p=0.00000000000000844\)</span></p>
+</div>
+<div id="berechnung-der-regression-mit-lm-funktionen-in-r" class="section level2">
+<h2>Berechnung der Regression mit lm-Funktionen in R</h2>
+<p>Für die Schätzung von Regressionsmodellen kann die Basis-Funktion <code>lm</code> verwendet werden. Um zusätzlich die standardisierten Koeffizienten zu erhalten, kann die Funktion <code>lm.beta</code> aus dem gleichnamigen Paket <code>lm.beta</code> genutzt werden.</p>
+<pre class="r"><code>#Paket installieren (wenn nötig)
+#install.packages(&quot;lm.beta&quot;, repos = &quot;http://cran.us.r-project.org&quot;)
+library(lm.beta)
+
+# Regressionsanalyse mit lm
+reg &lt;- lm(math ~ reading + IQ, data = Schulleistungen)
+
+# Ergebnisausgabe einschließlich standardisierter Koeffizienten mit lm.beta
+summary(lm.beta(reg))</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = math ~ reading + IQ, data = Schulleistungen)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -86.60 -48.89 -19.10  23.59 467.25 
+## 
+## Coefficients:
+##             Estimate Standardized Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 58.17167      0.00000   54.79738   1.062    0.291    
+## reading     -0.03585     -0.03268    0.09693  -0.370    0.712    
+## IQ           5.30982      0.71615    0.65508   8.106  1.6e-12 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 84.48 on 97 degrees of freedom
+## Multiple R-squared:  0.4873, Adjusted R-squared:  0.4768 
+## F-statistic:  46.1 on 2 and 97 DF,  p-value: 8.447e-15</code></pre>
+<p><strong>Ergebnisinterpretation:</strong></p>
+<ul>
+<li>die Lesekompetenz und allgemeine Intelligenz erklären gemeinsam 48,73% der Varianz in der Mathematiktestleistung</li>
+<li>Dieser Varianzanteil ist signifikant von null verschieden</li>
+<li>Regressionsgewichte:
+<ul>
+<li>Regressionskonstante <span class="math inline">\(b_0\)</span>:
+<ul>
+<li>Der Erwartungswert der Mathematikleistung für ein Individuum mit null Punkten im IQ und null Punkten in Lesekompetenz beträgt 58,17 Punkte.</li>
+</ul></li>
+<li>Regressionsgewicht <span class="math inline">\(b_1\)</span>:
+<ul>
+<li>bei einem Punkt mehr in der Lesekompetenz und unter Kontrolle des IQ beträgt die erwartete Veränderung in der Mathematikleistung -0.04 Punkte.</li>
+<li>Der Einfluss von Lesekompetenz auf Mathematikleistung ist nicht signfikant von null verschieden (<span class="math inline">\(p=0.712\)</span>)</li>
+</ul></li>
+<li>Regressionsgewicht <span class="math inline">\(b_2\)</span>:
+<ul>
+<li>unter Kontrolle der Lesekompetenz beträgt die erwartete Veränderung in der Mathematikleistung bei einem Punkt mehr im IQ 5.31 Punkte.</li>
+<li>Der Einfluss der allgemeinen Intelligenz auf Mathematikleistung ist signfikant von null verschieden (<span class="math inline">\(p=0\)</span>)</li>
+</ul></li>
+</ul></li>
+<li>Standardisierte Regressionsgewichte
+<ul>
+<li>Standardisiertes Regressionsgewicht <span class="math inline">\(\beta_1\)</span>: Unter Kontrolle des IQ beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr in Lesekompetenz -0.03 Standardabweichungen.</li>
+<li>Standardisiertes Regressionsgewicht <span class="math inline">\(\beta_2\)</span>: Unter Kontrolle der Lesekompetenz beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr im IQ 0.72 Standardabweichungen.</li>
+</ul></li>
+</ul>
+<p>Verweis zu letzter Sitzung: In solch einer multiplen Regression können Suppressoreffekte gut aufgedeckt werden. Diese zeigen sich dann, wenn die <span class="math inline">\(\beta\)</span> Gewichte in der multiplen Regression dem Betrag nach größer sind, als deren korrespondierende <span class="math inline">\(\beta\)</span> Gewichte in einer einfachen Regression. Dies ist in unserem Beispiel jedoch nicht der Fall.</p>
+</div>
