@@ -9,7 +9,7 @@ library(lavaan)
 #### Datensatz ----
 
 # Daten laden
-data(conspiracy, package = 'PsyMSc1')
+load(url('https://pandar.netlify.com/post/conspiracy.rda'))
 
 # Überblick
 conspiracy

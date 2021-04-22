@@ -31,9 +31,9 @@ library(ggplot2) # ggplot2 und dplyr werden nur für Grafiken benötigt
 ```
 
 
-Forscher der Psychologie oder anderer Natur-, Sozial- und Geisteswissenschaften interessieren sich häufig dafür, dass sich Daten runterbrechen lassen auf einige wenige entscheidende Faktoren, welche  ein theoretisches Erklärungsmodell für die Variation in einem Datensatz liefern. Die Annahme ist hierbei, dass die beobachtbaren Messungen eine Linearkombination (also eine Summe) aus einem systematischen (wahren) und einem unsystematischen (Fehler-) Anteil bilden. Die dahinterliegenden Faktoren sind nicht messbare (latente) Variablen, auf welche, unter gewissen Annahmen, nur anhand der Kovariation zwischen den beobachtbaren Items geschlossen werden kann. Durch diese Zusammenhänge zwischen den Messungen können schließlich Hypothesen für die latenten Variablen untersucht werden. Ein theoriegenerierendes Verfahren, das hierzu häufig verwendet wird, ist die **exploratorische Faktorenanalyse**  (im Folgenden EFA, engl. **E**xploratory **F**actor **A**nalysis, vgl. [Eid, Gollwitzer & Schmitt, 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 25; außerdem können Sie sich [Brandt, 2020](https://hds.hebis.de/ubffm/Record/HEB468515836), Kapitel 23 genauer ansehen, wenn Sie weitere Informationen, bzw. eine zusätzliche Erklärung wünschen).
+Forscher der Psychologie oder anderer Natur-, Sozial- und Geisteswissenschaften interessieren sich häufig dafür, wie sich Daten auf einige wenige entscheidende Faktoren herunterbrechen lassen, welche  ein theoretisches Erklärungsmodell für die Variation in einem Datensatz liefern. Die Annahme ist hierbei, dass die beobachtbaren Messungen eine Linearkombination (also eine Summe) aus einem systematischen (wahren) und einem unsystematischen (Fehler-) Anteil bilden. Die dahinterliegenden Faktoren sind nicht messbare (latente) Variablen, auf welche, unter gewissen Annahmen, nur anhand der Kovariation zwischen den beobachtbaren Items geschlossen werden kann. Durch diese Zusammenhänge zwischen den Messungen können schließlich Hypothesen für die latenten Variablen untersucht werden. Ein theoriegenerierendes Verfahren, das hierzu häufig verwendet wird, ist die **exploratorische Faktorenanalyse**  (im Folgenden EFA, engl. **E**xploratory **F**actor **A**nalysis, vgl. [Eid, Gollwitzer & Schmitt, 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 25; außerdem können Sie sich [Brandt, 2020](https://hds.hebis.de/ubffm/Record/HEB468515836), Kapitel 23 genauer ansehen, wenn Sie weitere Informationen, bzw. eine zusätzliche Erklärung wünschen).
 
-Wir wollen die **EFA** zur Auswertung von Beziehungen zwischen Variablen in `R` näher kennenlernen. Die EFA ist manchen Gesichtspunkten, sowie im Output in `R`, recht verwandt mit der [Hauptkomponentenanalyse (PCA)](/post/PCA) aus dem vergangenen Semester. Allerdings war es bei der PCA so, dass wir kein Erklärungsmodell aufstellen konnten ("wir konnten den Hauptkomponenten nicht so einfach eine inhaltliche Bedeutung zuschreiben") und auch keine Messfehler (unsystematische Fehleranteile) mitmodellierten, sowie waren bei der PCA die Hauptkomponenten Linearkombinationen (also Zusammensetzungen) aus den beobachteten Variablen, bei der EFA hingegen sind die Messungen (beobachteten Variablen) Linearkombinationen aus systematischen (latenten) Variablen sowie Messfehlern.
+Wir wollen die **EFA** zur Auswertung von Beziehungen zwischen Variablen in `R` näher kennenlernen. Die EFA ist manchen Gesichtspunkten, sowie im Output in `R`, recht verwandt mit der [Hauptkomponentenanalyse (PCA)](/post/PCA) aus dem vergangenen Semester. Allerdings konnten wir bei der PCA kein Erklärungsmodell aufstellen ("wir konnten den Hauptkomponenten nicht so einfach eine inhaltliche Bedeutung zuschreiben") und auch keine Messfehler (unsystematische Fehleranteile) mitmodellieren. Zudem waren die Hauptkomponenten der PCA Linearkombinationen (also Zusammensetzungen) aus den beobachteten Variablen, bei der EFA hingegen sind die Messungen (beobachteten Variablen) Linearkombinationen aus systematischen (latenten) Variablen sowie Messfehlern.
 
 Bevor wir mit den Analysen beginnen können, laden wir zunächst alle Pakete, welche wir im Folgenden benötigen werden.
 ```{r, message=F}
@@ -70,7 +70,7 @@ htmlTable(output, header =  paste(c("Item Nr.", "Item")),
          caption="Itemwortlaut", align = "cl")
 ```
 
-Die Kürzung des vollen Datensatzes lässt sich im [Appendix A](#AppendixA) nachvollziehen. Zusätzlich zu den Persönlichkeitsitems wurden demografische Daten, die mögliche Unterschiede zwischen Personen beschreiben, erfasst. 
+Die Kürzung des vollen Datensatzes lässt sich im [Appendix A](#AppendixA) nachvollziehen. Zusätzlich zu den Persönlichkeitsitems wurden demografische Daten, die mögliche Unterschiede zwischen Personen beschreiben, erfasst.
 
 ### Daten laden
 Wir laden zunächst die Daten: entweder lokal von Ihrem Rechner:
@@ -93,10 +93,10 @@ Nun sollte in `R`-Studio oben rechts in dem Fenster unter der Rubrik "Data" unse
 head(Big5, n = 10) # gebe die ersten 10 Zeilen aus
 ```
 
-Wir sehen, dass in den ersten 4 Spalten die demografischen Daten wie etwa  *Alter ("age")*, *Englisch als Muttersprache ("engant", 1=yes, 2=no, 0=missed)*, *Geschlecht ("gender", 1=Male, 2=Female, 3=Other, 0=missed)* und *Herkunftsland ("country", ISO-kodiert, bspw. "DE" = Deutschland, "FR" = Frankreich, "EM" = Vereinigte Arabische Emirate, "US" = Vereinigten Staaten von Amerika)* eingetragen wurden. In den darauf folgenden Spalten sind die Items der Extraversion (engl. *extraversion*, Items: *E1*, *E2*, *E3*), des Neurotizismus (engl. *neuroticism*, Items: *N1*, *N2*, *N3*), der Verträglichkeit (engl. *agreeableness*, Items: *A1*, *A2*, *A3*), der Gewissenhaftigkeit  (engl. *conscientiousness*, Items: *C1*, *C2*, *C3*) und der Offenheit für Erfahrungen (engl. *openness*, Items: *O1*, *O2*, *O3*) eingetragen. Beispielsweise ist die erste Person des Datensatzes ein 53-jähriger Mann, der Englisch als Muttersprache spricht und in den USA lebt. 
+Wir sehen, dass in den ersten 4 Spalten die demografischen Daten wie etwa  *Alter ("age")*, *Englisch als Muttersprache ("engant", 1=yes, 2=no, 0=missed)*, *Geschlecht ("gender", 1=Male, 2=Female, 3=Other, 0=missed)* und *Herkunftsland ("country", ISO-kodiert, bspw. "DE" = Deutschland, "FR" = Frankreich, "EM" = Vereinigte Arabische Emirate, "US" = Vereinigten Staaten von Amerika)* eingetragen wurden. In den darauf folgenden Spalten sind die Items der Extraversion (engl. *extraversion*, Items: *E1*, *E2*, *E3*), des Neurotizismus (engl. *neuroticism*, Items: *N1*, *N2*, *N3*), der Verträglichkeit (engl. *agreeableness*, Items: *A1*, *A2*, *A3*), der Gewissenhaftigkeit  (engl. *conscientiousness*, Items: *C1*, *C2*, *C3*) und der Offenheit für Erfahrungen (engl. *openness*, Items: *O1*, *O2*, *O3*) eingetragen. Beispielsweise ist die erste Person des Datensatzes ein 53-jähriger Mann, der Englisch als Muttersprache spricht und in den USA lebt.
 
 
-Da wir uns in der Praxis nur sehr selten in der glücklichen Lage befinden, einen solch riesigen Datensatz zu haben, wollen wir uns innerhalb des Datensatzes auf Subgruppen beschränken: wir wollen uns zunächst nur Daten von Personen aus *Frankreich* ansehen. Dazu wählen wir nur diejenigen Zeilen aus, in denen `country == "FR"` gilt. Das erreichen wir wie folgt: Mit `Big5$country` haben wir Zugriff auf die "Country"-Spalte im Datensatz und können mit `== "FR"` prüfen, an welchen Stellen hier  *"FR"* steht, also Personen, die in Frankreich leben. `dim` gibt die Dimensionen des Datensatzes wieder. 
+Da wir uns in der Praxis nur sehr selten in der glücklichen Lage befinden, einen solch riesigen Datensatz zu haben, wollen wir uns innerhalb des Datensatzes auf Subgruppen beschränken: wir wollen uns zunächst nur Daten von Personen aus *Frankreich* ansehen. Dazu wählen wir nur diejenigen Zeilen aus, in denen `country == "FR"` gilt. Das erreichen wir wie folgt: Mit `Big5$country` haben wir Zugriff auf die "Country"-Spalte im Datensatz und können mit `== "FR"` prüfen, an welchen Stellen hier  *"FR"* steht, also Personen, die in Frankreich leben. `dim` gibt die Dimensionen des Datensatzes wieder.
 
 ```{r}
 dim(Big5)
@@ -112,25 +112,25 @@ dataFR <- data_France[, -c(1:4)] # entferne demografische Daten und speichere al
 
 #### Visualisierte Korrelationsmatrix in dataFR
 corrplot(corr = cor(dataFR), # Korrelationsmatrix (Datengrundlage)
-         method = "color", # Zeichne die Ausprägung der Korrelation farblich kodiert
+         method = "color", # zeichne die Ausprägung der Korrelation farblich kodiert
          addCoef.col = "black", # schreibe die Korrelationskoeffizienten in schwarz in die Grafik
-         number.cex = 0.7) # Stelle die Schriftgröße der Koeffizienten ein
+         number.cex = 0.7) # stelle die Schriftgröße der Koeffizienten ein
 
 ```
 
-Auf den ersten Blick scheinen die Items der gleichen Skala (ausgedrückt durch gleiche Buchstaben pro Item) stärker (betragsmäßig höher) miteinander zu korrelieren. Allerdings sind hier sehr viele Korrelationen abgetragen. Wir wollen uns zunächst nur auf Extraversion und Neurotizismus beschränken. 
+Auf den ersten Blick scheinen die Items der gleichen Skala (ausgedrückt durch gleiche Buchstaben pro Item) stärker (betragsmäßig höher) miteinander zu korrelieren. Allerdings sind hier sehr viele Korrelationen abgetragen. Wir wollen uns zunächst nur auf Extraversion und Neurotizismus beschränken.
 
 
 ```{r}
 dataFR2 <- dataFR[,1:6] # Zunächst wählen wir die ersten 6 Items: E1 bis E3 und N1 bis N3
 head(dataFR2)
-# zum gleichen Ergebnis würde auch Folgendes kommen (besonders von Relevanz, 
+# zum gleichen Ergebnis würde auch Folgendes kommen (besonders von Relevanz,
 # wenn wir bspw. nicht die Position sondern nur die Namen der Variablen kennen!):
 head(dataFR[, c("E1", "E2", "E3", "N1", "N2", "N3")])
 ```
 
 
-Wenn wir uns die Korrelationmatrix des gekürzten Datensatzes `dataFR2` ansehen
+Wenn wir uns die Korrelationmatrix des gekürzten Datensatzes `dataFR2` ansehen...
 
 
 ```{r  fig.align="center"}
@@ -141,23 +141,23 @@ corrplot(corr = cor(dataFR2), # Korrelationsmatrix (Datengrundlage)
          number.cex = 1) # Stelle die Schriftgröße der Koeffizienten ein
 ```
 
-erkennen wir deutlich, dass die Extraversionsitems und die Neurotizismusitems untereinander jeweils stärker zusammenhängen als zwischen den Konstrukten. Dennoch ist der Grafik zu entnehmen, dass die beiden Konstrukte nicht unabhängig voneinander sind (es gibt Beziehungen zwischen Items der beiden Konstrukte).
+...erkennen wir deutlich, dass die Extraversionsitems und die Neurotizismusitems untereinander jeweils stärker zusammenhängen als zwischen den Konstrukten. Dennoch ist der Grafik zu entnehmen, dass die beiden Konstrukte nicht unabhängig voneinander sind (es gibt Beziehungen zwischen Items der beiden Konstrukte).
 
 
 ## Ziel: EFA
-Unser Ziel ist es, mit den gegebenen Items eine exploratorische Faktorenanalyse durchzuführen. Wir wollen hierbei die Anzahl der Faktoren mittels einer Parallelanalyse bestimmen und anschließend dieses Modell mit dem $\chi^2$-Test (*Likelihood-Quotiententest (Likelihood-Ratio-Test)/ Likelihood-Differenzentest*/ $\chi^2$-*Differenzentest*) gegen konkurrierende Modelle testen. 
-Hierbei wollen wir die oblique rotierte und die orthogonal rotierte Lösung vergleichen und hinsichtlich unserer Daten interpretieren. Das Modell, was wir an unsere Daten anpassen wollen, sieht für 6 Variablen ($V_1,\dots,V_6$) im Allgemeinen erst einmal so aus (hier sind nur die Beziehung nicht aber die Stärken der Beziehungen zwischen den Variablen abgetragen), wobei hier schon die implizite Annahme drin steckt, dass es nur zwei zugrundeliegende latente Variablen gibt:
+Unser Ziel ist es, mit den gegebenen Items eine exploratorische Faktorenanalyse durchzuführen. Wir wollen hierbei die Anzahl der Faktoren mittels einer Parallelanalyse bestimmen und anschließend dieses Modell mit dem $\chi^2$-Test (*Likelihood-Quotiententest (Likelihood-Ratio-Test)/ Likelihood-Differenzentest*/ $\chi^2$-*Differenzentest*) gegen konkurrierende Modelle testen.
+Hierbei wollen wir die oblique rotierte und die orthogonal rotierte Lösung vergleichen und hinsichtlich unserer Daten interpretieren. Das Modell, was wir an unsere Daten anpassen wollen, sieht für 6 Variablen ($V_1,\dots,V_6$) im Allgemeinen erst einmal so aus (hier sind nur die Beziehungen, nicht aber die Stärken der Beziehungen zwischen den Variablen abgetragen), wobei hier schon die implizite Annahme drin steckt, dass es nur zwei zugrundeliegende latente Variablen gibt:
 
 <center> <img src="https://raw.githubusercontent.com/martscht/PsyMSc1/master/inst/tutorials/EFA/images/EFA_Modell.png" width="70%"/> </center>
 
-Auf unseren Datensatz angepasst, wollen wir folgendes Modell anpassen.
+Auf unseren Datensatz angepasst, wollen wir folgendes Modell anpassen:
 
 <center> <img src="https://raw.githubusercontent.com/martscht/PsyMSc1/master/inst/tutorials/EFA/images/specific_model.png" width="70%"/> </center>
 
 
-Natürlich erwarten wir, dass insgesamt 2 Faktoren die Daten am besten beschreiben und dass die konstruktkongruenten Items jeweils auf dem gleichen Faktor am stärksten laden. Aber stützen die Daten diese Hypothese? 
+Natürlich erwarten wir, dass insgesamt 2 Faktoren die Daten am besten beschreiben und dass die konstruktkongruenten Items jeweils auf dem gleichen Faktor am stärksten laden. Aber stützen die Daten diese Hypothese?
 
-Wir wollen im Folgenden 
+Wir wollen im Folgenden
 
 - eine Parallelanalyse durchführen, um in Erfahrung zu bringen, wie viele Faktoren sinnvoll zu den Daten passen
 - eine Hauptachsenanalyse mit orthogonaler und obliquer Rotation durchführen
@@ -165,10 +165,10 @@ Wir wollen im Folgenden
 - im Rahmen  der exploratorischen Maximum-Likelihood-Faktorenanalyse die Passung zu den Daten im Vergleich zu konkurrierenden Modellen untersuchen.
 
 ### Parallelanalyse und Auswahl an Faktoren {#Parallelanalyse_1}
-Zur Auswahl der Anzahl an Faktoren in der EFA kann auf die Eigenwerte zurückgegriffen werden. Diese Eigenwerte entstehen beispielsweise durch Lösen des Eigenwerteproblems und entsprechen den Varianzen der Faktoren. Hier gilt es nur solche Faktoren zu wählen, die auch große Varianzen haben.
+Zur Auswahl der Anzahl an Faktoren in der EFA kann auf die Eigenwerte zurückgegriffen werden. Diese Eigenwerte entstehen beispielsweise durch Lösen des Eigenwerteproblems und entsprechen den Varianzen der Faktoren. Hier gilt es, nur solche Faktoren zu wählen, die auch große Varianzen haben.
 Die Parallelanalyse hatten wir im Zusammenhang mit der [Hauptkomponentenanalyse](/post/PCA) kennengelernt. Hier werden vielfach (z.B. 1000 Mal, für Vergleichbarkeit sogar besser mehr!) unabhängige Daten in dem gleichen Format des ursprünglichen Datensatzes gezogen und eine PCA oder EFA durchgeführt. Die entstehenden Eigenwerte werden der Größe nach sortiert und dann über die Wiederholungen gemittelt. So entsteht ein auf die Stichprobe und Anzahl der Variablen genormter, zufälliger, durchschnittlicher Eigenwerteverlauf. Sind Eigenwerte der tatsächlich beobachteten Daten größer als die der Parallelanalyse, so spricht dies für eine/n bedeutsame/n Komponente/Faktor. Weitere Kriterien zur Auswahl von zu extrahierenden Faktoren im Rahmen der PCA waren das *Eigenwerte-größer-1 Kriterium (Kaiser-Guttman-Kriterium)* sowie der *Scree-Test (Ellbow-Criterion, Knick im Eigenwerteverlauf)*. Weitere Informationen zur EFA sowie zu Wiederholungen der PCA und der Auswahlkriterien können beispielsweise in [Eid, Gollwitzer und Schmitt (2017)](https://hds.hebis.de/ubffm/Record/HEB366849158) in Kapitel 25 (Seite 919 und folgend) nachgelesen werden.
 
-Der wesentliche Unterschied zwischen einer EFA und einer PCA ist, dass bei der EFA angenommen wird, dass die beobachteten Variablen systematische (wahre) und unsystematische (Fehler-) Anteile enthalten. Es wird somit ein Erklärungsmodell, welches  die Variation zwischen den Variablen erzeugt, postuliert. Bei der PCA werden die beobachteten Variablen als messfehlerfrei angenommen. Eine wichtige Folge aus der (Nicht-) Modellierung der Fehler ist, dass in der Regel die Faktorladungen bei der PCA höher ausfallen als bei der EFA. Dies liegt daran, dass bei der PCA die Variablen mit ihren eigenen Messfehlern, aus welchen auch die Hauptkomponenten unter anderem zusammengesetzt sind, korrelieren. Die Faktorladungen/ Komponentenladungen stehen hierbei (im orthogonalen Fall) für die Korrelation zwischen Item und Faktor/ Komponente; im obliquen Fall sind die Faktorladungen als Regressionkoeffizienten zu interpretieren. Wird eine ML-EFA an die Daten angepasst, so wird zusätzlich noch ein Erklärungsmodell basierend auf Verteilungsannahmen (multivariate Normalverteilung der Faktoren und Fehler --- und als Konsequenz daraus auch der Items) herangezogen. Bei der PCA sind die Hauptkomponenten lediglich Linearkombinationen aus den beobachteten Variablen ohne jegliche Verteilungsannahmen (die Hauptkomponenten bestehen aus gewichteten Summen der beobachteten Variablen). Entsprechend ist es bei der PCA auch nicht möglich konkurierende Modelle gegeneinander zu testen. Es bleiben dort nur die deskriptiven und recht subjektiven Auswahlkriterien für die Anzahl der Komponenten.
+Der wesentliche Unterschied zwischen einer EFA und einer PCA ist, dass bei der EFA angenommen wird, dass die beobachteten Variablen systematische (wahre) und unsystematische (Fehler-) Anteile enthalten. Es wird somit ein Erklärungsmodell, welches  die Variation zwischen den Variablen erzeugt, postuliert. Bei der PCA werden die beobachteten Variablen als messfehlerfrei angenommen. Eine wichtige Folge aus der (Nicht-) Modellierung der Fehler ist, dass in der Regel die Faktorladungen bei der PCA höher ausfallen als bei der EFA. Dies liegt daran, dass bei der PCA die Variablen mit ihren eigenen Messfehlern, aus welchen auch die Hauptkomponenten unter anderem zusammengesetzt sind, korrelieren. Die Faktorladungen/ Komponentenladungen stehen hierbei (im orthogonalen Fall) für die Korrelation zwischen Item und Faktor/ Komponente; im obliquen Fall sind die Faktorladungen als Regressionkoeffizienten zu interpretieren. Wird eine ML-EFA an die Daten angepasst, so wird zusätzlich noch ein Erklärungsmodell basierend auf Verteilungsannahmen (multivariate Normalverteilung der Faktoren und Fehler --- und als Konsequenz daraus auch der Items) herangezogen. Bei der PCA sind die Hauptkomponenten lediglich Linearkombinationen aus den beobachteten Variablen ohne jegliche Verteilungsannahmen (die Hauptkomponenten bestehen aus gewichteten Summen der beobachteten Variablen). Entsprechend ist es bei der PCA auch nicht möglich, konkurierende Modelle gegeneinander zu testen. Es bleiben dort nur die deskriptiven und recht subjektiven Auswahlkriterien für die Anzahl der Komponenten.
 
 Mit Hilfe des `fa.parallel` Befehls aus dem `psych`-Paket, welchen wir im Rahmen der PCA bereits kennengelernt hatten, lässt sich ganz einfach der Eigenwerteverlauf inklusive Parallelanalyse grafisch darstellen.
 
@@ -180,7 +180,7 @@ Ohne weitere Einstellungen wird der Eigenwerteverlauf der PCA und der EFA ausgeg
 ```{r fig.align="center"}
 fa.parallel(dataFR2, fa = "fa")
 ```
-Die Grafik zeigt drei Eigenwerteverläufe. *FA Actual Data* ist der Eigenwerteverlauf unseres Datensatzes. *FA Simulated Data* ist der Eigenwerteverlauf basierend auf den 1000 simulierten Datensätzen. *FA Resampled Data* ist der Eigenwerteverlauf von Datensätzen, der durch *Resampling*, also neues Verteilen unseres Datensatzes entsteht (das ist im Grunde [Bootstrapping](/post/sem/#Bootstrapping), was im Rahmen der Sitzung zu [SEM](/post/sem) näher erläutert wird). 
+Die Grafik zeigt drei Eigenwerteverläufe. *FA Actual Data* ist der Eigenwerteverlauf unseres Datensatzes. *FA Simulated Data* ist der Eigenwerteverlauf basierend auf den 1000 simulierten Datensätzen. *FA Resampled Data* ist der Eigenwerteverlauf von Datensätzen, der durch *Resampling*, also neues Verteilen unseres Datensatzes entsteht (das ist im Grunde [Bootstrapping](/post/sem/#Bootstrapping), was im Rahmen der Sitzung zu [SEM](/post/sem) näher erläutert wird).
 
 Der Parallelanalyse der EFA ist zu entnehmen, dass voraussichtlich 2 Faktoren genügen, um die Variation im Datensatz zu erklären. Auch die Parallelanalyse der PCA (Grafik zuvor) lässt dies vermuten. Des Weiteren sprechen beide Scree-Tests für einen Knick um den 3. Faktor/die 3. Komponente, was auch für eine Dimensionalität von 2 spricht. Zu guter Letzt zeigt auch das Kaiser-Guttman-Kriterium kein anderes Ergebnis. Allerdings ist dieses Kriterium nur sinnvoll auf den Eigenwerteverlauf der PCA anwendbar, weswegen wir es auch nur im Bezug auf den PCA-Eigenwerteverlauf interpretieren.
 
@@ -192,7 +192,7 @@ Da unsere Auswahlkriterien einstimmig für 2 Faktoren sprechen und dies auch uns
 fa(dataFR2, nfactors = 2, rotate = "varimax")
 ```
 
-Im Output ganz oben erkennen wir die Schätzmethode (hier: `minres`, also Minimierung der Residuen). Aus diesem Grund heißen die Faktoren in diesem Output auch *MR1* und *MR2*; für *Minimale-Residuen-Faktor 1* und *2* (diese Benennung war uns auch bereits bei der PCA aufgefallen, wo diese je nach Rotation entweder PC1 oder RC1, etc., hießen). Die Faktorladungen zu den zugehörigen Faktoren sind unter `Standardized loadings (pattern matrix) based upon correlation matrix` zu sehen. `h2` steht für die Kommunalität ($h^2$), also den Anteil an systematischer Variation, die auf die 2 Faktoren zurückzuführen ist (diese kann ähnlich der Reliabilität interpretiert werden). `u2` ist die "uniqueness" ($u^2$), also der unerklärte Anteil. Offensichtlich gilt $u^2 = 1-h^2$ oder $h^2 + u^2 = 1$. Unter den Faktorladungen erhalten wir Informationen über die Faktoren. `SS loadings` steht für "Sum of Squares loadings", also die Quadratsumme der Faktorladungen. Diese ist gleich dem Eigenwert: $\theta_j = \Sigma_{i=1}^p\lambda_{ij}^2 = \lambda_{1j}^2+\dots+\lambda_{pj}^2$ (Spaltenquadratsumme der Faktorladungen), mit $p=$ Anzahl an Variablen (hier $p=6$). Allerdings gilt dies nur für den orthogonalen Fall. Sind die Faktoren korreliert, muss diese Korrelation berücksichtigt werden. Dazu später mehr! `Proportion Var` betitelt den Anteil der Variation, der durch die jeweiligen Faktoren erklärt werden kann. `Cumulative Var` kumuliert, also summiert, diese Anteile auf bis zum jeweiligen Faktor auf ($\text{CumVar}_j = \sum_{k=1}^j\theta_k = \theta_1+\dots+\theta_j$, also $\text{CumVar}_1=\theta_1$ und $\text{CumVar}_2=\theta_1+\theta_2$). `Proportion Explained` setzt die Variation, die durch die Faktoren erklärt wird, in Relation zur gesamten erklärten Varianz (d.h. hier summiert sich die erklärte Varianz immer zu 1, während sich die proportionale Varianz nur zu 1 aufsummiert, wenn die gesamte Variation im Datensatz auf die beiden Variablen zurückzuführen ist). `Cumulative Proportion` beschreibt das gleiche wie `Cumulative Var`, nur bezieht sie sich hier auf die `Proportion Explained`. Bei der Interpretation dieser Kennwerte ist zu bedenken, dass bei der EFA angenommen wird, dass die beobachteten Variablen Messfehler enthalten (also die Reliabilität nicht als 1 angenommen werden kann). Folglich ist die Kommunalität $h^2$ nicht 1 und wir können nicht unbedingt davon ausgehen, dass die Faktoren die gesamte Variation der Daten erklären. All diese Koeffizienten kennen wir bereits aus der Sitzung zur [PCA](/post/PCA), wo wir diese im Hinblick auf eine PCA interpretierten. Dabei fiel uns auch auf, dass einige Koeffizienten in dieser Übersicht nicht mit allen Dezimalstellen angezeigt werden und es ggf. zu seltsamen Rundungsverfälschungen kommen kann. Aus diesem Grund hatten wir uns entschieden die jeweiligen Koeffizienten und Informationen dem Objekt selbst zu entlocken, um diese Rundungsverfälschungen zu umgehen.
+Im Output ganz oben erkennen wir die Schätzmethode (hier: `minres`, also Minimierung der Residuen). Aus diesem Grund heißen die Faktoren in diesem Output auch *MR1* und *MR2*; für *Minimale-Residuen-Faktor 1* und *2* (diese Benennung war uns auch bereits bei der PCA aufgefallen, wo diese je nach Rotation entweder PC1 oder RC1, etc., hießen). Die Faktorladungen zu den zugehörigen Faktoren sind unter `Standardized loadings (pattern matrix) based upon correlation matrix` zu sehen. `h2` steht für die Kommunalität ($h^2$), also den Anteil an systematischer Variation, die auf die 2 Faktoren zurückzuführen ist (diese kann ähnlich der Reliabilität interpretiert werden). `u2` ist die "uniqueness" ($u^2$), also der unerklärte Anteil. Offensichtlich gilt $u^2 = 1-h^2$ oder $h^2 + u^2 = 1$. Unter den Faktorladungen erhalten wir Informationen über die Faktoren. `SS loadings` steht für "Sum of Squares loadings", also die Quadratsumme der Faktorladungen. Diese ist gleich dem Eigenwert: $\theta_j = \Sigma_{i=1}^p\lambda_{ij}^2 = \lambda_{1j}^2+\dots+\lambda_{pj}^2$ (Spaltenquadratsumme der Faktorladungen), mit $p=$ Anzahl an Variablen (hier $p=6$). Allerdings gilt dies nur für den orthogonalen Fall. Sind die Faktoren korreliert, muss diese Korrelation berücksichtigt werden. Dazu später mehr! `Proportion Var` betitelt den Anteil der Variation, der durch die jeweiligen Faktoren erklärt werden kann. `Cumulative Var` kumuliert, also summiert, diese Anteile bis zum jeweiligen Faktor auf ($\text{CumVar}_j = \sum_{k=1}^j\theta_k = \theta_1+\dots+\theta_j$, also $\text{CumVar}_1=\theta_1$ und $\text{CumVar}_2=\theta_1+\theta_2$). `Proportion Explained` setzt die Variation, die durch die Faktoren erklärt wird, in Relation zur gesamten erklärten Varianz (d.h. hier summiert sich die erklärte Varianz immer zu 1, während sich die proportionale Varianz nur zu 1 aufsummiert, wenn die gesamte Variation im Datensatz auf die beiden Variablen zurückzuführen ist). `Cumulative Proportion` beschreibt das gleiche wie `Cumulative Var`, nur bezieht sie sich hier auf die `Proportion Explained`. Bei der Interpretation dieser Kennwerte ist zu bedenken, dass bei der EFA angenommen wird, dass die beobachteten Variablen Messfehler enthalten (also die Reliabilität nicht als 1 angenommen werden kann). Folglich ist die Kommunalität $h^2$ nicht 1 und wir können nicht unbedingt davon ausgehen, dass die Faktoren die gesamte Variation der Daten erklären. All diese Koeffizienten kennen wir bereits aus der Sitzung zur [PCA](/post/PCA), wo wir diese im Hinblick auf eine PCA interpretierten. Dabei fiel uns auch auf, dass einige Koeffizienten in dieser Übersicht nicht mit allen Dezimalstellen angezeigt werden und es ggf. zu seltsamen Rundungsverfälschungen kommen kann. Aus diesem Grund hatten wir uns entschieden, die jeweiligen Koeffizienten und Informationen dem Objekt selbst zu entlocken, um diese Rundungsverfälschungen zu umgehen.
 
 Außerdem werden  durch diesen Befehl sehr viele Informationen ausgegeben. Aus diesen Gründen speichern wir uns diese Analyse als ein Objekt ab, welchem wir dann gezielt Informationen mit Hilfe von `...$...` entlocken können. Welche Argumente entlockt werden können, kann beispielsweise mit `names` herausgefunden werden. Wir speichern das Objekt unter dem Namen *two_factor* ab.
 
@@ -238,11 +238,11 @@ two_factor$Vaccounted
 two_factor_oblimin$Vaccounted
 ```
 
-Schauen wir uns die Ladungsmatrix an
+Schauen wir uns die Ladungsmatrix an, ...
 ```{r}
 two_factor_oblimin$loadings[,] # Ladungsmatrix
 ```
-so ist *post-hoc* interpretiert anzunehmen, dass der erste Faktor die Extraversion abbildet und der zweite den Neurotizismus.
+... so ist *post-hoc* interpretiert anzunehmen, dass der erste Faktor die Extraversion abbildet und der zweite den Neurotizismus.
 
 Entlocken Sie doch mal dem Objekt `two_factor_oblimin` die latente Kovarianzmatrix, also die Kovarianzmatrix der latenten Variablen. Tipp, der griechische Buchstabe in diesem Zusammenhang ist häufig $\Phi$. Die resultierende Matrix sieht so aus:
 
@@ -251,48 +251,48 @@ two_factor_oblimin$Phi
 ```
 
 
-Als neue Information entnehmen wir der Korrelationsmatrix der Faktoren, dass die beiden Faktoren negativ korreliert sind zu `r round(two_factor_oblimin$Phi[2], 2)`. Nun wollen wir nachschauen, ob sich tatsächlich die Strukurmatrix im oblique-rotierten Fall von der Faktorladungsmatrix unterscheidet: 
+Als neue Information entnehmen wir der Korrelationsmatrix der Faktoren, dass die beiden Faktoren negativ korreliert sind zu `r round(two_factor_oblimin$Phi[2], 2)`. Nun wollen wir nachschauen, ob sich tatsächlich die Strukurmatrix im oblique-rotierten Fall von der Faktorladungsmatrix unterscheidet:
 
 
 
 
 ```{r}
 two_factor_oblimin$loadings[,]
-two_factor_oblimin$Structure[,] 
+two_factor_oblimin$Structure[,]
 ```
 
-Sie sehen, dass sich nun die Strukturmatrix von der Faktorladungsmatrix unterscheidet. Die Unterschiede sind allerdings nicht sehr groß, da die Korrelation zwischen den beiden Faktoren mit `r round(two_factor_oblimin$Phi[2], 2)` betragsmäßig nicht sonderlich groß ausfällt. Weitere Informationen und wie die beiden Matrizen ineinander überführbar sind, erfahren Sie im [Appendix C](#AppendixC). In [Appendix D](#AppendixD) erfahren Sie, wie sie Kommunalitäten und Eigenwerte im Rahmen der EFA nur mit Hilfe der `loadings` und der Faktorkorrelation `Phi` bestimmen.
+Sie sehen, dass sich nun die Strukturmatrix von der Faktorladungsmatrix unterscheidet. Die Unterschiede sind allerdings nicht sehr groß, da die Korrelation zwischen den beiden Faktoren mit `r round(two_factor_oblimin$Phi[2], 2)` betragsmäßig nicht sonderlich groß ausfällt. Weitere Informationen und wie die beiden Matrizen ineinander überführbar sind, erfahren Sie im [Appendix B](#AppendixB). In [Appendix C](#AppendixC) erfahren Sie, wie sie Kommunalitäten und Eigenwerte im Rahmen der EFA nur mit Hilfe der `loadings` und der Faktorkorrelation `Phi` bestimmen.
 
 Die Frage ist nun, ob unser Modell überhaupt zu den Daten passt.
 
 
 ### Exploratorische Maximum-Likelihood-Faktorenanalyse (ML-EFA)
-Wir möchten unsere Analysen nun gegen andere konkurrierende Modelle absichern sowie untersuchen, ob unser zweifaktorielles Modell überhaupt zu den Daten passt. Hierzu müssen wir annehmen, dass unsere Daten multivariat normalverteilt sind. Wie man diese Annahme zumindest deskriptiv untersucht, hatten wir im Zusammenhang mit den Voraussetzungen von statistischen Verfahren kennengelernt (Mahalanobis-Distanz sollte approximativ $\chi^2$-verteilt sein, siehe hierzu im [Appendix E](#AppendixE) nach, auch weitere Tests sind möglich: bspw. Mardia's Test). Mit Hilfe dieser Verteilungsannahme können wir die Maximum-Likelihood-Schätzmethode nutzen, um die Parameter in unserem Modell zu schätzen. Die *Likelihood* ist die Wahrscheinlichkeit unserer Daten gegeben das Modell. Sie hängt somit von den beobachteten Daten ab (den Ausprägungen der Personen auf den Variablen), hat die Gestalt unseres Modells und wird parametrisiert durch die Parameter in unserem Modell. Die durch das Modell implizierte Kovarianz oder Korrelationsmatrix der beobacheten Variablen wird mit $\Sigma$ betitelt und setzt sich folgendermaßen zusammen:
+Wir möchten unsere Analysen nun gegen andere konkurrierende Modelle absichern sowie untersuchen, ob unser zweifaktorielles Modell überhaupt zu den Daten passt. Hierzu müssen wir annehmen, dass unsere Daten multivariat normalverteilt sind. Wie man diese Annahme zumindest deskriptiv untersucht, hatten wir im Zusammenhang mit den Voraussetzungen von statistischen Verfahren kennengelernt (Mahalanobis-Distanz sollte approximativ $\chi^2$-verteilt sein, siehe hierzu im [Appendix D](#AppendixD) nach, auch weitere Tests sind möglich: bspw. Mardia's Test). Mit Hilfe dieser Verteilungsannahme können wir die Maximum-Likelihood-Schätzmethode nutzen, um die Parameter in unserem Modell zu schätzen. Die *Likelihood* ist die Wahrscheinlichkeit unserer Daten gegeben das Modell. Sie hängt somit von den beobachteten Daten ab (den Ausprägungen der Personen auf den Variablen), hat die Gestalt unseres Modells und wird parametrisiert durch die Parameter in unserem Modell. Die durch das Modell implizierte Kovarianz oder Korrelationsmatrix der beobacheten Variablen wird mit $\Sigma$ betitelt und setzt sich folgendermaßen zusammen:
 
 $$\Sigma := \Lambda\Phi \Lambda' + \Theta.$$
-Dabei ist $\Lambda$ die Matrix der Faktorladungen, $\Phi$ die Kovarianz- oder Korrelationsmatrix der Faktoren und $\Theta$ die Kovarianzmatrix der Fehler. 
+Dabei ist $\Lambda$ die Matrix der Faktorladungen, $\Phi$ die Kovarianz- oder Korrelationsmatrix der Faktoren und $\Theta$ die Kovarianzmatrix der Fehler.
 
 Im unkorrelierten/orthogonalen Fall sähe die Matrix so aus: $\Sigma := \Lambda \Lambda' + \Theta$, da hier $\Phi$ die Einheitsmatrix ist und $\Lambda$ demzufolge einfach mit 1 multipliziert wird! Diese ist somit sehr nah an der implizierten Matrix im Rahmen der PCA, welche sich durch $\Lambda \Lambda'$ ergab. Wir erkennen erneut, dass bei der PCA die Messfehler nicht mitmodelliert werden (deren Varianzen stecken in $\Theta$).
 
-Unter der Normalverteilungsannhme brauchen wir nur (Ko-)Varianzen und Mittelwerte, um unsere Variablen vollständig zu beschreiben. In der Schätzung der ML-EFA geht es uns darum, die Parameter in $\Lambda$, $\Phi$ und $\Theta$ so zu bestimmen, dass sich die behauptete Kovarianzmatrix $\Sigma$ von unserer beobachteten Kovarianzmatrix $S$ so wenig unterscheidet, wie möglich. Dazu bestimmen wir mit der Maximum-Likelihood-Schätzung die Werte für z.B. Faktorladungen, die es *maximal wahrscheinlich* machen, dass unsere Daten enstehen würden, wenn unsere EFA das richtige Modell ist.
+Unter der Normalverteilungsannahme brauchen wir nur (Ko-)Varianzen und Mittelwerte, um unsere Variablen vollständig zu beschreiben. In der Schätzung der ML-EFA geht es uns darum, die Parameter in $\Lambda$, $\Phi$ und $\Theta$ so zu bestimmen, dass sich die behauptete Kovarianzmatrix $\Sigma$ von unserer beobachteten Kovarianzmatrix $S$ so wenig unterscheidet wie möglich. Dazu bestimmen wir mit der Maximum-Likelihood-Schätzung die Werte für z.B. Faktorladungen, die es *maximal wahrscheinlich* machen, dass unsere Daten enstehen würden, wenn unsere EFA das richtige Modell wäre.
 
-Um mit Hilfe von `fa` eine ML-EFA durchzuführen, muss dem Argument `fm` die entsprechende Bezeichnung `"ml"` übergeben werden. 
+Um mit Hilfe von `fa` eine ML-EFA durchzuführen, muss dem Argument `fm` die entsprechende Bezeichnung `"ml"` übergeben werden.
 
 ```{r}
 two_factor_ML <- fa(dataFR2, nfactors = 2, rotate = "oblimin", fm = "ml")
 two_factor_ML
 ```
 
-Wir sehen, dass diesmal die Schätzmethode "ml" ist. Auch die Faktoren heißen nun *ML1* und *ML2*. Die Faktorladungen im ML-EFA Modell mit *obliquer* Rotation sehen den Faktorladungen aus unserer vorigen Analyse sehr ähnlich. 
+Wir sehen, dass diesmal die Schätzmethode "ml" ist. Auch die Faktoren heißen nun *ML1* und *ML2*. Die Faktorladungen im ML-EFA Modell mit *obliquer* Rotation sehen den Faktorladungen aus unserer vorigen Analyse sehr ähnlich.
 
-Uns interessiert nun die Modellpassung, also inwiefern unsere Daten von unserem behaupteten Modell abweichen. `$STATISTIC` und `$PVAL` entlocken der Analyse (abgespeichert als Objekt) den $\chi^2$ Wert und den zugehörigen p-Wert bei `r fa(dataFR2, nfactors = 2, rotate = "oblimin", fm = "ml")$dof` Freiheitsgraden. Verwirrenderweise gibt es zusätzlich `$chi`, was den empirisch und nicht likelihoodbasierten $\chi^2$-Wert ausgibt, welcher sinnvoll ist wenn Modellvoraussetzungen nicht erfüllt sind. 
+Uns interessiert nun die Modellpassung, also inwiefern unsere Daten von unserem behaupteten Modell abweichen. `$STATISTIC` und `$PVAL` entlocken der Analyse (abgespeichert als Objekt) den $\chi^2$ Wert und den zugehörigen p-Wert bei `r fa(dataFR2, nfactors = 2, rotate = "oblimin", fm = "ml")$dof` Freiheitsgraden. Verwirrenderweise gibt es zusätzlich `$chi`, was den empirisch und nicht likelihoodbasierten $\chi^2$-Wert ausgibt, welcher sinnvoll ist, wenn Modellvoraussetzungen nicht erfüllt sind.
 
 ```{r}
 two_factor_ML$STATISTIC # Likelihood basierter Chi^2-Wert
 two_factor_ML$PVAL # p-Wert
 ```
 
-Dem ist zu entnehmen, dass auf dem Signifikanzniveau von 5% die Hypothese auf Passung der Kovarianz unserer Daten mit der modellimplizierten Kovarianz in der Population nicht verworfen wird.  Die Daten widersprechen dem zweifaktoriellen Modell nicht (die untersuchte Null-Hypothese ist: $H_0: \Sigma_{Daten}=\Sigma_{2-fakt.}$, also, dass die Datenkovarainzmatrix sich durch die Kovarianzmatrix eines 2-faktoriellen EFA-Modells darstellen lässt). Vielleicht reicht auch ein Faktor aus, um die Variation in unserem Datensatz zu beschreiben? Wir wollen unser Modell mit zwei Faktoren gegen eines mit einem und eines mit drei Faktoren absichern.
+Dem ist zu entnehmen, dass auf dem Signifikanzniveau von 5% die Hypothese auf Passung der Kovarianz unserer Daten mit der modellimplizierten Kovarianz in der Population nicht verworfen wird.  Die Daten widersprechen dem zweifaktoriellen Modell nicht (die untersuchte Null-Hypothese ist: $H_0: \Sigma_{Daten}=\Sigma_{2-fakt.}$, also, dass die Datenkovarianzmatrix sich durch die Kovarianzmatrix eines 2-faktoriellen EFA-Modells darstellen lässt). Vielleicht reicht auch ein Faktor aus, um die Variation in unserem Datensatz zu beschreiben? Wir wollen unser Modell mit zwei Faktoren gegen eines mit einem und eines mit drei Faktoren absichern.
 
 ### Modellvergleich: ML-EFA
 
@@ -300,13 +300,13 @@ Das einfaktorielle Modell erhalten wir ganz einfach via:
 
 ```{r}
 one_factor_ML <- fa(dataFR2, nfactors = 1, rotate = "oblimin", fm = "ml")
-one_factor_ML$STATISTIC # Chi-Quadratwert 
+one_factor_ML$STATISTIC # Chi-Quadratwert
 one_factor_ML$PVAL # p-Wert
 ```
 
-Das einfaktorielle Modell scheint nicht zu den Daten zu passen (*Mit einer Irrtumswahrscheinlichkeit von 5% ist davon auszugehen, dass in der Population die Differenz zwischen der Populationskovarianzmatrix und der modellimplizierten Kovarianzmatrix, bzw. der daraus folgenden Likelihoods, nicht 0 ist.*). Dennoch wollen wir dies genau wissen und vergleichen die beiden Modelle direkt miteinander. Für einen solchen Vergleich ist es notwendig, dass es sich bei den beiden Modelle um *geschachtelte Modelle* handelt. Das bedeutet, dass ein Modell durch Restriktionen von Modellparametern aus dem anderen Modell erzeugt werden kann. Das einfaktorielle Modell lässt sich aus dem zweifaktoriellen Modell durch die Restriktion gewinnen, dass alle Ladungen auf dem Faktor 0 sind und die Varianz dieses Faktors dementsprechend ebenfalls 0 ist.
+Das einfaktorielle Modell scheint nicht zu den Daten zu passen (*Mit einer Irrtumswahrscheinlichkeit von 5% ist davon auszugehen, dass in der Population die Differenz zwischen der Populationskovarianzmatrix und der modellimplizierten Kovarianzmatrix, bzw. der daraus folgenden Likelihoods, nicht 0 ist.*). Dennoch wollen wir dies genau wissen und vergleichen die beiden Modelle direkt miteinander. Für einen solchen Vergleich ist es notwendig, dass es sich bei den beiden Modellen um *geschachtelte Modelle* handelt. Das bedeutet, dass ein Modell durch Restriktionen von Modellparametern aus dem anderen Modell erzeugt werden kann. Das einfaktorielle Modell lässt sich aus dem zweifaktoriellen Modell durch die Restriktion gewinnen, dass alle Ladungen auf dem Faktor 0 sind und die Varianz dieses Faktors dementsprechend ebenfalls 0 ist.
 
-Mit Hilfe des `anova` Befehls, welchen wir schon bei einigen anderen Modellvergleichen im Rahmen der [Regression](/post/regression-und-ausreisserdiagnostik), der [logistischen Regression](/post/logistische-regression) sowie der [Multi-Level Modelle](/post/multi-level-modeling) kennengelernt haben, lässt sich nun das einfaktorielle mit dem zweifaktoriellen Modell vergleichen. 
+Mit Hilfe des `anova` Befehls, welchen wir schon bei einigen anderen Modellvergleichen im Rahmen der [Regression](/post/regression-und-ausreisserdiagnostik), der [logistischen Regression](/post/logistische-regression) sowie der [Multi-Level Modelle](/post/multi-level-modeling) kennengelernt haben, lässt sich nun das einfaktorielle mit dem zweifaktoriellen Modell vergleichen.
 
 ```{r, eval = F}
 anova(one_factor_ML, two_factor_ML)
@@ -318,15 +318,15 @@ knitr::kable(anova(one_factor_ML, two_factor_ML), row.names = T)
 
 Zunächst bekommen wir in angezeigt, welche Modelle unter welchem Kürzel gegeneinander getestet werden. Die Modellnummer steht im ANOVA-Output entsprechend für das jeweilige Modell. In der Zeile `2` steht also der Output für das 2-faktorielle Modelle und am Ende dieser Zeile steht auch der Modellvergleich.
 
-In der ersten Spalte stehen beispielsweise die Freiheitsgrade der Modelle (`df`). Daneben steht die Differenz der Freiheitsgrade (`d.df`) und dahinter stehen verschiedene Fit-Maße, bzw. Modellvergleiche. Wir müssen im Bereich des *chiSq* und nicht bei *empirical* (eine Näherung des $\chi^2$ Wertes, wenn Annahmen verletzt sind) nachsehen. Der Output ist immer so aufgebaut, dass zunächst der Wert pro Modell angezeigt (`chiSq` oder `empirical`) wird und anschließend die Differenz (`d.chiSq` oder `d.empirical`) sowie die Signifikanzentscheidung berichtet wird (`PR test`, welche allerdings nicht bei der Näherung angezeigt wird). Außerdem wird noch eine Rubrik `test`, bzw. `test.echi` angezeigt, welche noch einmal die $\chi^2$-Differenz geteilt durch die Freiheitsgrade repräsentiert. Der $\chi^2$-Differenzwert liegt bei `r round(anova(one_factor_ML, two_factor_ML)[[4]][2], 3)` mit einen zugehörigen p-Wert von de facto `r round(anova(one_factor_ML, two_factor_ML)[[5]][2], 7)`. `d.df` (häufig $\Delta df$) gibt die Anzahl an Freiheitsgraden der $\chi^2$-Differenz an (hier: df = `r anova(one_factor_ML, two_factor_ML)[[2]][2]`) des Differenzentests an (hier wurden die Freiheitsgrade der beiden Modelle von einander abgezogen). Ganz hinten wird noch das Bayes Information Criterion `BIC` sowie dessen Differenz `d.BIC` aufgeführt. Dieses Informationskriterium werden wir bei der [CFA](/post/cfa) und deren Modellpassung noch einmal genauer betrachten.
+In der ersten Spalte stehen beispielsweise die Freiheitsgrade der Modelle (`df`). Daneben steht die Differenz der Freiheitsgrade (`d.df`) und dahinter stehen verschiedene Fit-Maße, bzw. Modellvergleiche. Wir müssen im Bereich des *chiSq* und nicht bei *empirical* (eine Näherung des $\chi^2$ Wertes, wenn Annahmen verletzt sind) nachsehen. Der Output ist immer so aufgebaut, dass zunächst der Wert pro Modell angezeigt (`chiSq` oder `empirical`) wird und anschließend die Differenz (`d.chiSq` oder `d.empirical`) sowie die Signifikanzentscheidung berichtet wird (`PR test`, welche allerdings nicht bei der Näherung angezeigt wird). Außerdem wird noch eine Rubrik `test`, bzw. `test.echi` angezeigt, welche noch einmal die $\chi^2$-Differenz geteilt durch die Freiheitsgrade repräsentiert. Der $\chi^2$-Differenzwert liegt bei `r round(anova(one_factor_ML, two_factor_ML)[[4]][2], 3)` mit einem zugehörigen p-Wert von de facto `r round(anova(one_factor_ML, two_factor_ML)[[5]][2], 7)`. `d.df` (häufig $\Delta df$) gibt die Anzahl an Freiheitsgraden der $\chi^2$-Differenz (hier: df = `r anova(one_factor_ML, two_factor_ML)[[2]][2]`) des Differenzentests an (hier wurden die Freiheitsgrade der beiden Modelle voneinander abgezogen). Ganz hinten wird noch das Bayes Information Criterion `BIC`, sowie dessen Differenz `d.BIC` aufgeführt. Dieses Informationskriterium werden wir bei der [CFA](/post/cfa) und deren Modellpassung noch einmal genauer betrachten.
 
-Insgesamt wird die Null-Hypothese, dass beide Modell die Daten gleich gut beschreiben verworfen. Wir entscheiden uns --- Ockhams Rasiermesser folgend (siehe [Eid et al., 2017, p. 787](https://hds.hebis.de/ubffm/Record/HEB366849158)) --- somit für das Modell mit mehr Parametern, das weniger restriktive Modell, welches die Daten besser beschreibt: hier das zweifaktorielle Modell. Nun ist die Frage, ob wir das Modell noch weiter verbessern können, indem wir drei anstatt zwei Faktoren verwenden, um die Kovariation zwischen den Variablen zu beschreiben.  
+Insgesamt wird die Null-Hypothese, dass beide Modell die Daten gleich gut beschreiben, verworfen. Wir entscheiden uns --- Ockhams Rasiermesser folgend (siehe [Eid et al., 2017, p. 787](https://hds.hebis.de/ubffm/Record/HEB366849158)) --- somit für das Modell mit mehr Parametern, das weniger restriktive Modell, welches die Daten besser beschreibt: hier das zweifaktorielle Modell. Nun ist die Frage, ob wir das Modell noch weiter verbessern können, indem wir drei anstatt zwei Faktoren verwenden, um die Kovariation zwischen den Variablen zu beschreiben.  
 
 
 ```{r}
 # Passt auch eines mit 3 Faktor?
 three_factor_ML <- fa(dataFR2, nfactors = 3, rotate = "oblimin", fm = "ml")
-three_factor_ML$STATISTIC # Chi-Quadratwert 
+three_factor_ML$STATISTIC # Chi-Quadratwert
 three_factor_ML$PVAL # p-Wert
 ```
 
@@ -346,7 +346,7 @@ Wenn Sie davon noch nicht genug haben, so können Sie in [Appendix B](#fivefacto
 
 Die Zuordnung, die wir hier gefunden haben, entspringt der spezifischen Stichprobe, die wir untersucht haben. Wenn wir a priori aufgestellte Theorien über die Faktorstruktur prüfen wollen, können wir uns der [**konfirmatorischen Faktorenanalyse**](/post/cfa) bedienen, die wir in der nächsten Sitzung betrachten.
 
-Den gesamten R-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/EFA.R).
+Den gesamten R-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](/post/FEII_efa.R).
 
 ***
 
@@ -396,7 +396,7 @@ Die Daten scheinen unserem Modell mit 5 Faktoren nicht zu widersprechen. Schauen
 five_factor_ML$loadings # auch nochmal ohne [,] um die Ausblendehilfe von psych als Unterstützung für die Zuordnung zu nutzen
 five_factor_ML$loadings[,] # alle Dezimalstellen anzeigen
 ```
-Durch die Rotation sind auch hier die Faktoren anders nummeriert. Der erste Faktor ist hier *ML4* (dieser Faktor ist der erste in der Liste, da hier der Eigenwerte nach Rotation maximal ist; vor Rotation hatte *ML4* den viert größten Eigenwert). Die höchsten Faktorladungen mit diesem Faktor haben die Items $E_1$, $E_2$, $E_3$ und $A_2$. Somit könnte man diesen am ehesten *post-hoc* (die Theorie wird also aus den Daten generiert; es sind auch andere Interpretationsansätze zulässig) als Extraversion interpretieren. Allerdings scheinen die Items der Extraversion einiges mit jenen der Verträglichkeit ($A_{...}$) gemeinsam zu haben. 
+Durch die Rotation sind auch hier die Faktoren anders nummeriert. Der erste Faktor ist hier *ML4* (dieser Faktor ist der erste in der Liste, da hier der Eigenwerte nach Rotation maximal ist; vor Rotation hatte *ML4* den viert größten Eigenwert). Die höchsten Faktorladungen mit diesem Faktor haben die Items $E_1$, $E_2$, $E_3$ und $A_2$. Somit könnte man diesen am ehesten *post-hoc* (die Theorie wird also aus den Daten generiert; es sind auch andere Interpretationsansätze zulässig) als Extraversion interpretieren. Allerdings scheinen die Items der Extraversion einiges mit jenen der Verträglichkeit ($A_{...}$) gemeinsam zu haben.
 Dies könnte mit unter damit zusammen hängen, dass diese beiden Items am ehesten etwas mit sozialer Erwünschtheit zu tun haben.
 Auf dem Faktor *ML3* laden vor allem die Items $N_1$ und $N_3$. Allerdings lädt $N_2$ besonders auf *ML1*.  
 Dies könnte durchaus daran liegen, dass $N_1$ (*"I get stressed out easily."*) und $N_3$ (*"I worry about things."*) negativ kodiert sind, während $N_2$  (*"I am relaxed most of the time."*)  positiv kodiert ist und die erstgenannten Items somit mehr gemeinsam haben als die inhaltliche Zuordnung zum Neurotizismus. Somit scheint *ML3* ein Faktor der Sorgen, also des Neurotizismus zu sein, während *ML1* eher für einen Faktor der Gelassenheit spricht; beispielsweise laden hier auch positiv Items der Extraversion und Verträglichkeit. Das die Items des Neurotizismus auf unterschiedlichen Faktoren laden und unterschiedliche Vorzeichen aufweisen, kann für Methodeneffekte sprechen (*Unterschiede die zustande kommen, da unterschiedliche Methoden, hier: Itemformulierungen [positiv vs. negativ], verwendet werden.*). Auch auf *ML2* und *ML5* laden jeweils nur ein Item besonders stark: $O_1$ auf *ML2* und $C_2$ auf *ML5*. Insgesamt muss geschlussfolgert werden, dass zwar die fünffaktorielle Struktur durch die Daten nicht verworfen wird, aber dass die oblique rotierte Lösung keine eindeutige Zuordnung der Items aufweist. Allerdings bringt auch eine *varimax*-rotierte Lösung keine Verbesserung der Interpretierbarkeit, da diese neben der Einfachstruktur in der Faktorladungsmatrix noch die Unkorreliertheit der Faktoren berücksichtigen muss (in der *varimax*-rotierten Lösung sind dafür die Konstrukte nicht überlappend, was allerdings auch eine strenge Annahme ist):
@@ -412,7 +412,7 @@ round(five_factor_ML$Phi, 2) # runde auf 2 Nachkommastellen
 fa(dataFR, nfactors = 5, rotate = "varimax", fm = "ml")$Phi
 ```
 
-`NULL` zeigt hierbei an, dass es das `$Phi` -Objekt nicht gibt. Tatsächlich ist die Kovarianzmatrix im orthogonalen Fall die Einheitsmatrix der Dimension $5\times5$: 
+`NULL` zeigt hierbei an, dass es das `$Phi` -Objekt nicht gibt. Tatsächlich ist die Kovarianzmatrix im orthogonalen Fall die Einheitsmatrix der Dimension $5\times5$:
 $$\begin{pmatrix} 1& 0&0&0&0 \\ 0& 1&0&0&0 \\ 0& 0&1&0&0\\ 0& 0&0&1&0 \\ 0& 0&0&0&1 \end{pmatrix}$$
 In `R`:
 ```{r}
@@ -427,7 +427,7 @@ Wir schauen uns nun die Passung unseres Modells im Vergleich zu einem vier- und 
 ```{r}
 four_factor_ML <- fa(dataFR, nfactors = 4, rotate = "oblimin", fm = "ml")
 four_factor_ML$STATISTIC
-four_factor_ML$PVAL 
+four_factor_ML$PVAL
 ```
 
 Das vierfaktorielle Modell wird durch die Daten verworfen ($p<0.05$). Nun zum Modellvergleich:
@@ -451,7 +451,7 @@ six_factor_ML$PVAL # Modell wird durch die Daten nicht verworfen
 
 
 Dem sechsfaktoriellen Modell widersprechen die Daten genauso wenig, wie dem Fünffakoriellen (beide $p>0.05$). Dies war zu erwarten, da wir durch Hinzunahme des sechsten Faktors die Komplexität des Modell erhöht haben, wodurch sich das Modell stärker der konkreten Datenlage annähern kann. *Mehr Faktoren bedeuten immer eine detailgetreuere Abbildung der ursprünglichen Datenlage (siehe auch [Eid et al., 2017, Kapitel 25](https://hds.hebis.de/ubffm/Record/HEB366849158)).*
- 
+
 
 ```{r, eval = F}
 anova(five_factor_ML, six_factor_ML)
@@ -463,7 +463,7 @@ knitr::kable(anova(five_factor_ML, six_factor_ML), row.names = T)
 
 Der $\chi^2$-Differenzwert liegt hier bei `r round(anova(five_factor_ML, six_factor_ML)[[4]][2], 3)` mit einen zugehörigen p-Wert von `r ifelse(anova(five_factor_ML, six_factor_ML)[[5]][2] < 0.01, "< 0.01", paste(round(anova(five_factor_ML, six_factor_ML)[[5]][2], 4)))` mit $\Delta df$ = `r anova(five_factor_ML, six_factor_ML)[[2]][2]`. Mit diesem Test wird geprüft, ob das sparsamere Modell die Daten schlechter abbildet. Die Nullhypothese ist also, dass das sparsamere Modell die Daten genauso gut beschreiben kann, wie das komplexere Modell ($H_0:\Sigma_{6-Fakt.} = \Sigma_{5-Fakt.}$). Da in diesem Fall der p-Wert größer als $.05$ ist, wird diese Nullhypothese nicht verworfen und wir entscheiden uns --- Ockhams Rasiermesser folgend (siehe [Eid et al., 2017, p. 787](https://hds.hebis.de/ubffm/Record/HEB366849158)) --- für das sparsamere Modell.
 
-Wir hätten auch mehrere Tests gleichzeitig durchführen können. Allerdings sollten nicht beliebig konkurriende Theorien getestet werden --- Stichwort *Alpha-Inflation*! 
+Wir hätten auch mehrere Tests gleichzeitig durchführen können. Allerdings sollten nicht beliebig konkurriende Theorien getestet werden --- Stichwort *Alpha-Inflation*!
 
 ```{r, eval = F}
 anova(four_factor_ML, five_factor_ML, six_factor_ML)
@@ -507,7 +507,7 @@ two_factor_oblimin$Structure[1, 1] # erster Eintrag in der Strukturmatrix
 ```
 Hier ist zu sehen, dass sich Faktorladungsmatrix und Strukturmatrix unterscheiden. Der Unterschied ist nicht sehr hoch, da die Korrelation zwischen den beiden Faktoren lediglich bei $\hat{\phi}_{21}$=`r round(two_factor_oblimin$Phi[2, 1], 4)` liegt und somit $\hat{\lambda}_{12}\hat{\phi}_{21}=$ `r round(two_factor_oblimin$loadings[1, 2]*two_factor_oblimin$Phi[2, 1], 4)` keine große Veränderung zu $\hat{\lambda}_{11}$ mit sich bringt. In Matrixschreibweise lässt sich die Strukturmatrix unkompliziert bestimmen. Sie wird durch folgenden Ausdruck berechnet:
 $$\Lambda\Phi$$
-Dies können wir in `R` leicht empirisch überprüfen. Einen Überblick über die Befehle für Matrix-Algebra in `R` finden Sie auf der [Quick-R Website](https://www.statmethods.net/advstats/matrix.html), auf welche bereits in der Sitzung zu [Einführung in `lavaan`](/post/einführung-in-lavaan) aufmerksam gemacht wurde. Außerdem ist im [Appendix C](/post/einleitung-und-wiederholung/#EinleitungAppendixCMatrixalgebra) der [Einführungssitzung zu PsyMSc1](/post/einleitung-und-wiederholung) bereits eine Einführung in Matrixalgebra gegeben worden. Wir berechnen nun das Matrixprodukt für den oblique rotieren Fall:
+Dies können wir in `R` leicht empirisch überprüfen. Einen Überblick über die Befehle für Matrix-Algebra in `R` finden Sie auf der [Quick-R Website](https://www.statmethods.net/advstats/matrix.html), auf welche bereits in der Sitzung zu [Einführung in `lavaan`](/post/einführung-in-lavaan) aufmerksam gemacht wurde. Außerdem ist im [Appendix B](/post/einleitung-und-wiederholung/#EinleitungAppendixBMatrixalgebra) der [Einführungssitzung zu PsyMSc1](/post/einleitung-und-wiederholung) bereits eine Einführung in Matrixalgebra gegeben worden. Wir berechnen nun das Matrixprodukt für den oblique rotieren Fall:
 
 ```{r}
 two_factor_oblimin$loadings[,] %*% two_factor_oblimin$Phi[,] # Matrixprodukt
@@ -515,7 +515,7 @@ two_factor_oblimin$Structure[,] # Strukturmatrix
 ```
 `%*%` signalisiert `R`, dass ein Matrixprodukt und *keine* komponentenweise Mulitplikation durchzuführen ist. `[,]` sorgt dafür, dass  nur die Matrizen verwendet werden und nicht der zusätzliche Output, der ggf. durch das `psych`-Paket mit ausgegeben wird.
 
-Das ganze funktioniert selbstverständlich auch für den fünffaktoriellen oblique rotierten ML-EFA Fall, den wir uns in [Appendix B](#fivefactorML) angesehen haben, als es darum ging den gesamten (gekürzten) Datensatz mit Hilfe der ML-EFA zu untersuchen. Das zugehörige Objekt, welches das geschätzte Modell enthält, heißt `five_factor_ML`:
+Das ganze funktioniert selbstverständlich auch für den fünffaktoriellen oblique rotierten ML-EFA Fall, den wir uns später angesehen haben, als es darum ging den [gesamten (gekürzten) Datensatz mit Hilfe der ML-EFA](#fivefactorML) zu untersuchen. Das zugehörige Objekt, welches das geschätzte Modell enthält, heißt `five_factor_ML`:
 
 ```{r}
 five_factor_ML$loadings[,] %*% five_factor_ML$Phi[,] # Matrixprodukt
@@ -534,9 +534,9 @@ Da hier nur Nullen herauskommen, scheinen die Ausdrücke identisch zu sein!
 ## Appendix D {#AppendixD}
 <details><summary> **Berechnen von Eigenwerten und Kommunalitäten mit Hilfe von $\Lambda$ und $\Phi$** </summary>
 
-Im vorigen Abschnitt hatten wir bemerkt, wie leicht die Strukturmatrix aus der Faktorladungsmatrix $\Lambda$ hervorgeht, indem einfach nur die Beziehung der latenten Variablen untereinander berücksichtigt wird. Es ist folglich nur logisch, dass bei der Bestimmung der Eigenwerte und der Kommunalitäten diese Beziehung ebenfalls eine Rolle spielt. Im Rahmen der [PCA](/post/PCA) hatten wir uns bereits die Beziehungen dieser Größen untereinander angesehen. Dort war es so, dass die Diagonalelemente von $\Lambda\Lambda'$ gerade die Kommunalitäten waren und die Diagonalelemente von $\Lambda'\Lambda$ gerade die Eigenwerte der rotierten Lösung. Es kam also lediglich darauf an, in welcher Reihenfolge $\Lambda$ und transponiertes $\Lambda$ miteinander verrechnet werden! Für oblique rotierte EFAs müssen wir nun noch die Korrelation der Faktoren untereinander berücksichtigen. Die implizierte Korrelationsmatrix war einfach 
+Im vorigen Abschnitt hatten wir bemerkt, wie leicht die Strukturmatrix aus der Faktorladungsmatrix $\Lambda$ hervorgeht, indem einfach nur die Beziehung der latenten Variablen untereinander berücksichtigt wird. Es ist folglich nur logisch, dass bei der Bestimmung der Eigenwerte und der Kommunalitäten diese Beziehung ebenfalls eine Rolle spielt. Im Rahmen der [PCA](/post/PCA) hatten wir uns bereits die Beziehungen dieser Größen untereinander angesehen. Dort war es so, dass die Diagonalelemente von $\Lambda\Lambda'$ gerade die Kommunalitäten waren und die Diagonalelemente von $\Lambda'\Lambda$ gerade die Eigenwerte der rotierten Lösung. Es kam also lediglich darauf an, in welcher Reihenfolge $\Lambda$ und transponiertes $\Lambda$ miteinander verrechnet werden! Für oblique rotierte EFAs müssen wir nun noch die Korrelation der Faktoren untereinander berücksichtigen. Die implizierte Korrelationsmatrix war einfach
 $$\Lambda\Phi\Lambda' + \Theta,$$
-wobei die Elemente von $\Theta$ im Grunde nur dafür sorgen, dass die Hauptdiagonale wieder bei 1 landet. Lassen wir $\Theta$ weg, erhalten wir die Korrelationsmatrix mit den Kommunalitäten auf der Hauptdiagonale. Damit ist klar, dass 
+wobei die Elemente von $\Theta$ im Grunde nur dafür sorgen, dass die Hauptdiagonale wieder bei 1 landet. Lassen wir $\Theta$ weg, erhalten wir die Korrelationsmatrix mit den Kommunalitäten auf der Hauptdiagonale. Damit ist klar, dass
 $$\text{diag}(\Lambda\Phi\Lambda') = \text{Kommunalitäten}$$
 gilt. Da wir bereits wissen, dass  $\Lambda\Phi$ die Strukturmatrix ist, könnten wir auch einfach sagen, dass das Matrixprodukt *Strukturmatrix Faktorladungsmatrix'* die Kommunalitäten auf der Hauptdiagonale enthält. Probieren wir dies doch einmal aus:
 
@@ -570,9 +570,9 @@ hist(Mahalanobis_Distanz, col = "skyblue", border = "blue", freq = F, breaks = 1
 lines(x = seq(0, max(Mahalanobis_Distanz), 0.01), y = dchisq(x = seq(0, max(Mahalanobis_Distanz), 0.01), df = 15), col = "darkblue", lwd = 4) # Einzeichnen der Dichte
 ```
 
-*Sie können ja mal Einstellungen verändern und sich deren Konsequenz für die Grafik ansehen!* 
+*Sie können ja mal Einstellungen verändern und sich deren Konsequenz für die Grafik ansehen!*
 
-Das Histogramm scheint nicht perfekt zur $\chi^2$ Verteilung zu passen. Allerdings sind die Abweichungen auch nicht enorm. Wir verwerfen auf Basis des Histogramms die Normalverteilungsannahme nicht, sollten die Ergebnisse aber trotzdem unter Vorbehalt interpretiert werden. 
+Das Histogramm scheint nicht perfekt zur $\chi^2$ Verteilung zu passen. Allerdings sind die Abweichungen auch nicht enorm. Wir verwerfen auf Basis des Histogramms die Normalverteilungsannahme nicht, sollten die Ergebnisse aber trotzdem unter Vorbehalt interpretiert werden.
 
 
 Die Funktion `mahalanobis` berechnet die Mahalanobisdistanz pro Proband. Als Datenargument braucht sie eine Matrix `x`. Die Mahalanobisdistanz ist ein Distanzmaß, welches die korrelative Struktur in den Daten berücksichtigt. Wir übergeben daher mit `cov = cov(dataFR)` der Funktion `mahalanobis` die empirische Kovarianzmatrix unserer Daten (`cov(dataFR)`), um diese Struktur mit zuberücksichtigen. Außerdem müssen die Variablen und deren Variation relativ zu einem Zentroiden angegeben werden. Der Zentroid wird dem `center` Argument übergeben. Wir brauchen also für jede Variable deren Mittelwert. Dies machen wir mit `colMeans`.
@@ -581,7 +581,7 @@ Die Funktion `mahalanobis` berechnet die Mahalanobisdistanz pro Proband. Als Dat
 colMeans(dataFR)
 ```
 
-Der `hist` Befehl erzeugt schließlich ein Histogramm der Mahalanobisdistanzen. Mit den Argumenten `col = "skyblue"` und `border = "blue"` setzten wir die Farben des Histogramms fest. Mit `freq = F` sagen wir, dass wir nicht die absoluten sondern die relativen Häufigkeiten angezeigt haben wollen (dies brauchen wir um anschließend die Dichte der $\chi^2$-Verteilung einzuzeichnen). Mit `breaks = 15` beschließen wir, dass insgesamt ca. 15 Balken gezeichnet werden sollen. 
+Der `hist` Befehl erzeugt schließlich ein Histogramm der Mahalanobisdistanzen. Mit den Argumenten `col = "skyblue"` und `border = "blue"` setzten wir die Farben des Histogramms fest. Mit `freq = F` sagen wir, dass wir nicht die absoluten sondern die relativen Häufigkeiten angezeigt haben wollen (dies brauchen wir um anschließend die Dichte der $\chi^2$-Verteilung einzuzeichnen). Mit `breaks = 15` beschließen wir, dass insgesamt ca. 15 Balken gezeichnet werden sollen.
 
 Schließlich zeichnen wir mit `lines` eine Line, welche als x-Argument `x = seq(0, max(Mahalanobis_Distanz), 0.01)` eine Sequenz von Zahlen von 0 bis zur maximalen Mahalanobisdistanz erhält und in 0.01 Schritten wächst. Gegen diese x-Werte zeichnen wir die Dichte der $\chi^2(df=15)$-Verteilung ein: ` y = dchisq(x = seq(0, max(Mahalanobis_Distanz), 0.01), df = 15)`. `col = "darkblue"` und `lwd = 4` setzten jeweils die Linienfarbe und Liniendicke fest. Weitere Informationen zu Verteilungen  und wie man diese in `R` umsetzt, können im [R-Wiki zu Verteilungen](https://en.wikibooks.org/wiki/R_Programming/Probability_Distributions), in [Wikipedia zu Verteilungen und Dichten](https://de.wikipedia.org/wiki/Wahrscheinlichkeitsdichtefunktion) oder in einer [Kurzzusammenfassung auf statmethods](https://www.statmethods.net/advgraphs/probability.html) nachgelesen werden. Grundlagen hierzu können außerdem in [Eid et al. (2017)](https://hds.hebis.de/ubffm/Record/HEB366849158) in Kapitel 7 ab Seite 171 gefunden werden.
 
@@ -608,16 +608,11 @@ In der ersten Spalte steht der Test `Mardia Skewness` oder `Mardia Kurtosis` wom
 </details>
 
 
-
-
-
-
-
 ## Literatur
 [Brandt H. (2020).](https://hds.hebis.de/ubffm/Record/HEB468515836) Exploratorische Faktorenanalyse (EFA). In [Moosbrugger H., Kelava A.](https://hds.hebis.de/ubffm/Record/HEB468515836) (eds) Testtheorie und Fragebogenkonstruktion. Berlin, Heidelberg: Springer. [https://doi.org/10.1007/978-3-662-61532-4_23](https://doi.org/10.1007/978-3-662-61532-4_23)
 
 
-[Eid, M., Gollwitzer, M., & Schmitt, M. (2017).](https://hds.hebis.de/ubffm/Record/HEB366849158) *Statistik und Forschungsmethoden* (5. Auflage, 1. Auflage: 2010). Weinheim: Beltz. 
+[Eid, M., Gollwitzer, M., & Schmitt, M. (2017).](https://hds.hebis.de/ubffm/Record/HEB366849158) *Statistik und Forschungsmethoden* (5. Auflage, 1. Auflage: 2010). Weinheim: Beltz.
 
 
 * <small> *Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.*
