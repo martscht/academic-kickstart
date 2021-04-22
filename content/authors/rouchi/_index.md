@@ -10,11 +10,11 @@ authors:
 superuser: false
 
 # Role/position
-role: Hiwi
+role: Dozentin
 
 # Organizations/Affiliations
 organizations:
-- name: Goethe Universität Frankfurt am Main
+- name: Goethe Universit√§t Frankfurt am Main
   url: ""
 
 # Short bio (displayed in user profile at end of posts)
