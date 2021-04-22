@@ -71,17 +71,17 @@ Das Modul PsyBSc7 vertieft die im Modul PsyBSc2 vermittelten Grundlagen. Behande
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 0 | **Wiederholung von Grundlagen in R** | [Inhalte](/post/wiederholung-grundlagen) | [Übungsdaten](/post/BSc7_Data) |
-| 1 | **Loops und Funktionen** | [Inhalte](/post/loops-und-funktionen) | [Übungsdaten](/post/BSc7_Data) |
-| 2 | **Grafiken mit ggplot2** | [Inhalte](/post/grafiken-mit-ggplot2) | [Übungsdaten](/post/BSc7_Data) |
-| 3 | **Partial- & Semipartialkorrelation** | [Inhalte](/post/partial) | [Übungsdaten](/post/BSc7_Data) |
-| 4 | **Regressionsanalyse I: multiple Regression** | [Inhalte](/post/reg1) | [Übungsdaten](/post/BSc7_Data) |
+| 0 | **Wiederholung von Grundlagen in R** | [Inhalte](/post/wiederholung-grundlagen) | [Übungsdaten](/post/BSc7-Daten) |
+| 1 | **Loops und Funktionen** | [Inhalte](/post/loops-und-funktionen) | [Übungsdaten](/post/BSc7-Daten) |
+| 2 | **Grafiken mit ggplot2** | [Inhalte](/post/grafiken-mit-ggplot2) | [Übungsdaten](/post/BSc7-Daten) |
+| 3 | **Partial- & Semipartialkorrelation** | [Inhalte](/post/partial) | [Übungsdaten](/post/BSc7-Daten) |
+| 4 | **Regressionsanalyse I: multiple Regression** | [Inhalte](/post/reg1) | [Übungsdaten](/post/BSc7-Daten) |
 | 5 | **Regressionsanalyse II: Modelloptimierung** | Inhalte | Übungsdaten |
 | 6 | **Regressionanalyse III: Voraussetzungen** | Inhalte | Übungsdaten |
-| 7 | **Regressionanalyse IV: quadratische und Interaktionseffekte** | [Inhalte](/post/quadratische-und-moderierte-regression) | [Übungsdaten](/post/BSc7_Data) |
-| 8 | **Regressionanalyse V: nichtlineare Regression** | Inhalte | [Übungsdaten](/post/BSc7_Data) |
+| 7 | **Regressionanalyse IV: quadratische und Interaktionseffekte** | [Inhalte](/post/quadratische-und-moderierte-regression) | [Übungsdaten](/post/BSc7-Daten) |
+| 8 | **Regressionanalyse V: nichtlineare Regression** | Inhalte | [Übungsdaten](/post/BSc7-Daten) |
 | 9 | **ANOVA I: einfaktorielle Varianzanalyse** | Inhalte | Übungsdaten |
-| 10 | **ANOVA II: zweifaktorielle Varianzanalyse** | Inhalte | [Übungsdaten](/post/BSc7_Data) |
+| 10 | **ANOVA II: zweifaktorielle Varianzanalyse** | Inhalte | [Übungsdaten](/post/BSc7-Daten) |
 | 11 | **ANOVA III: Varianzanalyse mit Messwiederholung** | Inhalte | Übungsdaten |
 | | |
 
