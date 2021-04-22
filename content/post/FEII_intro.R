@@ -3,7 +3,7 @@
 
 
 #### Vorbereitung ----
-data(fairplayer, package = 'PsyMSc1')
+load(url('https://pandar.netlify.com/post/fairplayer.rda'))
 
 
 #### R Grundlagen Wiederbelebung ----
@@ -96,7 +96,7 @@ mod <- '
   rat1 ~ 1
   rat1 ~ sit1
   rat1 ~ emt1
-  
+
   # Residuum
   rat1 ~~ rat1'
 
