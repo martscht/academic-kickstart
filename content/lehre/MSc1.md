@@ -83,10 +83,10 @@ Das Modul PsyMSc1 ist in zwei Teile untergliedert: Forschungsmethoden und Evalua
 Die zweite Hälfte des Moduls, F&E II, befasst sich vor allem mit Ansätzen zur Modellierung latenter Variablen und deren Beziehungen zu einander. Darunter fallen z.B. explorative und konfirmatorische Faktorenanalysen, die die Beziehung zwischen manifesten Variablen und den, ihnen zugrundeliegenden latenten Variablen modellieren. Aber auch die Modellierung der Beziehung zwischen latenten psychologischer Konstrukten (Strukturgleichungsmodelle) und die Vergleiche von Modellen zwischen verschiedenen Gruppen, z.B. für interkulturelle Studien, ist Bestandteil dieses Semesters.
 
 |  |  |  |  | | |
-| --- | --- | --- | --- | --- | --- |
-| 1 | **Einführung in lavaan** | [Inhalte](/post/lavaan-intro)  | [Übungsdaten](/post/fairplayer.rda) |
-| 2 | **Explorative Faktorenanalyse** | Inhalte  | Übungsdaten |
-| 3 | **Konfirmatorische Faktorenanalyse** | Inhalte  | Übungsdaten |
-| 4 | **Strukturgleichungsmodelle** | Inhalte  | Übungsdaten |
-| 5 | **Multgruppen Modelle** | Inhalte  | Übungsdaten |
-|  |  |  |  | | |
+| --- | --- | --- | --- | --- | --- | --- |
+| 1 | **Einführung in lavaan** | [Inhalte](/post/lavaan-intro)  | [Übungsdaten](/post/fairplayer.rda) | [R-Skript](/post/FEII_intro.R) |
+| 2 | **Explorative Faktorenanalyse** | [Inhalte](/post/efa)  | [Übungsdaten](/post/Big5_EFA.rda) | [R-Skript](/post/FEII_efa.R) |
+| 3 | **Konfirmatorische Faktorenanalyse** | Inhalte  | Übungsdaten | R-Skript |
+| 4 | **Strukturgleichungsmodelle** | Inhalte  | Übungsdaten | R-Skript |
+| 5 | **Multgruppen Modelle** | Inhalte  | Übungsdaten | R-Skript |
+|  |  |  |  | | | |
