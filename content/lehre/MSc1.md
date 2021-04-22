@@ -86,7 +86,7 @@ Die zweite Hälfte des Moduls, F&E II, befasst sich vor allem mit Ansätzen zur 
 | --- | --- | --- | --- | --- | --- | --- |
 | 1 | **Einführung in lavaan** | [Inhalte](/post/lavaan-intro)  | [Übungsdaten](/post/fairplayer.rda) | [R-Skript](/post/FEII_intro.R) |
 | 2 | **Explorative Faktorenanalyse** | [Inhalte](/post/efa)  | [Übungsdaten](/post/Big5_EFA.rda) | [R-Skript](/post/FEII_efa.R) |
-| 3 | **Konfirmatorische Faktorenanalyse** | Inhalte  | Übungsdaten | R-Skript |
+| 3 | **Konfirmatorische Faktorenanalyse** | [Inhalte](/post/cfa)  | [Übungsdaten](/post/conspiracy.rda) | [R-Skript](/post/FEII_cfa.R) |
 | 4 | **Strukturgleichungsmodelle** | Inhalte  | Übungsdaten | R-Skript |
 | 5 | **Multgruppen Modelle** | Inhalte  | Übungsdaten | R-Skript |
 |  |  |  |  | | | |
