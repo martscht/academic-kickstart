@@ -14,7 +14,7 @@ tags:
 subtitle: '2-fakt. ANOVA'
 summary: ''
 authors: [irmer,schultze]
-lastmod: '2021-04-21T08:32:21+02:00'
+lastmod: '2021-04-24T08:32:21+02:00'
 featured: no
 header:
   image: "/header/PsyBSc7_ANOVA2.jpg"
@@ -199,7 +199,7 @@ Welche unterschiedlichen Kombinationen an Signifikanzen und was diese schematisc
 
 ### Alle Gruppenvergleiche
 
-Mit Tukeys Honest Significant Difference können, wie auch letzte Sitzung, alle möglichen Gruppenkombinationen verglichen werden.
+Mit Tukeys Honest Significant Difference können, wie auch letzte Sitzung, alle möglichen Gruppenkombinationen verglichen werden. Wir müssen die `TuckeyHSD` Funktion auf ein `aov`-Objekt anwenden.
 
 ```{r}
 TukeyHSD(aov(ET ~ urban*edu, conspiracy))
@@ -248,6 +248,17 @@ pwpp(emm)
 ```
 
 In dieser Abbildung ist auf der x-Achse der $p$-Wert des Mittelwertvergleichs dargestellt. Auf der y-Achse werden die Gruppen anhand ihrer deskriptiven Mittelwerte sortiert und abgetragen (dabei sind alle Abstände zwischen zwei Gruppen gleich groß, egal wie groß der Mittelwertsunterschied auf der abhängigen Variable tatsächlich ist). Eine Verbindung besteht immer zwischen jenen Gruppen, die auf dem jeweiligen Niveau signifikant sind (`Tuckey-adjusted P value`). Die `x`-Achse ist gestaucht dargestellt, um möglichst gut darstellen zu können, welche Gruppen sich jeweils auf welchem Niveau unterscheiden. Bspw. hat der Gruppenvergleich `urban highschool` vs. `suburban not highschool` einen `Tuckey-adjusted P value` von etwas mehr als 0.1.
+
+Wir hätten auch mit Hilfe des `ezANOVA`-Befehl ein `aov`-Objekt erhalten können, mit welchem wir die oben aufgeführten Späße hätten durchführen können. Dazu müssen wir das Objekt lediglich abspeichern und das Argument `return_aov` auf `T`, bzw. `TRUE` setzen:
+
+```{r, warning = F, message = F}
+ez1 <- ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), detailed = TRUE, return_aov = T)
+aov1 <- ez1$aov
+emm1 <- emmeans(aov1, ~ urban * edu)
+plot(emm1, comparisons = TRUE) # identisch zu oben
+```
+
+So ein `aov`-Objekt hat auch weitere Vorteile, da wir bspw. dem `ez1` Objekt nicht direkt die Fehlerquadratsumme entlocken können, welche bspw. dafür benötigt werden $\eta^2$ zu bestimmen. Um einem `aov`-Objekt ähnliche Infos zu entlocken, wird in der Regel die `summary` Funktion verwendet.
 
 ### Kontraste
 
@@ -335,7 +346,7 @@ anova(lm(ET ~ urban*edu, data = conspiracy))
 anova(lm(ET ~ edu*urban, data = conspiracy))
 ```
 
-`*` fügt immer neben der Interaktion automatisch noch die Haupteffekte hinzu. Das gleiche funktioniert selbstverständlich auch mit dem `aov` Befehl:
+`*` fügt immer neben der Interaktion automatisch noch die Haupteffekte hinzu. Das gleiche funktioniert selbstverständlich auch mit dem `aov` Befehl (ein `aov`-Objekt können wir auch in der `ezANOVA` anfordern und damit weiterrechnen, wir wollen hier aber die Äquvialenz der Vorgehensweisen aufzeigen):
 
 
 ```{r}

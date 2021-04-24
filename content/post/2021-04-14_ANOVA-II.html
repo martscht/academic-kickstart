@@ -14,7 +14,7 @@ tags:
 subtitle: '2-fakt. ANOVA'
 summary: ''
 authors: [irmer,schultze]
-lastmod: '2021-04-21T08:32:21+02:00'
+lastmod: '2021-04-24T08:32:21+02:00'
 featured: no
 header:
   image: "/header/PsyBSc7_ANOVA2.jpg"
@@ -255,7 +255,7 @@ tapply(X = conspiracy$ET, INDEX = kombi, FUN = mean)</code></pre>
 <h2>Post-Hoc Analyse und Kontraste</h2>
 <div id="alle-gruppenvergleiche" class="section level3">
 <h3>Alle Gruppenvergleiche</h3>
-<p>Mit Tukeys Honest Significant Difference können, wie auch letzte Sitzung, alle möglichen Gruppenkombinationen verglichen werden.</p>
+<p>Mit Tukeys Honest Significant Difference können, wie auch letzte Sitzung, alle möglichen Gruppenkombinationen verglichen werden. Wir müssen die <code>TuckeyHSD</code> Funktion auf ein <code>aov</code>-Objekt anwenden.</p>
 <pre class="r"><code>TukeyHSD(aov(ET ~ urban*edu, conspiracy))</code></pre>
 <pre><code>##   Tukey multiple comparisons of means
 ##     95% family-wise confidence level
@@ -380,6 +380,13 @@ tapply(X = conspiracy$ET, INDEX = kombi, FUN = mean)</code></pre>
 <pre class="r"><code>pwpp(emm)</code></pre>
 <p><img src="/post/2021-04-14_ANOVA-II_files/figure-html/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>In dieser Abbildung ist auf der x-Achse der <span class="math inline">\(p\)</span>-Wert des Mittelwertvergleichs dargestellt. Auf der y-Achse werden die Gruppen anhand ihrer deskriptiven Mittelwerte sortiert und abgetragen (dabei sind alle Abstände zwischen zwei Gruppen gleich groß, egal wie groß der Mittelwertsunterschied auf der abhängigen Variable tatsächlich ist). Eine Verbindung besteht immer zwischen jenen Gruppen, die auf dem jeweiligen Niveau signifikant sind (<code>Tuckey-adjusted P value</code>). Die <code>x</code>-Achse ist gestaucht dargestellt, um möglichst gut darstellen zu können, welche Gruppen sich jeweils auf welchem Niveau unterscheiden. Bspw. hat der Gruppenvergleich <code>urban highschool</code> vs. <code>suburban not highschool</code> einen <code>Tuckey-adjusted P value</code> von etwas mehr als 0.1.</p>
+<p>Wir hätten auch mit Hilfe des <code>ezANOVA</code>-Befehl ein <code>aov</code>-Objekt erhalten können, mit welchem wir die oben aufgeführten Späße hätten durchführen können. Dazu müssen wir das Objekt lediglich abspeichern und das Argument <code>return_aov</code> auf <code>T</code>, bzw. <code>TRUE</code> setzen:</p>
+<pre class="r"><code>ez1 &lt;- ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), detailed = TRUE, return_aov = T)
+aov1 &lt;- ez1$aov
+emm1 &lt;- emmeans(aov1, ~ urban * edu)
+plot(emm1, comparisons = TRUE) # identisch zu oben</code></pre>
+<p><img src="/post/2021-04-14_ANOVA-II_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>So ein <code>aov</code>-Objekt hat auch weitere Vorteile, da wir bspw. dem <code>ez1</code> Objekt nicht direkt die Fehlerquadratsumme entlocken können, welche bspw. dafür benötigt werden <span class="math inline">\(\eta^2\)</span> zu bestimmen. Um einem <code>aov</code>-Objekt ähnliche Infos zu entlocken, wird in der Regel die <code>summary</code> Funktion verwendet.</p>
 </div>
 <div id="kontraste" class="section level3">
 <h3>Kontraste</h3>
@@ -486,7 +493,7 @@ anova(lm(ET ~ edu*urban, data = conspiracy))</code></pre>
 ## Residuals 2442 4167.5   1.707                      
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p><code>*</code> fügt immer neben der Interaktion automatisch noch die Haupteffekte hinzu. Das gleiche funktioniert selbstverständlich auch mit dem <code>aov</code> Befehl:</p>
+<p><code>*</code> fügt immer neben der Interaktion automatisch noch die Haupteffekte hinzu. Das gleiche funktioniert selbstverständlich auch mit dem <code>aov</code> Befehl (ein <code>aov</code>-Objekt können wir auch in der <code>ezANOVA</code> anfordern und damit weiterrechnen, wir wollen hier aber die Äquvialenz der Vorgehensweisen aufzeigen):</p>
 <pre class="r"><code># QS-Typ 1, Reihenfolge 1 mit aov
 summary(aov(ET ~ urban*edu, data = conspiracy))</code></pre>
 <pre><code>##               Df Sum Sq Mean Sq F value   Pr(&gt;F)    
