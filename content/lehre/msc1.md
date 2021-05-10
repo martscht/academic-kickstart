@@ -1,4 +1,4 @@
-+++ 
++++
 # A Recent Blog Posts section created with the Pages widget.
 # This section displays recent blog posts from `content/post/`.
 
@@ -87,6 +87,6 @@ Die zweite Hälfte des Moduls, F&E II, befasst sich vor allem mit Ansätzen zur 
 | 1 | **Einführung in lavaan** | [Inhalte](/post/lavaan-intro)  | [Übungsdaten](/post/fairplayer.rda) | [R-Skript](/post/FEII_intro.R) |
 | 2 | **Explorative Faktorenanalyse** | [Inhalte](/post/efa)  | [Übungsdaten](/post/Big5_EFA.rda) | [R-Skript](/post/FEII_efa.R) |
 | 3 | **Konfirmatorische Faktorenanalyse** | [Inhalte](/post/cfa)  | [Übungsdaten](/post/conspiracy.rda) | [R-Skript](/post/FEII_cfa.R) |
-| 4 | **Strukturgleichungsmodelle** | Inhalte  | Übungsdaten | R-Skript |
+| 4 | **Strukturgleichungsmodelle** | [Inhalte](/post/sem)  | [Übungsdaten](/post/StressAtWork.rda) | [R-Skript](/post/FEII_sem.R) |
 | 5 | **Multigruppen Modelle** | Inhalte  | Übungsdaten | R-Skript |
 |  |  |  |  | | | |
