@@ -76,8 +76,8 @@ Das Modul PsyBSc7 vertieft die im Modul PsyBSc2 vermittelten Grundlagen. Behande
 | 2 | **Grafiken mit ggplot2** | [Inhalte](/post/grafiken-mit-ggplot2) | [Übungsdaten](/post/BSc7-Daten) |
 | 3 | **Partial- & Semipartialkorrelation** | [Inhalte](/post/partial) | [Übungsdaten](/post/BSc7-Daten) |
 | 4 | **Regressionsanalyse I: multiple Regression** | [Inhalte](/post/reg1) | [Übungsdaten](/post/BSc7-Daten) |
-| 5 | **Regressionsanalyse II: Modelloptimierung** | Inhalte | Übungsdaten |
-| 6 | **Regressionanalyse III: Voraussetzungen** | Inhalte | Übungsdaten |
+| 5 | **Regressionsanalyse II: Modelloptimierung** | [Inhalte](/post/reg2) | [Übungsdaten](/post/BSc7-Daten) |
+| 6 | **Regressionanalyse III: Voraussetzungen** | Inhalte | [Übungsdaten](/post/BSc7-Daten) |
 | 7 | **Regressionanalyse IV: quadratische und Interaktionseffekte** | [Inhalte](/post/quadratische-und-moderierte-regression) | [Übungsdaten](/post/BSc7-Daten) |
 | 8 | **Regressionanalyse V: nichtlineare Regression** | Inhalte | [Übungsdaten](/post/BSc7-Daten) |
 | 9 | **ANOVA I: einfaktorielle Varianzanalyse** | Inhalte | Übungsdaten |
