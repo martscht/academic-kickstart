@@ -1,0 +1,369 @@
+---
+title: "Regressionsanalyse II"
+output:
+  html_document
+  
+date: '2021-04-28'
+slug: reg2
+categories:
+     - BSc7
+     
+tags:
+- Regression
+- Zusammenhangsanalyse
+- Erklärte Varianz
+- Modelloptimierung
+subtitle: 'Modellvergleiche und Prädiktorauswahl'
+summary: ''
+authors: [hartig, schueller]
+lastmod: '2021-04-28 12:00:12 CEST'
+featured: no
+header:
+     image: "/header/PsyBSc7_Reg2.jpg"
+     caption: "[Courtesy of pxhere](https://pxhere.com/de/photo/598938)"
+projects: []
+---
+
+
+
+<div id="modelloptimierung" class="section level2">
+<h2>Modelloptimierung</h2>
+<p>Bei der Regressionsanalyse hat die Modelloptimierung zum Ziel, ein Regresionsmodell zu verbessern, das heißt, möglichst viel Varianz der abhängigen Variable zu erklären.
+<strong>Modelloptimierung</strong> bedeutet, ein Modell zu verbessern, durch:</p>
+<ul>
+<li>Aufnehmen zusätzlicher, bedeutsamer Prädiktoren</li>
+<li>Ausschließen von Prädiktoren, die nicht zur Varianzaufklärung beitragen</li>
+</ul>
+<p><strong>Ziel</strong> ist ein <em>sparsames Modell</em>, in dem</p>
+<ul>
+<li>jeder enthaltene Prädiktor einen Beitrag zur Varianzaufklärung des Kriteriums leistet und</li>
+<li>kein wichtiger (= vorhersagestarker) Prädiktor vergessen wurde.</li>
+</ul>
+<p>In diesem Kontext sind zwei Methoden interessant, nämlich</p>
+<ol style="list-style-type: decimal">
+<li>Das Testen von Änderungen in der erklärten Varianz, wenn zusätzliche Prädiktoren in ein Regressionsmodell aufgenommen werden (Inkrement) oder wenn Prädiktoren aus dem Modell entfernt werden (Dekrement).</li>
+<li>Die schrittweise, “explorative” Auswahl von Prädiktoren aus einer größeren Menge möglicher Prädiktoren.</li>
+</ol>
+<p>Dafür kann man beispielsweise das Inkrement, also den Zuwachs an erklärter Kriteriumsvarianz durch Hinzunahme eines Prädiktors, sowie das Dekrement, also die Verringerung an erklärter Varianz durch Ausschluss eines Prädiktors betrachten.</p>
+<div id="übungs-datensatz" class="section level3">
+<h3>Übungs-Datensatz</h3>
+<p>Die Modelloptimierung wird am gleichen Datensatz demonstriert, der auch in der Sitzung zu Regression I verwendet wurde. Eine Stichprobe von 100 Schülerinnen und Schülern hat einen Lese- und einen Mathematiktest bearbeitet, und zusätzlich dazu einen allgemeinen Intelligenztest absolviert. Im Datensatz enthalten ist zudem das Geschlecht (Variable: <code>female</code>, 0 = m, 1 = w). Die abhängige Variable ist die Matheleistung, die durch die anderen Variablen im Datensatz vorhergesagt werden soll.</p>
+<p>Den Datensatz laden Sie wie folgt:</p>
+<pre class="r"><code># Datensatz laden
+load(url(&quot;https://pandar.netlify.app/post/Schulleistungen.rda&quot;))</code></pre>
+</div>
+</div>
+<div id="inkrement-und-dekrement" class="section level2">
+<h2>Inkrement und Dekrement</h2>
+<div id="testen-eines-inkrements" class="section level3">
+<h3>Testen eines Inkrements</h3>
+<p>Vergleich eines eingeschränkten Modells <span class="math inline">\(M_c\)</span> mit weniger Prädiktoren gegen ein uneingeschränktes Modell <span class="math inline">\(M_u\)</span> mit zusätzlichen Prädiktoren. Beispiel: Inkrement durch Hinzunahme von Intelligenz. Führt die Hinzunahme von Intelligenz zu einem signifikanten Zuwachs an erklärter Varianz, wenn Lesekompetenz und Geschlecht bereits im Vorhersagemodell sind?</p>
+<pre class="r"><code>m.c &lt;- lm(math ~ reading + female, data = Schulleistungen)      # constrained
+m.u &lt;- lm(math ~ reading + female + IQ, data = Schulleistungen) # unconstrained
+summary(m.c)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = math ~ reading + female, data = Schulleistungen)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -204.12  -64.84   -7.69   45.14  490.01 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 369.9663    51.1049   7.239 1.07e-10 ***
+## reading       0.4431     0.1011   4.381 2.99e-05 ***
+## female      -52.3994    21.4960  -2.438   0.0166 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 106.2 on 97 degrees of freedom
+## Multiple R-squared:  0.1897, Adjusted R-squared:  0.173 
+## F-statistic: 11.36 on 2 and 97 DF,  p-value: 3.701e-05</code></pre>
+<pre class="r"><code>summary(m.u)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = math ~ reading + female + IQ, data = Schulleistungen)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -96.46 -50.69 -20.66  18.53 455.03 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  75.416510  55.602607   1.356    0.178    
+## reading      -0.002986   0.098679  -0.030    0.976    
+## female      -26.310648  17.318600  -1.519    0.132    
+## IQ            5.112758   0.663512   7.706 1.19e-11 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 83.91 on 96 degrees of freedom
+## Multiple R-squared:  0.4994, Adjusted R-squared:  0.4837 
+## F-statistic: 31.92 on 3 and 96 DF,  p-value: 2.121e-14</code></pre>
+<ul>
+<li>Determinationskoeffizient ohne IQ (“constrained”): <span class="math inline">\(R_c^2=0.19\)</span></li>
+<li>Determinationskoeffizient mit IQ (“unconstrained”): <span class="math inline">\(R_u^2=0.50\)</span></li>
+</ul>
+<p>Die Differenz aus beiden Determinationskoeffizienten können wir wie folgt berechnen:</p>
+<pre class="r"><code># Inkrement = Differenz in R2 aus restringiertem Modell 2 minus R2 aus unrestringiertem Modell 1
+summary(m.u)$r.squared - summary(m.c)$r.squared</code></pre>
+<pre><code>## [1] 0.3096366</code></pre>
+<p>Wir sehen also, dass das Modell mit IQ mehr Varianz erklärt als das ohne IQ. Die Hinzunahme des IQ führt zu einem Zuwachs von 31% erklärter Varianz (<span class="math inline">\(\Delta R^2=0.31\)</span>). Dieses <em>Inkrement</em> soll auf Signifikanz getestet werden. Der Modellvergleich kann mit der <code>anova</code>-Funktion vorgenommen werden. Ergänzen Sie den Befehl, um die beiden zuvor erstellten Modelle zu vergleichen.</p>
+<pre class="r"><code># Modellvergleich mit der anova-Funktion
+anova(m.u, m.c)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: math ~ reading + female + IQ
+## Model 2: math ~ reading + female
+##   Res.Df     RSS Df Sum of Sq      F    Pr(&gt;F)    
+## 1     96  675987                                  
+## 2     97 1094086 -1   -418099 59.376 1.186e-11 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Das Inkrement des IQs ist auf einem Alpha-Fehlerniveau von 0.05 signifikant von null verschieden (<span class="math inline">\(p=0.000\)</span>).</p>
+<p>Zum Vergleich finden Sie hier die Berechnung des F-Tests aus den Vorlesungs-Folien zur Regression:</p>
+<pre class="r"><code>R2.u &lt;- summary(m.u)$r.squared
+R2.c &lt;- summary(m.c)$r.squared
+df.diff &lt;- summary(m.u)$df[1] - summary(m.c)$df[1]
+df.u &lt;- summary(m.u)$df[2]
+F.diff &lt;- ((R2.u - R2.c) / df.diff) /
+  ((1 - R2.u) / df.u)
+p.diff &lt;- 1-pf(F.diff, df.diff, df.u)
+F.diff</code></pre>
+<pre><code>## [1] 59.37622</code></pre>
+<pre class="r"><code>p.diff</code></pre>
+<pre><code>## [1] 1.186384e-11</code></pre>
+</div>
+<div id="testen-eines-dekrements" class="section level3">
+<h3>Testen eines Dekrements</h3>
+<p>Das Dekrement ist der Unterschied im <span class="math inline">\(R^2\)</span> zwischen dem restringierten Modell <span class="math inline">\(M_c\)</span> und dem unrestringierten Modell <span class="math inline">\(M_u\)</span>. Die Testung eines Dekrements erfolgt analog dem Inkrement: das eingeschränkte Modell <span class="math inline">\(M_c\)</span> mit weniger Prädiktoren wird mit dem uneingeschränkten Modell <span class="math inline">\(M_u\)</span> mit mehr Prädiktoren verglichen. Es soll nun geprüft werden, ob das <em>Weglassen</em> des Geschlechts aus dem Modell zu einem signifikanten Rückgang der erklärten Varianz führt. Stellen Sie nach dem Modell von oben das uneingeschränkte und das eingeschränkte Modell auf, berechnen Sie die Differenz in der Varianzaufklärung und testen Sie, ob dieser Unterschied signifikant ist.</p>
+<pre class="r"><code>m.u &lt;- lm(math ~ reading + female + IQ, data = Schulleistungen) # unconstrained
+m.c &lt;- lm(math ~ reading + IQ, data = Schulleistungen) # constrained
+
+summary(m.u)$r.squared - summary(m.c)$r.squared</code></pre>
+<pre><code>## [1] 0.01203586</code></pre>
+<pre class="r"><code># Modellvergleich mit der anova-Funktion
+anova(m.c, m.u)</code></pre>
+<pre><code>## Analysis of Variance Table
+## 
+## Model 1: math ~ reading + IQ
+## Model 2: math ~ reading + female + IQ
+##   Res.Df    RSS Df Sum of Sq     F Pr(&gt;F)
+## 1     97 692239                          
+## 2     96 675987  1     16252 2.308  0.132</code></pre>
+<p>Der Ausschluss des Geschlechts führt zu einer Verringerung von 1% erklärter Varianz (<span class="math inline">\(\Delta R^2=0.012\)</span>). Dieser Unterschied ist <em>nicht</em> signifikant von null verschieden (<span class="math inline">\(p=0.132\)</span>)</p>
+</div>
+</div>
+<div id="schrittweise-selektion-von-prädiktoren" class="section level2">
+<h2>Schrittweise Selektion von Prädiktoren</h2>
+<p>Eine “theoriefreie” schrittweise Auswahl von Prädiktoren kann in R mit der <code>step</code>-Funktion erfolgen. Diese macht, anders als unser zuvor demonstriertes Vorgehen, nicht von Partialkorrelationen und Inkrementen Gebrauch, sondern vom sogenannten Informationskriterium AIC (<em>Akaike Information Criterion</em>).
+Dieses basiert auf der Likelihood eines geschätzten Modells <span class="math inline">\(L(\hat{\theta})\)</span> und der Anzahl der Modellparametern <span class="math inline">\(p\)</span>:</p>
+<p><span class="math inline">\(AIC=-2L(\hat{\theta}) + 2p\)</span></p>
+<p>Die Likelihood bezeichnet ein Maß für die Plausibilität/Wahrscheinlichkeit eines Modells, unter Berücksichtigung der gegebenen (empirisch erhobenen) Daten. Anders ausgedrückt: Die Likelihood eines Modells, gegeben die empirischen Daten. Um das beste Modell zu finden, kann man die Likelihood verschiedener Modelle vergleichen.</p>
+<p>Für lineare Regressionsmodelle lässt sich der AIC wie folgt darstellen:</p>
+<p><span class="math inline">\(AIC_{\sigma}=n \cdot log(\sigma_e^2) + 2p\)</span></p>
+<p>Der AIC ist hier eine Funktion der Stichprobengröße <span class="math inline">\(n\)</span>, der Residualvarianz <span class="math inline">\(\sigma_e^2\)</span> und der Anzahl der Parameter (= Regressionskoeffizienten) <span class="math inline">\(p=m+1\)</span>. Es wird hier ersichtlich, dass der AIC von der Varianz der abhängigen Variablen abhängt, da diese wiederum die Residualvarianz beeinflusst.</p>
+<p>Der AIC ist ein sogenanntes inverses Maß, das bedeutet, dass Modelle mit einem kleineren AIC besser sind als Modelle mit einem größeren AIC. Der AIC wird durch den Term <span class="math inline">\(n \cdot log(\sigma_e^2)\)</span> kleiner, wenn die Residualvarianz kleiner wird, also mehr Varianz erklärt wird. Durch den “Strafterm” <span class="math inline">\(2p\)</span> wird der AIC größer, wenn das Modell mehr Prädiktoren enthält.
+Es soll also ein Modell gefunden werden, das mit möglichst wenigen Prädiktoren möglichst viel Varianz erklärt (<em>Sparsamkeitsprinzip</em>).</p>
+<p>Die Schrittweise Selektion kann “vorwärts”, “rückwärts”, oder in beide Richtungen erfolgen. Die Standardeinstellung der <code>step</code>-Funktion ist die, dass ein Modell mit allen möglichen Prädiktoren als Ausgangspunkt genommen wird. Es wird dann der Prädiktor ausgeschlossen, der die größte Reduktion des AIC erlaubt, dann der nächste usw. In jedem Schritt wird auch wieder geprüft, ob Prädiktoren, die <em>nicht</em> im Modell sind, bei Aufnahme wieder zu einer Reduktion des AIC führen würden. Das Verfahren stoppt, wenn:</p>
+<ol style="list-style-type: decimal">
+<li>nur noch Prädiktoren im Modell sind, deren Ausschluss zu einer Erhöhung des AIC führen würden und</li>
+<li>nur Prädiktoren “übrig” sind, deren Einschluss den AIC nicht verbessern würde.</li>
+</ol>
+<p>Einfaches Beispiel: Optimierung des Modells für Mathematikleistung, Start mit allen drei möglichen Prädiktoren:</p>
+<pre class="r"><code># Modell mit allen Prädiktoren
+m &lt;- lm(math ~ reading + female + IQ, data = Schulleistungen)
+# Optimierung
+summary(step(m))</code></pre>
+<pre><code>## Start:  AIC=889.88
+## math ~ reading + female + IQ
+## 
+##           Df Sum of Sq     RSS    AIC
+## - reading  1         6  675993 887.88
+## &lt;none&gt;                  675987 889.88
+## - female   1     16252  692239 890.25
+## - IQ       1    418099 1094086 936.03
+## 
+## Step:  AIC=887.88
+## math ~ female + IQ
+## 
+##          Df Sum of Sq     RSS    AIC
+## &lt;none&gt;                 675993 887.88
+## - female  1     17222  693215 888.39
+## - IQ      1    634538 1310531 952.08</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = math ~ female + IQ, data = Schulleistungen)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -96.60 -50.72 -20.91  18.41 455.09 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  75.1532    54.6335   1.376    0.172    
+## female      -26.4255    16.8102  -1.572    0.119    
+## IQ            5.1010     0.5346   9.542 1.31e-15 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 83.48 on 97 degrees of freedom
+## Multiple R-squared:  0.4994, Adjusted R-squared:  0.489 
+## F-statistic: 48.38 on 2 and 97 DF,  p-value: 2.67e-15</code></pre>
+<p>Es ist zu sehen dass es im Ausgangsmodell nur eine Möglichkeit gibt, das Modell zu verbessern, nämlich den Ausschluss von Lesekompetenz (<code>reading</code>) (AIC von 889.88 auf 887.88). Danach gibt es keine Möglichkeit zur Verbesserung mehr, beide verbleibenden Prädiktoren würden bei einem Ausschluss zu einer Verschlechterung des AIC führen (<code>female</code> auf 888.39 und <code>IQ</code> auf 952.08). Damit sind Geschlecht und IQ die Prädiktoren für das optimierte Modell.</p>
+<p>An der Ausgabe für das “finale” Modell am Schluss ist zu sehen, dass der Effekt von Geschlecht im finalen Modell hier <em>nicht</em> signifikant ist. Auch oben haben wir gesehen, dass unter Betrachtung des Dekrements dieser Prädiktor wegfallen würde.</p>
+<p>Sparsamkeit wird beim AIC im “Strafterm” <span class="math inline">\(2p\)</span> nicht so hoch gewichtet wie bei anderen Informationskriterien. In der Funktion <code>step</code> kann man über die Veränderung des Parameters <code>k</code> steuern, wie streng die Prädiktorauswahl vorgenommen wird. Wenn man hier <span class="math inline">\(k = log(n)\)</span> angibt, wird statt des AIC das sogenannte Bayessche Informationskriterium BIC (<em>Bayesian Information Criterion</em>) verwendet.</p>
+<p><span class="math inline">\(BIC=-2L(\hat{\theta}) + log(n)\cdot p\)</span></p>
+<p>Vorsicht, in der Ausgabe der <code>step</code>-Funktion steht immer AIC, auch wenn dies nur mit der Standardeinstellung von <span class="math inline">\(k=2\)</span> tatsächlich dem AIC entspricht!</p>
+<pre class="r"><code># Optimierung mit BIC
+summary(step(m, k=log(nrow(Schulleistungen))))</code></pre>
+<pre><code>## Start:  AIC=900.3
+## math ~ reading + female + IQ
+## 
+##           Df Sum of Sq     RSS    AIC
+## - reading  1         6  675993 895.69
+## - female   1     16252  692239 898.07
+## &lt;none&gt;                  675987 900.30
+## - IQ       1    418099 1094086 943.84
+## 
+## Step:  AIC=895.69
+## math ~ female + IQ
+## 
+##          Df Sum of Sq     RSS    AIC
+## - female  1     17222  693215 893.60
+## &lt;none&gt;                 675993 895.69
+## - IQ      1    634538 1310531 957.29
+## 
+## Step:  AIC=893.6
+## math ~ IQ
+## 
+##        Df Sum of Sq     RSS    AIC
+## &lt;none&gt;               693215 893.60
+## - IQ    1    657076 1350290 955.67</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = math ~ IQ, data = Schulleistungen)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -84.14 -51.06 -18.69  24.02 468.71 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  53.9006    53.3302   1.011    0.315    
+## IQ            5.1721     0.5366   9.638 7.39e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 84.1 on 98 degrees of freedom
+## Multiple R-squared:  0.4866, Adjusted R-squared:  0.4814 
+## F-statistic: 92.89 on 1 and 98 DF,  p-value: 7.392e-16</code></pre>
+<p>Bei der Verwendung des stengeren Kriteriums wird auch Geschlecht aus dem Modell entfernt, es verbleibt nur der IQ im finalen Modell.</p>
+<div id="weitere-möglichkeiten" class="section level3">
+<h3>Weitere Möglichkeiten</h3>
+<p>Wie immer gibt es in R viele weitere Wege, zum selben Ziel zu kommen. Eine Vielzahl von Funktionen für die schrittweise Regression bietet z.B. das Paket <code>olsrr</code>, Im Rahmen des Praktikums verwenden wir soweit möglich die Basis-Funktionen von R und beschränken uns daher bei den Aufgaben für schrittweise Analysen auf die <code>step</code>-Funktion.</p>
+<p>Das Paket <code>olsrr</code> beinhaltet verschiedene Funktionen, die für die Regressionsanalyse nützlich sind, u.a. auch Funktionen, die die schrittweise Auswahl von Prädiktoren auf Basis verschiedener Kriterien und nach verschiedenen Methoden (vorwärts, rückwärts, etc.) ermöglichen. Finden Sie <a href="https://olsrr.rsquaredacademy.com/articles/variable_selection.html#best-subset-regression">hier</a> mehr Informationen dazu. Die Funktion <code>ols_step_both_p</code> beinhaltet die Auswahl auf Basis der Signifikanz des Inkrements oder Dekrements und führt in jedem Schritt Tests für Einschluss und Ausschluss durch.<br />
+Der Input ist ein Regressionsmodell, das mit der bekannten Funktion <code>lm</code> erstellt wurde. Über die zusätzlichen Argumente kann gesteuert werden, wie streng bei Aufnahme und Ausschluss getestet wird. Über das Argument <code>details</code> können Sie den gesamten Verlauf der schrittweisen Selektion (nicht nur das finale Ergebnis) anzeigen lassen.</p>
+<pre class="r"><code># install.packages(&quot;olsrr&quot;)
+library(olsrr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;olsrr&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:datasets&#39;:
+## 
+##     rivers</code></pre>
+<pre class="r"><code># pent = p enter, p-Wert zur Aufnahme ins Modell
+# prem = p remove, p-Wert zum Ausschluss aus dem Modell
+ols_step_both_p(m, pent = .05, prem = .10, details = TRUE)</code></pre>
+<pre><code>## Stepwise Selection Method   
+## ---------------------------
+## 
+## Candidate Terms: 
+## 
+## 1. reading 
+## 2. female 
+## 3. IQ 
+## 
+## We are selecting variables based on p value...
+## 
+## 
+## Stepwise Selection: Step 1 
+## 
+## - IQ added 
+## 
+##                          Model Summary                           
+## ----------------------------------------------------------------
+## R                       0.698       RMSE                 84.105 
+## R-Squared               0.487       Coef. Var            14.980 
+## Adj. R-Squared          0.481       MSE                7073.620 
+## Pred R-Squared          0.468       MAE                  52.958 
+## ----------------------------------------------------------------
+##  RMSE: Root Mean Square Error 
+##  MSE: Mean Square Error 
+##  MAE: Mean Absolute Error 
+## 
+##                                  ANOVA                                  
+## -----------------------------------------------------------------------
+##                    Sum of                                              
+##                   Squares        DF    Mean Square      F         Sig. 
+## -----------------------------------------------------------------------
+## Regression     657075.570         1     657075.570    92.891    0.0000 
+## Residual       693214.751        98       7073.620                     
+## Total         1350290.321        99                                    
+## -----------------------------------------------------------------------
+## 
+##                                    Parameter Estimates                                    
+## -----------------------------------------------------------------------------------------
+##       model      Beta    Std. Error    Std. Beta      t       Sig       lower      upper 
+## -----------------------------------------------------------------------------------------
+## (Intercept)    53.901        53.330                 1.011    0.315    -51.931    159.733 
+##          IQ     5.172         0.537        0.698    9.638    0.000      4.107      6.237 
+## -----------------------------------------------------------------------------------------
+## 
+## 
+## 
+## No more variables to be added/removed.
+## 
+## 
+## Final Model Output 
+## ------------------
+## 
+##                          Model Summary                           
+## ----------------------------------------------------------------
+## R                       0.698       RMSE                 84.105 
+## R-Squared               0.487       Coef. Var            14.980 
+## Adj. R-Squared          0.481       MSE                7073.620 
+## Pred R-Squared          0.468       MAE                  52.958 
+## ----------------------------------------------------------------
+##  RMSE: Root Mean Square Error 
+##  MSE: Mean Square Error 
+##  MAE: Mean Absolute Error 
+## 
+##                                  ANOVA                                  
+## -----------------------------------------------------------------------
+##                    Sum of                                              
+##                   Squares        DF    Mean Square      F         Sig. 
+## -----------------------------------------------------------------------
+## Regression     657075.570         1     657075.570    92.891    0.0000 
+## Residual       693214.751        98       7073.620                     
+## Total         1350290.321        99                                    
+## -----------------------------------------------------------------------
+## 
+##                                    Parameter Estimates                                    
+## -----------------------------------------------------------------------------------------
+##       model      Beta    Std. Error    Std. Beta      t       Sig       lower      upper 
+## -----------------------------------------------------------------------------------------
+## (Intercept)    53.901        53.330                 1.011    0.315    -51.931    159.733 
+##          IQ     5.172         0.537        0.698    9.638    0.000      4.107      6.237 
+## -----------------------------------------------------------------------------------------</code></pre>
+<pre><code>## 
+##                               Stepwise Selection Summary                               
+## --------------------------------------------------------------------------------------
+##                      Added/                   Adj.                                        
+## Step    Variable    Removed     R-Square    R-Square     C(p)        AIC        RMSE      
+## --------------------------------------------------------------------------------------
+##    1       IQ       addition       0.487       0.481    2.4470    1174.1802    84.1048    
+## --------------------------------------------------------------------------------------</code></pre>
+<hr />
+</div>
+</div>
