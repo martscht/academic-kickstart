@@ -80,8 +80,8 @@ Das Modul PsyBSc7 vertieft die im Modul PsyBSc2 vermittelten Grundlagen. Behande
 | 6 | **Regressionanalyse III: Voraussetzungsprüfung** | [Inhalte](/post/reg3) | [Übungsdaten](/post/BSc7-Daten) |
 | 7 | **Regressionanalyse IV: quadratische und Interaktionseffekte** | [Inhalte](/post/quadratische-und-moderierte-regression) | [Übungsdaten](/post/BSc7-Daten) |
 | 8 | **Regressionanalyse V: nichtlineare Regression** | [Inhalte](/post/nichtlineare-regression) | [Übungsdaten](/post/BSc7-Daten) |
-| 9 | **ANOVA I: einfaktorielle Varianzanalyse** | Inhalte | Übungsdaten |
-| 10 | **ANOVA II: zweifaktorielle Varianzanalyse** | Inhalte | [Übungsdaten](/post/BSc7-Daten) |
-| 11 | **ANOVA III: Varianzanalyse mit Messwiederholung** | Inhalte | Übungsdaten |
+| 9 | **ANOVA I: einfaktorielle Varianzanalyse** | [Inhalte](/post/einfaktorielle-ANOVA) | [Übungsdaten](/post/BSc7-Daten) |
+| 10 | **ANOVA II: zweifaktorielle Varianzanalyse** | [Inhalte](/post/zweifaktorielle-ANOVA) | [Übungsdaten](/post/BSc7-Daten) |
+| 11 | **ANOVA III: Varianzanalyse mit Messwiederholung** | Inhalte | [Übungsdaten](/post/BSc7-Daten) |
 | | |
 
