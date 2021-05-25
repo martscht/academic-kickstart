@@ -15,7 +15,7 @@ tags:
 subtitle: 'Multi Sample Analysis'
 summary: ''
 authors: [irmer, schultze]
-lastmod: '2021-04-24T10:30:02+02:00'
+lastmod: '2021-05-25T10:30:02+02:00'
 featured: no
 header:
   image: "/header/FEII_MSA.jpg"
@@ -380,7 +380,7 @@ Wir erkennen deutlich, dass einige Koeffizienten gleich sind und bspw. der Mitte
 
 ## Multi Gruppen Modelle und moderierte Regression
 
-Auch wenn in unserem Beispiel die Regressionsgewichte über beide Gruppen hinweg gleich waren, ist das bei weitem nicht immer der Fall. In vielen Fällen zielen inhaltliche Fragestellungen genau darauf ab, in welchem Ausmaß es Unterschiede in den Beziehungen latenter Variablen über Gruppen hinweg gibt. Wir hatten bereits gesehen, dass Männer im Mittel weniger Zeitdruck erleben. Könnte es daher sein, dass Männer, die - entgegen der üblichen männlichen Erfahrung - erhöhten Zeitdruck empfinden, darauf stärker mit psychosomatischen Beschwerden reagieren als Frauen? Diese Frage impliziert einen *Interkationseffekt* wie er schon [im letzten Semester](/post/regression-und-ausreisserdiagnostik) behandelt wurde. Gleichzeitig bedeutet diese Frage auch nichts anderes als: "Gibt es einen Unterschied in den Regressionsgewichten zwischen Männern und Frauen?". In diesem Abschnitt gucken wir uns an, wie diese beiden Ansätze in Bezug zueinander stehen.
+Auch wenn in unserem Beispiel die Regressionsgewichte über beide Gruppen hinweg gleich waren, ist das bei weitem nicht immer der Fall. In vielen Fällen zielen inhaltliche Fragestellungen genau darauf ab, in welchem Ausmaß es Unterschiede in den Beziehungen latenter Variablen über Gruppen hinweg gibt. Wir hatten bereits gesehen, dass Männer im Mittel weniger Zeitdruck erleben. Könnte es daher sein, dass Männer, die - entgegen der üblichen männlichen Erfahrung - erhöhten Zeitdruck empfinden, darauf stärker mit psychosomatischen Beschwerden reagieren als Frauen? Diese Frage impliziert einen *Interkationseffekt*. Gleichzeitig bedeutet diese Frage auch nichts anderes als: "Gibt es einen Unterschied in den Regressionsgewichten zwischen Männern und Frauen?". In diesem Abschnitt gucken wir uns an, wie diese beiden Ansätze in Bezug zueinander stehen.
 
 Vereinfachen wir unser Beispiel für einen Moment auf die manifeste Ebene, wie es schon bei den [Pfadanalysen im letzten Beitrag](/post/sem#Pfadanalysen) der Fall war. Dazu nutzen wir neben den Skalenwerten der psychosomatischen Beschwerden (`BFs`) auch einen Skalenwert des Zeitdrucks (`ZDs`). Generell hält die folgende Beschreibung auch für den Fall mit latenten Variablen, aber für den Vergleich der beiden Ansätze ist ein übersichtliches Beispiel sinnvoller.
 
@@ -457,10 +457,10 @@ die in `lavaan` folgendermaßen aussieht:
 
 ```{r}
 model_pfad_moderiert <- 'BFs ~ ZDs + sexDum + Int'
-fit_pfad_moderiert <- sem(model_pfad_moderiert, StressAtWork)
+fit_pfad_moderiert <- sem(model_pfad_moderiert, StressAtWork, meanstructure = T)
 ```
 
-Als Ergebnis dieser moderierten Regression ergibt sich dann:
+Hier haben wir `meanstructure = T` gewählt, um auch das Interzept von `BFs` angezeigt zu bekommen. Als Ergebnis dieser moderierten Regression ergibt sich dann:
 
 ```{r, echo = FALSE}
 abbrev(fit_pfad_moderiert, 'Regressions:', 'Variances:')
@@ -505,11 +505,20 @@ summary(reg)
 
 Grafisch sehen wir, dass sich die Regressionsgerade über die Gruppen hinweg nur geringfügig unterscheiden (signifikant war der Unterschied nicht!). Allerdings ist dies eine gängige Form eine solche Interaktion darzustellen:
 
-```{r}
-print("Insert graphic here !!!!!")
+```{r, echo = F, fig.height=4,error=F,message=F,warning=F}
+library(ggplot2)
+coefs <- coef(reg)
+b0 <- cumsum(coefs[1:2])
+b1 <- cumsum(coefs[3:4])
+x <- c(-10,10); y <- c(-10,-10)
+sex <- factor(c("Männer", "Frauen"))
+df <- data.frame(b0, b1, sex, x, y)
+ggplot(data = df, mapping = aes(x=x,y=y, col = sex))+geom_line()+xlim(c(-5,5))+ylim(c(0.5,3))+theme_minimal()+
+  geom_abline(slope = b1, intercept = b0, col = c("blue", "gold3"), lwd = 2)+
+  xlab("Zeitdruck")+ylab("Psychosomatische Beschwerden")+scale_color_manual(values = c("blue", "gold3"))
 ```
 
-Abgetragen sehen wir auch die Gruppenunterschiede.
+Abgetragen sehen wir auch die Gruppenunterschiede. Wirklich erkennen tun wir nur ein leichten (nicht signifikanten) Unterschied im Interzept. Der Unterschied in der Slope (der ebenfalls nicht signifikant war), lässt sich höchstens erahnen. Diese Darstellungsform wird Simple Slopes genannt. Für mehr Informationen dazu und wie man das Ganze noch in 3D darstellen kann, können sich Interessierte in der Sitzung zur [moderierten Regression](/post/quadratische-und-moderierte-regression) aus dem Bachelor ansehen/wiederholen. Wir bitten ebenfalls darauf zu achten, dass i.d.R. Prädiktoren zentriert werden sollten, wenn mit Interaktionseffekten oder quadratischen Effekten gearbeitet wird. Dies haben wir hier nicht berücksichtigt, um die Sitzung nicht in die Länge zu ziehen. 
 
 Dieses Prinzip gilt in der MSA für alle Parameter: wir implizieren eine Interaktion mit der Gruppierungsvariable, wenn wir keine Gleichheit über die Gruppen hinweg annehmen. Im Umkehrschluss gilt also auch: wenn wir eine Gruppenvariable als einen Prädiktor in ein SEM aufnehmen, ohne sie als Gruppierungsvariable in einer MSA einzuarbeiten, behaupten wir, dass es keinerlei Interaktionseffekt gibt. Dies gilt auf der Ebene des Messmodells genauso wie auf der Ebene des Strukturmodells.
 
