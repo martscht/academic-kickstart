@@ -95,7 +95,7 @@ Die Funktion nimmt die Variable selbst entgegen sowie die Gruppierungsvariable. 
 
 ### 3) Normalverteilung
 
-Innerhalb jeder Gruppe sollte eine Normalverteilung vorliegen. Diese Annahme bezieht sich, entgegen häufiger Vermutung, auf die Residuen der ANOVA. Wir erkennen diese Annahme aus der Regressionsanalyse wieder, wo wir ebenfalls die [Normalverteilung der Residuen, behandelt in Regression III,](/post/reg3) annahmen, um Inferenzstatistik zu betreiben.
+Innerhalb jeder Gruppe sollte eine Normalverteilung vorliegen. Diese Annahme bezieht sich, entgegen häufiger Vermutung, auf die Residuen der ANOVA. Wir erkennen diese Annahme aus der Regressionsanalyse wieder, wo wir ebenfalls die [Normalverteilung der Residuen, behandelt in Regression III,](/post/reg3) annahmen, um Inferenzstatistik zu betreiben. Um auf die Residuen einer ANOVA zuzugreifen, kann der Befehl `residuals` oder `resid` auf ein `aov` Objekt angewendet werden. Mehr zum `aov`-Befehl folgt beim Tukey Test.
 
 ## Einfaktorielle ANOVA per Hand
 
@@ -199,7 +199,7 @@ Jetzt kann die ANOVA mit dem `ezANOVA`-Befehl durchgeführt werden, indem wir ei
 ezANOVA(conspiracy, wid = id, dv = ET, between = urban)
 ```
 
-Zunächst werden wir mit einer `## Warning` darauf hingewiesen, dass das Desgin *unbalanciert* ist: die Gruppen sind nicht alle gleich groß. Das kann Konsequenzen auf die Vertrauenswürdigkeit der Ergebnisse haben, wenn wir ANOVAs mit mehr als einem Faktor bestimmen (dazu mehr in der nächsten Sitzung zur [zweifaktoriellen ANOVA](/post/zweifaktorielle-ANOVA)).
+Zunächst werden wir mit einer `## Warning` darauf hingewiesen, dass das Desgin *unbalanciert* ist: die Gruppen sind nicht alle gleich groß. Das kann Konsequenzen auf die Vertrauenswürdigkeit der Ergebnisse haben, wenn wir ANOVAs mit mehr als einem Faktor bestimmen (dazu mehr in der nächsten Sitzung zur [zweifaktoriellen ANOVA](/post/zweifaktorielle-ANOVA).
 
 Die zweite Hälfte der Ergebnisse (`$Levene's Test for Homogeneity of Variance`) liefern die Überprüfung der Homoskedastizitätsannahme mit dem Levene Test. Dieser wird von `ezANOVA` immer automatisch mitgeliefert. Wie zu erwarten, zeigt sich das selbe Ergebnis wie mit dem `leveneTest` aus dem `car`-Paket.
 
@@ -229,7 +229,11 @@ Aufgrund der $\alpha$-Fehler Kumulierung müssen die $p$-Werte adjustiert werden
 
 ### Tukey Test
 
-Ein präziserer Ansatz als die einfachen $t$-Tests bietet **Tukeys Honest Significant Difference** (auch *Tukey Test*). Dieser kann in `R` allerdings nur auf `aov`-Objekte angewendet werden. Der `aov`-Befehl führt zum selben Ergebnis wie `ezANOVA`. Zu Unterschieden kann es erst bei der [zweifaktoriellen ANOVA](/post/zweifaktorielle-ANOVA)) kommen, da dort der Typ der Quadratsumme ein Rolle spielt, wie diese ausfällt. In unserem Beispiel sieht der `aov`-Befehl so aus, wobei wir direkt die `summary`-Funktion, analog zur Regressionanalyse, darauf anwenden, um die Signifikanzentscheidungen zu sehen:
+Ein präziserer Ansatz als die einfachen $t$-Tests bietet **Tukeys Honest Significant Difference** (auch *Tukey Test*). Dieser kann in `R` allerdings nur auf `aov`-Objekte angewendet werden. Der `aov`-Befehl führt zum selben Ergebnis wie `ezANOVA`. Zu Unterschieden kann es erst bei der [zweifaktoriellen ANOVA](/post/zweifaktorielle-ANOVA) kommen, da dort der Typ der Quadratsumme ein Rolle spielt, wie diese ausfällt. 
+
+#### aov-Befehl
+
+In unserem Beispiel sieht der `aov`-Befehl so aus, wobei wir direkt die `summary`-Funktion, analog zur Regressionanalyse, darauf anwenden, um die Signifikanzentscheidungen zu sehen:
 
 ```{r}
 summary(aov(ET ~ urban, data = conspiracy))
@@ -248,6 +252,15 @@ plot(tuk)
 ```
 
 Schließt das Konfidenzintervall für die Mittelwertsdifferenz die Null (gestrichelte Linie) ein, so ist diese Mittelwertsdifferenz statistisch signifikant! In unserer Stichprobe kam es zu Mittelwertsunterschieden auf `ET`, da sich die Gruppen `urban` (städtisch) und `suburban` (vorstädtisch) hinsichtlich der Zustimmung zur Überzeugung, dass die Existenz von Außerirdischen geheimgehalten wird, unterscheiden.
+
+#### ezANOVA-Befehl
+
+Es ist auch möglich das `aov`-Objekt gleichzeitig mit der ezANOVA ausgeben zu lassen. Dies ist möglich, indem man im `ezANOVA`-Befehl die Bedingung `return_aov = TRUE` hinzufügt und dann mit `$aov` auf das `aov`-Objekt zugreift. Dies kann dann im Environment abspeichert und weiterverwendet werden.
+
+```{r}
+aov_t <- ezANOVA(conspiracy, wid = id, dv = ET, between = urban, return_aov = T)$aov
+TukeyHSD(aov_t, conf.level = 0.95)
+```
 
 ***
 
