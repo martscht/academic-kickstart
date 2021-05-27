@@ -9,7 +9,7 @@ library(lavaan)
 #### Datensatz ----
 
 # Daten laden
-load(url('https://pandar.netlify.com/post/conspiracy.rda'))
+load(url('https://pandar.netlify.com/post/conspiracy_cfa.rda'))
 
 # Überblick
 conspiracy
