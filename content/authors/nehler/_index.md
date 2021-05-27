@@ -13,13 +13,16 @@ superuser: false
 role: Dozent
 
 # Organizations/Affiliations
-# organizations:
-# - name: Goethe Universität Frankfurt am Main
+organizations:
+- name: Goethe Universität Frankfurt am Main
 #   url: ""
 
 # Short bio (displayed in user profile at end of posts)
 bio:
 interests:
+- Missing Values
+- Netzwerkanalyse
+- Coding
 education:
 # Social/Academic Networking
 # For available icons, see: https://sourcethemes.com/academic/docs/widgets/#icons
@@ -35,15 +38,15 @@ social:
 # - icon: google-scholar
 #   icon_pack: ai
 #   link: https://scholar.google.co.uk/citations?user=sIwtMXoAAAAJ
-# - icon: github
-#   icon_pack: fab
-#   link:
+- icon: github
+  icon_pack: fab
+  link: https://github.com/kai-nehler
 # - icon: bitbucket
 #   icon_pack: fab
 #   link:
-# - icon: link
-#   icon_pack: fa
-#   link:
+- icon: link
+  icon_pack: fa
+  link: https://www.psychologie.uni-frankfurt.de/78419488/Team
 # - icon: researchgate
 #   icon_pack: fab
 #   link:
@@ -60,3 +63,8 @@ email: ""
 #   Set this to `[]` or comment out if you are not using People widget.
 user_groups: ["Teaching"]
 ---
+
+Kai Jannik Nehler ist wissenschaftlicher Mitarbeiter der Abteilung _Psychologische Methoden mit interdisziplinärer Ausrichtung_ an der Goethe-Universität Frankfurt. 
+
+**Biographie**
+Studium der Psychologie (Bachelor und Master) an der Johann Wolfgang Goethe-Universität in Frankfurt mit den psychologischen Schwerpunkten Statistik Arbeits- und Organisationspsychologie (Major) und Klinische Psychologie (Minor) von 2013-2019. Tutor für Statistik für Psychologen (1. und 2. Bachelorsemester), sowie Forschungsmethoden & Evaluation (1. und 2. Mastersemester) für das Institut für Psychologie an der Goethe-Universität Frankfurt (2014-2018). 
