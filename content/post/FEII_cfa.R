@@ -375,7 +375,7 @@ lavTestLRT(fit_two, fit_four)
 #### Appendix: Hierarchie der Messmodelle ----
 
 # Daten laden
-data(stat_test, package = 'PsyMSc1')
+load(url("https://pandar.netlify.app/post/stat_test.rda"))
 
 # Überblick über Datenlage
 summary(stat_test)
