@@ -8,8 +8,7 @@ confirmed_raw <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVI
 deaths_raw <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
 
 #Daten aufbereiten: von breites (Spalte pro Tag) in langes Format (Zeile pro Tag) übertragen
-missings <- which(apply(confirmed_raw[,1:4],1,function(x) any(is.na(x)))) #Missings identifizieren
-confirmed <- confirmed_raw[-missings,]                                    #Missings löschen
+confirmed <- na.omit(confirmed_raw) #Datensatz ohne fehlende Werte anlegen
 
 confirmed_long <- reshape(confirmed,                           #Datensatz
                           varying = names(confirmed)[-c(1:4)], #Variablen, die wiederholt gemessen wurden
@@ -23,8 +22,7 @@ rownames(confirmed_long) <- NULL #Variablennamen entfernen
 head(confirmed_long)
 
 #analog für anderen Datensatz
-missings <- which(apply(deaths_raw[,1:4],1,function(x) any(is.na(x)))) #Missings identifizieren
-deaths <- deaths_raw[-missings,]                                    #Missings löschen
+deaths <- na.omit(deaths_raw) #Datensatz ohne fehlende Werte anlegen
 
 deaths_long <- reshape(deaths,                              #Datensatz
                           varying = names(deaths)[-c(1:4)], #Variablen, die wiederholt gemessen wurden
