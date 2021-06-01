@@ -4,10 +4,13 @@
 
 
 ##Datensätze laden
-confirmed <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
-deaths <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
+confirmed_raw <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
+deaths_raw <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
 
 #Daten aufbereiten: von breites (Spalte pro Tag) in langes Format (Zeile pro Tag) übertragen
+missings <- which(apply(confirmed_raw[,1:4],1,function(x) any(is.na(x)))) #Missings identifizieren
+confirmed <- confirmed_raw[-missings,]                                    #Missings löschen
+
 confirmed_long <- reshape(confirmed,                           #Datensatz
                           varying = names(confirmed)[-c(1:4)], #Variablen, die wiederholt gemessen wurden
                           v.names = 'Confirmed',               #Name, unter dem die Variablen zusammengefasst werden sollen
@@ -20,12 +23,15 @@ rownames(confirmed_long) <- NULL #Variablennamen entfernen
 head(confirmed_long)
 
 #analog für anderen Datensatz
-deaths_long <- reshape(deaths,
-                       varying = names(deaths)[-c(1:4)],
-                       v.names = 'Deaths',
-                       timevar = 'Day',
-                       idvar = names(deaths)[1:4],
-                       direction = 'long')
+missings <- which(apply(deaths_raw[,1:4],1,function(x) any(is.na(x)))) #Missings identifizieren
+deaths <- deaths_raw[-missings,]                                    #Missings löschen
+
+deaths_long <- reshape(deaths,                              #Datensatz
+                          varying = names(deaths)[-c(1:4)], #Variablen, die wiederholt gemessen wurden
+                          v.names = 'Deaths',               #Name, unter dem die Variablen zusammengefasst werden sollen
+                          timevar = 'Day',                  #Variable, die Wiederholungen kennzeichnet
+                          idvar = names(deaths)[1:4],       #Variablen, die sich über Wiederholungen nicht ändern
+                          direction = 'long')               #Zielformat des neuen Datensatzes
 
 rownames(deaths_long) <- NULL
 head(deaths_long)

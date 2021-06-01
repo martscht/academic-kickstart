@@ -41,20 +41,20 @@ Statt den Umweg über externe Dateien zu gehen, können wir aber auch direkt aus
 In R können wir dafür einfach die normalen Befehle zum Einlesen von Dateien nutzen. Diese sind auch dafür ausgelegt, dass der Dateipfad sich nicht auf lokale Daten, sondern auf URLs bezieht. Für die erste Datei:
 
 ```{r}
-confirmed <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
+confirmed_raw <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
 ```
 
 Im *Environment*-Tab sieht man in RStudio die Eigenschaften dieses Datensatzes:
 
 ```{r}
-ncol(confirmed)
-nrow(confirmed)
+ncol(confirmed_raw)
+nrow(confirmed_raw)
 ```
 
 Das Gleiche sollten wir jetzt noch für die anderen beiden Dateien machen, bevor wir uns gleich mit dem Format der Daten befassen.
 
 ```{r}
-deaths <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
+deaths_raw <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
 ```
 
 ### Daten aufbereiten (`reshape`)
@@ -87,6 +87,12 @@ Was wir haben ist also ein Datensatz im "breiten" Format (eine Spalte pro Tag) u
 Für den ersten Datensatz sollte die Syntax also wie folgt aussehen:
 
 ```{r}
+#Zunächst Missings aus dem Datensatz identifizieren und neuen Datensatz ohne Missings erstellen
+missings <- which(apply(confirmed_raw[,1:4],1,function(x) any(is.na(x)))) 
+confirmed <- confirmed_raw[-missings,]  
+```
+
+```{r}
 confirmed_long <- reshape(confirmed,
   varying = names(confirmed)[-c(1:4)],
   v.names = 'Confirmed',
@@ -109,6 +115,12 @@ head(confirmed_long)
 ```
 
 Bevor jetzt die beiden Datensätze zusammenführen können, muss auch `deaths` ins Long-Format übertragen werden:
+
+```{r}
+#Zunächst Missings aus dem Datensatz identifizieren und neuen Datensatz ohne Missings erstellen
+missings <- which(apply(deaths_raw[,1:4],1,function(x) any(is.na(x)))) 
+deaths <- deaths_raw[-missings,]  
+```
 
 ```{r reshape_deaths}
 deaths_long <- reshape(deaths,
