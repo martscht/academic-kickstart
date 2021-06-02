@@ -87,8 +87,10 @@ Die zweite Hälfte des Moduls, F&E II, befasst sich vor allem mit Ansätzen zur 
 | 1 | **Einführung in lavaan** | [Inhalte](/post/lavaan-intro)  | [Übungsdaten](/post/fairplayer.rda) | [R-Skript](/post/FEII_intro.R) |
 | 2 | **Explorative Faktorenanalyse** | [Inhalte](/post/efa)  | [Übungsdaten](/post/Big5_EFA.rda) | [R-Skript](/post/FEII_efa.R) |
 | 3 | **Konfirmatorische Faktorenanalyse** | [Inhalte](/post/cfa)  | [Übungsdaten](/post/conspiracy.rda) | [R-Skript](/post/FEII_cfa.R) |
-| *Zusatz* |  **Modelfit** | [Inhalte](/post/exkurs-modelfit) |  | | | |
 | 4 | **Strukturgleichungsmodelle** | [Inhalte](/post/sem)  | [Übungsdaten](/post/StressAtWork.rda) | [R-Skript](/post/FEII_sem.R) |
+| *Zusatz* |  **Modelfit** | [Inhalte](/post/exkurs-modelfit) |  | | | |
 | 5 | **Multigruppen Modelle** | [Inhalte](/post/msa)  | [Übungsdaten](/post/StressAtWork.rda) | [R-Skript](/post/FEII_msa.R) |
 | *Zusatz* |  **Invarianztestung** | [Inhalte](/post/exkurs-invarianzstufen) |  | | | |
 |  |   |  |  | | | |
+
+* *Zusatz* Abschnitte sollen als Ergänzung für Interessierte dienen und einige angesprochenen Aspekte vertiefen. Neue `R`-Inhalte werden nicht vermittelt.
