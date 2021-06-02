@@ -15,7 +15,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer, hartig]
-lastmod: '2021-04-14T08:32:21+02:00'
+lastmod: '2021-06-02T08:32:21+02:00'
 featured: no
 header:
   image: "/header/PsyBSc7_Reg4.jpg"
@@ -108,7 +108,25 @@ m1.b <- lm(Reading ~ HISEI + poly(MotherEdu, 2) + Books, data = PISA2009)
 summary(lm.beta(m1.b))
 ```
 
-Mit dem folgenden Befehl können wir auf eine simple Weise das Inkrement bestimmen.
+`poly` bewirkt, dass der lineare und der quadratische Anteil von `MotherEdu` unkorreliert sind, was sehr wichtig ist, da es sonst zu zu großen Standardfehlern kommen kann, wie wir in der [letzten Sitzungen](/post/reg3) im Themenblock der Kollinearität kennengelernt hatten.
+
+<details><summary> **Lineare und quadratische Funktionen von Variablen und deren Kovarianz/Korrelation** </summary>
+
+Wir bestimmen zunächst die Korrelation zwischen `MotherEdu` und `MotherEdu^2`:
+```{r}
+cor(PISA2009$MotherEdu, PISA2009$MotherEdu^2)
+```
+und erkennen, dass diese beiden "Variable" extrem hoch korreliert sind. Nun wenden wir `poly` an und wiederholen das Vorgehen:
+
+```{r}
+cor(poly(PISA2009$MotherEdu, 2))
+```
+Heraus kommt eine Korrelationsmatrix und im Eintrag [1,2] erkennen wir, dass die Korrelation nun de facto 0 ist. Was genau `poly` macht, steht in [Appendix A](#AppendixA).
+
+</details>
+
+
+Mit dem folgenden Befehl können wir auf eine simple Weise das Inkrement des quadratischen Trends bestimmen.
 ```{r}
 # Vergleich mit Modell ohne quadratischen Trend
 summary(m1.b)$r.squared - summary(m1)$r.squared # Inkrement
@@ -165,7 +183,7 @@ mean(PISA2009$MotherEdu_centered) # sehr kleine Zahl
 `e-17` steht hierbei für $10^{-17}$ also eine Verschiebung des Kommas um 17 Stellen nach links, was eine sehr kleine Zahl ausdrückt. Der Mittelwert ist hier nicht exakt Null, da `R` intern immer auf die sogenannte Maschinengenauigkeit rundet (das sind ca 16 Nachkommastellen). `_centered` steht hierbei für zentriert, also Mittelwert = 0.
 
 ## Interaktionsterme: moderierte Regression {#modReg}
-Außerdem können auch Interaktionen zwischen Variablen in ein Regressionsmodell aufgenommen werden. Für weiter inhaltliche Details siehe [Eid et al. (2017) Kapitel 19.9](https://hds.hebis.de/ubffm/Record/HEB366849158). Eine Regression mit einem Interaktionsterm wird auch häufig moderierte Regression genannt. Häufig wird dann von einem Moderator gesprochen, der die Beziehung eines Prädiktors mit dem Kriterium "moderiert". Genaugenommen ist Moderation jedoch eine wechselseitige Beziehung, so dass es im Modell nicht nur einen Moderator gibt. Vielmehr moderieren beide beteiligten Prädiktoren jeweils den Zusammenhang des Kriteriums mit dem anderen. Dies ist leicht einzusehen, wenn wir uns die Modellgleichungen ansehen. Wir nennen den Prädiktor $X$, den Moderator $Z$ und das Kriterium $Y$. Dann ergibt sich folgende Regressionsgleichung (für eine Person $i$):
+Außerdem können auch Interaktionen zwischen Variablen in ein Regressionsmodell aufgenommen werden. Für weiter inhaltliche Details siehe [Eid et al. (2017) Kapitel 19.9](https://hds.hebis.de/ubffm/Record/HEB366849158). Eine Regression mit einem Interaktionsterm wird auch häufig moderierte Regression genannt. Häufig wird dann von einem Moderator (der selbst natürlich auch ein Prädiktor im Regressionsmodell ist) gesprochen, der die Beziehung eines (anderen) Prädiktors mit dem Kriterium "moderiert". Genaugenommen ist Moderation jedoch eine wechselseitige Beziehung, so dass es im Modell nicht nur einen Moderator gibt. Vielmehr moderieren beide beteiligten Prädiktoren jeweils den Zusammenhang des Kriteriums mit dem anderen. Dies ist leicht einzusehen, wenn wir uns die Modellgleichungen ansehen. Wir nennen den Prädiktor $X$, den Moderator $Z$ und das Kriterium $Y$. Dann ergibt sich folgende Regressionsgleichung (für eine Person $i$):
 
 $$Y_i=\beta_0 + \beta_1X_i + \beta_2Z_i + \beta_3X_iZ_i + \varepsilon_i.$$
 Der Interaktionsterm trägt also den Koeffizienten $\beta_3$ in diesem Beispiel. Um das ganze sich leichter vorstellen zu können, stellen wir diese Gleichung um und stellen die Beziehung zwischen $X$ und $Y$ mit Hilfe von $Z$ dar. Das wird auch manchmal "simple slopes" also einfache Steigungen genannt, da wir im Grunde mehrere Geraden für $X$ in Abhängigkeit von $Z$ annehmen wollen:
@@ -182,7 +200,7 @@ head(Schulleistungen)
 knitr::kable(head(Schulleistungen))
 ```
 
-Auch bei Interaktionen ist es wichtig, dass die Daten zentriert sind, also einen Mittelwert von 0 aufweisen. Das erleichtert die Interpretation und verändert die Korrelation des Interaktionsterms (oben $X_i*Z_i$) mit den Haupteffekten von $X_i$ und $Z_i$. Daher verwenden wir die `scale` Funktion, um den gesamten Datensatz zu standardisieren (also zu zentrieren und gleich noch die Varianz auf 1 zu setzen) und speichern diesen unter dem Namen `Schulleistungen_std`.
+Auch bei Interaktionen ist es wichtig, dass die Daten zentriert sind, also einen Mittelwert von 0 aufweisen. Dies hatte im anderen Beispiel oben die Funktion `poly` bewirkt und erleichtert die Interpretation und verändert die Korrelation des Interaktionsterms (oben $X_i*Z_i$) mit den Haupteffekten von $X_i$ und $Z_i$. Daher verwenden wir die `scale` Funktion, um den gesamten Datensatz zu standardisieren (also zu zentrieren und gleich noch die Varianz auf 1 zu setzen) und speichern diesen unter dem Namen `Schulleistungen_std`. Sind die Daten zentriert (haben einen Mittelwert von 0) oder sogar standardisiert (haben einen Mittelwert von 0 **und** eine Varianz/Standardabweichung von 1), dann ist in einem Modell, in dem nur lineare Effekte und quadratische und Interaktionseffekte vorkommen (also Prädiktoren $X, Z$ und $X^2, XZ, Z^2$, wobei die Parameter vor $X, Z$ die linearen Effekte genannt werden und die Parameter vor $X^2, XZ, Z^2$ die quadratischen bzw. Interaktionseffekt genannt werden), eine Verrechnung mit `poly` nicht mehr nötig. `poly` bringt nur dann Verbesserungen, wenn bspw. noch kubische Effekte ($X^3$) mit aufgenommen werden sollten. Dies geschieht hier aber nicht, weswegen wir `poly` in diesem Abschnitt nicht brauchen. Lesen Sie gerne eine Gegenüberstellung von `poly` und Zentrierung/Standardisierung in [Appendix A](#AppendixA) nach. 
 
 ```{r}
 Schulleistungen_std <- data.frame(scale(Schulleistungen)) # standardisierten Datensatz abspeichern als data.frame
@@ -204,11 +222,11 @@ library(interactions)
 interact_plot(model = mod_reg, pred = IQ, modx = math)
 ```
 
-Uns wird nun ein Plot mit drei Linien ausgegeben. Dieser wird auch häufig "simple slopes" Plot genannt. Dargestellt sind drei Beziehungen zwischen `IQ` und `reading` für unterschiedliche Ausprägungen von `math`; nämlich einmal für einen durchschnittlichen `math`-Wert, sowie für jeweils Werte, die eine Standardabweichung (SD) oberhalb oder unterhalb des Mittelwerts liegen. Damit bekommen wir ein Gefühl dafür, wie sehr sich die Beziehung (und damit Interzept und Slope) zwischen der Leseleistung und der Intelligenz verändert für unterschiedliche Ausprägungen der Matheleistung --- nämlich für eine durchschnittliche (`Mean`) Ausprägung sowie für eine unter- (`- 1 SD`) und eine überdurchschnittliche (`+ 1 SD`) Ausprägung. Die Signifikanzentscheidung oben zeigte uns, dass diese Unterschiede bedeutsam sind und somit die Matheleistung entscheidend ist, wie genau die Leseleistung mit der Intelligenz zusammenhängt. Die einzelnen Regressionsgerade lassen sich ebenfalls auf signifikante Unterschiede prüfen. Es kann auch untersucht werden, welche Ausprägungen des Moderators zu unterschiedlichen "bedingten" Regressionsgewichten führen, also ab wann sich Interzept oder Slope des Prädiktors signifikant verändert, wenn sich der Moderator verändert. Inhaltlich wäre eine Post-Hoc (also nach der Analyse entstehende) Interpretation, dass intelligente Kinder, die gut in Mathematik sind, besonders gut lesen können und sich dies auch bereits in den Textaufgaben der Matheaufgaben geäußert haben könnte. Dies ist allerdings eine Interpretation, die mit Vorsicht zu genießen ist - sie wurde quasi an die Ergebnisse angepasst. Wir wissen allerdings, dass dies ein exploratives Vorgehen ist und dass so nur bedingt wissenschaftliche Erkenntnis gewonnen werden kann. Ein besseres Vorgehen wäre, dass wir im Vorhinein Hypothesen aus Theorien ableiten und diese an einem Datensatz prüfen. Außerdem müssten wir, um ganz sicher zu gehen, dass es in der Population eine Interaktion gibt (mit einem Irrtumsniveau von 5%), auch die quadratischen Effekte mit in das Modell aufnehmen! In unserem Beispiel hätten wir die quadratischen Effekte wie folgt aufnehmen können: `reading ~ IQ+math+ I(math^2)+I(IQ*math) +I(IQ^2)` - die Daten hatten wir zuvor schon zentriert, bzw. sogar standardisiert.
+Uns wird nun ein Plot mit drei Linien ausgegeben. Dieser wird auch häufig "simple slopes" Plot genannt. Dargestellt sind drei Beziehungen zwischen `IQ` und `reading` für unterschiedliche Ausprägungen von `math`; nämlich einmal für einen durchschnittlichen `math`-Wert, sowie für jeweils Werte, die eine Standardabweichung (SD) oberhalb oder unterhalb des Mittelwerts liegen. Damit bekommen wir ein Gefühl dafür, wie sehr sich die Beziehung (und damit Interzept und Slope) zwischen der Leseleistung und der Intelligenz verändert für unterschiedliche Ausprägungen der Matheleistung --- nämlich für eine durchschnittliche (`Mean`) Ausprägung sowie für eine unter- (`- 1 SD`) und eine überdurchschnittliche (`+ 1 SD`) Ausprägung. Die Signifikanzentscheidung oben zeigte uns, dass diese Unterschiede bedeutsam sind und somit die Matheleistung entscheidend ist, wie genau die Leseleistung mit der Intelligenz zusammenhängt. Die einzelnen Regressionsgerade lassen sich ebenfalls auf signifikante Unterschiede prüfen. Es kann auch untersucht werden, welche Ausprägungen des Moderators zu unterschiedlichen "bedingten" Regressionsgewichten führen, also ab wann sich Interzept oder Slope des Prädiktors signifikant verändert, wenn sich der Moderator verändert. Inhaltlich wäre eine Post-Hoc (also nach der Analyse entstehende) Interpretation, dass intelligente Kinder, die gut in Mathematik sind, besonders gut lesen können und sich dies auch bereits in den Textaufgaben der Matheaufgaben geäußert haben könnte. Dies ist allerdings eine Interpretation, die mit Vorsicht zu genießen ist - sie wurde quasi an die Ergebnisse angepasst. Wir wissen allerdings, dass dies ein exploratives Vorgehen ist und dass so nur bedingt wissenschaftliche Erkenntnis gewonnen werden kann. Ein besseres Vorgehen wäre, dass wir im Vorhinein Hypothesen aus Theorien ableiten und diese an einem Datensatz prüfen. Außerdem müssten wir, um ganz sicher zu gehen, dass es in der Population eine Interaktion gibt (mit einem Irrtumsniveau von 5%), auch die quadratischen Effekte mit in das Modell aufnehmen! In unserem Beispiel hätten wir die quadratischen Effekte wie folgt aufnehmen können: `reading ~ IQ+math+ I(math^2)+I(IQ*math) +I(IQ^2)` - die Daten hatten wir zuvor schon zentriert, bzw. sogar standardisiert. Hier ist das `I()` als Funktion anzusehen, die auch "as.is" genannt wird, also "so wie es dort steht". Dieser werden arithmetische Funktionen übergeben. Diese überschreibt die Kurzschreibweise `IQ*math= IQ + math + IQ:math`, da das `*` als Multiplikationsoperator interpretiert wird. Wir könnten also auch die beiden Schreibweisen mischend `reading ~ IQ*math + I(math^2) + I(IQ^2)` schreiben.
 
 Interessierte Lesende können sich bei Interesse, das über diesen Kurs hinaus geht, dazu das `R`-Paket `reghelper` mit der Funktion `simple_slopes` ansehen. Nach laden des Pakets kann mit `?simple_slopes` die Hilfe zu dieser Funktion aufgerufen werden, die den Umgang damit etc. erklärt.
 
-Die folgende Grafik stellt den Sachverhalt noch einmal als 3D Grafik (mit dem Paket `plot3D`) dar (ziemlich cool oder?). Der Code zu den Grafiken lässt sich in [Appendix B](#AppendixB) nachlesen.
+Die folgende Grafik stellt den Sachverhalt noch einmal als 3D Grafik (mit dem Paket `plot3D`) dar (ziemlich cool oder?). In dieser Grafik erkennen wir sehr deutlich, dass die Simple Slopes tatsächlich eine stark vereinfachte Darstellung ist und es tatsächlich unendlich viele bzw. so viele unterschiedliche Beziehungen zwischen Prädiktor (`IQ`) und Kriterium (`reading`) in Abhängigkeit des Moderators (`math`) gibt, wie dieser (`math`) Ausprägungen hat. Der Code zu den Grafiken lässt sich in [Appendix B](#AppendixB) nachlesen.
 
 ```{r, echo = F, fig.align="center", fig.height=6, message=F, warning = F}
 library(plot3D)
@@ -246,7 +264,7 @@ scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
           main = "Moderierte Regression")
 ```
 
-Diese Plots gegeben einen noch besseren Eindruck, was genau bei einer Interaktion passiert und wie "austauschbar" eigentlich der Moderator oder der Prädiktor ist. Außerdem kann man mit den Überlegungen aus diesem Abschnitt leicht einsehen, dass das quadratische Modell von oben tatsächlich ein Spezialfall dieses moderierten Modells ist, in welchem der Prädiktor mit sich selbst interagiert (sich selbst moderiert). Darüber, wie genau man moderierte Regressionen durchführt, gibt es viel Literatur. Einige Forscher sagen, dass man neben der Interaktion auch immer die quadratischen Effekte mit aufnehmen sollte, um auszuschließen, dass die Interaktion ein Artefakt ist, der nur auf quadratische Effekte zurückzuführen ist. Diese Überlegungen gehen jedoch hier über diesen Kurs hinaus! Für eine Abschlussarbeit sollte man sich das aber ggf. nochmals genauer ansehen.
+Diese Plots gegeben einen noch besseren Eindruck, was genau bei einer Interaktion passiert und wie "austauschbar" eigentlich der Moderator oder der Prädiktor ist. Außerdem kann man mit den Überlegungen aus diesem Abschnitt leicht einsehen, dass das quadratische Modell von oben tatsächlich ein Spezialfall dieses moderierten Modells ist, in welchem der Prädiktor mit sich selbst interagiert (sich selbst moderiert). Darüber, wie genau man moderierte Regressionen durchführt, gibt es viel Literatur. Einige Forscher sagen, dass man neben der Interaktion auch immer die quadratischen Effekte mit aufnehmen sollte, um auszuschließen, dass die Interaktion ein Artefakt ist, der nur auf quadratische Effekte zurückzuführen ist. Das stellt eine hervorragenden Übung dar sich dies einmal anzusehen! In [Appendix C](#AppendixC) sehen Sie die Simple Slopes sowie die 3D-Grafiken auch noch einmal für das "volle" quadratisch-Interaktionsmodell.
 
 Mit Hilfe der Funktion `I()` ("as is", führt dazu, das arithmetische Operatoren als solche interpretiert werden) lassen sich innerhalb des `lm` Befehls zu dem noch weitere Funktionale hinzufügen, ohne diese vorher erzeugen zu müssen. Beispielsweise ließe sich durch `lm(Y ~ X + I(sin(X))) + I(exp(sqrt(X))` folgendes Regressionsmodell schätzen: $Y = \beta_0+\beta_1X + \beta_2\sin(X) + \beta_3e^{\sqrt{X}} + \varepsilon$. Allerdings lassen sich so nicht Wachstumsraten modellieren (z.B. exponentielles oder logarithmisches Wachstum) - hierzu müssten die Variablen tatsächlich transformiert werden. Dies wollen wir uns in der [nächsten Sitzung zur nichtlinearen Regression](/post/nichtlineare-Regression) genauer ansehen.
 
@@ -412,6 +430,97 @@ Wir verwenden `scale`, um die linearen und quadratischen Anteile des Bildungsabs
 
 </details>
 
+<details><summary> **Exkurs: Zentrierung vs. `poly`** </summary>
+
+Wir vergleichen nun an einem ganz einfachen Beispiel, was `poly` und was Zentrierung bewirkt. Dazu erstellen wir einen Vektor (also eine Variable) $A$ der die Zahlen von 0 bis 10 enthält in 0.1 Schritten:
+
+```{r}
+A <- seq(0, 10, 0.1)
+```
+
+Nun bestimmen wir zunächst die Korrelation zwischen $A$ und $A^2$:
+
+```{r}
+cor(A, A^2)
+```
+welche sehr hoch ausfällt. Wir hatten bereits mit `poly` erkannt, dass diese Funktion die linearen und quadratischen Anteile trennt. Nun zentrieren wir die Daten. Das geht entweder händisch oder mit der `scale` Funktion:
+
+```{r}
+A_c <- A - mean(A)
+mean(A_c)
+
+A_c2 <- scale(A, center = T, scale = F)  # scale = F bewirkt, dass nicht auch noch die SD auf 1 gesetzt werden soll
+mean(A_c2)
+```
+
+Nun vergleichen wir die Korrelationen zwischen $A_c$ mit $A_c^2$ mit den Ergebnissen von `poly`:
+
+```{r}
+cor(A_c, A_c^2)
+cor(poly(A_c, 2))
+
+# auf 15 Nachkommastellen gerundet:
+round(cor(A_c, A_c^2), 15)
+round(cor(poly(A_c, 2)), 15)
+```
+beide Vorgehensweisen sind bis auf 15 Nachkommastellen identisch!
+
+Spaßenshalber nehmen wir noch die Terme $A^3$ und $A^4$ auf und vergleichen die Ergebnisse:
+
+```{r}
+# auf 15 Nachkommastellen gerundet:
+round(cor(cbind(A, A^2, A^3, A^4)), 2)
+round(cor(cbind(A_c, A_c^2, A_c^3, A_c^4)), 2)
+round(cor(poly(A_c, 4)), 2)
+
+```
+Was wir nun erkennen ist, dass $A, A^2, A^3, A^4$ **sehr** hoch korreliert sind. Die zentrierten Variablen zeigen ein etwas anderes Bild. Hier ist $A_c$ und $A_c^3$ **sehr** hoch korreliert sowie $A_c^2$ und $A_c^4$ sind **sehr** hoch korreliert. Man sagt auch, dass nur gerade Potenzen ($A^2, A^4, A^6,\dots$) untereinander und ungerade Potenzen ($A=A^1, A^3, A^5,\dots$) untereinander korreliert sind,  **wenn die Daten zentriert** sind. Bei `poly` verschwinden alle Korrelationen zwischen $A, A^2, A^3, A^4$. Hier dran erkennen wir, dass wenn wir nur Terme zur 2. Ordnung/Potenz (also $A$ und $A^2$ und natürlich Interaktionen $AB$, aber eben nicht $A^3$ bzw. $AB^2$ oder $A^2B$, etc.) im Modell haben, dann reicht die Zentrierung aus, um extreme Kollinearitäten zu zwischen linearen und nichtlinearen Termen zu vermeiden. 
+
+Da wir hier die Korrelationen betrachtet haben, kommt eine Standardisierung von $A$ zu identischen Ergebnissen, weswegen wir hierauf verzichten.
+
+#### Mathematische Begründung
+Dieser Abschnitt ist für die "Warum ist das so?"-Fragenden bestimmt und ist als reinen Zusatz zu erkennen. 
+
+Wir wissen, dass die Korrelation der Bruch aus der Kovarianz zweier Variablen geteilt durch deren Standardabweichung ist. Aus diesem Grund reicht es, die Kovarianz zweier Variablen zu untersuchen, um zu schauen, wann die Korrelation 0 ist. Wir hatten oben die Variablen zentriert und bemerkt, dass dann die Korrelation zwischen $A_c$ und $A_c^2$ verschwindet. Warum ist das so? Dazu stellen wir $A$ in Abhängigkeit von seinem Mittelwert $\mu_A$ und $A_c$, der zentrierten Version von $A$, dar:
+
+$$A := \mu_A + A_c$$
+
+So kann jede Variable zerlegt werden: in seinen Mittelwert (hier: $\mu_A$) und die Abweichung vom Mittelwert (hier: $A_c$). Nun bestimmen wir die Kovarianz zwischen den Variablen $A$ und $A^2$ und setzen in diesem Prozess $\mu_A+A_c$ für $A$ ein und wenden die binomische Formel an $(a+b)^2=a^2+2ab+b^2$.
+
+\begin{align}
+\mathbb{C}ov[A, A^2] &= \mathbb{C}ov[\mu_A + A_c, (\mu_A + A_c)^2]\\
+&= \mathbb{C}ov[A_c, \mu_A^2 + 2\mu_AA_c + A_c^2]\\
+&=  \mathbb{C}ov[A_c, \mu_A^2] + \mathbb{C}ov[A_c, 2\mu_AA_c] + \mathbb{C}ov[A_c, A_c^2]
+\end{align}
+
+An dieser Stelle pausieren wir kurz und bemerken, dass wir diese beiden Ausdrücke schon kennen $\mathbb{C}ov[A_c, \mu_A^2]  = \mathbb{C}ov[A_c, A_c^2] = 0$. Ersteres ist die Kovarianz zwischen einer Konstanten und einer Variable, welche immer 0 ist und, dass die Kovarianz zwischen $A_c$ und $A_c^2$ 0 ist, hatten wir oben schon bemerkt!
+
+Folglich können wir sagen, dass 
+
+\begin{align}
+\mathbb{C}ov[A, A^2] &= \mathbb{C}ov[A_c, 2\mu_AA_c] \\
+&= 2\mu_A\mathbb{C}ov[A_c,A_c]=2\mu_A\mathbb{V}ar[A],
+\end{align}
+
+wobei wir hier benutzen, dass die Kovarianz mit sich selbst die Varianz ist und dass die zentrierte Variable $A_c$ die gleiche Varianz wie $A$ hat. Dies können wir leicht prüfen:
+
+```{r}
+var(A)
+var(A_c)
+
+# Kovarianz 
+cov(A, A^2)
+2*mean(A)*var(A)
+
+# zentriert:
+round(cov(A_c, A_c^2), 14)
+round(2*mean(A_c)*var(A_c), 14)
+```
+
+Der zentrierte Fall ist auf 14 Nachkommastellen identisch und weicht danach nur wegen der sogenannten Maschinengenauigkeit von einander ab. Somit ist klar, dass wenn der Mittelwert = 0 ist, dann ist auch die Korrelation zwischen einer Variable und seinem Quadrat 0. Analoge Überlegungen können genutzt werden, um das gleiche für die Interaktion von Variablen zu sagen.
+
+</details>
+
 ## Appendix B {#AppendixB}
 <details><summary> **Code zu 3D Grafiken** </summary>
 
@@ -451,6 +560,61 @@ scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
 ```
 
 Für weitere Informationen zum Umgang mit diesem Plot siehe bspw. hier: [3D Grafiken mit `plot3D` `r fontawesome::fa("graduation-cap")`](http://www.sthda.com/english/wiki/impressive-package-for-3d-and-4d-graph-r-software-and-data-visualization).
+
+</details>
+
+
+## Appendix C {#AppendixC}
+<details><summary> **Simple Slopes und 3D Grafiken für das "volle" quadratische und Interaktionsmodell** </summary>
+
+Für die Simple Slopes müssen wir nur die quadratischen Effekte aufnehmen und erkennen, dass es nun nicht mehr Geraden sondern Kurven sind:
+
+```{r}
+mod_reg_full <- lm(reading ~ math + IQ + math:IQ  + I(math^2) + I(IQ^2), data = Schulleistungen_std)
+summary(mod_reg_full)
+interact_plot(model = mod_reg_full, pred = IQ, modx = math, modx.values = c(-3, -1, 0, 1, 3))
+```
+
+Mit `modx.values = c(-3, -1, 0, 1, 3)` stellen wir hier noch ein, dass wir auch Geraden für $\pm 3 SD$ und $\pm 1 SD$ des Moderators (`math`) sehen wollen. Wir erkennen in der Summary auch, dass im vollen Modell nur noch der `IQ` einen linearen Effekt auf `reading` hat!
+
+Gleiches erkennen wir auch in den 3D-Plots:
+
+
+```{r, echo = T, fig.align="center", fig.height=6, message=F, warning = F}
+library(plot3D)
+# Übersichtlicher: Vorbereitung
+x <- Schulleistungen_std$IQ
+y <- Schulleistungen_std$reading
+z <- Schulleistungen_std$math
+fit <- lm(y ~ x*z + I(x^2) + I(z^2))
+grid.lines = 26
+x.pred <- seq(min(x), max(x), length.out = grid.lines)
+z.pred <- seq(min(z), max(z), length.out = grid.lines)
+xz <- expand.grid( x = x.pred, z = z.pred)
+y.pred <- matrix(predict(fit, newdata = xz), 
+                 nrow = grid.lines, ncol = grid.lines)
+fitpoints <- predict(fit)
+
+# Plot:
+scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
+          theta = 0, phi = 0, ticktype = "detailed",
+          xlab = "IQ", ylab = "math", zlab = "reading",  
+          surf = list(x = x.pred, y = z.pred, z = y.pred,  
+                      facets = NA, fit = fitpoints), 
+          main = "Moderierte Regression")
+```
+
+
+```{r, echo =T, fig.align="center", fig.height=6, message=F, warning = F}
+scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
+          theta = 20, phi = 20, ticktype = "detailed",
+          xlab = "IQ", ylab = "math", zlab = "reading",  
+          surf = list(x = x.pred, y = z.pred, z = y.pred,  
+                      facets = NA, fit = fitpoints), 
+          main = "Moderierte Regression")
+```
+
+Auch die 3D-Grafiken sind nicht länger aus "Linien zusammengesetzt", sondern bestehen aus Parabeln/Kurven! 
 
 </details>
 

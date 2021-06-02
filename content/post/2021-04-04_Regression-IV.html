@@ -15,7 +15,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer, hartig]
-lastmod: '2021-04-14T08:32:21+02:00'
+lastmod: '2021-06-02T08:32:21+02:00'
 featured: no
 header:
   image: "/header/PsyBSc7_Reg4.jpg"
@@ -23,13 +23,12 @@ header:
 projects: []
 ---
 
-<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <div id="einleitung-und-datensatz" class="section level2">
 <h2>Einleitung und Datensatz</h2>
 <p>In dieser Sitzung werden wir uns weitere nichtlineare Effekte in Regressionsmodellen ansehen. Dazu verwenden wir zunächst den Datensatz aus der Übung zum letzten Themenblock.
-Der Beispieldatensatz enthält Daten zu Lesekompetenz aus der deutschen Stichprobe der PISA-Erhebung in Deutschland 2009. Sie können den im Folgenden verwendeten <a href="https://pandar.netlify.app/post/PISA2009.rda"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> Datensatz “PISA2009.rda” hier herunterladen</a>.</p>
+Der Beispieldatensatz enthält Daten zu Lesekompetenz aus der deutschen Stichprobe der PISA-Erhebung in Deutschland 2009. Sie können den im Folgenden verwendeten <a href="https://pandar.netlify.app/post/PISA2009.rda"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> Datensatz “PISA2009.rda” hier herunterladen</a>.</p>
 <div id="daten-laden" class="section level3">
 <h3>Daten laden</h3>
 <p>Wir laden zunächst die Daten: entweder lokal von Ihrem Rechner:</p>
@@ -130,7 +129,20 @@ summary(lm.beta(m1.b))</code></pre>
 ## Residual standard error: 83.4 on 145 degrees of freedom
 ## Multiple R-squared:  0.2769, Adjusted R-squared:  0.257 
 ## F-statistic: 13.88 on 4 and 145 DF,  p-value: 1.3e-09</code></pre>
-<p>Mit dem folgenden Befehl können wir auf eine simple Weise das Inkrement bestimmen.</p>
+<p><code>poly</code> bewirkt, dass der lineare und der quadratische Anteil von <code>MotherEdu</code> unkorreliert sind, was sehr wichtig ist, da es sonst zu zu großen Standardfehlern kommen kann, wie wir in der <a href="/post/reg3">letzten Sitzungen</a> im Themenblock der Kollinearität kennengelernt hatten.</p>
+<details>
+<p><summary> <strong>Lineare und quadratische Funktionen von Variablen und deren Kovarianz/Korrelation</strong> </summary></p>
+<p>Wir bestimmen zunächst die Korrelation zwischen <code>MotherEdu</code> und <code>MotherEdu^2</code>:</p>
+<pre class="r"><code>cor(PISA2009$MotherEdu, PISA2009$MotherEdu^2)</code></pre>
+<pre><code>## [1] 0.9665099</code></pre>
+<p>und erkennen, dass diese beiden “Variable” extrem hoch korreliert sind. Nun wenden wir <code>poly</code> an und wiederholen das Vorgehen:</p>
+<pre class="r"><code>cor(poly(PISA2009$MotherEdu, 2))</code></pre>
+<pre><code>##              1            2
+## 1 1.000000e+00 2.412055e-16
+## 2 2.412055e-16 1.000000e+00</code></pre>
+<p>Heraus kommt eine Korrelationsmatrix und im Eintrag [1,2] erkennen wir, dass die Korrelation nun de facto 0 ist. Was genau <code>poly</code> macht, steht in <a href="#AppendixA">Appendix A</a>.</p>
+</details>
+<p>Mit dem folgenden Befehl können wir auf eine simple Weise das Inkrement des quadratischen Trends bestimmen.</p>
 <pre class="r"><code># Vergleich mit Modell ohne quadratischen Trend
 summary(m1.b)$r.squared - summary(m1)$r.squared # Inkrement</code></pre>
 <pre><code>## [1] 0.02058156</code></pre>
@@ -148,14 +160,14 @@ summary(m1.b)$r.squared - summary(m1)$r.squared # Inkrement</code></pre>
 <p>Hier sollte dem anova-Befehl immer das “kleinere” (restriktivere) Modell (mit weniger Prädiktoren und Parametern, die zu schätzen sind) zuerst übergeben werden. Hier: <code>m1</code>, da sonst die df negativ sein sind (und auch als solche vom Programm angezeigt werden können, obwohl dieses das oft erkennen kann und dann das Vorzeichen umdreht…) und auch die Änderung in den <code>Sum of Sq</code> (Quadratsumme) negativ sind! <code>R</code> erkennt dies zwar und testet trotzdem die richtige Differenz auf Signifikanz, aber wir wollen uns besser vollständig korrekt aneignen!</p>
 <p>Erzeugt man für das erweiterte Modell Residuenplots, ist der quadratische Trend beim Bildungsabschluss komplett verschwunden - er ist ja schon im Modell enthalten und bildet sich somit nicht mehr in den Residuen ab:</p>
 <pre class="r"><code>residualPlots(m1.b, pch = 16)</code></pre>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre><code>##                    Test stat Pr(&gt;|Test stat|)
 ## HISEI                -0.7518           0.4534
 ## poly(MotherEdu, 2)                           
 ## Books                -1.1133           0.2674
 ## Tukey test            0.6774           0.4982</code></pre>
 <p>Was bedeutet nun dieser Effekt inhaltlich? Um dies genauer zu verstehen, stellen wir die um die anderen Variablen bereinigte Beziehung zwischen dem Bildungsabschluss der Mutter und der Leseleistung grafisch dar.</p>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Für den Grafik-Code sowie weitere Informationen zu quadaratischen Effekten und Funktionen siehe <a href="#AppendixA">Appendix A</a>. Die Grafik zeigt die vorhergesagte Beziehung zwischen den standardisierten Werten des Bildungsabschlusses der Mutter sowie der Leseleistung. Hierbei steht erneut <code>|</code> für “gegeben” (wie etwa beim Partialplot mit <code>avPlots</code> aus der vergangenen Sitzung). Wir sehen also den um die anderen Variablen im Modell bereinigten Effekt zwischen Bildungsabschluss und Leseleistung. Hierbei ist ein starker mittlerer Anstieg der Leseleistung (-1 bis ca. 0.1) für einen Anstieg des Bildungsabschlusses von deutlich unterdurchschnittlich bis durchschnittlich (von -2.5 bis 0) zu sehen. Danach ist die Beziehung zwischen Leseleistung und Bildungsabschluss fast horizontal (Veränderung geringer als 0.1), was dafür spricht, dass es für einen durchschnittlichen bis überdurchschnittlichen Bildungsabschluss der Mutter (von 0 bis 1.5) kaum eine Beziehung zwischen den Variablen gibt. Dies bedeutet, dass besonders im unterdurchschnittlichen Bereich der mütterlichen Bildung Unterschiede zwischen Müttern einen starken Zusammenhang mit der Leseleistung ihrer Kinder zeigen. Wenn das Bildungsniveau der Mutter jedoch durchschnittlich oder überdurchschnittlich ist, scheint der Zusammenhang beinahe zu verschwinden.</p>
 <p>Die grobe Gestalt der Beziehung hätten wir auch aus dem Koeffizienten ablesen können. Der Koeffizient des quadratischen Teils war negativ, was für eine invers-u-förmige (konkave) Funktion steht. Das Einzeichnen hilft uns jedoch, das genaue Ausmaß zu verstehen (siehe auch <a href="#AppendixA">Appendix A</a>). Auch hatten wir gesehen, dass der lineare Teil des Bildungsabschlusses der Mutter keinen statistisch signifikanten Beitrag zur Vorhersage geleistet hat. Jedoch gehört zu einer quadratischen Funktion immer auch ihr linearer Anteil dazu. Aus diesem Grund können wir unsere Stichprobe nur angemessen beschreiben, wenn wir den linearen Trend des Bildungsabschlusses der Mutter im Regressionsmodell beibehalten. Um das genaue Ausmaß besser zu verstehen, manipulieren Sie doch einmal die Beziehung, die wir soeben grafisch gesehen haben, indem Sie den Code aus dem folgenden Block kopieren und die Inputvariablen verändern. Hierbei können Sie den linearen und den quadratischen Effekt verändern und sich die Auswirkungen auf die Grafik (die Beziehung zwischen Bildungsabschluss der Mutter und Leseleistung) ansehen. Die Default-Einstellungen sind identisch zu der oberen Grafik. <code>curve</code> plottet eine Linie und nimmt <code>x</code> automatisch als Argument der Funktion, somit wird <span class="math inline">\(f(x)=\text{linear}*x+\text{quadratisch}*x^2\)</span> geplottet. Probieren Sie doch einmal aus, was passiert, wenn Sie den linearen Teil auf 0 setzen oder das Vorzeichen des quadratischen Anteils ändern!</p>
 <pre class="r"><code>linear &lt;- .1588
@@ -163,7 +175,7 @@ quadratisch &lt;- -.1436
 
 curve(linear * x + quadratisch * x^2, 
       xlim = c(-2, 2))</code></pre>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Mit Hilfe von <code>poly(X, p)</code>, lassen sich Polynome bis zum Grad <span class="math inline">\(p\)</span> (als <span class="math inline">\(X, X^2,\dots,X^{p-1},X^p\)</span>) in die Regression mit aufnehmen, ohne, dass sich die Parameterschätzungen der anderen Potenzen von <span class="math inline">\(X\)</span> ändern. Wenn Sie noch mehr über die Funktion <code>poly</code> und ihre Vorteile erfahren möchten, dann schauen Sie sich doch mal den <a href="#AppendixA">Appendix A</a> an. Wenn wir <code>poly</code> nicht verwenden wollen würden, so sollten wir zumindest die Prädiktoren, für welche wir quadratische Effekte annehmen, zentrieren, also den Mittelwert der Variable von dieser abziehen. Bspw. <span class="math inline">\(X_i-\bar{X}\)</span>, was in <code>R</code> so aussieht: <code>X-mean(X)</code>. Diese Variable würde wir dann an unseren Datensatz anhängen. Bezogen auf den Bildungsstatus der Mutter könnten wir wie folgt vorgehen:</p>
 <pre class="r"><code>PISA2009$MotherEdu_centered &lt;- PISA2009$MotherEdu - mean(PISA2009$MotherEdu)
 mean(PISA2009$MotherEdu_centered) # sehr kleine Zahl</code></pre>
@@ -172,7 +184,7 @@ mean(PISA2009$MotherEdu_centered) # sehr kleine Zahl</code></pre>
 </div>
 <div id="modReg" class="section level2">
 <h2>Interaktionsterme: moderierte Regression</h2>
-<p>Außerdem können auch Interaktionen zwischen Variablen in ein Regressionsmodell aufgenommen werden. Für weiter inhaltliche Details siehe <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid et al. (2017) Kapitel 19.9</a>. Eine Regression mit einem Interaktionsterm wird auch häufig moderierte Regression genannt. Häufig wird dann von einem Moderator gesprochen, der die Beziehung eines Prädiktors mit dem Kriterium “moderiert”. Genaugenommen ist Moderation jedoch eine wechselseitige Beziehung, so dass es im Modell nicht nur einen Moderator gibt. Vielmehr moderieren beide beteiligten Prädiktoren jeweils den Zusammenhang des Kriteriums mit dem anderen. Dies ist leicht einzusehen, wenn wir uns die Modellgleichungen ansehen. Wir nennen den Prädiktor <span class="math inline">\(X\)</span>, den Moderator <span class="math inline">\(Z\)</span> und das Kriterium <span class="math inline">\(Y\)</span>. Dann ergibt sich folgende Regressionsgleichung (für eine Person <span class="math inline">\(i\)</span>):</p>
+<p>Außerdem können auch Interaktionen zwischen Variablen in ein Regressionsmodell aufgenommen werden. Für weiter inhaltliche Details siehe <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid et al. (2017) Kapitel 19.9</a>. Eine Regression mit einem Interaktionsterm wird auch häufig moderierte Regression genannt. Häufig wird dann von einem Moderator (der selbst natürlich auch ein Prädiktor im Regressionsmodell ist) gesprochen, der die Beziehung eines (anderen) Prädiktors mit dem Kriterium “moderiert”. Genaugenommen ist Moderation jedoch eine wechselseitige Beziehung, so dass es im Modell nicht nur einen Moderator gibt. Vielmehr moderieren beide beteiligten Prädiktoren jeweils den Zusammenhang des Kriteriums mit dem anderen. Dies ist leicht einzusehen, wenn wir uns die Modellgleichungen ansehen. Wir nennen den Prädiktor <span class="math inline">\(X\)</span>, den Moderator <span class="math inline">\(Z\)</span> und das Kriterium <span class="math inline">\(Y\)</span>. Dann ergibt sich folgende Regressionsgleichung (für eine Person <span class="math inline">\(i\)</span>):</p>
 <p><span class="math display">\[Y_i=\beta_0 + \beta_1X_i + \beta_2Z_i + \beta_3X_iZ_i + \varepsilon_i.\]</span>
 Der Interaktionsterm trägt also den Koeffizienten <span class="math inline">\(\beta_3\)</span> in diesem Beispiel. Um das ganze sich leichter vorstellen zu können, stellen wir diese Gleichung um und stellen die Beziehung zwischen <span class="math inline">\(X\)</span> und <span class="math inline">\(Y\)</span> mit Hilfe von <span class="math inline">\(Z\)</span> dar. Das wird auch manchmal “simple slopes” also einfache Steigungen genannt, da wir im Grunde mehrere Geraden für <span class="math inline">\(X\)</span> in Abhängigkeit von <span class="math inline">\(Z\)</span> annehmen wollen:</p>
 <p><span class="math display">\[Y_i=\underbrace{(\beta_0 + \beta_2Z_i)}_{\text{Interzept}(Z_i)} + \underbrace{(\beta_1 + \beta_3Z_i)}_{\text{Slope}(Z_i)}X_i + \varepsilon_i.\]</span>
@@ -227,7 +239,7 @@ head(Schulleistungen)</code></pre>
 </tr>
 </tbody>
 </table>
-<p>Auch bei Interaktionen ist es wichtig, dass die Daten zentriert sind, also einen Mittelwert von 0 aufweisen. Das erleichtert die Interpretation und verändert die Korrelation des Interaktionsterms (oben <span class="math inline">\(X_i*Z_i\)</span>) mit den Haupteffekten von <span class="math inline">\(X_i\)</span> und <span class="math inline">\(Z_i\)</span>. Daher verwenden wir die <code>scale</code> Funktion, um den gesamten Datensatz zu standardisieren (also zu zentrieren und gleich noch die Varianz auf 1 zu setzen) und speichern diesen unter dem Namen <code>Schulleistungen_std</code>.</p>
+<p>Auch bei Interaktionen ist es wichtig, dass die Daten zentriert sind, also einen Mittelwert von 0 aufweisen. Dies hatte im anderen Beispiel oben die Funktion <code>poly</code> bewirkt und erleichtert die Interpretation und verändert die Korrelation des Interaktionsterms (oben <span class="math inline">\(X_i*Z_i\)</span>) mit den Haupteffekten von <span class="math inline">\(X_i\)</span> und <span class="math inline">\(Z_i\)</span>. Daher verwenden wir die <code>scale</code> Funktion, um den gesamten Datensatz zu standardisieren (also zu zentrieren und gleich noch die Varianz auf 1 zu setzen) und speichern diesen unter dem Namen <code>Schulleistungen_std</code>. Sind die Daten zentriert (haben einen Mittelwert von 0) oder sogar standardisiert (haben einen Mittelwert von 0 <strong>und</strong> eine Varianz/Standardabweichung von 1), dann ist in einem Modell, in dem nur lineare Effekte und quadratische und Interaktionseffekte vorkommen (also Prädiktoren <span class="math inline">\(X, Z\)</span> und <span class="math inline">\(X^2, XZ, Z^2\)</span>, wobei die Parameter vor <span class="math inline">\(X, Z\)</span> die linearen Effekte genannt werden und die Parameter vor <span class="math inline">\(X^2, XZ, Z^2\)</span> die quadratischen bzw. Interaktionseffekt genannt werden), eine Verrechnung mit <code>poly</code> nicht mehr nötig. <code>poly</code> bringt nur dann Verbesserungen, wenn bspw. noch kubische Effekte (<span class="math inline">\(X^3\)</span>) mit aufgenommen werden sollten. Dies geschieht hier aber nicht, weswegen wir <code>poly</code> in diesem Abschnitt nicht brauchen. Lesen Sie gerne eine Gegenüberstellung von <code>poly</code> und Zentrierung/Standardisierung in <a href="#AppendixA">Appendix A</a> nach.</p>
 <pre class="r"><code>Schulleistungen_std &lt;- data.frame(scale(Schulleistungen)) # standardisierten Datensatz abspeichern als data.frame
 colMeans(Schulleistungen_std)     # Mittelwert pro Spalte ausgeben</code></pre>
 <pre><code>##        female            IQ       reading          math 
@@ -261,22 +273,20 @@ summary(mod_reg)</code></pre>
 <p>Dem Output entnehmen wir, dass der Haupteffekt des IQ signifikant ist, sowie die Interaktion mit der Matheleistung. Die Matheleistung an sich bringt aber keine signifikante Vorhersagekraft der Leseleistung. Wie genau hier es zu diesen Ergebnissen gekommen ist, ist schwer zu sagen. Matheaufgaben von Tests bestehen häufig aus Textaufgaben, welche ein großes Maß an Textverständnis verlangen. Daher wäre eine Beziehung zwischen Matheleistung und Leseleistung zu erwarten. Wir wollen es so interpretieren, dass die Matheleistung die Beziehung zwischen IQ und Leseleistung moderiert. Somit wäre <span class="math inline">\(X=\)</span> <code>IQ</code> (Prädiktor) und <span class="math inline">\(Z=\)</span> <code>math</code> (Moderator). Es gibt ein <code>R</code>-Paket, dass eine solche Interaktion grafisch darstellt: <code>interactions</code>. Nachdem Sie dieses installiert haben, können Sie es laden und die Funktion <code>interact_plot</code> verwenden, um diese Interaktion zu veranschaulichen. Dem Argument <code>model</code> übergeben wir <code>mod_reg</code>, also unser moderiertes Regressionsmodell, als Prädiktor hatten wir den IQ gewählt, also müssen wir dem Argument <code>pred</code> den <code>IQ</code> übergeben. Der Moderator ist hier die Matheleistung, folglich übergeben wir <code>math</code> dem Argument <code>modx</code>.</p>
 <pre class="r"><code>library(interactions)
 interact_plot(model = mod_reg, pred = IQ, modx = math)</code></pre>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Uns wird nun ein Plot mit drei Linien ausgegeben. Dieser wird auch häufig “simple slopes” Plot genannt. Dargestellt sind drei Beziehungen zwischen <code>IQ</code> und <code>reading</code> für unterschiedliche Ausprägungen von <code>math</code>; nämlich einmal für einen durchschnittlichen <code>math</code>-Wert, sowie für jeweils Werte, die eine Standardabweichung (SD) oberhalb oder unterhalb des Mittelwerts liegen. Damit bekommen wir ein Gefühl dafür, wie sehr sich die Beziehung (und damit Interzept und Slope) zwischen der Leseleistung und der Intelligenz verändert für unterschiedliche Ausprägungen der Matheleistung — nämlich für eine durchschnittliche (<code>Mean</code>) Ausprägung sowie für eine unter- (<code>- 1 SD</code>) und eine überdurchschnittliche (<code>+ 1 SD</code>) Ausprägung. Die Signifikanzentscheidung oben zeigte uns, dass diese Unterschiede bedeutsam sind und somit die Matheleistung entscheidend ist, wie genau die Leseleistung mit der Intelligenz zusammenhängt. Die einzelnen Regressionsgerade lassen sich ebenfalls auf signifikante Unterschiede prüfen. Es kann auch untersucht werden, welche Ausprägungen des Moderators zu unterschiedlichen “bedingten” Regressionsgewichten führen, also ab wann sich Interzept oder Slope des Prädiktors signifikant verändert, wenn sich der Moderator verändert. Inhaltlich wäre eine Post-Hoc (also nach der Analyse entstehende) Interpretation, dass intelligente Kinder, die gut in Mathematik sind, besonders gut lesen können und sich dies auch bereits in den Textaufgaben der Matheaufgaben geäußert haben könnte. Dies ist allerdings eine Interpretation, die mit Vorsicht zu genießen ist - sie wurde quasi an die Ergebnisse angepasst. Wir wissen allerdings, dass dies ein exploratives Vorgehen ist und dass so nur bedingt wissenschaftliche Erkenntnis gewonnen werden kann. Ein besseres Vorgehen wäre, dass wir im Vorhinein Hypothesen aus Theorien ableiten und diese an einem Datensatz prüfen. Außerdem müssten wir, um ganz sicher zu gehen, dass es in der Population eine Interaktion gibt (mit einem Irrtumsniveau von 5%), auch die quadratischen Effekte mit in das Modell aufnehmen! In unserem Beispiel hätten wir die quadratischen Effekte wie folgt aufnehmen können: <code>reading ~ IQ+math+ I(math^2)+I(IQ*math) +I(IQ^2)</code> - die Daten hatten wir zuvor schon zentriert, bzw. sogar standardisiert.</p>
-<p>Interessierte Lesende können sich bei Interesse, das über diesen Kurs hinaus geht, dazu das <code>R</code>-Paket <code>reghelper</code> mit der Funktion <code>simple_slopes</code> ansehen. Nach laden des Pakets kann mit <code>?simple_slopes</code> die Hilfe zu dieser Funktion aufgerufen werden, die den Umgang damit etc. erklärt.</p>
-<p>Die folgende Grafik stellt den Sachverhalt noch einmal als 3D Grafik (mit dem Paket <code>plot3D</code>) dar (ziemlich cool oder?). Der Code zu den Grafiken lässt sich in <a href="#AppendixB">Appendix B</a> nachlesen.</p>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Hier ist die x-Achse (<span class="math inline">\(-links\longleftrightarrow rechts+\)</span>) der IQ und in die Tiefe ist die Matheleistung dargestellt (oft z-Achse: (<span class="math inline">\(-vorne\longleftrightarrow hinten+\)</span>)). Die y-Achse (im Plot heißt diese blöderweise z-Achse) ist die Leseleistung dargestellt (<span class="math inline">\(-unten\longleftrightarrow oben+\)</span>). Wir erkennen in dieser Ansicht ein wenig die Simple-Slopes von zuvor, denn die Achse der Matheleistung läuft ins negative “aus dem Bilderschirm hinaus”, während sie ins positive “in den Bildschirm hinein” verläuft. Der nähere Teil der “Hyperebene” weißt eine geringere Beziehung zwischen IQ und Leseleistung auf, während der Teil, der weiter entfernt liegt, eine stärkere Beziehung aufweist. Genau das haben wir auch in den Simple Slopes zuvor gesehen. Dort war für hohe Matheleistung die Beziehung zwischen IQ und Leseleistung auch stärker. Wichtig ist, dass in diesem Plot die Beziehung zwischen IQ und Leseleistung für eine fest gewählte Ausprägung der Matheleistung tatsächlich linear verläuft. Es ist also so, dass wir quasi ganz viele Linien aneinander kleben, um diese gewölbte Ebene zu erhalten. Die Ausprägung der Matheleistung ist im nächsten Plot noch besser zu erkennen, wo der Plot etwas gedreht dargestellt wird. Farblich ist außerdem die Ausprägung der Leseleistung dargestellt, damit die Werte leichter zu vergleichen sind.</p>
 <p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Diese Plots gegeben einen noch besseren Eindruck, was genau bei einer Interaktion passiert und wie “austauschbar” eigentlich der Moderator oder der Prädiktor ist. Außerdem kann man mit den Überlegungen aus diesem Abschnitt leicht einsehen, dass das quadratische Modell von oben tatsächlich ein Spezialfall dieses moderierten Modells ist, in welchem der Prädiktor mit sich selbst interagiert (sich selbst moderiert). Darüber, wie genau man moderierte Regressionen durchführt, gibt es viel Literatur. Einige Forscher sagen, dass man neben der Interaktion auch immer die quadratischen Effekte mit aufnehmen sollte, um auszuschließen, dass die Interaktion ein Artefakt ist, der nur auf quadratische Effekte zurückzuführen ist. Diese Überlegungen gehen jedoch hier über diesen Kurs hinaus! Für eine Abschlussarbeit sollte man sich das aber ggf. nochmals genauer ansehen.</p>
+<p>Uns wird nun ein Plot mit drei Linien ausgegeben. Dieser wird auch häufig “simple slopes” Plot genannt. Dargestellt sind drei Beziehungen zwischen <code>IQ</code> und <code>reading</code> für unterschiedliche Ausprägungen von <code>math</code>; nämlich einmal für einen durchschnittlichen <code>math</code>-Wert, sowie für jeweils Werte, die eine Standardabweichung (SD) oberhalb oder unterhalb des Mittelwerts liegen. Damit bekommen wir ein Gefühl dafür, wie sehr sich die Beziehung (und damit Interzept und Slope) zwischen der Leseleistung und der Intelligenz verändert für unterschiedliche Ausprägungen der Matheleistung — nämlich für eine durchschnittliche (<code>Mean</code>) Ausprägung sowie für eine unter- (<code>- 1 SD</code>) und eine überdurchschnittliche (<code>+ 1 SD</code>) Ausprägung. Die Signifikanzentscheidung oben zeigte uns, dass diese Unterschiede bedeutsam sind und somit die Matheleistung entscheidend ist, wie genau die Leseleistung mit der Intelligenz zusammenhängt. Die einzelnen Regressionsgerade lassen sich ebenfalls auf signifikante Unterschiede prüfen. Es kann auch untersucht werden, welche Ausprägungen des Moderators zu unterschiedlichen “bedingten” Regressionsgewichten führen, also ab wann sich Interzept oder Slope des Prädiktors signifikant verändert, wenn sich der Moderator verändert. Inhaltlich wäre eine Post-Hoc (also nach der Analyse entstehende) Interpretation, dass intelligente Kinder, die gut in Mathematik sind, besonders gut lesen können und sich dies auch bereits in den Textaufgaben der Matheaufgaben geäußert haben könnte. Dies ist allerdings eine Interpretation, die mit Vorsicht zu genießen ist - sie wurde quasi an die Ergebnisse angepasst. Wir wissen allerdings, dass dies ein exploratives Vorgehen ist und dass so nur bedingt wissenschaftliche Erkenntnis gewonnen werden kann. Ein besseres Vorgehen wäre, dass wir im Vorhinein Hypothesen aus Theorien ableiten und diese an einem Datensatz prüfen. Außerdem müssten wir, um ganz sicher zu gehen, dass es in der Population eine Interaktion gibt (mit einem Irrtumsniveau von 5%), auch die quadratischen Effekte mit in das Modell aufnehmen! In unserem Beispiel hätten wir die quadratischen Effekte wie folgt aufnehmen können: <code>reading ~ IQ+math+ I(math^2)+I(IQ*math) +I(IQ^2)</code> - die Daten hatten wir zuvor schon zentriert, bzw. sogar standardisiert. Hier ist das <code>I()</code> als Funktion anzusehen, die auch “as.is” genannt wird, also “so wie es dort steht”. Dieser werden arithmetische Funktionen übergeben. Diese überschreibt die Kurzschreibweise <code>IQ*math= IQ + math + IQ:math</code>, da das <code>*</code> als Multiplikationsoperator interpretiert wird. Wir könnten also auch die beiden Schreibweisen mischend <code>reading ~ IQ*math + I(math^2) + I(IQ^2)</code> schreiben.</p>
+<p>Interessierte Lesende können sich bei Interesse, das über diesen Kurs hinaus geht, dazu das <code>R</code>-Paket <code>reghelper</code> mit der Funktion <code>simple_slopes</code> ansehen. Nach laden des Pakets kann mit <code>?simple_slopes</code> die Hilfe zu dieser Funktion aufgerufen werden, die den Umgang damit etc. erklärt.</p>
+<p>Die folgende Grafik stellt den Sachverhalt noch einmal als 3D Grafik (mit dem Paket <code>plot3D</code>) dar (ziemlich cool oder?). In dieser Grafik erkennen wir sehr deutlich, dass die Simple Slopes tatsächlich eine stark vereinfachte Darstellung ist und es tatsächlich unendlich viele bzw. so viele unterschiedliche Beziehungen zwischen Prädiktor (<code>IQ</code>) und Kriterium (<code>reading</code>) in Abhängigkeit des Moderators (<code>math</code>) gibt, wie dieser (<code>math</code>) Ausprägungen hat. Der Code zu den Grafiken lässt sich in <a href="#AppendixB">Appendix B</a> nachlesen.</p>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Hier ist die x-Achse (<span class="math inline">\(-links\longleftrightarrow rechts+\)</span>) der IQ und in die Tiefe ist die Matheleistung dargestellt (oft z-Achse: (<span class="math inline">\(-vorne\longleftrightarrow hinten+\)</span>)). Die y-Achse (im Plot heißt diese blöderweise z-Achse) ist die Leseleistung dargestellt (<span class="math inline">\(-unten\longleftrightarrow oben+\)</span>). Wir erkennen in dieser Ansicht ein wenig die Simple-Slopes von zuvor, denn die Achse der Matheleistung läuft ins negative “aus dem Bilderschirm hinaus”, während sie ins positive “in den Bildschirm hinein” verläuft. Der nähere Teil der “Hyperebene” weißt eine geringere Beziehung zwischen IQ und Leseleistung auf, während der Teil, der weiter entfernt liegt, eine stärkere Beziehung aufweist. Genau das haben wir auch in den Simple Slopes zuvor gesehen. Dort war für hohe Matheleistung die Beziehung zwischen IQ und Leseleistung auch stärker. Wichtig ist, dass in diesem Plot die Beziehung zwischen IQ und Leseleistung für eine fest gewählte Ausprägung der Matheleistung tatsächlich linear verläuft. Es ist also so, dass wir quasi ganz viele Linien aneinander kleben, um diese gewölbte Ebene zu erhalten. Die Ausprägung der Matheleistung ist im nächsten Plot noch besser zu erkennen, wo der Plot etwas gedreht dargestellt wird. Farblich ist außerdem die Ausprägung der Leseleistung dargestellt, damit die Werte leichter zu vergleichen sind.</p>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Diese Plots gegeben einen noch besseren Eindruck, was genau bei einer Interaktion passiert und wie “austauschbar” eigentlich der Moderator oder der Prädiktor ist. Außerdem kann man mit den Überlegungen aus diesem Abschnitt leicht einsehen, dass das quadratische Modell von oben tatsächlich ein Spezialfall dieses moderierten Modells ist, in welchem der Prädiktor mit sich selbst interagiert (sich selbst moderiert). Darüber, wie genau man moderierte Regressionen durchführt, gibt es viel Literatur. Einige Forscher sagen, dass man neben der Interaktion auch immer die quadratischen Effekte mit aufnehmen sollte, um auszuschließen, dass die Interaktion ein Artefakt ist, der nur auf quadratische Effekte zurückzuführen ist. Das stellt eine hervorragenden Übung dar sich dies einmal anzusehen! In <a href="#AppendixC">Appendix C</a> sehen Sie die Simple Slopes sowie die 3D-Grafiken auch noch einmal für das “volle” quadratisch-Interaktionsmodell.</p>
 <p>Mit Hilfe der Funktion <code>I()</code> (“as is”, führt dazu, das arithmetische Operatoren als solche interpretiert werden) lassen sich innerhalb des <code>lm</code> Befehls zu dem noch weitere Funktionale hinzufügen, ohne diese vorher erzeugen zu müssen. Beispielsweise ließe sich durch <code>lm(Y ~ X + I(sin(X))) + I(exp(sqrt(X))</code> folgendes Regressionsmodell schätzen: <span class="math inline">\(Y = \beta_0+\beta_1X + \beta_2\sin(X) + \beta_3e^{\sqrt{X}} + \varepsilon\)</span>. Allerdings lassen sich so nicht Wachstumsraten modellieren (z.B. exponentielles oder logarithmisches Wachstum) - hierzu müssten die Variablen tatsächlich transformiert werden. Dies wollen wir uns in der <a href="/post/nichtlineare-Regression">nächsten Sitzung zur nichtlinearen Regression</a> genauer ansehen.</p>
 </div>
 <div id="AppendixA" class="section level2">
 <h2>Appendix A</h2>
 <details>
-<summary>
-<strong>Exkurs: Was genau macht <code>poly</code>?</strong>
-</summary>
+<p><summary> <strong>Exkurs: Was genau macht <code>poly</code>?</strong> </summary></p>
 <pre class="r"><code>X &lt;- 1:10   # Variable X
 X2 &lt;- X^2   # Variable X hoch 2
 X_poly &lt;- poly(X, 2)  # erzeuge Variable X und X hoch mit Hilfe der poly Funktion
@@ -419,10 +429,8 @@ summary(lm.beta(m1.c2))</code></pre>
 <p>Ähnliches hätten wir auch bewirken können, hätten wir die Variablen zentriert, anstatt sie mit <code>poly</code> zu transformieren.</p>
 </details>
 <details>
-<summary>
-<strong>Einordnung quadratischer Verläufe</strong>
-</summary>
-<p>Wie kommen wir nun auf die Interpretation der quadratischen Beziehung?</p>
+<p><summary> <strong>Einordnung quadratischer Verläufe</strong> </summary>
+Wie kommen wir nun auf die Interpretation der quadratischen Beziehung?</p>
 <p>Eine allgemeine quadratische Funktion <span class="math inline">\(f\)</span> hat folgende Gestalt
 <span class="math display">\[f(x):=ax^2 + bx + c,\]</span>
 wobei <span class="math inline">\(a\neq 0\)</span>, da es sich sonst nicht um eine quadratische Funktion handelt. Wäre <span class="math inline">\(a=0\)</span>, würde es sich um eine lineare Funktion mit Achsenabschnitt <span class="math inline">\(c\)</span> und Steigung (Slope) <span class="math inline">\(b\)</span> handeln. Wäre zusätzlich <span class="math inline">\(b=0\)</span>, so handelt es sich um eine horizontale Linie bei <span class="math inline">\(y=f(x)=c\)</span>.
@@ -435,7 +443,7 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
      geom_line(col = &quot;black&quot;)+
      labs(x = &quot;x&quot;, y =  &quot;f(x)&quot;,
           title = expression(&quot;f(x)=&quot;~x^2))</code></pre>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" />
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" />
 Wir werden diese Funktion immer als Referenz mit in die Grafiken einzeichnen.</p>
 <pre class="r"><code>a &lt;- 0.5; b &lt;- 0; c &lt;- 0
 x &lt;- seq(-2,2,0.01)
@@ -445,7 +453,7 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
      geom_line(col = &quot;blue&quot;, lwd = 2)+ geom_line(mapping = aes(x, x^2), lty = 3)+
      labs(x = &quot;x&quot;, y =  &quot;f(x)&quot;,
           title = expression(&quot;f(x)=&quot;~0.5*x^2))</code></pre>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>a &lt;- 2; b &lt;- 0; c &lt;- 0
 x &lt;- seq(-2,2,0.01)
 f &lt;- a*x^2 + b*x + c
@@ -454,7 +462,7 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
      geom_line(col = &quot;blue&quot;, lwd = 2)+ geom_line(mapping = aes(x, x^2), lty = 3)+
      labs(x = &quot;x&quot;, y =  &quot;f(x)&quot;,
           title = expression(&quot;f(x)=&quot;~2*x^2))</code></pre>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>a &lt;- -1; b &lt;- 0; c &lt;- 0
 x &lt;- seq(-2,2,0.01)
 f &lt;- a*x^2 + b*x + c
@@ -463,7 +471,7 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
      geom_line(col = &quot;blue&quot;, lwd = 2)+ geom_line(mapping = aes(x, x^2), lty = 3)+
      labs(x = &quot;x&quot;, y =  &quot;f(x)&quot;,
           title = expression(&quot;f(x)=&quot;~-x^2))</code></pre>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" />
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-28-1.png" width="672" style="display: block; margin: auto;" />
 Diese invers-u-förmige Beziehung ist eine konkave Funktion. Als Eselsbrücke für das Wort <em>konkav</em>, welches fast das englische Wort <em>cave</em> enthält, können wir uns merken: eine konkave Funktion stellt eine Art <em>Höhleneingang</em> dar.</p>
 <p><span class="math inline">\(c\)</span> bewirkt eine vertikale Verschiebung der Parabel:</p>
 <pre class="r"><code>a &lt;- 1; b &lt;- 0; c &lt;- 1
@@ -474,7 +482,7 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
      geom_line(col = &quot;blue&quot;, lwd = 2)+ geom_line(mapping = aes(x, x^2), lty = 3)+
      labs(x = &quot;x&quot;, y =  &quot;f(x)&quot;,
           title = expression(&quot;f(x)=&quot;~x^2+1))</code></pre>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-29-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><span class="math inline">\(b\)</span> bewirkt eine horizontale und vertikale Verschiebung, die nicht mehr leicht vorhersehbar ist. Für <span class="math inline">\(f(x)=x^2+x\)</span> lässt sich beispielsweise durch Umformen leicht erkennen: <span class="math inline">\(f(x)=x^2+x=x(x+1)\)</span>, dass diese Funktion zwei Nullstellen bei <span class="math inline">\(0\)</span> und <span class="math inline">\(-1\)</span> hat. Somit ist ersichtlich, dass die Funktion nach unten und links verschoben ist:</p>
 <pre class="r"><code>a &lt;- 1; b &lt;- 1; c &lt;- 0
 x &lt;- seq(-2,2,0.01)
@@ -484,7 +492,7 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
      geom_line(col = &quot;blue&quot;, lwd = 2)+ geom_line(mapping = aes(x, x^2), lty = 3)+
      labs(x = &quot;x&quot;, y =  &quot;f(x)&quot;,
           title = expression(&quot;f(x)=&quot;~x^2+x))</code></pre>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-28-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-30-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Für die genaue Gestalt einer allgemeinen quadratischen Funktion <span class="math inline">\(ax^2 + bx + c\)</span> würden wir die Nullstellen durch Lösen der Gleichung <span class="math inline">\(ax^2 + bx + c=0\)</span> bestimmen (via <em>p-q Formel</em> oder <em>a-b-c-Formel</em>). Den Scheitelpunkt würden wir durch Ableiten und Nullsetzen der Gleichung bestimmen. Wir müssten also <span class="math inline">\(2ax+b=0\)</span> lösen und dies in die Gleichung einsetzen. Wir könnten auch die binomischen Formeln nutzen, um die Funktion in die Gestalt <span class="math inline">\(f(x):=a&#39;(x-b&#39;)^2+c&#39;\)</span> oder <span class="math inline">\(f(x):=a&#39;(x-b&#39;_1)(x-b_2&#39;)+c&#39;\)</span> zu bekommen, falls die Nullstellen reell sind (also das Gleichungssystem <em>lösbar</em> ist), da wir so die Nullstellen ablesen können als <span class="math inline">\(b&#39;\)</span> oder <span class="math inline">\(b_1&#39;\)</span> und <span class="math inline">\(b_2&#39;\)</span>, falls <span class="math inline">\(c=0\)</span>. Für die Interpretation der Ergebnisse reicht es zu wissen, dass <span class="math inline">\(a\)</span> eine Stauchung bewirkt und entscheind dafür ist, ob die Funktion u-förmig oder invers-u-förmig verläuft.</p>
 <pre class="r"><code>a &lt;- -0.5; b &lt;- 1; c &lt;- 2
 x &lt;- seq(-2,2,0.01)
@@ -494,14 +502,12 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
      geom_line(col = &quot;blue&quot;, lwd = 2)+ geom_line(mapping = aes(x, x^2), lty = 3)+
      labs(x = &quot;x&quot;, y =  &quot;f(x)&quot;,
           title = expression(&quot;f(x)=&quot;~-0.5*x^2+x+2))</code></pre>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-29-1.png" width="672" style="display: block; margin: auto;" />
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-31-1.png" width="672" style="display: block; margin: auto;" />
 <span class="math inline">\(\longrightarrow\)</span> so ähnlich sieht die bedingte Beziehung (kontrolliert für die weiteren Prädiktoren im Modell) zwischen Bildungsabschluss der Mutter und Leseleistung aus.</p>
 </details>
 <details>
-<summary>
-<strong>Code für quadratische Verlaufsgrafik</strong>
-</summary>
-<p>Der Code, der die Grafik des standardisierten vorhergesagten bedingten Verlaufs des Bildungsabschlusses der Mutter erzeugt, sieht folgendermaßen aus:</p>
+<p><summary> <strong>Code für quadratische Verlaufsgrafik</strong> </summary>
+Der Code, der die Grafik des standardisierten vorhergesagten bedingten Verlaufs des Bildungsabschlusses der Mutter erzeugt, sieht folgendermaßen aus:</p>
 <pre class="r"><code>X &lt;- scale(poly(PISA2009$MotherEdu, 2))
 std_par_ME &lt;- c(0.1588, -0.1436)
 pred_effect_ME &lt;- X %*% std_par_ME
@@ -510,16 +516,100 @@ data_ME &lt;- data.frame(std_ME, pred_effect_ME)
 ggplot(data = data_ME, aes(x = std_ME,  y = pred_effect_ME)) + geom_point(pch = 16, col = &quot;blue&quot;, cex = 4)+
      labs(y = &quot;std. Leseleistung | Others&quot;, x =  &quot;std. Bildungsabschluss der Mutter | Others&quot;,
           title = &quot;Standardisierte bedingte Beziehung zwischen\n Bildungsabschluss der Mutter und Leseleistung&quot;)</code></pre>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-30-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-32-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Wir verwenden <code>scale</code>, um die linearen und quadratischen Anteile des Bildungsabschlusses der Mutter zu standardisieren und speichern sie in <code>X</code>. Anschließend ist das Interzept der quadratischen Funktion 0 (<span class="math inline">\(c=0\)</span>, da wir standardisiert haben). Die zugehörigen standardisierten Koeffizienten sind <span class="math inline">\(b=0.1588\)</span> und <span class="math inline">\(a=-0.1436\)</span>, die wir aus der standardisierten <code>summary</code> abgelesen haben. Somit wissen wir, dass es sich um eine invers-u-förmige Beziehung handelt (ohne die Grafik zu betrachten). Wir speichern die standardisierten Koeffizienten unter <code>std_par_ME</code> ab und verwenden anschließend das Matrixprodukt <code>X %*% std_par_ME</code>, um die vorhergesagten Werte via <span class="math inline">\(y_{std,i}=0.1588 ME - 0.1436ME^2\)</span> zu berechnen. Diese vorhergesagten Werte <code>pred_effect_ME</code> plotten wir nun gegen die standardisierten Werte des Bildungsabschlusses der Mutter <code>std_ME</code>, welche in der ersten Spalte von <code>X</code> stehen: <code>X[, 1]</code>.</p>
 </details>
+<details>
+<p><summary> <strong>Exkurs: Zentrierung vs. <code>poly</code></strong> </summary></p>
+<p>Wir vergleichen nun an einem ganz einfachen Beispiel, was <code>poly</code> und was Zentrierung bewirkt. Dazu erstellen wir einen Vektor (also eine Variable) <span class="math inline">\(A\)</span> der die Zahlen von 0 bis 10 enthält in 0.1 Schritten:</p>
+<pre class="r"><code>A &lt;- seq(0, 10, 0.1)</code></pre>
+<p>Nun bestimmen wir zunächst die Korrelation zwischen <span class="math inline">\(A\)</span> und <span class="math inline">\(A^2\)</span>:</p>
+<pre class="r"><code>cor(A, A^2)</code></pre>
+<pre><code>## [1] 0.9676503</code></pre>
+<p>welche sehr hoch ausfällt. Wir hatten bereits mit <code>poly</code> erkannt, dass diese Funktion die linearen und quadratischen Anteile trennt. Nun zentrieren wir die Daten. Das geht entweder händisch oder mit der <code>scale</code> Funktion:</p>
+<pre class="r"><code>A_c &lt;- A - mean(A)
+mean(A_c)</code></pre>
+<pre><code>## [1] 2.639528e-16</code></pre>
+<pre class="r"><code>A_c2 &lt;- scale(A, center = T, scale = F)  # scale = F bewirkt, dass nicht auch noch die SD auf 1 gesetzt werden soll
+mean(A_c2)</code></pre>
+<pre><code>## [1] 2.639528e-16</code></pre>
+<p>Nun vergleichen wir die Korrelationen zwischen <span class="math inline">\(A_c\)</span> mit <span class="math inline">\(A_c^2\)</span> mit den Ergebnissen von <code>poly</code>:</p>
+<pre class="r"><code>cor(A_c, A_c^2)</code></pre>
+<pre><code>## [1] 1.763581e-16</code></pre>
+<pre class="r"><code>cor(poly(A_c, 2))</code></pre>
+<pre><code>##               1             2
+## 1  1.000000e+00 -5.221111e-17
+## 2 -5.221111e-17  1.000000e+00</code></pre>
+<pre class="r"><code># auf 15 Nachkommastellen gerundet:
+round(cor(A_c, A_c^2), 15)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>round(cor(poly(A_c, 2)), 15)</code></pre>
+<pre><code>##   1 2
+## 1 1 0
+## 2 0 1</code></pre>
+<p>beide Vorgehensweisen sind bis auf 15 Nachkommastellen identisch!</p>
+<p>Spaßenshalber nehmen wir noch die Terme <span class="math inline">\(A^3\)</span> und <span class="math inline">\(A^4\)</span> auf und vergleichen die Ergebnisse:</p>
+<pre class="r"><code># auf 15 Nachkommastellen gerundet:
+round(cor(cbind(A, A^2, A^3, A^4)), 2)</code></pre>
+<pre><code>##      A               
+## A 1.00 0.97 0.92 0.86
+##   0.97 1.00 0.99 0.96
+##   0.92 0.99 1.00 0.99
+##   0.86 0.96 0.99 1.00</code></pre>
+<pre class="r"><code>round(cor(cbind(A_c, A_c^2, A_c^3, A_c^4)), 2)</code></pre>
+<pre><code>##      A_c               
+## A_c 1.00 0.00 0.92 0.00
+##     0.00 1.00 0.00 0.96
+##     0.92 0.00 1.00 0.00
+##     0.00 0.96 0.00 1.00</code></pre>
+<pre class="r"><code>round(cor(poly(A_c, 4)), 2)</code></pre>
+<pre><code>##   1 2 3 4
+## 1 1 0 0 0
+## 2 0 1 0 0
+## 3 0 0 1 0
+## 4 0 0 0 1</code></pre>
+<p>Was wir nun erkennen ist, dass <span class="math inline">\(A, A^2, A^3, A^4\)</span> <strong>sehr</strong> hoch korreliert sind. Die zentrierten Variablen zeigen ein etwas anderes Bild. Hier ist <span class="math inline">\(A_c\)</span> und <span class="math inline">\(A_c^3\)</span> <strong>sehr</strong> hoch korreliert sowie <span class="math inline">\(A_c^2\)</span> und <span class="math inline">\(A_c^4\)</span> sind <strong>sehr</strong> hoch korreliert. Man sagt auch, dass nur gerade Potenzen (<span class="math inline">\(A^2, A^4, A^6,\dots\)</span>) untereinander und ungerade Potenzen (<span class="math inline">\(A=A^1, A^3, A^5,\dots\)</span>) untereinander korreliert sind, <strong>wenn die Daten zentriert</strong> sind. Bei <code>poly</code> verschwinden alle Korrelationen zwischen <span class="math inline">\(A, A^2, A^3, A^4\)</span>. Hier dran erkennen wir, dass wenn wir nur Terme zur 2. Ordnung/Potenz (also <span class="math inline">\(A\)</span> und <span class="math inline">\(A^2\)</span> und natürlich Interaktionen <span class="math inline">\(AB\)</span>, aber eben nicht <span class="math inline">\(A^3\)</span> bzw. <span class="math inline">\(AB^2\)</span> oder <span class="math inline">\(A^2B\)</span>, etc.) im Modell haben, dann reicht die Zentrierung aus, um extreme Kollinearitäten zu zwischen linearen und nichtlinearen Termen zu vermeiden.</p>
+<p>Da wir hier die Korrelationen betrachtet haben, kommt eine Standardisierung von <span class="math inline">\(A\)</span> zu identischen Ergebnissen, weswegen wir hierauf verzichten.</p>
+<div id="mathematische-begründung" class="section level4">
+<h4>Mathematische Begründung</h4>
+<p>Dieser Abschnitt ist für die “Warum ist das so?”-Fragenden bestimmt und ist als reinen Zusatz zu erkennen.</p>
+<p>Wir wissen, dass die Korrelation der Bruch aus der Kovarianz zweier Variablen geteilt durch deren Standardabweichung ist. Aus diesem Grund reicht es, die Kovarianz zweier Variablen zu untersuchen, um zu schauen, wann die Korrelation 0 ist. Wir hatten oben die Variablen zentriert und bemerkt, dass dann die Korrelation zwischen <span class="math inline">\(A_c\)</span> und <span class="math inline">\(A_c^2\)</span> verschwindet. Warum ist das so? Dazu stellen wir <span class="math inline">\(A\)</span> in Abhängigkeit von seinem Mittelwert <span class="math inline">\(\mu_A\)</span> und <span class="math inline">\(A_c\)</span>, der zentrierten Version von <span class="math inline">\(A\)</span>, dar:</p>
+<p><span class="math display">\[A := \mu_A + A_c\]</span></p>
+<p>So kann jede Variable zerlegt werden: in seinen Mittelwert (hier: <span class="math inline">\(\mu_A\)</span>) und die Abweichung vom Mittelwert (hier: <span class="math inline">\(A_c\)</span>). Nun bestimmen wir die Kovarianz zwischen den Variablen <span class="math inline">\(A\)</span> und <span class="math inline">\(A^2\)</span> und setzen in diesem Prozess <span class="math inline">\(\mu_A+A_c\)</span> für <span class="math inline">\(A\)</span> ein und wenden die binomische Formel an <span class="math inline">\((a+b)^2=a^2+2ab+b^2\)</span>.</p>
+<p><span class="math display">\[\begin{align}
+\mathbb{C}ov[A, A^2] &amp;= \mathbb{C}ov[\mu_A + A_c, (\mu_A + A_c)^2]\\
+&amp;= \mathbb{C}ov[A_c, \mu_A^2 + 2\mu_AA_c + A_c^2]\\
+&amp;=  \mathbb{C}ov[A_c, \mu_A^2] + \mathbb{C}ov[A_c, 2\mu_AA_c] + \mathbb{C}ov[A_c, A_c^2]
+\end{align}\]</span></p>
+<p>An dieser Stelle pausieren wir kurz und bemerken, dass wir diese beiden Ausdrücke schon kennen <span class="math inline">\(\mathbb{C}ov[A_c, \mu_A^2] = \mathbb{C}ov[A_c, A_c^2] = 0\)</span>. Ersteres ist die Kovarianz zwischen einer Konstanten und einer Variable, welche immer 0 ist und, dass die Kovarianz zwischen <span class="math inline">\(A_c\)</span> und <span class="math inline">\(A_c^2\)</span> 0 ist, hatten wir oben schon bemerkt!</p>
+<p>Folglich können wir sagen, dass</p>
+<p><span class="math display">\[\begin{align}
+\mathbb{C}ov[A, A^2] &amp;= \mathbb{C}ov[A_c, 2\mu_AA_c] \\
+&amp;= 2\mu_A\mathbb{C}ov[A_c,A_c]=2\mu_A\mathbb{V}ar[A],
+\end{align}\]</span></p>
+<p>wobei wir hier benutzen, dass die Kovarianz mit sich selbst die Varianz ist und dass die zentrierte Variable <span class="math inline">\(A_c\)</span> die gleiche Varianz wie <span class="math inline">\(A\)</span> hat. Dies können wir leicht prüfen:</p>
+<pre class="r"><code>var(A)</code></pre>
+<pre><code>## [1] 8.585</code></pre>
+<pre class="r"><code>var(A_c)</code></pre>
+<pre><code>## [1] 8.585</code></pre>
+<pre class="r"><code># Kovarianz 
+cov(A, A^2)</code></pre>
+<pre><code>## [1] 85.85</code></pre>
+<pre class="r"><code>2*mean(A)*var(A)</code></pre>
+<pre><code>## [1] 85.85</code></pre>
+<pre class="r"><code># zentriert:
+round(cov(A_c, A_c^2), 14)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>round(2*mean(A_c)*var(A_c), 14)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p>Der zentrierte Fall ist auf 14 Nachkommastellen identisch und weicht danach nur wegen der sogenannten Maschinengenauigkeit von einander ab. Somit ist klar, dass wenn der Mittelwert = 0 ist, dann ist auch die Korrelation zwischen einer Variable und seinem Quadrat 0. Analoge Überlegungen können genutzt werden, um das gleiche für die Interaktion von Variablen zu sagen.</p>
+</details>
+</div>
 </div>
 <div id="AppendixB" class="section level2">
 <h2>Appendix B</h2>
 <details>
-<summary>
-<strong>Code zu 3D Grafiken</strong>
-</summary>
+<p><summary> <strong>Code zu 3D Grafiken</strong> </summary></p>
 <pre class="r"><code>library(plot3D)
 # Übersichtlicher: Vorbereitung
 x &lt;- Schulleistungen_std$IQ
@@ -541,21 +631,87 @@ scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
           surf = list(x = x.pred, y = z.pred, z = y.pred,  
                       facets = NA, fit = fitpoints), 
           main = &quot;Moderierte Regression&quot;)</code></pre>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-31-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-39-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
           theta = 20, phi = 20, ticktype = &quot;detailed&quot;,
           xlab = &quot;IQ&quot;, ylab = &quot;math&quot;, zlab = &quot;reading&quot;,  
           surf = list(x = x.pred, y = z.pred, z = y.pred,  
                       facets = NA, fit = fitpoints), 
           main = &quot;Moderierte Regression&quot;)</code></pre>
-<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-32-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Für weitere Informationen zum Umgang mit diesem Plot siehe bspw. hier: <a href="http://www.sthda.com/english/wiki/impressive-package-for-3d-and-4d-graph-r-software-and-data-visualization">3D Grafiken mit <code>plot3D</code> <svg aria-hidden="true" role="img" viewBox="0 0 640 512" style="height:1em;width:1.25em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg></a>.</p>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-40-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Für weitere Informationen zum Umgang mit diesem Plot siehe bspw. hier: <a href="http://www.sthda.com/english/wiki/impressive-package-for-3d-and-4d-graph-r-software-and-data-visualization">3D Grafiken mit <code>plot3D</code> <svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 640 512"><path d="M622.34 153.2L343.4 67.5c-15.2-4.67-31.6-4.67-46.79 0L17.66 153.2c-23.54 7.23-23.54 38.36 0 45.59l48.63 14.94c-10.67 13.19-17.23 29.28-17.88 46.9C38.78 266.15 32 276.11 32 288c0 10.78 5.68 19.85 13.86 25.65L20.33 428.53C18.11 438.52 25.71 448 35.94 448h56.11c10.24 0 17.84-9.48 15.62-19.47L82.14 313.65C90.32 307.85 96 298.78 96 288c0-11.57-6.47-21.25-15.66-26.87.76-15.02 8.44-28.3 20.69-36.72L296.6 284.5c9.06 2.78 26.44 6.25 46.79 0l278.95-85.7c23.55-7.24 23.55-38.36 0-45.6zM352.79 315.09c-28.53 8.76-52.84 3.92-65.59 0l-145.02-44.55L128 384c0 35.35 85.96 64 192 64s192-28.65 192-64l-14.18-113.47-145.03 44.56z"/></svg></a>.</p>
+</details>
+</div>
+<div id="AppendixC" class="section level2">
+<h2>Appendix C</h2>
+<details>
+<p><summary> <strong>Simple Slopes und 3D Grafiken für das “volle” quadratische und Interaktionsmodell</strong> </summary></p>
+<p>Für die Simple Slopes müssen wir nur die quadratischen Effekte aufnehmen und erkennen, dass es nun nicht mehr Geraden sondern Kurven sind:</p>
+<pre class="r"><code>mod_reg_full &lt;- lm(reading ~ math + IQ + math:IQ  + I(math^2) + I(IQ^2), data = Schulleistungen_std)
+summary(mod_reg_full)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = reading ~ math + IQ + math:IQ + I(math^2) + I(IQ^2), 
+##     data = Schulleistungen_std)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -2.00105 -0.49725  0.09789  0.45998  1.77402 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.06917    0.11580  -0.597 0.551736    
+## math        -0.02013    0.19700  -0.102 0.918823    
+## IQ           0.58110    0.16162   3.596 0.000518 ***
+## I(math^2)   -0.03266    0.07773  -0.420 0.675325    
+## I(IQ^2)     -0.09759    0.12960  -0.753 0.453316    
+## math:IQ      0.28688    0.19461   1.474 0.143780    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.8245 on 94 degrees of freedom
+## Multiple R-squared:  0.3545, Adjusted R-squared:  0.3202 
+## F-statistic: 10.33 on 5 and 94 DF,  p-value: 6.524e-08</code></pre>
+<pre class="r"><code>interact_plot(model = mod_reg_full, pred = IQ, modx = math, modx.values = c(-3, -1, 0, 1, 3))</code></pre>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-41-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Mit <code>modx.values = c(-3, -1, 0, 1, 3)</code> stellen wir hier noch ein, dass wir auch Geraden für <span class="math inline">\(\pm 3 SD\)</span> und <span class="math inline">\(\pm 1 SD\)</span> des Moderators (<code>math</code>) sehen wollen. Wir erkennen in der Summary auch, dass im vollen Modell nur noch der <code>IQ</code> einen linearen Effekt auf <code>reading</code> hat!</p>
+<p>Gleiches erkennen wir auch in den 3D-Plots:</p>
+<pre class="r"><code>library(plot3D)
+# Übersichtlicher: Vorbereitung
+x &lt;- Schulleistungen_std$IQ
+y &lt;- Schulleistungen_std$reading
+z &lt;- Schulleistungen_std$math
+fit &lt;- lm(y ~ x*z + I(x^2) + I(z^2))
+grid.lines = 26
+x.pred &lt;- seq(min(x), max(x), length.out = grid.lines)
+z.pred &lt;- seq(min(z), max(z), length.out = grid.lines)
+xz &lt;- expand.grid( x = x.pred, z = z.pred)
+y.pred &lt;- matrix(predict(fit, newdata = xz), 
+                 nrow = grid.lines, ncol = grid.lines)
+fitpoints &lt;- predict(fit)
+
+# Plot:
+scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
+          theta = 0, phi = 0, ticktype = &quot;detailed&quot;,
+          xlab = &quot;IQ&quot;, ylab = &quot;math&quot;, zlab = &quot;reading&quot;,  
+          surf = list(x = x.pred, y = z.pred, z = y.pred,  
+                      facets = NA, fit = fitpoints), 
+          main = &quot;Moderierte Regression&quot;)</code></pre>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-42-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
+          theta = 20, phi = 20, ticktype = &quot;detailed&quot;,
+          xlab = &quot;IQ&quot;, ylab = &quot;math&quot;, zlab = &quot;reading&quot;,  
+          surf = list(x = x.pred, y = z.pred, z = y.pred,  
+                      facets = NA, fit = fitpoints), 
+          main = &quot;Moderierte Regression&quot;)</code></pre>
+<p><img src="/post/2021-04-04_Regression-IV_files/figure-html/unnamed-chunk-43-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Auch die 3D-Grafiken sind nicht länger aus “Linien zusammengesetzt”, sondern bestehen aus Parabeln/Kurven!</p>
 </details>
 <hr />
 </div>
 <div id="r-skript" class="section level2">
 <h2>R-Skript</h2>
-<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/PsyBSc7_R_Files/Regression-IV.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
+<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/PsyBSc7_R_Files/Regression-IV.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
 <hr />
 </div>
 <div id="literatur" class="section level2">
