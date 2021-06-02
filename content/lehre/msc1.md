@@ -88,7 +88,7 @@ Die zweite Hälfte des Moduls, F&E II, befasst sich vor allem mit Ansätzen zur 
 | 2 | **Explorative Faktorenanalyse** | [Inhalte](/post/efa)  | [Übungsdaten](/post/Big5_EFA.rda) | [R-Skript](/post/FEII_efa.R) |
 | 3 | **Konfirmatorische Faktorenanalyse** | [Inhalte](/post/cfa)  | [Übungsdaten](/post/conspiracy.rda) | [R-Skript](/post/FEII_cfa.R) |
 | 4 | **Strukturgleichungsmodelle** | [Inhalte](/post/sem)  | [Übungsdaten](/post/StressAtWork.rda) | [R-Skript](/post/FEII_sem.R) |
-| *Zusatz* |  **Modelfit** | [Inhalte](/post/exkurs-modelfit) |  | | | |
+| *Zusatz* |  **Modelfit** | [Inhalte](/post/exkurs-modellfit) |  | | | |
 | 5 | **Multigruppen Modelle** | [Inhalte](/post/msa)  | [Übungsdaten](/post/StressAtWork.rda) | [R-Skript](/post/FEII_msa.R) |
 | *Zusatz* |  **Invarianztestung** | [Inhalte](/post/exkurs-invarianzstufen) |  | | | |
 |  |   |  |  | | | |
