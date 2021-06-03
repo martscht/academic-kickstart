@@ -3,7 +3,7 @@
 # von Julien P. Irmer
 
 
-## Einleitung und Datensatz ----
+## Einleitung und Datensatz
 ### Daten laden
 load(url("https://pandar.netlify.app/post/PISA2009.rda"))
 library(car)
@@ -39,6 +39,9 @@ shapiro.test(res)
 m1.b <- lm(Reading ~ HISEI + poly(MotherEdu, 2) + Books, data = PISA2009)
 summary(lm.beta(m1.b))
 
+cor(PISA2009$MotherEdu, PISA2009$MotherEdu^2) #Korrelation zwischen "MotherEdu" und "MotherEdu^2"
+cor(poly(PISA2009$MotherEdu, 2)) #Korrelationsmatrix
+
 # Vergleich mit Modell ohne quadratischen Trend
 summary(m1.b)$r.squared - summary(m1)$r.squared # Inkrement
 
@@ -66,7 +69,7 @@ PISA2009$MotherEdu_centered <- PISA2009$MotherEdu - mean(PISA2009$MotherEdu)
 mean(PISA2009$MotherEdu_centered) # sehr kleine Zahl
 
 
-### Interaktionsterme ----
+### Interaktionsterme
 load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
 head(Schulleistungen)
 
@@ -81,7 +84,7 @@ library(interactions)
 interact_plot(model = mod_reg, pred = IQ, modx = math)
 
 
-## Appendix A {#AppendixA} ----
+## Appendix A
 ### Exkurs: Was genau macht `poly`?
 X <- 1:10   # Variable X
 X2 <- X^2   # Variable X hoch 2
@@ -186,9 +189,44 @@ ggplot(data = data_ME, aes(x = std_ME,  y = pred_effect_ME)) + geom_point(pch = 
   labs(y = "std. Leseleistung | Others", x =  "std. Bildungsabschluss der Mutter | Others",
        title = "Standardisierte bedingte Beziehung zwischen\n Bildungsabschluss der Mutter und Leseleistung")
 
+### Exkurs: Zentrierung vs. poly
+A <- seq(0, 10, 0.1) #Vektor mit Zahlen von 0-10 erstellen
+cor(A, A^2)          #Korrelation zwischen A und A^2 bestimmen
+
+# Daten zentrieren
+A_c <- A - mean(A)
+mean(A_c)
+
+A_c2 <- scale(A, center = T, scale = F)  # scale = F bewirkt, dass nicht auch noch die SD auf 1 gesetzt werden soll
+mean(A_c2)
+
+# Korrelationen zwischen A_c und A_c^2 mit poly vergleichen
+cor(A_c, A_c^2)
+cor(poly(A_c, 2))
+
+# auf 15 Nachkommastellen gerundet:
+round(cor(A_c, A_c^2), 15)
+round(cor(poly(A_c, 2)), 15)
+
+# zusätzlich A^3 und A^4 aufnehmen und Ergebnisse vergleichen
+round(cor(cbind(A, A^2, A^3, A^4)), 2)
+round(cor(cbind(A_c, A_c^2, A_c^3, A_c^4)), 2)
+round(cor(poly(A_c, 4)), 2)
+
+## Warum ist das so?
+var(A)
+var(A_c)
+
+# Kovarianz
+cov(A, A^2)
+2*mean(A)*var(A)
+
+# zentriert:
+round(cov(A_c, A_c^2), 14)
+round(2*mean(A_c)*var(A_c), 14)
 
 
-## Appendix B {#AppendixB} ----
+## Appendix B
 ### Code zu 3D Grafiken
 library(plot3D)
 # Übersichtlicher: Vorbereitung
@@ -213,6 +251,45 @@ scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
           main = "Moderierte Regression")
 
 
+
+scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
+          theta = 20, phi = 20, ticktype = "detailed",
+          xlab = "IQ", ylab = "math", zlab = "reading",
+          surf = list(x = x.pred, y = z.pred, z = y.pred,
+                      facets = NA, fit = fitpoints),
+          main = "Moderierte Regression")
+
+
+## Appendix C
+### Simple Slopes und 3D-Grafiken
+
+# quadratischen Effekt aufnehmen
+mod_reg_full <- lm(reading ~ math + IQ + math:IQ  + I(math^2) + I(IQ^2), data = Schulleistungen_std)
+summary(mod_reg_full)
+interact_plot(model = mod_reg_full, pred = IQ, modx = math, modx.values = c(-3, -1, 0, 1, 3))
+
+library(plot3D)
+# Übersichtlicher: Vorbereitung
+x <- Schulleistungen_std$IQ
+y <- Schulleistungen_std$reading
+z <- Schulleistungen_std$math
+
+fit <- lm(y ~ x*z + I(x^2) + I(z^2))
+grid.lines = 26
+x.pred <- seq(min(x), max(x), length.out = grid.lines)
+z.pred <- seq(min(z), max(z), length.out = grid.lines)
+xz <- expand.grid( x = x.pred, z = z.pred)
+y.pred <- matrix(predict(fit, newdata = xz),
+                 nrow = grid.lines, ncol = grid.lines)
+fitpoints <- predict(fit)
+
+# Plot:
+scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
+          theta = 0, phi = 0, ticktype = "detailed",
+          xlab = "IQ", ylab = "math", zlab = "reading",
+          surf = list(x = x.pred, y = z.pred, z = y.pred,
+                      facets = NA, fit = fitpoints),
+          main = "Moderierte Regression")
 
 scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
           theta = 20, phi = 20, ticktype = "detailed",
