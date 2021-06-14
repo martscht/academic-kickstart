@@ -14,7 +14,7 @@ tags:
 subtitle: '2-fakt. ANOVA'
 summary: ''
 authors: [irmer,scheppa-lahyani,schultze]
-lastmod: '2021-05-26T08:32:21+02:00'
+lastmod: '2021-06-14T08:32:21+02:00'
 featured: no
 header:
   image: "/header/PsyBSc7_ANOVA2.jpg"
@@ -83,7 +83,7 @@ projects: []
 ## $`Levene&#39;s Test for Homogeneity of Variance`
 ##   DFn  DFd     SSn     SSd        F            p p&lt;.05
 ## 1   2 2448 33.5895 1808.96 22.72773 1.659556e-10     *</code></pre>
-<p>Hier musste die Annahme der Homoskedastizität verworfen werden(<span class="math inline">\(p\)</span> &lt; .05), sodass eine Adjustierung der Inferenzstatistik durchgeführt werden sollte (<code>white.adjust = TRUE</code>). In beiden Fällen erhalten wir das generalisierte <span class="math inline">\(\eta^2\)</span>, also einen Schätzer der Effektstärke. Um dies in der Skala der ursprünglichen Variablen zu interpretieren, können wir uns rein deskriptiv die gruppenspezifischen Mittelwerte angucken. Dazu kann mit einer Vielzahl von Funktionen gearbeitet werden. Eine gängige Variante ist der <code>tapply</code>-Befehl:</p>
+<p>Hier musste die Annahme der Homoskedastizität verworfen werden(<span class="math inline">\(p\)</span> &lt; .05), sodass eine Adjustierung der Inferenzstatistik durchgeführt werden sollte (<code>white.adjust = TRUE</code>). Im ersten Fall erhalten wir auch das generalisierte partielle <span class="math inline">\(\eta^2\)</span>, also einen Schätzer der Effektstärke, die im Grunde angibt, wie viel systematische Variation in den Daten ist, relativ zur zufälligen Schwankung. Um dies in der Skala der ursprünglichen Variablen zu interpretieren, können wir uns rein deskriptiv die gruppenspezifischen Mittelwerte angucken. Dazu kann mit einer Vielzahl von Funktionen gearbeitet werden. Eine gängige Variante ist der <code>tapply</code>-Befehl:</p>
 <pre class="r"><code>tapply(X = conspiracy$ET, INDEX = conspiracy$urban, FUN = mean)</code></pre>
 <pre><code>##    rural suburban    urban 
 ## 2.194386 2.150963 2.307286</code></pre>
@@ -242,6 +242,7 @@ tapply(X = conspiracy$ET, INDEX = kombi, FUN = mean)</code></pre>
 ## $`Levene&#39;s Test for Homogeneity of Variance`
 ##   DFn  DFd      SSn      SSd        F            p p&lt;.05
 ## 1   8 2442 35.01704 2002.067 5.338958 1.141927e-06     *</code></pre>
+<p>In der ANOVA erhalten wir folgende Informationen: <code>Effect</code> ist die unabhängige Variable, <code>DFn</code> sind die Hypothesenfreiheitsgrade (das n steht für numerator, also den Zähler des F-Bruchs), <code>DFd</code> sind die Residualfreiheitsgrade (d steht für denominator, also den Nenner des F-Bruchs), <code>SSn</code> sind die Hypothesen-Sum-of-Squares/-quadratsumme, <code>SSd</code> die Residualquadratsumme, <code>F</code> der F-Wert, <code>p</code> der p-Wert zum F-Wert, <code>p&lt;.05</code> gibt uns eine Signifikanzentscheidung und <code>ges</code> ist das generalisierte partielle <span class="math inline">\(\eta^2\)</span>.</p>
 <p>Der <em>Levene Test</em> fällt in diesem Fall statistisch bedeutsam aus, sodass die Homoskedastizitätsannahme (in diesem Fall: die Varianz ist in allen 9 Gruppen identisch) verworfen werden muss. <code>ezANOVA</code> liefert eine eingebaute Korrekturmöglichkeit (HC3 von MacKinnon &amp; White, 1985), die mithilfe <code>white.adjust = TRUE</code> angefordert werden kann. Probieren Sie das doch einmal selbst aus, indem Sie den Code kopieren und die Korrektur anfordern! Wie verändert das die Ergebnisse, die Ihnen ausgegeben werden?</p>
 <pre class="r"><code>ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), detailed = TRUE, white.adjust = TRUE)</code></pre>
 <pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
@@ -395,7 +396,7 @@ aov1 &lt;- ez1$aov
 emm1 &lt;- emmeans(aov1, ~ urban * edu)
 plot(emm1, comparisons = TRUE) # identisch zu oben</code></pre>
 <p><img src="/post/2021-04-14_ANOVA-II_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>So ein <code>aov</code>-Objekt hat auch weitere Vorteile, da wir bspw. dem <code>ez1</code> Objekt nicht direkt die Fehlerquadratsumme entlocken können, welche bspw. dafür benötigt werden, um <span class="math inline">\(\eta^2\)</span> zu bestimmen. Um einem <code>aov</code>-Objekt ähnliche Infos zu entlocken, wird in der Regel die <code>summary</code> Funktion verwendet. Genauso können auch weitere Werte, wie bspw. die Residuen, diesem Objekt entnommen werden, was bspw. mit der <code>resid</code> Funktion geht, welche bereits auch in der letzten Sitzung zur <a href="/post/einfaktorielle-ANOVA">einfaktoriellen Varianzanalyse</a> angesprochen wurden, um die Normalverteilung der Residuen zu untersuchen.</p>
+<p>So ein <code>aov</code>-Objekt hat auch weitere Vorteile, da wir bspw. dem <code>ez1</code> Objekt nicht direkt alle Informationen, wie etwa die Residuen, entlocken können. Um einem <code>aov</code>-Objekt ähnliche Infos wie dem <code>ezANOVA</code>-Objekt zu entlocken, wird in der Regel die <code>summary</code> Funktion verwendet. Genauso können auch weitere Werte, wie bspw. die Residuen, diesem Objekt entnommen werden, was bspw. mit der <code>resid</code> Funktion geht, welche bereits auch in der letzten Sitzung zur <a href="/post/einfaktorielle-ANOVA">einfaktoriellen Varianzanalyse</a> angesprochen wurden, um die Normalverteilung der Residuen zu untersuchen.</p>
 </div>
 <div id="kontraste" class="section level3">
 <h3>Kontraste</h3>

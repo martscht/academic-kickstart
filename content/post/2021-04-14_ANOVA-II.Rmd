@@ -14,7 +14,7 @@ tags:
 subtitle: '2-fakt. ANOVA'
 summary: ''
 authors: [irmer,scheppa-lahyani,schultze]
-lastmod: '2021-05-26T08:32:21+02:00'
+lastmod: '2021-06-14T08:32:21+02:00'
 featured: no
 header:
   image: "/header/PsyBSc7_ANOVA2.jpg"
@@ -87,7 +87,7 @@ Die Ergebnisse aus den Übungsaufgaben ergaben bezüglich des Bildungabschlusses
 ezANOVA(conspiracy, wid = id, dv = ET, between = edu, white.adjust = TRUE)
 ```
 
-Hier musste die Annahme der Homoskedastizität verworfen werden($p$ < .05), sodass eine Adjustierung der Inferenzstatistik durchgeführt werden sollte (`white.adjust = TRUE`). In beiden Fällen erhalten wir das generalisierte $\eta^2$, also einen Schätzer der Effektstärke. Um dies in der Skala der ursprünglichen Variablen zu interpretieren, können wir uns rein deskriptiv die gruppenspezifischen Mittelwerte angucken. Dazu kann mit einer Vielzahl von Funktionen gearbeitet werden. Eine gängige Variante ist der `tapply`-Befehl:
+Hier musste die Annahme der Homoskedastizität verworfen werden($p$ < .05), sodass eine Adjustierung der Inferenzstatistik durchgeführt werden sollte (`white.adjust = TRUE`). Im ersten Fall erhalten wir auch das generalisierte partielle $\eta^2$, also einen Schätzer der Effektstärke, die im Grunde angibt, wie viel systematische Variation in den Daten ist, relativ zur zufälligen Schwankung. Um dies in der Skala der ursprünglichen Variablen zu interpretieren, können wir uns rein deskriptiv die gruppenspezifischen Mittelwerte angucken. Dazu kann mit einer Vielzahl von Funktionen gearbeitet werden. Eine gängige Variante ist der `tapply`-Befehl:
 
 ```{r}
 tapply(X = conspiracy$ET, INDEX = conspiracy$urban, FUN = mean)
@@ -192,6 +192,8 @@ Die drei Nullhypothesen werden in der **zweifaktoriellen ANOVA** geprüft. Die f
 ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), detailed = TRUE)
 ```
 
+In der ANOVA erhalten wir folgende Informationen: `Effect` ist die unabhängige Variable, `DFn` sind die Hypothesenfreiheitsgrade (das n steht für numerator, also den Zähler des F-Bruchs), `DFd` sind die Residualfreiheitsgrade (d steht für denominator, also den Nenner des F-Bruchs), `SSn` sind die Hypothesen-Sum-of-Squares/-quadratsumme, `SSd` die Residualquadratsumme, `F` der F-Wert, `p` der p-Wert zum F-Wert, `p<.05` gibt uns eine Signifikanzentscheidung und `ges` ist das generalisierte partielle $\eta^2$.
+
 Der *Levene Test* fällt in diesem Fall statistisch bedeutsam aus, sodass die Homoskedastizitätsannahme (in diesem Fall: die Varianz ist in allen 9 Gruppen identisch) verworfen werden muss. `ezANOVA` liefert eine eingebaute Korrekturmöglichkeit (HC3 von MacKinnon & White, 1985), die mithilfe `white.adjust = TRUE` angefordert werden kann. Probieren Sie das doch einmal selbst aus, indem Sie den Code kopieren und die Korrektur anfordern! Wie verändert das die Ergebnisse, die Ihnen ausgegeben werden?
 
 ```{r}
@@ -268,7 +270,7 @@ emm1 <- emmeans(aov1, ~ urban * edu)
 plot(emm1, comparisons = TRUE) # identisch zu oben
 ```
 
-So ein `aov`-Objekt hat auch weitere Vorteile, da wir bspw. dem `ez1` Objekt nicht direkt die Fehlerquadratsumme entlocken können, welche bspw. dafür benötigt werden, um $\eta^2$ zu bestimmen. Um einem `aov`-Objekt ähnliche Infos zu entlocken, wird in der Regel die `summary` Funktion verwendet. Genauso können auch weitere Werte, wie bspw. die Residuen, diesem Objekt entnommen werden, was bspw. mit der `resid` Funktion geht, welche bereits auch in der letzten Sitzung zur [einfaktoriellen Varianzanalyse](/post/einfaktorielle-ANOVA) angesprochen wurden, um die Normalverteilung der Residuen zu untersuchen.
+So ein `aov`-Objekt hat auch weitere Vorteile, da wir bspw. dem `ez1` Objekt nicht direkt alle Informationen, wie etwa die Residuen, entlocken können. Um einem `aov`-Objekt ähnliche Infos wie dem `ezANOVA`-Objekt zu entlocken, wird in der Regel die `summary` Funktion verwendet. Genauso können auch weitere Werte, wie bspw. die Residuen, diesem Objekt entnommen werden, was bspw. mit der `resid` Funktion geht, welche bereits auch in der letzten Sitzung zur [einfaktoriellen Varianzanalyse](/post/einfaktorielle-ANOVA) angesprochen wurden, um die Normalverteilung der Residuen zu untersuchen.
 
 ### Kontraste
 
