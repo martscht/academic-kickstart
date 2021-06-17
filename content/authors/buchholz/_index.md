@@ -10,7 +10,7 @@ authors:
 superuser: false
 
 # Role/position
-role: Dozentin
+role: Lehre
 
 # Organizations/Affiliations
 # organizations:

@@ -1,7 +1,7 @@
 ---
 # Display name
 name: Robin Mehler
-
+weight: 30
 # Username (this should match the folder name)
 authors:
 - mehler
@@ -10,7 +10,7 @@ authors:
 superuser: false
 
 # Role/position
-role: Autor
+role: Projekte
 
 # Organizations/Affiliations
 organizations:
@@ -18,7 +18,7 @@ organizations:
   url: ""
 
 # Short bio (displayed in user profile at end of posts)
-bio: 
+bio:
 interests:
 education:
 # Social/Academic Networking

@@ -1,7 +1,7 @@
 ---
 # Display name
 name: Martin Schultze
-
+weight: 10
 # Username (this should match the folder name)
 authors:
 - schultze

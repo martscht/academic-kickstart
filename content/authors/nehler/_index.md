@@ -1,7 +1,7 @@
 ---
 # Display name
 name: Kai Jannik Nehler
-
+weight: 60
 # Username (this should match the folder name)
 authors:
 - nehler
@@ -10,7 +10,7 @@ authors:
 superuser: false
 
 # Role/position
-role: Dozent
+role: Lehre
 
 # Organizations/Affiliations
 organizations:
@@ -61,10 +61,10 @@ email: ""
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
-user_groups: ["Teaching"]
+user_groups: ["Teaching", "Team"]
 ---
 
-Kai Jannik Nehler ist wissenschaftlicher Mitarbeiter der Abteilung _Psychologische Methoden mit interdisziplinärer Ausrichtung_ an der Goethe-Universität Frankfurt. 
+Kai Jannik Nehler ist wissenschaftlicher Mitarbeiter der Abteilung _Psychologische Methoden mit interdisziplinärer Ausrichtung_ an der Goethe-Universität Frankfurt.
 
 **Biographie**
-Studium der Psychologie (Bachelor und Master) an der Johann Wolfgang Goethe-Universität in Frankfurt mit den psychologischen Schwerpunkten Statistik Arbeits- und Organisationspsychologie (Major) und Klinische Psychologie (Minor) von 2013-2019. Tutor für Statistik für Psychologen (1. und 2. Bachelorsemester), sowie Forschungsmethoden & Evaluation (1. und 2. Mastersemester) für das Institut für Psychologie an der Goethe-Universität Frankfurt (2014-2018). 
+Studium der Psychologie (Bachelor und Master) an der Johann Wolfgang Goethe-Universität in Frankfurt mit den psychologischen Schwerpunkten Statistik Arbeits- und Organisationspsychologie (Major) und Klinische Psychologie (Minor) von 2013-2019. Tutor für Statistik für Psychologen (1. und 2. Bachelorsemester), sowie Forschungsmethoden & Evaluation (1. und 2. Mastersemester) für das Institut für Psychologie an der Goethe-Universität Frankfurt (2014-2018).

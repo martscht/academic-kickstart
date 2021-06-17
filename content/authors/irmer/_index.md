@@ -1,7 +1,7 @@
 ---
 # Display name
 name: Julien P. Irmer
-
+weight: 50
 # Username (this should match the folder name)
 authors:
 - irmer
@@ -10,7 +10,7 @@ authors:
 superuser: false
 
 # Role/position
-role: Dozent
+role: Lehre
 
 # Organizations/Affiliations
 organizations:
@@ -65,10 +65,10 @@ email: ""
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
-user_groups: ["Teaching"]
+user_groups: ["Teaching", "Team"]
 ---
 
-Julien Irmer ist wissenschaftlicher Mitarbeiter der Abteilung _Psychologische Methodenlehre, Evaluation und Forschungsmethodik_ an der Goethe-Universität Frankfurt. 
+Julien Irmer ist wissenschaftlicher Mitarbeiter der Abteilung _Psychologische Methodenlehre, Evaluation und Forschungsmethodik_ an der Goethe-Universität Frankfurt.
 
 **Biographie**
 Studium der Psychologie und Mathematik an der Johann Wolfgang Goethe-Universität in Frankfurt mit den psychologischen Schwerpunkten Statistik und Diagnostik, neurokognitive Psychologie (Major) und Arbeits- und Organisationspsychologie (Minor) sowie den mathematischen Schwerpunkten Statistik, Stochastik und numerische Finanzmathematik. Studentische Hilfskraft in der Arbeits- und Organisationspsychologie der Goethe-Universität Frankfurt (2012-2016). Tutor für Statistik für Psychologen (1. Bachelorsemester), Statistik für Psychologen Vertiefung (2. Bachelorsemester) sowie Forschungsmethoden & Evaluation I (1. Mastersemester) und Forschungsmethoden & Evaluation II (2. Mastersemester) für das Institut für Psychologie an der Goethe-Universität Frankfurt (2015-2019). Tutor für Statistik 1 und 2 für Mathematiker sowie Statistik für Umweltwissenschaftler und Biologen für die Abteilung Angewandte Mathematische Statistik des Instituts für Mathematik der Goethe Universität Frankfurt (2015-2017).

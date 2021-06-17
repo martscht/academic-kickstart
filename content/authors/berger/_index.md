@@ -1,7 +1,7 @@
 ---
 # Display name
 name: Christina Berger
-
+weight: 20
 # Username (this should match the folder name)
 authors:
 - berger
@@ -10,7 +10,7 @@ authors:
 superuser: false
 
 # Role/position
-role: Autorin
+role: Projekte
 
 # Organizations/Affiliations
 organizations:
