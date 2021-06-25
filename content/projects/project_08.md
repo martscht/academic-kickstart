@@ -66,4 +66,4 @@ subtitle = "API"
  css_class = ""
 +++
 
-In diesem letzten Projekt werden wir dir zeigen, was eine API ist und wie du über diese, Daten in dein R Studio laden kann. Dies nennt sich auch Web-Scraping. In dem Projket werden wir Daten von der WHO herunterladen, die Indexe zu jeglichen gesundheitszogenen Themen sammelt. Im Anschluss werden wir die Daten grafisch und interaktiv aufbereiten. 
+In diesem letzten Projekt werden wir dir zeigen, was eine API ist und wie du über diese, Daten in dein R Studio laden kann. Dies nennt sich auch Web-Scraping. In dem Projekt werden wir Daten von der WHO herunterladen, die Indexe zu jeglichen gesundheitszogenen Themen sammelt. Im Anschluss werden wir die Daten grafisch und interaktiv aufbereiten. 

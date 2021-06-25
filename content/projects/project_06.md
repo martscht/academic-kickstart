@@ -66,4 +66,4 @@ subtitle = "FormR"
  css_class = ""
 +++
 
-In diesem Projekt werde ich die die Seite FormR näher bringen. Dies ist eine Website, die vor allem die Organisation für Langzeitstudien einfach machen soll. Wir werden weniger R intern arbeiten sondern mit Google Sheets und eine kleine Umfrage zu den Big Five generieren.
+In diesem Projekt werden wir dir die Seite FormR näher bringen. Dies ist eine Website, die vor allem die Organisation für Langzeitstudien einfach machen soll. Wir werden weniger R intern arbeiten sondern mit Google Sheets und eine kleine Umfrage zu den Big Five generieren.
