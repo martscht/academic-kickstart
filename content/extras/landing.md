@@ -10,5 +10,5 @@ weight = 10
 +++
 
 Auf dieser Überblicksseite findest du alle Extras, die wir bisher
-erstellt haben. Diese betreffen nicht die direkte Arbeit mit R,
-erleichtern aber das Coding und die Kollaboration.
+erstellt haben. Diese betreffen nicht nur die direkte Arbeit mit R,
+sondern erleichtern auch das generelle Coding und die Kollaboration.

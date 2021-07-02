@@ -1,0 +1,149 @@
+---
+title: ggplotting Intro
+author:
+date: '2021-07-02'
+slug: ggplotting-intro
+categories:
+  - ggplotting
+tags:
+  - ggplot
+subtitle: ''
+summary: ''
+authors: [schultze, buchholz]
+lastmod: '2021-07-02T14:05:38+02:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+header:
+  image: "/header/ggplotting_intro.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/140106)"
+projects: []
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="einleitung" class="section level2">
+<h2>Einleitung</h2>
+<p>Das Paket <code>ggplot2</code> ist das umfangreichste und am weitesten verbreitete Paket zur Grafikerstellung in R. Seine Beliebtheit liegt vor allem an zwei Dingen: Es ist sehr eng mit der kommerziellen Seite von RStudio verwoben (Autor ist auch hier Hadley Wickham) und es folgt stringent einer “Grammatik der Grafikerstellung”. Aus dem zweiten Punkt leitet sich auch sein Name ab: das “gg” steht für “Grammar of Graphics” und geht auf das gleichnamige Buch von Leland Wilkinson zurück, in dem auf 700 kurzen Seiten eine grammatikalische Grundstruktur für das Erstellen von Grafiken zur Datendarstellung hergeleitet und detailliert erklärt wird.</p>
+<p>Weil <code>ggplot2</code> so beliebt ist, gibt es online tausende von Quellen mit Tutorials, Beispielen und innovativen Ansätzen zur Datenvisualisierung. Vom Autor des Pakets selbst gibt es ein <a href="https://r4ds.had.co.nz/">Überblickswerk über Data-Science als e-Book</a>, in dem sich auch <a href="https://r4ds.had.co.nz/data-visualisation.html">ein Kapitel</a> mit <code>ggplot2</code> befasst. Wie wir noch besprechen werden ist es Teil des <a href="https://www.tidyverse.org/">tidyverse</a> und somit direkt in eine Umgebung aus verschiedenen Paketen für Datenmanagement und -darstellung integriert.</p>
+</div>
+<div id="Beispieldaten" class="section level2">
+<h2>Beispieldaten</h2>
+<p>Um uns mit dem vollen Arsenal an Möglichkeiten von <code>ggplot2</code> auseinanderzusetzen benutzen wir öffentlich zugängliche Daten aus verschiedenen Quellen, die dankenswerterweise von <a href="https://www.gapminder.org/">Gapminder</a> zusammengetragen werden. Für diesen Abschnitt gucken wir uns dafür mal an, wie viel verschiedene Länder in die Bildung investieren. Diese Daten stammen ursprünglich von der <a href="https://data.worldbank.org">Weltbank</a>, sind aber von <a href="https://www.gapminder.org/">Gapminder</a> für unseren Gebrauch schon beinahe optimal vorbereitet und vor allem, direkt aus R abrufbar.</p>
+<p>Alle, die daran interessiert sind, wie diese Daten von Gapminder bezogen und für die Weitervewendung aufbereitet werden, kann das Ganze im folgenden zugeklappten Abschnitt noch genauer nachlesen. Für alle, die das überspringen und endlich Bilder machen wollen, gibt es auch schon den <a href="/post/edu_exp.rda"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> fertigen Datesatz zum Download</a>. Auch den kann man aber direkt in R laden, ohne erst die Datei herunterladen und speichern zu müssen:</p>
+<pre class="r"><code>load(url(&#39;https://pandar.netlify.com/post/edu_exp.rda&#39;))</code></pre>
+<details>
+<summary>
+Datendownload und -aufbereitung
+</summary>
+<p>Um mir die Arbeit mit den Daten ein wenig zu erleichtern, nutze ich an dieser Stelle <code>dplyr</code> - ein weit verbreitetes Paket für das Datenmanagement in R. Das Paket ist wie <code>ggplot2</code> auch Teil des schon erwähnten <a href="https://www.tidyverse.org/">tidyverse</a>. Es ist nicht zwingend erforderlich das Paket zu nutzen, aber es enthält ein paar Funktionen, die besonders das zusammenführen verschiedener Datensätze erheblich vereinfachen.</p>
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<p>Die Datensätze, die wir benutzen werden können allesamt über das <a href="https://github.com/open-numbers/ddf--gapminder--systema_globalis">github-Repository von Gapminder</a> bezogen werden. Die Dateinamen sind dabei zwar gut strukturiert, aber nicht unbedingt kurz, wodurch die folgenden paar Zeilen R code etwas unübersichtlich wirken können.</p>
+<pre class="r"><code># Geografische Informationen
+raw_geo &lt;- read.csv(&#39;https://github.com/open-numbers/ddf--gapminder--systema_globalis/raw/master/ddf--entities--geo--country.csv&#39;)
+
+# Einkommen (GDP / Person)
+income &lt;- read.csv(&#39;https://github.com/open-numbers/ddf--gapminder--systema_globalis/raw/master/countries-etc-datapoints/ddf--datapoints--income_per_person_gdppercapita_ppp_inflation_adjusted--by--geo--time.csv&#39;)
+
+# Investition in Bildung (nach Bildungsstufe getrennt)
+primary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--expenditure_per_student_primary_percent_of_gdp_per_person--by--geo--time.csv&#39;)
+secondary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--expenditure_per_student_secondary_percent_of_gdp_per_person--by--geo--time.csv&#39;)
+tertiary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--expenditure_per_student_tertiary_percent_of_gdp_per_person--by--geo--time.csv&#39;)</code></pre>
+<p>Zuerst benötigen wir ein paar Informationen über die Länder, die wir später vielleicht noch gebrauchen können, um uns anzugucken, welche Länder es genau sind, die sehr viel oder sehr wenig in ihr Bildungssystem investieren. Dazu benutzen wir hier mal ein paar grundlegende geografische Informationen (<code>raw_geo</code>) und das skalierte Bruttoinlandsprodukt (GDP / Person, <code>income</code>). Investitionen ins Bildungssystem werden bei der Weltbank in drei Sektoren unterteilt: primary (in Deutschland z.B. die Grundschule), secondary (in Deutschland z.B. Sekundarschulen, Gymnasien und Berufsschulen) und tertiary (in Deutschland z.B. Universitäten und Berufsakademien).</p>
+<p>Diese fünf Quellen an Information müssen wir in einen Datensatz zusammenführen, bevor wir sie in einer Grafik darstellen können. Dazu möchte ich zunächst die geografischen Daten auf den Umfang notwendiger Informationen herunter reduzieren:</p>
+<pre class="r"><code>geo &lt;- transmute(raw_geo, geo = country, country = name, wealth = income_3groups, region = world_4region)</code></pre>
+<p>Hier kommt die <code>transmute</code>-Funktion aus dem <code>dplyr</code>-Paket zum Einsatz, die einen Datensatz (<code>raw_geo</code>) entgegennimmt und einen neuen Datensatz mit erstellten Variablen ausgibt. Hier benutze ich den Datensatz nur dazu, Variablen umzubenennen und gleichzeitig alle anderen Variablen wegzuwerfen. Im neuen Datensatz sind also nur noch vier Variablen übrig:</p>
+<pre class="r"><code>names(geo)</code></pre>
+<pre><code>## [1] &quot;geo&quot;     &quot;country&quot; &quot;wealth&quot;  &quot;region&quot;</code></pre>
+<p>Diese geschrumpften Informationen müssen jetzt mit den Informationen zum Einkommen und den Bildungsinvestitionen zusammengeführt werden. Dazu können wir den lang-ersehnten und in R Version 4.0.0 endlich eingetroffenen nativen Pipe-Operator <code>|&gt;</code> benutzen, der uns erlaubt das Ergebnis einer Funktion von Links nach Rechts an eine neue Funktion als erstes Argument weiter zu geben:</p>
+<pre class="r"><code>edu_exp &lt;- right_join(geo, income, by = &#39;geo&#39;) |&gt;
+  right_join(primary, by = c(&#39;geo&#39;, &#39;time&#39;)) |&gt;
+  full_join(secondary, by = c(&#39;geo&#39;, &#39;time&#39;)) |&gt;
+  full_join(tertiary, by = c(&#39;geo&#39;, &#39;time&#39;))</code></pre>
+<p>Hier kommen außerdem <code>dplyr</code> Funktionen zum Einsatz, die auf <code>_join</code> enden, um zwei Datensätze zusammenzuführen. In der ersten Zeile wird also der Datensatz mit den geografischen Informationen mit dem Datensatz zum “Einkommen” (GDP pro Person) zusammengeführt. <code>right_join</code> heißt dabei, dass alle Zeilen des rechten Datensatzes erhalten bleiben sollen. Zeilen im linken Datensatz, für die es keinen Partner auf der Matchingvariable <code>geo</code> gibt, werden verworfen. Anders als die geografischen Informationen in <code>geo</code> enthalten die anderen Datensätze Informationen, die sich mit der Zeit ändern. Daher enthalten diese Datensätze pro Land mehrere Datenpunkte zu unterschiedlichen Jahren, weswegen alle Zeilen des rechten Datensatzes beibehalten werden sollen. Im Gegensatz dazu werden bei dem später verwendeten <code>full_join</code> alle Zeilen aus beiden Datensätzen beibehalten.</p>
+<p>Die Namen der Variablen im Datensatz sind jetzt immmernoch alles andere als schön:</p>
+<pre class="r"><code>names(edu_exp)</code></pre>
+<pre><code>## [1] &quot;geo&quot;                                                        
+## [2] &quot;country&quot;                                                    
+## [3] &quot;wealth&quot;                                                     
+## [4] &quot;region&quot;                                                     
+## [5] &quot;time&quot;                                                       
+## [6] &quot;income_per_person_gdppercapita_ppp_inflation_adjusted&quot;      
+## [7] &quot;expenditure_per_student_primary_percent_of_gdp_per_person&quot;  
+## [8] &quot;expenditure_per_student_secondary_percent_of_gdp_per_person&quot;
+## [9] &quot;expenditure_per_student_tertiary_percent_of_gdp_per_person&quot;</code></pre>
+<p>Weil wir die Variablen immer und immer wieder im Code ansprechen müssen, machen sich besonders prägnante, kurze Variablennamen gut. Die aktuellen Namen sind leider keins von beidem, daher müssen neue her:</p>
+<pre class="r"><code>names(edu_exp)[-c(1:4)] &lt;- c(&#39;year&#39;, &#39;income&#39;, &#39;primary&#39;, &#39;secondary&#39;, &#39;tertiary&#39;)</code></pre>
+</details>
+<p>Der Datensatz mit dem wir weiter arbeiten sieht also so aus:</p>
+<pre class="r"><code>head(edu_exp)</code></pre>
+<pre><code>##   geo     country     wealth region year income  primary secondary tertiary
+## 1 afg Afghanistan low_income   asia 2010   1672 11.95215  13.26090       NA
+## 2 afg Afghanistan low_income   asia 2011   1627 12.21159  12.56712 96.09478
+## 3 afg Afghanistan low_income   asia 2012   1773  8.31733   8.53024       NA
+## 4 afg Afghanistan low_income   asia 2013   1808 11.17447  11.32094       NA
+## 5 afg Afghanistan low_income   asia 2014   1796 11.72219  12.03027 58.22054
+## 6 afg Afghanistan low_income   asia 2015   1767 10.24688  10.29234       NA</code></pre>
+<p>Eine kurze Erläuterung der Variablenbedeutungen:</p>
+<ul>
+<li><code>geo</code>: Länderkürzel, das zur Identifikation der Länder über verschiedene Datenquellen hinweg genutzt wird</li>
+<li><code>country</code>: der Ländername im Englischen</li>
+<li><code>wealth</code>: Wohlstandseinschätzung des Landes, unterteilt in drei Gruppen (low, middle und high)</li>
+<li><code>region</code>: Einteilung der Länder in die vier groben Regionen <code>africa</code>, <code>americas</code>, <code>asia</code> und <code>europe</code></li>
+<li><code>year</code>: Jahreszahl</li>
+<li><code>income</code>: Stetiger Wohlstandsindikator für das Land (GDP pro Person)</li>
+<li><code>primary</code>: Staatliche Ausgaben pro Schüler*in in der primären Bildung als Prozent des <code>income</code> (GDP pro Person)</li>
+<li><code>secondary</code>: Staatliche Ausgaben pro Schüler*in in der sekundären Bildung als Prozent des <code>income</code> (GDP pro Person)</li>
+<li><code>tertiary</code>: Staatliche Ausgaben pro Schüler*in oder Student*in in der tertiären Bildung als Prozent des <code>income</code> (GDP pro Person)</li>
+</ul>
+<p>Eine Ausprägung von 100 auf der Variable <code>primary</code> in Deutschland hieße also zum Beispiel, dass pro Schüler*in in der Grundschule das Äquivalent der Wirtschaftsleistung einer bzw. eines Deutschen ausgegeben würde. 50 hieße entsprechend, dass es die Hälfte dieser Wirtschaftsleistung in diese spezifische Schulausbildung investiert wird.</p>
+</div>
+<div id="Grundprinzipien" class="section level2">
+<h2><code>ggplot2</code> Grundprinzipien</h2>
+<p>In <code>ggplot2</code> werden immer Daten aus <strong>einem</strong> <code>data.frame</code> dargestellt. Das heißt, dass wir nicht, wie bei <code>plot</code> oder <code>hist</code> aus R selbst Vektoren oder Matrizen nutzen können. Daten müssen immer so aufbereitet sein, dass der grundlegende Datensatz sinnvoll benannte Variablen enthält und in dem Format vorliegt, in dem wir die Daten visualisieren wollen. Das hat zwar den Nachteil, dass wir Datensätze umbauen müssen, wenn wir Dinge anders darstellen wollen, aber hat auch den Vorteil, dass wir alle Kenntnisse über Datenmanagement im Allgemeinen auf den Umgang mit <code>ggplot2</code> übertragen können.</p>
+<p>Bevor wir loslegen können, muss natürlich <code>ggplot2</code> installiert sein und geladen werden:</p>
+<pre class="r"><code>library(ggplot2)</code></pre>
+<p>Im Kern bestehen Abbildungen in der Grammatik von <code>ggplot2</code> immer aus drei Komponenten:</p>
+<ul>
+<li>Daten, die angezeigt werden sollen</li>
+<li>Geometrie, die vorgibt welche Arten von Grafiken (Säulendiagramme, Punktediagramme, usw.) genutzt werden</li>
+<li>Ästhetik, die vorgibt, wie die Geometrie und Daten aufbereitet werden (z.B. Farben)</li>
+</ul>
+<p>In den folgenden Abschnitten werden wir versuchen, diese drei Komponenten so zu nutzen, dass wir informative und eventuell auch ansehnliche Abbildungen generieren.</p>
+<div id="schichten" class="section level3">
+<h3>Schichten</h3>
+<p>In <code>ggplot2</code> werden Grafiken nicht auf einmal mit einem Befehl erstellt, sondern bestehen aus verschiedenen Schichten. Diese Schichten werden meistens mit unterschiedlichen Befehlen erzeugt und dann so übereinandergelegt, dass sich am Ende eine Abbildung ergibt.</p>
+<p>Die Grundschicht sind die Daten. Dafür haben wir im vorherigen Abschnitt <code>edu_exp</code> als Datensatz aufbereitet. Benutzen wir zunächst nur die Daten für Spanien um nicht direkt tausende von Datenpunkten auf einmal zu sehen. Ich habe Spanien ausgesucht, weil es bezüglich der Bildungs- und Arbeitsmarktsituation für junge Personen ein Land mit vielen “interssanten Konstellationen” ist.</p>
+<pre class="r"><code>esp &lt;- edu_exp[edu_exp$geo == &#39;esp&#39;, ]</code></pre>
+<pre class="r"><code>ggplot(esp)</code></pre>
+<p><img src="/post/2021-07-02-ggplotting-intro_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p>Was entsteht ist eine leere Fläche. Wie bereits beschrieben, besteht eine Abbildung in <code>ggplot2</code> immer aus den drei Komponenten Daten, Geometrie und Ästhetik. Bisher haben wir nur eine festgelegt. Als erste Ästhetik sollten wir festlegen, welche Variablen auf x- und y-Achse dargestellt werden sollen. Nehmen wir naheliegenderweise die Zeit (x-Achse) und die Ausgaben für Hochschulbildung:</p>
+<pre class="r"><code>ggplot(esp, aes(x = year, y = tertiary))</code></pre>
+<p><img src="/post/2021-07-02-ggplotting-intro_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>Ästhetik wird in <code>ggplot2</code> über den <code>aes</code>-Befehl erzeugt. Jetzt fehlt uns noch die geometrische Form, mit der die Daten abgebildet werden sollen. Für die Geometrie-Komponente stehen in <code>ggplot2</code> sehr viele Funktionen zur Verfügung, die allesamt mit <code>geom_</code> beginnen. Eine Übersicht über die Möglichkeiten findet sich z.B. <a href="https://ggplot2.tidyverse.org/reference/#section-layer-geoms">hier</a>. Naheliegende Möglichkeiten für den Zeitverlauf sind eine Linie (<code>geom_line</code>) und mehrere Punkte (<code>geom_point</code>). Neue Schichten werden in ihrer eigenen Funktion erzeugt und mit dem einfachen <code>+</code> zu einem bestehenden Plot hinzugefügt. Für ein Liniendiagramm sieht das Ganze also einfach so aus:</p>
+<pre class="r"><code>ggplot(esp, aes(x = year, y = tertiary)) + 
+  geom_line()</code></pre>
+<p><img src="/post/2021-07-02-ggplotting-intro_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p>Der immense Vorteil des Schichtens besteht darin, dass wir gleichzeitig mehrere Visualisierungsformen nutzen können. Das Prinizp bleibt das gleiche wie vorher: wir fügen Schichten mit dem <code>+</code> hinzu. Wir können also Punkte und Linien direkt miteinander kombinieren:</p>
+<pre class="r"><code>ggplot(esp, aes(x = year, y = tertiary)) + 
+  geom_line() + 
+  geom_point()</code></pre>
+<p><img src="/post/2021-07-02-ggplotting-intro_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+</div>
+<div id="plots-als-objekte" class="section level3">
+<h3>Plots als Objekte</h3>
+<p>Einer der Vorteile, die sich durch das Schichten der Abbildungen ergibt ist, dass wir Teile der Abbildung als Objekte definieren können und sie in verschiedenen Varianten wieder benutzen können. Das hilft besonders dann, wenn wir unterschiedliche Geometrie in einer gemeinsamen Abbildung darstellen wollen oder z.B. erst einmal eine Abbildung definieren wollen, bevor wir Feinheiten adjustieren.</p>
+<pre class="r"><code>basic &lt;- ggplot(esp, aes(x = year, y = tertiary))</code></pre>
+</div>
+</div>
