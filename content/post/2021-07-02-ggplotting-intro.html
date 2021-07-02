@@ -62,10 +62,10 @@ secondary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf
 tertiary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--expenditure_per_student_tertiary_percent_of_gdp_per_person--by--geo--time.csv&#39;)</code></pre>
 <p>Zuerst benötigen wir ein paar Informationen über die Länder, die wir später vielleicht noch gebrauchen können, um uns anzugucken, welche Länder es genau sind, die sehr viel oder sehr wenig in ihr Bildungssystem investieren. Dazu benutzen wir hier mal ein paar grundlegende geografische Informationen (<code>raw_geo</code>) und das skalierte Bruttoinlandsprodukt (GDP / Person, <code>income</code>). Investitionen ins Bildungssystem werden bei der Weltbank in drei Sektoren unterteilt: primary (in Deutschland z.B. die Grundschule), secondary (in Deutschland z.B. Sekundarschulen, Gymnasien und Berufsschulen) und tertiary (in Deutschland z.B. Universitäten und Berufsakademien).</p>
 <p>Diese fünf Quellen an Information müssen wir in einen Datensatz zusammenführen, bevor wir sie in einer Grafik darstellen können. Dazu möchte ich zunächst die geografischen Daten auf den Umfang notwendiger Informationen herunter reduzieren:</p>
-<pre class="r"><code>geo &lt;- transmute(raw_geo, geo = country, country = name, wealth = income_3groups, region = world_4region)</code></pre>
+<pre class="r"><code>geo &lt;- transmute(raw_geo, geo = country, Country = name, Wealth = income_3groups, Region = world_4region)</code></pre>
 <p>Hier kommt die <code>transmute</code>-Funktion aus dem <code>dplyr</code>-Paket zum Einsatz, die einen Datensatz (<code>raw_geo</code>) entgegennimmt und einen neuen Datensatz mit erstellten Variablen ausgibt. Hier benutze ich den Datensatz nur dazu, Variablen umzubenennen und gleichzeitig alle anderen Variablen wegzuwerfen. Im neuen Datensatz sind also nur noch vier Variablen übrig:</p>
 <pre class="r"><code>names(geo)</code></pre>
-<pre><code>## [1] &quot;geo&quot;     &quot;country&quot; &quot;wealth&quot;  &quot;region&quot;</code></pre>
+<pre><code>## [1] &quot;geo&quot;     &quot;Country&quot; &quot;Wealth&quot;  &quot;Region&quot;</code></pre>
 <p>Diese geschrumpften Informationen müssen jetzt mit den Informationen zum Einkommen und den Bildungsinvestitionen zusammengeführt werden. Dazu können wir den lang-ersehnten und in R Version 4.0.0 endlich eingetroffenen nativen Pipe-Operator <code>|&gt;</code> benutzen, der uns erlaubt das Ergebnis einer Funktion von Links nach Rechts an eine neue Funktion als erstes Argument weiter zu geben:</p>
 <pre class="r"><code>edu_exp &lt;- right_join(geo, income, by = &#39;geo&#39;) |&gt;
   right_join(primary, by = c(&#39;geo&#39;, &#39;time&#39;)) |&gt;
@@ -75,20 +75,20 @@ tertiary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf-
 <p>Die Namen der Variablen im Datensatz sind jetzt immmernoch alles andere als schön:</p>
 <pre class="r"><code>names(edu_exp)</code></pre>
 <pre><code>## [1] &quot;geo&quot;                                                        
-## [2] &quot;country&quot;                                                    
-## [3] &quot;wealth&quot;                                                     
-## [4] &quot;region&quot;                                                     
+## [2] &quot;Country&quot;                                                    
+## [3] &quot;Wealth&quot;                                                     
+## [4] &quot;Region&quot;                                                     
 ## [5] &quot;time&quot;                                                       
 ## [6] &quot;income_per_person_gdppercapita_ppp_inflation_adjusted&quot;      
 ## [7] &quot;expenditure_per_student_primary_percent_of_gdp_per_person&quot;  
 ## [8] &quot;expenditure_per_student_secondary_percent_of_gdp_per_person&quot;
 ## [9] &quot;expenditure_per_student_tertiary_percent_of_gdp_per_person&quot;</code></pre>
 <p>Weil wir die Variablen immer und immer wieder im Code ansprechen müssen, machen sich besonders prägnante, kurze Variablennamen gut. Die aktuellen Namen sind leider keins von beidem, daher müssen neue her:</p>
-<pre class="r"><code>names(edu_exp)[-c(1:4)] &lt;- c(&#39;year&#39;, &#39;income&#39;, &#39;primary&#39;, &#39;secondary&#39;, &#39;tertiary&#39;)</code></pre>
+<pre class="r"><code>names(edu_exp)[-c(1:4)] &lt;- c(&#39;Year&#39;, &#39;Income&#39;, &#39;Primary&#39;, &#39;Secondary&#39;, &#39;Tertiary&#39;)</code></pre>
 </details>
 <p>Der Datensatz mit dem wir weiter arbeiten sieht also so aus:</p>
 <pre class="r"><code>head(edu_exp)</code></pre>
-<pre><code>##   geo     country     wealth region year income  primary secondary tertiary
+<pre><code>##   geo     Country     Wealth Region Year Income  Primary Secondary Tertiary
 ## 1 afg Afghanistan low_income   asia 2010   1672 11.95215  13.26090       NA
 ## 2 afg Afghanistan low_income   asia 2011   1627 12.21159  12.56712 96.09478
 ## 3 afg Afghanistan low_income   asia 2012   1773  8.31733   8.53024       NA
@@ -129,14 +129,14 @@ tertiary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf-
 <pre class="r"><code>ggplot(esp)</code></pre>
 <p><img src="/post/2021-07-02-ggplotting-intro_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 <p>Was entsteht ist eine leere Fläche. Wie bereits beschrieben, besteht eine Abbildung in <code>ggplot2</code> immer aus den drei Komponenten Daten, Geometrie und Ästhetik. Bisher haben wir nur eine festgelegt. Als erste Ästhetik sollten wir festlegen, welche Variablen auf x- und y-Achse dargestellt werden sollen. Nehmen wir naheliegenderweise die Zeit (x-Achse) und die Ausgaben für Hochschulbildung:</p>
-<pre class="r"><code>ggplot(esp, aes(x = year, y = tertiary))</code></pre>
+<pre class="r"><code>ggplot(esp, aes(x = Year, y = Tertiary))</code></pre>
 <p><img src="/post/2021-07-02-ggplotting-intro_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 <p>Ästhetik wird in <code>ggplot2</code> über den <code>aes</code>-Befehl erzeugt. Jetzt fehlt uns noch die geometrische Form, mit der die Daten abgebildet werden sollen. Für die Geometrie-Komponente stehen in <code>ggplot2</code> sehr viele Funktionen zur Verfügung, die allesamt mit <code>geom_</code> beginnen. Eine Übersicht über die Möglichkeiten findet sich z.B. <a href="https://ggplot2.tidyverse.org/reference/#section-layer-geoms">hier</a>. Naheliegende Möglichkeiten für den Zeitverlauf sind eine Linie (<code>geom_line</code>) und mehrere Punkte (<code>geom_point</code>). Neue Schichten werden in ihrer eigenen Funktion erzeugt und mit dem einfachen <code>+</code> zu einem bestehenden Plot hinzugefügt. Für ein Liniendiagramm sieht das Ganze also einfach so aus:</p>
-<pre class="r"><code>ggplot(esp, aes(x = year, y = tertiary)) + 
+<pre class="r"><code>ggplot(esp, aes(x = Year, y = Tertiary)) + 
   geom_line()</code></pre>
 <p><img src="/post/2021-07-02-ggplotting-intro_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 <p>Der immense Vorteil des Schichtens besteht darin, dass wir gleichzeitig mehrere Visualisierungsformen nutzen können. Das Prinizp bleibt das gleiche wie vorher: wir fügen Schichten mit dem <code>+</code> hinzu. Wir können also Punkte und Linien direkt miteinander kombinieren:</p>
-<pre class="r"><code>ggplot(esp, aes(x = year, y = tertiary)) + 
+<pre class="r"><code>ggplot(esp, aes(x = Year, y = Tertiary)) + 
   geom_line() + 
   geom_point()</code></pre>
 <p><img src="/post/2021-07-02-ggplotting-intro_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
@@ -144,6 +144,10 @@ tertiary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf-
 <div id="plots-als-objekte" class="section level3">
 <h3>Plots als Objekte</h3>
 <p>Einer der Vorteile, die sich durch das Schichten der Abbildungen ergibt ist, dass wir Teile der Abbildung als Objekte definieren können und sie in verschiedenen Varianten wieder benutzen können. Das hilft besonders dann, wenn wir unterschiedliche Geometrie in einer gemeinsamen Abbildung darstellen wollen oder z.B. erst einmal eine Abbildung definieren wollen, bevor wir Feinheiten adjustieren.</p>
-<pre class="r"><code>basic &lt;- ggplot(esp, aes(x = year, y = tertiary))</code></pre>
+<pre class="r"><code>basic &lt;- ggplot(esp, aes(x = Year, y = Tertiary))</code></pre>
+<p>In <code>basic</code> wird jetzt die <em>Anleitung</em> für die Erstellung der Grafik gespeichert. Erstellt wird die Grafik aber erst, wenn wir das Objekt aufrufen. Dabei können wir das Objekt auch mit beliebigen anderen Komponenten über <code>+</code> kombinieren:</p>
+<pre class="r"><code>basic + geom_point()</code></pre>
+<p><img src="/post/2021-07-02-ggplotting-intro_files/figure-html/object_combos-1.png" width="672" /></p>
+<p>Damit die Beispiele im weiteren Verlauf auch selbstständig funktionieren, wird unten immer der gesamte Plot aufgeschrieben. Aber für eigene Übungen oder Notizen ist es durchaus praktischer mit dieser Objekt Funktionalität zu arbeiten, um so zu umgehen, dass man immer wieder die gleichen Abschnitte aufschreiben muss.</p>
 </div>
 </div>
