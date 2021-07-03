@@ -76,4 +76,4 @@ Ein Bild sagt mehr als tausend Zahlen! Mit einer guten Grafik lassen sich viele 
 | 6 | **ggplotpouri** | Inhalte | R-Skript
 | 7 | **gganimate** | Inhalte | R-Skript
 | 8 | **plotly** | Inhalte | R-Skript
-| *Bonus* | **Datenvorbereitung** | [Inhalte](/post/ggplotting-daten) | R-Skript
+| *Bonus* | **Datenvorbereitung** | [Inhalte](/post/ggplotting-daten) | [R-Skript](/post/ggplotting-daten.R)
