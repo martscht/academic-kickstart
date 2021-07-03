@@ -1,0 +1,128 @@
+---
+title: Datenaufbereitung für ggplotting
+date: '2021-07-03'
+slug: ggplotting-daten
+categories: ["ggplotting"]
+tags: []
+subtitle: ''
+summary: ''
+authors: [schultze]
+lastmod: '2021-07-03T17:00:00+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+header:
+  image: "/header/ggplotting_data.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/669159)"
+projects: []
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<p>An dieser Stelle beschreiben wir kurz, wie die Daten für die ggplotting-Inhalte zustande gekommen sind. Den <a href="/post/edu_exp.rda"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> fertigen Datesatz zum Download</a> stellen wir auch direkt bereit, aber mit den hier dargestellten Befehlen kann dieser komplett ohne irgendwelche Schritte außerhalb R erzeugt werden.</p>
+<div id="daten-von-gapminder" class="section level2">
+<h2>Daten von Gapminder</h2>
+<p><a href="https://www.gapminder.org/">Gapminder</a> stellt online ein Dashboard zur Interaktion mit diversen Daten auf nationaler Ebene zur Verfügung. Neben der interaktiven Oberfläche stellen Gapminder aber auch noch statisch alle Datensaätze über ihr <a href="https://github.com/open-numbers/ddf--gapminder--systema_globalis">GitHub-Repository</a> zur Verfügung. Das ist für unseren Gebrauch perfekt, weil die Daten im .csv-Format vorliegen und somit direkt aus R abrufbar sind.</p>
+<p>Um mir die Arbeit mit den Daten ein wenig zu erleichtern, nutze ich an dieser Stelle <code>dplyr</code> - ein weit verbreitetes Paket für das Datenmanagement in R. Das Paket ist wie <code>ggplot2</code> auch Teil des <a href="https://www.tidyverse.org/">tidyverse</a>. Es ist nicht zwingend erforderlich das Paket zu nutzen, aber es enthält ein paar Funktionen, die besonders das zusammenführen verschiedener Datensätze erheblich vereinfachen.</p>
+<pre class="r"><code>library(dplyr)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;dplyr&#39;</code></pre>
+<pre><code>## The following objects are masked from &#39;package:stats&#39;:
+## 
+##     filter, lag</code></pre>
+<pre><code>## The following objects are masked from &#39;package:base&#39;:
+## 
+##     intersect, setdiff, setequal, union</code></pre>
+<p>Die Datensätze, die wir benutzen werden können allesamt über das <a href="https://github.com/open-numbers/ddf--gapminder--systema_globalis">github-Repository von Gapminder</a> bezogen werden. Die Dateinamen sind dabei zwar gut strukturiert, aber nicht unbedingt kurz, wodurch die folgenden paar Zeilen R code etwas unübersichtlich wirken können.</p>
+<pre class="r"><code># Geografische Informationen
+raw_geo &lt;- read.csv(&#39;https://github.com/open-numbers/ddf--gapminder--systema_globalis/raw/master/ddf--entities--geo--country.csv&#39;)
+
+# Populationsdaten
+pop &lt;- read.csv(&#39;https://github.com/open-numbers/ddf--gapminder--systema_globalis/raw/master/countries-etc-datapoints/ddf--datapoints--population_total--by--geo--time.csv&#39;)
+
+# Lebenserwartung
+expect &lt;- read.csv(&#39;https://github.com/open-numbers/ddf--gapminder--systema_globalis/raw/master/countries-etc-datapoints/ddf--datapoints--life_expectancy_at_birth_with_projections--by--geo--time.csv&#39;)
+
+# Einkommen (GDP / Person)
+income &lt;- read.csv(&#39;https://github.com/open-numbers/ddf--gapminder--systema_globalis/raw/master/countries-etc-datapoints/ddf--datapoints--income_per_person_gdppercapita_ppp_inflation_adjusted--by--geo--time.csv&#39;)
+
+# Investition in Bildung (nach Bildungsstufe getrennt)
+primary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--expenditure_per_student_primary_percent_of_gdp_per_person--by--geo--time.csv&#39;)
+secondary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--expenditure_per_student_secondary_percent_of_gdp_per_person--by--geo--time.csv&#39;)
+tertiary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--expenditure_per_student_tertiary_percent_of_gdp_per_person--by--geo--time.csv&#39;)</code></pre>
+<p>Zuerst benötigen wir ein paar Informationen über die Länder, die wir später vielleicht noch gebrauchen können. Dazu benutzen wir hier mal ein paar grundlegende geografische Informationen (<code>raw_geo</code>), die Bevölkerungsgröße (<code>pop</code>), die Lebenserwartung (<code>expect</code>) und das skalierte Bruttoinlandsprodukt (GDP / Person, <code>income</code>). Als Bildungsindikatoren haben wir außerdem die Investitionen ins Bildungssystem durch die jeweiligen Nationen in Prozent der jährlichen Wirtschaftsleistung einer Person (GDP / Person). Diese werden bei der Weltbank in drei Sektoren unterteilt: primary (in Deutschland z.B. die Grundschule), secondary (in Deutschland z.B. Sekundarschulen, Gymnasien und Berufsschulen) und tertiary (in Deutschland z.B. Universitäten und Berufsakademien).</p>
+</div>
+<div id="verschiedene-informationen-zusammenführen" class="section level2">
+<h2>Verschiedene Informationen zusammenführen</h2>
+<p>Diese Quellen an Information müssen wir in einen Datensatz zusammenführen, bevor wir sie in einer gemeinsamen Grafik darstellen können. Dazu möchte ich zunächst die geografischen Daten auf den Umfang notwendiger Informationen herunter reduzieren:</p>
+<pre class="r"><code>geo &lt;- transmute(raw_geo, geo = country, Country = name, Wealth = income_groups, Region = world_4region)</code></pre>
+<p>Hier kommt die <code>transmute</code>-Funktion aus dem <code>dplyr</code>-Paket zum Einsatz, die einen Datensatz (<code>raw_geo</code>) entgegennimmt und einen neuen Datensatz mit erstellten Variablen ausgibt. Hier benutze ich den Datensatz nur dazu, Variablen umzubenennen und gleichzeitig alle anderen Variablen wegzuwerfen. Im neuen Datensatz sind also nur noch vier Variablen übrig:</p>
+<pre class="r"><code>names(geo)</code></pre>
+<pre><code>## [1] &quot;geo&quot;     &quot;Country&quot; &quot;Wealth&quot;  &quot;Region&quot;</code></pre>
+<p>Diese geschrumpften Informationen müssen jetzt zunächst mit den Informationen zum den Ländern zusammengeführt werden.</p>
+<pre class="r"><code>geo &lt;- right_join(geo, pop, by = &#39;geo&#39;) |&gt;
+  full_join(expect, by = c(&#39;geo&#39;, &#39;time&#39;)) |&gt;
+  full_join(income, by = c(&#39;geo&#39;, &#39;time&#39;)) </code></pre>
+<p>Hier kommen <code>dplyr</code> Funktionen zum Einsatz, die auf <code>_join</code> enden, um zwei Datensätze zusammenzuführen. In der ersten Zeile wird also der Datensatz mit den geografischen Informationen mit dem Datensatz zu den Bevölkerungszahlen zusammengeführt. <code>right_join</code> heißt dabei, dass alle Zeilen des rechten Datensatzes erhalten bleiben sollen. Zeilen im linken Datensatz, für die es keinen Partner auf der Matchingvariable <code>geo</code> gibt, werden verworfen. Anders als die geografischen Informationen in <code>geo</code> enthalten die anderen Datensätze Informationen, die sich mit der Zeit ändern. Daher enthalten diese Datensätze pro Land mehrere Datenpunkte zu unterschiedlichen Jahren, weswegen alle Zeilen des rechten Datensatzes beibehalten werden sollen. Die Länder im linken Datensatz, für die diese Informationen nicht vorliegen werden aber nicht in den gemeinsamen Datensatz übernommen, weil wir für diese keine weitere Verwendung haben.</p>
+<p>Dieser Datensatz aus geografischen Daten und Bevölkerungszahlen wird dann mit den lang-ersehnten und in R Version 4.0.0 endlich eingetroffenen nativen Pipe-Operator <code>|&gt;</code> in die nächste Zusammenführung mit der Lebenserwartung weitergrereicht. Dabei wird das Ergebnis einer Funktion von Links nach Rechts an eine neue Funktion als erstes Argument weitergegeben. Dazu wird <code>full_join</code> genutzt, weil beide Seiten jetzt Informationen über die Jahre hinweg enthalten, die von beiden Seiten jeweils beibehalten werden sollen. Damit die richtigen Jahre einander zugeordnet werden, benutzen wir außerdem als Matchingvariable jetzt nicht nur den Ländercode <code>geo</code> sondern auch die Jahreszahl <code>time</code>.</p>
+<p>Die globalen Informationen über Länder sollen jetzt noch mit den spezifischen Bildungsinvestitionen zusammengeführt werden. Dazu kombinieren wir erst alle Bildungsinformationen in einen Datensatz:</p>
+<pre class="r"><code>edu &lt;- full_join(primary, secondary, by = c(&#39;geo&#39;, &#39;time&#39;)) |&gt;
+  full_join(tertiary, by = c(&#39;geo&#39;, &#39;time&#39;))</code></pre>
+<p>Hier benutzen wir <code>full_join</code> weil alle Datenpunkte aus beiden Datensätzen einbezogen werden sollen. Wenn die Ausgaben für Primär- und Sekundärbildung zusammengeführt sind, werden sie mit der Pipe <code>|&gt;</code> an <code>full_join</code> weitergegeben und dort mit der Tertiärbildung zusammengeführt. Zu guter Letzt verbinden wir die geografischen und die bildungsbezogenen Informationen noch:</p>
+<pre class="r"><code>edu_exp &lt;- full_join(geo, edu, by = c(&#39;geo&#39;, &#39;time&#39;))</code></pre>
+<p>Weil die uns hauptsächlich interessierenden Daten zu den Bildungsausgaben erst ab 1997 zuverlässig erhoben wurden, Lebenserwartung und Bevölkerungszahlen aber von 1800 bis 2100 geschätzt bzw. aufgezeichnet wurden, schränken wir den Datensatz noch auf die Spanne von 1997 bis 2018 ein und entfernen die Datenpunkte, die nicht eindeutig einem Land zugewiesen werden konnten:</p>
+<pre class="r"><code>edu_exp &lt;- filter(edu_exp, time &lt; 2019 &amp; time &gt; 1996) |&gt;
+  filter(!is.na(Country))</code></pre>
+<p>Die Namen der Variablen im Datensatz sind jetzt immmernoch alles andere als schön:</p>
+<pre class="r"><code>names(edu_exp)</code></pre>
+<pre><code>##  [1] &quot;geo&quot;                                                        
+##  [2] &quot;Country&quot;                                                    
+##  [3] &quot;Wealth&quot;                                                     
+##  [4] &quot;Region&quot;                                                     
+##  [5] &quot;time&quot;                                                       
+##  [6] &quot;population_total&quot;                                           
+##  [7] &quot;life_expectancy_at_birth_with_projections&quot;                  
+##  [8] &quot;income_per_person_gdppercapita_ppp_inflation_adjusted&quot;      
+##  [9] &quot;expenditure_per_student_primary_percent_of_gdp_per_person&quot;  
+## [10] &quot;expenditure_per_student_secondary_percent_of_gdp_per_person&quot;
+## [11] &quot;expenditure_per_student_tertiary_percent_of_gdp_per_person&quot;</code></pre>
+<p>Weil wir die Variablen immer und immer wieder im Code ansprechen müssen, machen sich besonders prägnante, kurze Variablennamen gut. Die aktuellen Namen sind leider keins von beidem, daher müssen neue her:</p>
+<pre class="r"><code>names(edu_exp)[-c(1:4)] &lt;- c(&#39;Year&#39;, &#39;Population&#39;, &#39;Expectancy&#39;, &#39;Income&#39;, &#39;Primary&#39;, &#39;Secondary&#39;, &#39;Tertiary&#39;)</code></pre>
+</div>
+<div id="überblick-über-die-finalen-daten" class="section level2">
+<h2>Überblick über die finalen Daten</h2>
+<p>Der Datensatz mit dem wir weiter arbeiten sieht also so aus:</p>
+<pre class="r"><code>head(edu_exp)</code></pre>
+<pre><code>##   geo     Country     Wealth Region Year Population Expectancy Income Primary
+## 1 afg Afghanistan low_income   asia 1997   19357126      53.74    865      NA
+## 2 afg Afghanistan low_income   asia 1998   19737770      52.80    800      NA
+## 3 afg Afghanistan low_income   asia 1999   20170847      54.43    735      NA
+## 4 afg Afghanistan low_income   asia 2000   20779957      54.63    687      NA
+## 5 afg Afghanistan low_income   asia 2001   21606992      54.76    646      NA
+## 6 afg Afghanistan low_income   asia 2002   22600774      55.65   1016      NA
+##   Secondary Tertiary
+## 1        NA       NA
+## 2        NA       NA
+## 3        NA       NA
+## 4        NA       NA
+## 5        NA       NA
+## 6        NA       NA</code></pre>
+<p>Eine kurze Erläuterung der Variablenbedeutungen:</p>
+<ul>
+<li><code>geo</code>: Länderkürzel, das zur Identifikation der Länder über verschiedene Datenquellen hinweg genutzt wird</li>
+<li><code>Country</code>: der Ländername im Englischen</li>
+<li><code>Wealth</code>: Wohlstandseinschätzung des Landes, unterteilt in fünf Gruppen</li>
+<li><code>Region</code>: Einteilung der Länder in die vier groben Regionen <code>africa</code>, <code>americas</code>, <code>asia</code> und <code>europe</code></li>
+<li><code>Year</code>: Jahreszahl</li>
+<li><code>Population</code>: Bevölkerung</li>
+<li><code>Expectancy</code>: Lebenserwartung eines Neugeborenen, sollten die Lebensumstände stabil bleiben.</li>
+<li><code>Income</code>: Stetiger Wohlstandsindikator für das Land (GDP pro Person)</li>
+<li><code>Primary</code>: Staatliche Ausgaben pro Schüler*in in der primären Bildung als Prozent des <code>income</code> (GDP pro Person)</li>
+<li><code>Secondary</code>: Staatliche Ausgaben pro Schüler*in in der sekundären Bildung als Prozent des <code>income</code> (GDP pro Person)</li>
+<li><code>Tertiary</code>: Staatliche Ausgaben pro Schüler*in oder Student*in in der tertiären Bildung als Prozent des <code>income</code> (GDP pro Person)</li>
+</ul>
+<p>Eine Ausprägung von 100 auf der Variable <code>Primary</code> in Deutschland hieße also zum Beispiel, dass pro Schüler*in in der Grundschule das Äquivalent der Wirtschaftsleistung einer bzw. eines Deutschen ausgegeben würde. 50 hieße entsprechend, dass es die Hälfte dieser Wirtschaftsleistung in diese spezifische Schulausbildung investiert wird.</p>
+</div>
