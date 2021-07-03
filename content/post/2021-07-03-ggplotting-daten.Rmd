@@ -31,7 +31,7 @@ Um mir die Arbeit mit den Daten ein wenig zu erleichtern, nutze ich an dieser St
 library(dplyr)
 ```
 
-Die Datensätze, die wir benutzen werden können allesamt über das [github-Repository von Gapminder](https://github.com/open-numbers/ddf--gapminder--systema_globalis) bezogen werden. Die Dateinamen sind dabei zwar gut strukturiert, aber nicht unbedingt kurz, wodurch die folgenden paar Zeilen R code etwas unübersichtlich wirken können. 
+Die Datensätze, die wir benutzen werden können größtenteils über das [github-Repository von Gapminder](https://github.com/open-numbers/ddf--gapminder--systema_globalis) bezogen werden. Die Dateinamen sind dabei zwar gut strukturiert, aber nicht unbedingt kurz, wodurch die folgenden paar Zeilen R code etwas unübersichtlich wirken können. 
 
 ```{r}
 # Geografische Informationen
@@ -52,8 +52,15 @@ secondary <- read.csv('https://raw.githubusercontent.com/open-numbers/ddf--gapmi
 tertiary <- read.csv('https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--expenditure_per_student_tertiary_percent_of_gdp_per_person--by--geo--time.csv')
 ```
 
-
 Zuerst benötigen wir ein paar Informationen über die Länder, die wir später vielleicht noch gebrauchen können. Dazu benutzen wir hier mal ein paar grundlegende geografische Informationen (`raw_geo`), die Bevölkerungsgröße (`pop`), die Lebenserwartung (`expect`) und das skalierte Bruttoinlandsprodukt (GDP / Person, `income`). Als Bildungsindikatoren haben wir außerdem die Investitionen ins Bildungssystem durch die jeweiligen Nationen in Prozent der jährlichen Wirtschaftsleistung einer Person (GDP / Person). Diese werden bei der Weltbank in drei Sektoren unterteilt: primary (in Deutschland z.B. die Grundschule), secondary (in Deutschland z.B. Sekundarschulen, Gymnasien und Berufsschulen) und tertiary (in Deutschland z.B. Universitäten und Berufsakademien). 
+
+Ein letzter Datensatz stammt auch von Gapminder, ist allerdings ein berechneter Index, sodass er in [einem anderen GitHub Repository](https://github.com/open-numbers/ddf--gapminder--fasttrack) zu finden ist. Hier handelt es sich um den Education Index, der von [United Nations Development Programme](http://www.undp.org/) veröffentlicht wird. Leider ist in diesem Datensatz die Benennung des Länder-Code anders, als in den Datensätzen aus dem Rohdaten-Repository, sodass wir diesen noch schnell den einheitlichen Namen geben:
+
+```{r}
+# Education Index
+index <- read.csv('https://github.com/open-numbers/ddf--gapminder--fasttrack/raw/master/ddf--datapoints--owid_education_idx--by--country--time.csv')
+names(index)[1] <- 'geo'
+```
 
 ## Verschiedene Informationen zusammenführen
 
@@ -86,7 +93,8 @@ Die globalen Informationen über Länder sollen jetzt noch mit den spezifischen 
 
 ```{r}
 edu <- full_join(primary, secondary, by = c('geo', 'time')) |>
-  full_join(tertiary, by = c('geo', 'time'))
+  full_join(tertiary, by = c('geo', 'time')) |>
+  full_join(index, by = c('geo', 'time'))
 ```
 
 Hier benutzen wir `full_join` weil alle Datenpunkte aus beiden Datensätzen einbezogen werden sollen. Wenn die Ausgaben für Primär- und Sekundärbildung zusammengeführt sind, werden sie mit der Pipe `|>` an `full_join` weitergegeben und dort mit der Tertiärbildung zusammengeführt. Zu guter Letzt verbinden wir die geografischen und die bildungsbezogenen Informationen noch:
@@ -136,5 +144,6 @@ Eine kurze Erläuterung der Variablenbedeutungen:
   - `Primary`: Staatliche Ausgaben pro Schüler*in in der primären Bildung als Prozent des `income` (GDP pro Person)
   - `Secondary`: Staatliche Ausgaben pro Schüler*in in der sekundären Bildung als Prozent des `income` (GDP pro Person)
   - `Tertiary`: Staatliche Ausgaben pro Schüler\*in oder Student\*in in der tertiären Bildung als Prozent des `income` (GDP pro Person)
+  - `Index`: Education Index des United Nations Development Programme
   
 Eine Ausprägung von 100 auf der Variable `Primary` in Deutschland hieße also zum Beispiel, dass pro Schüler*in in der Grundschule das Äquivalent der Wirtschaftsleistung einer bzw. eines Deutschen ausgegeben würde. 50 hieße entsprechend, dass es die Hälfte dieser Wirtschaftsleistung in diese spezifische Schulausbildung investiert wird.

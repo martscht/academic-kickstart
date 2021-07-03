@@ -36,7 +36,7 @@ projects: []
 <pre><code>## The following objects are masked from &#39;package:base&#39;:
 ## 
 ##     intersect, setdiff, setequal, union</code></pre>
-<p>Die Datensätze, die wir benutzen werden können allesamt über das <a href="https://github.com/open-numbers/ddf--gapminder--systema_globalis">github-Repository von Gapminder</a> bezogen werden. Die Dateinamen sind dabei zwar gut strukturiert, aber nicht unbedingt kurz, wodurch die folgenden paar Zeilen R code etwas unübersichtlich wirken können.</p>
+<p>Die Datensätze, die wir benutzen werden können größtenteils über das <a href="https://github.com/open-numbers/ddf--gapminder--systema_globalis">github-Repository von Gapminder</a> bezogen werden. Die Dateinamen sind dabei zwar gut strukturiert, aber nicht unbedingt kurz, wodurch die folgenden paar Zeilen R code etwas unübersichtlich wirken können.</p>
 <pre class="r"><code># Geografische Informationen
 raw_geo &lt;- read.csv(&#39;https://github.com/open-numbers/ddf--gapminder--systema_globalis/raw/master/ddf--entities--geo--country.csv&#39;)
 
@@ -54,6 +54,10 @@ primary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf--
 secondary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--expenditure_per_student_secondary_percent_of_gdp_per_person--by--geo--time.csv&#39;)
 tertiary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf--gapminder--systema_globalis/master/countries-etc-datapoints/ddf--datapoints--expenditure_per_student_tertiary_percent_of_gdp_per_person--by--geo--time.csv&#39;)</code></pre>
 <p>Zuerst benötigen wir ein paar Informationen über die Länder, die wir später vielleicht noch gebrauchen können. Dazu benutzen wir hier mal ein paar grundlegende geografische Informationen (<code>raw_geo</code>), die Bevölkerungsgröße (<code>pop</code>), die Lebenserwartung (<code>expect</code>) und das skalierte Bruttoinlandsprodukt (GDP / Person, <code>income</code>). Als Bildungsindikatoren haben wir außerdem die Investitionen ins Bildungssystem durch die jeweiligen Nationen in Prozent der jährlichen Wirtschaftsleistung einer Person (GDP / Person). Diese werden bei der Weltbank in drei Sektoren unterteilt: primary (in Deutschland z.B. die Grundschule), secondary (in Deutschland z.B. Sekundarschulen, Gymnasien und Berufsschulen) und tertiary (in Deutschland z.B. Universitäten und Berufsakademien).</p>
+<p>Ein letzter Datensatz stammt auch von Gapminder, ist allerdings ein berechneter Index, sodass er in <a href="https://github.com/open-numbers/ddf--gapminder--fasttrack">einem anderen GitHub Repository</a> zu finden ist. Hier handelt es sich um den Education Index, der von <a href="http://www.undp.org/">United Nations Development Programme</a> veröffentlicht wird. Leider ist in diesem Datensatz die Benennung des Länder-Code anders, als in den Datensätzen aus dem Rohdaten-Repository, sodass wir diesen noch schnell den einheitlichen Namen geben:</p>
+<pre class="r"><code># Education Index
+index &lt;- read.csv(&#39;https://github.com/open-numbers/ddf--gapminder--fasttrack/raw/master/ddf--datapoints--owid_education_idx--by--country--time.csv&#39;)
+names(index)[1] &lt;- &#39;geo&#39;</code></pre>
 </div>
 <div id="verschiedene-informationen-zusammenführen" class="section level2">
 <h2>Verschiedene Informationen zusammenführen</h2>
@@ -70,7 +74,8 @@ tertiary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf-
 <p>Dieser Datensatz aus geografischen Daten und Bevölkerungszahlen wird dann mit den lang-ersehnten und in R Version 4.0.0 endlich eingetroffenen nativen Pipe-Operator <code>|&gt;</code> in die nächste Zusammenführung mit der Lebenserwartung weitergrereicht. Dabei wird das Ergebnis einer Funktion von Links nach Rechts an eine neue Funktion als erstes Argument weitergegeben. Dazu wird <code>full_join</code> genutzt, weil beide Seiten jetzt Informationen über die Jahre hinweg enthalten, die von beiden Seiten jeweils beibehalten werden sollen. Damit die richtigen Jahre einander zugeordnet werden, benutzen wir außerdem als Matchingvariable jetzt nicht nur den Ländercode <code>geo</code> sondern auch die Jahreszahl <code>time</code>.</p>
 <p>Die globalen Informationen über Länder sollen jetzt noch mit den spezifischen Bildungsinvestitionen zusammengeführt werden. Dazu kombinieren wir erst alle Bildungsinformationen in einen Datensatz:</p>
 <pre class="r"><code>edu &lt;- full_join(primary, secondary, by = c(&#39;geo&#39;, &#39;time&#39;)) |&gt;
-  full_join(tertiary, by = c(&#39;geo&#39;, &#39;time&#39;))</code></pre>
+  full_join(tertiary, by = c(&#39;geo&#39;, &#39;time&#39;)) |&gt;
+  full_join(index, by = c(&#39;geo&#39;, &#39;time&#39;))</code></pre>
 <p>Hier benutzen wir <code>full_join</code> weil alle Datenpunkte aus beiden Datensätzen einbezogen werden sollen. Wenn die Ausgaben für Primär- und Sekundärbildung zusammengeführt sind, werden sie mit der Pipe <code>|&gt;</code> an <code>full_join</code> weitergegeben und dort mit der Tertiärbildung zusammengeführt. Zu guter Letzt verbinden wir die geografischen und die bildungsbezogenen Informationen noch:</p>
 <pre class="r"><code>edu_exp &lt;- full_join(geo, edu, by = c(&#39;geo&#39;, &#39;time&#39;))</code></pre>
 <p>Weil die uns hauptsächlich interessierenden Daten zu den Bildungsausgaben erst ab 1997 zuverlässig erhoben wurden, Lebenserwartung und Bevölkerungszahlen aber von 1800 bis 2100 geschätzt bzw. aufgezeichnet wurden, schränken wir den Datensatz noch auf die Spanne von 1997 bis 2018 ein und entfernen die Datenpunkte, die nicht eindeutig einem Land zugewiesen werden konnten:</p>
@@ -88,9 +93,12 @@ tertiary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf-
 ##  [8] &quot;income_per_person_gdppercapita_ppp_inflation_adjusted&quot;      
 ##  [9] &quot;expenditure_per_student_primary_percent_of_gdp_per_person&quot;  
 ## [10] &quot;expenditure_per_student_secondary_percent_of_gdp_per_person&quot;
-## [11] &quot;expenditure_per_student_tertiary_percent_of_gdp_per_person&quot;</code></pre>
+## [11] &quot;expenditure_per_student_tertiary_percent_of_gdp_per_person&quot; 
+## [12] &quot;owid_education_idx&quot;</code></pre>
 <p>Weil wir die Variablen immer und immer wieder im Code ansprechen müssen, machen sich besonders prägnante, kurze Variablennamen gut. Die aktuellen Namen sind leider keins von beidem, daher müssen neue her:</p>
 <pre class="r"><code>names(edu_exp)[-c(1:4)] &lt;- c(&#39;Year&#39;, &#39;Population&#39;, &#39;Expectancy&#39;, &#39;Income&#39;, &#39;Primary&#39;, &#39;Secondary&#39;, &#39;Tertiary&#39;)</code></pre>
+<pre><code>## Warning in names(edu_exp)[-c(1:4)] &lt;- c(&quot;Year&quot;, &quot;Population&quot;, &quot;Expectancy&quot;, :
+## number of items to replace is not a multiple of replacement length</code></pre>
 </div>
 <div id="überblick-über-die-finalen-daten" class="section level2">
 <h2>Überblick über die finalen Daten</h2>
@@ -103,13 +111,13 @@ tertiary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf-
 ## 4 afg Afghanistan low_income   asia 2000   20779957      54.63    687      NA
 ## 5 afg Afghanistan low_income   asia 2001   21606992      54.76    646      NA
 ## 6 afg Afghanistan low_income   asia 2002   22600774      55.65   1016      NA
-##   Secondary Tertiary
-## 1        NA       NA
-## 2        NA       NA
-## 3        NA       NA
-## 4        NA       NA
-## 5        NA       NA
-## 6        NA       NA</code></pre>
+##   Secondary Tertiary     Year
+## 1        NA       NA 13.33333
+## 2        NA       NA 13.33333
+## 3        NA       NA 14.00000
+## 4        NA       NA 14.66667
+## 5        NA       NA 14.66667
+## 6        NA       NA 15.33333</code></pre>
 <p>Eine kurze Erläuterung der Variablenbedeutungen:</p>
 <ul>
 <li><code>geo</code>: Länderkürzel, das zur Identifikation der Länder über verschiedene Datenquellen hinweg genutzt wird</li>
@@ -123,6 +131,7 @@ tertiary &lt;- read.csv(&#39;https://raw.githubusercontent.com/open-numbers/ddf-
 <li><code>Primary</code>: Staatliche Ausgaben pro Schüler*in in der primären Bildung als Prozent des <code>income</code> (GDP pro Person)</li>
 <li><code>Secondary</code>: Staatliche Ausgaben pro Schüler*in in der sekundären Bildung als Prozent des <code>income</code> (GDP pro Person)</li>
 <li><code>Tertiary</code>: Staatliche Ausgaben pro Schüler*in oder Student*in in der tertiären Bildung als Prozent des <code>income</code> (GDP pro Person)</li>
+<li><code>Index</code>: Education Index des United Nations Development Programme</li>
 </ul>
 <p>Eine Ausprägung von 100 auf der Variable <code>Primary</code> in Deutschland hieße also zum Beispiel, dass pro Schüler*in in der Grundschule das Äquivalent der Wirtschaftsleistung einer bzw. eines Deutschen ausgegeben würde. 50 hieße entsprechend, dass es die Hälfte dieser Wirtschaftsleistung in diese spezifische Schulausbildung investiert wird.</p>
 </div>
