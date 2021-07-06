@@ -1,0 +1,120 @@
+---
+title: plotly
+date: '2021-07-06'
+slug: ggplotting-plotly
+categories: ["ggplotting"]
+tags: []
+subtitle: 'Interaktiv Grafiken aus ggplotly'
+summary: ''
+authors: [schultze]
+lastmod: '2021-07-06T15:00:00+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+header:
+  image: "/header/ggplotting_plotly.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/1173944)"
+projects: []
+---
+
+
+In den bisherigen Sitzungen zu ggplotting hatten wir gesehen, wie man [einfache Grafiken erstellt](/post/ggplotting-intro) und so [anpasst](/post/ggplotting-themes), dass sie z.B. dem corporate design entsprechen oder sogar ansehnlich für den Druck sind. Uns aus dem leicht staubigen Gedanken lösend, dass Datendarstellungen am Ende gedruckt werden müssen, hatten wir uns auch noch damit befasst, wie man [Grafiken so animiert](/post/ggplotting-gganimate), dass man in der Lage ist, z.B. Veränderungen über die Zeit zu verdeutlichen. In diesem letzten großen Abschnitt soll es uns darum gehen, die aktive Rolle in der Datendarstellung nicht allein beim Ersteller oder der Erstellerin zu verorten, sondern auch den Rezipientinnen und Rezipienten die aktive Auseinandersetzung mit der Datenlage zu ermöglichen. Dafür gucken wir uns an, wie man mit `plotly` interaktive Grafiken erstellt.
+
+## Ein bisschen Hintergrund
+
+Plotly is kein R-spezifisches Paket, sondern eigentlich ein ganzes System mit dem man anhand verschiedener Methoden und Ansätze Dashboards zur Datenvisualisierung erstellen kann. Besonders seit März 2020 haben Datenvisualisierungsdashboards in den Alltag von uns allen Einzug gehalten. Besonders zu Beginn der Covid-19 Pandemie war das [Dashboard der Johns Hopkins Universität](https://coronavirus.jhu.edu/map.html) ominpräsent. Seit Beginn 2021 ist die etwas positivere Perspektive in der Vordergrund gerückt, sodass Seiten wie das, vom Bundersministerium für Gesundheit erstellte [Impfdashboard](https://impfdashboard.de/) stärker in Erscheinung getreten sind. Aber auch über diese spezifischen Daten hinaus gibt es inzwischen auf vielen Seiten die Möglichkeit mit öffentlich zugänglichen Daten direkt zu interagieren. Die von [uns genutzten Daten](/post/ggplotting-daten) stammen alle  von [Gapminder](https://www.gapminder.org), die natürlich auch auf ihrer Website [ein eigenes Dashboard](https://www.gapminder.org/tools) zur Verfügung stellen.
+
+Die Idee von Plotly ist es, ein integratives Tool zur Verfügung zu stellen mit dem man ohne vertiefte Kenntnisse von JavaScript solche Dashboards erstellen kann und sie anhand der gängigsten Programmiersprachen zur Datenverarbeitung und -analyse (z.B. R oder Python) bedienen und anpassen kann. Dazu bietet plotly natürlich [eine eigene Website](https://plotly.com/) mit diversen Anleitungen und Informationen. Es sei an dieser Stelle erwähnt, dass Plotly dabei zwar die Möglichkeiten zur Erstellung von Dashboards gratis und open-source zur Verfügung stellt, hinter dem gesamten Vorhaben aber ein Geschäftsmodell steht, was darauf fokussiert ist, das Hosting der Dashboards gegen Bezahlung zu übernehmen.
+
+Für uns ist aber vor allem erst einmal relevant, was man mit den Tools so anfangen kann, die uns gratis zu verfügung gestellt werden. Dafür gibt es eine [Dash Gallerie](https://dash-gallery.plotly.host/Portal/), auf der man eine Vielzahl wunderschöner und außerordentlich aufwändig gestalteter Plotly-Dashboards sehen kann.
+
+## Plotly für R
+
+Der für uns relevante Teil der Plotly-o-spähre ist das R-Paket `plotly`, welches uns die grundlegenden Tools zur Verfügung stellt um interaktive Grafiken zu erstellen. Dafür müssen wir, wie immer, das Paket erst installieren und laden:
+
+```{r, eval = FALSE}
+install.packages('plotly')
+```
+```{r}
+library('plotly')
+```
+
+Dieses Paket bietet uns die Möglichkeit über die `plot_ly`-Funktion interaktive Grafiken zu erstellen. Aber anstatt uns zu zwingen etwas komplett neues lernen zu müssen, erlaubt uns das Paket auch, mit `ggplot()` erstellte Grafiken in interaktive Grafiken zu übersetzen! Dafür gibt es die Funktion `ggplotly()`. Wie uns mitgeteilt wird, hat `plotly` schon automatisch `ggplot2` geladen, damit das Ganze funktioniert.
+
+## Unser Beispiel
+
+Wie in den bisherigen Abschnitten, nutzen wir den Ausschnitt zu Investitionen in die Bildung und den von [UNDP](https://www.undp.org/) ermittelten Bildungsindex. Die Daten können wir erneut direkt in R von dieser Seite beziehen:
+
+```{r, eval = FALSE}
+load(url('https://pandar.netlify.com/post/edu_exp.rda'))
+```
+```{r, echo = FALSE}
+load('./edu_exp.rda')
+```
+
+Wie schon in den bisherigen Abschnitten werden wir auch hier wieder mit Gruppierungen arbeiten. Um beide in ordentliche Formate zu überführen, die hinterher auch ansehnliche Legenden erzeugen, wandeln wir sowohl `Wealth` als auch `Region` in Faktoren um:
+
+```{r}
+edu_exp$Wealth <- factor(edu_exp$Wealth,
+  levels = c('high_income', 'upper_middle_income', 'lower_middle_income', 'low_income'),
+  labels = c('High', 'Upper Mid.', 'Lower Mid.', 'Low'))
+edu_exp$Region <- factor(edu_exp$Region,
+  levels = c('europe', 'asia', 'americas', 'africa'),
+  labels = c('Europe', 'Asia', 'Americas', 'Africa'))
+```
+
+Die von uns [erstellten Themes und Farbschemata](/post/ggplotting-themes) können wir wieder direkt `source()`n: 
+
+```{r, eval = FALSE}
+source('https://pandar.netlify.com/post/ggplotting-theme-source.R')
+```
+```{r, echo = FALSE}
+source('./ggplotting-theme-source.R')
+```
+
+Rufen wir uns erneut unsere Abbildung zur Darstellung des Bildungsindex (`Index`) in Abhängigkeit von den Investitionen in die Grundschulbildung vor Augen. Erneut beschränken wir uns dabei zunächst auf das Jahr 2013.
+
+```{r og-scatter, fig = TRUE}
+scatter <- subset(edu_exp, Year == 2013) |>
+  ggplot(aes(x = Primary, y = Index, color = Wealth)) +
+    geom_point() +
+    labs(x = 'Spending on Primary Eduction',
+    y = 'UNDP Education Index',
+    color = 'Country Wealth\n(GDP per Capita)') +
+    ggtitle('Impact of Primary Education Investments', subtitle = 'Data for 2013') +
+    theme_pandar() + scale_color_pandar()
+scatter
+```
+
+Hier gibt es direkt einige Dinge, die durch Interaktivität ein besseres Verständnis der Datenlage ermöglich würden: wie schon im Beitrag [zu Animationen](/post/ggplotting-gganimate) könnten wir hier versuchen die Daten aus mehreren Jahren darzustellen (und dabei die Auswahl der Nutzerin oder dem Nutzer zu überlassen). Uns könnte auch interessieren, wie verschiedene Modelle den Zusammenhang zwischen den Variablen darstellen bzw. vereinfachen würden und diese in der Grafik anzeigen lassen. Vor allem aber liegt auf der Hand, dass wir durch Interaktivität die Möglichkeit gewinnen genauer zu wissen, was uns jeder einzelne Punke sagen kann.
+
+## Anwenden von `ggplotly`
+
+Wie schon erwähnt, können wir unsere ggplots direkt in interaktive Plots umwandeln lassen, indem wir unser `ggplot`-Objekt an die Funktion `ggplotly()` übergeben. Das hat gegenüber der plotly-eigenen `plot_ly` den Nachteil, dass wir ein bisschen Flexibilität in der späteren Anpassung der interaktiven Optionen einbüßen, aber hat den immensen Vorteil, dass alle Dinge die wir uns für den Umgang mit ggplot aneignen auch hier direkt anwendbar sind. So werden z.B. auch alle Farb- und Theme-Anpassungen direkt von plotly übernommen:
+
+```{r}
+ggplotly(scatter)
+```
+
+Schon so erhöht sich das Ausmaß in dem man sich mit der Grafik auseinandersetzen kann, für Nutzer*innen deutlich. Sie können an dieser Stelle weiterlesen, um eine Beschreibung der interaktiven Funktionen dieses Plots zu lesen, oder es einfach ausprobieren! Für die Wenigen, die sich für Ersteres entscheiden, hier eine Erläuterung der Funktionen:
+
+Wenn sie mit dem Cursor über einen Datenpunkt hovern, erhalten Sie genauere Informationen über diesen spezifischen Datenpunkt (die sogenannte "hoverinfo"). Im aktuellen Fall sind das die genauen Ausprägungen der drei Variablen, die im Plot auch verarbeitet sind. Außerdem kann man mit dem Cursor einen Bereich im Plot markieren um in diesen herein zu zoomen. Die dritte Möglichkeit mit dem Datenfenster zu interagieren stellt die Legende dar. Hier kann man durch einfachen klick die Datenpunkte der gewählten Gruppen aus- und einblenden.
+
+Über diese Möglichkeiten hinaus bietet Plotly oben rechts einige Navigationsbuttons an. Von links nach rechts:
+
+  * Die Abbildung mit aktuellen Einstellungen als .png speichern.
+  * Das oben beschriebene Verhalten, mit dem man in bestimmte Bereiche des Plots hereinzoomen kann. Die Voreinstellung.
+  * Das Zoom-Verhalten ausschalten und stattdessen in den Pan-Modus wechseln.
+  * In den Box-Select Modus wechseln, um rechteckige Regionen von Datenpunkten auszuwählen.
+  * In den Lasso-Select Modus wechseln, um chaotische Regionen von Datenpunkten auszuwählen.
+  * Zoom in.
+  * Zoom out.
+  * Automatische Skalierung von x und y wählen.
+  * Auf die ursprüngliche Skalierung von x und y zurück setzen.
+  * "Spike lines" anzeigen, die dabei helfen den Datenpunkt auf x und y zu verorten.
+  * Die Hoverinfo des nächstgelegenen Datenpunkts anzeigen. Die Voreinstellung.
+  * Die Hoverinfos von, auf der x-Achse naheliegenden Datenpunkten anzeigen.
+  
+Wie man sieht, sind das per Voreinstellung ziemlich viele Optionen, die bei weitem nicht immer alle nötig oder sinnvoll sind. Aber besonders zu Beginn können sie dabei helfen, die Daten genauer unter die Lupe zu nehmen.
