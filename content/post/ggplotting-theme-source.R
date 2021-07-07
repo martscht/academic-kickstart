@@ -25,6 +25,6 @@ scale_fill_pandar <- function(discrete = TRUE, ...) {
   if (discrete) {
     discrete_scale('fill', 'pandar_colors', palette = pal, ...)
   } else {
-    scale_color_gradientn(colors = pal(4), ...)
+    scale_fill_gradientn(colors = pal(4), ...)
   }
 }
