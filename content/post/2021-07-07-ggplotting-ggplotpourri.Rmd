@@ -1,0 +1,113 @@
+---
+title: ggplotpourri
+date: '2020-10-17'
+slug: ggplotting-ggplotpourri
+categories: [""]
+tags: ["ggplotting"]
+subtitle: ''
+summary: ''
+authors: [schultze, buchholz]
+lastmod: '2021-07-07T18:00:00+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r, echo = FALSE}
+library(ggplot2)
+load('./edu_exp.rda')
+source('./ggplotting-theme-source.R')
+```
+
+
+## Karten
+
+Bei psychologischen Daten eher selten, aber mit dem [Gapminder Datensatz](/post/ggplotting-daten) natürlich sehr naheliegend, ist die Datenvisualisierung auf Karten. Für komplexere Karten (z.B. mit Google Maps) gibt es das `ggmap` Paket. Für unsere Zwecke reichen allerdings die von `ggplot2` mitgelieferten Karten aus.
+
+Karten benötigen eine sehr eigene Art der Datenaufbereitung, die häufig nicht gerade platzsparend ist. Daher sind die meisten Karten in R nicht als Datensätze vorhanden, sondern müssen erst einmal in solche überführt werden. Dafür gibt es die `map_data` Funktion. Um die Weltkarte in einen Datensatz zu übertragen, z.B.:
+
+```{r}
+welt <- map_data('world')
+head(welt)
+```
+
+Was man in den Daten sieht sind Länge- und Breitengrade von Landesgrenzen. Außerdem bestimmt die Variable `group` das Land (anhand dessen die Landesgrenzen gruppiert werden sollten). Damit Linie der Grenzen nicht hin und her springt gibt es außerdem die Variable `order` die angibt, welcher Punkt in der Grenze als nächstes kommt. Anhand dieser Punkte werden in `ggplot2` mit der allgemeinen `geom_polygon` Funktion Karten gezeichnet. Um eine leere Weltkarte zu erzeugen reicht Folgendes aus:
+
+```{r}
+ggplot(welt, aes(x = long, y = lat, group = group)) +
+  geom_polygon()
+```
+
+Wie man sieht, hat dieser Plot die gleichen Eigenschaften wie normale `ggplot`s - weil es ein ganz normaler Plot ist. Um einzelne Länder erkennen zu können, sollten wir z.B. die Länder weiß und nicht schwarz füllen. Außerdem brauchen wir nicht unbedingt x- und y-Achse, sodass wir das komplett leere Theme `theme_void` nutzen können:
+
+```{r}
+ggplot(welt, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = 'white', color = 'black', lwd = .25) +
+  theme_void()
+```
+
+Um die Karten-Daten mit den Daten in Verbindung zu bringen steht uns leider - wie so häufig - im Weg, dass die Daten nicht einheitlich kodiert wurden. In diesem Fall sind es die Benennungen der Länder, die uneinheitlich sind. Um herauszufinden, wo Unterschiede bestehen, können wir die normalen Operatoren der Mengenvergleiche in R nutzen:
+
+```{r}
+setdiff(unique(welt$region), unique(edu_exp$Country))
+setdiff(unique(edu_exp$Country), unique(welt$region))
+```
+
+Im Folgenden werden die Namen der Länder mit dem `recode` Befehl des `car`-Pakets umkodiert. Leider gibt es schon vorab ein Land, nach dem man in Datenaufbereitungen immer vorab schauen sollte: wie auch hier ist es häufiger der Fall, dass die Elfenbeiküste als `Cote d'Ivoire` kodiert ist. Leider bewirkt das `'` in diesem Namen bei Umkodierungen immer einiges an Problemen, sodass wir es vorab direkt umstellen:
+
+```{r}
+edu_exp[grepl('Cote', edu_exp$Country), 'Country'] <- 'Ivory Coast'
+```
+
+die verbleindenden Ländern können dann umkodiert werden:
+
+```{r}
+# Recodes
+edu_exp$Country <- car::recode(edu_exp$Country,
+  "'Antigua and Barbuda' = 'Antigua';
+  'Congo, Rep.' = 'Republic of Congo';
+  'Congo, Dem. Rep.' = 'Democratic Republic of the Congo';
+  'Micronesia, Fed. Sts.' = 'Micronesia';
+  'United Kingdom' = 'UK';
+  'Holy See' = 'Vatican';
+  'Kyrgyz Republic' = 'Kyrgyzstan'; 
+  'St. Kitts and Nevis' = 'Saint Kitts';
+  'Lao' = 'Laos';
+  'St. Lucia' = 'Saint Lucia';
+  'North Macedonia' = 'Macedonia';
+  'Slovak Republic' = 'Slovakia';
+  'Eswatini' = 'Swaziland';
+  'Trinidad and Tobago' = 'Trinidad';
+  'United States' = 'USA';
+  'Saint Vincent and the Grenadines' = 'Saint Vincent'")
+```
+
+Diese Umkodierung ist nicht auf andere Datensätze übertragbar - wir müssen immer in den Daten die vorliegen nachgucken, welche Schritte zum Angleichen verschiedener Datensätze notwendig sind.
+
+Wir können den Datensatz auf das letzte Jahr beschränken, das wir vorliegen haben (2017):
+
+```{r}
+edu_2017 <- subset(edu_exp, Year == 2017)
+```
+
+Anschließend können wir den Datensatz mit der Weltkarte zusammenführen. Dafür verwenden wir wieder den `merge` Befehl. Damit nach dem `merge` die Grenzen richtig gezeichnet werden, müssen wieder die Reihenfolge der Daten wiederherstellen. Dazu wird mit `order` nach Land (`group`) und dann nach Reihenfolge der Grenzpunkte (`order`) sortiert.
+
+```{r}
+edu_map <- merge(welt, edu_2017, 
+  by.x = 'region', by.y = 'Country', 
+  all.x = TRUE, all.y = FALSE)
+edu_map <- edu_map[order(edu_map$group, edu_map$order), ]
+```
+
+Mit den neuen Daten können wir unsere vorherige Karte jetzt so ergänzen, dass wir die Länder nach der Anzahl der Fälle einfärben:
+
+```{r, fig = TRUE, fig.height=3.5}
+ggplot(edu_map, aes(x = long, y = lat, group = group)) +
+  geom_polygon(color = 'black', lwd = .25, 
+    aes(fill = Index)) +
+  theme_void() + 
+  scale_fill_pandar(discrete = FALSE, na.value = 'grey95')
+```

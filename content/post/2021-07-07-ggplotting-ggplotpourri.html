@@ -1,0 +1,130 @@
+---
+title: ggplotpourri
+date: '2020-10-17'
+slug: ggplotting-ggplotpourri
+categories: [""]
+tags: ["ggplotting"]
+subtitle: ''
+summary: ''
+authors: [schultze, buchholz]
+lastmod: '2021-07-07T18:00:00+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="karten" class="section level2">
+<h2>Karten</h2>
+<p>Bei psychologischen Daten eher selten, aber mit dem <a href="/post/ggplotting-daten">Gapminder Datensatz</a> natürlich sehr naheliegend, ist die Datenvisualisierung auf Karten. Für komplexere Karten (z.B. mit Google Maps) gibt es das <code>ggmap</code> Paket. Für unsere Zwecke reichen allerdings die von <code>ggplot2</code> mitgelieferten Karten aus.</p>
+<p>Karten benötigen eine sehr eigene Art der Datenaufbereitung, die häufig nicht gerade platzsparend ist. Daher sind die meisten Karten in R nicht als Datensätze vorhanden, sondern müssen erst einmal in solche überführt werden. Dafür gibt es die <code>map_data</code> Funktion. Um die Weltkarte in einen Datensatz zu übertragen, z.B.:</p>
+<pre class="r"><code>welt &lt;- map_data(&#39;world&#39;)
+head(welt)</code></pre>
+<pre><code>##        long      lat group order region subregion
+## 1 -69.89912 12.45200     1     1  Aruba      &lt;NA&gt;
+## 2 -69.89571 12.42300     1     2  Aruba      &lt;NA&gt;
+## 3 -69.94219 12.43853     1     3  Aruba      &lt;NA&gt;
+## 4 -70.00415 12.50049     1     4  Aruba      &lt;NA&gt;
+## 5 -70.06612 12.54697     1     5  Aruba      &lt;NA&gt;
+## 6 -70.05088 12.59707     1     6  Aruba      &lt;NA&gt;</code></pre>
+<p>Was man in den Daten sieht sind Länge- und Breitengrade von Landesgrenzen. Außerdem bestimmt die Variable <code>group</code> das Land (anhand dessen die Landesgrenzen gruppiert werden sollten). Damit Linie der Grenzen nicht hin und her springt gibt es außerdem die Variable <code>order</code> die angibt, welcher Punkt in der Grenze als nächstes kommt. Anhand dieser Punkte werden in <code>ggplot2</code> mit der allgemeinen <code>geom_polygon</code> Funktion Karten gezeichnet. Um eine leere Weltkarte zu erzeugen reicht Folgendes aus:</p>
+<pre class="r"><code>ggplot(welt, aes(x = long, y = lat, group = group)) +
+  geom_polygon()</code></pre>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p>Wie man sieht, hat dieser Plot die gleichen Eigenschaften wie normale <code>ggplot</code>s - weil es ein ganz normaler Plot ist. Um einzelne Länder erkennen zu können, sollten wir z.B. die Länder weiß und nicht schwarz füllen. Außerdem brauchen wir nicht unbedingt x- und y-Achse, sodass wir das komplett leere Theme <code>theme_void</code> nutzen können:</p>
+<pre class="r"><code>ggplot(welt, aes(x = long, y = lat, group = group)) +
+  geom_polygon(fill = &#39;white&#39;, color = &#39;black&#39;, lwd = .25) +
+  theme_void()</code></pre>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Um die Karten-Daten mit den Daten in Verbindung zu bringen steht uns leider - wie so häufig - im Weg, dass die Daten nicht einheitlich kodiert wurden. In diesem Fall sind es die Benennungen der Länder, die uneinheitlich sind. Um herauszufinden, wo Unterschiede bestehen, können wir die normalen Operatoren der Mengenvergleiche in R nutzen:</p>
+<pre class="r"><code>setdiff(unique(welt$region), unique(edu_exp$Country))</code></pre>
+<pre><code>##  [1] &quot;Aruba&quot;                               &quot;Anguilla&quot;                           
+##  [3] &quot;American Samoa&quot;                      &quot;Antarctica&quot;                         
+##  [5] &quot;French Southern and Antarctic Lands&quot; &quot;Antigua&quot;                            
+##  [7] &quot;Barbuda&quot;                             &quot;Saint Barthelemy&quot;                   
+##  [9] &quot;Bermuda&quot;                             &quot;Ivory Coast&quot;                        
+## [11] &quot;Democratic Republic of the Congo&quot;    &quot;Republic of Congo&quot;                  
+## [13] &quot;Cook Islands&quot;                        &quot;Curacao&quot;                            
+## [15] &quot;Cayman Islands&quot;                      &quot;Canary Islands&quot;                     
+## [17] &quot;Falkland Islands&quot;                    &quot;Reunion&quot;                            
+## [19] &quot;Mayotte&quot;                             &quot;French Guiana&quot;                      
+## [21] &quot;Martinique&quot;                          &quot;Guadeloupe&quot;                         
+## [23] &quot;Faroe Islands&quot;                       &quot;Micronesia&quot;                         
+## [25] &quot;UK&quot;                                  &quot;Guernsey&quot;                           
+## [27] &quot;Greenland&quot;                           &quot;Guam&quot;                               
+## [29] &quot;Heard Island&quot;                        &quot;Isle of Man&quot;                        
+## [31] &quot;Cocos Islands&quot;                       &quot;Christmas Island&quot;                   
+## [33] &quot;Chagos Archipelago&quot;                  &quot;Jersey&quot;                             
+## [35] &quot;Siachen Glacier&quot;                     &quot;Kyrgyzstan&quot;                         
+## [37] &quot;Nevis&quot;                               &quot;Saint Kitts&quot;                        
+## [39] &quot;Kosovo&quot;                              &quot;Laos&quot;                               
+## [41] &quot;Saint Lucia&quot;                         &quot;Saint Martin&quot;                       
+## [43] &quot;Macedonia&quot;                           &quot;Northern Mariana Islands&quot;           
+## [45] &quot;Montserrat&quot;                          &quot;New Caledonia&quot;                      
+## [47] &quot;Norfolk Island&quot;                      &quot;Niue&quot;                               
+## [49] &quot;Bonaire&quot;                             &quot;Sint Eustatius&quot;                     
+## [51] &quot;Saba&quot;                                &quot;Pitcairn Islands&quot;                   
+## [53] &quot;Puerto Rico&quot;                         &quot;Madeira Islands&quot;                    
+## [55] &quot;Azores&quot;                              &quot;French Polynesia&quot;                   
+## [57] &quot;Western Sahara&quot;                      &quot;South Sandwich Islands&quot;             
+## [59] &quot;South Georgia&quot;                       &quot;Saint Helena&quot;                       
+## [61] &quot;Ascension Island&quot;                    &quot;Saint Pierre and Miquelon&quot;          
+## [63] &quot;Slovakia&quot;                            &quot;Swaziland&quot;                          
+## [65] &quot;Sint Maarten&quot;                        &quot;Turks and Caicos Islands&quot;           
+## [67] &quot;Trinidad&quot;                            &quot;Tobago&quot;                             
+## [69] &quot;USA&quot;                                 &quot;Vatican&quot;                            
+## [71] &quot;Grenadines&quot;                          &quot;Saint Vincent&quot;                      
+## [73] &quot;Virgin Islands&quot;                      &quot;Wallis and Futuna&quot;</code></pre>
+<pre class="r"><code>setdiff(unique(edu_exp$Country), unique(welt$region))</code></pre>
+<pre><code>##  [1] &quot;Antigua and Barbuda&quot;            &quot;Cote d&#39;Ivoire&quot;                 
+##  [3] &quot;Congo, Dem. Rep.&quot;               &quot;Congo, Rep.&quot;                   
+##  [5] &quot;Micronesia, Fed. Sts.&quot;          &quot;United Kingdom&quot;                
+##  [7] &quot;Hong Kong, China&quot;               &quot;Holy See&quot;                      
+##  [9] &quot;Kyrgyz Republic&quot;                &quot;St. Kitts and Nevis&quot;           
+## [11] &quot;Lao&quot;                            &quot;St. Lucia&quot;                     
+## [13] &quot;North Macedonia&quot;                &quot;Slovak Republic&quot;               
+## [15] &quot;Eswatini&quot;                       &quot;Trinidad and Tobago&quot;           
+## [17] &quot;Tuvalu&quot;                         &quot;United States&quot;                 
+## [19] &quot;St. Vincent and the Grenadines&quot;</code></pre>
+<p>Im Folgenden werden die Namen der Länder mit dem <code>recode</code> Befehl des <code>car</code>-Pakets umkodiert. Leider gibt es schon vorab ein Land, nach dem man in Datenaufbereitungen immer vorab schauen sollte: wie auch hier ist es häufiger der Fall, dass die Elfenbeiküste als <code>Cote d'Ivoire</code> kodiert ist. Leider bewirkt das <code>'</code> in diesem Namen bei Umkodierungen immer einiges an Problemen, sodass wir es vorab direkt umstellen:</p>
+<pre class="r"><code>edu_exp[grepl(&#39;Cote&#39;, edu_exp$Country), &#39;Country&#39;] &lt;- &#39;Ivory Coast&#39;</code></pre>
+<p>die verbleindenden Ländern können dann umkodiert werden:</p>
+<pre class="r"><code># Recodes
+edu_exp$Country &lt;- car::recode(edu_exp$Country,
+  &quot;&#39;Antigua and Barbuda&#39; = &#39;Antigua&#39;;
+  &#39;Congo, Rep.&#39; = &#39;Republic of Congo&#39;;
+  &#39;Congo, Dem. Rep.&#39; = &#39;Democratic Republic of the Congo&#39;;
+  &#39;Micronesia, Fed. Sts.&#39; = &#39;Micronesia&#39;;
+  &#39;United Kingdom&#39; = &#39;UK&#39;;
+  &#39;Holy See&#39; = &#39;Vatican&#39;;
+  &#39;Kyrgyz Republic&#39; = &#39;Kyrgyzstan&#39;; 
+  &#39;St. Kitts and Nevis&#39; = &#39;Saint Kitts&#39;;
+  &#39;Lao&#39; = &#39;Laos&#39;;
+  &#39;St. Lucia&#39; = &#39;Saint Lucia&#39;;
+  &#39;North Macedonia&#39; = &#39;Macedonia&#39;;
+  &#39;Slovak Republic&#39; = &#39;Slovakia&#39;;
+  &#39;Eswatini&#39; = &#39;Swaziland&#39;;
+  &#39;Trinidad and Tobago&#39; = &#39;Trinidad&#39;;
+  &#39;United States&#39; = &#39;USA&#39;;
+  &#39;Saint Vincent and the Grenadines&#39; = &#39;Saint Vincent&#39;&quot;)</code></pre>
+<p>Diese Umkodierung ist nicht auf andere Datensätze übertragbar - wir müssen immer in den Daten die vorliegen nachgucken, welche Schritte zum Angleichen verschiedener Datensätze notwendig sind.</p>
+<p>Wir können den Datensatz auf das letzte Jahr beschränken, das wir vorliegen haben (2017):</p>
+<pre class="r"><code>edu_2017 &lt;- subset(edu_exp, Year == 2017)</code></pre>
+<p>Anschließend können wir den Datensatz mit der Weltkarte zusammenführen. Dafür verwenden wir wieder den <code>merge</code> Befehl. Damit nach dem <code>merge</code> die Grenzen richtig gezeichnet werden, müssen wieder die Reihenfolge der Daten wiederherstellen. Dazu wird mit <code>order</code> nach Land (<code>group</code>) und dann nach Reihenfolge der Grenzpunkte (<code>order</code>) sortiert.</p>
+<pre class="r"><code>edu_map &lt;- merge(welt, edu_2017, 
+  by.x = &#39;region&#39;, by.y = &#39;Country&#39;, 
+  all.x = TRUE, all.y = FALSE)
+edu_map &lt;- edu_map[order(edu_map$group, edu_map$order), ]</code></pre>
+<p>Mit den neuen Daten können wir unsere vorherige Karte jetzt so ergänzen, dass wir die Länder nach der Anzahl der Fälle einfärben:</p>
+<pre class="r"><code>ggplot(edu_map, aes(x = long, y = lat, group = group)) +
+  geom_polygon(color = &#39;black&#39;, lwd = .25, 
+    aes(fill = Index)) +
+  theme_void() + 
+  scale_fill_pandar(discrete = FALSE, na.value = &#39;grey95&#39;)</code></pre>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+</div>
