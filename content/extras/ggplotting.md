@@ -71,9 +71,18 @@ Ein Bild sagt mehr als tausend Zahlen! Mit einer guten Grafik lassen sich viele 
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 2 | **ggplot2 Intro** | [Inhalte](/post/ggplotting-intro) | [R-Skript](/post/ggplotting-intro.R)
-| 4 | **Hübschere Grafiken** | [Inhalte](/post/ggplotting-themes) | R-Skript
-| 6 | **ggplotpourri** | Inhalte | R-Skript
-| 7 | **gganimate** | [Inhalte](/post/ggplotting-gganimate) | R-Skript
-| 8 | **plotly** | [Inhalte](/post/ggplotting-plotly) | R-Skript
-| *Bonus* | **Datenvorbereitung** | [Inhalte](/post/ggplotting-daten) | [R-Skript](/post/ggplotting-daten.R)
+| 0 | **Datenvorbereitung** | [Inhalte](/post/ggplotting-daten) | [R-Skript](/post/ggplotting-daten.R) |
+| 1 | **Intro** | -- | -- |
+| 2 | **ggplot2 Intro** | [Inhalte](/post/ggplotting-intro) | [R-Skript](/post/ggplotting-intro.R) |
+| 3 | **Hübsche Grafiken: Theorie** | -- | -- |
+| 4 | **Hübsche Grafiken: Praxis** | [Inhalte](/post/ggplotting-themes) | R-Skript |
+| 5 | **Übung 1** | -- | R-Skript |
+| 6 | **ggplotpourri** | [Inhalte](/post/ggplotting-ggplotpourri) | R-Skript |
+| 7 | **gganimate** | [Inhalte](/post/ggplotting-gganimate) | R-Skript |
+| 8 | **plotly** | [Inhalte](/post/ggplotting-plotly) | R-Skript |
+| 9 | **Explorative Grafiken** | -- | R-Skript |
+| 10 | **Übung 2** | -- | R-Skript |
+| 11 | **Outro** | -- | R-Skript |
+| | | | |
+
+Den [<i class='fas fa-download'></i> Foliensatz zum Workshop gibt es hier](/post/ggplotting_folien.pdf).
