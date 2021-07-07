@@ -23,6 +23,91 @@ source('./ggplotting-theme-source.R')
 ```
 
 
+## Tortendiagramme 
+
+Bevor wir uns damit befassen, *wie* man in `ggplot2` ein Torten-Diagramm erstellen kann (und die Donut-förmige Abwandlung davon) wird in [vielen Ecken des Internets](https://www.data-to-viz.com/caveat/pie.html) die Frage nach dem *ob* man ein Torten-Diagramm erstellen sollte mit einem vehementen "nein" beantwortet (es gibt auch [wissenschaftliche Untersuchungen](https://hci.stanford.edu/publications/2010/crowd-perception/heer-chi2010.pdf), die zeigen, dass Daten undeutlicher vermittelt werden). Dennoch werden beide Arten von Plots gerne und häufig genutzt und haben in einigen Fällen ihre Anwendungsgebiete. Im normalen R können wir `pie()` nutzen, um ein Tortendiagramm anzulegen, in `ggplot2` ist das allerdings ein wenig umständlicher.
+
+Generell werden Tortendiagramme nur dann empfohlen, wenn man Anteile von einem Gesamten darstellen möchte. Leider haben wir keine dafür direkt geeignete Variable in [unserem Datensatz](/post/ggplotting-daten), aber wir können uns etwas erstellen. Wir betrachten im Folgenden die Ausgaben für die drei unterschiedlichen Bildungsbreiche und wie diese in unterschiedlichen Ländern aussehen. Dafür erstellen wir zunächst Proportionen:
+
+```{r}
+edu_exp$Total <- subset(edu_exp, select = c('Primary', 'Secondary', 'Tertiary')) |>
+  rowSums()
+tmp <- edu_exp[, c('Primary', 'Secondary', 'Tertiary')] / edu_exp$Total
+names(tmp) <- c('PrimaryProp', 'SecondaryProp', 'TertiaryProp')
+edu_exp <- cbind(edu_exp, tmp)
+```
+
+Wie immer, nehmen wir 2013 und beschränken uns auf die Länder, die in diesem Jahr für alle drei Ausgaben Daten vorhanden haben. Wie wir schon [im ersten Beitrag gesehen haben](/post/ggplotting-intro), müssen wir die Daten mehrerer Variablen für die ordentliche Darstellung ins lange Format übertragen.
+
+```{r}
+prop_long <- subset(edu_exp, Year == 2013 & !is.na(Total), 
+  select = c('Country', 'Year',  
+    'PrimaryProp', 'SecondaryProp', 'TertiaryProp')) |>
+  reshape(direction = 'long',
+    varying = c('PrimaryProp', 'SecondaryProp', 'TertiaryProp'),
+    v.names = 'Proportion',
+    timevar = 'Type',
+    times = c('Primary', 'Secondary', 'Tertiary'))
+```
+
+`geom_rect()` ist der Umweg über den wir uns in `ggplot2` an das Kreisdiagramm heranpirschen müssen. Dafür benötigen wir klare Enden unserer Rechtecke, also bei welchen y-Werten die Balken anfangen und aufhören sollen. Weil die Balken ja bündig einen Kreis ergeben sollen, brauchen wir erstmal auch einen bündigen Balken, das heißt jede Kategorie muss das aufhören, wo die nächste beginnt. Damit wir das nicht gleichzeitig und unübersichtlich für alle Länder gleicheztig machen, beschränken wir uns wieder auf Spanien:
+
+```{r}
+spain <- subset(prop_long, Country == 'Spain')
+spain$Max <- cumsum(spain$Proportion)
+spain$Min <- c(0, head(spain$Max, n = -1))
+
+spain
+```
+
+Mit `geom_rect()` können wir jetzt einen Balken erstellen, der genau bündig von einem Bildungstyp in den nächsten übergeht:
+
+```{r stacked-bar, fig = TRUE}
+bar <- ggplot(spain, 
+  aes(ymin = Min, ymax = Max, 
+    xmin = 2, xmax = 3,
+    fill = Type)) +
+  geom_rect(color = 'white') +
+  theme_void() + scale_fill_pandar()
+bar
+```
+
+Wir nutzen statt des `theme_pandar()` hier `theme_void()`, um den Plot von Achsen und anderen Kennzeichnungen zu befreien. `color = 'white'` setze ich hier, um eine sauber aussehende Grenze zwischen den Abschnitten herzustellen.
+
+Jetzt müssen wir aus diesem Türmchen nur noch einen Kreis formen. Dafür transformieren wir die Koordinaten ins polare System, sodass (0, 0) in der Mitte liegt und sich die Datenpunkte von dort entfernen:
+
+```{r simple-pie, fig=TRUE}
+pie <- bar + coord_polar("y")
+pie
+```
+
+Jetzt können wir über `geom_text` noch die Prozente in die Abschnitte eintragen. Dabei müssen wir nur ordentliche Positionen für die Labels bestimmen. Ich setze diese einfach mal in die Mitte. Danach erzeugen wir noch die Prozentzahlen und `paste`n sie mit dem Prozentzeichen zusammen. Das sollte für unsere Label genügen.
+
+```{r}
+spain$Position <- (spain$Max + spain$Min) / 2
+spain$Percent <- paste0(round(spain$Proportion * 100, 1), '%')
+```
+
+Weil wir Änderungen an den Daten vorgenommen haben, müssen wir den neuen Datensatz direkt über das `data`-Argument ansprechen (sonst wüsste `geom_text()` nichts von den neuen Variablen)
+
+```{r fancy-pie, fig = TRUE}
+pie <- pie +
+  geom_text(data = spain, x = 2.5,
+    aes(y = Position, label = Percent), 
+      color = 'white', size = 5) +
+  labs(fill = 'Education Type') + 
+  ggtitle('Proportional Education Spending', 'Spain, 2013')
+pie
+```
+
+Um aus diesem Kuchen jetzt einen Donut zu machen, müssen wir nur das mittlere Stück herausnehmen, indem wir die x-Achse in eine Region erweitern, in die unser `geom_rect()` nicht reicht.
+
+```{r donut, fig = TRUE}
+pie + xlim(c(1, 3))
+```
+
+
+
 ## Karten
 
 Bei psychologischen Daten eher selten, aber mit dem [Gapminder Datensatz](/post/ggplotting-daten) natürlich sehr naheliegend, ist die Datenvisualisierung auf Karten. Für komplexere Karten (z.B. mit Google Maps) gibt es das `ggmap` Paket. Für unsere Zwecke reichen allerdings die von `ggplot2` mitgelieferten Karten aus.
