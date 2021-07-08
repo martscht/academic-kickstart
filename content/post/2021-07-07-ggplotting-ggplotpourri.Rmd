@@ -16,14 +16,208 @@ image:
 projects: []
 ---
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, results = 'hide', message=FALSE, warning=FALSE, include=FALSE}
 library(ggplot2)
 load('./edu_exp.rda')
 source('./ggplotting-theme-source.R')
+library(knitr)
+library(ggplot2)
+library(magick)
+library(cowplot)
+```
+
+In diesem Beitrag geben wir eine kurze Übersicht über einige gägngie Plotarten mit den Beispielen, die wir schon behandelt haben oder noch behandeln werden. Um die Navigation ein wenig zu vereinfachen, hier eine Tabelle:
+
+| <!-- --> | <!-- --> |
+| -- | ------ |
+| 1 | [Balkendiagramm I](#balken1) |
+| 2 | [Balkendiagramm II](#balken2) |
+| 3 | [Histogramm](#histogramm) |
+| 4 | [Boxplot](#boxplot) |
+| 5 | [Violin Plot](#violin) |
+| 6 | [Ridgelines](#ridgeline) |
+| 7 | [Torten und Donuts](#torten) |
+| 8 | [Bubble Chart](#bubble) |
+| 9 | [Karten](#karten) |
+
+
+
+## Balkendiagramm {#balken1}
+
+Die digiGEBF hatte zur Teilnahme an einer Data Challenge aufgerufen. Die Ergebnisse sind [hier einsehbar](https://www.digigebf21.de/frontend/index.php?page_id=17723).
+
+Jeder Beitrag wurde durch die einreichende Person kommentiert und dokumentiert. So lässt sich nachvollziehen, mit welcher Software die Grafiken erzeugt wurden. Dabei zeigt sich folgendes Bild: 
+
+| Software | Anzahl | 
+| -------- |:------:| 
+| R | 5 | 
+| MS Excel  | 1 | 
+| Python | 1 | 
+| STATA | 1 | 
+
+Diese Ergebnisse lassen sich mit einem Balkendiagramm visualiseren. 
+
+Da uns hier bereits die Ergebnisse so vorliegen, wie sie abgebildet werden sollen (als Höhe der Balken), verwenden wir die Funktion `geom_col()`. (Lägen uns Rohdaten vor, deren Häufigkeit zunächst ausgezählt werden muss, um sie als Höhe der Balken darzustellen, würde man `geom_bar()` verwenden.)
+
+```{r}
+# Pakete laden
+library(ggplot2)
+library(magick)
+library(cowplot)
+
+# Datensatz erstellen
+df <- data.frame(software = factor(x = c("R", "MS Excel", "Python", "Stata"),
+                                   levels = c("R", "MS Excel", "Python", "Stata")),
+                 count = c(5,1,1,1))
+
+# Einfaches Balkendiagramm
+ggplot(df, aes(x=software, y=count)) +
+  geom_col() 
+```
+
+Diese Darstellung lässt sich noch optimieren. Statt der Achsenbeschriftung beschriften wir die Balken selbst mit dem Logo der Software!
+
+```{r, warning=FALSE}
+# Software-Logos herunterladen und einlesen (Funktion aus dem Paket magick)
+r <- image_read("https://www.r-project.org/logo/Rlogo.svg")
+excel <- image_read("https://upload.wikimedia.org/wikipedia/commons/8/8d/Microsoft_Excel_Logo_%282013-2019%29.svg")
+python <- image_read("https://upload.wikimedia.org/wikipedia/commons/f/f8/Python_logo_and_wordmark.svg")
+stata <- image_read("https://upload.wikimedia.org/wikipedia/commons/5/5c/Stata_Logo.svg")
+
+# ggplot-Befehl zur Erstellung der "nackten" Grafik 
+ggplot(df, aes(x=software, y=count)) +
+  geom_col() +
+  theme_void() +
+  labs(x="", y="") +
+  theme(plot.margin = unit(c(3,0,0,0), "cm"),
+        axis.text.y = element_blank(),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank()) -> plot
+
+# Positionieren der Bilddateien auf den Balken (Paket cowplot)
+ggdraw(plot) +
+  draw_image(r, x = .13, y = .86, scale = .2, hjust = .5, vjust = .5) +
+  draw_image(excel, x = .38, y = .26, scale = .14, hjust = .5, vjust = .5) +
+  draw_image(python, x = .62, y = .26, scale = .2, hjust = .5, vjust = .5) +
+  draw_image(stata, x = .86, y = .26, scale = .1, hjust = .5, vjust = .5) +
+  scale_fill_manual(values = c(rgb(102,153,204, max=255), "grey", "grey", "grey")) +
+  draw_plot(plot)
 ```
 
 
-## Tortendiagramme 
+## Noch ein Balkendiagramm {#balken2}
+
+Es soll ein Vergleich angestellt werden, wie hoch die Ausgaben in Deutschland im  Jahr 2016 für die unterschiedlichen Bildungsbereiche (Primar, Sekundar, Tertiär) waren. Dafür eignet sich ein Balkendiagramm. 
+
+Auch hier liegen uns die Daten so vor, wie sie dargestellt werden sollen (als Höhe der Balken). In diesem Fall kann `geom_col()` verwendet werden (siehe Beispiel oben). Es kann aber auch `geom_bar()` in Kombination mit dem Argument `stat="idendity"` verwendet werden - so weiß ggplot, dass die Daten nicht (wie per Default in `geom_bar()`) ausgezählt, sondern direkt übernommen werden können.
+
+```{r, warning = FALSE}
+edu_exp |>
+  subset(edu_exp$Country == "Germany" & edu_exp$Year == 2016) |>
+  reshape(direction = "long",
+          varying = c("Primary", "Secondary", "Tertiary"),
+          times  = c("Primary", "Secondary", "Tertiary"),
+          v.name = "value",
+          timevar = "exp") |>
+  ggplot(aes(x=exp, y=value)) +
+  geom_bar(stat = "identity", fill = rgb(102, 153, 204, max=255)) +
+  labs(x = "Educational level",
+       y = "Expenditure", 
+       title ="Expenditures in Education in Germany (2016)",
+       subtitle = "Expenditure per student (% of GDP/Population)") +
+  theme_classic()
+```
+
+## Histogramm {#histogramm}
+
+Die Verteilung des Einkommens (GDP/Person) soll für das Jahr 2016 dargestellt werden. Es handelt sich um eine kontinuierliche Variable, so bietet sich ein Histogramm an. Für Histogramme kann die Funktion `geom_histogram()` verwendet werden. Wir kombinieren sie mit dem Theme `theme_economist` aus dem Paket `ggthemes`.
+
+```{r, warning = FALSE}
+library(ggthemes)
+
+edu_exp |>
+  subset(edu_exp$Year == 2016) |>
+  ggplot(aes(x = Income)) +
+  geom_histogram() +
+  labs(x = "GPD per Person",
+       y = "", 
+       title ="Distribution of income across countries",
+       caption = "Source: gapminder") +
+  theme_economist() +
+  theme(plot.margin = unit(c(0.5,1,0.5,0.5), "cm"))
+```
+
+## Boxplot {#boxplot}
+
+Erneut soll die Verteilung des Einkommens (GDP/Person) für das Jahr 2016 dargestellt werden - diesmal jedoch separat nach Weltregion. Eine alternative Darstellung für Verteilungen ist das Boxplot. Es lässt sich per `geom_boxplot()` anfordern. Wir hinterlegen über `aes(x=Region)`, dass eine Box pro Weltregion erzeugt wird. Sie werden dann nebeneinander dargestellt und ein Vergleich ist leicht möglich. 
+Die Grafik wird mit dem Theme `theme_fivethirtyeight` aus dem Paket `ggthemes` angepasst.
+
+```{r, warning = FALSE}
+library(ggthemes)
+
+edu_exp |>
+  subset(edu_exp$Year == 2016) |>
+  ggplot(aes(x = Region, y = Income)) +
+  geom_boxplot() +
+  labs(x = "GPD per Person",
+       y = "", 
+       title ="Distribution of income across countries in 2016",
+       caption = "Source: gapminder") +
+  scale_x_discrete(labels = c("Africa", "Americas", "Asia", "Europe")) + 
+  theme_fivethirtyeight()
+```
+
+## Violin Plot {#violin}
+
+Für das gleiche Datenbeispiel wie im Boxplot oben (Verteilung des Einkommens (GDP/Person) für das Jahr 2016 separat nach Weltregion)
+fordern wir nun ein sog. violin Plot an. Anstelle der Quartile wird die Dichte der Verteilung direkt dargestellt. Auch hier sind die Weltregionen nebeneinander dargestellt (`aes(x=Region)`), sodass ein Vergleich sehr leicht möglich ist. Das entsprechende Layer wird mit `geom_violin` angefordert. Zusätzlich werden schmale Boxplots eingezeichnet.
+
+Die Grafik wird ebenfalls mit dem Theme `theme_fivethirtyeight` aus dem Paket `ggthemes` angepasst.
+
+
+```{r, warning = FALSE}
+library(ggthemes)
+
+edu_exp |>
+  subset(edu_exp$Year == 2016) |>
+  ggplot(aes(x = Region, y = Income)) +
+  geom_violin(aes(fill = Region), width = 1.5, show.legend = FALSE) +
+  # geom_jitter(width = .1, height = 0, col = "grey") +
+  geom_boxplot(width = .1, fill = "transparent", outlier.shape = NA) +
+  labs(x = "GPD per Person",
+       y = "", 
+       title ="Distribution of income across countries in 2016",
+       caption = "Source: gapminder") +
+  scale_x_discrete(labels = c("Africa", "Americas", "Asia", "Europe")) + 
+  theme_fivethirtyeight()
+
+```
+
+## Ridgeline Plot {#fivethirtyeight}
+
+Für das gleiche Datenbeispiel wie im Boxplot und Violin Plot oben (Verteilung des Einkommens (GDP/Person) für das Jahr 2016 separat nach Weltregion) fordern wir nun ein sog. Ridgleline Plot mit `geom_density_ridges()` aus dem Paket `ggridges` an. Auch hier wird die Dichte der Verteilung dargestellt. Die Gruppen sind nun übereinander dargestellt (`aes(y=Region`). Auch dadurch ist ein Vergleich leicht möglich.l
+
+Die Grafik wird mit dem Theme `theme_tufte` aus dem Paket `ggthemes` angepasst.
+
+```{r, warning = FALSE}
+library(ggthemes)
+library(ggridges)
+
+edu_exp |>
+  subset(edu_exp$Year == 2016) |>
+  ggplot(aes(x = Income, y = Region)) +
+  geom_density_ridges(aes(fill = Region), alpha=.8, show.legend = FALSE) +
+  scale_y_discrete(labels = c("Africa", "Americas", "Asia", "Europe")) + 
+  labs(x = "GPD per Person",
+       y = "", 
+       title ="Distribution of income across countries in 2016",
+       caption = "Source: gapminder") +
+  scale_x_discrete(labels = c("Africa", "Americas", "Asia", "Europe")) + 
+  theme_tufte()
+```
+
+
+## Torten und Donuts {#torten}
 
 Bevor wir uns damit befassen, *wie* man in `ggplot2` ein Torten-Diagramm erstellen kann (und die Donut-förmige Abwandlung davon) wird in [vielen Ecken des Internets](https://www.data-to-viz.com/caveat/pie.html) die Frage nach dem *ob* man ein Torten-Diagramm erstellen sollte mit einem vehementen "nein" beantwortet (es gibt auch [wissenschaftliche Untersuchungen](https://hci.stanford.edu/publications/2010/crowd-perception/heer-chi2010.pdf), die zeigen, dass Daten undeutlicher vermittelt werden). Dennoch werden beide Arten von Plots gerne und häufig genutzt und haben in einigen Fällen ihre Anwendungsgebiete. Im normalen R können wir `pie()` nutzen, um ein Tortendiagramm anzulegen, in `ggplot2` ist das allerdings ein wenig umständlicher.
 
@@ -107,8 +301,104 @@ pie + xlim(c(1, 3))
 ```
 
 
+## Bubble Chart {#bubble}
 
-## Karten
+In Übung 1 sollten Sie [diese](https://www.gapminder.org/tools/#$model$markers$bubble$encoding$frame$value=2015;;;;;&chart-type=bubbles&url=v1) auf [gapminder.org](https://www.gapminder.org) erzeugte Grafik nachbasteln:
+
+![](/post/ggplotting-gapminder-original.png)
+
+Die Variablen liegen alle im `edu_exp`-Datensatz vor. Allerdings sieht die ggplot-Grafik ohne Anpassungen wie folgt aus: 
+
+```{r, warning=FALSE}
+edu_exp |>
+  subset(Year == 2011) |> 
+  ggplot(aes(x=Income, y=Expectancy)) +
+  geom_point() 
+```
+
+Zunächst einige Schritte zur Vorbereitung:  
+
+* der Datensatz wird so sortiert, dass kleine Länder "hinten" stehen und "zuletzt" ins Plot kommen, also vorne (unverdeckt) sind  
+* die Farbvektoren für die vier Weltregionen werden als rgb-Vektor hinterlegt  
+* ein Screenshot der Weltkarte von der gapminder-Webseite wird mit der `image_read()`-Funktion aus dem Paket `cowplot` eingelesen  
+
+```{r, warning=FALSE}
+# Datensatz sortieren
+edu_exp <- edu_exp[order(edu_exp$Population, decreasing = T),]
+
+# Farben der vier Weltregionen 
+tuerkis <- rgb(0,213,233, max=255)
+gruen <- rgb(127,235,0, max=255)
+rot <- rgb(255,88,114, max=255)
+gelb <- rgb(255,231,0, max=255)
+
+# Weltkarte (Screenshot von der gapminder Webseite)
+weltkarte <- image_read("./ggplotting-gapminder-map.png")
+```
+
+Im nachfolgenden Code sind alle Schritte kommentiert:
+
+```{r, warning=FALSE, fig.width = 10, fig.height=5}
+edu_exp |>
+  # Auswahl der Daten von 2011
+  subset(Year == 2015) |> 
+  # Grafik anfordern
+  ggplot(aes(x=Income, y=Expectancy)) +
+  # Neu: Text für die Jahreszahl (2011) einfügen, sodass dieser im Hintergrund steht
+  annotate("text", x=60000, y=50, label="2015", size=70, colour ="grey90", family = "mono", fontface = 1) +
+  # Neu: Farbthema: heller Hintergrund, schwarze Linien an x- und y-Achse
+  theme_classic() + 
+  # Wie bisher: Punkte einzeichnen --> Streu-Punkt-Diagramm,
+  # Neu: Transparenz der Datenpunkte (alpha), Rand um Punkte (shape) 
+  geom_point(aes(fill = Region, size = Population), shape=21, alpha=.7, show.legend = F) +
+  # Skalieren der Größe der Punkte
+  scale_size(range = c(1, 30)) +
+  # Neu: Beschriftungen der Achsen und der Legende
+  labs(x="Income",
+       y="Life expectancy",
+       fill="Kontinent", 
+       size="Einwohnerzahl (Mio.)") +
+  # Neu: Beschriftung an den Innenseiten der Achsen
+  annotate("text", x=125000, y=10, label="per Person (GDP/capita, PPP$ inflation-adjusted)", hjust = 1, vjust = 1) +
+  annotate("text", x=0, y=90, label="years", hjust = 1, vjust = -2, angle=90) +
+  # Neu: Vergrößern der Punkte für die Farb-Legende für die Kontinente
+  guides(fill = guide_legend(override.aes = list(size = 5), order=1)) +
+  # Neu: Anpassung der Schriftgroesse, relativ zur Groesse 12
+  theme(text = element_text(size=12),
+        axis.text = element_text(size=rel(.8)),
+        plot.title = element_text(size=rel(1.5)),
+        legend.title = element_text(size=rel(1.2)),
+        axis.title = element_text(size=rel(1.2)),
+        panel.grid.major = element_line(colour = "azure2"),
+        panel.grid.minor.x = element_line(colour = "azure2"),
+        plot.margin = margin(1, 6, 1, 1, "cm")) +
+  # Neu: manuelle Spezifikation der y-Achse
+  scale_y_continuous(limits = c(10, 100), breaks = seq(10,99, by=10)) +
+  # Neu: Formatierung der x-Achsen-Werte ("1,000")
+  scale_x_continuous(labels = scales::comma) +
+  # Neu: manuelle Spezifikation der Farben
+  scale_fill_manual(
+    values = c(tuerkis, gruen, rot, gelb),
+    breaks = c("africa", "americas", "asia", "europe"),
+    labels = c("Afrika", "Amerika", "Asien", "Europa")) -> plot
+```
+
+Die Grafik ohne Legende sieht nun so aus: 
+
+```{r, echo=FALSE, warning=FALSE, fig.width = 10, fig.height=5}
+plot
+```
+
+Nun wird noch der Screenshot mit der Weltkarte als Legende "oben rechts" (x = 1, y = .95) eingefügt. Dafür verwenden wir wieder die Funktion `draw_image()` aus dem Paket `cowplot`.
+
+```{r, warning=FALSE, fig.width = 10, fig.height=5}
+library(cowplot)
+
+ggdraw(plot) +
+  draw_image(weltkarte, x = 1, y = .95, hjust = 1, vjust = 1, halign = 1, valign = 1, width = .2)
+```
+
+## Karten {#karten}
 
 Bei psychologischen Daten eher selten, aber mit dem [Gapminder Datensatz](/post/ggplotting-daten) natürlich sehr naheliegend, ist die Datenvisualisierung auf Karten. Für komplexere Karten (z.B. mit Google Maps) gibt es das `ggmap` Paket. Für unsere Zwecke reichen allerdings die von `ggplot2` mitgelieferten Karten aus.
 

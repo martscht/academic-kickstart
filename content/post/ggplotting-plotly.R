@@ -1,0 +1,198 @@
+#### Syntax zu plotly - Interaktive Grafiken aus ggplotly ####
+#### Volles Skript: https://pandar.netlify.app/post/ggplotting-plotly/ ####
+
+### Plotly für R ----
+install.packages('plotly')
+library('plotly')
+
+
+### Unser Beispiel ----
+
+# Daten laden
+load(url('https://pandar.netlify.com/post/edu_exp.rda'))
+
+# Wohlstand und Regionen umkodieren
+edu_exp$Wealth <- factor(edu_exp$Wealth,
+  levels = c('high_income', 'upper_middle_income', 'lower_middle_income', 'low_income'),
+  labels = c('High', 'Upper Mid.', 'Lower Mid.', 'Low'))
+edu_exp$Region <- factor(edu_exp$Region,
+  levels = c('europe', 'asia', 'americas', 'africa'),
+  labels = c('Europe', 'Asia', 'Americas', 'Africa'))
+
+# Themes und Farben sourcen
+source('https://pandar.netlify.com/post/ggplotting-theme-source.R')
+
+# Scatterplot für 2013
+scatter2013 <- subset(edu_exp, Year == 2013) |>
+  ggplot(aes(x = Primary, y = Index, color = Wealth)) +
+    geom_point() +
+    labs(x = 'Investment on Primary Eduction',
+    y = 'UNDP Education Index',
+    color = 'Country Wealth\n(GDP per Capita)') +
+    ggtitle('Impact of Primary Education Investments', subtitle = 'Data for 2013') +
+    theme_pandar() + scale_color_pandar()
+scatter2013
+
+
+### Anwenden von ggplotly ----
+
+# Einfache Umsetzung
+ggplotly(scatter2013)
+
+### Hoverinfo anpassen ----
+
+# Versuch der Tooltip-Anpassung
+ggplotly(scatter2013,
+  tooltip = c('colour', 'x', 'y'))
+
+# Struktur für Text-Ästhetik
+## scatter2013 <- scatter2013 +
+##   geom_point(aes(text = '...'))
+
+# Ziel Info
+tmp <- subset(edu_exp, Year == 2013 & Country == 'Spain')
+cat(paste0(tmp$Country, '\nRegion: ', tmp$Region, '\nGDP/Capita: ', tmp$Income))
+
+# Umsetzung für Hoverinfo
+paste0(Country,
+  '</br></br>Region: ', Region,
+  '</br>GDP/Capita: ', Income)
+
+# Umsetzung mit erstellter Variable
+paste0(Country,
+  '</br></br>Region: ', Region,
+  '</br>GDP/Capita: ', Income,
+  '</br>Investment/Student: ', round((Primary/100)*Income))
+
+# Neue Zielinfo
+cat(paste0(tmp$Country,
+  '\nRegion: ', tmp$Region,
+  '\nGDP/Capita: ', tmp$Income,
+  '\nInvestment/Student: ', round((tmp$Primary/100)*tmp$Income)))
+
+# Umsetzung mit neuer Hoverinfo (Plot Grundlage)
+scatter2013 <- subset(edu_exp, Year == 2013) |>
+  ggplot(aes(x = Primary, y = Index, color = Wealth,
+    text = paste0(Country,
+      '</br></br>Region: ', Region,
+      '</br>GDP/Capita: ', Income,
+      '</br>Investment/Student: ', round((Primary/100)*Income)))) +
+    geom_point() +
+    labs(x = 'Investment on Primary Eduction',
+    y = 'UNDP Education Index',
+    color = 'Country Wealth\n(GDP per Capita)') +
+    ggtitle('Impact of Primary Education Investments',
+      subtitle = 'Data for 2013') +
+    theme_pandar() + scale_color_pandar()
+
+# Interaktiven Plot erstellen
+ggplotly(scatter2013,
+  tooltip = 'text')
+
+
+### Navigierbare Animation ----
+
+# Scatter mit allen Jahren
+scatter <- ggplot(edu_exp, aes(x = Primary, y = Index, color = Wealth,
+  frame = Year, group = Country,
+  text = paste0(Country,
+    '</br></br>Region: ', Region,
+    '</br>GDP/Capita: ', Income,
+    '</br>Investment/Student: ', round((Primary/100)*Income)))) +
+  geom_point() +
+  labs(x = 'Investment on Primary Eduction',
+  y = 'UNDP Education Index',
+  color = 'Country Wealth\n(GDP per Capita)') +
+  ggtitle('Impact of Primary Education Investments') +
+  theme_pandar() + scale_color_pandar()
+
+# Argumente der Animationen anzeigen
+args(animation_opts)
+
+# Transition einstellen
+ggplotly(scatter,
+  tooltip = 'text') |>
+  animation_opts(transition = 200)
+
+
+### Anpassung des Plots ----
+
+# Beispiel: Legenden Positionierung (nicht ausgeführt)
+## layout(p,
+##   legend = list(x = 100, y = .5))
+
+# Angepasster interaktiver Plot
+scatter <- ggplot(edu_exp, aes(x = Primary, y = Index, color = Wealth,
+  frame = Year, group = Country,
+  text = paste0(Country,
+    '</br></br>Region: ', Region,
+    '</br>GDP/Capita: ', Income,
+    '</br>Investment/Student: ', round((Primary/100)*Income)))) +
+  geom_point() +
+  labs(x = 'Investment on Primary Eduction',
+  y = 'UNDP Education Index',
+  color = NULL) +
+  ggtitle('Impact of Primary Education Investments') +
+  theme_pandar() + scale_color_pandar()
+
+interact <- ggplotly(scatter, tooltip = 'text') |>
+  animation_opts(transition = 200) |>
+  layout(legend = list(x = 100, y = .5,
+        title = list(text = 'Country Wealth</br></br>(GDP per Capita)')))
+interact
+
+# Buttons entfernen (nicht ausgeführt)
+## interact |>
+##   config(modeBarButtonsToRemove = c('lasso2d', 'zoomIn2d', 'zoomOut2d'))
+
+
+### Buttons zum Ein- und Ausblenden eines Smoothers
+
+# Statischer Plot mit Smoother
+scatter2013 <- subset(edu_exp, Year == 2013) |>
+  ggplot(aes(x = Primary, y = Index)) +
+    geom_smooth(method = 'gam', color = 'grey70', se = FALSE) +
+    geom_point(aes(color = Wealth)) +
+    labs(x = 'Investment on Primary Eduction',
+    y = 'UNDP Education Index',
+    color = 'Country Wealth\n(GDP per Capita)') +
+    ggtitle('Impact of Primary Education Investments', subtitle = 'Data for 2013') +
+    theme_pandar() + scale_color_pandar()
+scatter2013
+
+# Grundplot mit Smoother
+smooth <- ggplot(edu_exp, aes(x = Primary, y = Index, frame = Year)) +
+  geom_smooth(method = 'gam', color = 'grey70', alpha = .2, se = FALSE) +
+  geom_point(aes(color = Wealth,
+        text = paste0(Country,
+          '</br></br>Region: ', Region,
+          '</br>GDP/Capita: ', Income,
+          '</br>Investment/Student: ', round((Primary/100)*Income)))) +
+  labs(x = 'Investment on Primary Eduction',
+    y = 'UNDP Education Index',
+    color = NULL) +
+  ggtitle('Impact of Primary Education Investments') +
+  theme_pandar() + scale_color_pandar()
+
+# Buttons erstellen
+menus <- list(
+  list(type = 'buttons',
+    x = 1.3, y = .2, align = 'left',
+    buttons = list(
+      list(method = 'restyle',
+        args = list('line.color', 'rgba(179,179,179,1)'),
+        label = 'Smoother On'),
+      list(method = 'restlye',
+        args = list('line.color', 'rgba(179,179,179,0)'),
+        label = 'Smoother Off')
+    ))
+)
+
+# Grafik mit Buttons kombinieren
+smoothly <- ggplotly(smooth, tooltip = 'text') |>
+  animation_opts(transition = 200) |>
+  layout(legend = list(x = 100, y = .5,
+    title = list(text = 'Country Wealth</br></br>(GDP per Capita)')),
+    updatemenus = menus)
+smoothly
+

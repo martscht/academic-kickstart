@@ -1,4 +1,4 @@
-#### Syntax zum ggplotting Intro ####
+#### Syntax zur Datenaufbereitung für ggplotting ####
 #### Volles Skript: https://pandar.netlify.app/post/ggplotting-daten/ ####
 
 

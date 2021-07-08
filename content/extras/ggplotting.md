@@ -26,7 +26,7 @@ subtitle = "Teil der [digiGEBF21](https://www.digigebf21.de/frontend/index.php)"
   # Filter posts by a taxonomy term.
   [content.filters]
     tag = ""
-    category = "Git"
+    category = "ggplotting"
     publication_type = ""
     exclude_featured = false
 
@@ -75,14 +75,14 @@ Ein Bild sagt mehr als tausend Zahlen! Mit einer guten Grafik lassen sich viele 
 | 1 | **Intro** | -- | -- |
 | 2 | **ggplot2 Intro** | [Inhalte](/post/ggplotting-intro) | [R-Skript](/post/ggplotting-intro.R) |
 | 3 | **Hübsche Grafiken: Theorie** | -- | -- |
-| 4 | **Hübsche Grafiken: Praxis** | [Inhalte](/post/ggplotting-themes) | R-Skript |
+| 4 | **Hübsche Grafiken: Praxis** | [Inhalte](/post/ggplotting-themes) | [R-Skript](/post/ggplotting-themes.R) |
 | 5 | **Übung 1** | -- | R-Skript |
-| 6 | **ggplotpourri** | [Inhalte](/post/ggplotting-ggplotpourri) | R-Skript |
-| 7 | **gganimate** | [Inhalte](/post/ggplotting-gganimate) | R-Skript |
-| 8 | **plotly** | [Inhalte](/post/ggplotting-plotly) | R-Skript |
-| 9 | **Explorative Grafiken** | -- | R-Skript |
+| 6 | **ggplotpourri** | [Inhalte](/post/ggplotting-ggplotpourri) | -- |
+| 7 | **gganimate** | [Inhalte](/post/ggplotting-gganimate) | [R-Skript](/post/ggplotting-gganimate.R) |
+| 8 | **plotly** | [Inhalte](/post/ggplotting-plotly) | [R-Skript](/post/ggplotting-plotly.R) |
+| 9 | **Explorative Grafiken** | -- | [R-Skript](/post/ggplotting-exploration.R) |
 | 10 | **Übung 2** | -- | R-Skript |
-| 11 | **Outro** | -- | R-Skript |
+| 11 | **Outro** | -- | [R-Skript](/post/ggplotting-outro.R) |
 | | | | |
 
-Den [<i class='fas fa-download'></i> Foliensatz zum Workshop gibt es hier](/post/ggplotting_folien.pdf).
+Den [<i class='fas fa-download'></i> Foliensatz zum Workshop gibt es hier](/post/ggplotting-folien.pdf).

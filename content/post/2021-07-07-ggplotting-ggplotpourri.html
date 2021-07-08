@@ -19,8 +19,230 @@ projects: []
 <script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
-<div id="tortendiagramme" class="section level2">
-<h2>Tortendiagramme</h2>
+<p>In diesem Beitrag geben wir eine kurze Übersicht über einige gägngie Plotarten mit den Beispielen, die wir schon behandelt haben oder noch behandeln werden. Um die Navigation ein wenig zu vereinfachen, hier eine Tabelle:</p>
+<table>
+<thead>
+<tr class="header">
+<th><!-- --></th>
+<th><!-- --></th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td><a href="#balken1">Balkendiagramm I</a></td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td><a href="#balken2">Balkendiagramm II</a></td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td><a href="#histogramm">Histogramm</a></td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td><a href="#boxplot">Boxplot</a></td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td><a href="#violin">Violin Plot</a></td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td><a href="#ridgeline">Ridgelines</a></td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td><a href="#torten">Torten und Donuts</a></td>
+</tr>
+<tr class="even">
+<td>8</td>
+<td><a href="#bubble">Bubble Chart</a></td>
+</tr>
+<tr class="odd">
+<td>9</td>
+<td><a href="#karten">Karten</a></td>
+</tr>
+</tbody>
+</table>
+<div id="balken1" class="section level2">
+<h2>Balkendiagramm</h2>
+<p>Die digiGEBF hatte zur Teilnahme an einer Data Challenge aufgerufen. Die Ergebnisse sind <a href="https://www.digigebf21.de/frontend/index.php?page_id=17723">hier einsehbar</a>.</p>
+<p>Jeder Beitrag wurde durch die einreichende Person kommentiert und dokumentiert. So lässt sich nachvollziehen, mit welcher Software die Grafiken erzeugt wurden. Dabei zeigt sich folgendes Bild:</p>
+<table>
+<thead>
+<tr class="header">
+<th>Software</th>
+<th align="center">Anzahl</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>R</td>
+<td align="center">5</td>
+</tr>
+<tr class="even">
+<td>MS Excel</td>
+<td align="center">1</td>
+</tr>
+<tr class="odd">
+<td>Python</td>
+<td align="center">1</td>
+</tr>
+<tr class="even">
+<td>STATA</td>
+<td align="center">1</td>
+</tr>
+</tbody>
+</table>
+<p>Diese Ergebnisse lassen sich mit einem Balkendiagramm visualiseren.</p>
+<p>Da uns hier bereits die Ergebnisse so vorliegen, wie sie abgebildet werden sollen (als Höhe der Balken), verwenden wir die Funktion <code>geom_col()</code>. (Lägen uns Rohdaten vor, deren Häufigkeit zunächst ausgezählt werden muss, um sie als Höhe der Balken darzustellen, würde man <code>geom_bar()</code> verwenden.)</p>
+<pre class="r"><code># Pakete laden
+library(ggplot2)
+library(magick)
+library(cowplot)
+
+# Datensatz erstellen
+df &lt;- data.frame(software = factor(x = c(&quot;R&quot;, &quot;MS Excel&quot;, &quot;Python&quot;, &quot;Stata&quot;),
+                                   levels = c(&quot;R&quot;, &quot;MS Excel&quot;, &quot;Python&quot;, &quot;Stata&quot;)),
+                 count = c(5,1,1,1))
+
+# Einfaches Balkendiagramm
+ggplot(df, aes(x=software, y=count)) +
+  geom_col() </code></pre>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>Diese Darstellung lässt sich noch optimieren. Statt der Achsenbeschriftung beschriften wir die Balken selbst mit dem Logo der Software!</p>
+<pre class="r"><code># Software-Logos herunterladen und einlesen (Funktion aus dem Paket magick)
+r &lt;- image_read(&quot;https://www.r-project.org/logo/Rlogo.svg&quot;)
+excel &lt;- image_read(&quot;https://upload.wikimedia.org/wikipedia/commons/8/8d/Microsoft_Excel_Logo_%282013-2019%29.svg&quot;)
+python &lt;- image_read(&quot;https://upload.wikimedia.org/wikipedia/commons/f/f8/Python_logo_and_wordmark.svg&quot;)
+stata &lt;- image_read(&quot;https://upload.wikimedia.org/wikipedia/commons/5/5c/Stata_Logo.svg&quot;)
+
+# ggplot-Befehl zur Erstellung der &quot;nackten&quot; Grafik 
+ggplot(df, aes(x=software, y=count)) +
+  geom_col() +
+  theme_void() +
+  labs(x=&quot;&quot;, y=&quot;&quot;) +
+  theme(plot.margin = unit(c(3,0,0,0), &quot;cm&quot;),
+        axis.text.y = element_blank(),
+        axis.line.y = element_blank(),
+        axis.ticks.y = element_blank()) -&gt; plot
+
+# Positionieren der Bilddateien auf den Balken (Paket cowplot)
+ggdraw(plot) +
+  draw_image(r, x = .13, y = .86, scale = .2, hjust = .5, vjust = .5) +
+  draw_image(excel, x = .38, y = .26, scale = .14, hjust = .5, vjust = .5) +
+  draw_image(python, x = .62, y = .26, scale = .2, hjust = .5, vjust = .5) +
+  draw_image(stata, x = .86, y = .26, scale = .1, hjust = .5, vjust = .5) +
+  scale_fill_manual(values = c(rgb(102,153,204, max=255), &quot;grey&quot;, &quot;grey&quot;, &quot;grey&quot;)) +
+  draw_plot(plot)</code></pre>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+<div id="balken2" class="section level2">
+<h2>Noch ein Balkendiagramm</h2>
+<p>Es soll ein Vergleich angestellt werden, wie hoch die Ausgaben in Deutschland im Jahr 2016 für die unterschiedlichen Bildungsbereiche (Primar, Sekundar, Tertiär) waren. Dafür eignet sich ein Balkendiagramm.</p>
+<p>Auch hier liegen uns die Daten so vor, wie sie dargestellt werden sollen (als Höhe der Balken). In diesem Fall kann <code>geom_col()</code> verwendet werden (siehe Beispiel oben). Es kann aber auch <code>geom_bar()</code> in Kombination mit dem Argument <code>stat="idendity"</code> verwendet werden - so weiß ggplot, dass die Daten nicht (wie per Default in <code>geom_bar()</code>) ausgezählt, sondern direkt übernommen werden können.</p>
+<pre class="r"><code>edu_exp |&gt;
+  subset(edu_exp$Country == &quot;Germany&quot; &amp; edu_exp$Year == 2016) |&gt;
+  reshape(direction = &quot;long&quot;,
+          varying = c(&quot;Primary&quot;, &quot;Secondary&quot;, &quot;Tertiary&quot;),
+          times  = c(&quot;Primary&quot;, &quot;Secondary&quot;, &quot;Tertiary&quot;),
+          v.name = &quot;value&quot;,
+          timevar = &quot;exp&quot;) |&gt;
+  ggplot(aes(x=exp, y=value)) +
+  geom_bar(stat = &quot;identity&quot;, fill = rgb(102, 153, 204, max=255)) +
+  labs(x = &quot;Educational level&quot;,
+       y = &quot;Expenditure&quot;, 
+       title =&quot;Expenditures in Education in Germany (2016)&quot;,
+       subtitle = &quot;Expenditure per student (% of GDP/Population)&quot;) +
+  theme_classic()</code></pre>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+</div>
+<div id="histogramm" class="section level2">
+<h2>Histogramm</h2>
+<p>Die Verteilung des Einkommens (GDP/Person) soll für das Jahr 2016 dargestellt werden. Es handelt sich um eine kontinuierliche Variable, so bietet sich ein Histogramm an. Für Histogramme kann die Funktion <code>geom_histogram()</code> verwendet werden. Wir kombinieren sie mit dem Theme <code>theme_economist</code> aus dem Paket <code>ggthemes</code>.</p>
+<pre class="r"><code>library(ggthemes)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;ggthemes&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:cowplot&#39;:
+## 
+##     theme_map</code></pre>
+<pre class="r"><code>edu_exp |&gt;
+  subset(edu_exp$Year == 2016) |&gt;
+  ggplot(aes(x = Income)) +
+  geom_histogram() +
+  labs(x = &quot;GPD per Person&quot;,
+       y = &quot;&quot;, 
+       title =&quot;Distribution of income across countries&quot;,
+       caption = &quot;Source: gapminder&quot;) +
+  theme_economist() +
+  theme(plot.margin = unit(c(0.5,1,0.5,0.5), &quot;cm&quot;))</code></pre>
+<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+</div>
+<div id="boxplot" class="section level2">
+<h2>Boxplot</h2>
+<p>Erneut soll die Verteilung des Einkommens (GDP/Person) für das Jahr 2016 dargestellt werden - diesmal jedoch separat nach Weltregion. Eine alternative Darstellung für Verteilungen ist das Boxplot. Es lässt sich per <code>geom_boxplot()</code> anfordern. Wir hinterlegen über <code>aes(x=Region)</code>, dass eine Box pro Weltregion erzeugt wird. Sie werden dann nebeneinander dargestellt und ein Vergleich ist leicht möglich.
+Die Grafik wird mit dem Theme <code>theme_fivethirtyeight</code> aus dem Paket <code>ggthemes</code> angepasst.</p>
+<pre class="r"><code>library(ggthemes)
+
+edu_exp |&gt;
+  subset(edu_exp$Year == 2016) |&gt;
+  ggplot(aes(x = Region, y = Income)) +
+  geom_boxplot() +
+  labs(x = &quot;GPD per Person&quot;,
+       y = &quot;&quot;, 
+       title =&quot;Distribution of income across countries in 2016&quot;,
+       caption = &quot;Source: gapminder&quot;) +
+  scale_x_discrete(labels = c(&quot;Africa&quot;, &quot;Americas&quot;, &quot;Asia&quot;, &quot;Europe&quot;)) + 
+  theme_fivethirtyeight()</code></pre>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+<div id="violin" class="section level2">
+<h2>Violin Plot</h2>
+<p>Für das gleiche Datenbeispiel wie im Boxplot oben (Verteilung des Einkommens (GDP/Person) für das Jahr 2016 separat nach Weltregion)
+fordern wir nun ein sog. violin Plot an. Anstelle der Quartile wird die Dichte der Verteilung direkt dargestellt. Auch hier sind die Weltregionen nebeneinander dargestellt (<code>aes(x=Region)</code>), sodass ein Vergleich sehr leicht möglich ist. Das entsprechende Layer wird mit <code>geom_violin</code> angefordert. Zusätzlich werden schmale Boxplots eingezeichnet.</p>
+<p>Die Grafik wird ebenfalls mit dem Theme <code>theme_fivethirtyeight</code> aus dem Paket <code>ggthemes</code> angepasst.</p>
+<pre class="r"><code>library(ggthemes)
+
+edu_exp |&gt;
+  subset(edu_exp$Year == 2016) |&gt;
+  ggplot(aes(x = Region, y = Income)) +
+  geom_violin(aes(fill = Region), width = 1.5, show.legend = FALSE) +
+  # geom_jitter(width = .1, height = 0, col = &quot;grey&quot;) +
+  geom_boxplot(width = .1, fill = &quot;transparent&quot;, outlier.shape = NA) +
+  labs(x = &quot;GPD per Person&quot;,
+       y = &quot;&quot;, 
+       title =&quot;Distribution of income across countries in 2016&quot;,
+       caption = &quot;Source: gapminder&quot;) +
+  scale_x_discrete(labels = c(&quot;Africa&quot;, &quot;Americas&quot;, &quot;Asia&quot;, &quot;Europe&quot;)) + 
+  theme_fivethirtyeight()</code></pre>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+<div id="fivethirtyeight" class="section level2">
+<h2>Ridgeline Plot</h2>
+<p>Für das gleiche Datenbeispiel wie im Boxplot und Violin Plot oben (Verteilung des Einkommens (GDP/Person) für das Jahr 2016 separat nach Weltregion) fordern wir nun ein sog. Ridgleline Plot mit <code>geom_density_ridges()</code> aus dem Paket <code>ggridges</code> an. Auch hier wird die Dichte der Verteilung dargestellt. Die Gruppen sind nun übereinander dargestellt (<code>aes(y=Region</code>). Auch dadurch ist ein Vergleich leicht möglich.l</p>
+<p>Die Grafik wird mit dem Theme <code>theme_tufte</code> aus dem Paket <code>ggthemes</code> angepasst.</p>
+<pre class="r"><code>library(ggthemes)
+library(ggridges)
+
+edu_exp |&gt;
+  subset(edu_exp$Year == 2016) |&gt;
+  ggplot(aes(x = Income, y = Region)) +
+  geom_density_ridges(aes(fill = Region), alpha=.8, show.legend = FALSE) +
+  scale_y_discrete(labels = c(&quot;Africa&quot;, &quot;Americas&quot;, &quot;Asia&quot;, &quot;Europe&quot;)) + 
+  labs(x = &quot;GPD per Person&quot;,
+       y = &quot;&quot;, 
+       title =&quot;Distribution of income across countries in 2016&quot;,
+       caption = &quot;Source: gapminder&quot;) +
+  scale_x_discrete(labels = c(&quot;Africa&quot;, &quot;Americas&quot;, &quot;Asia&quot;, &quot;Europe&quot;)) + 
+  theme_tufte()</code></pre>
+<pre><code>## Picking joint bandwidth of 5090</code></pre>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
+<div id="torten" class="section level2">
+<h2>Torten und Donuts</h2>
 <p>Bevor wir uns damit befassen, <em>wie</em> man in <code>ggplot2</code> ein Torten-Diagramm erstellen kann (und die Donut-förmige Abwandlung davon) wird in <a href="https://www.data-to-viz.com/caveat/pie.html">vielen Ecken des Internets</a> die Frage nach dem <em>ob</em> man ein Torten-Diagramm erstellen sollte mit einem vehementen “nein” beantwortet (es gibt auch <a href="https://hci.stanford.edu/publications/2010/crowd-perception/heer-chi2010.pdf">wissenschaftliche Untersuchungen</a>, die zeigen, dass Daten undeutlicher vermittelt werden). Dennoch werden beide Arten von Plots gerne und häufig genutzt und haben in einigen Fällen ihre Anwendungsgebiete. Im normalen R können wir <code>pie()</code> nutzen, um ein Tortendiagramm anzulegen, in <code>ggplot2</code> ist das allerdings ein wenig umständlicher.</p>
 <p>Generell werden Tortendiagramme nur dann empfohlen, wenn man Anteile von einem Gesamten darstellen möchte. Leider haben wir keine dafür direkt geeignete Variable in <a href="/post/ggplotting-daten">unserem Datensatz</a>, aber wir können uns etwas erstellen. Wir betrachten im Folgenden die Ausgaben für die drei unterschiedlichen Bildungsbreiche und wie diese in unterschiedlichen Ländern aussehen. Dafür erstellen wir zunächst Proportionen:</p>
 <pre class="r"><code>edu_exp$Total &lt;- subset(edu_exp, select = c(&#39;Primary&#39;, &#39;Secondary&#39;, &#39;Tertiary&#39;)) |&gt;
@@ -77,6 +299,87 @@ pie</code></pre>
 <pre class="r"><code>pie + xlim(c(1, 3))</code></pre>
 <p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/donut-1.png" width="672" /></p>
 </div>
+<div id="bubble" class="section level2">
+<h2>Bubble Chart</h2>
+<p>In Übung 1 sollten Sie <a href="https://www.gapminder.org/tools/#$model$markers$bubble$encoding$frame$value=2015;;;;;&amp;chart-type=bubbles&amp;url=v1">diese</a> auf <a href="https://www.gapminder.org">gapminder.org</a> erzeugte Grafik nachbasteln:</p>
+<p><img src="/post/ggplotting-gapminder-original.png" /></p>
+<p>Die Variablen liegen alle im <code>edu_exp</code>-Datensatz vor. Allerdings sieht die ggplot-Grafik ohne Anpassungen wie folgt aus:</p>
+<pre class="r"><code>edu_exp |&gt;
+  subset(Year == 2011) |&gt; 
+  ggplot(aes(x=Income, y=Expectancy)) +
+  geom_point() </code></pre>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>Zunächst einige Schritte zur Vorbereitung:</p>
+<ul>
+<li>der Datensatz wird so sortiert, dass kleine Länder “hinten” stehen und “zuletzt” ins Plot kommen, also vorne (unverdeckt) sind<br />
+</li>
+<li>die Farbvektoren für die vier Weltregionen werden als rgb-Vektor hinterlegt<br />
+</li>
+<li>ein Screenshot der Weltkarte von der gapminder-Webseite wird mit der <code>image_read()</code>-Funktion aus dem Paket <code>cowplot</code> eingelesen</li>
+</ul>
+<pre class="r"><code># Datensatz sortieren
+edu_exp &lt;- edu_exp[order(edu_exp$Population, decreasing = T),]
+
+# Farben der vier Weltregionen 
+tuerkis &lt;- rgb(0,213,233, max=255)
+gruen &lt;- rgb(127,235,0, max=255)
+rot &lt;- rgb(255,88,114, max=255)
+gelb &lt;- rgb(255,231,0, max=255)
+
+# Weltkarte (Screenshot von der gapminder Webseite)
+weltkarte &lt;- image_read(&quot;./ggplotting-gapminder-map.png&quot;)</code></pre>
+<p>Im nachfolgenden Code sind alle Schritte kommentiert:</p>
+<pre class="r"><code>edu_exp |&gt;
+  # Auswahl der Daten von 2011
+  subset(Year == 2015) |&gt; 
+  # Grafik anfordern
+  ggplot(aes(x=Income, y=Expectancy)) +
+  # Neu: Text für die Jahreszahl (2011) einfügen, sodass dieser im Hintergrund steht
+  annotate(&quot;text&quot;, x=60000, y=50, label=&quot;2015&quot;, size=70, colour =&quot;grey90&quot;, family = &quot;mono&quot;, fontface = 1) +
+  # Neu: Farbthema: heller Hintergrund, schwarze Linien an x- und y-Achse
+  theme_classic() + 
+  # Wie bisher: Punkte einzeichnen --&gt; Streu-Punkt-Diagramm,
+  # Neu: Transparenz der Datenpunkte (alpha), Rand um Punkte (shape) 
+  geom_point(aes(fill = Region, size = Population), shape=21, alpha=.7, show.legend = F) +
+  # Skalieren der Größe der Punkte
+  scale_size(range = c(1, 30)) +
+  # Neu: Beschriftungen der Achsen und der Legende
+  labs(x=&quot;Income&quot;,
+       y=&quot;Life expectancy&quot;,
+       fill=&quot;Kontinent&quot;, 
+       size=&quot;Einwohnerzahl (Mio.)&quot;) +
+  # Neu: Beschriftung an den Innenseiten der Achsen
+  annotate(&quot;text&quot;, x=125000, y=10, label=&quot;per Person (GDP/capita, PPP$ inflation-adjusted)&quot;, hjust = 1, vjust = 1) +
+  annotate(&quot;text&quot;, x=0, y=90, label=&quot;years&quot;, hjust = 1, vjust = -2, angle=90) +
+  # Neu: Vergrößern der Punkte für die Farb-Legende für die Kontinente
+  guides(fill = guide_legend(override.aes = list(size = 5), order=1)) +
+  # Neu: Anpassung der Schriftgroesse, relativ zur Groesse 12
+  theme(text = element_text(size=12),
+        axis.text = element_text(size=rel(.8)),
+        plot.title = element_text(size=rel(1.5)),
+        legend.title = element_text(size=rel(1.2)),
+        axis.title = element_text(size=rel(1.2)),
+        panel.grid.major = element_line(colour = &quot;azure2&quot;),
+        panel.grid.minor.x = element_line(colour = &quot;azure2&quot;),
+        plot.margin = margin(1, 6, 1, 1, &quot;cm&quot;)) +
+  # Neu: manuelle Spezifikation der y-Achse
+  scale_y_continuous(limits = c(10, 100), breaks = seq(10,99, by=10)) +
+  # Neu: Formatierung der x-Achsen-Werte (&quot;1,000&quot;)
+  scale_x_continuous(labels = scales::comma) +
+  # Neu: manuelle Spezifikation der Farben
+  scale_fill_manual(
+    values = c(tuerkis, gruen, rot, gelb),
+    breaks = c(&quot;africa&quot;, &quot;americas&quot;, &quot;asia&quot;, &quot;europe&quot;),
+    labels = c(&quot;Afrika&quot;, &quot;Amerika&quot;, &quot;Asien&quot;, &quot;Europa&quot;)) -&gt; plot</code></pre>
+<p>Die Grafik ohne Legende sieht nun so aus:</p>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-16-1.png" width="960" /></p>
+<p>Nun wird noch der Screenshot mit der Weltkarte als Legende “oben rechts” (x = 1, y = .95) eingefügt. Dafür verwenden wir wieder die Funktion <code>draw_image()</code> aus dem Paket <code>cowplot</code>.</p>
+<pre class="r"><code>library(cowplot)
+
+ggdraw(plot) +
+  draw_image(weltkarte, x = 1, y = .95, hjust = 1, vjust = 1, halign = 1, valign = 1, width = .2)</code></pre>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-17-1.png" width="960" /></p>
+</div>
 <div id="karten" class="section level2">
 <h2>Karten</h2>
 <p>Bei psychologischen Daten eher selten, aber mit dem <a href="/post/ggplotting-daten">Gapminder Datensatz</a> natürlich sehr naheliegend, ist die Datenvisualisierung auf Karten. Für komplexere Karten (z.B. mit Google Maps) gibt es das <code>ggmap</code> Paket. Für unsere Zwecke reichen allerdings die von <code>ggplot2</code> mitgelieferten Karten aus.</p>
@@ -93,12 +396,12 @@ head(welt)</code></pre>
 <p>Was man in den Daten sieht sind Länge- und Breitengrade von Landesgrenzen. Außerdem bestimmt die Variable <code>group</code> das Land (anhand dessen die Landesgrenzen gruppiert werden sollten). Damit Linie der Grenzen nicht hin und her springt gibt es außerdem die Variable <code>order</code> die angibt, welcher Punkt in der Grenze als nächstes kommt. Anhand dieser Punkte werden in <code>ggplot2</code> mit der allgemeinen <code>geom_polygon</code> Funktion Karten gezeichnet. Um eine leere Weltkarte zu erzeugen reicht Folgendes aus:</p>
 <pre class="r"><code>ggplot(welt, aes(x = long, y = lat, group = group)) +
   geom_polygon()</code></pre>
-<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
 <p>Wie man sieht, hat dieser Plot die gleichen Eigenschaften wie normale <code>ggplot</code>s - weil es ein ganz normaler Plot ist. Um einzelne Länder erkennen zu können, sollten wir z.B. die Länder weiß und nicht schwarz füllen. Außerdem brauchen wir nicht unbedingt x- und y-Achse, sodass wir das komplett leere Theme <code>theme_void</code> nutzen können:</p>
 <pre class="r"><code>ggplot(welt, aes(x = long, y = lat, group = group)) +
   geom_polygon(fill = &#39;white&#39;, color = &#39;black&#39;, lwd = .25) +
   theme_void()</code></pre>
-<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
 <p>Um die Karten-Daten mit den Daten in Verbindung zu bringen steht uns leider - wie so häufig - im Weg, dass die Daten nicht einheitlich kodiert wurden. In diesem Fall sind es die Benennungen der Länder, die uneinheitlich sind. Um herauszufinden, wo Unterschiede bestehen, können wir die normalen Operatoren der Mengenvergleiche in R nutzen:</p>
 <pre class="r"><code>setdiff(unique(welt$region), unique(edu_exp$Country))</code></pre>
 <pre><code>##  [1] &quot;Aruba&quot;                               &quot;Anguilla&quot;                           
@@ -139,16 +442,16 @@ head(welt)</code></pre>
 ## [71] &quot;Grenadines&quot;                          &quot;Saint Vincent&quot;                      
 ## [73] &quot;Virgin Islands&quot;                      &quot;Wallis and Futuna&quot;</code></pre>
 <pre class="r"><code>setdiff(unique(edu_exp$Country), unique(welt$region))</code></pre>
-<pre><code>##  [1] &quot;Antigua and Barbuda&quot;            &quot;Cote d&#39;Ivoire&quot;                 
-##  [3] &quot;Congo, Dem. Rep.&quot;               &quot;Congo, Rep.&quot;                   
-##  [5] &quot;Micronesia, Fed. Sts.&quot;          &quot;United Kingdom&quot;                
-##  [7] &quot;Hong Kong, China&quot;               &quot;Holy See&quot;                      
-##  [9] &quot;Kyrgyz Republic&quot;                &quot;St. Kitts and Nevis&quot;           
-## [11] &quot;Lao&quot;                            &quot;St. Lucia&quot;                     
-## [13] &quot;North Macedonia&quot;                &quot;Slovak Republic&quot;               
-## [15] &quot;Eswatini&quot;                       &quot;Trinidad and Tobago&quot;           
-## [17] &quot;Tuvalu&quot;                         &quot;United States&quot;                 
-## [19] &quot;St. Vincent and the Grenadines&quot;</code></pre>
+<pre><code>##  [1] &quot;United States&quot;                  &quot;Congo, Dem. Rep.&quot;              
+##  [3] &quot;United Kingdom&quot;                 &quot;Cote d&#39;Ivoire&quot;                 
+##  [5] &quot;Hong Kong, China&quot;               &quot;Lao&quot;                           
+##  [7] &quot;Kyrgyz Republic&quot;                &quot;Slovak Republic&quot;               
+##  [9] &quot;Congo, Rep.&quot;                    &quot;North Macedonia&quot;               
+## [11] &quot;Trinidad and Tobago&quot;            &quot;Eswatini&quot;                      
+## [13] &quot;St. Lucia&quot;                      &quot;Micronesia, Fed. Sts.&quot;         
+## [15] &quot;St. Vincent and the Grenadines&quot; &quot;Antigua and Barbuda&quot;           
+## [17] &quot;St. Kitts and Nevis&quot;            &quot;Tuvalu&quot;                        
+## [19] &quot;Holy See&quot;</code></pre>
 <p>Im Folgenden werden die Namen der Länder mit dem <code>recode</code> Befehl des <code>car</code>-Pakets umkodiert. Leider gibt es schon vorab ein Land, nach dem man in Datenaufbereitungen immer vorab schauen sollte: wie auch hier ist es häufiger der Fall, dass die Elfenbeiküste als <code>Cote d'Ivoire</code> kodiert ist. Leider bewirkt das <code>'</code> in diesem Namen bei Umkodierungen immer einiges an Problemen, sodass wir es vorab direkt umstellen:</p>
 <pre class="r"><code>edu_exp[grepl(&#39;Cote&#39;, edu_exp$Country), &#39;Country&#39;] &lt;- &#39;Ivory Coast&#39;</code></pre>
 <p>die verbleindenden Ländern können dann umkodiert werden:</p>
@@ -184,5 +487,5 @@ edu_map &lt;- edu_map[order(edu_map$group, edu_map$order), ]</code></pre>
     aes(fill = Index)) +
   theme_void() + 
   scale_fill_pandar(discrete = FALSE, na.value = &#39;grey95&#39;)</code></pre>
-<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
 </div>
