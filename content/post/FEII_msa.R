@@ -67,17 +67,17 @@ BOEE ~ ZD
 BFs ~  BOEE + ZD
 '
 
-# konfigural 
-fit_sem_sex_konfigural <- sem(model_sem, data = StressAtWork, 
+# konfigural
+fit_sem_sex_konfigural <- sem(model_sem, data = StressAtWork,
                               group = "sex",
-                              group.equal = c(""), 
+                              group.equal = c(""),
                               group.partial = c("BFs~1", "BFs~~BFs"))
 summary(fit_sem_sex_konfigural, fit.measures = T)
 
-# metrisch 
-fit_sem_sex_metrisch <- sem(model_sem, data = StressAtWork, 
+# metrisch
+fit_sem_sex_metrisch <- sem(model_sem, data = StressAtWork,
                             group = "sex",
-                            group.equal = c("loadings"), 
+                            group.equal = c("loadings"),
                             group.partial = c("BFs~1", "BFs~~BFs"))
 summary(fit_sem_sex_metrisch, fit.measures = T)
 
@@ -85,24 +85,24 @@ lavTestLRT(fit_sem_sex_metrisch, fit_sem_sex_konfigural)
 
 
 # skalar
-fit_sem_sex_skalar <- sem(model_sem, data = StressAtWork, 
+fit_sem_sex_skalar <- sem(model_sem, data = StressAtWork,
                           group = "sex",
-                          group.equal = c("loadings", "intercepts"), 
+                          group.equal = c("loadings", "intercepts"),
                           group.partial = c("BFs~1", "BFs~~BFs"))
 summary(fit_sem_sex_skalar, fit.measures = T)
 
 lavTestLRT(fit_sem_sex_skalar, fit_sem_sex_metrisch)
 
 # strikt
-fit_sem_sex_strikt <- sem(model_sem, data = StressAtWork, 
+fit_sem_sex_strikt <- sem(model_sem, data = StressAtWork,
                           group = "sex",
-                          group.equal = c("loadings", "intercepts", "residuals"), 
+                          group.equal = c("loadings", "intercepts", "residuals"),
                           group.partial = c("BFs~1", "BFs~~BFs"))
 
 lavTestLRT(fit_sem_sex_strikt, fit_sem_sex_skalar)
 
 # vollständig
-fit_sem_sex_voll <- sem(model_sem, data = StressAtWork, 
+fit_sem_sex_voll <- sem(model_sem, data = StressAtWork,
                         group = "sex",
                         group.equal = c("loadings", "intercepts", "residuals",
                                         "means",          # latente Mittelwerte
@@ -117,17 +117,50 @@ summary(fit_sem_sex_strikt)
 
 
 # Was bedeutet es, wenn ein Pfadkoeffizient nicht invariant über Gruppen ist? ----
-plot(NA,                                                                     # leeren Plot erstellen
-     xlim = c(-1, 1), ylim = c(-1, 1),                                       # festlegen, von wo bis wo der Plot dargestellt werden soll                             
-     main = "Beziehung zwischen Zeitdruck\n und emotionaler Erschöpfung",    # Titel vergeben
-     xlab = "ZD", ylab = "EE")                                               # Achsenbeschriftung vergeben 
-abline(a = 0, b = .490, col = "red", lwd = 2)                                # eigene Gerade für Frauen einzeichnen
-abline(a = 0.104, b = .583, col = "blue", lwd = 2)                            # eigene Gerade für Männer einzeichnen
-# a = Interzept, b = Steigung, col = Farbe, lwd = Liniendicke
-legend(x="topleft", col = c("red", "blue"), lwd = c(2, 2), lty = c(1, 1),    # Legende einzeichnen oben links mit Farben
-       legend = c("Frauen", "Männer"))                                       # und Liniendicken von abline
-abline(v = 0, lty = 3)                                                       # vertikale Linie bei 0 einzeichnen (y-Achse)
+# Vorbereitung und Modell
+StressAtWork$ZDs <- rowMeans(StressAtWork[,paste0("zd",c(1, 2, 6))])
+model_pfad_msa <- 'BFs ~ ZDs'
+fit_pfad_msa <- sem(model_pfad_msa, StressAtWork,
+                    group = 'sex')
+summary(fit_pfad_msa)
 
+# Differenzen definieren via Labels
+model_pfad_msa <- '
+  # Regressionen
+  BFs ~ c(b11, b12)*ZDs
+
+  # Interzepte
+  BFs ~ c(b01, b02)*1
+
+  # Differenzen
+  b0d := b02 - b01
+  b1d := b12 - b11'
+fit_pfad_msa <- sem(model_pfad_msa, StressAtWork,
+                    group = 'sex')
+
+# Modell als Interaktionsmodell definieren
+StressAtWork$sexDum <- StressAtWork$sex - 1
+StressAtWork$Int <- StressAtWork$ZDs * StressAtWork$sexDum
+head(StressAtWork[, c('ZDs', 'sexDum', 'Int')])
+
+model_pfad_moderiert <- 'BFs ~ ZDs + sexDum + Int'
+fit_pfad_moderiert <- sem(model_pfad_moderiert, StressAtWork, meanstructure = T)
+
+# Modell als Interaktionsregressionsmodell definieren
+reg <- lm(BFs ~ factor(sex)*ZDs, data = StressAtWork)
+summary(reg)
+
+# Ergebnisse in einer Grafik darstellen
+library(ggplot2)
+coefs <- coef(reg)
+b0 <- cumsum(coefs[1:2])
+b1 <- cumsum(coefs[3:4])
+x <- c(-10,10); y <- c(-10,-10)
+sex <- factor(c("Männer", "Frauen"))
+df <- data.frame(b0, b1, sex, x, y)
+ggplot(data = df, mapping = aes(x=x,y=y, col = sex))+geom_line()+xlim(c(-5,5))+ylim(c(0.5,3))+theme_minimal()+
+  geom_abline(slope = b1, intercept = b0, col = c("blue", "gold3"), lwd = 2)+
+  xlab("Zeitdruck")+ylab("Psychosomatische Beschwerden")+scale_color_manual(values = c("blue", "gold3"))
 
 
 ## Appendix A ----
@@ -163,11 +196,11 @@ BOEE ~ ZD
 BFs ~  BOEE + ZD'
 
 
-fit_sem_sex_metrisch <- sem(model_sem, data = StressAtWork, 
+fit_sem_sex_metrisch <- sem(model_sem, data = StressAtWork,
                             group = "sex",
-                            group.equal = c("loadings"), 
+                            group.equal = c("loadings"),
                             group.partial = c("BFs~1", "BFs ~~BFs"))
-fit_sem_sex_metrisch2 <- sem(model_sem_metrisch, data = StressAtWork,  
+fit_sem_sex_metrisch2 <- sem(model_sem_metrisch, data = StressAtWork,
                              group = "sex")
 
 # chi^2, df, p-Wert
@@ -175,7 +208,7 @@ fitmeasures(fit_sem_sex_metrisch, c("chisq", 'df', "pvalue"))
 fitmeasures(fit_sem_sex_metrisch2, c("chisq", 'df', "pvalue"))
 
 
-### skalar 
+### skalar
 model_sem_skalar <- '
 # Messmodelle
 ZD =~ zd1 + c(l1, l1)*zd2 + c(l2, l2)*zd6
@@ -198,9 +231,9 @@ BOEE ~ c(0, NA)*1
 ZD ~ c(0, NA)*1
 '
 
-fit_sem_sex_skalar <- sem(model_sem, data = StressAtWork, 
+fit_sem_sex_skalar <- sem(model_sem, data = StressAtWork,
                           group = "sex",
-                          group.equal = c("loadings", "intercepts"), 
+                          group.equal = c("loadings", "intercepts"),
                           group.partial = c("BFs~1", "BFs ~~BFs"))
 fit_sem_sex_skalar2 <- sem(model_sem_skalar, data = StressAtWork,  group = "sex")
 
@@ -241,9 +274,9 @@ BOEE ~ c(0, NA)*1
 ZD ~ c(0, NA)*1
 '
 
-fit_sem_sex_strikt <- sem(model_sem, data = StressAtWork, 
+fit_sem_sex_strikt <- sem(model_sem, data = StressAtWork,
                           group = "sex",
-                          group.equal = c("loadings", "intercepts", "residuals"), 
+                          group.equal = c("loadings", "intercepts", "residuals"),
                           group.partial = c("BFs~1", "BFs~~BFs"))
 fit_sem_sex_strikt2 <- sem(model_sem_strikt, data = StressAtWork,  group = "sex")
 
@@ -288,14 +321,14 @@ BOEE ~~ c(psi1, psi1)*BOEE
 BFs ~~ c(psi2, psi2)*BFs
 '
 
-fit_sem_sex_voll <- sem(model_sem, data = StressAtWork, 
+fit_sem_sex_voll <- sem(model_sem, data = StressAtWork,
                         group = "sex",
                         group.equal = c("loadings", "intercepts", "residuals",
                                         "means",          # latente Mittelwerte
                                         "lv.variances",   # latente Varianzen
                                         "lv.covariances", # latente Kovarianzen
                                         "regressions"))   # Strukturparameter (Regressionsgewichte)
-fit_sem_sex_voll2 <- sem(model_sem_voll, data = StressAtWork,  
+fit_sem_sex_voll2 <- sem(model_sem_voll, data = StressAtWork,
                          group = "sex")
 
 # chi^2, df, p-Wert
