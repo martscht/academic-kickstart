@@ -80,7 +80,7 @@ Ein Bild sagt mehr als tausend Zahlen! Mit einer guten Grafik lassen sich viele 
 | 6 | **ggplotpourri** | [Inhalte](/post/ggplotting-ggplotpourri) | -- |
 | 7 | **gganimate** | [Inhalte](/post/ggplotting-gganimate) | [R-Skript](/post/ggplotting-gganimate.R) |
 | 8 | **plotly** | [Inhalte](/post/ggplotting-plotly) | [R-Skript](/post/ggplotting-plotly.R) |
-| 9 | **Explorative Grafiken** | -- | [R-Skript](/post/ggplotting-exploration.R) |
+| 9 | **Explorative Grafiken** | [Inhalte](/post/ggplotting-exploration) | [R-Skript](/post/ggplotting-exploration.R) |
 | 10 | **Übung 2** | -- | [R-Skript](/post/ggplotting-exercise2.R) |
 | 11 | **Outro** | -- | [R-Skript](/post/ggplotting-outro.R) |
 | | | | |

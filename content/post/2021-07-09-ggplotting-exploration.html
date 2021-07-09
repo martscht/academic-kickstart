@@ -1,0 +1,235 @@
+---
+title: Explorative Grafiken
+date: '2021-07-09'
+slug: ggplotting-exploration
+categories: [""]
+tags: ["ggplotting"]
+subtitle: ''
+summary: ''
+authors: [buchholz]
+lastmod: '2021-07-09T07:00:00+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="explanative-und-explorative-grafiken" class="section level2">
+<h2>Explanative und Explorative Grafiken</h2>
+<p>Mit Grafiken können unterschiedliche Ziele verfolgt werden:</p>
+<ul>
+<li><strong>Explanative</strong> Grafiken dienen dazu, anderen einen bestimmten Sachverhalt (ein Muster in den Daten) zu <strong>kommunizieren</strong><br />
+</li>
+<li><strong>Explorative</strong> Grafiken sollen dabei helfen, bestimmte Sachverhalte (Muster in den Daten) zu <strong>erkennen</strong></li>
+</ul>
+<p>Der Fokus des Workshops lag bisher stark auf explanativen Grafiken. In diesem Abschnitt wollen wir Ihnen nun einige Techniken zum Anfertigen von explorativen Grafiken vorstellen. Diese sind:</p>
+<ul>
+<li>Prinzip des “small multiple” anhand von Faceting<br />
+</li>
+<li>Eine Serie gleicher Grafiken mit Funktion und Schleife erzeugen<br />
+</li>
+<li>Viele bivariate Zusammenhänge mit <code>ggpairs()</code><br />
+</li>
+<li>Multivariate Daten mit <code>tableplot()</code> durchkämmen</li>
+</ul>
+<p>Auch in diesem Abschnitt arbeiten wir wieder mit dem <code>edu_exp</code>-Datensatz. Außerdem muss noch <code>ggplot2</code> geladen werden.</p>
+<pre class="r"><code>load(url(&#39;https://pandar.netlify.com/post/edu_exp.rda&#39;))
+library(ggplot2)</code></pre>
+</div>
+<div id="prinzip-des-small-multiple-anhand-von-faceting" class="section level2">
+<h2>Prinzip des “small multiple” anhand von Faceting</h2>
+<p>Die Technik des faceting erlaubt es, Grafiken gemäß Edward Tufte‘s Prinzip des <em>small multiple</em> (siehe Block 3 im Foliensatz) zu erzeugen.</p>
+<blockquote>
+<p>At the heart of quantitative reasoning is a single question: Compared to what? Small multiple designs, multivariate and data bountiful, answer directly by visually enforcing comparisons of changes, of the differences among objects, of the scope of alternatives. For a wide range of problems in data presentation, small multiples are the best design solution.</p>
+</blockquote>
+<p><em>Tufte (1990). Envisioning Information. Graphics Press (p. 67).</em></p>
+<p>Grafiken, die diesem Prinzip entsprechen, sind stets gleich aufgebaut und ermöglichen so einen schnellen Vergleich der dargestellten Information zwischen den einzelnen Grafiken.</p>
+<p>In <code>ggplot()</code> stehen zwei Funktionen für faceting zur Vefügung:</p>
+<ul>
+<li>Mit <code>facet_grid()</code> werden die Plots in Zeilen, in Spalten oder in einem Raster (<em>grid</em>) aus Zeilen und Spalten dargestellt</li>
+<li>Mit <code>facet_wrap()</code> werden die Plots nebeneinander, ggf. mit Zeilenumbruch (<em>wrap</em>) dargestellt</li>
+</ul>
+<p>Die Variable, für die separate Plots erzeugt werden sollen, muss als diskrete Variable im Datensatz enthalten sein (z.B. Land, Weltregion). Im nachfolgenden Beispiel stellen wir den Zusammenhang zwischen den Variablen Wirtschaftsleistung und Lebenserwartung <em>separat für jede der vier Weltregionen</em> dar:</p>
+<pre class="r"><code>edu_exp |&gt;
+  subset(Year == 2016) |&gt;
+  ggplot(aes(x=Income, y=Expectancy)) +
+  geom_point() +
+  theme(axis.text.x = element_text(angle = 90, hjust = 1, vjust = .5)) +
+  facet_grid(. ~ Region)</code></pre>
+<pre><code>## Warning: Removed 8 rows containing missing values (geom_point).</code></pre>
+<p><img src="/post/2021-07-09-ggplotting-exploration_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
+<p>Und nun zeigen wir Ihnen noch ein weiteres Beispiel für Faceting, um die vermutlich schönste Illustration des <a href="https://de.wikipedia.org/wiki/Anscombe-Quartett">Anscombe Quartett</a> in diesen Materialien unterzubringen: den <strong>Datasaurus</strong>. Der Datensatz liegt im Paket <code>datasauRus</code> vor, welches zunächst geladen werden muss:</p>
+<pre class="r"><code>library(datasauRus)
+names(datasaurus_dozen)</code></pre>
+<pre><code>## [1] &quot;dataset&quot; &quot;x&quot;       &quot;y&quot;</code></pre>
+<p>Der Datensatz enthält drei Variablen: <code>x</code>, <code>y</code> und <code>dataset</code>. Der Zusammenhang zwischen <code>x</code> und <code>y</code> ohne Berücksichtigung der zugrunde liegenden Gruppen (Variable <code>dataset</code>) sieht unspektakilär aus - man kann kein Muster erkennen:</p>
+<pre class="r"><code>ggplot(datasaurus_dozen, aes(x=x, y=y)) +
+  geom_point()</code></pre>
+<p><img src="/post/2021-07-09-ggplotting-exploration_files/figure-html/datasaurus-1.png" width="672" /></p>
+<p>Nun wenden wir Faceting an, um small multiples für jedes der datasets anzufordern:</p>
+<pre class="r"><code>ggplot(datasaurus_dozen, aes(x=x, y=y)) +
+  geom_point() +
+  facet_wrap(~dataset) +
+  labs(x=&quot;&quot;, y=&quot;&quot;)</code></pre>
+<p><img src="/post/2021-07-09-ggplotting-exploration_files/figure-html/facetsaurus-1.png" width="672" /></p>
+<p>Die unterschiedlichen Zusammenhänge in jeder der Subgruppen fallen somit unmittelbar ins Auge. Zusätzlich kann auch noch eine Farb-Ästhetik zur Darstellung der Gruppenzugehörigkeit (<code>dataset</code>) vergeben werden. Dadurch erhält jedes Kästchen eine eigene Farbe. Diese trägt absolut keine Information bei, da die Gruppenzugehörigkeit ohnehin klar ist. Es handelt sich dabei also um ein Beispiel für Tuftes sog. “chartjunk” - aber nun ist die Grafik schön bunt. :-)</p>
+<pre class="r"><code>ggplot(datasaurus_dozen, aes(x=x, y=y)) +
+  geom_point(aes(colour=dataset), show.legend=F) +
+  facet_wrap(~dataset) +
+  labs(x=&quot;&quot;, y=&quot;&quot;)</code></pre>
+<p><img src="/post/2021-07-09-ggplotting-exploration_files/figure-html/colorsaurus-1.png" width="672" /></p>
+<p>Mit der Technik des Faceting lässt sich also schnell ein Eindruck über Datenmuster in einer Vielzahl von Gruppen gewinnen. Außergewöhnliche Muster müssten so schnell auffallen.</p>
+</div>
+<div id="eine-serie-gleicher-grafiken-mit-funktion-und-schleife-erzeugen" class="section level2">
+<h2>Eine Serie gleicher Grafiken mit Funktion und Schleife erzeugen</h2>
+<p>Bisher haben wir stets Funktionen benutzt, die im Basis-R oder in den aktuell geladenen Paketen enthalten sind. Funktionen können jedoch auch selbst geschrieben und an die eigenen Bedürfnisse (z.B. eine bestimmte Grafik) angepasst werden. Mithilfe einer <code>for()</code>-Schleife kann diese Funktion dann auf alle Variablen oder alle Länder eines Datensatzes etc. angewendet werden. So entsteht eine Serie von Grafiken, die man schnell durchscrollen und im Hinblick auf Auffälligkeiten überprüfen kann, z.B. zur Qualitätssicherung während der Datenaufbereitung.</p>
+<p>Sehen wir uns zunächst einmal einfache Beispiele für Funktionen und Schleifen an.</p>
+<p><strong>Beispiel für eine Funktion</strong></p>
+<p>Im nachfolgenden Text erstellen wir eine Funktion namens <code>quadrieren()</code>, die genau ein Argument (<code>zahl</code>) entgegennehmen kann. Die Funktion soll diese Zahl quadrieren und das Ergebnis zurückgeben. Der entsprechende Befehl sieht wie folgt aus:</p>
+<pre class="r"><code>quadrieren &lt;- function(zahl){
+  ergebnis &lt;- zahl^2
+  return(ergebnis)
+}</code></pre>
+<p>Testen wir nun die Funktion:</p>
+<pre class="r"><code>quadrieren(1)</code></pre>
+<pre><code>## [1] 1</code></pre>
+<pre class="r"><code>quadrieren(2)</code></pre>
+<pre><code>## [1] 4</code></pre>
+<pre class="r"><code>quadrieren(3)</code></pre>
+<pre><code>## [1] 9</code></pre>
+<p><strong>Beispiel für eine <code>for()</code>-Schleife</strong></p>
+<p>Anhand von Schleifen (<em>loops</em>) lassen sich wiederholt Aktionen für alle Elemente eines Vektors durchführen. In R gibt es <code>for()</code>, <code>while()</code> und <code>break()</code>-Schleifen. Wir zeigen Ihnen nachfolgend eine einfache <code>for()</code>-Schleife. Sie soll für alle Zahlen zwischen 4 und 6 eine Quadrierung vornehmen. Die Zahlen zwischen 4 bis 6 werden in einem Vektor abelegt, über den dann die Schleife läuft; die Elemente des Vektors werden mit <code>z</code> indiziert.</p>
+<pre class="r"><code>zahlen &lt;- 4:6
+for(z in zahlen){
+  print(z^2)
+}</code></pre>
+<pre><code>## [1] 16
+## [1] 25
+## [1] 36</code></pre>
+<p><strong>Anwendung: je eine Grafik pro Land</strong></p>
+<p>Wir kombinieren nun eine selbstgeschriebene Funktion mit einer <code>for()</code>-Schleife, um je eine Grafik pro Land abzuspeichern. Mit der Funktion definieren wir, wie die Grafik aussehen soll, und mit der Schleife wenden wir diese Funktion dann auf jedes Element im Vektor mit den Ländernamen an.</p>
+<p>Die Grafik soll die Lebenserwartung im Zeitverlauf sowie den jeweiligen Mittelwert anzeigen. Für Afghanistan sollte sie also so aussehen:</p>
+<pre class="r"><code>dipfblau &lt;- rgb(102,153,204, max=255)
+tmp.data &lt;- subset(edu_exp, Country == &quot;Afghanistan&quot;)
+tmp.mw   &lt;- mean(tmp.data$Expectancy)
+
+ggplot(tmp.data, aes(x=Year, y=Expectancy)) +
+  geom_line(size=2, show.legend=F) +
+  geom_point(size=2.5, show.legend=F) +
+  xlim(1997, 2017) +
+  ylim(20, 85) +
+  labs(x=&quot;Jahr&quot;, y=&quot;Lebenserwartung&quot;) +
+  ggtitle(&quot;Lebenserwartung in Afghanistan im Zeitverlauf&quot;, &quot;Kontinent: Europa&quot;) +
+  geom_hline(aes(yintercept=tmp.mw), size=2, col=dipfblau) +
+  annotate(&quot;text&quot;, 2000, tmp.mw+3, fontface=&#39;italic&#39;,
+           label=paste0(&quot;M = &quot;, round(tmp.mw, 2)), col=dipfblau)</code></pre>
+<p><img src="/post/2021-07-09-ggplotting-exploration_files/figure-html/dipfed-1.png" width="672" /></p>
+<p>Dieser Befehl muss nun so abstrahiert werden, dass er für jedes Land funktioniert. Alles, was mit Afghanistan zu tun hat, wird nun so umgeschrieben, dass <em>irgendein</em> Ländername eingesetzt werden kann - nämlich den, der als Wert für das Argument <code>which.country</code> in der Funktion angebenen wurde. Wichtig ist, dass der Wertebereich von x- und y-Achse spezifiziert wird, um sicherzustellen, dass jedes Plot gleich aufgebaut ist. Außerdem soll die Funktion so geschrieben sein, dass man die Linie für den Mittelwert ein- und ausschalten kann. Dies hinterlegen wir als ein optionales Argument, das per Voreinstellung die Linie nicht enthält.</p>
+<pre class="r"><code>gm.plot &lt;- function(which.country, show.mean=FALSE){
+
+  dipfblau &lt;- rgb(102,153,204, max=255)
+  tmp.data &lt;- subset(edu_exp, Country == which.country)
+  tmp.mw   &lt;- mean(tmp.data$Expectancy)
+  
+  tmp.plot &lt;- ggplot(tmp.data, aes(x=Year, y=Expectancy)) +
+    geom_line(size=2, show.legend=F) +
+    geom_point(size=2.5, show.legend=F) +
+    xlim(1997, 2017) +
+    ylim(20, 85) +
+    labs(x=&quot;Jahr&quot;, y=&quot;Lebenserwartung&quot;, 
+         title=paste0(&quot;Lebenserwartung in &quot;, which.country, &quot; im Zeitverlauf&quot;),
+         subtitle=paste0(&quot;Kontinent: &quot;, tmp.data$Region[1]))
+
+  if(show.mean==TRUE){
+    tmp.plot &lt;- tmp.plot +
+      geom_hline(aes(yintercept=tmp.mw), size=2, col=dipfblau) +
+      annotate(&quot;text&quot;, 2000, tmp.mw+3, fontface=&#39;italic&#39;,
+               label=paste0(&quot;M = &quot;, round(tmp.mw, 2)), col=dipfblau)
+  }
+  return(tmp.plot)
+}</code></pre>
+<p>Prüfen wir nun die Funktion für Afghanistan - sie müsste ja genauso aussehen wie zuvor:</p>
+<pre class="r"><code>gm.plot(&quot;Afghanistan&quot;, TRUE)</code></pre>
+<p><img src="/post/2021-07-09-ggplotting-exploration_files/figure-html/afghanistan-1.png" width="672" /></p>
+<p>Das hat geklappt! Als nächstes erstellen wir ein Verzeichnis (“gapminder-plots”), in dem die Grafiken später gespeichert werden können. Dies kann mit <code>dir.create()</code> aus R heraus erfolgen:</p>
+<pre class="r"><code>dir.create(&quot;./gapminder-Plots&quot;)</code></pre>
+<p>Die Funktion soll nun für jedes Land angewendet werden. Dafür benötigen wir einen Vektor, der alle Ländernamen enthält:</p>
+<pre class="r"><code>countries &lt;- unique(edu_exp$Country)
+head(countries)</code></pre>
+<pre><code>## [1] &quot;Afghanistan&quot;          &quot;Angola&quot;               &quot;Albania&quot;             
+## [4] &quot;Andorra&quot;              &quot;United Arab Emirates&quot; &quot;Argentina&quot;</code></pre>
+<pre class="r"><code>length(countries)</code></pre>
+<pre><code>## [1] 197</code></pre>
+<p>Der Vektor enthält 197 Elemente, folglich werden mit der <code>for()</code>-Schleife 197 Grafiken erzeugt werden. Wir erweitern die Schleife noch so, dass sie uns in die Konsole schreibt, wie weit sie ist. So können wir den Fortschritt live überwachen:</p>
+<pre class="r"><code>for(c in 1:length(countries)){
+  gm.plot(countries[c], show.mean = TRUE)
+  ggsave(paste0(&quot;./gapminder-Plots/Plot-&quot;, countries[c], &quot;.png&quot;),
+                width=24, height=12, units=&quot;cm&quot;, dpi=200)
+  print(paste0(&quot;Grafik erstellt fuer: &quot;, countries[c], &quot; (&quot;, c, &quot;/&quot;, length(countries), &quot;)&quot;))
+}</code></pre>
+<p><img src="/post/ggplotting_print_progress.png" /></p>
+<p>Nachdem die Schleife fertig durchgelaufen ist, liegen alle 197 Grafiken im Ordner:</p>
+<p><img src="/post/ggplotting_ordner.png" /></p>
+<p>Durch diese kann man sich nun durcharbeiten - auffällige Muster fallen dann schnell auf:</p>
+<p><img src="/post/ggplotting_gapminder_plots.gif" /></p>
+</div>
+<div id="viele-bivariate-zusammenhänge-mit-ggpairs" class="section level2">
+<h2>Viele bivariate Zusammenhänge mit <code>ggpairs()</code></h2>
+<p>Das Paket <code>GGally</code> stellt die praktische Funktion <code>ggpairs()</code> bereit. Wir illustrieren dies am R-internen Datensatz <code>iris</code>. Der Datensatz enthält für drei Arten von Iris-Blumen (Variable <code>Species</code>) vier Variablen mit Messungen von Blütenblättern:</p>
+<pre class="r"><code>str(iris)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    150 obs. of  5 variables:
+##  $ Sepal.Length: num  5.1 4.9 4.7 4.6 5 5.4 4.6 5 4.4 4.9 ...
+##  $ Sepal.Width : num  3.5 3 3.2 3.1 3.6 3.9 3.4 3.4 2.9 3.1 ...
+##  $ Petal.Length: num  1.4 1.4 1.3 1.5 1.4 1.7 1.4 1.5 1.4 1.5 ...
+##  $ Petal.Width : num  0.2 0.2 0.2 0.2 0.2 0.4 0.3 0.2 0.2 0.1 ...
+##  $ Species     : Factor w/ 3 levels &quot;setosa&quot;,&quot;versicolor&quot;,..: 1 1 1 1 1 1 1 1 1 1 ...</code></pre>
+<p>Die Verteilungen von sowie Zummenhänge zwischen den verschiedenen Messwerten lassen sich mit <code>ggpairs()</code> illustrieren:</p>
+<pre class="r"><code>library(GGally)</code></pre>
+<pre><code>## Registered S3 method overwritten by &#39;GGally&#39;:
+##   method from   
+##   +.gg   ggplot2</code></pre>
+<pre class="r"><code>ggpairs(iris, columns = 1:4)</code></pre>
+<p><img src="/post/2021-07-09-ggplotting-exploration_files/figure-html/pairs1-1.png" width="672" /></p>
+<p>Richtig spannend wird es aber erst, wenn wir zusätzlich noch separate Verteilungen für jede der drei Blumenarten (<code>Species</code>) anfordern:</p>
+<pre class="r"><code>library(GGally)
+ggpairs(iris, columns = 1:4, aes(color = Species, alpha = .5))</code></pre>
+<p><img src="/post/2021-07-09-ggplotting-exploration_files/figure-html/pairs2-1.png" width="672" /></p>
+<p>So lässt sich auch recht schnell ein Eindruck von den Daten gewinnen, um so auffällige Muster festzustellen.</p>
+</div>
+<div id="multivariate-daten-mit-tableplot-durchkämmen" class="section level2">
+<h2>Multivariate Daten mit <code>tableplot()</code> durchkämmen</h2>
+<p>Schließlich wollen wir Ihnen die Funktion <code>tableplot()</code> aus dem Paket <code>tabplot</code> nicht vorenthalten. Da dieses nicht auf CRAN, sondern auf github gehostet wird, installieren wir es über die <code>devtools</code>-Funktion <code>install_github()</code>.</p>
+<pre class="r"><code>library(devtools)
+install_github(&quot;mtennekes/tabplot&quot;)
+library(tabplot)</code></pre>
+<p>Das sog. Tableplot ist geeignet, um große multivariate Datensätze zu visualisieren. Für jede Subgruppe (per Default: für jedes Quantil) auf einer Variable werden Statistiken auf anderen Variablen dargestellt:</p>
+<ul>
+<li>für kontinuierliche Variablen: Balkendiagramm der Mittelwerte<br />
+</li>
+<li>für kategoriale Variablen: Gestapeltes Balkendiagramm der Häufigkeiten einzelner Kategorien</li>
+</ul>
+<p>Zunächst reduzieren wir den <code>edu_exp</code>-Datensatz aus didaktischen Gründen auf sechs Variablen</p>
+<pre class="r"><code>edu_exp_2 &lt;- subset(edu_exp, select = c(&quot;Country&quot;, &quot;Region&quot;, &quot;Index&quot;, &quot;Expectancy&quot;, &quot;Population&quot;, &quot;Income&quot;))</code></pre>
+<p>Ohne weitere Einstellungen sieht das Tableplot für diesen Teildatensatz so aus:</p>
+<pre class="r"><code>tableplot(edu_exp_2)</code></pre>
+<p><img src="/post/2021-07-09-ggplotting-exploration_files/figure-html/table1-1.png" width="672" /></p>
+<p>Per Voreinstellung werden die Daten nach der ersten Variable im Datensatz sortiert (Variable <code>country</code>; alphabetisch sortiert) - dies ist hier nicht sonderlich sinnvoll. Außerdem würden wir nicht annehmen, dass die Bevölkerungszahl oder das Jahr der Erhebung eines Landes mit den anderen Variablen in Zusammenhang steht, also schließen wir sie im nächsten Schritt aus. Außerdem sortieren wir den Datensatz diesmal nach der Ausprägung auf der Variable <code>Income</code>:</p>
+<pre class="r"><code># Sortiert nach Income
+tableplot(edu_exp_2,
+          select=c(Region, Index, Expectancy, Income), 
+          sortCol = Income)</code></pre>
+<p><img src="/post/2021-07-09-ggplotting-exploration_files/figure-html/table2-1.png" width="672" /></p>
+<p>Nun zeigen sich deutliche Muster - alle Variablen sortieren sich mit der Variable <code>Income</code> mit:</p>
+<ul>
+<li><em>Region</em>: Die Länder im oberen Bereich der Income-Verteilung befinden sich vorrangig in Asien und Europa (gelbe und rote Anteile), während die Länder im unteren Bereich der Income-Verteilung vorrangig in Afrika liegen<br />
+</li>
+<li><em>Index</em>: Die Länder im oberen Bereich der Income-Verteilung weisen höhere Werte auf dem Bildungsindex auf als die Länder im unteren Bereich der Income-Verteilung<br />
+</li>
+<li><em>Expectancy</em>: Die Länder im oberen Bereich der Income-Verteilung weisen auch höhere Werte für die Lebenserwartung auf als die Länder im unteren Bereich der Income-Verteilung</li>
+</ul>
+</div>
