@@ -71,7 +71,7 @@ Git kann der Versionskontrolle dienen. In Kombination mit einem Cloud-Service wi
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 1 | **Git-Intro** | [Inhalte](/post/under-construction) |
+| 1 | **Git-Intro** | [Inhalte](/post/gitintro) |
 | 2 | **GitHub** | [Inhalte](/post/under-construction) | 
 | 3 | **SmartGit** | [Inhalte](/post/under-construction) | 
 | 4 | **Git-Advanced** | [Inhalte](/post/under-construction) |
