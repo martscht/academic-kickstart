@@ -69,10 +69,10 @@ subtitle = ""
 <a id="Git"></a>
 Git kann der Versionskontrolle dienen. In Kombination mit einem Cloud-Service wie beispielsweise GitHub kann die Kollaboration an Coding-Projekten vereinfacht werden. Für erhöhte Anwendungsfreundlichkeit wurde bspw. SmartGit entwickelt. In den nächsten Wochen werden hier verschiedene Einführungen in diese Programme veröffentlicht.
 
-|  |  |  | 
-| --- | --- | --- | 
+|  |  |  |  |  |
+| --- | --- | --- | --- | --- |
 | 1 | **Git-Intro** | [Inhalte](/post/gitintro) |
 | 2 | **GitHub** | [Inhalte](/post/under-construction) | 
 | 3 | **SmartGit** | [Inhalte](/post/under-construction) | 
 | 4 | **Git-Advanced** | [Inhalte](/post/under-construction) |
-|  |  |  |
+|  |  |  
