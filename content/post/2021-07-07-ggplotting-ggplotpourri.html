@@ -67,6 +67,10 @@ header:
 <td>9</td>
 <td><a href="#karten">Karten</a></td>
 </tr>
+<tr class="even">
+<td>10</td>
+<td><a href="#wordcloud">Wordcloud</a></td>
+</tr>
 </tbody>
 </table>
 <div id="balken1" class="section level2">
@@ -312,14 +316,7 @@ pie</code></pre>
   ggplot(aes(x=Income, y=Expectancy)) +
   geom_point() </code></pre>
 <p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
-<p>Zunächst einige Schritte zur Vorbereitung:</p>
-<ul>
-<li>der Datensatz wird so sortiert, dass kleine Länder “hinten” stehen und “zuletzt” ins Plot kommen, also vorne (unverdeckt) sind<br />
-</li>
-<li>die Farbvektoren für die vier Weltregionen werden als rgb-Vektor hinterlegt<br />
-</li>
-<li>ein Screenshot der Weltkarte von der gapminder-Webseite wird mit der <code>image_read()</code>-Funktion aus dem Paket <code>cowplot</code> eingelesen</li>
-</ul>
+<p>Zunächst wird der Datensatz noch so sortiert, dass kleine Länder “hinten” stehen und “zuletzt” ins Plot kommen, also vorne (unverdeckt) zu sehen sind. Außerdem hinterlege ich schon mal die vier Farben als rgb-Vektor, nachdem ich sie mit gimp “gemessen” hatte.</p>
 <pre class="r"><code># Datensatz sortieren
 edu_exp &lt;- edu_exp[order(edu_exp$Population, decreasing = T),]
 
@@ -327,61 +324,97 @@ edu_exp &lt;- edu_exp[order(edu_exp$Population, decreasing = T),]
 tuerkis &lt;- rgb(0,213,233, max=255)
 gruen &lt;- rgb(127,235,0, max=255)
 rot &lt;- rgb(255,88,114, max=255)
-gelb &lt;- rgb(255,231,0, max=255)
-
-# Weltkarte (Screenshot von der gapminder Webseite)
-weltkarte &lt;- image_read(&quot;./ggplotting-gapminder-map.png&quot;)</code></pre>
+gelb &lt;- rgb(255,231,0, max=255)</code></pre>
 <p>Im nachfolgenden Code sind alle Schritte kommentiert:</p>
 <pre class="r"><code>edu_exp |&gt;
-  # Auswahl der Daten von 2011
+  # Auswahl der Daten von 2015:
   subset(Year == 2015) |&gt; 
-  # Grafik anfordern
+  # Grund-Grafik anfordern:
   ggplot(aes(x=Income, y=Expectancy)) +
-  # Neu: Text für die Jahreszahl (2011) einfügen, sodass dieser im Hintergrund steht
-  annotate(&quot;text&quot;, x=60000, y=50, label=&quot;2015&quot;, size=50, colour =&quot;grey90&quot;, family = &quot;Courier New&quot;, fontface = 2) +
+  # Neu: Text für die Jahreszahl (&quot;2015&quot;) einfügen, sodass diese ganz im Hintergrund steht
+  annotate(&quot;text&quot;, x=8000, y=50, label=&quot;2015&quot;, size=50, colour =&quot;grey90&quot;, family=&quot;courier new&quot;, fontface=2) +
   # Neu: Farbthema: heller Hintergrund, schwarze Linien an x- und y-Achse
   theme_classic() + 
   # Wie bisher: Punkte einzeichnen --&gt; Streu-Punkt-Diagramm,
-  # Neu: Transparenz der Datenpunkte (alpha), Rand um Punkte (shape) 
-  geom_point(aes(fill = Region, size = Population), shape=21, alpha=.7, show.legend = F) +
-  # Skalieren der Größe der Punkte
+  # Neu: Unterscheidung der Punkte nach Farbe (Region) und Größe (Population);  
+  # Transparenz der Datenpunkte (alpha), Rand um die Punkte (shape) 
+  geom_point(aes(fill = Region, size = Population), shape=21, alpha=.7, show.legend=F) +
+  # Skalieren der Größe der Punkte, sodass die Unterschiede deutlicher sind
   scale_size(range = c(1, 30)) +
-  # Neu: Beschriftungen der Achsen und der Legende
-  labs(x=&quot;Income&quot;,
-       y=&quot;Life expectancy&quot;,
-       fill=&quot;Kontinent&quot;, 
-       size=&quot;Einwohnerzahl (Mio.)&quot;) +
+  # Neu: Beschriftung der Achsen
+  labs(x=&quot;Income&quot;, y=&quot;Life expectancy&quot;) +
   # Neu: Beschriftung an den Innenseiten der Achsen
-  annotate(&quot;text&quot;, x=125000, y=10, label=&quot;per Person (GDP/capita, PPP$ inflation-adjusted)&quot;, hjust = 1, vjust = 1) +
-  annotate(&quot;text&quot;, x=0, y=90, label=&quot;years&quot;, hjust = 1, vjust = -2, angle=90) +
-  # Neu: Vergrößern der Punkte für die Farb-Legende für die Kontinente
-  guides(fill = guide_legend(override.aes = list(size = 5), order=1)) +
-  # Neu: Anpassung der Schriftgroesse, relativ zur Groesse 12
-  theme(text = element_text(size=12),
-        axis.text = element_text(size=rel(.8)),
-        plot.title = element_text(size=rel(1.5)),
-        legend.title = element_text(size=rel(1.2)),
-        axis.title = element_text(size=rel(1.2)),
-        panel.grid.major = element_line(colour = &quot;azure2&quot;),
-        panel.grid.minor.x = element_line(colour = &quot;azure2&quot;),
-        plot.margin = margin(1, 6, 1, 1, &quot;cm&quot;)) +
-  # Neu: manuelle Spezifikation der y-Achse
-  scale_y_continuous(limits = c(10, 100), breaks = seq(10,99, by=10)) +
-  # Neu: Formatierung der x-Achsen-Werte (&quot;1,000&quot;)
-  scale_x_continuous(labels = scales::comma) +
+  annotate(&quot;text&quot;, x=125000, y=11, label=&quot;per Person (GDP/capita, PPP$ inflation-adjusted)&quot;, hjust = 1, vjust = 1) +
+  annotate(&quot;text&quot;, x=410, y=90, label=&quot;years&quot;, hjust = 1, vjust = -2, angle=90) +
+  # Neu: manuelle Spezifikation der y-Achse: Wertebereich, Position der Beschriftungen (10er-Schritte)
+  scale_y_continuous(limits = c(10, 92), 
+                     breaks = seq(10,92, by=10)) +
+  # Neu: manuelle Spezifikation der x-Achse: Wertebereich, log-Transformation, Position und Name der Beschriftungen
+  scale_x_continuous(limits = c(400,128000),
+                     trans = &quot;log2&quot;, 
+                     breaks = c(500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000),
+                     labels = c(&quot;500&quot;, &quot;1000&quot;, &quot;2000&quot;, &quot;4000&quot;, &quot;8000&quot;, &quot;16k&quot;, &quot;32k&quot;, &quot;64k&quot;, &quot;128k&quot;)) +
   # Neu: manuelle Spezifikation der Farben
   scale_fill_manual(
     values = c(tuerkis, gruen, rot, gelb),
-    breaks = c(&quot;africa&quot;, &quot;americas&quot;, &quot;asia&quot;, &quot;europe&quot;),
-    labels = c(&quot;Afrika&quot;, &quot;Amerika&quot;, &quot;Asien&quot;, &quot;Europa&quot;)) -&gt; plot</code></pre>
+    breaks = c(&quot;africa&quot;, &quot;americas&quot;, &quot;asia&quot;, &quot;europe&quot;)) +
+  # Neu: Theme (Anpassung der Schriftgroesse, relativ zur Groesse 12, blaues Raster im Hintergrund, Rand für die Legende)
+  theme(text = element_text(size=12),
+        axis.text = element_text(size=rel(.8)),
+        axis.title = element_text(size=rel(1.2)),
+        panel.grid.major = element_line(colour = &quot;azure2&quot;),
+        plot.margin = margin(1, 6, 1, 1, &quot;cm&quot;)) -&gt; plot_ohne_Legende</code></pre>
 <p>Die Grafik ohne Legende sieht nun so aus:</p>
 <p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-16-1.png" width="960" /></p>
-<p>Nun wird noch der Screenshot mit der Weltkarte als Legende “oben rechts” (x = 1, y = .95) eingefügt. Dafür verwenden wir wieder die Funktion <code>draw_image()</code> aus dem Paket <code>cowplot</code>.</p>
-<pre class="r"><code>library(cowplot)
+<p>Um die Legende für die Farben (Weltregionen) anzufügen, habe ich einen Screenshot der Weltkarte von der gapminder-Webseite gemacht und als Bilddatei gespeichert (“5_gapminder-map.png”). Diese lese ich nun mit der <code>image_read()</code>-Funktion aus dem Paket <code>magick</code> ein. Anschließend füge ich sie “oben rechts” (x = 1, y = .95) in das zuvor erzeugte ggplot ein. Dafür verwende ich wieder die Funktion <code>draw_image()</code> aus dem Paket <code>cowplot</code>.</p>
+<pre class="r"><code>library(magick)
+library(cowplot)
 
-ggdraw(plot) +
+# Weltkarte (Screenshot von der gapminder Webseite)
+weltkarte &lt;- image_read(&quot;ggplotting-gapminder-map.png&quot;)
+
+ggdraw(plot_ohne_Legende) +
   draw_image(weltkarte, x = 1, y = .95, hjust = 1, vjust = 1, halign = 1, valign = 1, width = .2)</code></pre>
 <p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-17-1.png" width="960" /></p>
+<p>Und schließlich können wir die Grafik auch noch animieren, sodass sie dem Vorbild auf (www.gapminder.org) sogar noch ähnlicher wird. Leider scheinen sich <code>cowplot</code> und <code>gganimate</code> nicht so gut zu vertragen - daher muss ich die Farblegende rechts weglassen. Ansonsten kann ich den Code der statischen Grafik oben weitgehend übernehmen; lediglich die folgenden Dinge musste ich entfernen:</p>
+<ul>
+<li>Fallauswahl für das Jahr 2015 <code>subset()</code>)<br />
+</li>
+<li>Textbox mit “2015” im Hintergrund der Grafik (<code>annotate()</code>)<br />
+</li>
+<li>der große Rand rechts (<code>plot.margin</code>), weil es ja nun keine Legende gibt</li>
+</ul>
+<pre class="r"><code>edu_exp |&gt;
+  ggplot(aes(x=Income, y=Expectancy)) +
+  theme_classic() + 
+  geom_point(aes(fill = Region, size = Population), shape=21, alpha=.7, show.legend=F) +
+  scale_size(range = c(1, 30)) +
+  labs(x=&quot;Income&quot;, y=&quot;Life expectancy&quot;) +
+  annotate(&quot;text&quot;, x=125000, y=11, label=&quot;per Person (GDP/capita, PPP$ inflation-adjusted)&quot;, hjust = 1, vjust = 1) +
+  annotate(&quot;text&quot;, x=410, y=90, label=&quot;years&quot;, hjust = 1, vjust = -2, angle=90) +
+  scale_y_continuous(limits = c(10, 92), 
+                     breaks = seq(10,92, by=10)) +
+  scale_x_continuous(limits = c(400,128000),
+                     trans = &quot;log2&quot;, 
+                     breaks = c(500, 1000, 2000, 4000, 8000, 16000, 32000, 64000, 128000),
+                     labels = c(&quot;500&quot;, &quot;1000&quot;, &quot;2000&quot;, &quot;4000&quot;, &quot;8000&quot;, &quot;16k&quot;, &quot;32k&quot;, &quot;64k&quot;, &quot;128k&quot;)) +
+  scale_fill_manual(
+    values = c(tuerkis, gruen, rot, gelb),
+    breaks = c(&quot;africa&quot;, &quot;americas&quot;, &quot;asia&quot;, &quot;europe&quot;)) +
+  theme(text = element_text(size=12),
+        axis.text = element_text(size=rel(.8)),
+        axis.title = element_text(size=rel(1.2)),
+        panel.grid.major = element_line(colour = &quot;azure2&quot;)) -&gt; plot_ohne_Legende</code></pre>
+<pre class="r"><code>library(gganimate)
+
+anim &lt;- plot_ohne_Legende +
+  transition_time(Year) +
+  labs(title = &quot;{frame_time}&quot;) +
+  theme(plot.title = element_text(hjust=.5))
+
+animate(anim, start_pause = 20, end_pause = 20,
+        height = 15, width = 30, units = &quot;cm&quot;, res = 150)</code></pre>
+<p><img src="/post/ggplotting-Bubble-Chart.gif" /></p>
 </div>
 <div id="karten" class="section level2">
 <h2>Karten</h2>
@@ -399,12 +432,12 @@ head(welt)</code></pre>
 <p>Was man in den Daten sieht sind Länge- und Breitengrade von Landesgrenzen. Außerdem bestimmt die Variable <code>group</code> das Land (anhand dessen die Landesgrenzen gruppiert werden sollten). Damit Linie der Grenzen nicht hin und her springt gibt es außerdem die Variable <code>order</code> die angibt, welcher Punkt in der Grenze als nächstes kommt. Anhand dieser Punkte werden in <code>ggplot2</code> mit der allgemeinen <code>geom_polygon</code> Funktion Karten gezeichnet. Um eine leere Weltkarte zu erzeugen reicht Folgendes aus:</p>
 <pre class="r"><code>ggplot(welt, aes(x = long, y = lat, group = group)) +
   geom_polygon()</code></pre>
-<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
 <p>Wie man sieht, hat dieser Plot die gleichen Eigenschaften wie normale <code>ggplot</code>s - weil es ein ganz normaler Plot ist. Um einzelne Länder erkennen zu können, sollten wir z.B. die Länder weiß und nicht schwarz füllen. Außerdem brauchen wir nicht unbedingt x- und y-Achse, sodass wir das komplett leere Theme <code>theme_void</code> nutzen können:</p>
 <pre class="r"><code>ggplot(welt, aes(x = long, y = lat, group = group)) +
   geom_polygon(fill = &#39;white&#39;, color = &#39;black&#39;, lwd = .25) +
   theme_void()</code></pre>
-<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
 <p>Um die Karten-Daten mit den Daten in Verbindung zu bringen steht uns leider - wie so häufig - im Weg, dass die Daten nicht einheitlich kodiert wurden. In diesem Fall sind es die Benennungen der Länder, die uneinheitlich sind. Um herauszufinden, wo Unterschiede bestehen, können wir die normalen Operatoren der Mengenvergleiche in R nutzen:</p>
 <pre class="r"><code>setdiff(unique(welt$region), unique(edu_exp$Country))</code></pre>
 <pre><code>##  [1] &quot;Aruba&quot;                               &quot;Anguilla&quot;                           
@@ -490,5 +523,73 @@ edu_map &lt;- edu_map[order(edu_map$group, edu_map$order), ]</code></pre>
     aes(fill = Index)) +
   theme_void() + 
   scale_fill_pandar(discrete = FALSE, na.value = &#39;grey95&#39;)</code></pre>
-<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<p><img src="/post/2021-07-07-ggplotting-ggplotpourri_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+</div>
+<div id="wordcloud" class="section level2">
+<h2>Wordcloud</h2>
+<p>Nicht nur Zahlen, sondern auch Texte können visualisiert werden! Glauben Sie nicht? Naja stimmt, am Ende werden in Wordclouds ja auch wieder Zahlen dargestellt - nämlich die Häufigkeiten, mit der die Wörter im Textkorpus aufgetreten sind. Um so eine Wordcloud anzufordern, muss zunächst (a) der Text eingelesen werden, (b) eine sortierte Häufigkeitstabelle erstellt, und (3) die Wordcloud spezifiziert werden.</p>
+<p>Zur Illustration lese ich zunächst die Texte aller <a href="https://pandar.netlify.app/extras/#ggplotting">pandaR</a> Seiten aus, in denen wir die Inhalte schriftlich ausgearbeitet hatten.</p>
+<p>Zum Auslesen der Texte verwende ich Funktionen aus <code>rvest</code>, mit dem sich prima Webscraping betreiben lässt. Außerdem habe ich herausgefunden, dass der relevante CSS-Selektor “p” heißt, in dem die Fließtexte stehen.</p>
+<pre class="r"><code>library(rvest)
+
+# Funktion zum Einlesen der Texte von Websites
+make.text &lt;- function(website){
+  read_html(website) |&gt; 
+    html_nodes(&quot;p&quot;) |&gt;
+    html_text() |&gt;
+    paste(collapse = &quot;&quot;)
+}
+
+# Anwenden der Funktion auf die relevanten pandaR-Seiten:
+texte &lt;- paste(
+  make.text(&#39;https://pandar.netlify.app/post/ggplotting-intro&#39;), 
+  make.text(&#39;https://pandar.netlify.app/post/ggplotting-daten&#39;),
+  make.text(&#39;https://pandar.netlify.app/post/ggplotting-themes/&#39;),
+  make.text(&#39;https://pandar.netlify.app/post/ggplotting-ggplotpourri/&#39;),
+  make.text(&#39;https://pandar.netlify.app/post/ggplotting-gganimate/&#39;),
+  make.text(&#39;https://pandar.netlify.app/post/ggplotting-plotly/&#39;),
+  make.text(&#39;https://pandar.netlify.app/post/ggplotting-exploration/&#39;), 
+  collapse = &quot;&quot;)</code></pre>
+<p>Nun liegt ein sehr langer Fließtext vor, der sich aus den Texten der einzelnen Seiten zusammensetzt. Als nächstes muss dieser Text bereinigt werden, d.h., alle Großbuchstaben ersetzen, Sonderzeichen, Zahlen und stopwords entfernen, Satzzeichen entfernen, … Dafür bietet sich das Paket <code>tm</code> an.</p>
+<pre class="r"><code>library(tm)</code></pre>
+<pre><code>## Loading required package: NLP</code></pre>
+<pre><code>## 
+## Attaching package: &#39;NLP&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:ggplot2&#39;:
+## 
+##     annotate</code></pre>
+<pre class="r"><code># Erstellen der Wort-Häufigkeitstabelle 
+docs &lt;- Corpus(VectorSource(texte))
+toSpace &lt;- content_transformer(function (x , pattern ) gsub(pattern, &quot; &quot;, x))
+docs &lt;- tm_map(docs, toSpace, &#39;[/@\\|\\&quot;]&#39;)
+docs &lt;- tm_map(docs, content_transformer(tolower))
+docs &lt;- tm_map(docs, removeNumbers)
+docs &lt;- tm_map(docs, removeWords, stopwords(&quot;german&quot;))
+docs &lt;- tm_map(docs, removeWords, c(&quot;dass&quot;))
+docs &lt;- tm_map(docs, removePunctuation)
+docs &lt;- tm_map(docs, stripWhitespace)
+tdm  &lt;- as.matrix(TermDocumentMatrix(docs))
+vec &lt;- sort(rowSums(tdm), decreasing=TRUE)
+table &lt;- data.frame(word = names(vec), freq = vec)</code></pre>
+<p>Die ersten Zeilen der resultierenden Häufigkeitstabelle sehen nun so aus:</p>
+<pre class="r"><code>head(table)</code></pre>
+<pre><code>##                word freq
+## daten         daten   76
+## ggplot       ggplot   72
+## variablen variablen   44
+## datensatz datensatz   42
+## abbildung abbildung   40
+## funktion   funktion   39</code></pre>
+<p>Diese Tabelle bildet nun die Grundlage für die Wordcloud. Zur Erstellung der Wordcloud nutze ich das Paket <code>ggwordcloud</code>. Es enthält eine Funktion für die entsprechende Geometrie, und es lassen sich alle sonstigen ggplot-Funktionen damit kombinieren. So kann ich beispielsweise über <code>theme</code> die Hintergrundfarbe spezifizieren.</p>
+<pre class="r"><code># Erstellen der wordcloud
+library(ggwordcloud)
+
+table$angle &lt;- 90 * sample(c(0, 1), nrow(table), replace = TRUE, prob = c(60, 40))
+ggplot(table[1:200,],) +
+  geom_text_wordcloud(aes(label = word, size = freq,
+                          color = factor(sample.int(10, 200, replace = TRUE)),
+                          angle = angle)) +
+  scale_size(range = c(1, 20)) +
+  theme(panel.background = element_rect(fill = &quot;grey90&quot;))</code></pre>
+<p><img src="/post/ggplotting-wordcloud.png" /></p>
 </div>

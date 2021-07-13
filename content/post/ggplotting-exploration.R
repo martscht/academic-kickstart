@@ -102,13 +102,13 @@ for(c in 1:length(countries)){
 
 library(GGally)
 
-# Der Arbeitsdatensatztz: iris
-str(iris)
+# Der Arbeitsdatensatztz: Auswahl von Variablen
+edu_exp_sel <- edu_exp[, c("Income", "Expectancy", "Index", "Region")]
 
 # Die Funktion ggpairs()
-ggpairs(iris, columns = 1:4)
-ggpairs(iris, columns = 1:4, aes(colour=Species, alpha=.5))
-
+library(GGally)
+ggpairs(edu_exp_sel, columns = 1:3)
+ggpairs(edu_exp_sel, columns = 1:3, aes(color = Region, alpha = .5))
 
 
 

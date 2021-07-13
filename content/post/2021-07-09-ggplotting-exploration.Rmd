@@ -42,7 +42,7 @@ Der Fokus des Workshops lag bisher stark auf explanativen Grafiken. In diesem Ab
 
 Auch in diesem Abschnitt arbeiten wir wieder mit dem `edu_exp`-Datensatz. Außerdem muss noch `ggplot2` geladen werden.
 
-```{r warning=FALSE}
+```{r, warning=FALSE}
 load(url('https://pandar.netlify.com/post/edu_exp.rda'))
 library(ggplot2)
 ```
@@ -65,7 +65,7 @@ In `ggplot()` stehen zwei Funktionen für faceting zur Vefügung:
 
 Die Variable, für die separate Plots erzeugt werden sollen, muss als diskrete Variable im Datensatz enthalten sein (z.B. Land, Weltregion). Im nachfolgenden Beispiel stellen wir den Zusammenhang zwischen den Variablen Wirtschaftsleistung und Lebenserwartung *separat für jede der vier Weltregionen* dar:
 
-```{r fig.height = 3}
+```{r, fig.height = 3}
 edu_exp |>
   subset(Year == 2016) |>
   ggplot(aes(x=Income, y=Expectancy)) +
@@ -83,14 +83,14 @@ names(datasaurus_dozen)
 
 Der Datensatz enthält drei Variablen: `x`, `y` und `dataset`. Der Zusammenhang zwischen `x` und `y` ohne Berücksichtigung der zugrunde liegenden Gruppen (Variable `dataset`) sieht unspektakilär aus - man kann kein Muster erkennen:
 
-```{r datasaurus, fig = TRUE}
+```{r}
 ggplot(datasaurus_dozen, aes(x=x, y=y)) +
   geom_point()
 ```
 
 Nun wenden wir Faceting an, um small multiples für jedes der datasets anzufordern:
 
-```{r facetsaurus, fig = TRUE}
+```{r}
 ggplot(datasaurus_dozen, aes(x=x, y=y)) +
   geom_point() +
   facet_wrap(~dataset) +
@@ -99,7 +99,7 @@ ggplot(datasaurus_dozen, aes(x=x, y=y)) +
 
 Die unterschiedlichen Zusammenhänge in jeder der Subgruppen fallen somit unmittelbar ins Auge. Zusätzlich kann auch noch eine Farb-Ästhetik zur Darstellung der Gruppenzugehörigkeit (`dataset`) vergeben werden. Dadurch erhält jedes Kästchen eine eigene Farbe. Diese trägt absolut keine Information bei, da die Gruppenzugehörigkeit ohnehin klar ist. Es handelt sich dabei also um ein Beispiel für Tuftes sog. "chartjunk" - aber nun ist die Grafik schön bunt. :-)
 
-```{r colorsaurus, fig = TRUE}
+```{r}
 ggplot(datasaurus_dozen, aes(x=x, y=y)) +
   geom_point(aes(colour=dataset), show.legend=F) +
   facet_wrap(~dataset) +
@@ -150,7 +150,7 @@ Wir kombinieren nun eine selbstgeschriebene Funktion mit einer `for()`-Schleife,
 
 Die Grafik soll die Lebenserwartung im Zeitverlauf sowie den jeweiligen Mittelwert anzeigen. Für Afghanistan sollte sie also so aussehen: 
 
-```{r dipfed, fig = TRUE}
+```{r}
 dipfblau <- rgb(102,153,204, max=255)
 tmp.data <- subset(edu_exp, Country == "Afghanistan")
 tmp.mw   <- mean(tmp.data$Expectancy)
@@ -197,7 +197,7 @@ gm.plot <- function(which.country, show.mean=FALSE){
 
 Prüfen wir nun die Funktion für Afghanistan - sie müsste ja genauso aussehen wie zuvor:
 
-```{r afghanistan, fig = TRUE}
+```{r}
 gm.plot("Afghanistan", TRUE)
 ```
 
@@ -237,26 +237,29 @@ Durch diese kann man sich nun durcharbeiten - auffällige Muster fallen dann sch
 ![](/post/ggplotting_gapminder_plots.gif)
 
 
+
 ## Viele bivariate Zusammenhänge mit `ggpairs()`  
 
-Das Paket `GGally` stellt die praktische Funktion `ggpairs()` bereit. Wir illustrieren dies am R-internen Datensatz `iris`. Der Datensatz enthält für drei Arten von Iris-Blumen (Variable `Species`) vier Variablen mit Messungen von Blütenblättern:  
+Das Paket `GGally` stellt die praktische Funktion `ggpairs()` bereit. Wir illustrieren diese anhand unseres Datensatzes für die Variablen Wirtschaftsleistung, Lebenserwartung und Bildungsindex, getrennt nach Weltregion. Dafür erstellen wir zunächst einen entsprechenden Teildatensatz:
 
 ```{r}
-str(iris)
+edu_exp_sel <- edu_exp[, c("Income", "Expectancy", "Index", "Region")]
 ```
 
-Die Verteilungen von sowie Zummenhänge zwischen den verschiedenen Messwerten lassen sich mit `ggpairs()` illustrieren: 
+`ggpairs()` stellt nun für jede der Variablen univariate und bivariate Deskriptivstatistiken bereit:  
 
-```{r pairs1, fig = TRUE}
+* univariate Verteilungen (auf der Hauptdiagonalen) 
+* Scatterplots und Korrelationskoeffizienten für jede Kombination von Variablen 
+
+```{r, warning=FALSE}
 library(GGally)
-ggpairs(iris, columns = 1:4)
+ggpairs(edu_exp_sel, columns = 1:3)
 ```
 
-Richtig spannend wird es aber erst, wenn wir zusätzlich noch separate Verteilungen für jede der drei Blumenarten (`Species`) anfordern: 
+Richtig spannend wird es aber erst, wenn wir zusätzlich noch separate Verteilungen für jede der vier Weltregionen (`Region`) anfordern, die farblich kodiert sind: 
 
-```{r pairs2, fig = TRUE}
-library(GGally)
-ggpairs(iris, columns = 1:4, aes(color = Species, alpha = .5))
+```{r, warning=FALSE}
+ggpairs(edu_exp_sel, columns = 1:3, aes(color = Region, alpha = .5))
 ```
 
 So lässt sich auch recht schnell ein Eindruck von den Daten gewinnen, um so auffällige Muster festzustellen.
@@ -285,13 +288,13 @@ edu_exp_2 <- subset(edu_exp, select = c("Country", "Region", "Index", "Expectanc
 
 Ohne weitere Einstellungen sieht das Tableplot für diesen Teildatensatz so aus:
 
-```{r table1, fig = TRUE}
+```{r}
 tableplot(edu_exp_2)
 ```
 
 Per Voreinstellung werden die Daten nach der ersten Variable im Datensatz sortiert (Variable `country`; alphabetisch sortiert) - dies ist hier nicht sonderlich sinnvoll. Außerdem würden wir nicht annehmen, dass die Bevölkerungszahl oder das Jahr der Erhebung eines Landes mit den anderen Variablen in Zusammenhang steht, also schließen wir sie im nächsten Schritt aus. Außerdem sortieren wir den Datensatz diesmal nach der Ausprägung auf der Variable `Income`:
 
-```{r table2, fig = TRUE}
+```{r}
 # Sortiert nach Income
 tableplot(edu_exp_2,
           select=c(Region, Index, Expectancy, Income), 
@@ -303,4 +306,3 @@ Nun zeigen sich deutliche Muster - alle Variablen sortieren sich mit der Variabl
 * *Region*: Die Länder im oberen Bereich der Income-Verteilung befinden sich vorrangig in Asien und Europa (gelbe und rote Anteile), während die Länder im unteren Bereich der Income-Verteilung vorrangig in Afrika liegen  
 * *Index*: Die Länder im oberen Bereich der Income-Verteilung weisen höhere Werte auf dem Bildungsindex auf als die Länder im unteren Bereich der Income-Verteilung  
 * *Expectancy*: Die Länder im oberen Bereich der Income-Verteilung weisen auch höhere Werte für die Lebenserwartung auf als die Länder im unteren Bereich der Income-Verteilung
-
