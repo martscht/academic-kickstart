@@ -6,7 +6,7 @@ categories: [""]
 tags: ["ggplotting"]
 subtitle: ''
 summary: ''
-authors: [schultze, buchholz]
+authors: [buchholz, schultze]
 lastmod: '2021-07-07T18:00:00+01:00'
 featured: no
 image:
@@ -48,7 +48,7 @@ In diesem Beitrag geben wir eine kurze Übersicht über einige gägngie Plotarte
 
 ## Balkendiagramm {#balken1}
 
-Die digiGEBF hatte zur Teilnahme an einer Data Challenge aufgerufen. Die Ergebnisse sind [hier einsehbar](https://www.digigebf21.de/frontend/index.php?page_id=17723).
+Die digiGEBF hatte zur Teilnahme an einer Data Challenge aufgerufen. Die Ergebnisse sind hier einsehbar: <https://www.digigebf21.de/frontend/index.php?page_id=17723>.
 
 Jeder Beitrag wurde durch die einreichende Person kommentiert und dokumentiert. So lässt sich nachvollziehen, mit welcher Software die Grafiken erzeugt wurden. Dabei zeigt sich folgendes Bild: 
 
@@ -66,8 +66,6 @@ Da uns hier bereits die Ergebnisse so vorliegen, wie sie abgebildet werden solle
 ```{r}
 # Pakete laden
 library(ggplot2)
-library(magick)
-library(cowplot)
 
 # Datensatz erstellen
 df <- data.frame(software = factor(x = c("R", "MS Excel", "Python", "Stata"),
@@ -79,9 +77,12 @@ ggplot(df, aes(x=software, y=count)) +
   geom_col() 
 ```
 
-Diese Darstellung lässt sich noch optimieren. Statt der Achsenbeschriftung beschriften wir die Balken selbst mit dem Logo der Software!
+Diese Darstellung lässt sich noch optimieren. Statt der Achsenbeschriftung beschriften wir die Balken selbst mit dem Logo der Software! Zum Einlesen der Bilddateien nutzen wir das Paket `magick`, zur Integration von Bilddateien in ggplots kann das Paket `cowplot` verwendet werden.
 
-```{r, warning=FALSE}
+```{r}
+library(magick)
+library(cowplot)
+
 # Software-Logos herunterladen und einlesen (Funktion aus dem Paket magick)
 r <- image_read("https://www.r-project.org/logo/Rlogo.svg")
 excel <- image_read("https://upload.wikimedia.org/wikipedia/commons/8/8d/Microsoft_Excel_Logo_%282013-2019%29.svg")
@@ -102,8 +103,8 @@ ggplot(df, aes(x=software, y=count)) +
 ggdraw(plot) +
   draw_image(r, x = .13, y = .86, scale = .2, hjust = .5, vjust = .5) +
   draw_image(excel, x = .38, y = .26, scale = .14, hjust = .5, vjust = .5) +
-  draw_image(python, x = .62, y = .26, scale = .2, hjust = .5, vjust = .5) +
-  draw_image(stata, x = .86, y = .26, scale = .1, hjust = .5, vjust = .5) +
+  draw_image(python, x = .62, y = .26, scale = .18, hjust = .5, vjust = .5) +
+  draw_image(stata, x = .86, y = .26, scale = .12, hjust = .5, vjust = .5) +
   scale_fill_manual(values = c(rgb(102,153,204, max=255), "grey", "grey", "grey")) +
   draw_plot(plot)
 ```
@@ -111,18 +112,30 @@ ggdraw(plot) +
 
 ## Noch ein Balkendiagramm {#balken2}
 
-Es soll ein Vergleich angestellt werden, wie hoch die Ausgaben in Deutschland im  Jahr 2016 für die unterschiedlichen Bildungsbereiche (Primar, Sekundar, Tertiär) waren. Dafür eignet sich ein Balkendiagramm. 
+Es soll ein Vergleich angestellt werden, wie hoch die Ausgaben in Deutschland im  Jahr 2016 für die unterschiedlichen Bildungsbereiche (Primar, Sekundar, Tertiär) waren. Dafür eignet sich ein Balkendiagramm. Die Daten müssen jedoch noch umstrukturiert werden, bevor sie mit ggplot dargestellt werden können, da sie aktuell im Datensatz "nebeneinander" stehen - es handelt sich ja um drei verschiedene Variablen - der Densatz ist *wide*. Er muss zunächst in eine saubere (*tidy*) Form gebracht werden, sodass alle Werte, die dargestellt werden, in einer einzigen Variable stehen. Dafür bringen wir den Datensatz in die "Lang-Version" (*long*): 
 
-Auch hier liegen uns die Daten so vor, wie sie dargestellt werden sollen (als Höhe der Balken). In diesem Fall kann `geom_col()` verwendet werden (siehe Beispiel oben). Es kann aber auch `geom_bar()` in Kombination mit dem Argument `stat="idendity"` verwendet werden - so weiß ggplot, dass die Daten nicht (wie per Default in `geom_bar()`) ausgezählt, sondern direkt übernommen werden können.
-
-```{r, warning = FALSE}
+```{r}
+# original-Datensatz mit relevanten Variablen: wide
 edu_exp |>
-  subset(edu_exp$Country == "Germany" & edu_exp$Year == 2016) |>
+  subset(edu_exp$Country == "Germany" & edu_exp$Year == 2016,
+         select = c("Country", "Year", "Primary", "Secondary", "Tertiary")) 
+
+# Umstrukturierung in die long-Form 
+edu_exp_long <- edu_exp |>
+  subset(edu_exp$Country == "Germany" & edu_exp$Year == 2016, 
+         select = c("Country", "Year", "Primary", "Secondary", "Tertiary")) |>
   reshape(direction = "long",
           varying = c("Primary", "Secondary", "Tertiary"),
           times  = c("Primary", "Secondary", "Tertiary"),
           v.name = "value",
-          timevar = "exp") |>
+          timevar = "exp") 
+edu_exp_long
+```
+
+Hat geklappt. Die Daten liegen uns nun also wieder genau so vor, wie sie dargestellt werden sollen (als Höhe der Balken). In diesem Fall kann `geom_col()` verwendet werden (siehe Beispiel oben). Es kann aber auch `geom_bar()` in Kombination mit dem Argument `stat="idendity"` verwendet werden - so weiß ggplot, dass die Daten nicht (wie per Default in `geom_bar()`) ausgezählt, sondern direkt übernommen werden können.
+
+```{r, warning = FALSE}
+edu_exp_long |>
   ggplot(aes(x=exp, y=value)) +
   geom_bar(stat = "identity", fill = rgb(102, 153, 204, max=255)) +
   labs(x = "Educational level",
@@ -131,6 +144,7 @@ edu_exp |>
        subtitle = "Expenditure per student (% of GDP/Population)") +
   theme_classic()
 ```
+
 
 ## Histogramm {#histogramm}
 
@@ -153,7 +167,8 @@ edu_exp |>
 
 ## Boxplot {#boxplot}
 
-Erneut soll die Verteilung des Einkommens (GDP/Person) für das Jahr 2016 dargestellt werden - diesmal jedoch separat nach Weltregion. Eine alternative Darstellung für Verteilungen ist das Boxplot. Es lässt sich per `geom_boxplot()` anfordern. Wir hinterlegen über `aes(x=Region)`, dass eine Box pro Weltregion erzeugt wird. Sie werden dann nebeneinander dargestellt und ein Vergleich ist leicht möglich. 
+Erneut soll die Verteilung des Einkommens (GDP/Person) für das Jahr 2016 dargestellt werden - diesmal jedoch separat nach Weltregion. Eine alternative Darstellung für Verteilungen ist das Boxplot. Es lässt sich per `geom_boxplot()` anfordern. Wir hinterlegen über `aes(x=Region)`, dass eine Box pro Weltregion erzeugt wird. Diese Boxen werden dann nebeneinander dargestellt und ein Vergleich ist leicht möglich. 
+
 Die Grafik wird mit dem Theme `theme_fivethirtyeight` aus dem Paket `ggthemes` angepasst.
 
 ```{r, warning = FALSE}
@@ -173,8 +188,7 @@ edu_exp |>
 
 ## Violin Plot {#violin}
 
-Für das gleiche Datenbeispiel wie im Boxplot oben (Verteilung des Einkommens (GDP/Person) für das Jahr 2016 separat nach Weltregion)
-fordern wir nun ein sog. violin Plot an. Anstelle der Quartile wird die Dichte der Verteilung direkt dargestellt. Auch hier sind die Weltregionen nebeneinander dargestellt (`aes(x=Region)`), sodass ein Vergleich sehr leicht möglich ist. Das entsprechende Layer wird mit `geom_violin` angefordert. Zusätzlich werden schmale Boxplots eingezeichnet.
+Für das gleiche Datenbeispiel wie im Boxplot oben (Verteilung des Einkommens (GDP/Person) für das Jahr 2016 separat nach Weltregion) fordern wir nun ein sog. Violin Plot an. Anstelle der Quartile wird die Dichte der Verteilung direkt dargestellt. Auch hier sind die Weltregionen nebeneinander dargestellt (`aes(x=Region)`), sodass ein Vergleich sehr leicht möglich ist. Das entsprechende Layer wird mit `geom_violin` angefordert. Zusätzlich werden schmale Boxplots eingezeichnet.
 
 Die Grafik wird ebenfalls mit dem Theme `theme_fivethirtyeight` aus dem Paket `ggthemes` angepasst.
 
@@ -194,12 +208,11 @@ edu_exp |>
        caption = "Source: gapminder") +
   scale_x_discrete(labels = c("Africa", "Americas", "Asia", "Europe")) + 
   theme_fivethirtyeight()
-
 ```
 
 ## Ridgeline Plot {#ridgeline}
 
-Für das gleiche Datenbeispiel wie im Boxplot und Violin Plot oben (Verteilung des Einkommens (GDP/Person) für das Jahr 2016 separat nach Weltregion) fordern wir nun ein sog. Ridgleline Plot mit `geom_density_ridges()` aus dem Paket `ggridges` an. Auch hier wird die Dichte der Verteilung dargestellt. Die Gruppen sind nun übereinander dargestellt (`aes(y=Region`). Auch dadurch ist ein Vergleich leicht möglich.l
+Für das gleiche Datenbeispiel wie im Boxplot und Violin Plot oben (Verteilung des Einkommens (GDP/Person) für das Jahr 2016 separat nach Weltregion) fordern wir nun ein sog. Ridgleline Plot mit `geom_density_ridges()` aus dem Paket `ggridges` an. Auch hier wird die Dichte der Verteilung dargestellt. Die Gruppen sind nun übereinander dargestellt (`aes(y=Region`). Auch dadurch ist ein Vergleich leicht möglich.
 
 Die Grafik wird mit dem Theme `theme_tufte` aus dem Paket `ggthemes` angepasst.
 
@@ -316,7 +329,7 @@ Die Variablen liegen alle im `edu_exp`-Datensatz vor. Allerdings sieht die ggplo
 
 ```{r, warning=FALSE}
 edu_exp |>
-  subset(Year == 2011) |> 
+  subset(Year == 2015) |> 
   ggplot(aes(x=Income, y=Expectancy)) +
   geom_point() 
 ```
@@ -396,7 +409,7 @@ ggdraw(plot_ohne_Legende) +
   draw_image(weltkarte, x = 1, y = .95, hjust = 1, vjust = 1, halign = 1, valign = 1, width = .2)
 ```
 
-Und schließlich können wir die Grafik auch noch animieren, sodass sie dem Vorbild auf (www.gapminder.org) sogar noch ähnlicher wird. Leider scheinen sich `cowplot` und `gganimate` nicht so gut zu vertragen - daher muss ich die Farblegende rechts weglassen. Ansonsten kann ich den Code der statischen Grafik oben weitgehend übernehmen; lediglich die folgenden Dinge musste ich entfernen: 
+Und schließlich können wir die Grafik auch noch animieren, sodass sie dem Vorbild auf [www.gapminder.org]() sogar noch ähnlicher wird. Leider scheinen sich `cowplot` und `gganimate` nicht so gut zu vertragen - daher muss ich die Farblegende rechts weglassen. Ansonsten kann ich den Code der statischen Grafik oben weitgehend übernehmen; lediglich die folgenden Dinge musste ich entfernen: 
 
 * Fallauswahl für das Jahr 2015 `subset()`)  
 * Textbox mit "2015" im Hintergrund der Grafik (`annotate()`)  
@@ -435,7 +448,7 @@ anim <- plot_ohne_Legende +
   theme(plot.title = element_text(hjust=.5))
 
 animate(anim, start_pause = 20, end_pause = 20,
-        height = 15, width = 30, units = "cm", res = 150)
+        height = 15, width = 30, units = "cm", res = 300)
 ```
 
 ![](/post/ggplotting-Bubble-Chart.gif)
