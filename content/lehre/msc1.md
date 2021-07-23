@@ -67,7 +67,7 @@ subtitle = "Forschungsmethoden und Evaluation I & II"
 +++
 
 <a id="PsyMSc1"></a>
-Das Modul PsyMSc1 ist in zwei Teile untergliedert: Forschungsmethoden und Evaluation I und II. In F&E I geht es um multivariate Vorhersagemodelle, die als (multivariate) Erweiterung des allgemeinen linearen Modells angesehen werden können. Beispielsweise wird die Regressionsanalyse erweitert um auch bestimmte Abhängigkeiten in den Daten modellieren zu können, sowie um auch dichotome abhängige Variablen vorhersagen zu können. Neben der multivariaten Erweiterung der Varianzanalyse (ANOVA) werden auch Datenvorbereitungsmaßnahmen vorgestellt, welche den/die Anwender/in beim Verstehen der Struktur in den Daten unterstützen soll. Die inhaltlichen Sitzungen werden hierbei durch die Umsetzung in `R` unterstützt:
+Das Modul PsyMSc1 ist in zwei Teile untergliedert: Forschungsmethoden und Evaluation I und II. In F&E I geht es um multivariate Vorhersagemodelle, die als (multivariate) Erweiterung des Allgemeinen Linearen Modells angesehen werden können. Beispielsweise wird die Regressionsanalyse erweitert, um auch bestimmte Abhängigkeiten in den Daten modellieren zu können, sowie um auch dichotome abhängige Variablen vorhersagen zu können. Neben der multivariaten Erweiterung der Varianzanalyse (ANOVA) werden auch Datenvorbereitungsmaßnahmen vorgestellt, welche den/die Anwender/in beim Verstehen der Struktur in den Daten unterstützen sollen. Die inhaltlichen Sitzungen werden hierbei durch die Umsetzung in `R` unterstützt:
 
 |  |  |  |  | | |
 | --- | --- | --- | --- | --- | --- |
@@ -80,7 +80,7 @@ Das Modul PsyMSc1 ist in zwei Teile untergliedert: Forschungsmethoden und Evalua
 | *Zusatz* | **Diskriminanzanalyse** | [Inhalte](/post/diskriminanzanalyse)  | --- |
 |  |  |  |  | | |
 
-Die zweite Hälfte des Moduls, F&E II, befasst sich vor allem mit Ansätzen zur Modellierung latenter Variablen und deren Beziehungen zu einander. Darunter fallen z.B. explorative und konfirmatorische Faktorenanalysen, die die Beziehung zwischen manifesten Variablen und den, ihnen zugrundeliegenden latenten Variablen modellieren. Aber auch die Modellierung der Beziehung zwischen latenten psychologischer Konstrukten (Strukturgleichungsmodelle) und die Vergleiche von Modellen zwischen verschiedenen Gruppen, z.B. für interkulturelle Studien, ist Bestandteil dieses Semesters.
+Die zweite Hälfte des Moduls, F&E II, befasst sich vor allem mit Ansätzen zur Modellierung latenter Variablen und deren Beziehungen zueinander. Darunter fallen z.B. explorative und konfirmatorische Faktorenanalysen, die die Beziehung zwischen manifesten Variablen und den ihnen zugrundeliegenden latenten Variablen modellieren. Aber auch die Modellierung der Beziehung zwischen latenten psychologischen Konstrukten (Strukturgleichungsmodelle) und die Vergleiche von Modellen zwischen verschiedenen Gruppen, z.B. für interkulturelle Studien, ist Bestandteil dieses Semesters.
 
 |  |  |  |  | | | |
 | --- | --- | --- | --- | --- | --- | --- |
@@ -93,4 +93,4 @@ Die zweite Hälfte des Moduls, F&E II, befasst sich vor allem mit Ansätzen zur 
 | *Zusatz* |  **Invarianztestung** | [Inhalte](/post/exkurs-invarianzstufen) |  | | | |
 |  |   |  |  | | | |
 
-* *Zusatz* Abschnitte sollen als Ergänzung für Interessierte dienen und einige angesprochenen Aspekte vertiefen. Neue `R`-Inhalte werden nicht vermittelt.
+* *Zusatz*-Abschnitte sollen als Ergänzung für Interessierte dienen und einige angesprochene Aspekte vertiefen. Hier werden keine neuen `R`-Inhalte vermittelt.
