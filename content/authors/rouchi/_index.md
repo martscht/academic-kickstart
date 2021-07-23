@@ -35,19 +35,19 @@ social:
 #   link: https://twitter.com/GeorgeCushen
 # - icon: google-scholar
 #   icon_pack: ai
-#   link: https://scholar.google.co.uk/citations?user=sIwtMXoAAAAJ
-#  - icon: github
-#    icon_pack: fab
-#    link: https://github.com/jpirmer
+#   link: https://scholar.google.co.uk/citations?hl=en&user=368OoWYAAAAJ&view_op=list_works&gmla=AJsN-F5_hYcoHq-aPPcKI9tGNawbc1-TYnfo0LzT8NvaBsMd37l-LSNKeRM0XUqGXORfXDtfooR9QfgGVRkw_XaunV49qxH3dFhQaPLeCtQ3i9mRArB1AKw
+ - icon: github
+   icon_pack: fab
+   link: https://github.com/HastiRouchi
 # - icon: bitbucket
 #   icon_pack: fab
 #   link: https://bitbucket.com/martscht
-#  - icon: link
-#    icon_pack: fa
-#    link: https://www.psychologie.uni-frankfurt.de/54448027/Julien_Irmer
-#  - icon: researchgate
-#    icon_pack: fab
-#    link: https://www.researchgate.net/profile/Julien_P_Irmer
+# - icon: link
+#   icon_pack: fa
+#   link: https://www.psychologie.uni-frankfurt.de/54448027/Julien_Irmer
+ - icon: researchgate
+   icon_pack: fab
+   link: https://www.researchgate.net/profile/Hasti-Mohammadi-Rouchi
 # Link to a PDF of your resume/CV from the About widget.
 # To enable, copy your resume/CV to `static/files/cv.pdf` and uncomment the lines below.
 # - icon: cv
@@ -59,5 +59,10 @@ email: ""
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
-user_groups: ["Teaching"]
+user_groups: ["Teaching", "Team"]
 ---
+
+Hasti Rouchi ist Hilfswissenschaflterin in den Abteilungen _Psychologische Methoden mit interdisziplinärer Ausrichtung_ und _Psychologische Methodenlehre, Evaluation und Forschungsmethodik_ an der Goethe-Universität Frankfurt.
+
+**Biographie**
+Masterstudium der Psychologie und an der Johann Wolfgang Goethe-Universität in Frankfurt seit 2017 mit dem Schwerpunkt Klinische Psychologie (Major). Studentische Hilfskraft in der Methodenabteilung der Goethe-Universität Frankfurt (seit 2018).
