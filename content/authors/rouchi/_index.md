@@ -59,7 +59,7 @@ email: ""
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
-user_groups: ["Teaching", "Team"]
+user_groups: ["Teaching"]
 ---
 
 Hasti Rouchi ist Hilfswissenschaflterin in den Abteilungen _Psychologische Methoden mit interdisziplinärer Ausrichtung_ und _Psychologische Methodenlehre, Evaluation und Forschungsmethodik_ an der Goethe-Universität Frankfurt.
