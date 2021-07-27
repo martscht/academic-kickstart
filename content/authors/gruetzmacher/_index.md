@@ -61,3 +61,5 @@ social:
 #   Set this to `[]` or comment out if you are not using People widget.
 user_groups: ["Teaching"]
 ---
+
+Luisa Grützmacher ist assoziierte Wissenschaftlerin im Arbeitsbereich der Educational Measurements in der Abteilung Lehr- und Lernqualität in Bildungseinrichtungen (LLiB) des Leibniz-Instituts für Bildungsforschung und Bildungsinformation DIPF. 

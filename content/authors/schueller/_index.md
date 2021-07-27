@@ -20,6 +20,9 @@ organizations:
 # Short bio (displayed in user profile at end of posts)
 bio:
 interests:
+- Psychologische Methoden
+- Testtheorie und Testkonstruktion
+- Klinische Diagnostik
 
 education:
 # Social/Academic Networking
@@ -61,3 +64,5 @@ email: ""
 #   Set this to `[]` or comment out if you are not using People widget.
 user_groups: ["Teaching"]
 ---
+
+Johanna Schüller ist wissenschaftliche Mitarbeiterin der Abteilung Klinische Psychologie und Psychotherapie und übernimmt dort die Aufgabe der Statistik- und Methodenberatung. 

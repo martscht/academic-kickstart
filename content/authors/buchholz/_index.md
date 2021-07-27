@@ -13,13 +13,16 @@ superuser: false
 role: Lehre
 
 # Organizations/Affiliations
-# organizations:
-# - name: Goethe Universität Frankfurt am Main
-#   url: ""
+organizations:
+- name: DIPF | Leibniz-Institut für Bildungsforschung und Bildungsinformation
+  url: ""
 
 # Short bio (displayed in user profile at end of posts)
 bio:
 interests:
+- Modellierung von Antwortprozessen in Large-Scale-Assessments
+- Mehrdimensionale Modelle der Item-Response-Theorie
+- Kompetenzdiagnostik und Kompetenzmodellierung
 education:
 # Social/Academic Networking
 # For available icons, see: https://sourcethemes.com/academic/docs/widgets/#icons
@@ -60,3 +63,14 @@ email: ""
 #   Set this to `[]` or comment out if you are not using People widget.
 user_groups: ["Teaching"]
 ---
+
+Janine Buchholz ist Habilitandin im Arbeitsbereich der Educational Measurements in der Abteilung Lehr- und Lernqualität in Bildungseinrichtungen (LLiB) des Leibniz-Instituts für Bildungsforschung und Bildungsinformation DIPF. 
+
+**Biografie** 
+
+-	Studium der Psychologie an der Universität Erfurt bis 2010
+-	Wissenschaftliche Mitarbeiterin zur Promotion im Arbeitsbereich Educational Measurement bei Prof. Dr. Johannes Hartig (2010-2016)
+- Promotion an der Goethe-Universität Frankfurt im Jahr 2016
+-	Wissenschaftliche Mitarbeiterin im Projekt PISA 2015 (2015-2016)
+-	Wissenschaftliche Leiterin im Projekt PISA (2018)
+

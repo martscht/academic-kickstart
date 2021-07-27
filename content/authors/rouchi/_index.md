@@ -65,4 +65,6 @@ user_groups: ["Teaching"]
 Hasti Rouchi ist Hilfswissenschaflterin in den Abteilungen _Psychologische Methoden mit interdisziplinärer Ausrichtung_ und _Psychologische Methodenlehre, Evaluation und Forschungsmethodik_ an der Goethe-Universität Frankfurt.
 
 **Biographie**
-Masterstudium der Psychologie und an der Johann Wolfgang Goethe-Universität in Frankfurt seit 2017 mit dem Schwerpunkt Klinische Psychologie (Major). Studentische Hilfskraft in der Methodenabteilung der Goethe-Universität Frankfurt (seit 2018).
+
+- Bachelor- und Masterstudium der Psychologie und an der Johann Wolfgang Goethe-Universität in Frankfurt seit 2017 mit dem Schwerpunkt Klinische Psychologie (Major)
+- Studentische Hilfskraft in der Methodenabteilung der Goethe-Universität Frankfurt (seit 2018)

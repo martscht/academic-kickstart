@@ -66,4 +66,7 @@ user_groups: ["Teaching"]
 Marvin Schröder ist wissenschaftlicher Mitarbeiter der Abteilung _Arbeits- und Organisationspsychologie_ an der Goethe-Universität Frankfurt.
 
 **Biographie**
-Bachelor-Studium (2014-2017) sowie Master-Studium (2017-2020) der Psychologie in Frankfurt am Main mit den Schwerpunkten Arbeits- und Organisationspsychologie (Major) und Pädagogische Psychologie (Minor). Wissenschaftliche Hilfskraft der Abteilung Allgemeine Psychologie 1 2016-2017, Differenzielle Psychologie und Psychologische Diagnostik 2016-2017 sowie in der Abteilung für Arbeits- und Organisationspsychologie seit Ende 2018. Wissenschaftlicher Mitarbeiter in der Abteilung Arbeits- und Organisationspsychologie seit Februar 2020.
+
+- Bachelor-Studium (2014-2017) sowie Master-Studium (2017-2020) der Psychologie in Frankfurt am Main mit den Schwerpunkten Arbeits- und Organisationspsychologie (Major) und Pädagogische Psychologie (Minor)
+- Wissenschaftliche Hilfskraft der Abteilung Allgemeine Psychologie 1 2016-2017, Differenzielle Psychologie und Psychologische Diagnostik 2016-2017 sowie in der Abteilung für Arbeits- und Organisationspsychologie seit Ende 2018
+- Wissenschaftlicher Mitarbeiter in der Abteilung Arbeits- und Organisationspsychologie seit Februar 2020.

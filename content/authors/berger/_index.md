@@ -57,4 +57,4 @@ email: ""
 user_groups: ["Team"]
 ---
 
-Ich bin Psychologiestudentin an der Goethe Universität und habe diese Seite als HiWi in der interdisziplinären Abteilung erstellt. Mein Schwerpunkt des Studiums liegt in der Arbeits- und Organisationspsychologie, da ich später in der Personalentwicklung bzw. Personalauswahl arbeiten möchte. Ich finde es jedoch wichtig einen breiten Horizont zu behalten und alle Möglichkeiten, die das Leben einem gibt zu nutzten.
+Ich bin Psychologiestudentin an der Goethe Universität und habe diese Seite als HiWi in der interdisziplinären Abteilung erstellt. Mein Schwerpunkt des Studiums liegt in der Arbeits- und Organisationspsychologie, da ich später in der Personalentwicklung bzw. Personalauswahl arbeiten möchte. Ich finde es jedoch wichtig einen breiten Horizont zu behalten und alle Möglichkeiten, die das Leben einem gibt, zu nutzen.

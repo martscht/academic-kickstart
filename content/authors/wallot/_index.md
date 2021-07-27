@@ -15,7 +15,7 @@ role: Lehre
 # Organizations/Affiliations
 organizations:
 - name: Leuphana Universität Lüneburg
-  url: "https://www.leuphana.de/institute/ifp/personen/sebastian-wallot.html"
+  url: ""
 
 # Short bio (displayed in user profile at end of posts)
 bio:
@@ -60,3 +60,15 @@ social:
 #   Set this to `[]` or comment out if you are not using People widget.
 user_groups: ["Teaching"]
 ---
+
+Sebatian Wallot ist Professor für Forschungsmethoden und Evaluation am Institut für Psychologie an der Leuphana Universität Lüneburg.
+
+**Biografie**
+
+-	Diplomstudium der Psychologie an den Universitäten Bremen, Eichstätt-Ingolstadt und Trier (2003-2008)
+-	Promotionsstudium am Department of Psychologie an der Universität Cincinnati, OH, USA (2008-2011)
+-	 Wissenschaftlicher Mitarbeiter am Interacting Minds Centre der Universität Aarhus, Dänemark (2012-2016)
+-	Wissenschaftlicher Mitarbeiter am Max-Planck-Institut für Empirische Ästhetik in Frankfurt (2016-2020)
+-	Professur für Forschungsmethoden und Evaluation am Institut für Psychologie, Leuphana Universität Lüneburg (seit 2020)
+-	Habilitation im Fachbereich Psychologie und Sportwissenschaften der Goethe Universität Frankfurt (2021)
+

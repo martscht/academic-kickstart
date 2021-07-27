@@ -61,3 +61,11 @@ email: "winkler@psych.uni-frankfurt.de"
 #   Set this to `[]` or comment out if you are not using People widget.
 user_groups: ["Teaching"]
 ---
+
+Anna Winkler ist Wissenschaftliche Mitarbeiterin in der Abteilung der Arbeits- und Organisationspsychologie an der Goethe Universität Frankfurt.
+
+**Biografie**
+
+-	Studium der Psychologie mit dem Major Arbeits- und Organisationspsychologie und dem Minor Klinische Psychologie an der Goethe Universität Frankfurt (2012-2017)
+-	Tutor für Statistik für Psychologen (1. Bachelorsemester), sowie Personalentwicklung (Vertiefung I & II) für das Institut für Psychologie an der Goethe-Universität Frankfurt 
+-	Wissenschaftliche Mitarbeiterin in der Abteilung der Arbeits- und Organisationspsychologie der Goethe-Universität Frankfurt (seit 2017)

@@ -14,7 +14,7 @@ role: Lehre
 
 # Organizations/Affiliations
 organizations:
-- name: Leibnis Institut für Bildungsforschung und Bildungsinformation (DIPF)
+- name: Leibniz Institut für Bildungsforschung und Bildungsinformation (DIPF)
   url: ""
 
 # Short bio (displayed in user profile at end of posts)
@@ -61,3 +61,15 @@ email: "Carmen.Koehler@dipf.de"
 #   Set this to `[]` or comment out if you are not using People widget.
 user_groups: ["Teaching"]
 ---
+
+
+Carmen Köhler ist Habilitantin im Arbeitsbereich der Educational Measurements in der Abteilung der Lehr- und Lernqualität in Bildungseinrichtungen (LLiB) des Leibniz-Instituts für Bildungsforschung und Bildungsinformation DIPF.
+
+**Biografie**
+
+-	Diplomstudium der Psychologie an der Universität Trier
+-	Promotion an der Freien Universität Berlin
+-	Tutorin für Statistik in SPSS im Fachbereich Psychologie der Universität Trier (2011-2012)
+-	Wissenschaftliche Mitarbeiterin im DFG-Projekt von Steffi Pohl und Claus H. Carstensen zum Thema "Modeling missing data in competence tests" im DFG-Schwerpunktprogramm "Education as a Lifelong Process" (PO1655/1-1) (2012-2015)
+-	Praktikum am Educational Testing Service, Princeton, NJ (2015)
+-	Wissenschaftliche Mitarbeiterin zur Habilitation am DIPF (seit 2016)
