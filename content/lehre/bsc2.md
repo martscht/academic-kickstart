@@ -1,4 +1,4 @@
-+++ 
++++
 # A Recent Blog Posts section created with the Pages widget.
 # This section displays recent blog posts from `content/post/`.
 
@@ -68,17 +68,24 @@ subtitle = "Statistik I"
 
 In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestudium. Dafür gucken wir uns die Grundstruktur von R, Datenimport, einfache Grafiken, Deskriptivstatistiken, Verteilungsfunktionen und ein paar Tests an. Das dazugehörige Material taucht im Verlauf des Semesters hier auf.
 
+**Hinweis**: Aufgrund der Lehrumstellung zum Wintersemester 2021/2022 ändert sich auch die Struktur dieses Abschnitts. Wir arbeiten daran, die Inhalte so schnell wie möglich wieder öffentlich verfügbar zu machen.
+
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 1 | **R-Intro** | [Inhalte](/post/r-crash-kurs) | [Aufgaben](/post/r-crash-kurs-aufgaben) | [Lösungen](/post/r-crash-kurs-loesungen)
-| 2 | **Deskriptives und Plots** | [Inhalte](/post/r-deskriptiv) | [Aufgaben](/post/r-deskriptiv-aufgaben) | [Lösungen](/post/r-deskriptiv-loesungen) |
-| 3 | **Verteilungen** | [Inhalte](/post/verteilungen) | [Aufgaben](/post/verteilungen-aufgaben) | [Lösungen](/post/verteilungen-loesungen) |
-| 4 | **Tests und Konfidenzintervalle** | [Inhalte](/post/tests-und-konfidenzintervalle) | [Aufgaben](/post/tests-und-konfidenzintervalle-aufgaben) | [Lösungen](/post/tests-und-konfidenzintervalle-loesungen) |
-| 5 | **Tests für Gruppenvergleiche** | [Inhalte](/post/gruppenvergleiche) | [Aufgaben](/post/gruppenvergleiche-aufgaben) | [Lösungen](/post/gruppenvergleiche-loesungen) |
-| 6 | **Korrelation und Regression** | [Inhalte](/post/korrelation-und-regression) | [Aufgaben](/post/korrelation-und-regression-aufgaben) | [Lösungen](/post/korrelation-und-regression-loesungen) |
-| *Zusatz* | **Gruppenprojekt** | [Inhalte](/post/gruppenprojekt) | [Hinweise Ergebnisbericht](/post/hinweise-zum-ergebnisbericht) | -- |
+| 1 | **R-Intro** | [Inhalte](/post/r-crash-kurs) | [Aufgaben](/post/r-crash-kurs-aufgaben) | Lösungen
+| 2 | **Deskriptivstatistik für Nominal- und Ordinalskalen** | Inhalte | Aufgaben | Lösungen |
+| 3 | **Deskriptivstatistik für Intervallskalen** | Inhalte | Aufgaben | Lösungen |
+| 4 | **Verteilungen** | [Inhalte](/post/verteilungen) | [Aufgaben](/post/verteilungen-aufgaben) | Lösungen |
+| 5 | **Tests und Konfidenzintervalle** | [Inhalte](/post/tests-und-konfidenzintervalle) | [Aufgaben](/post/tests-und-konfidenzintervalle-aufgaben) | Lösungen |
+| 6 | **Tests für unabhängige Stichproben** | Inhalte | Aufgaben | Lösungen |
+| 7 | **Tests für abhängige Stichproben** | Inhalte | Aufgaben | Lösungen |
+| 8 | **Korrelation** | Inhalte | Aufgaben | Lösungen |
+| 9 | **Regression** | Inhalte | Aufgaben | Lösungen |
+| 10 | **Inferenz für Korrelation und Regression** | Inhalte | Aufgaben | Lösungen |
+| 11 | **Simulation und Poweranalyse** | Inhalte | Aufgaben | Lösungen |
+| *Zusatz* | **Gruppenprojekt** | [Inhalte](/post/gruppenprojekt) | -- | -- |
 | | | | |
 
 Die Umfrage aus der ersten Woche gibt es [hier](https://psybsc2.formr.org/). Die Daten, die dabei in der ersten Sitzung entstanden sind, können Sie [<i class="fas fa-download"></i>   hier runterladen](/post/fb20.csv). Was welche Variablen in diesem Datensatz bedeutet, wird in der [<i class="fas fa-download"></i>   Variablenübersicht erläutert](/post/variablen.pdf).
 
-Falls Sie ein wenig Orientierungshilfe für das Gruppenprojekt benötigen, finden Sie [<i class="fas fa-download"></i>   hier ein Beispiel](/post/aspredicted_example.pdf) für eine Präregistrierung mit [AsPredicted](https://aspredicted.org/) und [<i class="fas fa-download"></i>   hier den fertigen Bericht](/post/bericht_example.pdf) von der gleichen Gruppe aus dem Wintersemester 2019/2020.
+<!-- Falls Sie ein wenig Orientierungshilfe für das Gruppenprojekt benötigen, finden Sie [<i class="fas fa-download"></i>   hier ein Beispiel](/post/aspredicted_example.pdf) für eine Präregistrierung mit [AsPredicted](https://aspredicted.org/) und [<i class="fas fa-download"></i>   hier den fertigen Bericht](/post/bericht_example.pdf) von der gleichen Gruppe aus dem Wintersemester 2019/2020. -->
