@@ -1,0 +1,323 @@
+---
+title: Tests für abhängige Stichproben
+date: '2021-09-20'
+slug: gruppenvergleiche-abhaengig
+categories:
+  - BSc2
+tags:
+  - t-Test
+  - abhängige Stichproben
+subtitle: ''
+summary: ''
+authors: [koehler, irmer]
+lastmod: '2020-12-16T17:00:20+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r setup, cache = FALSE, echo = FALSE, warning = FALSE, message = FALSE}
+knitr::opts_chunk$set(error = TRUE,warning = FALSE, message = FALSE)
+library(knitr)
+```
+
+<details><summary>Kernfragen dieser Lehreinheit</summary>
+
+* Wie fertige ich Deskriptivstatistiken (Grafiken, Kennwerte) zur Veranschaulichung des Unterschieds zwischen zwei Gruppen an? 
+
+
+**abhängige Stichproben**
+
+* Was sind Voraussetzungen des abhängigen _t_-Tests und wie prüfe ich sie?
+* Wie führe ich einen abhängigen _t_-Test in R durch?  
+* Wie berechne ich den standardisierten Populationseffekt für abhängige Stichproben?  
+* Wie führe ich den Wilcoxon-Test für abhängige Stichproben in R durch?  
+* Wie berichte ich die statistischen Ergebnisse formal? 
+</details>
+
+***
+## Was erwartet Sie?
+  
+Nachdem wir uns die letzten Wochen mit dem Unterschied zwischen dem Mittelwert einer Stichprobe und dem Mittelwert der dazugehörigen Population, aus der die Stichprobe stammt, auseinandergesetzt haben, fokussieren wir uns nun auf Unterschiede zwischen zwei Gruppen (also zwei Stichproben).
+
+## Aufbau der Sitzung 
+
+**abhängige Stichproben**
+
+4. Fragestellung D: Sind jüngere Geschwister kooperativer als ältere? (_t-Test für abhängige Stichproben, standardisierter Populationseffekt_)
+5. Fragestellung E: Geben Studierende in gleichem Maße an, dass es ihnen "nicht gut" geht bzw. sie "unzufrieden" sind, wie dass es ihnen "schlecht geht" bzw. sie sich "unwohl fühlen"? (_Wilcoxon-Test für abhängige Stichproben_)
+
+***
+
+## 4. Fragestellung D: Sind jüngere Geschwister kooperativer als ältere?
+
+Datensatz aus: Eid, Gollwitzer & Schmitt: "Statistik und Forschungsmethoden" (4. Auflage, S. 370)  
+
+* AV: Kooperationsbereitschaft (stetige Variable mit Werten von 0 [nicht kooperativ] bis 1 [maximal kooperativ])
+* Gruppen: das jeweils ältere Geschwisterteil (Gruppe "Älter") vs. das jeweils jüngere Geschwisterteil (Gruppe "Jünger") 
+
+```{r}
+# Datensatz generieren
+dataKooperation <- data.frame(Paar = 1:10,  Juenger = c(0.49,0.25,0.51,0.55,0.35,0.54,0.24,0.49,0.38,0.50), Aelter = c(0.4,0.25,0.31,0.44,0.25,0.33,0.26,0.38,0.23,0.35))
+dataKooperation # überprüfen, ob alles geklappt hat
+```
+
+Ein Blick auf die Messwertpaare lässt bereits erkennen, dass die Stichproben (also die Messwerte in den beiden experimentellen Bedingungen) voneinander abhängig sind. Die Geschwisterpaare ähneln sich hinsichtlich ihrer kooperativen Verhaltenstendenzen.
+
+Welche Ursachen diese Ähnlichkeiten haben, ist unwichtig. Entscheidend
+ist, dass es sich um Faktoren handelt, die sowohl einen Teil der Varianz in der ersten Gruppe als auch einen Teil der Varianz in der
+zweiten Gruppe erzeugen.
+
+Relevant ist die Frage, ob die Differenz zwischen den beiden Mittelwerten (also zwischen  jüngeren und älteren Geschwistern) statistisch bedeutsam ist.
+
+### 4.1. Deskriptivstatistik
+
+#### 4.1.1. grafisch
+Mit Hilfe von Histogrammen
+```{r}
+# Je ein Histogramm pro Gruppe, untereinander dargestellt, vertikale Linie fuer den jeweiligen Mittelwert
+par(mfrow=c(2,1), mar=c(3,3,2,0))
+hist(dataKooperation[, "Juenger"], 
+     xlim=c(0,1), 
+     main="Kooperationsbereitschaft juengeres Geschwisterteil", 
+     xlab="", 
+     ylab="", 
+     las=1)
+abline(v=mean(dataKooperation[, "Juenger"]), 
+       lty=2, 
+       lwd=2)
+
+hist(dataKooperation[, "Aelter"], 
+     xlim=c(0,1), 
+     main="Kooperationsbereitschaft aelteres Geschwisterteil", 
+     xlab="", 
+     ylab="", 
+     las=1)
+abline(v=mean(dataKooperation[, "Aelter"]), 
+       lty=2, 
+       lwd=2)
+
+par(mfrow=c(1,1)) #Zuruecksetzen des Plotfensters
+```
+
+#### 4.1.2. statistisch
+```{r}
+summary(dataKooperation[, "Juenger"])
+summary(dataKooperation[, "Aelter"])
+#alternativ
+library(psych)
+describe(dataKooperation[, "Juenger"])
+describe(dataKooperation[, "Aelter"])
+```
+Achtung: Bei den hier berichteten SD handelt es sich (wie immer in R) den Populationsschätzer. 
+
+### 4.2. Voraussetzungsprüfung
+
+**Voraussetzungen für die Durchführung des _t_-Tests:**  
+
+1. Die abhängige Variable ist intervallskaliert $\rightarrow$ ok  
+2. Die Messwerte innerhalb der Paare dürfen sich gegenseitig beeinflussen/voneinander abhängig sein; keine Abhängigkeiten zwischen den Messwertpaaren $\rightarrow$ ok  
+3. Die Differenzvariable _d_ muss in der Population normalverteilt sein $\rightarrow$ ab _n_ => 30 meist gegeben (s. zentraler Grenzwertsatz), ggf. grafische Prüfung oder Hintergrundwissen  
+
+**zu 3. Normalverteilung von _d_**
+```{r}
+difference <- dataKooperation[, "Juenger"]-dataKooperation[, "Aelter"]
+hist(difference, 
+     xlim=c(-.3,.3), 
+     ylim = c(0,5.5),
+     main="Verteilung der Differenzen", 
+     xlab="Differenzen", 
+     ylab="", 
+     las=1)
+curve(dnorm(x, mean=mean(difference), sd=sd(difference)), 
+      col="blue", 
+      lwd=2, 
+      add=T)
+qqnorm(difference)
+qqline(difference, col="blue")
+```
+
+$\Rightarrow$ Differenzen sehen nicht normalverteilt aus! 
+
+Allerdings s. Info aus Eid, Gollwitzer & Schmitt: "Zur Messung zur Kooperationsbereitschaft verwendet [der Forscher] ein standardisiertes Instrument, das Messwerte auf Intervallskalenniveau liefert und in der Population normalverteilt ist."
+
+$\Rightarrow$ Es wird also Normalverteilung angenommen, somit sind alle drei Voraussetzungen für die Durchführung des _t_-Tests für abhängige Stichproben erfüllt.
+
+
+### 4.3. Inferenzstatistik: _t_-Test für abhängige Stichproben
+
+Zur Erinnerung:  
+
+> Fragestellung D: "Sind jüngere Geschwister kooperativer als Ältere?"   
+
+**Hypothesen:**
+
+* Art des Effekts: Unterschiedshypothese
+* Richtung des Effekts: Gerichtet - positiver Effekt
+* Grösse des Effekts: Unspezifisch
+
+Hyothesenpaar (inhaltlich):  
+
+* H0: Jüngere Geschwister sind genau so oder weniger kooperativ wie ältere Geschwister. 
+* H1: Jüngere Geschwister sind kooperativer als ältere Geschwister.  
+
+Hypothesenpaar (statistisch):  
+
+* H0: $\mu_{juenger} \le \mu_{aelter}$  bzw.  $\mu_{d} \le 0$  
+* H1: $\mu_{juenger} > \mu_{aelter}$    bzw.  $\mu_{d} > 0$
+
+**Signifikanzniveau**  
+
+Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 5% betragen. $\rightarrow$ $\alpha=.05$
+
+**Durchfürhung des abhängigen _t_-Tests in R:**
+
+```{r}
+t.test(x = dataKooperation[, "Juenger"], y  = dataKooperation[, "Aelter"], # die beiden abhaengigen Gruppen
+       paired = T,                                                         # Stichproben sind abhaengig
+       alternative = "greater",                                            # gerichtete Hypothese
+       conf.level = .95)                                                   # alpha = .05
+
+```
+
+_df_ bei _t_-test mit abhängigen Stichproben: $n - 1$ (wobei $n$ die Anzahl der Paare darstellt)  
+$\rightarrow$ _t_(9) = 4.63, _p_ < .001 $\rightarrow$ signifikant, H0 wird verworfen, H1 wird angenommen.
+
+
+### 4.4. Schätzung des standardisierten Populationseffekts
+
+Formel:  $$d_2'' = \frac{\bar{d}} {sd_{\hat{d}}}$$
+
+wobei  
+
+* $\bar{d}$: Mittelwert der Differenz aller Wertepaare  
+* $sd_{\hat{d}}$: geschätzte SD der Differenzen  
+
+```{r}
+mean_d <- mean(difference)
+sd.d.est <- sd(difference)
+d_Kooperation <- mean_d/sd.d.est
+```
+
+Konventionen nach Cohen (1988) für _t_-Test für abhängige Stichproben 
+(Achtung: Werte unterscheiden sich zw. abhängigem und unabhängigem t-Test):
+
+_d''_ | Interpretation |
+:-: | :------: |
+~ .14 | kleiner Effekt |
+~ .35 | mittlerer Effekt |
+~ .57 | grosser Effekt |
+
+$\Rightarrow$ der standardisierte Populationseffekt beträgt $d_2''$ = 1.46 und ist laut Konventionen gross. 
+
+
+### 4.5. Ergebnisinterpretation
+Es wurde an Geschwisterpaaren untersucht, ob jüngere Geschwister kooperativer sind als ältere Geschwister. Zunächst findet sich deskriptiv ein Unterschied: Jüngere Geschwister weisen einen durchschnittlichen Wert von 0.43 (_SD_ = 0.12) auf, während die älteren Geschwister einen Wert von 0.32 (_SD_ = 0.07) aufweisen. Zur Beantwortung der Fragestellung wurde ein gerichteter _t_-Test für abhängige Stichproben durchgeführt. Der Gruppenunterschied ist signifikant (_t_(9) = 4.63, _p_ < .001), somit wird die Nullhypothese verworfen. Jüngere Geschwister sind kooperativer als ihre älteren Geschwister.Dieser Unterschied ist nach dem standardisierte Populationseffekt von $d_2''$ = 1.46 gross.
+
+***
+
+## 5. Fragestellung E: Geben Studierende in gleichem Maße an, dass es ihnen "nicht gut" geht bzw. sie "unzufrieden" sind, wie dass es ihnen "schlecht geht" bzw. sie sich "unwohl fühlen"? 
+
+Wir prüfen also Unterschiede in der Antworttendenz: Fällt es leichter, bei positiv formulieren Items nicht zuzustimmen als bei negativ formulierten Items zuzustimmen (und umgekehrt)?
+
+```{r echo=F}
+load("fb20.rda")
+```
+
+```{r eval=FALSE}
+setwd("...")
+load("fb20.rda")
+```
+
+**Vorbereitungen**
+```{r}
+# Item mdbf4: Wie schlecht fuehlen Sie sich? Hohe Werte = schlecht
+# Item mdbf8: Wie gut fuehlen Sie sich? Hohe Werte = gut
+fb20$mdbf8_r <- -1 * (fb20$mdbf8 - 6) # Item mdbf8 umpolen
+# Item mdbf8_r: Umgepolt -> Wie "nicht gut" fuehlen Sie sich? Hohe Werte = schlecht
+
+# Item mdbf11: Wie unwohl fuehlen Sie sich? Hohe Werte = unwohl
+# Item mdbf1: Wie zufrieden fuehlen Sie sich? Hohe Werte = zufrieden
+fb20$mdbf1_r <- -1 * (fb20$mdbf1 - 6) # Item mdbf1 umpolen
+# Item mdbf1_r: Umgepolt -> Wie "unzufrieden" fuehlen Sie sich? Hohe Werte = unzufrieden
+
+#umgepolte positive Skalen mitteln ueber beide Items
+fb20$schlecht_r <- rowMeans(fb20[, c('mdbf1_r', 'mdbf8_r')])
+#negative Skalen mitteln ueber beide Items
+fb20$schlecht <- rowMeans(fb20[, c('mdbf4', 'mdbf11')])
+```
+
+Unterscheiden sich die Gruppen im Mittel nicht, geben die Studierenden auf den Skalen im gleichen Maße an, wie es ihnen geht (unabhängig von der Polung der Items). 
+
+### 5.1. Deskriptivstatistik  
+#### 5.1.1. grafisch  
+```{r, fig.height = 10}
+par(mfrow=c(2,1), mar=c(3,2,2,0))
+barplot(table(fb20$schlecht),
+        ylim = c(0,50),
+        ylab = 'Anzahl',
+        main = "Wie schlecht fuehlen sich Studierende?")
+barplot(table(fb20$schlecht_r),
+        ylim = c(0,50),
+        ylab = 'Anzahl',
+        main = paste('Wie "',"nicht gut", '" fuehlen sich Studierende?',
+                     sep=""))
+par(mfrow=c(1,1))
+```
+
+#### 5.1.2. statistisch  
+```{r}
+summary(fb20$schlecht)
+summary(fb20$schlecht_r)
+prop.table(table(fb20$schlecht))
+prop.table(table(fb20$schlecht_r))
+```
+
+
+### 5.2. Inferenzstatistik: Wilcoxon-Test für abhängige Stichproben
+
+Grund: Annahme von Intervallskalenniveau der AV ist verletzt
+
+Zur Erinnerung: 
+
+> Fragestellung E: Geben Studierende in gleichem Maße an, dass es ihnen "nicht gut" geht bzw. sie "unzufrieden" sind, wie dass es ihnen schlecht geht bzw. sie sich unwohl fühlen? 
+
+$\Rightarrow$ Fragestellung ist ungerichtet, erfordert also auch ungerichtete Hypothese.
+
+**Hypothesen**  
+
+Hypothesenpaar (inhaltlich):  
+
+* H0: Studierende geben im gleichen Ausmaß ihr Befinden an (egal, wie rum Items formuliert sind).  
+* H1: Studenten geben nicht im gleichen Ausmaß ihr Befinden an (es ist nicht egal, wie rum Items formuliert sind). 
+
+Hypothesenpaar (statitisch):  
+
+* H0: $\mu_{"nicht gut"/"unzufrieden"} = \mu_{schlecht/unwohl}$   bzw. $\mu_{d} = 0$
+* H1: $\mu_{"nicht gut"/"unzufrieden"} \ne \mu_{schlecht/unwohl}$ bzw. $\mu_{d} \ne 0$
+
+
+**Signifikanzniveau**
+
+Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 5% betragen. $\rightarrow$ $\alpha=.05$
+
+**Durchfuehrung des Wilcoxon-Tests für abhängige Stichproben in R:**
+
+```{r}
+wilcox.test(x = fb20$schlecht_r, y = fb20$schlecht,  
+            paired = T,                       # Stichproben sind abhaengig
+            alternative = "two.sided",        # zweiseitige Testung
+            conf.level = .95)                 # alpha = .05
+```
+
+_V_ = 1935, _p_ < .001 $\rightarrow$ H0 wird verworfen, H1 wird angenommen
+
+
+### 5.3. Ergebnisinterpretation  
+
+Es wurde untersucht, ob Studierende in gleichem Maße angeben, dass es ihnen "nicht gut" geht bzw. sie "unzufrieden" sind, wie dass es ihnen schlecht geht bzw. sie sich unwohl fühlen. Zur Beantwortung der Fragestellung wurde ein zweiseitiger Wilcoxon-Test für abhängige Stichproben durchgeführt. Der Unterschied wurde bei einem Signifikanzniveau von alpha = .05 signifikant (_V_ = 1935, _p_ < .001). Somit wird die Nullhypothese verworfen und die Alternativhypothese angenommen: Studierende machen also unterschiedliche Angaben zu ihrer Stimmung je nachdem, ob die Items positiv oder negativ formuliert sind.
+
+***

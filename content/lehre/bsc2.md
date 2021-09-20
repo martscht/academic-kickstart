@@ -77,8 +77,8 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 | 3 | **Deskriptivstatistik für Intervallskalen** | Inhalte | Aufgaben | Lösungen |
 | 4 | **Verteilungen** | [Inhalte](/post/verteilungen) | [Aufgaben](/post/verteilungen-aufgaben) | Lösungen |
 | 5 | **Tests und Konfidenzintervalle** | [Inhalte](/post/tests-und-konfidenzintervalle) | [Aufgaben](/post/tests-und-konfidenzintervalle-aufgaben) | Lösungen |
-| 6 | **Tests für unabhängige Stichproben** | Inhalte | Aufgaben | Lösungen |
-| 7 | **Tests für abhängige Stichproben** | Inhalte | Aufgaben | Lösungen |
+| 6 | **Tests für unabhängige Stichproben** | [Inhalte](/post/gruppenvergleiche-unabhaengig) | Aufgaben | Lösungen |
+| 7 | **Tests für abhängige Stichproben** | [Inhalte](/post/gruppenvergleiche-abhaengig) | Aufgaben | Lösungen |
 | 8 | **Korrelation** | Inhalte | Aufgaben | Lösungen |
 | 9 | **Regression** | Inhalte | Aufgaben | Lösungen |
 | 10 | **Inferenz für Korrelation und Regression** | Inhalte | Aufgaben | Lösungen |
