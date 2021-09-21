@@ -1,0 +1,352 @@
+---
+title: Regression
+author: 
+date: '2021-01-04'
+slug: regression
+categories:
+  - BSc2
+tags:
+  - Regression
+subtitle: ''
+summary: ''
+authors: [winkler]
+lastmod: '2021-01-04T13:13:57+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+---
+
+```{r setup, cache = FALSE, echo = FALSE}
+knitr::opts_chunk$set(error = TRUE)
+```
+
+
+<details><summary>Kernfragen dieser Lehreinheit</summary>
+
+* Wie kann ein Modell für den Zusammenhang von zwei Variablen erstellt werden?
+* Wie können Streudiagramme in R erstellt werden? Wie kann die Regressionsgerade in den Plot eingefügt werden?
+* Wie können standardisierte Regressionsgewichte geschätzt werden? Was ist der Unterschied zu nicht-standardisierten?
+* Wie wird der Determinationskoeffizient $R^2$ berechnet und was sagt er aus?
+* Wie werden der Korrelationskoeffizient _r_ als auch das Regressionsparameter _b_ inferenzstatistisch überprüft?
+</details>
+
+***
+
+## Datensatz laden
+
+Zu Beginn laden wir wie gewohnt den Datensatz (Sie können den Datensatz [hier <i class="fas fa-download"></i> herunterladen](/post/fb20.rda)) und erstellen, falls nötig, Labels und Skalenwerte. 
+
+```{r, echo = FALSE}
+setwd('C:/Users/Nutzer/Documents/Lehre/Statistik')
+```
+
+```{r, eval = FALSE}
+setwd(...) #auf Pfad mit Datensatz
+```
+
+```{r}
+load("fb20.rda")
+
+#Labels
+fb20$fach <- factor(fb20$fach, levels = 1:5, labels = c ('Allgemeine', 'Biologische', 'Entwicklung', 'Klinische', 'Diag./Meth.'))
+fb20$ziel <- factor(fb20$ziel, levels = 1:4, labels = c ('Wirtschaft', 'Therapie', 'Forschung', 'Andere'))
+
+#Rekodierung
+fb20$mdbf4_r <- -1 * (fb20$mdbf4 - 6)
+fb20$mdbf11_r <- -1 * (fb20$mdbf11 - 6)
+fb20$mdbf5_r <- -1 * (fb20$mdbf5 - 6)
+fb20$mdbf7_r <- -1 * (fb20$mdbf7 - 6)
+fb20$mdbf3_r <- -1 * (fb20$mdbf3 - 6)
+fb20$mdbf9_r <- -1 * (fb20$mdbf5 - 9)
+
+#Skalenwerte
+gut <- fb20[,c('mdbf1','mdbf4_r','mdbf8','mdbf11_r')]
+fb20$gs <- rowMeans(gut)
+wach <- fb20[,c('mdbf2','mdbf5_r','mdbf7_r','mdbf10')]
+fb20$wm <- rowMeans(wach)
+ruhig <- fb20[,c('mdbf3_r','mdbf6','mdbf9_r','mdbf12')]
+fb20$ru <- rowMeans(ruhig)
+
+```
+
+****
+
+## Lineare Regression
+
+Nachdem wir mit der Korrelation mit der gemeinsamen Betrachtung von zwei Variablen begonnen haben, werden wir jetzt lineare Modelle erstellen, Plots inklusive Regressionsgerade für Zusammenhänge anzeigen lassen und Determinationskoeffizienten berechnen.
+Hierzu betrachten wir folgende Fragestellung:
+
+* Hat die Extraversion (*extra*) einen Einfluss auf die Lebenszufriedenheit (*lz*)?
+
+### Voraussetzungen:
+
+1. Linearität: Zusammenhang muss linear sein $\rightarrow$ Grafische Überprüfung (Scatterplot)  
+2. Varianzhomogenität (Homoskedastizität) der Fehler: der Fehler jedes Wertes der UV hat annährend die gleiche Varianz  
+3. Normalverteilung der Fehlervariablen  
+4. Unabhängigkeit der Fehler  
+
+Die Voraussetzungen 2-4 können erst geprüft werden, nachdem das Modell schon gerechnet wurde, weil sie sich auf die Fehler (Residuen: Differenz aus beobachtetem und vorhergesagtem Wert für y) beziehen!
+
+**zu 1. Linearität: Zusammenhang muss linear sein $\rightarrow$ Grafische Überprüfung (Scatterplot)**
+
+```{r}
+plot(fb20$extra, fb20$lz, xlab = "Extraversion", ylab = "Lebenszufriedenheit", 
+     main = "Zusammenhang zwischen Extraversion und Lebenszufriedenheit", xlim = c(0, 6), ylim = c(0, 7), pch = 19)
+lines(loess.smooth(fb20$extra, fb20$lz), col = 'blue')    #beobachteter, lokaler Zusammenhang
+fm <- lm(lz ~ extra, fb20)                              #Modell erstellen und ablegen
+abline(fm, col = "red")                                  #Modellierter linearer Zusammenhang in zuvor erstellten Plot einzeichnen
+```
+ 
+ * `pch` verändert die Darstellung der Datenpunkte
+ * `xlim` und `ylim` veränderen die X- bzw. Y-Achse 
+ * mit `cex` könnte man noch die Größe der Datenpunkte anpassen
+
+**zu Voraussetzungen 2-4:**
+
+```{r}
+par(mfrow = c(2, 2)) #Vier Abbildungen gleichzeitig
+plot(fm)
+par(mfrow = c(1, 1)) #wieder auf eine Abbildung zurücksetzen
+```
+
+*Interpretation der Abbildungen:*  
+
+* Residuals vs. Fitted: geeignet um Abweichungen von der Linearität und Verletzungen der Homoskedastizität aufzudecken $\rightarrow$ soll möglichst unsystematisch aussehen, rote Anpassungslinie (y-MW bedingt auf X) verläuft parallel zur x-Achse  
+* Normal Q-Q: Zeigt Annäherung der Normalverteilung durch Residuen $\rightarrow$ Punkte sollen auf die Diagonalen liegen  
+* Scale-Location: Prüfung der Homoskedastizität, zeigt Zusammenhang zwischen Streuung der Residuen und vorhergesagten Werten $\rightarrow$ rote Anpassungslinie (y-MW bedingt auf X) verläuft parallel zur x-Achse  
+* Residuals vs. Leverage: zur Identifikation einflussreicher Datenpunkte $\rightarrow$ es sollen keine Fälle außerhalb der Intervalle liegen, rote Anpassungslinie (y-MW bedingt auf X) verläuft parallel zur x-Achse  
+
+In diesem Fall ist alles weitestgehend erfüllt.
+
+Beispiel für schlechte Ergebnisse: [https://data.library.virginia.edu/diagnostic-plots/](https://data.library.virginia.edu/diagnostic-plots/)
+
+
+**Alternativer Weg zur Prüfung der Normalverteilung der Residuen**
+
+```{r}
+res1 <- residuals(lm(lz ~ extra, fb20))   #Residuen speichern
+
+#QQ
+qqnorm(res1)
+qqline(res1)
+
+#Histogramm
+hist(res1, prob = T,ylim = c(0,1))    #prob: TRUE, da wir uns auf die Dichte beziehen
+curve(dnorm(x, 
+            mean = mean(res1, na.rm = T), 
+            sd = sd(res1, na.rm = T)),
+      main = "Histogram of residuals", ylab = "Residuals",
+      col = "blue", add = T)   #add: soll Kurve in Grafik hinzugefügt werden?
+
+#Shapiro
+shapiro.test(res1)
+```
+
+$\rightarrow$ Der p-Wert ist größer als .05 $\rightarrow$ Die Nullhypothese konnte nicht verworfen werden und wird beibehalten: Für die Residuen wird also Normalverteilung angenommen. Somit sind alle Voraussetzungen zur Durchführung der linearen Regression erfüllt.
+
+
+### Modellschätzung
+
+Die Modellgleichung für die lineare Regression, wie sie in der Vorlesung besprochen wurde, lautet: $y_i = b_0 + b_1 x_i + e_i$
+
+In R gibt es eine interne Schreibweise, die sehr eng an diese Form der Notation angelehnt ist. Mit `?formula` können Sie sich detailliert ansehen, welche Modelle in welcher Weise mit dieser Notation dargestellt werden können. R verwendet diese Notation für (beinahe) alle Modelle, sodass es sich lohnt, sich mit dieser Schreibweise vertraut zu machen. Die Kernelemente sind im Fall der linearen Regression
+
+```{r, eval = FALSE}
+y ~ 1 + x
+```
+
+Diese Notation enthält fünf Elemente:
+
+*  `y`: die abhängige Variable
+*  `~`: die Notation für "regressiert auf" oder "vorhergesagt durch"
+*  `1`: die Konstante 1
+*  `+`: eine additive Verknüpfung der Elemente auf der rechten Seite der Gleichung
+*  `x`: eine unabhängige Variable
+
+Die Notation beschreibt also die Aussage "$y$ wird regressiert auf die Konstante $1$ und die Variable $x$". Die zu schätzenden Parameter $b_0$ und $b_1$ werden in dieser Notation nicht erwähnt, weil sie uns unbekannt sind.
+
+R geht generell davon aus, dass immer auch der Achsenabschnitt $b_0$ geschätzt werden soll, sodass `y ~ x` ausreichend ist, um eine Regression zu beschreiben. Wenn das Intercept unterdrückt werden soll, muss das mit `y ~ 0 + x` explizit gemacht werden.
+
+In unserem Beispiel ist $x$ die Extraversion (`extra`) und $y$ die Lebenszufriedenheit (`lz`). Um das Modell zu schätzen wird dann der `lm` (für "linear model") Befehl genutzt:
+
+```{r}
+lm(formula = lz ~ 1 + extra, data = fb20)
+```
+
+So werden die Koeffizienten direkt ausgegeben. Wir haben das Modell bereits abgespeichern, da wir es für die Überprüfung der Voraussetzungen benötigt haben. Hierzu muss das Modell einem Objekt zugewiesen werden. Hier in verkürzter Schreibweise:
+
+```{r}
+fm <- lm(lz ~ extra, fb20)
+```
+
+Aus diesem Objekt können mit `coef` die geschätzten Koeffizienten extrahiert werden:
+
+```{r}
+coef(fm)
+```
+
+Falls man sich unsicher ist, wie dieses Modell zustande gekommen ist, kann man dies ausdrücklich erfragen:
+
+```{r}
+formula(fm)
+```
+
+Mit dem Befehl `formula` werden auch automatisch immer die Residuen geschätzt, die mit `residuals` abgefragt werden können.
+
+```{r}
+residuals(fm)
+```
+
+Die folgenden Ergebnisse aus `fm` werden wir verwenden. In `coef(fm)` stehen die Regressionskoeffizienten $b_0$ unter `(Intercept)` zur Konstanten gehörend und $b_1$ unter dem Namen der Variable, die wir als Prädiktor nutzen. In diesem Fall also `extra`. Die Regressionsgleichung hat daher die folgende Gestalt: $y_i = `r round(coef(fm)[1],2)` + `r round(coef(fm)[2],2)` \cdot x + e_i$. 
+
+Regressionsgleichung (unstandardisiert): 
+
+$$\hat{y} = b_0 + b_1*x_i$$
+$$\hat{y} = 3.81 + 0.35*x_i$$
+
+**Interpretation der Regressionskoeffizienten:**  
+
+* b0 (Regressionsgewicht): beträgt die Extraversion 0, wird eine Lebenszufriedenheit von 3.02 vorhergesagt  
+* b1 (Regressionsgewicht): mit jeder Steigerung der Extraversion um 1 Einheit wird eine um 0.35 Einheiten höhere (!) Lebenszufriedenheit vorhergesagt
+
+### Vorhergesagte Werte
+
+Die vorhergesagten Werten $\hat{y}$ können mit `predict` ermittelt werden:
+
+```{r}
+predict(fm)
+```
+
+Per Voreinstellung werden hier die vorhergesagten Werte aus unserem ursprünglichen Datensatz dargestellt. `predict` erlaubt uns aber auch Werte von "neuen" Beobachtungen vorherzusagen. Nehmen wir an, wir würden die Extraversion von 5 neuen Personen beobachten (sie haben - vollkommen zufällig - die Werte 1, 2, 3, 4 und 5) und diese Beobachtungen in einem neuem Datensatz `extra_neu` festhalten:
+
+```{r}
+extra_neu <- data.frame(extra = c(1, 2, 3, 4, 5))
+```
+
+Anhand unseres Modells können wir für diese Personen auch ihre Lebenszufriedenheit vorhersagen, obwohl wir diese nicht beobachtet haben:
+
+```{r}
+predict(fm, newdata = extra_neu)
+```
+
+Damit diese Vorhersage funktioniert, muss im neuen Datensatz eine Variable mit dem Namen `extra` vorliegen.
+
+Der Anteil der Variabilität, der durch das Modell nicht erklärt werden kann - die Residuen $e_m$ - können mit `resid` abgefragt werden:
+
+```{r}
+resid(fm)
+```
+
+Diese können auch als neue Variable im Datensatz angelegt werden und hätten dort die Bedeutung des "Ausmaßes an Lebenszufriedenheit, das nicht durch Extraversion vorhergesagt werden kann" - also die Differenz aus vorhergesagtem und tatsächlich beobachtetem Wert der y-Variable (Lebenszufriedenheit).
+
+### Streu-Punktdiagramm mit Regressionsgerade
+
+Das Streudiagramm haben wir zu Beginn schon abbilden lassen. Hier kann zusätzlich noch der geschätzte Zusammenhang zwischen den beiden Variablen als Regressiongerade eingefügt werden. Hierzu wird der Befehl `plot` durch `abline` ergänzt:
+
+```{r}
+# Scatterplot zuvor im Skript beschrieben
+plot(fb20$extra, fb20$lz, 
+  xlim = c(0, 6), ylim = c(0, 7), pch = 19)
+
+# Ergebnisse der Regression als Gerade aufnehmen
+abline(fm, col = 'red')
+```
+
+
+### Standardisierte Regressionsgewichte
+
+Bei einer Regression (besonders wenn mehr als ein Prädiktor in das Modell aufgenommen wird) kann es sinnvoll sein, die standardisierten Regressionskoeffizienten zu betrachten, um die Erklärungs- oder Prognosebeiträge der einzelnen unabhängigen Variablen (unabhängig von den bei der Messung der Variablen gewählten Einheiten) miteinander vergleichen zu können, z. B. um zu sehen, welche Variable den größten Beitrag zur Prognose der abhängigen Variable leistet. Außerdem ist es hierdurch möglich die Ergebnisse zwischen verschiedenen Studien zu vergleichen, die `lz` und `extra` gemessen haben, jedoch in unterschiedlichen Einheiten. Durch die Standardisierung werden die Regressionskoeffizienten vergleichbar.
+Die Variablen werden mit `scale` standardisiert (z-Transformation; Erwartungswert gleich Null und die Varianz gleich Eins gesetzt). Mit `lm` wird das Modell berechnet. Die Koeffizienten können über das Ausführen von `sfm` abgefragt werden:
+
+```{r}
+sfm <- lm(scale(lz) ~ scale(extra), fb20)
+sfm
+```
+
+Das standardisierte Regressionsgewicht hat den gleichen _t_-Wert und _p_-Wert wie das unstandardisierte!
+
+
+
+### Determinationskoeffizient $R^2$ 
+
+Der Determinationskoeffizient $R^2$ ist eine Kennzahl zur Beurteilung der Anpassungsgüte einer Regression. Anhand dessen kann bewertet werden, wie gut Messwerte zu einem Modell passen.
+Das Bestimmtheitsmaß ist definiert als der Anteil, der durch die Regression erklärten Quadratsumme an der zu erklärenden totalen Quadratsumme, und gibt an, wie viel Streuung in den Daten durch das vorliegende lineare Regressionsmodell „erklärt“ werden kann. Bei einer einfachen Regression entspricht $R^2$ dem Quadrat des Korrelationskoeffizienten.
+
+Um $R^2$ zu berechnen, gibt es verschiedene Möglichkeiten.
+
+Für die Berechnung per Hand werden die einzelnen Varianzen benötigt:
+
+$R^2 = \frac{s^2_{\hat{Y}}}{s^2_{Y}} = \frac{s^2_{\hat{Y}}}{s^2_{\hat{Y}} + s^2_{E}}$
+
+```{r}
+# Anhand der Varianz von lz
+var(predict(fm)) / var(fb20$lz, use = "na.or.complete")
+
+# Anhand der Summe der Varianzen
+var(predict(fm)) / (var(predict(fm)) + var(resid(fm)))
+```
+
+Jedoch kann dieser umständliche Weg umgangen werden.
+Mit der Funktion `summary` kann ein Überblick über verschiedene Variablen und auch Funktionen generiert werden. Für lineare Funktionen werden mit diesem Befehl unter anderem auch die Koeffizienten angezeigt. Anhand des p-Werts kann hier auch die Signifikanz des $R^2$ überprüft werden.
+
+```{r}
+#Detaillierte Modellergebnisse
+summary(fm)
+
+```
+
+Determinationskoeffizient $R^2$ ist signifikant, da $p < \alpha$.
+
+Der Determinationskoeffizient $R^2$ kann auch direkt über den Befehl `summary()$r.squared` ausgegeben werden:
+
+```{r}
+summary(fm)$r.squared
+```
+
+4,6% der Varianz von `lz` können durch `extra` erklärt werden.Dieser Effekt ist nach Cohens (1988) Konvention als schwach zu bewerten.
+
+**Exkurs: Cohens (1988) Konvention zur Interpretation von $R^2$:**  
+
+* ~ .01: schwacher Effekt  
+* ~ .09: mittlerer Effekt  
+* ~ .25: starker Effekt  
+
+
+****
+
+## Inferenzstatistische Überprüfung des Regressionsparameter _b_
+
+
+**Signifikanztestung der Regressionskoeffizienten:**
+
+Zuerst kann die Betrachtung der Konfidenzintervalle helfen. Der Befehl `confint` berechnet die Konfidenzintervalle der Regressionsgewichte.
+```{r}
+#Konfidenzintervalle der Regressionskoeffizienten
+confint(fm)
+```
+
+Das Konfidenzintervall von 0.025 und 0.68 enthält mit einer 95%igen Wahrscheinlichkeit den wahren Wert für $b_1$. Damit ist die 0 nicht eingeschlossen und das Betagewicht ist von 0 verschieden.
+
+* $b_1$  
+    + H0: $b_1 = 0$, das Regressionsgewicht ist nicht von Null verschieden.  
+    + H1: $b_1 \neq 0$, das Regressionsgewicht ist von Null verschieden. 
+    
+* $b_0$ (häufig nicht von Interesse)  
+    + H0: $b_0 = 0$, der Achsenabschnitt ist nicht von Null verschieden.  
+    + H1: $b_0 \neq 0$, der Achsenabschnitt ist von Null verschieden.  
+    
+```{r}
+#Detaillierte Modellergebnisse
+summary(fm)
+
+```
+
+Aus `summary()`: $p < \alpha$ $\rightarrow$ H1: Das Regressionsgewicht für den Prädiktor Extraversion ist signifikant von Null verschieden. Extraversion hat einen Einfluss auf die Lebenszufriedenheit. 
+
+Aus `summary()`: $p < \alpha$ $\rightarrow$ H1: der Achsenabschnitt ist signifikant von Null verschieden. Beträgt die Extraversion Null wird eine von 0 verschiedene Lebenszufriedenheit vorhergesagt. 
+
+
+
