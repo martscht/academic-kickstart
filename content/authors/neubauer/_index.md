@@ -20,7 +20,7 @@ organizations:
 # Short bio (displayed in user profile at end of posts)
 bio:
 interests:
-- Intensive Längsschnittdesigns: Modellierung inter-individueller Unterschiede in intra-personalen Effekten; Psychometrie intensiver Längsschnittdaten
+- Intensive Längsschnittdesigns - Modellierung inter-individueller Unterschiede in intra-personalen Effekten; Psychometrie intensiver Längsschnittdaten
 - Intra-personale Kopplungen von affektiven, motivationalen und kognitiven Prozessen über die Lebensspanne
 - Psychologische Grundbedürfnisse
 
