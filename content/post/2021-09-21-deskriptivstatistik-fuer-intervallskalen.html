@@ -1,0 +1,386 @@
+---
+title: "Deskriptivstatistik für Intervallskalen"
+categories: [BSc2]
+date: '2020-09-24'
+featured: no
+header:
+  caption: '[Courtesy of pxhere](https://pxhere.com/en/photo/1227907)'
+  image: /header/descriptive_post.jpg
+lastmod: '2020-09-24T20:54:18+02:00'
+projects: []
+slug: deskriptiv-intervall
+subtitle: ''
+summary: ''
+tags: 
+  - R 
+  - Deskriprivstatistik
+authors: [winkler, nehler]
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<details>
+<summary>
+Kernfragen dieser Lehreinheit
+</summary>
+<ul>
+<li>Was ist der Befehl um den <strong>Mittelwert</strong> zu bestimmen?</li>
+<li>Wie kann die <strong>empirische Varianz</strong> bestimmt werden? Wie unterscheidet sich diese von der mit <code>var()</code> bestimmten Varianz?</li>
+<li>Wie können Variablen <strong>zentriert und standardisiert</strong> werden?</li>
+<li>Welche Möglichkeiten gibt es, negativ formulierte Items zu <strong>rekodieren</strong>?</li>
+<li>Mit welchen Befehlen können in R <strong>Skalenwerte</strong> für Fragebögenitems erstellt werden?</li>
+</ul>
+</details>
+<hr />
+<div id="wiederholung-aus-der-vorlesung-skalenniveaus" class="section level2">
+<h2>Wiederholung aus der Vorlesung: Skalenniveaus</h2>
+<table>
+<colgroup>
+<col width="6%" />
+<col width="24%" />
+<col width="16%" />
+<col width="20%" />
+<col width="34%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Skala</th>
+<th>Aussage</th>
+<th>Transformation</th>
+<th>Zentrale Lage</th>
+<th>Dispersion</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>Nominal</td>
+<td>Äquivalenz</td>
+<td>eineindeutig</td>
+<td>Modus</td>
+<td>Relativer Informationsgehalt</td>
+</tr>
+<tr class="even">
+<td>Ordinal</td>
+<td>Ordnung</td>
+<td>monoton</td>
+<td>Median</td>
+<td>Interquartilsbereich</td>
+</tr>
+<tr class="odd">
+<td>Intervall</td>
+<td>Verhältnis von Differenzen</td>
+<td>positiv linear</td>
+<td>Mittelwert</td>
+<td>Standardabweichung, Varianz</td>
+</tr>
+<tr class="even">
+<td>Verhältnis</td>
+<td>Verhältnisse</td>
+<td>Ähnlichkeit</td>
+<td>…</td>
+<td>…</td>
+</tr>
+<tr class="odd">
+<td>Absolut</td>
+<td>absoluter Wert</td>
+<td>Identität</td>
+<td>…</td>
+<td>…</td>
+</tr>
+</tbody>
+</table>
+<hr />
+</div>
+<div id="vorbereitende-schritte" class="section level2">
+<h2>Vorbereitende Schritte</h2>
+<p>Den Datensatz können Sie <a href="/post/fb20.rda">hier <i class="fas fa-download"></i> herunterladen</a></p>
+<pre class="r"><code>load(&#39;fb20.rda&#39;)   # Daten laden
+names(fb20)        # Namen der Variablen</code></pre>
+<pre><code>##  [1] &quot;mdbf1&quot;   &quot;mdbf2&quot;   &quot;mdbf3&quot;   &quot;mdbf4&quot;   &quot;mdbf5&quot;   &quot;mdbf6&quot;   &quot;mdbf7&quot;  
+##  [8] &quot;mdbf8&quot;   &quot;mdbf9&quot;   &quot;mdbf10&quot;  &quot;mdbf11&quot;  &quot;mdbf12&quot;  &quot;lz&quot;      &quot;extra&quot;  
+## [15] &quot;vertr&quot;   &quot;gewis&quot;   &quot;neuro&quot;   &quot;intel&quot;   &quot;pro&quot;     &quot;grund&quot;   &quot;fach&quot;   
+## [22] &quot;ziel&quot;    &quot;lerntyp&quot; &quot;geschl&quot;  &quot;job&quot;     &quot;ort&quot;     &quot;ort12&quot;   &quot;wohnen&quot; 
+## [29] &quot;uni1&quot;    &quot;uni2&quot;    &quot;uni3&quot;    &quot;uni4&quot;</code></pre>
+<pre class="r"><code>dim(fb20)          # Anzahl Zeile und Spalten</code></pre>
+<pre><code>## [1] 98 32</code></pre>
+<p>Der Datensatz hat also 98 Beobachtungen auf 32 Variablen.</p>
+<hr />
+</div>
+<div id="kardinalskalierte-variablen" class="section level2">
+<h2>Kardinalskalierte Variablen</h2>
+<div id="klassische-kardinalskalierte-variablen" class="section level3">
+<h3>Klassische kardinalskalierte Variablen</h3>
+<ul>
+<li>Behaviorale Maße: Reaktionszeiten, Bearbeitungsdauer, Anzahl von Fehlern, …</li>
+<li>Biologische Maße: Hautleitfähigkeit, Stimmhöhe, Anzahl der Sakkaden, …</li>
+<li>Neurophysiologische Maße: EEG-Daten, Durchblutung von Hirnregionen, …</li>
+</ul>
+</div>
+<div id="konstruierte-kardinalskalierte-variablen" class="section level3">
+<h3>Konstruierte kardinalskalierte Variablen</h3>
+<ul>
+<li>Fragebogendaten werden meist ordinalskaliert erhoben (einzelne Items)</li>
+<li>Um Intervallskalenniveau zu erreichen werden Items zu Skalenwerten verrechnet (Summe oder Mittelwert)</li>
+<li>Erzeugt viele mögliche Ausprägungen und wird als intervallskaliert behandelt</li>
+</ul>
+<p><strong>Beispiel: Lebenszufriedenheit</strong></p>
+<p><img src="/post/fb_swls.png" /></p>
+<p>Der Mittelwert pro Person über alle 5 Items ist in der Spalte <code>lz</code> zu finden:</p>
+<pre class="r"><code>fb20$lz</code></pre>
+<pre><code>##  [1] 5.4 6.8 5.0 3.6 5.6 5.4 4.8 3.6 5.0 5.4 7.0 5.0  NA 5.0 4.8 5.6 2.8 4.0 2.4
+## [20] 6.6 6.0 6.4 6.2 5.8 6.2 3.0 5.2 4.0 4.6 6.0 6.6 6.0 5.4 4.0 7.0 3.2 4.4 4.8
+## [39] 2.6 4.4 5.2 5.6 4.6 6.0 6.0 4.0 6.0 5.6 4.4 5.4 5.0  NA 4.2 5.6 6.4 2.4 5.4
+## [58] 5.4 5.6 5.0 4.6 2.6 3.6 6.8 3.8 4.6 4.2 3.2 6.0 6.4 5.0 7.0 2.8 5.8 4.0 6.8
+## [77] 6.0 4.8 5.8 5.8 6.0 5.8 3.2 4.2 5.8 4.4 4.8 4.0 3.8 4.4 6.6 5.6 4.2 5.4 5.2
+## [96] 5.4 6.2 5.4</code></pre>
+</div>
+</div>
+<div id="deskriptivstatistik-für-kardinalskalierte-variablen" class="section level2">
+<h2>Deskriptivstatistik für kardinalskalierte Variablen</h2>
+<ul>
+<li>Verfahren sind “rückwärtskompatibel”, d.h. alle Berechnungen, die auf nominalskalierte und ordinalskalierte Variablen anwendbar sind, lassen sich auch auf kardinalskalierte Variablen anwenden</li>
+<li>Quantile, IQA und Median können weiterhin bestimmt werden</li>
+</ul>
+<pre class="r"><code># Minimum &amp; Maximum
+range(fb20$lz, na.rm=T)</code></pre>
+<pre><code>## [1] 2.4 7.0</code></pre>
+<pre class="r"><code># Quartile
+quantile(fb20$lz, c(.25, .5, .75), na.rm=T)</code></pre>
+<pre><code>##  25%  50%  75% 
+## 4.20 5.20 5.85</code></pre>
+<pre class="r"><code>#Box-Whisker Plot
+boxplot(fb20$lz)</code></pre>
+<p><img src="/post/2021-09-21-deskriptivstatistik-fuer-intervallskalen_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+</div>
+<div id="histogramme" class="section level2">
+<h2>Histogramme</h2>
+<ul>
+<li>Zusammenfassung von Werten in Klassen (Kategorien, Intervalle)<br />
+</li>
+<li>Häufigkeitsverteilung für die kategorisierten Daten erstellen (sekundäre Häufigkeitsverteilung)<br />
+</li>
+<li>Achtung! Die Anzahl der Kategorien kann den Eindruck der Daten beeinflussen:</li>
+</ul>
+<pre class="r"><code># Histogramm
+hist(fb20$lz)</code></pre>
+<p><img src="/post/2021-09-21-deskriptivstatistik-fuer-intervallskalen_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<pre class="r"><code># Histogramm (20 Kategorien)
+hist(fb20$lz,
+     breaks = 20)</code></pre>
+<p><img src="/post/2021-09-21-deskriptivstatistik-fuer-intervallskalen_files/figure-html/unnamed-chunk-4-2.png" width="672" /></p>
+<pre class="r"><code># Histogramm (ungleiche Kategorien)
+hist(fb20$lz,
+     breaks = c(1, 3, 3.3, 3.6, 3.9, 4.5, 5, 7))</code></pre>
+<p><img src="/post/2021-09-21-deskriptivstatistik-fuer-intervallskalen_files/figure-html/unnamed-chunk-4-3.png" width="672" /></p>
+</div>
+<div id="mittelwert" class="section level2">
+<h2>Mittelwert</h2>
+<p><strong>Formel:</strong> <span class="math inline">\({x} = \frac{\sum_{m = 1}^n x_m}{n} = \frac{1}{n} \sum_{m = 1}^n x_m\)</span></p>
+<pre class="r"><code># Arithmetisches Mittel
+mean(fb20$lz, na.rm = TRUE)</code></pre>
+<pre><code>## [1] 5.035417</code></pre>
+</div>
+<div id="varianz" class="section level2">
+<h2>Varianz</h2>
+<p><strong>Formel:</strong> <span class="math inline">\(s^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n}\)</span></p>
+<pre class="r"><code># Händische Varianzberechnung
+sum((fb20$lz - mean(fb20$lz, na.rm = TRUE))^2, na.rm = TRUE) / (nrow(fb20)-2)</code></pre>
+<pre><code>## [1] 1.301662</code></pre>
+<p>Achtung! Wir benötigen für die Varianzberechnung <code>n</code> (s. Formel)! Wir nutzen hier <code>nrow(fb20)-2</code>, weil <code>nrow(fb20)</code> nicht das richtige n anzeigt (zwei Personen haben einen fehlenden Wert, daher die Anzahl an Zeilen minus der zwei fehlenden Werte = n)</p>
+<p><strong>Kleiner Diskurs zu fehlenden Werten:</strong></p>
+<p>Um zu prüfen, ob und wie viele fehlende Werte eine Variable hat, lässt sich z. B. folgende Syntax verwenden:</p>
+<pre class="r"><code>sum(is.na(fb20$lz))</code></pre>
+<pre><code>## [1] 2</code></pre>
+<p>Um die Länge einer Variablen ohne fehlende Werte (also die Anzahl an Beobachtungen auf einer Variablen) zu bestimmen, lässt sich z. B. folgende Syntax verwenden:</p>
+<pre class="r"><code>length(na.omit(fb20$lz))</code></pre>
+<pre><code>## [1] 96</code></pre>
+<p>Zur händischen Varianzberechnung können wir daher auch folgende Syntax verwenden:</p>
+<pre class="r"><code># Händische Varianzberechnung
+sum((fb20$lz - mean(fb20$lz, na.rm = TRUE))^2, na.rm = TRUE) / (length(na.omit(fb20$lz)))</code></pre>
+<pre><code>## [1] 1.301662</code></pre>
+<p>##Verschiedene Varianzschätzer</p>
+<p>Folgendes Ergebnis liefert R, wenn wir die R-Funktion <code>var()</code> zur Berechnung der Varianz verwenden:</p>
+<pre class="r"><code># R-interne Varianzberechnung
+var(fb20$lz, na.rm = TRUE)</code></pre>
+<pre><code>## [1] 1.315364</code></pre>
+<p>Warum erhalten wir hier einen abweichenden Wert im Vergleich zu unserer händischen Varianzberechnung?</p>
+<p>Die meisten Programme berechnen nicht die empirische Varianz, sondern einen Schätzer der Populationsvarianz:</p>
+<p><strong>Empirische Varianz</strong></p>
+<p><span class="math inline">\(s^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n}\)</span></p>
+<p><strong>Schätzer der Populationsvarianz</strong></p>
+<p><span class="math inline">\(\hat{\sigma}^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n - 1}\)</span></p>
+<p>Um in R die empirische Varianz mithilfe der <code>var()</code>-Funktion zu berechnen, kann man die Populationsvarianz nutzen. Multipliziert man sie mit <span class="math inline">\(\frac{n - 1}{n}\)</span> erhält man die empirische Varianz.</p>
+<pre class="r"><code># Umrechnung der Varianzen
+var(fb20$lz, na.rm = TRUE) * (nrow(fb20) - 1) / nrow(fb20)</code></pre>
+<pre><code>## [1] 1.301942</code></pre>
+<p>Achtung! Dies funktioniert in unserem Fall wieder nicht, da die Verwendung von <code>nrow(fb20)</code> - wie oben bereits angemerkt - nicht sinnvoll ist: <code>nrow(fb20)</code> ist nicht gleich n (eine Person hat einen fehlenden Wert), daher besser:</p>
+<pre class="r"><code># Umrechnung der Varianzen
+var(fb20$lz, na.rm = TRUE) * (length(na.omit(fb20$lz)) - 1) / (length(na.omit(fb20$lz)))</code></pre>
+<pre><code>## [1] 1.301662</code></pre>
+<p>Alternativ:</p>
+<pre class="r"><code># Umrechnung der Varianzen
+var(fb20$lz, na.rm = TRUE) * (96 - 1) / 96</code></pre>
+<pre><code>## [1] 1.301662</code></pre>
+</div>
+<div id="standardabweichung" class="section level2">
+<h2>Standardabweichung</h2>
+<p>Auch bei der Standardabweichung bestimmt R den Populationsschätzer <span class="math inline">\(\hat{\sigma}_{X}\)</span></p>
+<pre class="r"><code># Standardabweichung in R
+sd(fb20$lz, na.rm = TRUE) # Populationsschaetzer</code></pre>
+<pre><code>## [1] 1.146893</code></pre>
+<pre class="r"><code># Händische Berechnung der empirischen Standardabweichung
+sqrt(sum((fb20$lz - mean(fb20$lz, na.rm = TRUE))^2,
+         na.rm = TRUE) / (length(na.omit(fb20$lz))))</code></pre>
+<pre><code>## [1] 1.140904</code></pre>
+</div>
+<div id="zentrierung-und-standardisierung" class="section level2">
+<h2>Zentrierung und Standardisierung</h2>
+<p>Die Variablenzentrierung und -standardisierung lässt sich in R per Hand berechnen…</p>
+<pre class="r"><code># Zentrierung
+lz_c &lt;- fb20$lz - mean(fb20$lz, na.rm = TRUE)
+head(lz_c)</code></pre>
+<pre><code>## [1]  0.36458333  1.76458333 -0.03541667 -1.43541667  0.56458333  0.36458333</code></pre>
+<pre class="r"><code># Standardisierung
+lz_z &lt;- lz_c / sd(fb20$lz, na.rm = TRUE)
+head(lz_z)</code></pre>
+<pre><code>## [1]  0.31788778  1.53857684 -0.03088053 -1.25156959  0.49227193  0.31788778</code></pre>
+<p>…oder mit Hilfe bereits existierender Funktionen:</p>
+<pre class="r"><code>## Befehl zum Standardisieren
+lz_z &lt;- scale(fb20$lz)
+## Befehl zum Zentrieren (ohne Standardisierung)
+lz_c &lt;- scale(fb20$lz,
+              scale = FALSE) # unterbindet Standardisierung</code></pre>
+</div>
+<div id="skalenwerte" class="section level2">
+<h2>Skalenwerte</h2>
+<div id="wiederholung-konstruierte-kardinalskalierte-variablen" class="section level3">
+<h3>Wiederholung: Konstruierte kardinalskalierte Variablen</h3>
+<ul>
+<li>Fragebogendaten werden meist ordinalskaliert erhoben (einzelne Items)</li>
+<li>Um Intervallskalenniveau zu erreichen werden Items zu Skalenwerten verrechnet (Summe oder Mittelwert)</li>
+<li>Erzeugt viele mögliche Ausprägungen und wird als intervallskaliert behandelt</li>
+</ul>
+</div>
+<div id="positive-negative-items" class="section level3">
+<h3>Positive &amp; Negative Items</h3>
+<p>Viele Fragebögen enthalten sowohl positiv als auch negativ forumulierte Items</p>
+<ul>
+<li>…um die Befragung abwechslungsreich zu gestalten</li>
+<li>…um das psychologische Konstrukt umfassender zu erheben</li>
+<li>…um Antworttendenzen leichter identifizieren zu können</li>
+</ul>
+<p>Vor der Skalenbildung müssen alle Items in eine Richtung gebracht werden:
+<strong>Rekodierung</strong></p>
+<p><strong>Beispiel: MDBF</strong></p>
+<p><img src="/post/fb_mdbf1.png" /></p>
+<p>Erhebungsinstrument: <strong>M</strong>ehr<strong>d</strong>imensionaler <strong>B</strong>efindlichkeits<strong>f</strong>ragebogen (MDBF)</p>
+<ul>
+<li>3 Stimmungsdimensionen: gut vs. schlecht, wach vs. müde und ruhig vs. unruhig</li>
+<li>Jeweils zwei positive, zwei negative Adjektive</li>
+</ul>
+<p><strong>Skala gut vs. schlecht:</strong></p>
+<table>
+<thead>
+<tr class="header">
+<th>Name</th>
+<th>Adjektiv</th>
+<th>Richtung</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>mdbf1</td>
+<td>zufrieden</td>
+<td>positiv</td>
+</tr>
+<tr class="even">
+<td>mdbf4</td>
+<td>schlecht</td>
+<td>negativ</td>
+</tr>
+<tr class="odd">
+<td>mdbf8</td>
+<td>gut</td>
+<td>positiv</td>
+</tr>
+<tr class="even">
+<td>mdbf11</td>
+<td>unwohl</td>
+<td>negativ</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Skala soll bei hohen Werten gute Stimmung darstellen<br />
+</li>
+<li>Negativ formulierte Items müssen invertiert werden<br />
+</li>
+<li>Mögliche Werte von 1 bis 5<br />
+</li>
+<li>Hierzu kennen Sie bereits zwei Möglichkeiten (mit den Befehlen und R-Kenntnissen aus den bisherigen Sitzungen…)</li>
+</ul>
+</div>
+</div>
+<div id="rekodierung" class="section level2">
+<h2>Rekodierung</h2>
+<p><strong>Variante 1: Lineare Transformation</strong></p>
+<pre class="r"><code>fb20$mdbf4_r &lt;- -1 * (fb20$mdbf4 - 6)
+head(fb20$mdbf4)</code></pre>
+<pre><code>## [1]  3  1  1 NA  1  1</code></pre>
+<pre class="r"><code>head(fb20$mdbf4_r)</code></pre>
+<pre><code>## [1]  3  5  5 NA  5  5</code></pre>
+<ul>
+<li>Allgemeine Form: <span class="math inline">\(-1 \cdot (x_m - x_{\max} - 1)\)</span><br />
+</li>
+<li>Vorteil: schnell und einfach umsetzbar<br />
+</li>
+<li>Nachteil: nur für Invertierung sinnvoll, nicht allgemeiner anwendbar</li>
+</ul>
+<p><em>Quizfrage</em>: Ist dies eine zulässige Transformation für ordinalskalierte Variablen (wie Items)?<br />
+<em>Antwort</em>: Ja, denn die Ordnungsrelation bleibt hierbei erhalten!</p>
+<p><strong>Variante 2: Logische Filter</strong></p>
+<pre class="r"><code>fb20$mdbf11_r[fb20$mdbf11 == 1] &lt;- 5
+fb20$mdbf11_r[fb20$mdbf11 == 2] &lt;- 4
+fb20$mdbf11_r[fb20$mdbf11 == 3] &lt;- 3
+fb20$mdbf11_r[fb20$mdbf11 == 4] &lt;- 2
+fb20$mdbf11_r[fb20$mdbf11 == 5] &lt;- 1
+
+head(fb20$mdbf11)</code></pre>
+<pre><code>## [1] 2 1 1 3 2 1</code></pre>
+<pre class="r"><code>head(fb20$mdbf11_r)</code></pre>
+<pre><code>## [1] 4 5 5 3 4 5</code></pre>
+<ul>
+<li>Durch logische Filter Personen auswählen, die auf Originalvariable den relevanten Wert haben<br />
+</li>
+<li>Auf rekodierter Variable neuen Wert zuweisen<br />
+</li>
+<li>Vorteil: extrem fexibel, jede Transformation möglich<br />
+</li>
+<li>Nachteil: umständlich zu schreiben</li>
+</ul>
+</div>
+<div id="skalenwerte-erstellen" class="section level2">
+<h2>Skalenwerte erstellen</h2>
+<p>Skalenwerte werden zumeist als Summen oder Mittelwerte der Items erstellt</p>
+<p><strong>Skalenwert gut vs. schlecht</strong></p>
+<pre class="r"><code># Datensatz der relevanten Variablen
+gut_schlecht &lt;- fb20[, c(&#39;mdbf1&#39;, &#39;mdbf4_r&#39;, &#39;mdbf8&#39;, &#39;mdbf11_r&#39;)]
+# Skalenwert in Originaldatensatz erstellen
+fb20$gs &lt;- rowMeans(gut_schlecht)
+head(fb20$gs)</code></pre>
+<pre><code>## [1] 3.25 5.00 4.50   NA 4.75 4.50</code></pre>
+</div>
+<div id="nützliche-funktionen-in-diesem-zusammenhang" class="section level2">
+<h2>Nützliche Funktionen in diesem Zusammenhang:</h2>
+<ul>
+<li><code>rowMeans()</code> Mittelwert für jede Zeile (über Variablen)<br />
+</li>
+<li><code>colMeans()</code> Mittelwert für jede Spalte (über Personen)<br />
+</li>
+<li><code>rowSums()</code> Summe für jede Zeile (über Variablen)<br />
+</li>
+<li><code>colSums()</code> Summe für jede Spalte (über Personen)</li>
+</ul>
+<hr />
+</div>
