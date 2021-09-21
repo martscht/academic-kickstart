@@ -66,7 +66,7 @@ subtitle = "Statistik I"
  css_class = ""
 +++
 
-In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestudium. Dafür gucken wir uns die Grundstruktur von R, Datenimport, einfache Grafiken, Deskriptivstatistiken, Verteilungsfunktionen und ein paar Tests an. Das dazugehörige Material taucht im Verlauf des Semesters hier auf.
+In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestudium. Dafür betrachten wir die Grundstruktur von R, Datenimport, einfache Grafiken, Deskriptivstatistiken, Verteilungsfunktionen und einige Tests. Das dazugehörige Material taucht im Verlauf des Semesters hier auf.
 
 **Hinweis**: Aufgrund der Lehrumstellung zum Wintersemester 2021/2022 ändert sich auch die Struktur dieses Abschnitts. Wir arbeiten daran, die Inhalte so schnell wie möglich wieder öffentlich verfügbar zu machen.
 
@@ -81,8 +81,7 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 | 7 | **Tests für abhängige Stichproben** | [Inhalte](/post/gruppenvergleiche-abhaengig) | Aufgaben | Lösungen |
 | 8 | **Korrelation** | Inhalte | Aufgaben | Lösungen |
 | 9 | **Regression** | Inhalte | Aufgaben | Lösungen |
-| 10 | **Inferenz für Korrelation und Regression** | Inhalte | Aufgaben | Lösungen |
-| 11 | **Simulation und Poweranalyse** | Inhalte | Aufgaben | Lösungen |
+| 10 | **Simulation und Poweranalyse** | Inhalte | Aufgaben | Lösungen |
 | *Zusatz* | **Gruppenprojekt** | [Inhalte](/post/gruppenprojekt) | -- | -- |
 | | | | |
 
