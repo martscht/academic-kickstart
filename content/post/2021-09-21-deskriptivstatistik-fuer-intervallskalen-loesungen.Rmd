@@ -1,0 +1,213 @@
+---
+title: Deskriptivstatistik für Intervallskalen - Lösungen
+date: '2020-11-26'
+slug: deskriptiv-intervall-loesungen
+categories:
+  - BSc2
+  - Loesungen
+tags:
+  - R Deskriptivstatistik
+subtitle: ''
+summary: ''
+authors: [schultze, winkler]
+lastmod: '2020-11-26T21:07:11+02:00'
+featured: no
+header:
+  image: "/header/descriptive_post.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/1227907)"
+projects: []
+expiryDate: '2021-09-01'
+publishDate: '2020-12-04'
+---
+
+
+### Vorbereitung
+
+<details><summary>Lösung</summary>
+
+Laden Sie zunächst den Datensatz `fb20` von der pandar-Website.
+
+```{r}
+fb20 <- read.table('https://pandar.netlify.app/post/fb20.csv', 
+  header = TRUE,
+  sep = ',',
+  na.strings = '-99')
+```
+
+Die Bedeutung der einzelnen Variablen und ihre Antwortkategorien können Sie dem Dokument [Variablenübersicht.docx](/post/variablen.pdf) entnehmen.
+
+Verschaffen Sie sich nun einen Überblick über den Datensatz:
+
+```{r}
+dim(fb20)
+str(fb20)
+```
+
+Der Datensatz besteht aus `r nrow(fb20)` Zeilen (Beobachtungen) und `r ncol(fb20)` Spalten (=Variablen).
+
+</details>
+
+
+
+## Aufgabe 1
+
+Erstellen Sie im Datensatz `fb20` die Skalenwerte für wach vs. müde (wm) und ruhig vs. unruhig (ru). Diese Skalen umfassen die folgenden Items (negative Items sind unterstrichen):
+
+* Wach vs. müde: ausgeruht (mdbf2), <span style="text-decoration: underline">schlapp (mdbf5)</span>, <span style="text-decoration: underline">müde (mdbf7)</span>, munter (mdbf10)
+* Ruhig vs. unruhig: <span style="text-decoration: underline">ruhelos (mdbf3)</span>, gelassen (mdbf6), <span style="text-decoration: underline">unruhig (mdbf9)</span>, entspannt (mdbf12)
+
+Erstellen Sie die Skalenwerte als Mittelwert der jeweiligen vier Items.
+
+<details><summary>Lösung</summary>
+
+**Für wach/müde Items** 
+
+```{r}
+# Rekodierung 
+# Variante 1: lineare Transformation
+
+fb20$mdbf5_r <- -1 * (fb20$mdbf5 - 6)
+fb20$mdbf7_r <- -1 * (fb20$mdbf7 - 6)
+
+# Skalenwert
+
+wach <- fb20[, c('mdbf2', 'mdbf5_r', 'mdbf7_r', 'mdbf10')]
+fb20$wm <- rowMeans(wach)
+```
+
+**Für ruhig/unruhig Items**
+
+```{r}
+# Rekodierung 
+# Variante 2: logische Filter
+
+fb20$mdbf3_r[fb20$mdbf3 == 1] <- 5
+fb20$mdbf3_r[fb20$mdbf3 == 2] <- 4
+fb20$mdbf3_r[fb20$mdbf3 == 3] <- 3
+fb20$mdbf3_r[fb20$mdbf3 == 4] <- 2
+fb20$mdbf3_r[fb20$mdbf3 == 5] <- 1
+
+fb20$mdbf9_r[fb20$mdbf9 == 1] <- 5
+fb20$mdbf9_r[fb20$mdbf9 == 2] <- 4
+fb20$mdbf9_r[fb20$mdbf9 == 3] <- 3
+fb20$mdbf9_r[fb20$mdbf9 == 4] <- 2
+fb20$mdbf9_r[fb20$mdbf9 == 5] <- 1
+
+# Skalenwert
+
+ruhig <- fb20[, c('mdbf3_r', 'mdbf6', 'mdbf9_r', 'mdbf12')]
+fb20$ru <- rowMeans(ruhig)
+```
+
+</details>
+
+
+## Aufgabe 2
+
+Bestimmen Sie für beide Skalenwerte jeweils Mittelwert und Median.
+
+* Was vermuten Sie, aufgrund des Verhältnisses der beiden Maße der zentralen Tendenz, bezüglich der Schiefe der Verteilungen?
+* Prüfen Sie Ihre Vermutungen anhand von Histogrammen!
+
+
+<details><summary>Lösung</summary>
+
+```{r}  
+# Für wach/müde
+median(fb20$wm, na.rm = TRUE)
+mean(fb20$wm, na.rm = TRUE)
+
+# Für ruhig/unruhig
+median(fb20$ru, na.rm = TRUE)
+mean(fb20$ru, na.rm = TRUE)
+```
+
+In beiden Fällen ist der Median (geringfügig) größer als der Mittelwert, was auf eine (leicht) linkssteile bzw. rechtsschiefe Verteilung schließen lässt.
+
+**Prüfen der Vermutungen anhand von Histogrammen!**
+
+```{r}  
+# Histogramme (nebeneinander)
+par(mfrow=c(1,2))
+hist(fb20$wm)
+hist(fb20$ru)
+```
+
+Beide Verteilungen sind tatsächlich (leicht) linkssteil bzw. rechtsschief.
+
+</details>
+
+
+## Aufgabe 3
+
+Bestimmen Sie für den Skalenwert `wm` die empirische Varianz.
+
+* Ist diese größer oder kleiner als diejenige Schätzung, die mithilfe von `var(...)` bestimmt wird?  
+* Warum?  
+
+<details><summary>Lösung</summary>
+
+**Erinnerung:**
+
+* Empirische Varianz: $s^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n}$  
+* Schätzer der Populationsvarianz: $\hat{\sigma}^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n - 1}$  
+
+Zur Berechnung der Varianz gemäß Formel benötigen wir $n$. Wir könnten mit `nrow(fb20)` die Länge des Datensatzes für `n` heranziehen. Dies ist jedoch nur dann sinnvoll, wenn auf der Variable `wm` keine fehlenden Werte vorhanden sind!
+
+```{r}
+sum(is.na(fb20$wm))
+```
+
+Hier gibt es tatäschlich keine fehlenden Werte, daher ist folgende Formel legitim:
+
+```{r}
+# empirische Varianz
+# per Hand
+sum((fb20$wm - mean(fb20$wm))^2) / nrow(fb20)
+
+# durch Umrechnung 
+var(fb20$wm) * (nrow(fb20)-1) / nrow(fb20)
+
+# Populationsschätzer
+var(fb20$wm)
+```
+
+Die empirische Varianz (`r round(var(fb20$wm)*(nrow(fb20)-1) / nrow(fb20), 3)`) ist kleiner als der Populationsschätzer (`r round(var(fb20$wm),3)`), weil durch `n`, beim Populationsschätzer jeodoch durch `(n-1)` geteilt wird.
+
+</details>
+
+
+## Aufgabe 4
+
+Erstellen Sie eine z-standardisierte Variante der wach vs. müde Skala als `wm_z`.
+
+* Erstellen Sie für diese standardisierte Variable ein Histogramm.
+* Was fällt Ihnen auf, wenn Sie dieses mit dem Histogramm der unstandardisierten Werte vergleichen?
+* Erstellen Sie beide Histogramme noch einmal mit 20 Kategorien.
+
+
+<details><summary>Lösung</summary>
+
+```{r}
+par(mfrow=c(1,2))
+
+# z-Standardisierung
+fb20$wm_z <- scale(fb20$wm)
+
+# Histogramme
+hist(fb20$wm_z)
+hist(fb20$wm)
+```
+
+Beim Vergleich der beiden Histogrammen fällt auf, dass sich - aufgrund der R-Voreinstellungen - das Erscheinungsbild fälschlicherweise unterscheidet - eigentlich sollte sich durch die z-Transformation nur Skalierung der x-Achsen-Variable verändern. Tatsächlich aber bestimmt R hier eine unterschiedliche Anzahl von Kategorien. Wir halten diese nun über das `breaks`-Argument konstant:
+
+```{r}  
+# Histogramme mit jeweils 20 Kategorien
+par(mfrow=c(1,2))
+hist(fb20$wm_z, breaks = 20)
+hist(fb20$wm, breaks = 20)
+```
+
+Die Verteilungen sehen nun tatächlich (fast) gleich aus. 
+
+</details>
