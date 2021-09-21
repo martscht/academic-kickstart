@@ -1,0 +1,347 @@
+---
+title: "Deskriptivstatistik für Intervallskalen"
+categories: [BSc2]
+date: '2020-09-24'
+featured: no
+header:
+  caption: '[Courtesy of pxhere](https://pxhere.com/en/photo/1227907)'
+  image: /header/descriptive_post.jpg
+lastmod: '2020-09-24T20:54:18+02:00'
+projects: []
+slug: deskriptiv-intervall
+subtitle: ''
+summary: ''
+tags: 
+  - R 
+  - Deskriprivstatistik
+authors: [winkler, nehler]
+---
+
+
+
+```{r setup, cache = FALSE, echo = FALSE, warning = FALSE, message = FALSE}
+knitr::opts_chunk$set(error = TRUE)
+library(knitr)
+```
+
+
+<details><summary>Kernfragen dieser Lehreinheit</summary>
+
+* Was ist der Befehl um den **Mittelwert** zu bestimmen?
+* Wie kann die **empirische Varianz** bestimmt werden? Wie unterscheidet sich diese von der mit `var()` bestimmten Varianz?
+* Wie können Variablen **zentriert und standardisiert** werden?
+* Welche Möglichkeiten gibt es, negativ formulierte Items zu **rekodieren**?
+* Mit welchen Befehlen können in R **Skalenwerte** für Fragebögenitems erstellt werden?
+</details>
+
+***
+
+## Wiederholung aus der Vorlesung: Skalenniveaus
+
+Skala | Aussage | Transformation | Zentrale Lage | Dispersion |
+--- | ------------ | -------- | ---------- | ----------------- |
+Nominal | Äquivalenz | eineindeutig | Modus | Relativer Informationsgehalt |
+Ordinal | Ordnung | monoton | Median | Interquartilsbereich |
+Intervall | Verhältnis von Differenzen | positiv linear | Mittelwert | Standardabweichung, Varianz |
+Verhältnis | Verhältnisse | Ähnlichkeit | ... | ... |
+Absolut | absoluter Wert | Identität | ... | ... |
+
+
+***
+
+## Vorbereitende Schritte
+
+Den Datensatz können Sie [hier <i class="fas fa-download"></i> herunterladen](/post/fb20.rda)
+
+```{r}
+load('fb20.rda')   # Daten laden
+names(fb20)        # Namen der Variablen
+dim(fb20)          # Anzahl Zeile und Spalten
+```
+
+Der Datensatz hat also `r nrow(fb20)` Beobachtungen auf `r ncol(fb20)` Variablen.
+
+
+***
+
+## Kardinalskalierte Variablen
+
+### Klassische kardinalskalierte Variablen
+
+* Behaviorale Maße: Reaktionszeiten, Bearbeitungsdauer, Anzahl von Fehlern, ...
+* Biologische Maße: Hautleitfähigkeit, Stimmhöhe, Anzahl der Sakkaden, ...
+* Neurophysiologische Maße: EEG-Daten, Durchblutung von Hirnregionen, ...
+
+
+### Konstruierte kardinalskalierte Variablen
+
+* Fragebogendaten werden meist ordinalskaliert erhoben (einzelne Items)
+* Um Intervallskalenniveau zu erreichen werden Items zu Skalenwerten verrechnet (Summe oder Mittelwert)
+* Erzeugt viele mögliche Ausprägungen und wird als intervallskaliert behandelt
+
+
+**Beispiel: Lebenszufriedenheit**
+
+![](/post/fb_swls.png)
+
+Der Mittelwert pro Person über alle 5 Items ist in der Spalte `lz` zu finden:
+
+```{r}
+fb20$lz
+```
+
+## Deskriptivstatistik für kardinalskalierte Variablen
+
+* Verfahren sind "rückwärtskompatibel", d.h. alle Berechnungen, die auf nominalskalierte und ordinalskalierte Variablen anwendbar sind, lassen sich auch auf kardinalskalierte Variablen anwenden
+* Quantile, IQA und Median können weiterhin bestimmt werden
+
+```{r}
+# Minimum & Maximum
+range(fb20$lz, na.rm=T)
+
+# Quartile
+quantile(fb20$lz, c(.25, .5, .75), na.rm=T)
+
+#Box-Whisker Plot
+boxplot(fb20$lz)
+```
+
+## Histogramme
+
+* Zusammenfassung von Werten in Klassen (Kategorien, Intervalle)  
+* Häufigkeitsverteilung für die kategorisierten Daten erstellen (sekundäre Häufigkeitsverteilung)  
+* Achtung! Die Anzahl der Kategorien kann den Eindruck der Daten beeinflussen:  
+
+```{r}
+# Histogramm
+hist(fb20$lz)
+
+# Histogramm (20 Kategorien)
+hist(fb20$lz,
+     breaks = 20)
+
+# Histogramm (ungleiche Kategorien)
+hist(fb20$lz,
+     breaks = c(1, 3, 3.3, 3.6, 3.9, 4.5, 5, 7))
+```
+
+## Mittelwert
+
+**Formel:** ${x} = \frac{\sum_{m = 1}^n x_m}{n} = \frac{1}{n} \sum_{m = 1}^n x_m$
+
+```{r}
+# Arithmetisches Mittel
+mean(fb20$lz, na.rm = TRUE)
+```
+
+## Varianz
+
+**Formel:** $s^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n}$
+
+```{r}
+# Händische Varianzberechnung
+sum((fb20$lz - mean(fb20$lz, na.rm = TRUE))^2, na.rm = TRUE) / (nrow(fb20)-2)
+```
+
+Achtung! Wir benötigen für die Varianzberechnung `n` (s. Formel)! Wir nutzen hier `nrow(fb20)-2`, weil `nrow(fb20)` nicht das richtige n anzeigt (zwei Personen haben einen fehlenden Wert, daher die Anzahl an Zeilen minus der zwei fehlenden Werte = n)
+
+
+**Kleiner Diskurs zu fehlenden Werten:**
+
+Um zu prüfen, ob und wie viele fehlende Werte eine Variable hat, lässt sich z. B. folgende Syntax verwenden:
+
+```{r}
+sum(is.na(fb20$lz))
+```
+
+Um die Länge einer Variablen ohne fehlende Werte (also die Anzahl an Beobachtungen auf einer Variablen) zu bestimmen, lässt sich z. B. folgende Syntax verwenden:
+
+```{r}
+length(na.omit(fb20$lz))
+```
+
+Zur händischen Varianzberechnung können wir daher auch folgende Syntax verwenden:
+
+```{r}
+# Händische Varianzberechnung
+sum((fb20$lz - mean(fb20$lz, na.rm = TRUE))^2, na.rm = TRUE) / (length(na.omit(fb20$lz)))
+```
+
+
+##Verschiedene Varianzschätzer
+
+Folgendes Ergebnis liefert R, wenn wir die R-Funktion `var()` zur Berechnung der Varianz verwenden:
+```{r}
+# R-interne Varianzberechnung
+var(fb20$lz, na.rm = TRUE)
+```
+
+Warum erhalten wir hier einen abweichenden Wert im Vergleich zu unserer händischen Varianzberechnung?
+
+Die meisten Programme berechnen nicht die empirische Varianz, sondern einen Schätzer der Populationsvarianz:
+
+**Empirische Varianz**
+
+$s^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n}$
+
+**Schätzer der Populationsvarianz**
+
+$\hat{\sigma}^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n - 1}$
+
+Um in R die empirische Varianz mithilfe der `var()`-Funktion zu berechnen, kann man die Populationsvarianz nutzen. Multipliziert man sie mit $\frac{n - 1}{n}$ erhält man die empirische Varianz.
+
+```{r}
+# Umrechnung der Varianzen
+var(fb20$lz, na.rm = TRUE) * (nrow(fb20) - 1) / nrow(fb20)
+```
+
+Achtung! Dies funktioniert in unserem Fall wieder nicht, da die Verwendung von `nrow(fb20)`  - wie oben bereits angemerkt - nicht sinnvoll ist: `nrow(fb20)` ist nicht gleich n (eine Person hat einen fehlenden Wert), daher besser:
+
+```{r}
+# Umrechnung der Varianzen
+var(fb20$lz, na.rm = TRUE) * (length(na.omit(fb20$lz)) - 1) / (length(na.omit(fb20$lz)))
+```
+
+Alternativ:
+```{r}
+# Umrechnung der Varianzen
+var(fb20$lz, na.rm = TRUE) * (96 - 1) / 96
+```
+
+
+## Standardabweichung
+
+Auch bei der Standardabweichung bestimmt R den Populationsschätzer $\hat{\sigma}_{X}$
+
+```{r}
+# Standardabweichung in R
+sd(fb20$lz, na.rm = TRUE) # Populationsschaetzer
+
+# Händische Berechnung der empirischen Standardabweichung
+sqrt(sum((fb20$lz - mean(fb20$lz, na.rm = TRUE))^2,
+         na.rm = TRUE) / (length(na.omit(fb20$lz))))
+```
+
+## Zentrierung und Standardisierung
+
+Die Variablenzentrierung und -standardisierung lässt sich in R per Hand berechnen...
+
+```{r}
+# Zentrierung
+lz_c <- fb20$lz - mean(fb20$lz, na.rm = TRUE)
+head(lz_c)
+
+# Standardisierung
+lz_z <- lz_c / sd(fb20$lz, na.rm = TRUE)
+head(lz_z)
+```
+
+...oder mit Hilfe bereits existierender Funktionen:
+
+```{r}
+## Befehl zum Standardisieren
+lz_z <- scale(fb20$lz)
+## Befehl zum Zentrieren (ohne Standardisierung)
+lz_c <- scale(fb20$lz,
+              scale = FALSE) # unterbindet Standardisierung
+```
+
+## Skalenwerte
+
+### Wiederholung: Konstruierte kardinalskalierte Variablen
+
+* Fragebogendaten werden meist ordinalskaliert erhoben (einzelne Items)
+* Um Intervallskalenniveau zu erreichen werden Items zu Skalenwerten verrechnet (Summe oder Mittelwert)
+* Erzeugt viele mögliche Ausprägungen und wird als intervallskaliert behandelt
+
+### Positive & Negative Items
+
+Viele Fragebögen enthalten sowohl positiv als auch negativ forumulierte Items
+
+* ...um die Befragung abwechslungsreich zu gestalten
+* ...um das psychologische Konstrukt umfassender zu erheben
+* ...um Antworttendenzen leichter identifizieren zu können
+
+Vor der Skalenbildung müssen alle Items in eine Richtung gebracht werden:
+**Rekodierung**
+
+**Beispiel: MDBF**
+
+![](/post/fb_mdbf1.png)
+
+
+Erhebungsinstrument: **M**ehr**d**imensionaler **B**efindlichkeits**f**ragebogen (MDBF)
+
+* 3 Stimmungsdimensionen: gut vs. schlecht, wach vs. müde und ruhig vs. unruhig
+* Jeweils zwei positive, zwei negative Adjektive
+
+
+**Skala gut vs. schlecht:**
+
+Name | Adjektiv | Richtung
+--- | ----- | ------
+mdbf1 | zufrieden | positiv  
+mdbf4 | schlecht | negativ  
+mdbf8 | gut | positiv
+mdbf11 | unwohl | negativ  
+
+
+* Skala soll bei hohen Werten gute Stimmung darstellen    
+* Negativ formulierte Items müssen invertiert werden    
+* Mögliche Werte von 1 bis 5     
+* Hierzu kennen Sie bereits zwei Möglichkeiten (mit den Befehlen und R-Kenntnissen aus den bisherigen Sitzungen...)    
+
+## Rekodierung
+**Variante 1: Lineare Transformation**
+```{r}
+fb20$mdbf4_r <- -1 * (fb20$mdbf4 - 6)
+head(fb20$mdbf4)
+head(fb20$mdbf4_r)
+```
+
+* Allgemeine Form: $-1 \cdot (x_m - x_{\max} - 1)$   
+* Vorteil: schnell und einfach umsetzbar   
+* Nachteil: nur für Invertierung sinnvoll, nicht allgemeiner anwendbar   
+
+*Quizfrage*: Ist dies eine zulässige Transformation für ordinalskalierte Variablen (wie Items)?  
+*Antwort*: Ja, denn die Ordnungsrelation bleibt hierbei erhalten!  
+
+**Variante 2: Logische Filter**
+```{r}
+fb20$mdbf11_r[fb20$mdbf11 == 1] <- 5
+fb20$mdbf11_r[fb20$mdbf11 == 2] <- 4
+fb20$mdbf11_r[fb20$mdbf11 == 3] <- 3
+fb20$mdbf11_r[fb20$mdbf11 == 4] <- 2
+fb20$mdbf11_r[fb20$mdbf11 == 5] <- 1
+
+head(fb20$mdbf11)
+head(fb20$mdbf11_r)
+```
+
+* Durch logische Filter Personen auswählen, die auf Originalvariable den relevanten Wert haben  
+* Auf rekodierter Variable neuen Wert zuweisen  
+* Vorteil: extrem fexibel, jede Transformation möglich  
+* Nachteil: umständlich zu schreiben  
+
+## Skalenwerte erstellen
+
+Skalenwerte werden zumeist als Summen oder Mittelwerte der Items erstellt
+
+**Skalenwert gut vs. schlecht**
+
+```{r}
+# Datensatz der relevanten Variablen
+gut_schlecht <- fb20[, c('mdbf1', 'mdbf4_r', 'mdbf8', 'mdbf11_r')]
+# Skalenwert in Originaldatensatz erstellen
+fb20$gs <- rowMeans(gut_schlecht)
+head(fb20$gs)
+```
+
+## Nützliche Funktionen in diesem Zusammenhang:
+
+* `rowMeans()` Mittelwert für jede Zeile (über Variablen)  
+* `colMeans()` Mittelwert für jede Spalte (über Personen)  
+* `rowSums()` Summe für jede Zeile (über Variablen)  
+* `colSums()` Summe für jede Spalte (über Personen)  
+
+***
