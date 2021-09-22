@@ -1,7 +1,7 @@
 ---
 # Display name
 name: Andreas Neubauer
-weight: 50
+
 # Username (this should match the folder name)
 authors:
 - neubauer
@@ -62,5 +62,5 @@ email: ""
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
-user_groups: ["Teaching", "Team"]
+user_groups: ["Teaching"]
 ---
