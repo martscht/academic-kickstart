@@ -9,7 +9,7 @@ tags:
   - R Deskriptivstatistik
 subtitle: ''
 summary: ''
-authors: [buchholz, nehler]
+authors: [nehler, buchholz]
 lastmod: '2020-11-26T21:07:11+02:00'
 featured: no
 header:
@@ -25,25 +25,12 @@ publishDate: '2021-11-05'
 
 <details><summary>Lösung</summary>
 
-Laden Sie zunächst den Datensatz `fb20` von der pandar-Website.
+
+Laden Sie die Datensatz ein. Diesen haben Sie bereits aus [<i class="fas fa-download"></i> `fb21.rda`](/post/fb21.rda) heruntergeladen. Die Bedeutung der einzelnen Variablen und ihre Antwortkategorien können Sie weiterhin dem Dokument [Variablenübersicht.pdf](/post/variablen.pdf) entnehmen.
 
 ```{r}
-fb20 <- read.table('https://pandar.netlify.app/post/fb20.csv', 
-  header = TRUE,
-  sep = ',',
-  na.strings = '-99')
+load("fb21.rda")
 ```
-
-Die Bedeutung der einzelnen Variablen und ihre Antwortkategorien können Sie dem Dokument [Variablenübersicht.docx](/post/variablen.pdf) entnehmen.
-
-Verschaffen Sie sich nun einen Überblick über den Datensatz:
-
-```{r}
-dim(fb20)
-str(fb20)
-```
-
-Der Datensatz besteht aus `r nrow(fb20)` Zeilen (Beobachtungen) und `r ncol(fb20)` Spalten (=Variablen).
 
 </details>
 
@@ -51,52 +38,20 @@ Der Datensatz besteht aus `r nrow(fb20)` Zeilen (Beobachtungen) und `r ncol(fb20
 
 ## Aufgabe 1
 
-Erstellen Sie im Datensatz `fb20` die Skalenwerte für wach vs. müde (wm) und ruhig vs. unruhig (ru). Diese Skalen umfassen die folgenden Items (negative Items sind unterstrichen):
+Erstellen Sie im Datensatz `fb21` die Skalenwerte für die Naturverbundenheit, die mit den Items nr1 bis nr6 gemessen wurde. Keines der Items ist invertiert.
 
-* Wach vs. müde: ausgeruht (mdbf2), <span style="text-decoration: underline">schlapp (mdbf5)</span>, <span style="text-decoration: underline">müde (mdbf7)</span>, munter (mdbf10)
-* Ruhig vs. unruhig: <span style="text-decoration: underline">ruhelos (mdbf3)</span>, gelassen (mdbf6), <span style="text-decoration: underline">unruhig (mdbf9)</span>, entspannt (mdbf12)
 
-Erstellen Sie die Skalenwerte als Mittelwert der jeweiligen vier Items.
+Erstellen Sie den Skalenwert als Mittelwert der sechs Items.
 
 <details><summary>Lösung</summary>
 
-**Für wach/müde Items** 
+
 
 ```{r}
-# Rekodierung 
-# Variante 1: lineare Transformation
-
-fb20$mdbf5_r <- -1 * (fb20$mdbf5 - 6)
-fb20$mdbf7_r <- -1 * (fb20$mdbf7 - 6)
-
 # Skalenwert
 
-wach <- fb20[, c('mdbf2', 'mdbf5_r', 'mdbf7_r', 'mdbf10')]
-fb20$wm <- rowMeans(wach)
-```
-
-**Für ruhig/unruhig Items**
-
-```{r}
-# Rekodierung 
-# Variante 2: logische Filter
-
-fb20$mdbf3_r[fb20$mdbf3 == 1] <- 5
-fb20$mdbf3_r[fb20$mdbf3 == 2] <- 4
-fb20$mdbf3_r[fb20$mdbf3 == 3] <- 3
-fb20$mdbf3_r[fb20$mdbf3 == 4] <- 2
-fb20$mdbf3_r[fb20$mdbf3 == 5] <- 1
-
-fb20$mdbf9_r[fb20$mdbf9 == 1] <- 5
-fb20$mdbf9_r[fb20$mdbf9 == 2] <- 4
-fb20$mdbf9_r[fb20$mdbf9 == 3] <- 3
-fb20$mdbf9_r[fb20$mdbf9 == 4] <- 2
-fb20$mdbf9_r[fb20$mdbf9 == 5] <- 1
-
-# Skalenwert
-
-ruhig <- fb20[, c('mdbf3_r', 'mdbf6', 'mdbf9_r', 'mdbf12')]
-fb20$ru <- rowMeans(ruhig)
+naturverbundenheit <- fb21[, c('nr1', 'nr2', 'nr3', 'nr4', 'nr5',  'nr6')]
+fb21$nr_ges <- rowMeans(naturverbundenheit)
 ```
 
 </details>
@@ -104,33 +59,27 @@ fb20$ru <- rowMeans(ruhig)
 
 ## Aufgabe 2
 
-Bestimmen Sie für beide Skalenwerte jeweils Mittelwert und Median.
+Bestimmen Sie für die Skala den gesamten Mittelwert und Median.
 
-* Was vermuten Sie, aufgrund des Verhältnisses der beiden Maße der zentralen Tendenz, bezüglich der Schiefe der Verteilungen?
-* Prüfen Sie Ihre Vermutungen anhand von Histogrammen!
+* Was vermuten Sie, aufgrund des Verhältnisses der beiden Maße der zentralen Tendenz, bezüglich der Schiefe der Verteilung?
+* Prüfen Sie Ihre Vermutung anhand eines Histogramms!
 
 
 <details><summary>Lösung</summary>
 
 ```{r}  
-# Für wach/müde
-median(fb20$wm, na.rm = TRUE)
-mean(fb20$wm, na.rm = TRUE)
+# Median und Mittelwert
+median(fb21$nr_ges, na.rm = TRUE)
+mean(fb21$nr_ges, na.rm = TRUE)
 
-# Für ruhig/unruhig
-median(fb20$ru, na.rm = TRUE)
-mean(fb20$ru, na.rm = TRUE)
 ```
 
 In beiden Fällen ist der Median (geringfügig) größer als der Mittelwert, was auf eine (leicht) linkssteile bzw. rechtsschiefe Verteilung schließen lässt.
 
-**Prüfen der Vermutungen anhand von Histogrammen!**
+**Prüfen der Vermutung anhand eines Histogramms!**
 
 ```{r}  
-# Histogramme (nebeneinander)
-par(mfrow=c(1,2))
-hist(fb20$wm)
-hist(fb20$ru)
+hist(fb21$nr_ges) # Histogramm
 ```
 
 Beide Verteilungen sind tatsächlich (leicht) linkssteil bzw. rechtsschief.
@@ -140,10 +89,9 @@ Beide Verteilungen sind tatsächlich (leicht) linkssteil bzw. rechtsschief.
 
 ## Aufgabe 3
 
-Bestimmen Sie für den Skalenwert `wm` die empirische Varianz.
+Bestimmen Sie für den Skalenwert `nr_ges` die empirische Varianz und Standardabweichung. Achten Sie dabei darauf, ob es auf der Skala fehlende Werte gibt.
 
-* Ist diese größer oder kleiner als diejenige Schätzung, die mithilfe von `var(...)` bestimmt wird?  
-* Warum?  
+* Sind empirische Varianz und Standardbweichung größer oder kleiner als diejenige Schätzung, die mithilfe von `var()` oder `sd()` bestimmt wird? 
 
 <details><summary>Lösung</summary>
 
@@ -152,34 +100,46 @@ Bestimmen Sie für den Skalenwert `wm` die empirische Varianz.
 * Empirische Varianz: $s^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n}$  
 * Schätzer der Populationsvarianz: $\hat{\sigma}^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n - 1}$  
 
-Zur Berechnung der Varianz gemäß Formel benötigen wir $n$. Wir könnten mit `nrow(fb20)` die Länge des Datensatzes für `n` heranziehen. Dies ist jedoch nur dann sinnvoll, wenn auf der Variable `wm` keine fehlenden Werte vorhanden sind!
+Zur Berechnung der Varianz gemäß Formel benötigen wir $n$. Wir könnten mit `nrow(fb21)` die Länge des Datensatzes für `n` heranziehen. Dies ist jedoch nur dann sinnvoll, wenn auf der Variable `nr_ges` keine fehlenden Werte vorhanden sind!
 
 ```{r}
-sum(is.na(fb20$wm))
+is.na(fb21$nr_ges) |> sum()
 ```
 
-Hier gibt es tatäschlich keine fehlenden Werte, daher ist folgende Formel legitim:
+Hier gibt es tatäschlich wieder zwei fehlenden Werte. Im Tutorial haben wir aber bereits gelernt, dass man mit `length(na.omit(fb21$nr_ges))` die Anzahl an Personen bestimmen kann, die auf der Skala einen Wert haben.
 
 ```{r}
 # empirische Varianz
 # per Hand
-sum((fb20$wm - mean(fb20$wm))^2) / nrow(fb20)
+sum((fb21$nr_ges - mean(fb21$nr_ges, na.rm = T))^2) / length(na.omit(fb21$nr_ges))
 
 # durch Umrechnung 
-var(fb20$wm) * (nrow(fb20)-1) / nrow(fb20)
+var(fb21$nr_ges, na.rm = T) * (length(na.omit(fb21$nr_ges))-1) / length(na.omit(fb21$nr_ges))
 
 # Populationsschätzer
-var(fb20$wm)
+var(fb21$nr_ges, na.rm = T)
 ```
 
-Die empirische Varianz (`r round(var(fb20$wm)*(nrow(fb20)-1) / nrow(fb20), 3)`) ist kleiner als der Populationsschätzer (`r round(var(fb20$wm),3)`), weil durch `n`, beim Populationsschätzer jeodoch durch `(n-1)` geteilt wird.
+Die empirische Varianz ist kleiner als der Populationsschätzer.
+
+Nun fehlt noch die Betrachtung der Standardabweichung. Als einfachste Möglichkeit für die Berechnung der empirischen Standardabweichung haben wir gelernt, dass man die Wurzel aus der empirischen Varianz ziehen kann.
+
+```{r}
+# empirische Standardabweichung
+(sum((fb21$nr_ges - mean(fb21$nr_ges, na.rm = T))^2) / length(na.omit(fb21$nr_ges))) |> sqrt()
+
+# Populationsschätzer
+sd(fb21$nr_ges, na.rm = T)
+```
+
+Auch hier ist der empirische Wert kleiner als der Schätzer.
 
 </details>
 
 
 ## Aufgabe 4
 
-Erstellen Sie eine z-standardisierte Variante der wach vs. müde Skala als `wm_z`.
+Erstellen Sie eine z-standardisierte Variante der Skala zur Naturverbundenheit als `nr_ges_z`.
 
 * Erstellen Sie für diese standardisierte Variable ein Histogramm.
 * Was fällt Ihnen auf, wenn Sie dieses mit dem Histogramm der unstandardisierten Werte vergleichen?
@@ -188,15 +148,17 @@ Erstellen Sie eine z-standardisierte Variante der wach vs. müde Skala als `wm_z
 
 <details><summary>Lösung</summary>
 
+Um die Vergleichbarkeit zu erhöhen, wird im folgenden Code ein kleiner Trick angewendet. Die beiden Histogramme sollten am besten gleichzeitig unter **Plots** angezeigt werden. Durch die verwendete Funktion `par()` kann man verschiedene Plots gemeinsam in einem Fenster zeichnen. Das Argument bestimmt dabei, dass es eine Zeile und zwei Spalten für die Plots gibt.
+
 ```{r}
 par(mfrow=c(1,2))
 
 # z-Standardisierung
-fb20$wm_z <- scale(fb20$wm)
+fb21$nr_ges_z <- scale(fb21$nr_ges)
 
 # Histogramme
-hist(fb20$wm_z)
-hist(fb20$wm)
+hist(fb21$nr_ges_z)
+hist(fb21$nr_ges)
 ```
 
 Beim Vergleich der beiden Histogrammen fällt auf, dass sich - aufgrund der R-Voreinstellungen - das Erscheinungsbild fälschlicherweise unterscheidet - eigentlich sollte sich durch die z-Transformation nur Skalierung der x-Achsen-Variable verändern. Tatsächlich aber bestimmt R hier eine unterschiedliche Anzahl von Kategorien. Wir halten diese nun über das `breaks`-Argument konstant:
@@ -204,8 +166,8 @@ Beim Vergleich der beiden Histogrammen fällt auf, dass sich - aufgrund der R-Vo
 ```{r}  
 # Histogramme mit jeweils 20 Kategorien
 par(mfrow=c(1,2))
-hist(fb20$wm_z, breaks = 20)
-hist(fb20$wm, breaks = 20)
+hist(fb21$nr_ges_z, breaks = 20)
+hist(fb21$nr_ges, breaks = 20)
 ```
 
 Die Verteilungen sehen nun tatächlich (fast) gleich aus. 
