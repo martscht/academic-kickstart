@@ -82,7 +82,7 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 | 8 | **Korrelation** | Inhalte | Aufgaben | Lösungen |
 | 9 | **Regression** | Inhalte | Aufgaben | Lösungen |
 | 10 | **Simulation und Poweranalyse** | Inhalte | Aufgaben | Lösungen |
-| *Zusatz* | **Gruppenprojekt** | [Inhalte](/post/gruppenprojekt) | -- | -- |
+| *Zusatz* | **Gruppenprojekt** | [Inhalte](/post/gruppenprojekt) | [Hinweise Ergebnisbericht](/post/hinweise-zum-ergebnisbericht) | -- |
 | | | | |
 
 Die Umfrage aus der ersten Woche gibt es [hier](https://psybsc2.formr.org/). Die Daten, die dabei in der ersten Sitzung entstanden sind, können Sie [<i class="fas fa-download"></i>   hier runterladen](/post/fb20.csv). Was welche Variablen in diesem Datensatz bedeutet, wird in der [<i class="fas fa-download"></i>   Variablenübersicht erläutert](/post/variablen.pdf).
