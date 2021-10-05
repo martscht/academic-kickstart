@@ -15,7 +15,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer, hartig]
-lastmod: '2020-10-27T16:40:21+02:00'
+lastmod: '2021-10-05T16:40:21+02:00'
 featured: no
 header:
   image: "/header/FEI_Sitzung1_post.jpg"
@@ -44,7 +44,7 @@ Anschließend werden Pakete mit der `library`-Funktion geladen:
 ```{r, message=F}
 library(lm.beta)  # Standardisierte beta-Koeffizienten für die Regression
 library(car)      # Zusätzliche Funktion für Diagnostik von Datensätzen
-library(MASS)     # Zusätzliche Funktion für Diagnostik von Datensätzen
+library(MASS)     # Zusätzliche Funktion für Diagnostik von Datensätzen 
 ```
 
 
@@ -74,7 +74,7 @@ head(Schulleistungen)
 
 Wir erkennen die 4 Spalten mit dem Geschlecht, dem IQ, der Lese- und der Mathematikleistung. 
 
-Das Folgende fundiert zum Teil auf Sitzungen zur Korrelation und Regression aus [Veranstaltungen aus dem Bachelorstudium des Sommersemesters 2020](https://qis.server.uni-frankfurt.de/qisserver/rds?state=verpublish&status=init&vmfile=no&publishid=291102&moduleCall=webInfo&publishConfFile=webInfo&publishSubDir=veranstaltung)  verfasst von Luisa Grützmacher, [Johanna Schüller](/authors/schueller) und [Julien Irmer](/authors/irmer). Sie können die Originalsitzungen in dessen [`r fontawesome::fa("github")` GitHub Repository "PsyBSc7"](https://github.com/martscht/PsyBSc7) einsehen. Die Daten und einige Analysen zu diesen Sitzungen stammen von [Prof. Dr. Johannes Hartig](/authors/hartig) aus dem Sommersemester 2019 und fundierten als Vorlage für die Erstellung der Unterlagen in dieser Sitzung sowie der Sitzungen aus PsyBSc7 des letzten Semesters.
+Das Folgende fundiert zum Teil auf Sitzungen zur Korrelation und Regression aus [Veranstaltungen aus dem Bachelorstudium zur Statistik Vertiefung](/lehre/#bsc7).  
 
 
 ## (Multiple-) Lineare Regression
@@ -99,9 +99,9 @@ In Matrixschreibweise sieht die Gleichung folgendermaßen aus
 $$Y = X\mathbf{b} + \mathbf{e},$$
 was wiederum eine Kurzschreibweise für 
 $$\underbrace{\begin{pmatrix}y_1 \\ \vdots \\ y_n \end{pmatrix}}_Y = \underbrace{\begin{pmatrix}1 & x_{i1} & \dots & x_{m1}\\ \vdots & \vdots & \ddots & \vdots \\ 1 &  x_{n1} & \dots & x_{nm} \end{pmatrix}}_X\underbrace{\begin{pmatrix}b_1\\ \vdots\\ b_m\end{pmatrix}}_\mathbf{b} + \underbrace{\begin{pmatrix}e_1 \\ \vdots \\ e_n \end{pmatrix}}_\mathbf{e}$$
-ist. Wenn Sie also Ihre Daten in folgender Form vorliegen haben, so können Sie `R` nutzen und mit Hilfe von Matrixoperationen die Regressionskoeffizienten mit Hilfe des Kleinste-Quadrate-Schätzer berechnen:
+ist. Hier steht $n$ für die Stichprobengröße und $m$ für die Anzahl an Prädiktoren. Wenn Sie also Ihre Daten in folgender Form vorliegen haben, so können Sie `R` nutzen und mit Hilfe von Matrixoperationen die Regressionskoeffizienten mit Hilfe des Kleinste-Quadrate-Schätzer berechnen:
 $$\hat{\mathbf{b}}=(X'X)^{-1}X'Y$$
-Wie dies genau gemacht wird und wie weitere Kennwerte in der Regression (bspw. $R^2$) "zu Fuß" bestimmt werden, können Sie im [Appendix A](#AppendixA) nachlesen - _hierbei ist zu beachten, dass Appendix A als "weiterführende Literatur" anzusehen und somit nicht verpflichtend ist_.
+Wie dies genau gemacht wird und wie weitere Kennwerte in der Regression (bspw. $R^2$) "zu Fuß" bestimmt werden, können Sie im [Appendix A](#AppendixA) nachlesen - _hierbei ist zu beachten, dass Appendix A als "weiterführende Literatur" anzusehen und somit nicht verpflichtend ist. Oft hilft es aber beim Verständnis, sich solche Rechenoperationen anzusehen_. Außerdem kann es etwas die Komplexität aus der Sache nehmen, wenn erkannt wird, dass wir bspw. die Regressionskoeffizienten durch einfache Matrixprodukte schätzen können.
 
 
 ### Unser Modell und das Lesen von `R`-Outputs
@@ -130,7 +130,16 @@ Funktionen werden immer "von innen nach außen" angewandt, was ganz einfach bede
 summary(lm.beta(our_model))
 ```
 
-Die Summary ist eine weiterverbreitete Funktion, die Objekte zusammenfasst und interessante Informationen für uns auf einmal bereitstellt. `R` Outputs sehen fast immer so aus, weswegen es von unabdingbarer Wichtigkeit ist, dass wir uns mit diesem Output vertraut machen. Was können wir diesem nun Schritt für Schritt entnehmen?
+Seit der `R` Version `4.1.0` gibt es den sogenannten Pipe-Operator `|>` mit welchem das Schachteln von Funktionen vereinfacht dargestellt werden kann. Die soll bei vielen nacheinander Anwendnungen von Funktionen helfen, den Überblick zu bewahren. So können wir mit der Pipe obigen Output auch wie folgt erhalten:
+
+
+```{r}
+our_model |> lm.beta() |> summary()
+```
+
+Der Pipe-Operator übergibt immer das resultiernde Objekt des vorherigen Befehls an die erste Stelle der folgenden Funktion. Somit können wir die Pipe wie folgt lesen: "Nehme `our_model` und wende darauf `lm.beta()` and, nehme anschließend das resultierende Objekt und wende darauf `summary()` an. Je nach dem was Ihnen besser gefällt, können Sie beide Arten verwenden, um in `R` Funktionen anzuwenden. Wir behalten uns vor beide Arten zu nutzen.
+
+Die Summary ist eine weiterverbreitete Funktion, die Objekte zusammenfasst und interessante Informationen für uns auf einmal bereitstellt. `R` Outputs sehen fast immer so aus, weswegen es von unabdingbarer Wichtigkeit ist, dass wir uns mit diesem Output vertraut machen. Im Grunde werden uns alle nötigen Informationen, was in dieser Zusammenfassung steht, durch die Überschrift und Spaltenüberschriften gegeben. Was können wir diesem nun Schritt für Schritt entnehmen?
 
 ```{r, echo = F}
 cat('
@@ -156,7 +165,7 @@ mean(x = our_model$residuals) # Mittelwert mit Referenzierung aus dem lm Objekt 
 ```
 Mit Hilfe der `quantile` Funktion können wir beliebige Prozentränge eines Vektors anfordern. Hierbei gibt `resid(our_model)` (genauso wie `our_model$residuals`) einen Vektor mit Residuen aus. Indem wir `probs` z.B. auf `.01` setzen, würden wir den 1. Prozentrang (1%) erhalten.
 
-Die Zahl, die beim Mittelwert ausgegeben wird, ist folgendermaßen zu lesen: `e-15` steht für $*10^{-15}=0.000000000000001$ (die Dezimalstelle wird um 15 Stellen nach links verschoben), somit ist `1.048103e-15`$=1.048103*10^{-15}=0.000000000000001048103\approx 0$. Hier kommt in diesem Beispiel nicht exakt 0 heraus, da innerhalb der Berechnungen immer auf eine gewisse Genauigkeit gerundet wird.
+Die Zahl, die beim Mittelwert ausgegeben wird, ist folgendermaßen zu lesen: `e-15` steht für $*10^{-15}=0.000000000000001$ (die Dezimalstelle wird um 15 Stellen nach links verschoben), somit ist `1.048103e-15`$=1.048103*10^{-15}=0.000000000000001048103\approx 0$. Hier kommt in diesem Beispiel nicht exakt 0 heraus, da innerhalb der Berechnungen immer auf eine gewisse Genauigkeit gerundet wird. Diese hängt von der sogennanten Maschinengenauigkeit von `R` ab. Eine noch höhere Genauigkeit der Darstellung von Zahlen würde einfach zu viel Speicherplatz verbrauchen!
 
 Nun kommen wir zum eigentlich Spannenden, nämlich der Übersicht über die Parameterschätzung (`Coefficients`). Diese sieht in sehr vielen Analysen sehr ähnlich aus (z.B. logistische Regression oder Multi-Level-Analysen/hierarchische Regression aus diesem Kurs oder konfirmatorische Faktorenanalyse und Strukturgleichungsmodelle aus dem Folgekurs im Sommersemester).
 
@@ -172,10 +181,16 @@ IQ            3.9444       0.5836     0.5529   7.134 1.77e-10 ***
 Signif. codes:  0 \'***\' 0.001 \'**\' 0.01 \'*\' 0.05 \'.\' 0.1 \' \' 1')
 ```
 
-Insgesamt gibt es 6 Spalten, wobei die `Standardized`-Spalte extra durch das Paket `lm.beta` angefordert wurde (sie ist also nicht immer in der Summary enthalten). In der ersten Spalte stehen die Variablennamen, die selbsterklärend sein sollten. Die Spalte `Estimate` zeigt den unstandardisierten Parameter (hier Regressionsgewicht). Z.B. liegt das Interzept $b_0$ bei `r round(coef(our_model)[1], 4)`. Das Partialregressionsgewicht vom Geschlecht $b_\text{female}$ liegt bei `r round(coef(our_model)[2], 4)`. Da Mädchen mit `1` kodiert sind, bedeutet dies: Wenn Mädchen im Vergleich zu Jungen betrachtet werden, so steigt die Leseleistung durchschnittlich um `r round(coef(our_model)[2], 4)` Punkte ("durchschnittlich" in der Interpretation ist enorm wichtig, da es ja noch den Vorhersagefehler gibt). Folglich können wir das Interzept ebenfalls interpretieren: Ein Junge mit einem Intelligenzquotienten von 0 (dieser Wert ist leider unrealistisch, da der IQ hier nicht zentriert wurde - die Effekte von Zentrierung schauen wir uns in der nächsten Sitzung zu Multi-Level-Modeling genauer an!) hat eine durchschnittliche Leseleistung von `r round(coef(our_model)[1], 4)`. 
+Insgesamt gibt es 6 Spalten, wobei die `Standardized`-Spalte extra durch das Paket `lm.beta` angefordert wurde (sie ist also nicht immer in der Summary enthalten). In der ersten Spalte stehen die Variablennamen, die selbsterklärend sein sollten. Die Spalte `Estimate` zeigt den unstandardisierten Parameter (hier Regressionsgewicht). Z.B. liegt das Interzept $b_0$ bei `r round(coef(our_model)[1], 4)`. Das Partialregressionsgewicht vom Geschlecht $b_\text{female}$ liegt bei `r round(coef(our_model)[2], 4)`. Da Mädchen mit `1` kodiert sind, bedeutet dies: Wenn Mädchen im Vergleich zu Jungen betrachtet werden, so steigt die Leseleistung durchschnittlich um `r round(coef(our_model)[2], 4)` Punkte ("durchschnittlich" in der Interpretation ist enorm wichtig, da es ja noch den Vorhersagefehler gibt). Folglich können wir das Interzept ebenfalls interpretieren: Ein Junge mit einem Intelligenzquotienten von 0 (dieser Wert ist leider unrealistisch, da der IQ hier nicht zentriert wurde - die Effekte von Zentrierung schauen wir uns in der Sitzung zu [Multi-Level-Modeling](/post/multi-level-modeling) genauer an!) hat eine durchschnittliche Leseleistung von `r round(coef(our_model)[1], 4)`. 
+
 In der Spalte `Standardized` stehen die standardisierten Regressionsgewichte. Hier werden die Daten so transformiert, dass sowohl die AV als auch die UVs jeweils Mittelwerte von 0 und Varianzen (bzw. Standardabweichungen) von 1 aufweisen. Das Interzept ist nun nicht länger interessant, da, wenn $y$ einen Mittelwert von 0 hat und auch die unabhängigen Variablen zentriert sind (also Mittelwerte von 0 haben), dann ist das Interzept gerade jener vorhergesagte Wert für $y$, der anfällt, wenn alle Prädiktoren den Wert 0 -also ihren Mittelwert - annehmen. Bei der Regression ist es aber so, dass an der Stelle, an der die Prädiktoren ihren Mittelwert annehmen, auch der Mittelwert von $y$ liegt; hier also der Wert 0. Folglich ist das Interzept im standardisierten Fall **_immer_** 0. 
 Das standardisierte Regressionsgewicht der Intelligenz $\beta_\text{IQ}$ liegt bei `r round(coef(lm.beta(our_model))[3], 4)`, was bedeutet, dass bei einer Erhöhung der Intelligenz um eine Standardabweichung auch die Leseleistung im Mittel (im Durchschnitt) um `r round(coef(lm.beta(our_model))[3], 4)` Standardabweichungen ansteigt. Da das Geschlecht *hier* nur zwei Ausprägungen hat, lässt sich der standardisierte Koeffizient $\beta_\text{female}$ von `r round(coef(lm.beta(our_model))[2], 4)` wie folgt interpretieren: Steigt die Variable Geschlecht um eine Standardabweichung - werden also Mädchen im Vergleich zu Jungen betrachtet - so steigt die Leseleistung um durchschnittlich `r round(coef(lm.beta(our_model))[2], 4)` Standardabweichungen. 
-Die Spalte `Std.Error` enthält die Standardfehler. Diese werden in $t$-Werte umgerechnet via $\frac{Est}{SE}$: es wird also die Parameterschätzung durch seinen Standardfehler geteilt und in der nächsten Spalte `t value` dargestellt. In einigen Summaries wird auch anstelle des $t$-Wertes der $z$-Wert verwendet. Hierbei ändert sich nichts, nur wird zur Herleitung der $p$-Werte eben die $z$- anstatt der $t$-Verteilung verwendet. Wenn wir uns allerdings an Statistik aus dem Bachelor erinnern, so bemerken wir, dass für große Stichproben die $t$ und die $z$-Verteilung identisch (bzw. sehr nahe beieinander liegend) sind. Als groß gilt hierbei bereits eine Stichprobengröße von 50! In der Spalte `Pr(>|t|) ` stehen die zugehörigen $p$-Werte. "Pr" steht für die Wahrscheinlichkeit (**Pr**obability), dass die Teststatistik (hier der $t$-Wert) im Betrag ein extremeres Ergebnis aufzeigt, als das Beobachtete. Außerdem bekommen wir noch mit Sternchen angezeigt, auf welchem Signifikanzniveau die einzelnen Parameter statistisch bedeutsam sind. Dem Output entnehmen wir, dass das Interzept nicht bedeutsam ist - die Effekte der Prädiktoren sind allerdings auf dem 5%-Niveau statistisch signifikant. Dies bedeutet bspw. für die Intelligenz, dass _mit einer Irrtumswahrscheinlichkeit von 5% der Regressionsparameter der Intelligenz in der Population nicht 0 ist und somit auch in der Population mit dieser Irrtumswahrscheinlichkeit von einem Effekt zu sprechen ist_. Hierbei ist es essentiell, dass sich die statistiche Interpretation immer auf die Population bezieht. Dass ein Koeffizient nicht 0 ist (in der Stichprobe), erkennen wir einfach daran, dass er von 0 abweicht, allerdings kann dieses Ergebnis eben durch Zufall aufgetreten sein - so wie es der Fall beim Interzept ist. Dieses weicht offensichtlich in unserer Stichprobe von 0 ab, allerdings nicht stark genug, als dass man dies auch für die Population schlussfolgern würde (mit einer Irrtumswahrscheinlichkeit von 5%).
+
+Die Spalte `Std.Error` enthält die Standardfehler. Diese werden in $t$-Werte umgerechnet via $\frac{Est}{SE}$: es wird also die Parameterschätzung durch seinen Standardfehler geteilt und in der nächsten Spalte `t value` dargestellt. In einigen Summaries wird auch anstelle des $t$-Wertes der $z$-Wert verwendet. Hierbei ändert sich nichts, nur wird zur Herleitung der $p$-Werte eben die $z$- anstatt der $t$-Verteilung verwendet. Wenn wir uns allerdings an Statistik aus dem Bachelor erinnern, so bemerken wir, dass für große Stichproben die $t$ und die $z$-Verteilung identisch (bzw. sehr nahe beieinander liegend) sind. Als groß gilt hierbei bereits eine Stichprobengröße von 50! 
+
+In der Spalte `Pr(>|t|) ` stehen die zugehörigen $p$-Werte. "Pr" steht für die Wahrscheinlichkeit (**Pr**obability), dass die Teststatistik (hier der $t$-Wert) im Betrag ein extremeres Ergebnis aufzeigt, als das Beobachtete. Außerdem bekommen wir noch mit Sternchen angezeigt, auf welchem Signifikanzniveau die einzelnen Parameter statistisch bedeutsam sind. 
+
+Zusammenfassend entnehmen wir dem Output, dass das Interzept nicht bedeutsam von 0 verschieden ist - die Effekte der Prädiktoren sind allerdings auf dem 5%-Niveau statistisch signifikant. Dies bedeutet bspw. für die Intelligenz, dass _mit einer Irrtumswahrscheinlichkeit von 5% der Regressionsparameter der Intelligenz in der Population nicht 0 ist und somit auch in der Population mit dieser Irrtumswahrscheinlichkeit von einem Effekt zu sprechen ist_. Hierbei ist es essentiell, dass sich die statistiche Interpretation immer auf die Population bezieht. Dass ein Koeffizient nicht 0 ist (in der Stichprobe), erkennen wir einfach daran, dass er von 0 abweicht, allerdings kann dieses Ergebnis eben durch Zufall aufgetreten sein - so wie es der Fall beim Interzept ist. Dieses weicht offensichtlich in unserer Stichprobe von 0 ab, allerdings nicht stark genug, als dass wir dies auch für die Population schlussfolgern (_auch:_ schließen/inferieren, desewegen auch **Inferenzstatistik**/schließende Statistik) würden (mit einer Irrtumswahrscheinlichkeit von 5%).
 
 Regressionskoeffizienten können einzeln signifikant sein, ohne, dass signifikante Anteile der Variation der abhängigen Variable erklärt werden. 
  
@@ -203,7 +218,7 @@ Wenn wir diese Siginfikanzentscheidungen nutzen wollen, um die Effekte in der Po
 
 
 ## Prüfen der Voraussetzungen
-_Dieser Abschnitt fundiert auf der Sitzung "Regression III" von [Julien Irmer](/authors/irmer) aus dem Bachelorstudium Psychologie._ Die Voraussetzung der Unabhängigkeit und der Gleichverteiltheit ist und bleibt eine Annahme, die wir nicht prüfen können. Wir können jedoch durch das Studiendesign (Randomisierung, Repräsentativität) diese Annahme plausibilisieren. Wir schauen uns als nächstes die Linearitätsannahme an und machen danach mit der Verteilung der Residuen weiter. Zum Schluss schauen wir uns neben der Multikollinearität noch mögliche Ausreißer an:
+Dieser Abschnitt fundiert auf der Bachelorsitzung zu [Regression III](/post/reg3). Die Voraussetzung der Unabhängigkeit und der Gleichverteiltheit ist und bleibt eine Annahme, die wir nicht prüfen können. Wir können jedoch durch das Studiendesign (Randomisierung, Repräsentativität) diese Annahme plausibilisieren. Wir schauen uns als nächstes die Linearitätsannahme an und machen danach mit der Verteilung der Residuen weiter. Zum Schluss schauen wir uns neben der Multikollinearität noch mögliche Ausreißer an:
 
 * Linearität 
 * Homoskedastizität 
@@ -221,7 +236,7 @@ Vertiefende Literatur zum folgenden Stoff finden wir bspw. in [Eid, et al. (2017
 Eine grafische Prüfung der partiellen Linearität zwischen den einzelnen Prädiktorvariablen und dem Kriterium kann durch *partielle Regressionsplots* (engl. *Partialplots*) erfolgen. Dafür sagen wir in einem Zwischenschritt einen einzelnen Prädiktor durch alle übrigen Prädiktoren im Modell vorher und speichern die Residuen, die sich aus dieser Regression ergeben. Diese kennzeichnen den eigenständigen Anteil, den ein Prädiktor nicht mit den übrigen Prädiktoren gemein hat (er wird also von den übrigen Prädiktoren bereinigt). Dann werden die Residuen aus dieser Vorhersage gegen die Residuen des Kriteriums bei Vorhersage durch den jeweiligen Prädiktor dargestellt. Diese Grafiken können Hinweise auf systematische nicht-lineare Zusammenhänge geben, die in der Modellspezifikation nicht berücksichtigt wurden. Die zugehörige `R`-Funktion des `car` Pakets heißt `avPlots` und braucht als Argument lediglich das spezifizierte Regressionsmodell `our_model`. 
 
 ```{r, fig.width=10}
-avPlots(model = our_model, pch = 16, lwd = 4)
+avPlots(model = our_model, pch = 16, lwd = 4) 
 ```
 
 Mit Hilfe der Argumente `pch=16` und `lwd=4` werden die Darstellung der Punkte (ausgefüllt anstatt leer) sowie die Dicke der Linie (vierfache Dicke) manipuliert (_für mehr zu Grafikparametern in `R` siehe [`r fontawesome::fa("graduation-cap")`  hier](https://www.statmethods.net/advgraphs/parameters.html)_). Den Achsenbeschriftungen ist zu entnehmen, dass auf der Y-Achse jeweils *reading | others* dargestellt ist. Die vertikale Linie *|* steht hierbei für den mathematischen Ausdruck *gegeben*. *Others* steht hierbei für alle weiteren (anderen) Prädiktoren im Modell. Dies bedeutet, dass es sich hierbei um die Residuen aus der Regression von *reading* auf alle anderen Prädiktoren handelt. Bei den unabhängigen Variablen (UV, *female*, *IQ*) steht *UV | others* also jeweils für die jeweilige UV gegeben der anderen UVs im Modell. Somit beschreiben die beiden Plots jeweils die Beziehungen, die die UVs über die anderen UVs im Modell hinaus mit dem Kriterium (AV, abhängige Variable) haben. Es ist zu beachten, dass die Variable Geschlecht hier nur zwei Ausprägungen hat.
