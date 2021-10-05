@@ -17,7 +17,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer]
-lastmod: '2020-10-27T16:40:21+02:00'
+lastmod: '2021-10-05T16:40:21+02:00'
 featured: no
 header:
   image: "/header/FEI_Sitzung0_post.jpg"
@@ -55,6 +55,8 @@ Genauso sind Sie in der Lage, den Datensatz direkt aus dem Internet zu laden. Hi
 ```{r}
 load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
 ```
+
+An diesem Link erkennen wir, dass Websiten im Grunde auch nur schön dargestellte Ordnerstrukturen sind. So liegt auf der Pandar-Seite, die auf *netlify.app* gehostet wird, ein Ordner namens *post*, in welchem wiederum das `Schulleistungen.rda` liegt.
 
 ### Ein Überblick über die Daten
 Wir können uns die ersten (6) Zeilen des Datensatzes mit der Funktion `head` ansehen. Dazu müssen wir diese Funktion auf den Datensatz (das Objekt) `Schulleistungen` anwenden:
@@ -123,25 +125,30 @@ colMeans(Schulleistungen)
 Da `female` 0-1 kodiert ist und `1` für Mädchen steht, bedeutet die hier beobachtete Zahl von .54, dass gerade ca. 54% der Proband*innen weiblich waren. 
 
 ## Der $t$-Test
-Ein sehr einfacher statistischer Test, ist der $t$-Test (für eine Wiederholung siehe bspw. [Eid, et al., 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 11.1 oder [Agresti, & Finlay, 2013,](https://hds.hebis.de/ubffm/Record/HEB369761391) Kapitel 6.2 und folgend). Mit Hilfe dieses Tests soll untersucht werden, ob die Mittelwerte in zwei Gruppen gleich sind. Dazu brauchen wir drei wichtige Annahmen: 1) die Beobachtungen stammen aus einer _independent and identically distributed_ (i.i.d., deutsch: unabhängig und identisch verteilt) Population (dies bedeutet, dass alle Beobachtungen unabhängig sind und den gleichen Verteilungs- und Modellannahmen unterliegen), 2) die Daten in beiden Gruppen sind normalverteilt mit 3) gleicher Varianz (Varianzhomogenität). Die 1. Annahme ist sehr kritisch und lässt sich leider nicht prüfen. Für die anderen beiden Annahmen gibt es verschiedene Tests und deskriptive Verfahren, um ein Gefühl für ihr Vorliegen zu erhalten - diese schauen wir uns in der nächsten Sitzung zur Regression an. Unter diesen Annahmen stellen wir die folgenden Null-Hypothese auf - die Gleichheit der Mittelwerte in den beiden Gruppen:
+Ein sehr einfacher statistischer Test, ist der $t$-Test (für eine Wiederholung siehe bspw. [Eid, et al., 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 11.1 oder [Agresti, & Finlay, 2013,](https://hds.hebis.de/ubffm/Record/HEB369761391) Kapitel 6.2 und folgend). Mit Hilfe dieses Tests soll untersucht werden, ob die Mittelwerte in zwei Gruppen gleich sind. Dazu brauchen wir drei wichtige Annahmen: 
+
+  1) die Beobachtungen stammen aus einer _independent and identically distributed_ (i.i.d., deutsch: unabhängig und identisch verteilt) Population (dies bedeutet, dass alle Beobachtungen unabhängig sind und den gleichen Verteilungs- und Modellannahmen unterliegen), 
+  2) die Daten in beiden Gruppen sind normalverteilt mit 
+  3) gleicher Varianz (Varianzhomogenität). 
+
+Die 1. Annahme ist sehr kritisch und lässt sich leider nicht prüfen. Sie lässt sich aber durch das Studiendesign zumindest plausibilisieren. Für die anderen beiden Annahmen gibt es verschiedene Tests und deskriptive Verfahren, um ein Gefühl für ihr Vorliegen zu erhalten - diese schauen wir uns in der nächsten Sitzung zur Regression an. Unter diesen Annahmen stellen wir die folgenden Null-Hypothese auf - die Gleichheit der Mittelwerte in den beiden Gruppen:
 $$H_0: \mu_1=\mu_2$$
-Diese Hypothese gilt nicht, wenn $\mu_1\neq\mu_2$. In diesem Fall gilt irgendeine Alternativhypothese ($H_1$) mit einer Mittelwertsdifferenz $d=\mu_1-\mu_2$, die nicht Null ist $(\neq0)$. Wir sprechen hier von einer Alternativhypothese, da in der (frequentistischen) Statistik immer ein fester Wert für die Population angenommen werden muss, welcher, wenn die $H_0$ nicht gilt, eine feste Differenz $d$ für die Mittelwerte annimmt. 
+Diese Hypothese gilt nicht, wenn $\mu_1\neq\mu_2$. In diesem Fall gilt irgendeine Alternativhypothese ($H_1$) mit einer Mittelwertsdifferenz $d=\mu_1-\mu_2$, die nicht Null ist $(d\neq0)$. Wir sprechen hier von einer Alternativhypothese, da in der (frequentistischen) Statistik immer feste Werte für die Parameter in der Population angenommen werden müssen. Wenn die $H_0$ nicht gilt, so muss entsprechend auch ein fester Wert für die Differenz $d$ für die Mittelwerte angenommen werden. 
 
 ### Simulieren von Daten
 Wir können in `R` auch Daten simulieren. Bspw. erzeugt der Befehl `rnorm` normalverteilte Zufallsvariablen. Für weitere Informationen siehe bspw. [`r fontawesome::fa("graduation-cap")` `R`-Verteilungen auf Wiki](https://en.wikibooks.org/wiki/R_Programming/Probability_Distributions). Wir müssen  diesem Befehl lediglich übergeben wie viele Replikationen wir wünschen und welchen Mittelwert und Standardabweichung die Zufallsvariablen haben sollen. Wir simulieren die Standardnormalverteilung $\mathcal{N}(0,1)$ und legen die generierte (realisierte) Zufallsvariable in einem Objekt mit dem Namen `X` ab, um später gezeigte Informationen wie den Mittelwert oder die Standardabweichung abrufen zu können - dies machen wir mit dem "Zuordnungspfeil" `<-` (zur Erinnerung: links davon steht der Name, den wir uns ausdenken; hier: `X`; rechts steht das zugeordnete Objekt):
 
-```{r, echo = F}
-set.seed(1234567)
-```
-
 ```{r}
+set.seed(1234567) # für Replizierbarkeit (bei gleicher R Version, kommen Sie mit diesem Seed zum selben Ergebnis!)
 X <- rnorm(n = 1000, mean = 0, sd = 1) # Standardnormalverteilung mit n = 1000
 hist(X)
 mean(X)
 sd(X)
 ```
 
-Natürlich liegen der geschätzte Mittelwert und die Standardabweichung nicht genau auf den wahren Werten, was am Sampling-Error liegt. Gehen wir nun her und simulieren noch eine zweite Stichprobe standardnormalverteilter Zufallsvariablen, so können wir diese beiden Stichproben mit Hilfe des $t$-Tests vergleichen. Die Funktion in `R` hierzu heißt `t.test` (wir müssen hier `var.equal = T` wählen, da sonst eine Näherung verwendet wird, die unterschiedliche Varianzen ausgleichen soll, nämlich Welch's Two Sample $t$-Test):
+Natürlich liegen der geschätzte Mittelwert und die Standardabweichung nicht genau auf den wahren Werten, was am Sampling-Error liegt. Der Sampling-Error beschreibt die zufällige Schwankung, die durch das Ziehen der Stichprobe aus einer Population (Grundgesamtheit) entsteht. 
+
+Gehen wir nun her und simulieren noch eine zweite Stichprobe standardnormalverteilter Zufallsvariablen, so können wir diese beiden Stichproben mit Hilfe des $t$-Tests vergleichen. Die Funktion in `R` hierzu heißt `t.test` (wir müssen hier `var.equal = T` wählen, da sonst eine Näherung verwendet wird, die unterschiedliche Varianzen ausgleichen soll, nämlich Welch's Two Sample $t$-Test):
 
 ```{r, results = "hide"}
 Y <- rnorm(n = 1000, mean = 0, sd = 1)
