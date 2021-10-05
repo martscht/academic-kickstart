@@ -1,7 +1,7 @@
 ---
 title: Hauptkomponentenanalyse
 date: '2020-10-14'
-slug: PCA
+slug: pca
 categories:
   - MSc1
 tags:
@@ -15,7 +15,7 @@ tags:
 subtitle: 'Principal Component Analysis: PCA'
 summary: ''
 authors: [irmer]
-lastmod: '2020-10-29T17:32:21+02:00'
+lastmod: '2021-10-05T17:32:21+02:00'
 featured: no
 header:
   image: "/header/FEI_Sitzung3_post.jpg"
@@ -119,6 +119,10 @@ Nun ist noch stärker ersichtlich, dass jeweils die Variablen `x1-x3` und die Va
 
 ## Wiederholung der Grundbegriffe der PCA {#Grundbegriffe}
 
+Wenn Sie wünschen, können Sie hier die Grundbegriffe der PCA "ausklappen".
+
+<details><summary>**Grundbegriffe der PCA**</summary>
+
 In der PCA bestimmen wir Hauptkomponenten $H$, die sich als Linearkombinationen der Variablen darstellen lassen mit der Eigenschaft, dass diese Hauptkomponenten unkorreliert sind und somit keine gemeinsame lineare Information enthalten. Z.B. sehen die Gleichungen zweier Hauptkomponenten, die aus zwei Variablen $Z_1$ und $Z_2$ entstehen, wie folgt aus:
 \begin{align}
 H_1 &= \gamma_{11}Z_1 + \gamma_{12}Z_2\\
@@ -141,7 +145,7 @@ $$\Theta_{std} = \begin{pmatrix} \sqrt{\theta_1} & 0 & 0\\
 0 & 0 & \sqrt{\theta_m}
 \end{pmatrix}$$
 
-Hierbei ist das Transponieren wichtig, denn für das einfache Beispiel mit zwei Variablen und Hauptkomponenten ergibt sich: $\lambda_{11}=\sqrt{\theta_1}\gamma_{11}$ und $\lambda_{12}=\sqrt{\theta_2}\gamma_{21}$ (man achte auf die Indizes bei der zweiten Gleichung). Wir müssen nämlich das Gewicht der Variable $Z_1$ nehmen, welches bei der ersten Hauptkomponente gerade $\gamma_{11}$, aber bei der zweiten gerade $\gamma_{21}$ ist. Die Matrix $\Gamma$ ist gerade die Matrix der Eigenvektoren und die Eigenwerte $\theta$ repräsentieren die Varianzen der unstandardisierten Hauptkomponenten $\mathbf{H}$ (ohne $^*$). Somit sind dies gerade die Lösungen des Eigenwerteproblems zur Korrelationsmatrix unserer Daten. Wenn wir nun nur ein paar der Hauptkomponenten behalten, wobei es sinnig ist, dies anhand der Eigenwerte, also der Varianzen festzumachen, welche der Größe nach sortiert sind, dann geht Variation im Datensatz verloren. Die Variation wird also durch die Reduktion der Hauptkomponenten verringert. Entsprechend verändert sich auch die resultierende Korrelationsmatrix, welche auch häufig implizierte (durch das reduzierte "Modell"; dazu im nächsten Semester mehr) Kovarianzmatrix ($\Sigma_\mathbf{Z}$) genannt wird. Diese lässt sich immer so bestimmen:
+Hierbei ist das Transponieren wichtig, denn für das einfache Beispiel mit zwei Variablen und Hauptkomponenten ergibt sich: $\lambda_{11}=\sqrt{\theta_1}\gamma_{11}$ und $\lambda_{12}=\sqrt{\theta_2}\gamma_{21}$ (man achte auf die Indizes bei der zweiten Gleichung). Wir müssen nämlich das Gewicht der Variable $Z_1$ nehmen, welches bei der ersten Hauptkomponente gerade $\gamma_{11}$, aber bei der zweiten gerade $\gamma_{21}$ ist. Die Matrix $\Gamma$ ist gerade die Matrix der Eigenvektoren und die Eigenwerte $\theta$ repräsentieren die Varianzen der unstandardisierten Hauptkomponenten $\mathbf{H}$ (ohne $^*$). Somit sind dies gerade die Lösungen des Eigenwerteproblems zur Korrelationsmatrix unserer Daten. Wenn wir nun nur ein paar der Hauptkomponenten behalten, wobei es sinnig ist, dies anhand der Eigenwerte, also der Varianzen festzumachen, welche der Größe nach sortiert sind, dann geht Variation im Datensatz verloren. Die Variation wird also durch die Reduktion der Hauptkomponenten verringert. Entsprechend verändert sich auch die resultierende Korrelationsmatrix, welche auch häufig implizierte (durch das reduzierte "Modell"; dazu im nächsten Semester mehr) Korrelationsmatrix ($\Sigma_\mathbf{Z}$) genannt wird. Diese lässt sich immer so bestimmen:
 
 $$R:= \Lambda \Lambda'\quad (=\Sigma_\mathbf{Z})$$
 wobei
@@ -151,9 +155,12 @@ $$\Lambda' \Lambda =  \begin{pmatrix} \theta_1 & 0 & 0\\
 \end{pmatrix}$$
 
 gerade eine Diagonalmatrix mit den Eigenwerten auf der Diagonalen ist (man achte hier auf das Transponieren!). Haben wir also nur ein paar der Hauptkomponenten gewählt, ist das resultierende $R$ nicht mehr gleich der Korrelationsmatrix, sondern repräsentiert die Korrelationsmatrix des reduzierten Datensatzes, wobei auf der Diagonalen keine 1en sondern die Kommunalitäten der Variablen stehen. Die ursprünglichen Variablen wurden in ihrer Variation eingeschränkt. *Jetzt aber Mal mit der dahinterliegenden Mathematik bei Seite*: Wie wir dies in `R` umsetzen und wo wir die jeweiligen Matrizen ablesen, schauen wir uns im Folgenden an.
+</details>
 
 
 ## PCA mit der Funktion `pca` des psych-Pakets
+Für eine PCA kann sowohl die Korrelation zwischen den Variablen (also die Korrelationsmatrix) als auch die Kovarianzen (also die Kovarianzmatrix) verwendet werden. Je nach dem welche Information genutzt wird, können unterschiedlich viele Hauptkomponenten extrahiert werden. Die beiden Datengrundlagen resultieren also nicht immer in der selben Lösung! Dazu sei gesagt, dass beim Benutzen der Kovarianz die Varianz der einzelenen Variablen eine ganz maßgebenden Rolle spielt. Dies bedeutet, dass Variablen mit großer Varianz "bevorzugt" werden und damit Hauptkomponenten sich eher aus Variablen mit große Varianz zusammensetzen. Um keine Gewichtung der Variablen vorzunehmen, wird in den meisten Fällen die Korrelationsmatrix verwendet. So werden wir auch vorgehen. 
+
 Eine PCA durchzuführen, geht sehr einfach. Wir schauen uns dies im Abschnitt [PCA zu Fuß](#PCAzuFuss) in [Appendix B](#AppendixB) auch noch einmal mit den Basisfunktionen in `R` an. Jetzt verwenden wir aber die Funktion `pca` aus den `psych` Paket. Ihr müssen wir die Korrelationsmatrix als erstes Argument übergeben `r`, danach spezifizieren wir, wie viele Komponenten extrahiert werden sollen: `nfactors`. Da wir uns noch nicht entschieden haben, wie viele Komponenten wir extrahieren wollen, geben wir die gesamte Anzahl an Variablen an. Zuletzt spezifizieren wir, dass wir keine Rotation durchführen möchten: `rotate = "none"`. Um das Objekt ggf. später weiter zu verwenden, ordnen wir es `PCA1` zu, für die erste PCA, die wir in dieser Sitzung durchführen.
 
 ```{r}
@@ -210,7 +217,7 @@ Cumulative Proportion 0.43 0.67 0.80 0.89 0.95 1.00')
 ```
 
 
-`SS loadings` steht für "Sum of Squares loadings", also die Quadratsumme der Ladungen. Diese ist gleich dem Eigenwert: $\theta_j = \Sigma_{i=1}^p\lambda_{ij}^2 = \lambda_{1j}^2+\dots+\lambda_{pj}^2$ (Spaltenquadratsumme der Faktorladungen), mit $p=$ Anzahl an Variablen (hier $p=6$). `Proportion Var` betitelt den (relativen) Anteil der Variation, der durch die jeweiligen Faktoren erklärt werden kann. `Cumulative Var` kumuliert, also summiert, diese Anteile bis zum jeweiligen Faktor auf ($\text{CumVar}_i = \sum_{j=1}^i\theta_j = \theta_1+\dots+\theta_i$, also $\text{CumVar}_1=\theta_1$ und $\text{CumVar}_2=\theta_1+\theta_2$, usw.). `Proportion Explained` setzt die Variation, die durch die Faktoren erklärt wird, in Relation zur gesamten erklärten Varianz (d.h. hier summiert sich die erklärte Varianz immer zu 1, während sich die proportionale Varianz nur zu 1 aufsummiert, wenn die gesamte Variation im Datensatz auf die beiden Variablen zurückzuführen ist - da wir hier die Maximalanzahl extrahiert haben, geben beide die gleichen Zahlen wieder - dazu später mehr!). `Cumulative Proportion` beschreibt das gleiche wie `Cumulative Var`, nur bezieht sie sich hier auf die `Proportion Explained`.
+`SS loadings` steht für "Sum of Squares loadings", also die Quadratsumme der Ladungen. Diese ist gleich dem Eigenwert: $\theta_j = \Sigma_{i=1}^p\lambda_{ij}^2 = \lambda_{1j}^2+\dots+\lambda_{pj}^2$ (Spaltenquadratsumme der Komponentenladungen), mit $p=$ Anzahl an Variablen (hier $p=6$). `Proportion Var` betitelt den (relativen) Anteil der Variation, der durch die jeweiligen Komponenten erklärt werden kann. `Cumulative Var` kumuliert, also summiert, diese Anteile bis zur jeweiligen Komponente auf ($\text{CumVar}_i = \sum_{j=1}^i\theta_j = \theta_1+\dots+\theta_i$, also $\text{CumVar}_1=\theta_1$ und $\text{CumVar}_2=\theta_1+\theta_2$, usw.). `Proportion Explained` setzt die Variation, die durch die Komponenten erklärt wird, in Relation zur gesamten erklärten Varianz (d.h. hier summiert sich die erklärte Varianz immer zu 1, während sich die proportionale Varianz nur zu 1 aufsummiert, wenn die gesamte Variation im Datensatz auf die beiden Variablen zurückzuführen ist - da wir hier die Maximalanzahl extrahiert haben, geben beide die gleichen Zahlen wieder - dazu später mehr!). `Cumulative Proportion` beschreibt das gleiche wie `Cumulative Var`, nur bezieht sie sich hier auf die `Proportion Explained`.
 
 
 ```{r, echo = F}
@@ -236,7 +243,7 @@ PCA1$loadings
 
 PCA1$loadings[,] # um alle zu sehen
 ```
-`[,]` erzwingt, dass alle Ladungen angezeigt werden, da ansonsten intern ein Cutoff-Wert herangezogen wird, um das Ganze übersichtlicher zu machen (i.d.R. betraglich > 0.2). Außerdem ändern sich die Eigenwerte, je nachdem, wie die Ladungen angezeigt werden, was sehr seltsam erscheint... `r fontawesome::fa("frown")` Ein extremes Beispiel erkennen wir, indem wir die Faktorladungen auf eine Nachkommastelle runden:
+`[,]` erzwingt, dass alle Ladungen angezeigt werden, da ansonsten intern ein Cutoff-Wert herangezogen wird, um das Ganze übersichtlicher zu machen (i.d.R. betraglich > 0.2). Außerdem ändern sich die Eigenwerte, je nachdem, wie die Ladungen angezeigt werden, was sehr seltsam erscheint... `r fontawesome::fa("frown")` Ein extremes Beispiel erkennen wir, indem wir die Komponentenladungen auf eine Nachkommastelle runden:
 ```{r}
 round(PCA1$loadings, 1)
 ```
@@ -274,7 +281,7 @@ Die alles entscheidende Frage ist nun: _Wie viele Komponenten extrahieren wir, u
 Wir können alle drei/vier Methoden in einer Funktion untersuchen, welche `fa.parallel` heißt. Diese führt eigentlich eine Parallelanalyse für Faktorenanalysen (FA) durch und plotten dann die Eigenwertverläufe in einer Grafik. Wenn wir allerdings das Zusatzargument `fa = "pc"` wählen, so wird das ganze für eine PCA gemacht. Wir müssen der Funktion lediglich die Daten übergeben (damit geresampled werden kann!). Zum Schluss malen wir noch eine horizontale Linie bei der Eigenwertsgröße von 1 hinzu, um das Eigenwerte-größer-1 Kriterium leichter prüfen zu können (`abline(h = 1) `).
 
 ```{r}
-fa.parallel(dataUV, fa = "pc")
+fa.parallel(dataUV, fa = "pc", error.bars = T)
 # Eigenwerte größer 1?
 abline(h = 1)
 ```
@@ -286,6 +293,10 @@ Sowohl die Parallelanalyse als auch das Eigenwerte-Größer-1-Kriterium sprechen
 ```{r, echo = F}
 cat("Parallel analysis suggests that the number of factors =  NA  and the number of components =  2")
 ```
+
+Hierbei ist zu beachten, dass diese Entscheidung, die ausgegeben wird, auf Basis von Konfidenzintervallen, die um die durchschnittlichen Eigenwerte gelegt werden, bestimmt werden. Diese Konfidenzintervalle lassen sich auch anzeigen (Argument `error.bars = T`). Die Breite der Konfidenzintervalle und damit im Grunde die Präzision der Parallelanalyse hängen von der Anzahl an Replikationen ab. Hierbei ist es sinnvoll eine sehr große Zahl zu nehmen (`n.iter = 10^3`; Sie sollten beim Bearbeiten von Aufgaben immer diese zusätzliche Einstellung vornehmen - sie ist hier nicht eingestellt, da dies sonst beim Schreiben dieses Skripts zu langen Wartezeiten führen würde). Allerdings kann dies zu längerer Berechnungsdauer führen!
+
+
 
 Ein Knick im Eigenwerteverlauf ist nicht gut zu erkennen. Man könnte sich einen Knick an der 3. oder 4. Komponente einbilden (was für 2-3 Komponenten sprechen würde). Final entscheiden wir uns für 2 Komponenten und rechnen mit diesen weiter; was im Übrigen auch unsere Vermutung auf Basis der Grafik der Korrelationsmatrix war.
 
@@ -326,7 +337,7 @@ PCA3 <- pca(r = R_UV, nfactors = 2, rotate = "varimax")
 PCA3
 ```
 
-Diesmal haben sich die Faktorladungen geändert und zwar so, dass die Faktorladungen pro Komponente maximale Varianz haben (also möglichst unterschiedlich sind). Entsprechend fallen die Eigenwerte anders aus und auch die Komponenten heißen nicht mehr `PC` sondern `RC` für **R**otated **C**omponent. Die Kommunalitäten ändern sich aber nicht - genauso wenig wie die gesamte Variation, die durch die beiden Hauptkomponenten erklärt werden kann. In den Faktorladungen erkennen wir nun eine deutlich leichtere Zuordnung zu den Komponenten. Wir schauen uns dies nochmal grafisch an.
+Diesmal haben sich die Komponentenladungen geändert und zwar so, dass die Komponentenladungen pro Komponente maximale Varianz haben (also möglichst unterschiedlich sind). Entsprechend fallen die Eigenwerte anders aus und auch die Komponenten heißen nicht mehr `PC` sondern `RC` für **R**otated **C**omponent. Die Kommunalitäten ändern sich aber nicht - genauso wenig wie die gesamte Variation, die durch die beiden Hauptkomponenten erklärt werden kann. In den Komponentenladungen erkennen wir nun eine deutlich leichtere Zuordnung zu den Komponenten. Wir schauen uns dies nochmal grafisch an.
 
 ### Grafische Veranschaulichungen des Ladungsmusters
 
@@ -346,7 +357,7 @@ plot(PCA3, cex = 2)
 
 Auch hier lässt sich die Einfachstruktur dadurch erkennen, dass die Punkte mit den Zahlen (und entsprechend die Nummer der Variablen) 1-4 und 6 sehr nah an den Achsen liegen. Nur `x5` wird nicht eindeutig einer Komponente zugeordnet.
 
-Diese lässt sich auch in einem stark vereinfachten Pfaddiagramm darstellen. Dazu wenden wir `fa.diagramm` aus dem `psych` Paket auf das `PCA3` Objekt an. Pfeile symbolisieren hier, dass die Variable an der Pfeilspitze eine Linearkombination aus den Variablen an den jeweiligen Pfeilenden ist (dazu mehr im nächsten Semester!). Der Default in diesem Plot ist so gewählt, dass nur sehr große Faktorladungen auch als Pfeile eingezeichnet werden.
+Diese lässt sich auch in einem stark vereinfachten Pfaddiagramm darstellen. Dazu wenden wir `fa.diagramm` aus dem `psych` Paket auf das `PCA3` Objekt an. Pfeile symbolisieren hier, dass die Variable an der Pfeilspitze eine Linearkombination aus den Variablen an den jeweiligen Pfeilenden ist (dazu mehr im nächsten Semester!). Der Default in diesem Plot ist so gewählt, dass nur sehr große Komponentenladungen auch als Pfeile eingezeichnet werden.
 
 ```{r}
 fa.diagram(PCA3)
@@ -372,7 +383,7 @@ Dazu bilden wir die individuellen Werte der Hauptkomponenten (über ein Matrixpr
 PCs <- as.matrix(dataUV) %*% PCA3$weights
 ```
 
-Wir wollen nun prüfen, ob die Faktorladungen tatsächlich der Korrelation der Variablen und der Hauptkomponenten entsprechen:
+Wir wollen nun prüfen, ob die Komponentenladungen tatsächlich der Korrelation der Variablen und der Hauptkomponenten entsprechen:
 
 ```{r}
 cor(dataUV, PCs)
