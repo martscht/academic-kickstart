@@ -316,6 +316,32 @@ Wir wählen hier nur die ersten vier Spalten, weil der Mittelwert für Faktoren 
 
 ### Zusammenhang und lineare Regression
 
+Die lineare Regression ist eine sehr einfache Analye, um den Zusammenhang zwischen zwei Variablen zu untersuchen. 
+
+Natürlich ist die Analyse nicht ohne Voraussetzungen. Diese sind im folgenden der Vollständigkeit halber aufgeführt, werden aber nicht nochmal näher betrachtet.
+
+1. Linearität: Zusammenhang muss linear sein $\rightarrow$ Grafische Überprüfung (Scatterplot)  
+2. Varianzhomogenität (Homoskedastizität) der Fehler: der Fehler jedes Wertes der UV hat annährend die gleiche Varianz  
+3. Normalverteilung der Fehlervariablen  
+4. Unabhängigkeit der Fehler 
+
+Eine simple Darstellung des Zusammenhangs kann man über die `plot`-Funktion abbilden. Schönere Grafiken erhält man mittels `ggplot`, zu dem Sie sich hier nochmal genauer informieren können.
+
+```{r}
+plot(Therapy$Lebenszufriedenheit, Therapy$Depressivitaet, xlab = "Lebenszufriedenheit", ylab = "Lebenszufriedenheit")
+```
+
+Die Umsetzung der Parameterschätzung anhand der kleinsten Quadrate ist mit einer Funktion `lm` möglich. Beachten Sie hierbei, dass angegeben wird, welche Variable durch welche Variable vorhergesagt wird. Das bedeutet, dass wir hier zuerst Depressivitaet und dann Lebenszufriedenheit nennen müssen.
+
+```{r}
+lm(Depressivitaet ~ Lebenszufriedenheit, Therapy) # lineare Regression
+```
+
+Der hier gegebene Output enthält zwar die wichtigsten Informationen, doch wird eigentlich noch viel mehr innerhalb der Funktion berechnet. Dies ist ein gutes Beispiel dafür, dass es manchmal Sinn macht, auch die Ergebnisse der Analyse in ein Objekt abzulegen.
+
+```{r}
+lm(Depressivitaet ~ Lebenszufriedenheit, Therapy) # lineare Regression
+```
 ### Der $t$-Test
 Ein sehr einfacher statistischer Test auf Unterschied, ist der $t$-Test (für eine Wiederholung siehe bspw. [Eid, et al., 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 11.1 oder [Agresti, & Finlay, 2013,](https://hds.hebis.de/ubffm/Record/HEB369761391) Kapitel 6.2 und folgend). Mit Hilfe dieses Tests soll untersucht werden, ob die Mittelwerte in zwei Gruppen gleich sind. Dazu brauchen wir drei wichtige Annahmen: 
 
@@ -323,11 +349,22 @@ Ein sehr einfacher statistischer Test auf Unterschied, ist der $t$-Test (für ei
   2) die Daten in beiden Gruppen sind normalverteilt mit 
   3) gleicher Varianz (Varianzhomogenität). 
 
-Die 1. Annahme ist sehr kritisch und lässt sich leider nicht prüfen. Sie lässt sich aber durch das Studiendesign zumindest plausibilisieren. Für die anderen beiden Annahmen gibt es verschiedene Tests und deskriptive Verfahren, um ein Gefühl für ihr Vorliegen zu erhalten. Das Prüfen der Voraussetzungen werden wir nun aber nicht genauer betrachten
+Die 1. Annahme ist sehr kritisch und lässt sich leider nicht prüfen. Sie lässt sich aber durch das Studiendesign zumindest plausibilisieren. Für die anderen beiden Annahmen gibt es verschiedene Tests und deskriptive Verfahren, um ein Gefühl für ihr Vorliegen zu erhalten. Das Prüfen der Voraussetzungen werden wir nun aber nicht genauer betrachten und gehen davon aus, dass diese gegeben sind.
 
-Für die Testung stellen wir die folgenden Null-Hypothese auf - die Gleichheit der Mittelwerte in den beiden Gruppen:
+In diesem Beispiel wollen wir uns damit beschäftigen, ob die Depressivitaetswerte in den Gruppen der Männer und Frauen gleich verteilt sind. Wir beschäftigen uns mit unabhängigen Stichproben. Für die Testung stellen wir die folgenden Null-Hypothese auf - die Gleichheit der Mittelwerte in den beiden Gruppen:
 $$H_0: \mu_1=\mu_2$$
-Diese Hypothese gilt nicht, wenn $\mu_1\neq\mu_2$. In diesem Fall gilt irgendeine Alternativhypothese ($H_1$) mit einer Mittelwertsdifferenz $d=\mu_1-\mu_2$, die nicht Null ist $(d\neq0)$. Wir sprechen hier von einer Alternativhypothese, da in der (frequentistischen) Statistik immer feste Werte für die Parameter in der Population angenommen werden müssen. Wenn die $H_0$ nicht gilt, so muss entsprechend auch ein fester Wert für die Differenz $d$ für die Mittelwerte angenommen werden. 
+Diese Hypothese gilt nicht, wenn $\mu_1\neq\mu_2$. In diesem Fall gilt irgendeine Alternativhypothese ($H_1$) mit einer Mittelwertsdifferenz $d=\mu_1-\mu_2$, die nicht Null ist $(d\neq0)$. Das würde bedeuten, dass sich die Depressivitaets-Werte für Männer und Frauen unterscheiden. Wir sprechen hier von einer Alternativhypothese, da in der (frequentistischen) Statistik immer feste Werte für die Parameter in der Population angenommen werden müssen. Wenn die $H_0$ nicht gilt, so muss entsprechend auch ein fester Wert für die Differenz $d$ für die Mittelwerte angenommen werden. 
+
+```{r}
+t.test(Depressivitaet ~ Geschlecht,  # abhängige Variable ~ unabhängige Variable
+       data = Therapy, # Datensatz
+       paired = FALSE, # Stichproben sind unabhängig 
+      alternative = "two.sided",        # zweiseitige Testung (Default)
+      var.equal = TRUE,                 # Homoskedastizität liegt vor (-> Levene-Test)
+      conf.level = .95)                 # alpha = .05 (Default)
+```
+
+Der Output enthält nun verschiedene Informationen. Natürlich wird der Testwert, die Freiheitsgrade und der p-Wert ausgegeben. auch die empirischen Mittelwerte in den Gruppen werden nochmal aufgeführt. Das Ergebnis spricht dafür, dass zwischen den beiden Gruppen ein signifikanter Unterschied besteht - die $H_1$ also angenommen wird.
 
 Nun sind wir am Schluss des behandelten Codes in der Seminar-Sitzung angekommen. Die Grundlagen von `R` und einigen statistischen Verfahren sind nun aufgefrischt. Es folgt noch ein Zusatz für interessierte Personen.
 
