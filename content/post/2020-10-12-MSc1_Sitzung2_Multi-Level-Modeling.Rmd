@@ -13,7 +13,7 @@ tags:
 subtitle: 'Multi-Level Modeling'
 summary: ''
 authors: [irmer]
-lastmod: '2020-10-27T17:32:21+02:00'
+lastmod: '2021-10-07T17:32:21+02:00'
 featured: no
 header:
   image: "/header/FEI_Sitzung2_post.jpg"
@@ -29,7 +29,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 
 
 ## Einleitung
-In dieser Sitzung wollen wir hierarchische Daten mit der Multi-Level-Regression (auch hierarchische Regression, Multi-Level-Modeling, Linear Mixed-Effects Modeling, vgl. bspw. [Eid, Gollwitzer & Schmitt, 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 20 und [Pituch und Stevens (2016)](https://hds.hebis.de/ubffm/Record/HEB371183324) Kapitel 13) analysieren. Diese Daten sind dahingehend speziell, dass es in ihnen Clusterungen von Datenpunkten gibt, die zueinander ähnlicher sind als zu den übrigen. Dies verletzt die Annahme der Unabhängigkeit in der typischen Regressionsanalyse, was zu erheblichen Fehlschlüssen führen kann. Wir wollen uns ein fiktives Datenbeispiel (Datensatz `StudentsInClasses` aus dem gleichnamigen .rda File `StudentsInClasses.rda`) mit Schüler/innen (Ebene 1) in Schulklassen (Eben 2) anschauen. Sie können den   [`r fontawesome::fa("download")` Datensatz "StudentsInClasses.rda" hier herunterladen](/post/StudentsInClasses.rda).
+In dieser Sitzung wollen wir hierarchische Daten mit der Multi-Level-Regression (auch hierarchische Regression, Multi-Level-Modeling, Linear Mixed-Effects Modeling, Random Coefficient Regression vgl. bspw. [Eid, Gollwitzer & Schmitt, 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 20 und [Pituch und Stevens (2016)](https://hds.hebis.de/ubffm/Record/HEB371183324) Kapitel 13) analysieren. Diese Daten sind dahingehend speziell, dass es in ihnen Clusterungen von Datenpunkten gibt, die zueinander ähnlicher sind als zu den übrigen. Dies verletzt die Annahme der Unabhängigkeit in der typischen Regressionsanalyse, was zu erheblichen Fehlschlüssen führen kann. Wir wollen uns ein fiktives Datenbeispiel (Datensatz `StudentsInClasses` aus dem gleichnamigen .rda File `StudentsInClasses.rda`) mit Schüler/innen (Ebene 1) in Schulklassen (Eben 2) anschauen. Sie können den   [`r fontawesome::fa("download")` Datensatz "StudentsInClasses.rda" hier herunterladen](/post/StudentsInClasses.rda).
 
 ### Daten laden
 Dazu laden wir mit `load` die Daten (bspw. auf dem Desktop von Frau "Musterfrau") _Tipp: Verwenden Sie unbedingt die automatische Vervollständigung von `R`-Studio, wie in den letzten Sitzung beschrieben_.
@@ -172,7 +172,7 @@ Formula: MatheL ~ 1 + (1 | schulklasse)
   Data: StudentsInClasses
 ')
 ```
-zeigt uns, dass es sich um ein _Linear mixed model_ handelt (also ein Multi-Level-Modell/hierarchische Regression), welches mit der **RE**stricted **M**aximum **L**ikelihood Methode geschätzt wurde. Außerdem wird unsere Modellgleichung nochmals wiederholt.
+zeigt uns, dass es sich um ein _Linear mixed model_ handelt (also ein Multi-Level-Modell/hierarchische Regression), welches mit der **RE**stricted **M**aximum **L**ikelihood Methode geschätzt wurde. Bei REML werden zunächst die Random Effects geschätzt und anschließend werden erst die fixed Effects bestimmt. Damit ist das Verfahren stabiler und oft auch statistisch effizienter (kleinere SE). Außerdem wird unsere Modellgleichung nochmals wiederholt.
 
 ```{r, echo = F}
 cat('
@@ -194,7 +194,7 @@ Random effects:
 Number of obs: 850, groups:  schulklasse, 40
 ')
 ```
-zeigt uns die Schätzungen der `Random effect`, also der Varianzen (und Kovarianzen) von $u$ (dem zufälligen Anteil des Interzept und der Slope, falls vorhanden) sowie von $\varepsilon$ (dem Residuum). Eine Signifikanzentscheidung wird nicht mit ausgegeben. Wir müssen diese via einem Modellvergleich, dem Likelihood-Differenzen-Test (LRT) untersuchen - dazu später mehr! Wir erkennen, dass uns sowohl die Varianzen des Interzepts und des Residuums, sowie die Standardabweichung (`Std.Dev.`) ausgegeben werden, wobei dies einfach nur die Wurzel aus `Variance` ist. Die Varianz zwischen Klassen beträgt `r round(VarCorr(m0)$schulklasse[1],3)` und die (Residual-) Varianz innerhalb der Klassen `r round(summary(m0)$sigma^2, 3)`. Mit Hilfe dieser Informationen können wir den Intraklassenkorrelationskoeffizienten bestimmen. Außerdem entnehmen wir diesem Output, dass insgesamt 850 Schulkinder untersucht wurden in 40 Klassen.
+zeigt uns die Schätzungen der `Random effects`, also der Varianzen (und Kovarianzen) von $u$ (dem zufälligen Anteil des Interzept und der Slope, falls vorhanden) sowie von $\varepsilon$ (dem Residuum). Eine Signifikanzentscheidung wird nicht mit ausgegeben. Wir müssen diese via einem Modellvergleich, dem Likelihood-Differenzen-Test (LRT) untersuchen - dazu später mehr! Wir erkennen, dass uns sowohl die Varianzen des Interzepts und des Residuums, sowie die Standardabweichung (`Std.Dev.`) ausgegeben werden, wobei dies einfach nur die Wurzel aus `Variance` ist. Die Varianz zwischen Klassen beträgt `r round(VarCorr(m0)$schulklasse[1],3)` und die (Residual-) Varianz innerhalb der Klassen `r round(summary(m0)$sigma^2, 3)`. Mit Hilfe dieser Informationen können wir den Intraklassenkorrelationskoeffizienten bestimmen. Außerdem entnehmen wir diesem Output, dass insgesamt 850 Schulkinder untersucht wurden in 40 Klassen.
 
 #### Berechnung der Intraklassenkorrelation (ICC)
 
@@ -260,6 +260,8 @@ summary(m1)
 
 Im Output hat sich nun der Abschnitt `Fixed effects` erweitert um den Effekt der Motivation. Das Regressionsgewicht für (die am Stichprobenmittelwert zentrierte) Motivation beträgt `r round(fixef(m1)["Motivation_c"],3)` und ist mit *p* < .001 signifikant. Somit wird die Nullhypothese verworfen: "Mit einer Irrtumswahrscheinlichkeit von 5% ist der Zusammenhang (Steigungskoeffizient, $\gamma_{10}$) zwischen Motivation und Mathematikleistung in der Population aller Schüler von Null verschieden." Durch die Zentrierung können wir weiterhin das Interzept ($\gamma_{00}$) sinnvoll interpretieren. Ein durchschnittlich motiviertes Kind hat im Mittel eine Matheleistung von `r round(fixef(m1)["(Intercept)"],3)`.
 
+`Correlation of Fixed Effects:` gibt an, wie stark die festen Efffekte (hier Interzept und Steigungskoeffizient von `Motivation_c`) korreliert sind. Dies ist ein Maß für die Stabilität der Schätzung. Sind diese Korrelationen sehr groß, dann hat dies negative Auswirkungen auf die Standardfehler. Diese sind dann zu groß. An den Schätzungen der Parameter ändert dies allerdings nichts. Jedoch kann die Signifikanzentscheidung negativ beeinflusst sein. Diese Korrelationen können reduziert werden, durch Verringerungen der Komplexität im Modell (Multikollinearität), aber auch durch Zentrierung!
+
 Insgesamt ist zu sagen, dass unsere Hypothese 1 durch die Daten gestützt wird. Es stellt sich allerdings die Frage, ob die signifikante lineare Beziehung der Variable auch inhaltlich bedeutsam ist. Um dies besser beurteilen zu können, wollen wir ein Pseudo-$R^2$ bestimmen - es ist sehr dem Determinationskoeffizienten der Regression verwandt, kann aber Fehlschätzungen unterliegen, weswegen es nicht für bare Münze genommen werden sollte. Es kann uns allerdings helfen, besser einschätzen zu können, wie groß denn die Varianzaufklärung des Prädiktors ist, auch wenn wir im Hinterkopf behalten sollten, dass mit Pseudo-$R^2$ auch Probleme auftreten können (die es in der Regel mit dem Determinationskoeffizienten nicht gibt). Für mehr Informationen hierzu schaue bspw. in [Eid, et al. (2017)]() Kapitel 20.3.4 ab Seite 750.
 
 ### Pseudo $R^2$: within
@@ -284,7 +286,7 @@ Insgesamt können also `r round((1 - summary(m1)$sigma^2/summary(m0)$sigma^2)*10
 
 
 ### Pseudo $R^2$: between
-Genauso wie wir soeben die relative Veränderung der (within) Residualvarianz quantifiziert haben, können wir auch die relative Veränderung der Interzeptvariation (between Variation, Variation, die auf Unterschiede des Clusters/zwischen Klassen zurückzuführen sind) bestimmen. Da wir die Motivation am Gruppenmittelwert zentriert haben, sind einige Unterschiede zwischen den Klassen immer noch in der Variable `Motivation_c` enthalten (dazu später mehr im Abschnitt zur [Datenzentrierung](#Datenzentrierung)). Diesen Varianzanteil wollen wir nun quantifizieren und vergleichen dazu die beiden Modelle `m0` und `m1`:
+Genauso wie wir soeben die relative Veränderung der (within) Residualvarianz quantifiziert haben, können wir auch die relative Veränderung der Interzeptvariation (between Variation, Variation, die auf Unterschiede des Clusters/zwischen Klassen zurückzuführen sind) bestimmen. Da wir die Motivation am Gesamtmittelwert zentriert haben, sind einige Unterschiede zwischen den Klassen immer noch in der Variable `Motivation_c` enthalten (dazu später mehr im Abschnitt zur [Datenzentrierung](#Datenzentrierung)). Diesen Varianzanteil wollen wir nun quantifizieren und vergleichen dazu die beiden Modelle `m0` und `m1`:
 \begin{align}
 \texttt{m0}:&\quad \mathbb{V}ar[Y] = \mathbb{V}ar[u_0]+\mathbb{V}ar[\varepsilon]\\
 \texttt{m1}:&\quad \mathbb{V}ar[Y] = \mathbb{V}ar[u_0^*]+\gamma_{10}^2\mathbb{V}ar[X_1]+\mathbb{V}ar[\varepsilon^*]
@@ -341,14 +343,15 @@ Diesmal wird der Abschnitt `Random effects` erweitert um die Varianz des Effekts
 
 ### Test des Zufallseffekts
 
-Um zu testen, ob die Varianz des Motivationseffekts signifikant wird, wird das Modell `m1` ohne *random slope* mit dem Modell `m2` mit *random slope* verglichen. Dies machen wir mit Hilfe der `anova` Funktion, welche in `R` dazu genutzt wird, um Modelle zu vergleichen. Hierbei ist es essentiell, dass wir zuvor das Paket `lmerTest` geladen haben, da es sonst zu fehlerhaften Signifikanztests kommen kann.  Der `anova`-Funktion müssen wir zunächst das restriktivere Modell (mit weniger $df$) übergeben und als zweites Argument das weniger restriktive Modell. Außerdem wählen wir explizit die Methode, mit welcher die Modelle verglichen werden sollen via `test = "LRT"`. Somit verwenden wir den Likelihood-Ratio-Test: Dieser hat ohne das zusätzliche Laden des `lmerTest`-Pakets allerdings das Problem, dass der $\alpha$-Fehler zu groß sein kann, wenn wir Varianzen  auf Signifikanz prüfen. Dies liegt daran, dass Varianzen nicht negativ sein können, wir daher eine gerichtete Hypothese formulieren müssen und daher den $p$-Wert eines Varianzvergleichs in MLM mittels LRT durch zwei teilen müssen. Dies gilt allerdings ausschließlich für Varianzen (vgl Eid, et al., 2017, Seite 749 und folgend). Da aber automatisch mit der Random Slope auch die Kovarianz zwischen Interzept und Slope in `lmer` hinzugefügt wird, stimmt auch das wiederum nicht. _Machen wir uns es daher einfach und verwenden das `lmerTest`-Paket!_ Das Laden des Pakets `lmerTest` benutzt eine Misch-$\chi^2$-Verteilung, um diesem Problem aus dem Weg zu gehen. Allerdings müssen wir hierzu zusätzlich noch `refit = F` wählen und so der `anova`-Funktion zu sagen, dass REML-Schätzungen (und damit die Korrektur der Verteilungen wegen des Testens der Varianzen) verwendet werden sollen. Außerdem könnten Sie auch die `ranova` Funktion des `lmerTest`-Pakets nutzen, um alle Random-Effekte eines Modells zu prüfen. Sehen Sie selbst, beide Tests kommen zu selben Ergebnis (für über diesen Kurs hinausgehende Literatur zu diesem Thema siehe bspw. dem dazu erschienen [`r fontawesome::fa("graduation-cap")` Artikel](https://www.jstatsoft.org/article/view/v082i13)). 
+Um zu testen, ob die Varianz des Motivationseffekts signifikant wird, wird das Modell `m1` ohne *random slope* mit dem Modell `m2` mit *random slope* verglichen. Dies machen wir mit Hilfe der `anova` Funktion, welche in `R` dazu genutzt wird, um Modelle zu vergleichen. Hierbei ist es essentiell, dass wir zuvor das Paket `lmerTest` geladen haben.  Der `anova`-Funktion müssen wir zunächst das restriktivere Modell (mit weniger $df$) übergeben und als zweites Argument das weniger restriktive Modell. Außerdem wählen wir explizit die Methode, mit welcher die Modelle verglichen werden sollen via `test = "LRT"`. Somit verwenden wir den Likelihood-Ratio-Test. Allerdings sei an dieser Stelle erwähnt, dass dieser LRT nur eine Näherung darstellt. Um mögliche Fehlschlüsse zu reduzieren, sollten große Stichproben verwendet werden. Hierbei ist die Clusteranzahl die entscheidende Größe. Es sollten so viele Clustereinheiten wie möglich verwendet werden. Das wir Varianzen gegen Null testen stellt auch generelles Problem dar. Dies liegt daran, dass Varianzen nicht negativ sein können, wir daher eine gerichtete Hypothese formulieren müssten. Dies gilt allerdings ausschließlich für Varianzen (vgl Eid, et al., 2017, Seite 749 und folgend). 
+
+Da wir hier zunächst nur Random Effects auf Signifikanz prüfen wollen, sollten wir mit REML Schätzungen rechnen. Dazu müssen wir `refit = F` wählen und so der `anova`-Funktion zu sagen, dass REML-Schätzungen verwendet werden sollen. Würden wir fixed Effects auf Signifikanz via LRTs prüfen wollen, so müssten wir das Modell "refitten" -- und zwar mit der vollen Likelihood. Wir würden dann ML verwenden. 
 
 ```{r}
 anova(m1, m2, test = "LRT", refit = F) 
-ranova(m2)
 ```
 
-Die LRT-Teststatistik (empirischer $\chi^2$-Wert) liegt bei beiden Methoden bei exakt dem selben Ergebnis: $\chi^2(df=2)=461.51$. Wir schauen uns den Output der `anova`-Funktion genauer an: Der Modellvergleichsoutput enthält folgende Informationen (dieser ist annähernd identisch aufgebaut und enthält jeweils unterschiedliche Teststatistiken, je nach dem welchen Test wir anfordern - bspw. bei der Regression würde Omnibustest/F-Test verwendet werden, entsprechend stünde dort die $F$-Statistik).
+Die LRT-Teststatistik (empirischer $\chi^2$-Wert) liegt bei $\chi^2(df=2)=461.51$. Der Modellvergleichsoutput enthält folgende Informationen (dieser ist annähernd identisch aufgebaut und enthält jeweils unterschiedliche Teststatistiken, je nach dem welchen Test wir anfordern - bspw. bei der Regression würde Omnibustest/F-Test verwendet werden, entsprechend stünde dort die $F$-Statistik).
 
 ```{r, echo=F}
 cat('Data: StudentsInClasses
@@ -397,24 +400,29 @@ Dem Histogramm ist deutlich zu entnehmen, dass die Steigungskoeffizienten annäh
 Eine alternative Visualisierung ist der Plot der klassenspezifischen Regresssionsgeraden, wobei $\beta_{0j}$ und $\beta_{1j}$ klassenspezifisch variieren. Die blaue Linie stellt hierbei den durchschnittliche (fixed) Effekt dar, welcher auch als Formel nochmals in die Grafik geschrieben wurde. Auch entnehmen wir der Grafik, dass die Motivation kategoriell ist (vertikale Ansammlung der Punkte).
 
 ```{r, echo = F}
-  #### Das Modell zeichnen!
+#### Das Modell zeichnen!
 model <- m2
-beta <- coef(model); beta <- beta$schulklasse
+beta <- coef(model)$schulklasse   # Übergeben der Koeffizienten pro Klasse (Interzept und Steigungskoeffizent)
 summary_model <- summary(model)
-plot(StudentsInClasses$Motivation_c, StudentsInClasses$MatheL, xlab = "Motivation (zentriert)", ylab = "Matheleistung",
-     col = "grey50")
-for(i in 1:summary_model$ngrps)
-{
-     abline(a = beta[i,1], b = beta[i,2])     # Schleife über jede Gleichung pro Gruppe
-}
-abline(a = summary_model$coefficients[1,1], b = summary_model$coefficients[2,1],
-       col = "blue", lwd = 5) # durchschnittliche Gerade einzeichnen gamma00 + gamma11*Motivation_c
-abline(v = 0, lty = 3) # y-Achse einzeichnen
-text(x = 0, y = 98, labels = expression(gamma["00"]+gamma[10]~"*Motivation_c"), cex = 2, col = "blue") # Text in Grafik einfügen
+library(ggplot2)
+ggplot(data = StudentsInClasses, aes(x=Motivation_c, y = MatheL))+geom_point(col = "grey50")+
+  theme_minimal()  + geom_abline(intercept =beta$`(Intercept)`,          # Interzepts
+                                 slope = beta$Motivation_c, lwd = .2) +   # und Slopes für Grafiken verwenden
+  geom_abline(intercept = summary_model$coefficients[1,1],          # Interzepts und Slope von Durchschnitt nehmen
+              slope = summary_model$coefficients[2,1], lwd = 2, col = "blue")
+
 ```
 
 Außerdem können wir diesem Plot die Korrelation des Interzepts und der Steigung entnehmen, welche bei .31 lag. Hierbei müssen wir genau aufpassen, wo wir diese Korrelation ablesen. Die Aussage ist nämlich, dass je größer der Interzept, desto stärker der Zusammenhang zwischen Motivation und Matheleistung. Dies müssen wir entlang der y-Achse (vertikale gestrichelte Linie) untersuchen - an der Stelle, wo die Motivation durchschnittlich ausgeprägt ist und die zentrierte Variable somit den Wert 0 annimmt. Wenn wir genau hinsehen, ist es so, dass je größer der Schnittpunkt mit der y-Achse, desto größer die Steigung!
 
+
+Einen reinen ML-LRT können wir beispielsweise benutzen, um den fixed Effect der Motivation auf Signifikanz zu prüfen. Dies können wir zwar auch mit dem ausgegebenen t-Wert machen. Wir wollen es uns dennoch der Vollständigkeit halber ansehen. _Zur Erinnerung: Werden nur Random Effects untersucht, dann sollte REML verwendet werden, wird allerdings mindestens ein fixed Effect untersucht, so muss ML verwendet werden._ 
+
+```{r}
+anova(m0, m1) # KEIN refit
+```
+
+Hier sehen wir nun, dass das Modell "gerefitted" wurde. Wir haben also die ML-Schätzung verwendet, um die Likelihooddifferenz zu bestimmen. Das Ergebnis ist signifikant. Dies ist wenig überraschend. Wir hatten zuvor schon bemerkt, dass die Motivation sich auf die Matheleistung auswirkt (mit einer Irrtumswahrscheinlichkeit von $5\%$).
 
 ## Hypothese 3: Klassengröße als Prädiktor
 
@@ -436,7 +444,7 @@ KlassenG    -0.971
 Motivatin_c  0.003 -0.003')
 ```
 
-Diese Informationen sollten nicht inhaltlich interpretiert werden, sondern geben Auskunft über die Schätzung der Parameter (wenn REML verwendet wird, wird in einem zweistufigen Verfahren zunächst die zufälligen Effekte geschätzt und dann werden die festen Effekte geschätzt und eine Signifikanzentscheidung ist für die festen Effekte möglich). Die Schätzung des Interzepts korreliert sehr hoch negativ mit der Schätzung des Koeffizienten der Klassengröße, was daran liegen kann, dass die Klassengröße keinerlei Vorhersagekraft liefert.
+Diese Informationen sollten nicht inhaltlich interpretiert werden, sondern geben Auskunft über die Schätzung der Parameter. Die Schätzung des Interzepts korreliert sehr hoch negativ mit der Schätzung des Koeffizienten der Klassengröße. Dies senkt die Stabilität der Parameterschätzungen und führt dazu, dass die Standardfehler größer werden (Stichwort: Multikollinearität). 
 
 **Interpretation**: Bei gleichzeitiger Berücksichtigung der Motivation ist der Effekt der Klassengröße nicht signifikant, bzw. über die Motivation hinaus ist der Effekt der Klassengröße nicht bedeutsam.
 
@@ -450,18 +458,21 @@ summary(m3b)
 
 **Interpretation**: Die Zentrierung hat keinerlei Auswirkungen auf die Signifikanzentscheidung bzgl. der Klassengröße. Die Schätzung des durchschnittlichen Interzepts ($\gamma_{00}$) ändert sich. Insgesamt findet Hypothese 3 keine Evidenz in den Daten. Da der Effekt nicht signifikant ist, schauen wir uns auch nicht die erklärte between-Variation an.
 
+Wir erkennen auch, dass die Zentrierung der Klassengröße sich positiv auf die Korrelation der `fixed effects` auswirkt. Damit verbunden fällt der Standardfehler des Interzepts etwas geringer aus.
+
 ## Hypothese 4: Wechselwirkung zwischen Klassengröße und Motivation
 
 Eine Wechselwirkung (also eigentlich ein Produkt von Prädiktoren) zwischen zwei Prädiktoren kann mit der Syntax `X1:X2` in das Modell aufgenommen werden: `Y ~ X1 + X2 + X1:X2`. Eine Kurzschreibweise hier für ist `Y ~ X1*X2`. Insbesondere für dieses Modell empfiehlt es sich, die Klassengröße zu zentrieren, da eine Klassengröße von Null wenig sinnvoll ist und Wechselwirkungen von den Mittelwerten der Variablen abhängen (das haben wir im Abschnitt zuvor schon erledigt!). Wir ergänzen das Modell `m3b`  um die Wechselwirkung zwischen (zentrierter) Klassengröße und (zentrierter) Motivation:
 
 ```{r}
-m4 <- lmer(MatheL ~ 1 + KlassenG_c + Motivation_c  + KlassenG_c:Motivation_c + (1 | schulklasse), data=StudentsInClasses)
+m4 <- lmer(MatheL ~ 1 + KlassenG_c + Motivation_c  + KlassenG_c:Motivation_c + (1 | schulklasse), 
+           data=StudentsInClasses)
 summary(m4)
 ```
 
 Dieses Modell kommt zum selben Ergebnis wie:
 
-```{r}
+```{r, results = "hide"}
 m4b <- lmer(MatheL ~ 1 + KlassenG_c*Motivation_c + (1 | schulklasse), data=StudentsInClasses)
 summary(m4b)
 ```
@@ -488,7 +499,9 @@ Der Grafik ist dieser Effekt deutlich zu entnehmen. Final können wir sagen, das
 Eigentlich würde eine Cross-Level-Interaktion vor allem dann in ein Modell aufgenommen werden, wenn wir die Random Slope Variation durch eine L2 Variable erklären wollen. Wenn wir ein Modell mit ebenfalls Random Intercept Random Slope untersuchen, erkennen wir allerdings, dass die Wechselwirkung und der Haupteffekt der Klassengröße nun keinen Effekt mehr haben:
 
 ```{r}
-m4c <- lmer(MatheL ~ 1 + KlassenG_c + Motivation_c  + KlassenG_c:Motivation_c + (1 + Motivation_c | schulklasse), data=StudentsInClasses)
+m4c <- lmer(MatheL ~ 1 + KlassenG_c + Motivation_c  + KlassenG_c:Motivation_c + 
+              (1 + Motivation_c | schulklasse), 
+            data=StudentsInClasses)
 summary(m4c)
 
 anova(m4, m4c, test = "LRT", refit = F)
@@ -520,13 +533,16 @@ In `R` sieht das Ganze so aus:
 
 ```{r}
 # group-mean-centering:
-StudentsInClasses$Motivation_groupc <- group.center(var = StudentsInClasses$Motivation, grp = StudentsInClasses$schulklasse)
+StudentsInClasses$Motivation_groupc <- group.center(var = StudentsInClasses$Motivation, 
+                                                    grp = StudentsInClasses$schulklasse)
 
 # bestimmen der gruppenspezifischen Mittelwerte (durch Umstellen der Gleichung)
-StudentsInClasses$Mot_groupmeans <- StudentsInClasses$Motivation - StudentsInClasses$Motivation_groupc
+StudentsInClasses$Mot_groupmeans <- group.mean(var = StudentsInClasses$Motivation,
+                                               grp = StudentsInClasses$schulklasse)
 
 # Zentrieren der Gruppenmittelwertsvariable
-StudentsInClasses$Mot_groupmeans_c <- StudentsInClasses$Mot_groupmeans - mean(StudentsInClasses$Motivation)
+StudentsInClasses$Mot_groupmeans_c <- StudentsInClasses$Mot_groupmeans -
+  mean(StudentsInClasses$Motivation)
 
 head(StudentsInClasses)
 
@@ -534,7 +550,7 @@ head(StudentsInClasses)
 round(colMeans(StudentsInClasses), 10)
 ```
 
-Die Funktion `group.center` aus dem `robumeta`-Paket nimmt uns die Arbeit ab, die Daten händisch an den Gruppenmittelwerten zu zentrieren ($X_{ij}^{**}$). Sie nimmt 2 Argumente entgegen: `var` die Variable, die zentriert werden soll (hier die Motivation), und `grp` die Gruppierungsvariable (hier die Schulklasse). Wir erhalten die Gruppenmittelwerte durch Umstellen der Gleichung: Aus $X_{ij}^{**}=X_{ij}-\bar{X}_{\cdot j}$ folgt, dass auch $\bar{X}_{\cdot j}=X_{ij}-X_{ij}^{**}$ gilt. Zum Schluss wird noch die Gruppierungsvariable zentriert am Gesamtmittelwert: $\bar{X}_{\cdot j}^*=\bar{X}_{\cdot j} - \bar{X}_{\cdot \cdot}$. Den Spaltenmittelwerten entnehmen wir, dass die gruppenzentrierte Variable einen Mittelwert von 0 hat und die zentrierte Gruppenmittelwertsvariable ebenfalls. Außerdem sehen wir hier nochmals, dass der Mittelwert der Motivation gleich dem Mittelwert der Gruppenmittelwertsmotivation ist (`Motivation` vs. `Mot_groupmeans`).
+Die Funktion `group.center` aus dem `robumeta`-Paket nimmt uns die Arbeit ab, die Daten händisch an den Gruppenmittelwerten zu zentrieren ($X_{ij}^{**}$). Sie nimmt 2 Argumente entgegen: `var` die Variable, die zentriert werden soll (hier die Motivation), und `grp` die Gruppierungsvariable (hier die Schulklasse). Die Funktion `group.mean` funktioniert analog zu `group.center` und gibt uns gruppenspezifische Mittelwerte aus. Zum Schluss wird noch die Gruppierungsvariable zentriert am Gesamtmittelwert: $\bar{X}_{\cdot j}^*=\bar{X}_{\cdot j} - \bar{X}_{\cdot \cdot}$. Den Spaltenmittelwerten entnehmen wir, dass die gruppenzentrierte Variable einen Mittelwert von 0 hat und die zentrierte Gruppenmittelwertsvariable ebenfalls. Außerdem sehen wir hier nochmals, dass der Mittelwert der Motivation gleich dem Mittelwert der Gruppenmittelwertsmotivation ist (`Motivation` vs. `Mot_groupmeans`).
 
 Diese Art der Zentrierung spielt insbesondere in Multi-Level-Analyse mit Messwiederholung von Personen (die Person ist die Clusterung und die L1 Variable sind die Messungen einer Person) eine wichtige Rolle (siehe auch
 [Eid, et al., 2017,](https://hds.hebis.de/ubffm/Record/HEB366849158) Kapitel 20.4).
@@ -570,21 +586,16 @@ text(x = 17, y= 0.04, labels = "+/- 1SD", col = "blue", cex = 2) # Text in Grafi
 ```
 
 ```{r}
-  #### Das Modell zeichnen!
+ #### Das Modell zeichnen!
 model <- m2
 beta <- coef(model)$schulklasse   # Übergeben der Koeffizienten pro Klasse (Interzept und Steigungskoeffizent)
 summary_model <- summary(model)
-plot(StudentsInClasses$Motivation_c, StudentsInClasses$MatheL, xlab = "Motivation (zentriert)", ylab = "Matheleistung",
-     col = "grey50")
-for(i in 1:summary_model$ngrps)
-{
-     abline(a = beta[i,1], b = beta[i,2])     # Schleife über jede Gleichung pro Gruppe
-}
-abline(a = summary_model$coefficients[1,1], b = summary_model$coefficients[2,1],
-       col = "blue", lwd = 5) # durchschnittliche Gerade einzeichnen gamma00 + gamma11*Motivation_c
-abline(v = 0, lty = 3) # y-Achse einzeichnen
-text(x = 0, y = 98, labels = expression(gamma["00"]+gamma[10]~"*Motivation_c"), cex = 2, col = "blue") # Text in Grafik einfügen
-
+library(ggplot2)
+ggplot(data = StudentsInClasses, aes(x=Motivation_c, y = MatheL))+geom_point(col = "grey50")+
+  theme_minimal()  + geom_abline(intercept =beta$`(Intercept)`,          # Interzepts
+                                 slope = beta$Motivation_c, lwd = .2) +   # und Slopes für Grafiken verwenden
+  geom_abline(intercept = summary_model$coefficients[1,1],          # Interzepts und Slope von Durchschnitt nehmen
+              slope = summary_model$coefficients[2,1], lwd = 2, col = "blue")
 ```
 
 Die folgende Grafik können Sie für Ihr Modell replizieren, indem Sie `m4` durch Ihr Modell ersetzen und anschließend die Clustervariable durch Ihre ersetzen (in `group = schulklasse`) und die L2 Variable ebenfalls durch Ihre L2 Variable ersetzen (in `color = KlassenG_c`). In `y = MatheL` muss Ihre AV rein und `x = Motivation_c` ist die (zentrierte) UV.
@@ -689,7 +700,8 @@ plot_within_between_effects <- function(nb = 50, nw = 50, between_effect = 1, wi
 
         # Grafik erstellen
         library(ggplot2)
-        ggplot(data = total, mapping = aes(x = X, y = Y, col = Cluster))+geom_point()
+        ggplot(data = total, mapping = aes(x = X, y = Y, col = Cluster))+geom_point()+
+          theme_minimal()
 }
 ```
 
