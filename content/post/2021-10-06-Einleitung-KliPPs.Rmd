@@ -277,8 +277,8 @@ Der Zuweisungspfeil funktioniert auch für Elemente größerer Objekte. Nehmen w
 
 ```{r}
 Therapy[5, 6]           # Aktuellen Inhalt abfragen
-Therapy[5, 6] <- "männlich"    # Aktuellen Inhalt überschreiben
-Therapy[, 6]            # Alle Reaktionszeiten abfragen
+Therapy[5, 6] <- "maennlich"    # Aktuellen Inhalt überschreiben
+Therapy[, 6]                    # Alle Geschlechter abfragen
 ```
 
 ***
@@ -340,8 +340,27 @@ lm(Depressivitaet ~ Lebenszufriedenheit, Therapy) # lineare Regression
 Der hier gegebene Output enthält zwar die wichtigsten Informationen, doch wird eigentlich noch viel mehr innerhalb der Funktion berechnet. Dies ist ein gutes Beispiel dafür, dass es manchmal Sinn macht, auch die Ergebnisse der Analyse in ein Objekt abzulegen.
 
 ```{r}
-lm(Depressivitaet ~ Lebenszufriedenheit, Therapy) # lineare Regression
+model <- lm(Depressivitaet ~ Lebenszufriedenheit, Therapy) # Objektzuweisung
 ```
+
+Beispielsweise können wir wie bereits angedeutet die Funktion `summary` verwenden, um eine Zusammenfassung der Ergebnisse zu erhalten.
+
+```{r}
+summary(model)
+```
+
+Hier werden uns neben dem Steigungskoeffizienten und dem Achsenabschnitt auch noch beispielsweise deren Signifikanz und $R^2$ angezeigt. 
+
+Doch es gibt noch einige weitere Informationen, die von der Funktion `lm` abgelegt werden. Die Bezeichnung der Einträge in der Liste `model` kann über `names` abgefragt werden.
+
+```{r}
+names(model) #andere Inhalte der Liste
+```
+
+Die weiteren Inhalt umfassen unter anderem die `residuals`, die für das Prüfen der Voraussetzungen wichtig wären, aber auch die vorhergesagten Werte. 
+
+Nachdem wir nun einer kurze Wiederholung zur Analyse zum Zusammenhang zwischen zwei Variablen betrachtet haben, geht es im folgenden Teil um den Unterschied zwischen Gruppen.
+
 ### Der $t$-Test
 Ein sehr einfacher statistischer Test auf Unterschied, ist der $t$-Test (für eine Wiederholung siehe bspw. [Eid, et al., 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 11.1 oder [Agresti, & Finlay, 2013,](https://hds.hebis.de/ubffm/Record/HEB369761391) Kapitel 6.2 und folgend). Mit Hilfe dieses Tests soll untersucht werden, ob die Mittelwerte in zwei Gruppen gleich sind. Dazu brauchen wir drei wichtige Annahmen: 
 
@@ -355,8 +374,8 @@ In diesem Beispiel wollen wir uns damit beschäftigen, ob die Depressivitaetswer
 $$H_0: \mu_1=\mu_2$$
 Diese Hypothese gilt nicht, wenn $\mu_1\neq\mu_2$. In diesem Fall gilt irgendeine Alternativhypothese ($H_1$) mit einer Mittelwertsdifferenz $d=\mu_1-\mu_2$, die nicht Null ist $(d\neq0)$. Das würde bedeuten, dass sich die Depressivitaets-Werte für Männer und Frauen unterscheiden. Wir sprechen hier von einer Alternativhypothese, da in der (frequentistischen) Statistik immer feste Werte für die Parameter in der Population angenommen werden müssen. Wenn die $H_0$ nicht gilt, so muss entsprechend auch ein fester Wert für die Differenz $d$ für die Mittelwerte angenommen werden. 
 
-```{r}
-t.test(Depressivitaet ~ Geschlecht,  # abhängige Variable ~ unabhängige Variable
+```{r, echo = F}
+ttest <- t.test(Depressivitaet ~ Geschlecht,  # abhängige Variable ~ unabhängige Variable
        data = Therapy, # Datensatz
        paired = FALSE, # Stichproben sind unabhängig 
       alternative = "two.sided",        # zweiseitige Testung (Default)
@@ -364,41 +383,13 @@ t.test(Depressivitaet ~ Geschlecht,  # abhängige Variable ~ unabhängige Variab
       conf.level = .95)                 # alpha = .05 (Default)
 ```
 
-Der Output enthält nun verschiedene Informationen. Natürlich wird der Testwert, die Freiheitsgrade und der p-Wert ausgegeben. auch die empirischen Mittelwerte in den Gruppen werden nochmal aufgeführt. Das Ergebnis spricht dafür, dass zwischen den beiden Gruppen ein signifikanter Unterschied besteht - die $H_1$ also angenommen wird.
-
-Nun sind wir am Schluss des behandelten Codes in der Seminar-Sitzung angekommen. Die Grundlagen von `R` und einigen statistischen Verfahren sind nun aufgefrischt. Es folgt noch ein Zusatz für interessierte Personen.
-
-***
-
-# Zusatz: Simulieren von Daten und Betrachten der Verteilungen
-
-Die im weiteren Verlauf angegebenen Befehle werden wir nicht im genauen im Seminar besprechen. Die Grafen werden Ihnen jedoch bekannt vorkommen, da wir anhand von diesen die Grundlagen zur Inferenzstatistik wiederholt haben. Wenn Sie also Lernen wollen, wie Sie diese Untersuchungen selber in `R` durchführen können, können Sie das im folgenden nachvollziehen.
-
-### Simulieren von Daten
-Wir können in `R` auch Daten simulieren. Bspw. erzeugt der Befehl `rnorm` normalverteilte Zufallsvariablen. Für weitere Informationen siehe bspw. [`r fontawesome::fa("graduation-cap")` `R`-Verteilungen auf Wiki](https://en.wikibooks.org/wiki/R_Programming/Probability_Distributions). Wir müssen  diesem Befehl lediglich übergeben wie viele Replikationen wir wünschen und welchen Mittelwert und Standardabweichung die Zufallsvariablen haben sollen. Wir simulieren die Standardnormalverteilung $\mathcal{N}(0,1)$ und legen die generierte (realisierte) Zufallsvariable in einem Objekt mit dem Namen `X` ab, um später gezeigte Informationen wie den Mittelwert oder die Standardabweichung abrufen zu können - dies machen wir mit dem "Zuordnungspfeil" `<-` (zur Erinnerung: links davon steht der Name, den wir uns ausdenken; hier: `X`; rechts steht das zugeordnete Objekt):
-
 ```{r}
-set.seed(1234567) # für Replizierbarkeit (bei gleicher R Version, kommen Sie mit diesem Seed zum selben Ergebnis!)
-X <- rnorm(n = 1000, mean = 0, sd = 1) # Standardnormalverteilung mit n = 1000
-hist(X)
-mean(X)
-sd(X)
-```
-
-Natürlich liegen der geschätzte Mittelwert und die Standardabweichung nicht genau auf den wahren Werten, was am Sampling-Error liegt. Der Sampling-Error beschreibt die zufällige Schwankung, die durch das Ziehen der Stichprobe aus einer Population (Grundgesamtheit) entsteht. 
-
-Gehen wir nun her und simulieren noch eine zweite Stichprobe standardnormalverteilter Zufallsvariablen, so können wir diese beiden Stichproben mit Hilfe des $t$-Tests vergleichen. Die Funktion in `R` hierzu heißt `t.test` (wir müssen hier `var.equal = T` wählen, da sonst eine Näherung verwendet wird, die unterschiedliche Varianzen ausgleichen soll, nämlich Welch's Two Sample $t$-Test):
-
-```{r, results = "hide"}
-Y <- rnorm(n = 1000, mean = 0, sd = 1)
-t.test(X, Y, var.equal = T)
-```
-
-```{r, echo = F}
-set.seed(2)
-Y <- rnorm(n = 1000, mean = 0, sd = 1)
-ttest <- t.test(X, Y, var.equal = T)
-ttest
+t.test(Depressivitaet ~ Geschlecht,  # abhängige Variable ~ unabhängige Variable
+       data = Therapy, # Datensatz
+       paired = FALSE, # Stichproben sind unabhängig 
+      alternative = "two.sided",        # zweiseitige Testung (Default)
+      var.equal = TRUE,                 # Homoskedastizität liegt vor (-> Levene-Test)
+      conf.level = .95)                 # alpha = .05 (Default)
 ```
 
 Der Output enthält folgende Informationen:
@@ -411,34 +402,73 @@ Two Sample t-test
 zeigt an, dass es sich um einen Zwei-Stichproben $t$-Test handelt.
 
 ```{r, echo = F}
-cat(' data:  X and Y
- t = -1.4456, df = 1998, p-value = 0.1484')
+cat(' data:  Depressivitaet by Geschlecht
+ t = -7.4955, df = 88, p-value = 4.908e-11')
 ```
-zeigt uns die Datengrundlage (`X` und `Y`), den $t$-Wert, die $df$ und den $p$-Wert. Wir erkennen, dass die Mittelwertsdifferenz bei $d$= `r round(mean(X)-mean(Y), 4)` liegt, mit zugehörigen $t$-Wert t(`r ttest$parameter`)=`r round(ttest$statistic, 4)` und $p$-Wert p=`r round(ttest$p.value, 4)`, somit ist dieser Mittelwertsvergleich auf dem 5% Niveau nicht signifikant ($p$>.05). 
+zeigt uns die Datengrundlage (`X` und `Y`), den $t$-Wert, die $df$ und den $p$-Wert. 
+
+$t$-Wert t(`r ttest$parameter`)=`r round(ttest$statistic, 4)` und $p$-Wert p=`r round(ttest$p.value, 4)`, somit ist dieser Mittelwertsvergleich auf dem 5% Niveau signifikant ($p$<.05). 
 
 ```{r, echo = F}
-cat(' alternative hypothesis: true difference in means is not equal to 0
+cat(' alternative hypothesis: true difference in means between group maennlich und group weiblich is not equal to 0
  95 percent confidence interval:
-  -0.15317201  0.02317988
+  -2.834830  -1.646651
  sample estimates:
     mean of x    mean of y 
- -0.002997332  0.061998736')
+ 4.759259  7.000000')
 ```
-zeigt uns die Hypothese ($H_0:d=0$), das Konfidenzintervall der Mittelwertsdifferenz sowie die Mittelwerte in den beiden Gruppen ($\bar{X}=$ `r mean(X)`, $\bar{Y}=$ `r mean(Y)`). 
+zeigt uns die Alternativhypothese ($H_1:d \neq 0$), das Konfidenzintervall der Mittelwertsdifferenz sowie die Mittelwerte in den beiden Gruppen ($\bar{X}_m=$ `r mean(Therapy$Depressivitaet[Therapy$Geschlecht == "maennlich"])`, $\bar{X}_w=$ `r mean(Therapy$Depressivitaet[Therapy$Geschlecht == "weiblich"])`). Dadurch können wir auch erkennen, dass die empirische Mittelwertsdifferenz bei $d$= `r round(mean(Therapy$Depressivitaet[Therapy$Geschlecht == "maennlich"])-mean(Therapy$Depressivitaet[Therapy$Geschlecht == "weiblich"]), 4)` liegt.
 
-Wir können den Test auch als `R` Objekt abspeichern und ähnlich wie den Datensätzen anschließend diese Informationen entlocken. Dazu müssen wir das ausgegebene Objekt `t.test` lediglich einem Namen zuordnen und anschließend mit `$` ansprechen. Wieso nennen wir das Objekt nicht einfach `ttest`. Wenn wir `names` darauf anwenden, sehen wir alle Namen, die wir hinter `$` schreiben können:
+Wie die Regression, können wir auch den Test als Objekt ablegen. Wenn wir `names` darauf anwenden, sehen wir wieder alle Namen, die wir hinter `$` schreiben können.
 
 ```{r}
-ttest <- t.test(X, Y, var.equal = T)
+t.test(Depressivitaet ~ Geschlecht,  # abhängige Variable ~ unabhängige Variable
+       data = Therapy, # Datensatz
+       paired = FALSE, # Stichproben sind unabhängig 
+      alternative = "two.sided",        # zweiseitige Testung (Default)
+      var.equal = TRUE,                 # Homoskedastizität liegt vor (-> Levene-Test)
+      conf.level = .95)                 # alpha = .05 (Default)
 names(ttest)    # alle möglichen Argumente, die wir diesem Objekt entlocken können
 ttest$statistic # (empirischer) t-Wert
 ttest$p.value   # zugehöriger p-Wert
 ```
 
-Da die Null-Hypothese nicht verworfen wird, bedeutet dies, dass wir weiterhin annehmen, dass die Mittelwertsdifferenz in der Population tatsächlich 0 ist. Die in der Stichprobe ist offensichtlich nicht 0, aber sie liegt so nah an der 0, dass diese Abweichung wahrscheinlich durch Zufall passiert ist und sich nicht auf die Population verallgemeinern lässt (siehe als Wiederholung [Eid, et al., 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 11.1 für den $t$-Test und Kapitel 8 für Inferenzstatistikgrundlagen und Hypothesentests, bzw. [Agresti, & Finlay, 2013](https://hds.hebis.de/ubffm/Record/HEB369761391), Kapitel 6).
+Da die Null-Hypothese verworfen wird, nehmen wir an, dass es in der Population einen Mittelwertsunterschied zwischen der Depressivitaet von Männern und Frauen gibt.
+
+Nun sind wir am Schluss des behandelten Codes in der Seminar-Sitzung angekommen. Die Grundlagen von `R` und einigen statistischen Verfahren sind nun aufgefrischt. Der nächste Teil beschäftigt sich nochmal inhaltlich mit den grundlegenden Begriffen der Inferenzstatistik und ihrem Zusammenhang.
+
+***
+
+# Grundlagen der Inferenzstatistik
+
+`R` kann bei der Veranschaulichung der grundlegenden Begriffe der Inferenzstatistik sehr hilfreich sein, weil wir verschiene Populationsannahmen selbst treffen können. Anschließend können wir Stichproben simulieren und die üblichen Kennwerte betrachten.
+
+### Simulieren der Stichproben
+Wir können in `R` relativ simpel normalverteilte Variablen simulieren. Für weitere Informationen zur Simulation von Verteilungen siehe bspw. [`r fontawesome::fa("graduation-cap")` `R`-Verteilungen auf Wiki](https://en.wikibooks.org/wiki/R_Programming/Probability_Distributions) oder hier auf Pandar. Den Code der hier durchgeführten Simulationen können Sie Die analoge Simulationsstudie können Sie [Appendix A](#AppendixA) entnehmen (geht über den Inhalt des Seminars hinaus). Nehmen wir an, dass wir als Grundlage unserer Stichprobe die Standardnormalverteilung $\mathcal{N}(0,1)$ haben. Wir ziehen 1000 Personen aus dieser Population und lassen uns ein Histogramm sowie den Mittelwert und die geschätzte Populationsstandardabweichung ausgeben. 
+
+```{r, echo = F}
+set.seed(1234567) # für Replizierbarkeit (bei gleicher R Version, kommen Sie mit diesem Seed zum selben Ergebnis!)
+X <- rnorm(n = 1000, mean = 0, sd = 1) # Standardnormalverteilung mit n = 1000
+hist(X)
+mean(X)
+sd(X)
+```
+
+Natürlich liegen der geschätzte Mittelwert und die Standardabweichung nicht genau auf den wahren Werten, was am Sampling-Error liegt. Der Sampling-Error beschreibt die zufällige Schwankung, die durch das Ziehen der Stichprobe aus einer Population (Grundgesamtheit) entsteht. 
+
+Simulieren wir noch eine zweite Stichprobe standardnormalverteilter Zufallsvariablen, so können wir diese beiden Stichproben mit Hilfe des $t$-Tests vergleichen. 
+
+```{r, echo = F}
+set.seed(2)
+Y <- rnorm(n = 1000, mean = 0, sd = 1)
+ttest <- t.test(X, Y, var.equal = T)
+ttest
+```
+
+Der Output ist uns bereits bekannt. Da die Null-Hypothese nicht verworfen wird, bedeutet dies, dass wir weiterhin annehmen, dass die Mittelwertsdifferenz in der Population tatsächlich 0 ist (was wir auch so vorgegeben haben). Die in der Stichprobe ist offensichtlich nicht 0, aber sie liegt so nah an der 0, dass diese Abweichung wahrscheinlich durch Zufall passiert ist und sich nicht auf die Population verallgemeinern lässt (siehe als Wiederholung [Eid, et al., 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 11.1 für den $t$-Test und Kapitel 8 für Inferenzstatistikgrundlagen und Hypothesentests, bzw. [Agresti, & Finlay, 2013](https://hds.hebis.de/ubffm/Record/HEB369761391), Kapitel 6).
 
 ### Verteilung unter $H_0$
-Wenn wir dieses Experiment nun ganz häufig wiederholen, dann sollte die Teststatistik $T=\frac{\bar{X}-\bar{Y}}{\sigma_p}$ (wobei $\bar{X}$ und $\bar{Y}$ die Mittelwerte von $X$ und $Y$ sind und $\sigma_p$ die gepoolte Standardabweichung beschreibt) der $t$-Verteilung folgen, welcher wir dann den $p$-Wert ablesen können. Wenn Sie sich für den dahinterliegenden Code interessieren, so können Sie diesen im [Appendix A](#AppendixA) nachlesen.
+Wenn wir dieses Experiment nun ganz häufig wiederholen, dann sollte die Teststatistik $T=\frac{\bar{X}-\bar{Y}}{\sigma_p}$ (wobei $\bar{X}$ und $\bar{Y}$ die Mittelwerte von $X$ und $Y$ sind und $\sigma_p$ die gepoolte Standardabweichung beschreibt) der $t$-Verteilung folgen, welcher wir dann den $p$-Wert ablesen können. 
 
 ```{r, echo = F}
 ts <- c(); ps <- c() # wir brauchen zunächst Vektoren, in die wir die t-Werte und die p-Werte hineinschreiben können
@@ -535,19 +565,37 @@ hist(ps, main = "p-Werte nach 10000 Replikationen unter Modellverstößen\n für
 abline(a = 1, b = 0, lwd = 3)
 ```
 
-Insgesamt sieht die Verteilung der $T$-Werte einigermaßen in Ordnung, wenn auch etwas schief, aus. Doch bei den $p$-Werten fällt auf, dass die Null-Hypothese zu häufig verworfen wird, nämlich insgesamt in `r round(mean(ps<0.05)*100, 2)`% der Fälle (durch Zufall, da die Null-Hypothese eigentlich gilt!); also doppelt so häufig wie von uns vorgegeben! Glücklicherweise ist der $t$-Test relativ robust, was daran zu erkennen ist, dass, wenn die Stichprobengröße für dieses Beispiel bei 50 oder gar höher liegt (pro Gruppe), das $\alpha$-Niveau schon wieder einigermaßen eingehalten wird. Außerdem gibt es geeignetere Tests zum Untersuchen von Mittelwertsunterschieden zweier Stichproben als den $t$-Test - nämlich den Welch-Test. Dies ist eine Erweiterung des $t$-Tests für ungleiche Varianzen. Dieser ist auch der Default in `R`. Wir rechnen ihn, indem wir nicht länger `var.equal = T` in `t.test` spezifizieren. Der Output ändert sich bis auf die Namensänderung kaum - die Freiheitsgrade des Tests werden korrigiert, um auf die ungleichen Varianzen zu reagieren (dies bedeutet, immer wenn die Freiheitsgrade nicht einfach $n-2$ sind, dann wurde der Welch-Test gerechnet; insbesondere Kommazahlen als $df$ sind möglich). Jedoch bringt diese Erweiterung ebenfalls nur für größere Stichproben etwas. Die analoge Simulationsstudie können Sie [Appendix A](#AppendixA) entnehmen.
+Insgesamt sieht die Verteilung der $T$-Werte einigermaßen in Ordnung, wenn auch etwas schief, aus. Doch bei den $p$-Werten fällt auf, dass die Null-Hypothese zu häufig verworfen wird, nämlich insgesamt in `r round(mean(ps<0.05)*100, 2)`% der Fälle (durch Zufall, da die Null-Hypothese eigentlich gilt!); also doppelt so häufig wie von uns vorgegeben! Glücklicherweise ist der $t$-Test relativ robust, was daran zu erkennen ist, dass, wenn die Stichprobengröße für dieses Beispiel bei 50 oder gar höher liegt (pro Gruppe), das $\alpha$-Niveau schon wieder einigermaßen eingehalten wird. Außerdem gibt es geeignetere Tests zum Untersuchen von Mittelwertsunterschieden zweier Stichproben als den $t$-Test - nämlich den Welch-Test. Dies ist eine Erweiterung des $t$-Tests für ungleiche Varianzen. Dieser ist auch der Default in `R`. Wir rechnen ihn, indem wir nicht länger `var.equal = T` in `t.test` spezifizieren. Der Output ändert sich bis auf die Namensänderung kaum - die Freiheitsgrade des Tests werden korrigiert, um auf die ungleichen Varianzen zu reagieren (dies bedeutet, immer wenn die Freiheitsgrade nicht einfach $n-2$ sind, dann wurde der Welch-Test gerechnet; insbesondere Kommazahlen als $df$ sind möglich). Jedoch bringt diese Erweiterung ebenfalls nur für größere Stichproben etwas. Die analoge Simulationsstudie können Sie [Appendix A](#AppendixA) entnehmen. Dort finden Sie wie bereits erwähnt auch den Code für alle hier gezeigten Grafiken und Simulation von Stichproben an sich.
 
 Diese Sitzung sollte als Einführung in `R`, Vorbereitung für die Regressionssitzung und kleine Wiederholung einiger wichtiger inferenzstatistischer Begriffe (wie etwas $\alpha$-Fehler, Power, Hypothese etc.) fungieren. Wie wir Histogramme erstellen und Verteilungen vergleichen, erfahren wir in der nächsten Sitzung im Rahmen der Voraussetzungen der [Regressionsanalyse und Ausreißerdiagnostik](/post/regression-und-ausreisserdiagnostik).
-
-Eine Übersicht über Matrixalgebra in `R` erhalten Sie in [Appendix B](#AppendixB).
-
-Eine schöne Einleitung in Plots in `R`, wie man diese erstellt, bearbeitet und abspeichert, können Sie in den Unterlagen aus dem Bachelor (PsyBsc2) zu [R Deskriptivstatistik](/post/r-deskriptiv) nachlesen, wenn Sie denn wollen.
 
 Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/0_Intro_RCode.R).
 
 ## Appendix
-### Appendix A {#AppendixA}
+### Appendix A: Code für Grundlagen der Inferenzstatistik {#AppendixA}
 Hier ist der Code für einige Grafiken und Simulationen dargestellt. Dies geht natürlich über den Stoff des Seminars hinaus und ist nur für Interessierte bestimmt.
+
+
+#### Simulation von Stichproben
+
+Wir müssen  diesem Befehl lediglich übergeben wie viele Replikationen wir wünschen und welchen Mittelwert und Standardabweichung die Zufallsvariablen haben sollen. Wir simulieren die Standardnormalverteilung $\mathcal{N}(0,1)$ und legen die generierte (realisierte) Zufallsvariable in einem Objekt mit dem Namen `X` ab, um später gezeigte Informationen wie den Mittelwert oder die Standardabweichung abrufen zu können - dies machen wir mit dem "Zuordnungspfeil". Um zufällige Prozesse über verschiedene Zeitpunkte hinweg konstant zu halten (damit es replizierbar ist und Sie dasselbe Ergebnis bekommen), wird zunächst ein Startpunkt für den Zufallsprozess mittels `set.seed` gesetzt.
+
+```{r}
+set.seed(1234567) # für Replizierbarkeit (bei gleicher R Version, kommen Sie mit diesem Seed zum selben Ergebnis!)
+X <- rnorm(n = 1000, mean = 0, sd = 1) # Standardnormalverteilung mit n = 1000
+hist(X)
+mean(X)
+sd(X)
+```
+
+
+```{r}
+# Simulation der zweiten Stichprobe
+set.seed(2)
+Y <- rnorm(n = 1000, mean = 0, sd = 1)
+ttest <- t.test(X, Y, var.equal = T)
+ttest # Vergleich zwischen den beiden Stichproben
+```
 
 #### Verteilung unter $H_0$
 ```{r}
