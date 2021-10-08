@@ -17,7 +17,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer]
-lastmod: '2021-10-05T16:40:21+02:00'
+lastmod: '2021-10-08T16:40:21+02:00'
 featured: no
 header:
   image: "/header/FEI_Sitzung0_post.jpg"
@@ -136,21 +136,22 @@ $$H_0: \mu_1=\mu_2$$
 Diese Hypothese gilt nicht, wenn $\mu_1\neq\mu_2$. In diesem Fall gilt irgendeine Alternativhypothese ($H_1$) mit einer Mittelwertsdifferenz $d=\mu_1-\mu_2$, die nicht Null ist $(d\neq0)$. Wir sprechen hier von einer Alternativhypothese, da in der (frequentistischen) Statistik immer feste Werte für die Parameter in der Population angenommen werden müssen. Wenn die $H_0$ nicht gilt, so muss entsprechend auch ein fester Wert für die Differenz $d$ für die Mittelwerte angenommen werden. 
 
 ### Simulieren von Daten
-Wir können in `R` auch Daten simulieren. Bspw. erzeugt der Befehl `rnorm` normalverteilte Zufallsvariablen. Für weitere Informationen siehe bspw. [`r fontawesome::fa("graduation-cap")` `R`-Verteilungen auf Wiki](https://en.wikibooks.org/wiki/R_Programming/Probability_Distributions). Wir müssen  diesem Befehl lediglich übergeben wie viele Replikationen wir wünschen und welchen Mittelwert und Standardabweichung die Zufallsvariablen haben sollen. Wir simulieren die Standardnormalverteilung $\mathcal{N}(0,1)$ und legen die generierte (realisierte) Zufallsvariable in einem Objekt mit dem Namen `X` ab, um später gezeigte Informationen wie den Mittelwert oder die Standardabweichung abrufen zu können - dies machen wir mit dem "Zuordnungspfeil" `<-` (zur Erinnerung: links davon steht der Name, den wir uns ausdenken; hier: `X`; rechts steht das zugeordnete Objekt):
+Wir können in `R` auch Daten simulieren. Bspw. erzeugt der Befehl `rnorm` normalverteilte Zufallsvariablen. Für weitere Informationen siehe bspw. [`r fontawesome::fa("graduation-cap")` `R`-Verteilungen auf Wiki](https://en.wikibooks.org/wiki/R_Programming/Probability_Distributions). Wir müssen  diesem Befehl lediglich übergeben wie viele Replikationen wir wünschen und welchen Mittelwert und Standardabweichung die Zufallsvariablen haben sollen. Wir simulieren die Standardnormalverteilung $\mathcal{N}(0,1)$ und legen die generierte (realisierte) Zufallsvariable in einem Objekt mit dem Namen `X` ab, um später gezeigte Informationen wie den Mittelwert oder die Standardabweichung abrufen zu können - dies machen wir mit dem "Zuordnungspfeil" `<-` (zur Erinnerung: links davon steht der Name, den wir uns ausdenken; hier: `X`; rechts steht das zugeordnete Objekt). Um zufällige Prozesse über verschiedene Zeitpunkte hinweg konstant zu halten (damit es replizierbar ist und Sie dasselbe Ergebnis bekommen), wird zunächst ein Startpunkt für den Zufallsprozess mittels `set.seed` gesetzt. `set.seed` nimmt irgendeine ganzzahlige, positive Zahl entgegen.
 
 ```{r}
 set.seed(1234567) # für Replizierbarkeit (bei gleicher R Version, kommen Sie mit diesem Seed zum selben Ergebnis!)
 X <- rnorm(n = 1000, mean = 0, sd = 1) # Standardnormalverteilung mit n = 1000
-hist(X)
+hist(X, breaks = 50) # breaks gibt die Anzahl der Balken vor
 mean(X)
 sd(X)
 ```
 
-Natürlich liegen der geschätzte Mittelwert und die Standardabweichung nicht genau auf den wahren Werten, was am Sampling-Error liegt. Der Sampling-Error beschreibt die zufällige Schwankung, die durch das Ziehen der Stichprobe aus einer Population (Grundgesamtheit) entsteht. 
+Das was in `rnorm` drin steckt, nämlich eine Normalverteilung mit Mittelwert 0 und Standardabweichung 1, ist gerade die Population, aus der wir eine Stichprobe gezogen haben. Natürlich liegen der geschätzte Mittelwert und die geschätze Standardabweichung der Stichprobe nicht genau auf den wahren Werten der Population, was am Sampling-Error liegt. Der Sampling-Error beschreibt die zufällige Schwankung, die durch das Ziehen der Stichprobe aus einer Population (Grundgesamtheit) entsteht. 
 
-Gehen wir nun her und simulieren noch eine zweite Stichprobe standardnormalverteilter Zufallsvariablen, so können wir diese beiden Stichproben mit Hilfe des $t$-Tests vergleichen. Die Funktion in `R` hierzu heißt `t.test` (wir müssen hier `var.equal = T` wählen, da sonst eine Näherung verwendet wird, die unterschiedliche Varianzen ausgleichen soll, nämlich Welch's Two Sample $t$-Test):
+Gehen wir nun her und simulieren noch eine zweite Stichprobe standardnormalverteilter Zufallsvariablen, so können wir diese beiden Stichproben mit Hilfe des $t$-Tests vergleichen. Da in beiden Gruppen ein Mittelwert von 0 vorliegt, ziehen wir hier einen $t$-Test heran im Fall der Null-Hypothese. Die Funktion in `R` hierzu heißt `t.test` (wir müssen hier `var.equal = T` wählen, da sonst eine Näherung verwendet wird, die unterschiedliche Varianzen ausgleichen soll, nämlich Welch's Two Sample $t$-Test):
 
 ```{r, results = "hide"}
+set.seed(2)
 Y <- rnorm(n = 1000, mean = 0, sd = 1)
 t.test(X, Y, var.equal = T)
 ```
@@ -185,7 +186,7 @@ cat(' alternative hypothesis: true difference in means is not equal to 0
     mean of x    mean of y 
  -0.002997332  0.061998736')
 ```
-zeigt uns die Hypothese ($H_0:d=0$), das Konfidenzintervall der Mittelwertsdifferenz sowie die Mittelwerte in den beiden Gruppen ($\bar{X}=$ `r mean(X)`, $\bar{Y}=$ `r mean(Y)`). 
+zeigt uns die Alternativhypothese ($H_1:d\neq0$), das Konfidenzintervall der Mittelwertsdifferenz sowie die Mittelwerte in den beiden Gruppen ($\bar{X}=$ `r mean(X)`, $\bar{Y}=$ `r mean(Y)`). Somit ist auch die Null-Hypothese klar: $H_0:d=0$.
 
 Wir können den Test auch als `R` Objekt abspeichern und ähnlich wie den Datensätzen anschließend diese Informationen entlocken. Dazu müssen wir das ausgegebene Objekt `t.test` lediglich einem Namen zuordnen und anschließend mit `$` ansprechen. Wieso nennen wir das Objekt nicht einfach `ttest`. Wenn wir `names` darauf anwenden, sehen wir alle Namen, die wir hinter `$` schreiben können:
 
@@ -196,10 +197,10 @@ ttest$statistic # (empirischer) t-Wert
 ttest$p.value   # zugehöriger p-Wert
 ```
 
-Da die Null-Hypothese nicht verworfen wird, bedeutet dies, dass wir weiterhin annehmen, dass die Mittelwertsdifferenz in der Population tatsächlich 0 ist. Die in der Stichprobe ist offensichtlich nicht 0, aber sie liegt so nah an der 0, dass diese Abweichung wahrscheinlich durch Zufall passiert ist und sich nicht auf die Population verallgemeinern lässt (siehe als Wiederholung [Eid, et al., 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 11.1 für den $t$-Test und Kapitel 8 für Inferenzstatistikgrundlagen und Hypothesentests, bzw. [Agresti, & Finlay, 2013](https://hds.hebis.de/ubffm/Record/HEB369761391), Kapitel 6).
+Da die Null-Hypothese nicht verworfen wird, bedeutet dies, dass wir weiterhin annehmen, dass die Mittelwertsdifferenz in der Population tatsächlich 0 ist. Die Mittelwertsdifferenz in der Stichprobe ist offensichtlich nicht 0. Allerdings liegt sie so nah an der 0, dass diese Abweichung wahrscheinlich durch Zufall passiert ist und sich nicht auf die Population verallgemeinern lässt (siehe als Wiederholung [Eid, et al., 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 11.1 für den $t$-Test und Kapitel 8 für Inferenzstatistikgrundlagen und Hypothesentests, bzw. [Agresti, & Finlay, 2013](https://hds.hebis.de/ubffm/Record/HEB369761391), Kapitel 6).
 
 ### Verteilung unter $H_0$
-Wenn wir dieses Experiment nun ganz häufig wiederholen, dann sollte die Teststatistik $T=\frac{\bar{X}-\bar{Y}}{\sigma_p}$ (wobei $\bar{X}$ und $\bar{Y}$ die Mittelwerte von $X$ und $Y$ sind und $\sigma_p$ die gepoolte Standardabweichung beschreibt) der $t$-Verteilung folgen, welcher wir dann den $p$-Wert ablesen können. Wenn Sie sich für den dahinterliegenden Code interessieren, so können Sie diesen im [Appendix A](#AppendixA) nachlesen.
+Wenn wir dieses Experiment nun ganz häufig wiederholen, dann sollte die Teststatistik $T=\frac{\bar{X}-\bar{Y}}{\sigma_p}$ (wobei $\bar{X}$ und $\bar{Y}$ die Mittelwerte von $X$ und $Y$ sind und $\sigma_p$ die gepoolte Standardabweichung beschreibt) der $t$-Verteilung folgen, welcher wir dann den $p$-Wert ablesen können. Das ist nämlich genau die Idee hinter dem inferenzstatistischen Testen. Wenn Sie sich für den dahinterliegenden Code interessieren, so können Sie diesen im [Appendix A](#AppendixA) nachlesen.
 
 ```{r, echo = F}
 ts <- c(); ps <- c() # wir brauchen zunächst Vektoren, in die wir die t-Werte und die p-Werte hineinschreiben können
@@ -212,9 +213,12 @@ for(i in 1:10000)
     ps <- c(ps, ttest$p.value)   # nehme den Vektor ps und verlängere ihn um den neuen p-Wert
 }
 
-hist(ts, main = "(empirische) t-Werte nach 10000 Replikationen unter H0", xlab = "T", freq = F)
-lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), lwd = 3)
-hist(ps, main = "p-Werte nach 10000 Replikationen unter H0", xlab = "p", freq = F)
+hist(ts, main = "(empirische) t-Werte nach 10000 Replikationen unter H0", 
+     xlab = "T", freq = F, breaks = 50)
+lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), 
+      lwd = 3)
+hist(ps, main = "p-Werte nach 10000 Replikationen unter H0", 
+     xlab = "p", freq = F, breaks = 50)
 abline(a = 1, b = 0, lwd = 3)
 ```
 
@@ -235,9 +239,11 @@ for(i in 1:10000)
     ps <- c(ps, ttest$p.value)   # nehme den Vektor ps und verlängere ihn um den neuen p-Wert
 }
 
-hist(ts, main = "(empirische) t-Werte nach 10000 Replikationen unter H1", xlab = "T", freq = F)
+hist(ts, main = "(empirische) t-Werte nach 10000 Replikationen unter H1", 
+     xlab = "T", freq = F, breaks = 50)
 lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), lwd = 3)
-hist(ps, main = "p-Werte nach 10000 Replikationen unter H1", xlab = "p", freq = F)
+hist(ps, main = "p-Werte nach 10000 Replikationen unter H1", 
+     xlab = "p", freq = F, breaks = 50)
 abline(a = 1, b = 0, lwd = 3)
 ```
 
@@ -255,11 +261,12 @@ ggplot(data = Erg, aes(x = d, y = Power, col = n, group = n))+
   ggtitle("Power vs. d and n")+ theme_apa(base_size = 20)
 ```
 
+Auf der x-Achse sehen wir unterschiedliche Mittelwertsdifferenzen. Auf der y-Achse ist die Power abgetragen. Die Farbe kodiert die Stichprobengröße.
 Die horizontal gepunktete Linie zeigt eine Power von 5% (also das vorgegebene $\alpha$-Niveau) an und die horizontal gestrichelte Linie zeigt eine Power von 80% an. 
 
 Wir sehen sehr deutlich, dass für alle Stichprobengrößen (farblich kodiert) von $n=2$ bis $n=1000$ (pro Gruppe) die Power bei einer Mittelwertsdifferenz von 0 gerade bei ca. 5% liegt. Die Mittelwertsdifferenz von 0 beschreibt gerade die Null-Hypothese, dass es keinen Mittelwertsunterschied gibt. In diesem Fall beobachten wir den $\alpha$-Fehler dieses Tests, nämlich die Wahrscheinlichkeit, zufällig die Null-Hypothese zu verwerfen, obwohl diese gilt. Die Power von 5% war somit zu erwarten, da dies gerade das $\alpha$-Niveau dieses Tests ist (welches wir uns auch vorher so vorgegeben haben). In der Regel wird $\alpha = .05$ gewählt. 
 
-Was wir auch erkennen ist, dass für sehr große Stichproben die Power dieses Tests schon für sehr kleine Mittelwertsdifferenzen groß ist (idealerweise sprechen Methodiker von einem Test mit hinreichender Power, wenn diese größer als 80% ist). Dieses Beispiel zeigt sehr schön auf, dass damit die Power (also die Wahrscheinlichkeit einen Effekt zu finden, wenn dieser da ist) hoch ist, es einen Effekt geben muss (was sehr trivial klingt und es eigentlich auch ist) und zudem die Stichprobengröße hinreichend groß sein muss. Mit hinreichend groß hält sich der/die Statistiker/in die Hintertür offen zu sagen, dass: a) im Falle eines kleinen Effekts die Stichprobengröße eben sehr groß sein muss, um diesen zu erkennen und b) bei Vorliegen eines sehr großen Effekts schon eine kleine Stichprobengröße ausreicht, um den Effekt mit hinreichender Wahrscheinlichkeit auch als solchen zu identifizieren. Das ist auch der Grund, warum es *Poweranalysen* gibt, mit welchen bestimmt werden kann, wie groß die Stichprobengröße sein muss, um bei einem vorgegebenem erwarteten Effekt hinreichende Power zu haben, diese auch zu entdecken.
+Was wir auch erkennen ist, dass für sehr große Stichproben die Power dieses Tests schon für sehr kleine Mittelwertsdifferenzen groß ist (idealerweise sprechen Methodiker von einem Test mit hinreichender Power, wenn diese größer als 80% ist). Dieses Beispiel zeigt sehr schön auf, dass damit die Power (also die Wahrscheinlichkeit einen Effekt zu finden, wenn dieser da ist) hoch ist, es einen Effekt geben muss (was sehr trivial klingt und es eigentlich auch ist) und zudem die Stichprobengröße hinreichend groß sein muss. Mit hinreichend groß hält sich der/die Statistiker/in die Hintertür offen zu sagen, dass: a) im Falle eines kleinen Effekts die Stichprobengröße eben sehr groß sein muss, um diesen zu erkennen und b) bei Vorliegen eines sehr großen Effekts schon eine kleine Stichprobengröße ausreicht, um den Effekt mit hinreichender Wahrscheinlichkeit auch als solchen zu identifizieren. Das ist auch der Grund, warum es *Poweranalysen* gibt, mit welchen bestimmt werden kann, wie groß die Stichprobengröße sein muss, um bei einem vorgegebenem erwarteten Effekt hinreichende Power zu haben, diese auch zu entdecken. Für sehr einfache Tests gibt es auch geschlossene Formeln, um bspw. Stichprobengröße zu finden, mit welcher vorgegebene Effekte mit hinreichend großer Wahrscheinlichkeit aufgedeckt werden können.
 
 ### Verstöße gegen die Modellannahmen
 Liegen andere Verstöße gegen die Modellannahmen vor, dann kann es fälschlicherweise zu signifikanten Ergebnissen kommen, obwohl es in der Population gar keinen Effekt gibt. Dies ist oft bei kleinen Stichproben ein Problem. Nehmen wir beispielsweise an, dass die beiden Gruppen sehr gegenläufig schief verteilt sind.
@@ -272,7 +279,7 @@ X <- -rexp(1000, 1)
 X <- X + 1
 Y <- rexp(1000, 2)
 Y <- Y - 1/2
-hist(X); hist(Y)
+hist(X, breaks = 50); hist(Y, breaks = 50)
 ```
 
 Hier gilt zwar die Null-Hypothese, da beide Verteilungen einen theoretischen Mittelwert von 0 haben, aber die Varianzen unterscheiden sich (was im Histogramm  durch die extremeren Werte entlang der x-Achse zu erkennen ist) und die Variablen sind offensichtlich nicht normalverteilt. Schauen wir uns nun die Power des $t$-Tests für eine sehr kleine Stichprobe von 5 pro Gruppe an:
@@ -291,9 +298,12 @@ for(i in 1:10000)
         ps <- c(ps, ttest$p.value)   # nehme den Vektor ps und verlängere ihn um den neuen p-Wert
 }
 
-hist(ts, main = "t-Werte nach 10000 Replikationen unter Modellverstöße\n für kleine Stichproben", xlab = "t", freq = F)
-lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), lwd = 3)
-hist(ps, main = "p-Werte nach 10000 Replikationen unter Modellverstößen\n für kleine Stichproben", xlab = "p", freq = F)
+hist(ts, main = "t-Werte nach 10000 Replikationen unter Modellverstöße\n für kleine Stichproben", 
+     xlab = "t", freq = F, breaks = 50)
+lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter),
+      lwd = 3)
+hist(ps, main = "p-Werte nach 10000 Replikationen unter Modellverstößen\n für kleine Stichproben", 
+     xlab = "p", freq = F, breaks = 50)
 abline(a = 1, b = 0, lwd = 3)
 ```
 
@@ -323,9 +333,12 @@ for(i in 1:10000)
     ps <- c(ps, ttest$p.value)   # nehme den Vektor ps und verlängere ihn um den neuen p-Wert
 }
 
-hist(ts, main = "(empirische) t-Werte nach 10000 Replikationen unter H0", xlab = "T", freq = F)
-lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), lwd = 3)
-hist(ps, main = "p-Werte nach 10000 Replikationen unter H0", xlab = "p", freq = F)
+hist(ts, main = "(empirische) t-Werte nach 10000 Replikationen unter H0", 
+     xlab = "T", freq = F, breaks = 50)
+lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), 
+      lwd = 3)
+hist(ps, main = "p-Werte nach 10000 Replikationen unter H0", 
+     xlab = "p", freq = F, breaks = 50)
 abline(a = 1, b = 0, lwd = 3)
 ```
 
@@ -341,9 +354,12 @@ for(i in 1:10000)
     ps <- c(ps, ttest$p.value)   # nehme den Vektor ps und verlängere ihn um den neuen p-Wert
 }
 
-hist(ts, main = "(empirische) t-Werte nach 10000 Replikationen unter H1", xlab = "T", freq = F)
-lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), lwd = 3)
-hist(ps, main = "p-Werte nach 10000 Replikationen unter H1", xlab = "p", freq = F)
+hist(ts, main = "(empirische) t-Werte nach 10000 Replikationen unter H1", 
+     xlab = "T", freq = F, breaks = 50)
+lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), 
+      lwd = 3)
+hist(ps, main = "p-Werte nach 10000 Replikationen unter H1", 
+     xlab = "p", freq = F, breaks = 50)
 abline(a = 1, b = 0, lwd = 3)
 ```
 
@@ -363,9 +379,12 @@ for(i in 1:10000)
         ps <- c(ps, ttest$p.value)   # nehme den Vektor ps und verlängere ihn um den neuen p-Wert
 }
 
-hist(ts, main = "t-Werte nach 10000 Replikationen unter Modellverstöße\n für kleine Stichproben", xlab = "t", freq = F)
-lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), lwd = 3)
-hist(ps, main = "p-Werte nach 10000 Replikationen unter Modellverstößen\n für kleine Stichproben", xlab = "p", freq = F)
+hist(ts, main = "t-Werte nach 10000 Replikationen unter Modellverstöße\n für kleine Stichproben", 
+     xlab = "t", freq = F, breaks = 50)
+lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), 
+      lwd = 3)
+hist(ps, main = "p-Werte nach 10000 Replikationen unter Modellverstößen\n für kleine Stichproben", 
+     xlab = "p", freq = F, breaks = 50)
 abline(a = 1, b = 0, lwd = 3)
 ```
 
@@ -384,9 +403,12 @@ for(i in 1:10000)
         ps <- c(ps, ttest$p.value)   # nehme den Vektor ps und verlängere ihn um den neuen p-Wert
 }
 
-hist(ts, main = "t-Werte (des Welch t-Tests) nach 10000 Replikationen\n unter Modellverstöße für kleine Stichproben", xlab = "t", freq = F)
-lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), lwd = 3)
-hist(ps, main = "p-Werte (des Welch t-Tests) nach 10000 Replikationen\n unter Modellverstößen für kleine Stichproben", xlab = "p", freq = F)
+hist(ts, main = "t-Werte (des Welch t-Tests) nach 10000 Replikationen\n unter Modellverstöße für kleine Stichproben", 
+     xlab = "t", freq = F, breaks = 50)
+lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), 
+      lwd = 3)
+hist(ps, main = "p-Werte (des Welch t-Tests) nach 10000 Replikationen\n unter Modellverstößen für kleine Stichproben", 
+     xlab = "p", freq = F, breaks = 50)
 abline(a = 1, b = 0, lwd = 3)
 ```
 Insgesamt sieht die Verteilung der Teststatistik (also quasi der empirischen $t$-Werte) einigermaßen in Ordnung aus, wenn auch etwas schief, doch bei den $p$-Werten fällt auf, dass die Null-Hypothese zu häufig verworfen wird, nämlich insgesamt in `r round(mean(ps<0.05)*100, 2)`% der Fälle (durch Zufall, da die Null-Hypothese eigentlich gilt!); also doppelt so häufig wie von uns vorgegeben! Hier gibt es kaum Unterschiede zum ursprünglichen $t$-Test mit gleichen Varianzen. Allerdings ist die Stichprobengröße hier mit 5 pro Gruppe recht klein!
@@ -407,9 +429,12 @@ for(i in 1:10000)
         ps <- c(ps, ttest$p.value)   # nehme den Vektor ps und verlängere ihn um den neuen p-Wert
 }
 
-hist(ts, main = "t-Werte (des Welch t-Tests) nach 10000 Replikationen\n unter Modellverstöße für größere Stichproben", xlab = "t", freq = F)
-lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), lwd = 3)
-hist(ps, main = "p-Werte (des Welch t-Tests) nach 10000 Replikationen\n unter Modellverstößen für größere Stichproben", xlab = "p", freq = F)
+hist(ts, main = "t-Werte (des Welch t-Tests) nach 10000 Replikationen\n unter Modellverstöße für größere Stichproben", 
+     xlab = "t", freq = F, breaks = 50)
+lines(x = seq(-4,4,0.01), dt(x = seq(-4,4,0.01), df = ttest$parameter), 
+      lwd = 3)
+hist(ps, main = "p-Werte (des Welch t-Tests) nach 10000 Replikationen\n unter Modellverstößen für größere Stichproben", 
+     xlab = "p", freq = F, breaks = 50)
 abline(a = 1, b = 0, lwd = 3)
 ```
 
