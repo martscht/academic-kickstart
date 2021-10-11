@@ -69,19 +69,19 @@ subtitle = "Vertiefung der Forschungsmethodik für Psychotherapeut*innen"
 <a id="PsyMSc5a"></a>
 Das Modul KliPPsMSc5 ist in zwei Teile untergliedert. Im ersten Semester besuchen Sie ein Seminar, im zweiten Semester eine Vorlesung. Die hier bereitgestellten Inhalte beziehen sich auf die Seminare im ersten Semester - also den Teil 5a des Moduls. Dabei geht es in allen Seminaren um multivariate Vorhersagemodelle, die als (multivariate) Erweiterung des Allgemeinen Linearen Modells angesehen werden können. Beispielsweise wird die Regressionsanalyse erweitert, um auch bestimmte Abhängigkeiten in den Daten modellieren zu können. Weiterhin werden in jedem Seminar zwei von drei Ergänzungsmodulen behandelt - diese werden von Ihrem:r Dozierenden zu Beginn des Semesters vorgestellt. Die inhaltlichen Teile in den Seminaren werden durch die Umsetzung in `R` unterstützt, die hier jeweils in einem Tutorial vorgestellt wird.
 
-|  |  |  |  | | |
-| --- | --- | --- | --- | --- | --- |
-| 0 | **Einleitung und Wiederholung** | [Inhalte](/post/einleitung-klipps)  | -- |
-| 1 | **Multiple Regreesion und Ausreißerdiagnostik** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
-| 2 | **ANOVA vs. Regression** | [Inhalte](/post/under-construction)  | -- |
-| 3 | **ANCOVA und moderierte Regression** | [Inhalte](/post/under-construction)  | -- |
-| 4 | **Logistische Regressionsanalyse** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
-| 5 | **Hierarchische Regression** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
-| 6 | **Meta-Analyse** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
-| 7 | **Kausalschätzer** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
-| 8 | **Netzwerkanalyse** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
+|  |  |  |  | | | |
+| --- | --- | --- | --- | --- | --- | --- |
+|  I  | 1 | **Einleitung und Wiederholung** | [Inhalte](/post/einleitung-klipps)  | -- |
+|  I  | 2 | **Multiple Regreesion und Ausreißerdiagnostik** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
+|  II | 1 | **ANOVA vs. Regression** | [Inhalte](/post/under-construction)  | -- |
+|  II | 2 | **ANCOVA und moderierte Regression** | [Inhalte](/post/under-construction)  | -- |
+|  II | 3 | **Logistische Regressionsanalyse** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
+| III | 1 | **Hierarchische Regression** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
+| IV  | 1 | **Meta-Analyse** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
+| Va | 1 | **Kausalschätzer** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
+| Vb | 1 | **Netzwerkanalyse** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
 | *Zusatz* | -- | -- | --- |
-|  |  |  |  | | |
+|  |  |  |  | | | |
 
 
 
