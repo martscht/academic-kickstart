@@ -71,17 +71,17 @@ Das Modul PsyBSc7 vertieft die im Modul PsyBSc2 vermittelten Grundlagen. Behande
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 0 | **Wiederholung von Grundlagen in R** | [Inhalte](/post/wiederholung-grundlagen) | [Übungsdaten](/post/BSc7-Daten) |
-| 1 | **Loops und Funktionen** | [Inhalte](/post/loops-und-funktionen) | [Übungsdaten](/post/BSc7-Daten) |
-| 2 | **Grafiken mit ggplot2** | [Inhalte](/post/grafiken-mit-ggplot2) | [Übungsdaten](/post/BSc7-Daten) |
-| 3 | **Partial- & Semipartialkorrelation** | [Inhalte](/post/partial) | [Übungsdaten](/post/BSc7-Daten) |
-| 4 | **Regressionsanalyse I: multiple Regression** | [Inhalte](/post/reg1) | [Übungsdaten](/post/BSc7-Daten) |
-| 5 | **Regressionsanalyse II: Modelloptimierung** | [Inhalte](/post/reg2) | [Übungsdaten](/post/BSc7-Daten) |
-| 6 | **Regressionanalyse III: Voraussetzungsprüfung** | [Inhalte](/post/reg3) | [Übungsdaten](/post/BSc7-Daten) |
-| 7 | **Regressionanalyse IV: quadratische und Interaktionseffekte** | [Inhalte](/post/quadratische-und-moderierte-regression) | [Übungsdaten](/post/BSc7-Daten) |
-| 8 | **Regressionanalyse V: nichtlineare Regression** | [Inhalte](/post/nichtlineare-regression) | [Übungsdaten](/post/BSc7-Daten) |
-| 9 | **ANOVA I: einfaktorielle Varianzanalyse** | [Inhalte](/post/einfaktorielle-ANOVA) | [Übungsdaten](/post/BSc7-Daten) |
-| 10 | **ANOVA II: zweifaktorielle Varianzanalyse** | [Inhalte](/post/zweifaktorielle-ANOVA) | [Übungsdaten](/post/BSc7-Daten) |
-| 11 | **ANOVA III: Varianzanalyse mit Messwiederholung** |  [Inhalte](/post/ANOVA-Messwiederholung) | [Übungsdaten](/post/BSc7-Daten) |
+| 0 | **Wiederholung von Grundlagen in R** | [Inhalte](/post/wiederholung-grundlagen) | [Übungsdaten](/post/bsc7-daten/#Sitzung0) |
+| 1 | **Loops und Funktionen** | [Inhalte](/post/loops-und-funktionen) | [Übungsdaten](/post/bsc7-daten/#Sitzung1) |
+| 2 | **Grafiken mit ggplot2** | [Inhalte](/post/grafiken-mit-ggplot2) | [Übungsdaten](/post/bsc7-daten/#Sitzung2) |
+| 3 | **Partial- & Semipartialkorrelation** | [Inhalte](/post/partial) | [Übungsdaten](/post/bsc7-daten/#Sitzung3) |
+| 4 | **Regressionsanalyse I: multiple Regression** | [Inhalte](/post/reg1) | [Übungsdaten](/post/bsc7-daten/#Sitzung3) |
+| 5 | **Regressionsanalyse II: Modelloptimierung** | [Inhalte](/post/reg2) | [Übungsdaten](/post/bsc7-daten/#Sitzung3) |
+| 6 | **Regressionanalyse III: Voraussetzungsprüfung** | [Inhalte](/post/reg3) | [Übungsdaten](/post/bsc7-daten/#Sitzung3) |
+| 7 | **Regressionanalyse IV: quadratische und Interaktionseffekte** | [Inhalte](/post/quadratische-und-moderierte-regression) | [Übungsdaten](/post/bsc7-daten/#Sitzung7) |
+| 8 | **Regressionanalyse V: nichtlineare Regression** | [Inhalte](/post/nichtlineare-regression) | [Übungsdaten](/post/bsc7-daten/#Sitzung8) |
+| 9 | **ANOVA I: einfaktorielle Varianzanalyse** | [Inhalte](/post/einfaktorielle-ANOVA) | [Übungsdaten](/post/bsc7-daten/#Sitzung9) |
+| 10 | **ANOVA II: zweifaktorielle Varianzanalyse** | [Inhalte](/post/zweifaktorielle-ANOVA) | [Übungsdaten](/post/bsc7-daten/#Sitzung9) |
+| 11 | **ANOVA III: Varianzanalyse mit Messwiederholung** |  [Inhalte](/post/ANOVA-Messwiederholung/#Sitzung11) | [Übungsdaten](/post/bsc7-daten) |
 | | |
 

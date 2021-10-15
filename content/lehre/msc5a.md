@@ -72,7 +72,7 @@ Das Modul KliPPsMSc5 ist in zwei Teile untergliedert. Im ersten Semester besuche
 |  |  |  |  | | | |
 | --- | --- | --- | --- | --- | --- | --- |
 |  I  | 1 | **Einleitung und Wiederholung** | [Inhalte](/post/einleitung-klipps)  | -- |
-|  I  | 2 | **Multiple Regression und Ausreißerdiagnostik** | [Inhalte](/post/regression-aussreisser-klipps)  | [Quizdaten](/post/under-construction) |
+|  I  | 2 | **Multiple Regression und Ausreißerdiagnostik** | [Inhalte](/post/regression-aussreisser-klipps)  | [Quizdaten](/post/msc5a-daten/#Block1) |
 |  II | 1 | **ANOVA vs. Regression** | [Inhalte](/post/under-construction)  | -- |
 |  II | 2 | **ANCOVA und moderierte Regression** | [Inhalte](/post/under-construction)  | -- |
 |  II | 3 | **Logistische Regressionsanalyse** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |

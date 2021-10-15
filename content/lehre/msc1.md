@@ -71,12 +71,12 @@ Das Modul PsyMSc1 ist in zwei Teile untergliedert: Forschungsmethoden und Evalua
 
 |  |  |  |  | | |
 | --- | --- | --- | --- | --- | --- |
-| 1 | **Einleitung und Wiederholung** | [Inhalte](/post/einleitung-und-wiederholung)  | [Übungsdaten](/post/MSc1-Daten) |
-| 2 | **Regressionsanalyse und Ausreißerdiagnostik** | [Inhalte](/post/regression-und-ausreisserdiagnostik)  | [Übungsdaten](/post/MSc1-Daten) |
-| 3 | **Hierarchische Regressionsanalyse** | [Inhalte](/post/multi-level-modeling)  | [Übungsdaten](/post/MSc1-Daten) |
-| 4 | **Logistische Regressionsanalyse** | [Inhalte](/post/logistische-regression)  | [Übungsdaten](/post/MSc1-Daten) |
-| *Zusatz* | **Hauptkomponentenanalyse** | [Inhalte](/post/pca)  | [Übungsdaten](/post/MSc1-Daten) |
-| *Zusatz* | **Multivariate Varianzanalyse** | [Inhalte](/post/manova)  | [Übungsdaten](/post/MSc1-Daten) |
+| 1 | **Einleitung und Wiederholung** | [Inhalte](/post/einleitung-und-wiederholung)  | [Übungsdaten](/post/msc1-daten/#Sitzung1) |
+| 2 | **Regressionsanalyse und Ausreißerdiagnostik** | [Inhalte](/post/regression-und-ausreisserdiagnostik)  | [Übungsdaten](/post/msc1-daten/#Sitzung2) |
+| 3 | **Hierarchische Regressionsanalyse** | [Inhalte](/post/multi-level-modeling)  | [Übungsdaten](/post/msc1-daten/#Sitzung3) |
+| 4 | **Logistische Regressionsanalyse** | [Inhalte](/post/logistische-regression)  | [Übungsdaten](/post/msc1-daten/#Sitzung4) |
+| *Zusatz* | **Hauptkomponentenanalyse** | [Inhalte](/post/pca)  | [Übungsdaten](/post/msc1-daten/#ZusatzPCA) |
+| *Zusatz* | **Multivariate Varianzanalyse** | [Inhalte](/post/manova)  | [Übungsdaten](/post/msc1-daten/#ZusatzMANOVA) |
 | *Zusatz* | **Diskriminanzanalyse** | [Inhalte](/post/diskriminanzanalyse)  | --- |
 |  |  |  |  | | |
 
