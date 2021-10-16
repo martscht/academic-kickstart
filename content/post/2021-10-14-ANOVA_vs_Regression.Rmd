@@ -34,14 +34,14 @@ In dieser Sitzung schauen wir uns die Unterschiede und Gemeinsamkeiten von ANOVA
 Diese Sitzung basiert auf Literatur aus [Eid et al. (2017)](https://hds.hebis.de/ubffm/Record/HEB366849158) Kapitel 13 sowie Kapitel 16 bis 19.
 
 
-### Daten laden
-Im Gegensatz zu den vorherigen Sitzungen wollen wir einen Datensatz direkt aus dem [Open Science Framwork (OSF)](https://osf.io). Dort werden Unterlagen im Sinne der Open-Sience-Initiative abgelegt. In diesem Fall nutzen wir einen Datensatz von [Schaeuffele et al. (2020)](https://psyarxiv.com/528tw/), die den Effekt des Unified Protocol (UP) als Internetintervention für bestimmte psychische Störungen durchgeführt haben. Die OSF-Daten finden sie [hier](https://osf.io/fyhn5/). Wir wir dort zum Datensatz navigieren, können wir das "csv"-File direkt in `R` einbinden, ohne es auf unserem Rechner ablegen zu müssen --- wie als würde der Datensatz auf `PandaR` liegen. Der nötige Befehl lautet `read.csv`, mit welchem wir auch ein lokales "csv"-File einlesen können. Wir müssen  der Funktion lediglich den Link zum downloadbaren "csv"-File übergeben. Der Vollständigkeit halber sagen wir `R` dann noch, dass es sich um einen Dateipfad ins Internet handelt, indem wir die die `url`-Funktion darauf anwenden. Wir nennen die eingelesenen Daten unglaublich einfallsreich einfach mal `osf` und schauen uns die Variablen des Datensatzes einmal an mit `names`.
+## Daten laden
+Im Gegensatz zu den vorherigen Sitzungen wollen wir einen Datensatz direkt aus dem [Open Science Framwork (OSF)](https://osf.io). Dort werden Unterlagen im Sinne der Open-Sience-Initiative abgelegt. In diesem Fall nutzen wir einen Datensatz von [Schaeuffele et al. (2020)](https://psyarxiv.com/528tw/), die den Effekt des Unified Protocol (UP) als Internetintervention für bestimmte psychische Störungen durchgeführt haben. Die OSF-Daten finden sie [hier](https://osf.io/fyhn5/). Wenn wir dort zum Datensatz navigieren, können wir das "csv"-File direkt in `R` einbinden, ohne es auf unserem Rechner ablegen zu müssen --- wie als würde der Datensatz auf `PandaR` liegen. Der nötige Befehl lautet `read.csv`, mit welchem wir auch ein lokales "csv"-File einlesen können. Wir müssen  der Funktion lediglich den Link zum downloadbaren "csv"-File übergeben. Der Vollständigkeit halber sagen wir `R` dann noch, dass es sich um einen Dateipfad ins Internet handelt, indem wir die die `url`-Funktion darauf anwenden. Wir nennen die eingelesenen Daten unglaublich einfallsreich einfach mal `osf` und schauen uns die Variablen des Datensatzes einmal an mit `names`.
 
 ```{r}
 osf <- read.csv(file = url("https://osf.io/zc8ut/download"))
 names(osf)
 ```
-Ds sind sehr viele Variablen. Wir beschränken uns auf einige wenige Variablen, die nach durchführen des Treatments erhoben wurden: `ID` (Teilnehmendennummer), `group` (Gruppenzugehörigkeit: Wartelistenkontrollgruppe vs. Treatmentgruppe), `stratum` (Krankheitsbild: Angststörung [**ANX**iety], Depression [**DEP**ression] oder somatische Belastungsstörung [**SOM**atic symptom disorder]), `bsi_post` (Symptomschwere), `swls_post` (Lebenszufriedenheit [**S**atisfaction **W**ith **L**ife **S**creening]) und `pas_post` (Panikstörung und Agoraphobie [*P*anic and *A*goraphobia *S*creening]). Wir kürzen entpsrechend den Datensatz und schauen ihn uns an mit `head`:
+Das sind sehr viele Variablen. Wir beschränken uns auf einige wenige Variablen, die nach durchführen des Treatments erhoben wurden: `ID` (Teilnehmendennummer), `group` (Gruppenzugehörigkeit: Wartelistenkontrollgruppe vs. Treatmentgruppe), `stratum` (Krankheitsbild: Angststörung [**ANX**iety], Depression [**DEP**ression] oder somatische Belastungsstörung [**SOM**atic symptom disorder]), `bsi_post` (Symptomschwere), `swls_post` (Lebenszufriedenheit [**S**atisfaction **W**ith **L**ife **S**creening]) und `pas_post` (Panikstörung und Agoraphobie [*P*anic and *A*goraphobia *S*creening]). Wir kürzen entpsrechend den Datensatz und schauen ihn uns an mit `head`:
 
 ```{r}
 osf <- osf[, c("ID", "group", "stratum", "bsi_post", "swls_post", "pas_post")]
@@ -60,7 +60,7 @@ dim(osf) # nach Fallauschluss
 Die Variable `pas` hat die meisten Missings. Wenn auf irgendeiner weiteren Variable Daten fehlen, dann fehlen diese auch auf `pas`. Indem wir `which(is.na())` auf `pas` anwenden, erhalten wir einen Vektor, der die Stellen der Missings enthält. Diesen Vektor können wir anschließend nutzen, um diese Fälle auszuschließen, indem wir die entsprechenden Zeilen ansprechen und ein Minus davor setzen.
 
 
-### Regression: Modellvergleiche
+## Regression: Modellvergleiche
 In der vorherigen Sitzung haben wir noch einmal die Regressionsanalyse wiederholt. Wenn wir beispielsweise wissen möchten, ob die Symptomschwere nach dem Treatment mit der Lebenszufriedenheit oder der Ausprägung einer möglichen Panikstörung mit Agoraphobie zusammenhängt, wissen wir nun, wie wir dies untersuchen können:
 
 ```{r}
@@ -104,7 +104,7 @@ anova0$F[2] # empirischer F-Bruch aus anova-Objekt
 
 Der $F$-Wert ist genau dann groß, wenn der das Varianzinkrement groß ist im Vergleich zur Fehlervarianz.
 
-### Regression: Kategoriale Prädiktoren
+## Regression: Kategoriale Prädiktoren
 Wir können in ein Regressionsmodell auf kategoriale Prädiktoren aufnehmen. Das haben wir bereits in der vergangenen Sitzung gemacht, indem wir das Geschlecht mit in die Gleichung aufgenommen haben. Der Default in `R` ist, dass Dummyvariablen verwendet werden, um Gruppenzugehörigkeiten auszudrücken. So kann erreicht werden, dass Abweichungen zu einer Referenzkategorie kodiert werden können. Wir sagen die Symptomschwere durch die Gruppenvariable, die die Zuweisung zum Treatment enthält, vorher. Zunächst müssen wir sichergehen, dass es sich bei dieser Variable um eine Gruppierungsvariable handelt, indem wir sie in einen `factor` umwandeln. 
 
 ```{r}
@@ -137,7 +137,7 @@ summary(reg_dummy1)$r.squared
 ```
 Somit gehen `r round(summary(reg_dummy1)$r.squared*100,2)`% der Variation auf die Gruppenzugehörigkeit zurück.
 
-### Einfaktorielle ANOVA und $t$-Test
+## Einfaktorielle ANOVA und $t$-Test
 Mit Hilfe der ANOVA können wir unsere Daten auf Mittelwertsunterschiede über Gruppen hinweg untersuchen. Im Bachelorstudium hatten wir hier die `ezANOVA` Funktion kennengelernt. Diese kommt aus dem `ez`-Paket, welches zunächst geladen werden muss (das Folgende ist zum Teil auch in der [Sitzung ANOVA I](/post/einfaktorielle-ANOVA) aus dem Bachelor zu finden). 
 
 ```{r loadlib, exercise=FALSE, exercise.lines = 3}
@@ -222,12 +222,12 @@ ttest1$statistic^2
 ```
 
 
-### Mehrfaktorielle ANOVA
+## Mehrfaktorielle ANOVA
 Die Mehrfaktorielle ANOVA ist nun etwas kniffliger. Hier hängt bei der ANOVA die Signifikanzentscheidung der Gruppenkombination nämlich von der Quadratsummenwahl ab. Diese kann nämlich unterschiedlich gewählt werden, weswegen es verschiedene `R`-Pakete gibt, die dies für uns übernehmen. 
 
 In einer zweifaktoriellen ANOVA sind drei verschiedene Arten von Effekten möglich: Haupteffekt des Faktors A (erster Faktor), Haupteffekt des Faktors B (zweiter Faktor) und Interaktionseffekt (AxB). Die Wahl der Quadratsumme entscheidet nun, in welcher Reihenfolge die Prädiktoren in das Modell aufgenommen werden. In der `ezANOVA`-Funktion können wir die Quadratsumme ganz einfach mit dem Argument `type` einstellen. Es gibt drei Typen der Quadratsummen.
 
-#### Zweifaktorielle ANOVA: Quadratsumme vom Typ I
+### Zweifaktorielle ANOVA: Quadratsumme vom Typ I
 Dieser Quadratsummentyp entspricht im Grunde der Forward-Selektion im Regressionskontext. Dies bedeutet, dass die Signifikanzentscheidung der Faktoren von der Reihenfolge der Aufnahme in das Modell abhängt. Wir können unser ANOVA-Modell erweitern um die Diagnose der Proband:innen erweitern, indem wir dem Argument `between` in `ezANOVA` einen Vektor von Variablen übergeben (`between = c(group, stratum)`). Bevor wir dies tun, sollten wir die Gruppierungsvariable `stratum` noch in einen `factor` umwandeln! Dann stellen wir noch den Quadratsummentype ein, speichern das Objekt als `ezANOVA1` ab und erhalten:
 
 ```{r}
@@ -281,7 +281,7 @@ anova(reg_gsi)
 
 Allerdings war uns an dieser Stelle wichtig, zu zeigen, wie man auf die jeweiligen Modellvergleiche kommt. Die anderen Quadratsummentypen sollen nun unabhängig von der Reihenfolge jeweils Signifikanzentscheidungen für die Haupteffekte ausgeben können.
 
-#### Zweifaktorielle ANOVA: Quadratsumme vom Typ II
+### Zweifaktorielle ANOVA: Quadratsumme vom Typ II
 Quadratsummen vom Typ II sind häufig der Default in Programmen, die nicht das schrittweise vorgehen wählen wollen. Dieser Typ sollte verwendet werden, wenn es keine Interaktion zwischen den Faktoren gibt. Dann können die Haupteffekte sinnvoll interpretiert werden. Die Effekte werden hier als Partialeffekte bestimmt. Es spielt also keine Rolle in welcher Reihenfolge die Faktoren aufgenommen werden. Wir rechnen zunächst wieder eine zweifaktorielle ANOVA mit dem `ezANOVA`-Befehl mit Quadratsummen vom zweiten Typ. Um den Output etwas zu verkürzen, lassen wir das Argument `detailed` weg:
 
 ```{r}
@@ -311,7 +311,7 @@ Wir erkennen, dass die Tests der Inkrement jeweils der Haupteffektsprüfung mit 
 
 
 
-#### Zweifaktorielle ANOVA: Quadratsumme vom Typ III
+### Zweifaktorielle ANOVA: Quadratsumme vom Typ III
 Ist der Interaktionseffekt signifikant, so sollten die Quadratsummen vom Typ III verwendet werden. Diese erhalten wir entweder mit der `ezANOVA`-Funktion aus dem `ez`-Paket oder der `Anova`-Funktion aus dem `car`-Paket. Allerdings müssen wir für Quadratsummen vom Typ III die Art der Kontrastbildung in `R` verändern. Der Default lautet:
 
 ```{r}
@@ -342,7 +342,7 @@ options(contrasts=c(unordered="contr.treatment", ordered="contr.poly"))
 
 Da es sonst zu verschätzen Effekten kommen kann, wenn bspw. Quadratsummen vom Typ I oder Typ II verwendet werden.
 
-### Fazit aus allen Analysen
+## Fazit aus allen Analysen
 
 Insgesamt kamen alle Analysen zum selben Ergebnis: die Intervention zeigt einen Effekt auf die Symptomschwere unabhängig von der vorliegenden Diagnose (mit einer Irrtumswahrscheinlichkeit von $5\%$). Wir haben in dieser Sitzung gesehen, dass Regression und ANOVA zum selben Ergebnis kommen, wenn die selben Hypothesen geprüft werden.
  
@@ -365,11 +365,11 @@ Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fonta
 ***
 --> 
 
-## Literatur
+## Literatur 
 
 [Eid, M., Gollwitzer, M., & Schmitt, M. (2017).](https://hds.hebis.de/ubffm/Record/HEB366849158) *Statistik und Forschungsmethoden* (5. Auflage, 1. Auflage: 2010). Weinheim: Beltz.
 
-## Datensatz
+## Datensatzliteratur
 
 Schaeuffele, C., Homeyer, S. L., Perea, L., Scharf, L., Schulz, A., Knaevelsrud, C., … Boettcher, J. (2020, December 16). The Unified Protocol as an Internet-based Intervention for Emotional Disorders: Randomized Controlled Trial. https://doi.org/10.31234/osf.io/528tw
 
