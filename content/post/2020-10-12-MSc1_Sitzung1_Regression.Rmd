@@ -349,17 +349,18 @@ Die Plausibilität unserer Daten ist enorm wichtig. Aus diesem Grund sollten Aus
 
 ### Hebelwerte
 
-*Hebelwerte* $h_j$ (engl.: leverage values) erlauben die Identifikation von Ausreißern aus der gemeinsamen Verteilung der unabhängigen Variablen, d.h. sie geben an, wie weit ein Wert vom Mittelwert einer Prädiktorvariable entfernt ist. Je höher der Hebelwert, desto weiter liegt der einzelne Fall vom Mittelwert der gemeinsamen Verteilung der unabhängigen Variablen entfernt und desto stärker kann somit der Einfluss auf die Regressionsgewichte sein. Diese werden mit der Funktion `hatvalues` ermittelt. Kriterien zur Beurteilung der Hebelwerte variieren, so werden von [Eid et al. (2017, S. 707 und folgend)](https://hds.hebis.de/ubffm/Record/HEB366849158) Grenzen von $2\cdot k / n$ für große und $3\cdot k / n$ für kleine Stichproben vorgeschlagen, in den Vorlesungsfolien von Prof. Dr. Klein aus dem Bachelor werden Werte von $4/n$ als auffällig eingestuft (hierbei ist $k$ die Anzahl an Prädiktoren und $n$ die Anzahl der Beobachtungen). Alternativ zu einem festen Cut-Off-Kriterium kann die Verteilung der Hebelwerte inspiziert werden, wobei diejenigen Werte als kritisch bewertet werden, die aus der Verteilung ausreißen. Die Funktion `hatvalues` erzeugt die Hebelwerte aus einem Regression-Objekt. Wir wollen diese als Histogramm darstellen.
+*Hebelwerte* $h_j$ (engl.: leverage values) erlauben die Identifikation von Ausreißern aus der gemeinsamen Verteilung der unabhängigen Variablen, d.h. sie geben an, wie weit ein Wert vom Mittelwert einer Prädiktorvariable entfernt ist. Je höher der Hebelwert, desto weiter liegt der einzelne Fall vom Mittelwert der gemeinsamen Verteilung der unabhängigen Variablen entfernt und desto stärker kann somit der Einfluss auf die Regressionsgewichte sein. Diese werden mit der Funktion `hatvalues` ermittelt. In `R` werden die Hebelwerte nicht zentriert ausgegeben. Kriterien zur Beurteilung der nicht zentrierten Hebelwerte variieren, so werden von [Eid et al. (2017, S. 707)](https://hds.hebis.de/ubffm/Record/HEB366849158) in Kombination mit [Pituch et al. (2016, S. 108).](https://hds.hebis.de/ubffm/Record/HEB371183324) Grenzen von $2\cdot (k+1) / n$ für große und $3\cdot (k+1) / n$ für kleine Stichproben vorgeschlagen (mit $k$ als Anzahl der Variablen). Alternativ zu einem festen Cut-Off-Kriterium kann die Verteilung der Hebelwerte inspiziert werden, wobei diejenigen Werte als kritisch bewertet werden, die aus der Verteilung ausreißen. Dies wird empfohlen, da die Grenzen sehr sensibel sind und viele verdächtige Werte anzeigen. Die Funktion `hatvalues` erzeugt die Hebelwerte aus einem Regression-Objekt. Wir wollen diese als Histogramm darstellen.
 
 
 ```{r}
 n <- length(residuals(our_model))   # Anzahl an Personen bestimmen
 h <- hatvalues(our_model)           # Hebelwerte
 hist(h, breaks  = 20)               
-abline(v = 4/n, col = "red")  # Cut-off bei 4/n
+abline(v = 2*(2+1)/n, col = "red")  # Cut-off als große Stichprobe
+abline(v = 3*(2+1)/n, col = "blue")  # Cut-off als kleine Stichprobe
 ```
 
-Das Zusatzargument `breaks = 20` in `hist` gibt an, dass 20 Balken gezeichnet werden sollen. `abline` ist eine Funktion, die eine Gerade einem Plot hinzufügt. Dem Argument `v` wird hierbei der Punkt übergeben, an welchem eine **v**ertikale Linie eingezeichnet werden soll. `col = "red"` gibt an, dass diese Linie rot sein soll.
+Hier eine kurze Beschreibung aller Argumente in der Grafik: Das Zusatzargument `breaks = 20` in `hist` gibt an, dass 20 Balken gezeichnet werden sollen. `abline` ist eine Funktion, die eine Gerade einem Plot hinzufügt. Dem Argument `v` wird hierbei der Punkt übergeben, an welchem eine **v**ertikale Linie eingezeichnet werden soll. `col = "red"` bzw. `col = "blue"` gibt an, dass diese Linie rot bzw. blau sein soll.
 
 ### Cook's Distanz
 *Cook's Distanz* $CD_i$ bezieht sich auf Ausreißer auf der abhängigen Variablen und gibt eine Schätzung an, wie stark sich die Regressionsgewichte verändern, wenn eine Person $i$ aus dem Datensatz entfernt wird. Fälle, deren Elimination zu einer deutlichen Veränderung der Ergebnisse führen würden, sollten kritisch geprüft werden. Als einfache Daumenregel gilt, dass $CD_i>1$ auf einen einflussreichen Datenpunkt hinweist. Cook's Distanz kann mit der Funktion `cooks.distance` ermittelt werden.
