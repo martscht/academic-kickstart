@@ -95,7 +95,7 @@ names(osf)</code></pre>
 ## [113] &quot;sent_messages&quot;                     &quot;received_messages&quot;                
 ## [115] &quot;exercises_total&quot;                   &quot;time_spent_after_allocation_hours&quot;
 ## [117] &quot;exercises_per_login&quot;</code></pre>
-<p>Das sind sehr viele Variablen. Wir beschränken uns auf einige wenige Variablen, die nach durchführen des Treatments erhoben wurden: <code>ID</code> (Teilnehmendennummer), <code>group</code> (Gruppenzugehörigkeit: Wartelistenkontrollgruppe vs. Treatmentgruppe), <code>stratum</code> (Krankheitsbild: Angststörung [<strong>ANX</strong>iety], Depression [<strong>DEP</strong>ression] oder somatische Belastungsstörung [<strong>SOM</strong>atic symptom disorder]), <code>bsi_post</code> (Symptomschwere), <code>swls_post</code> (Lebenszufriedenheit [<strong>S</strong>atisfaction <strong>W</strong>ith <strong>L</strong>ife <strong>S</strong>creening]) und <code>pas_post</code> (Panikstörung und Agoraphobie [<em>P</em>anic and <em>A</em>goraphobia <em>S</em>creening]). Wir kürzen entpsrechend den Datensatz und schauen ihn uns an mit <code>head</code>:</p>
+<p>Das sind sehr viele Variablen. Wir beschränken uns in dieser und in der folgenden Sitzung auf einige wenige Variablen, die nach durchführen des Treatments erhoben wurden: <code>ID</code> (Teilnehmendennummer), <code>group</code> (Gruppenzugehörigkeit: Wartelistenkontrollgruppe vs. Treatmentgruppe), <code>stratum</code> (Krankheitsbild: Angststörung [<strong>ANX</strong>iety], Depression [<strong>DEP</strong>ression] oder somatische Belastungsstörung [<strong>SOM</strong>atic symptom disorder]), <code>bsi_post</code> (Symptomschwere), <code>swls_post</code> (Lebenszufriedenheit [<strong>S</strong>atisfaction <strong>W</strong>ith <strong>L</strong>ife <strong>S</strong>creening]) und <code>pas_post</code> (Panikstörung und Agoraphobie [<em>P</em>anic and <em>A</em>goraphobia <em>S</em>creening]). Wir kürzen entpsrechend den Datensatz und schauen ihn uns an mit <code>head</code>:</p>
 <pre class="r"><code>osf &lt;- osf[, c(&quot;ID&quot;, &quot;group&quot;, &quot;stratum&quot;, &quot;bsi_post&quot;, &quot;swls_post&quot;, &quot;pas_post&quot;)]
 head(osf)</code></pre>
 <pre><code>##   ID     group stratum bsi_post swls_post pas_post
@@ -105,8 +105,8 @@ head(osf)</code></pre>
 ## 4  4 Treatment     DEP        2        23        3
 ## 5  5 Treatment     ANX       NA        NA       NA
 ## 6  6 Treatment     ANX       NA        NA       NA</code></pre>
-<p>Wir erkennen direkt, dass es einige fehlenden Werte auf den Variablen gibt. Der Einfachheit halber entfernen wir diese Missings. Wir führen also den listenweisen Fallauschluss durch. Dieser darf allerdings nur gemacht werden, wenn die fehlenden Werte rein zufällig passiert sind (missing completely at random!). Aus illustrationszwecken wollen wir uns damit nicht weiter aufhalten.</p>
-<pre class="r"><code>missings_ind &lt;- which(is.na(osf$pas))
+<p>Wir erkennen direkt, dass es einige fehlenden Werte auf den Variablen gibt. Der Einfachheit halber entfernen wir diese Missings. Wir führen also den listenweisen Fallauschluss (engl. list-wise deletion) durch. Dieser darf allerdings nur gemacht werden, wenn die fehlenden Werte rein zufällig passiert sind (missing completely at random!). Allerdings sei erwähnt, dass der listenweisen Fallauschluss natürlich die Stichprobengröße verringert und dadurch die Power der Analysen reduziert. Aus illustrationszwecken wollen wir uns damit nicht weiter aufhalten.</p>
+<pre class="r"><code>missings_ind &lt;- which(is.na(osf$pas_post))
 missings_ind</code></pre>
 <pre><code>##  [1]   5   6  10  11  12  16  18  21  23  24  26  31  33  34  37  39  40  42  46
 ## [20]  47  49  52  54  59  60  66  82  83  90  91  96 101 117 124 127</code></pre>
@@ -115,7 +115,7 @@ missings_ind</code></pre>
 <pre class="r"><code>osf &lt;- osf[-missings_ind, ]
 dim(osf) # nach Fallauschluss</code></pre>
 <pre><code>## [1] 94  6</code></pre>
-<p>Die Variable <code>pas</code> hat die meisten Missings. Wenn auf irgendeiner weiteren Variable Daten fehlen, dann fehlen diese auch auf <code>pas</code>. Indem wir <code>which(is.na())</code> auf <code>pas</code> anwenden, erhalten wir einen Vektor, der die Stellen der Missings enthält. Diesen Vektor können wir anschließend nutzen, um diese Fälle auszuschließen, indem wir die entsprechenden Zeilen ansprechen und ein Minus davor setzen.</p>
+<p>Die Variable <code>pas_post</code> hat die meisten Missings. Wenn auf irgendeiner weiteren Variable Daten fehlen, dann fehlen diese auch auf <code>pas_post</code>. Indem wir <code>which(is.na())</code> auf <code>pas_post</code> anwenden, erhalten wir einen Vektor, der die Stellen der Missings enthält. Diesen Vektor können wir anschließend nutzen, um diese Fälle auszuschließen, indem wir die entsprechenden Zeilen ansprechen und ein Minus davor setzen.</p>
 </div>
 <div id="regression-modellvergleiche" class="section level2">
 <h2>Regression: Modellvergleiche</h2>
@@ -153,8 +153,6 @@ anova(reg0, reg)</code></pre>
 ## 2     91  4729  2    5272.2 50.726 1.584e-15 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p>Hätten wir nicht alle Missings entfernt, hätten wir folgende (nervige) Fehlermeldung erhalten:</p>
-<pre><code>## Error in anova.lmlist(object, ...) : models were not all fitted to the same size of dataset</code></pre>
 <p>Der <code>anova</code>-Output sagt uns zunächst welche beiden Modelle miteinander verglichen wurden. Diese werden hier <code>Model 1</code> und <code>Model 2</code> genannt. Anschließend erhalten wir für den Modellvergleich Informationen über die Residualfreiheitsgrade (<code>Res.Df</code>), die Residualquadratsumme (<code>RSS</code>, <strong>R</strong>esidual <strong>S</strong>um of <strong>S</strong>quares), Freiheitsgrade des Modellvergleichs (<code>Df</code>, auch die Differenz der <code>Res.Df</code> zwischen Modellen!), Differenz der Quadratsummen (<code>Sum of Sq</code>), empirischer <span class="math inline">\(F\)</span>-Wert (<code>F</code>) sowie den zugehörigen <span class="math inline">\(p\)</span>-Wert (<code>Pr(&gt;F)</code>). Aus den ersten vier können wir den <span class="math inline">\(F\)</span>-Wert bestimmen. Die Residualfreiheitsgrade sind <span class="math inline">\(n-(p+1)\)</span>, wobei <span class="math inline">\(n\)</span> die Stichprobengröße und <span class="math inline">\(p\)</span> die Anzahl an Variablen im Modell ist. Somit ist <span class="math inline">\(p+1\)</span> gerade die Anzahl an Parametern (<span class="math inline">\(\beta\)</span>s), wenn es ein Interzept gibt. Die Residualquadratsumme ist die quadratische Summe der Regressionsresiduen <span class="math inline">\(\hat{e}_i:= y_i - \hat{y}_i\)</span>: <span class="math inline">\(RSS := \sum_{i=1}^n ( y_i - \hat{y}_i)^2\)</span>. Die Freiheitsgrade entsprechen der Anzahl an Parametern, um welche sich die beiden Modelle unterscheiden. Da das eine Modell nur aus einem Interzept besteht und im zweiten zwei Variablen (also zwei Steigungskoeffizienten) enthalten sind gilt <code>Df</code> = 2. Die Differenz der Quadratsumme entspricht der erklärten Quadratsumme, die auf das Hinzufügen der Variablen in das Modell mit mehr Parameter/Variablen zurückzuführen ist. Wenn Sie sich zurückerinnern an den Determinationskoeffizienten, welcher den Anteil erklärter Varianz beschreibt, dann sie gesagt, dass dieser quasi den Anteil der erklärten Quadratsumme an der totalen Quadratsumme beschreibt. Wir berechnen diesen schnell mit Hand, indem wir das <code>anova</code>-Objekt abspeichern und die entsprechenden Informationen entnehmen.</p>
 <pre class="r"><code>anova0 &lt;- anova(reg0, reg)
 R2 &lt;- anova0$`Sum of Sq`[2] / anova0$RSS[1]
@@ -173,7 +171,7 @@ F_emp # empirischer F-Bruch mit Hand</code></pre>
 <pre><code>## [1] 50.72637</code></pre>
 <pre class="r"><code>anova0$F[2] # empirischer F-Bruch aus anova-Objekt</code></pre>
 <pre><code>## [1] 50.72637</code></pre>
-<p>Der <span class="math inline">\(F\)</span>-Wert ist genau dann groß, wenn der das Varianzinkrement groß ist im Vergleich zur Fehlervarianz.</p>
+<p>Der <span class="math inline">\(F\)</span>-Wert ist genau dann groß, wenn der das Varianzinkrement groß ist im Vergleich zur Fehlervarianz. Der Vergleich gegen das Null-Modell wird in jeder <code>summary</code> mit ausgegeben. Dies ist der <span class="math inline">\(F\)</span>-Test, der im Output ganz am Ende ausgegeben wird. Dieser testet das multiple <span class="math inline">\(R^2\)</span> gegen 0 und ist damit ein Omnibustest für alle Prädiktoren gemeinsam im Modell.</p>
 </div>
 <div id="regression-kategoriale-prädiktoren" class="section level2">
 <h2>Regression: Kategoriale Prädiktoren</h2>
@@ -320,7 +318,8 @@ ttest1</code></pre>
 <p>In einer zweifaktoriellen ANOVA sind drei verschiedene Arten von Effekten möglich: Haupteffekt des Faktors A (erster Faktor), Haupteffekt des Faktors B (zweiter Faktor) und Interaktionseffekt (AxB). Die Wahl der Quadratsumme entscheidet nun, in welcher Reihenfolge die Prädiktoren in das Modell aufgenommen werden. In der <code>ezANOVA</code>-Funktion können wir die Quadratsumme ganz einfach mit dem Argument <code>type</code> einstellen. Es gibt drei Typen der Quadratsummen.</p>
 <div id="zweifaktorielle-anova-quadratsumme-vom-typ-i" class="section level3">
 <h3>Zweifaktorielle ANOVA: Quadratsumme vom Typ I</h3>
-<p>Dieser Quadratsummentyp entspricht im Grunde der Forward-Selektion im Regressionskontext. Dies bedeutet, dass die Signifikanzentscheidung der Faktoren von der Reihenfolge der Aufnahme in das Modell abhängt. Wir können unser ANOVA-Modell erweitern um die Diagnose der Proband:innen erweitern, indem wir dem Argument <code>between</code> in <code>ezANOVA</code> einen Vektor von Variablen übergeben (<code>between = c(group, stratum)</code>). Bevor wir dies tun, sollten wir die Gruppierungsvariable <code>stratum</code> noch in einen <code>factor</code> umwandeln! Dann stellen wir noch den Quadratsummentype ein, speichern das Objekt als <code>ezANOVA1</code> ab und erhalten:</p>
+<p>Dieser Quadratsummentyp entspricht im Grunde der stückchenweisen Aufnehmen von Prädiktoren im Regressionskontext. Dies bedeutet, dass die Signifikanzentscheidung der Faktoren von der Reihenfolge der Aufnahme der Faktoren in das Modell abhängt. Das gilt auch für kontinuierliche Prädiktoren: je nach dem welche Prädiktoren bereits im Modell enthalten sind, liefert der nächste Prädiktor signifikante inkrementelle Varianzaufklärung des Kriteriums oder eben nicht. Diesem Umstand geschuldet wählen Selektionsverfahren wie etwa die Forward-Selektion immer denjenigen Prädiktor aus, der signifikante Vorhersagekraft leistet und die größte Veränderung in <span class="math inline">\(R^2\)</span> über die bereits enthaltenen Prädiktoren liefert.</p>
+<p>Wir können unser ANOVA-Modell erweitern um die Diagnose der Proband:innen erweitern, indem wir dem Argument <code>between</code> in <code>ezANOVA</code> einen Vektor von Variablen übergeben (<code>between = c(group, stratum)</code>). Bevor wir dies tun, sollten wir die Gruppierungsvariable <code>stratum</code> noch in einen <code>factor</code> umwandeln! Dann stellen wir noch den Quadratsummentype ein, speichern das Objekt als <code>ezANOVA1</code> ab und erhalten:</p>
 <pre class="r"><code>osf$stratum &lt;- factor(osf$stratum)
 ezANOVA1 &lt;- ezANOVA(data = osf, dv = bsi_post, between = c(group, stratum), wid = ID,
                     detailed = T, type = 1)</code></pre>
@@ -350,7 +349,7 @@ ezANOVA1 &lt;- ezANOVA(data = osf, dv = bsi_post, between = c(group, stratum), w
 <pre><code>## Coefficient covariances computed by hccm()</code></pre>
 <pre><code>## Warning in ezStats(data = data, dv = dv, wid = wid, within = within, within_full
 ## = within_full, : Unbalanced groups. Mean N will be used in computation of FLSD</code></pre>
-<p><img src="/post/2021-10-14-ANOVA_vs_Regression_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-10-14-ANOVA_vs_Regression_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Die Fisher’s Least Significant Distance (FLSD) ist eine Schätzung für die minimale Distanz zwischen Mittelwerten in Gruppen, die signifikant wäre. Damit gibt dieser Plot erste Anzeichen über mögliche signifikante Mittelwertsunterschiede.</p>
 <p>Wenn wir die selbe Analyse nun wiederholen und zuerst die Diagnose in das Modell aufnehmen, erhalten wir andere Ergebnisse:</p>
 <pre class="r"><code>ezANOVA(data = osf, dv = bsi_post, between = c(stratum, group), wid = ID,
@@ -376,7 +375,8 @@ reg_g &lt;- lm(bsi_post ~ group, data = osf) # Modell mit Haupteffekt des Treatm
 reg_s &lt;- lm(bsi_post ~ stratum, data = osf) # Modell mit Haupteffekt der Diagnose
 reg_gs &lt;- lm(bsi_post ~ group + stratum, data = osf) # Modell mit beiden Haupteffekten
 reg_gsi &lt;- lm(bsi_post ~ group + stratum + group:stratum, data = osf)  # Modell mit beiden Haupteffekten und Interaktion</code></pre>
-<p>Insgesamt erhalten wir also fünf Modelle. Wenn wir nun vier geschachtelte Modelle gegeneinander testen, erhalten wir jeweils paarweise Vergleiche, die der Forward-Selektion entsprechen. Wir beginnen mit dem Null-Modell und fügen dann das Treatment hinzu. Es folgt die Diagnose in das Modell und zum Schluss die Interaktion:</p>
+<p>Insgesamt erhalten wir also fünf Modelle. Um das inkrementelle Aufnehmen der Faktoren abzubilden, müssen wir diejenigen Modelle auswählen, die auseinander hervorgehen. Wir wollen zuerst den Effekt der Gruppierungsvariable (<code>group</code>) untersuchen. Anschließend wird dann die Diagnose (<code>stratum</code>) in das Modell aufgenommen. Als letztes fügen wir noch die Interaktion in das Modell hinzu. Somit benötigen wir das Modell <code>reg_s</code>, welches nur die Diagnose (<code>stratum</code>) enthält, in diesen Modellvergleichen nicht.</p>
+<p>Wir wollen nun diese Modelle inkrementell gegeneinander vergleichen. Dafür verwendenw wir die <code>anova</code>-Funktion, welcher wir einfach alle Modelle (in der richtigen Reihenfolge!!) übergeben. Wenn wir nun vier geschachtelte Modelle gegeneinander testen, erhalten wir jeweils paarweise Vergleiche. Wir beginnen mit dem Null-Modell und fügen dann das Treatment hinzu. Es folgt die Diagnose in das Modell und zum Schluss die Interaktion:</p>
 <pre class="r"><code>anova(reg0, reg_g, reg_gs, reg_gsi)</code></pre>
 <pre><code>## Analysis of Variance Table
 ## 
@@ -484,14 +484,8 @@ reg_gsi &lt;- lm(bsi_post ~ group + stratum + group:stratum, data = osf)  # Mode
 </div>
 <div id="zweifaktorielle-anova-quadratsumme-vom-typ-iii" class="section level3">
 <h3>Zweifaktorielle ANOVA: Quadratsumme vom Typ III</h3>
-<p>Ist der Interaktionseffekt signifikant, so sollten die Quadratsummen vom Typ III verwendet werden. Diese erhalten wir entweder mit der <code>ezANOVA</code>-Funktion aus dem <code>ez</code>-Paket oder der <code>Anova</code>-Funktion aus dem <code>car</code>-Paket. Allerdings müssen wir für Quadratsummen vom Typ III die Art der Kontrastbildung in <code>R</code> verändern. Der Default lautet:</p>
-<pre class="r"><code>options(&quot;contrasts&quot;)</code></pre>
-<pre><code>## $contrasts
-##         unordered           ordered 
-## &quot;contr.treatment&quot;      &quot;contr.poly&quot;</code></pre>
-<p>Hier sehen wir , dass es immer Treatment-Kontraste sind (<code>contr.treatment</code>), also dass immer eine Referenzkategorie gebildet wird. Wir brauchen hier Summen-Kontraste (<code>contr.sum</code>):</p>
-<pre class="r"><code># verstelle die Art, wie Kontraste bestimmt werden --- Achtung! Immer wieder zurückstellen
-options(contrasts=c(unordered=&quot;contr.sum&quot;, ordered=&quot;contr.poly&quot;)) </code></pre>
+<p>Ist der Interaktionseffekt signifikant, so sollten die Quadratsummen vom Typ III verwendet werden. Diese erhalten wir entweder mit der <code>ezANOVA</code>-Funktion aus dem <code>ez</code>-Paket oder der <code>Anova</code>-Funktion aus dem <code>car</code>-Paket.</p>
+<p>Mit <code>ezANOVA</code>:</p>
 <pre class="r"><code>ezANOVA(data = osf, dv = bsi_post, between = c(group, stratum), wid = ID,
         type = 3)</code></pre>
 <pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
@@ -506,20 +500,30 @@ options(contrasts=c(unordered=&quot;contr.sum&quot;, ordered=&quot;contr.poly&qu
 ## $`Levene&#39;s Test for Homogeneity of Variance`
 ##   DFn DFd      SSn      SSd        F         p p&lt;.05
 ## 1   5  88 244.7046 2907.497 1.481274 0.2040363</code></pre>
-<pre class="r"><code>Anova(reg_gsi, type = 3)</code></pre>
+<p>Für <code>Anova</code> müssen wir für Quadratsummen vom Typ III die Art der Kontrastbildung in <code>R</code> verändern. Der Default lautet:</p>
+<pre class="r"><code>options(&quot;contrasts&quot;)</code></pre>
+<pre><code>## $contrasts
+##         unordered           ordered 
+## &quot;contr.treatment&quot;      &quot;contr.poly&quot;</code></pre>
+<p>Hier sehen wir , dass es immer Treatment-Kontraste sind (<code>contr.treatment</code>), also dass immer eine Referenzkategorie gebildet wird. Wir brauchen hier Summen-Kontraste (<code>contr.sum</code>). Damit diese auch auf alle Objekte angewendet werden können, müssen wir den zugehörige <code>lm</code>-Befehl nochmals ausführen. Wir nennen das Objekt auch nochmal um, um den Unterschied der Kodierung klar zu machen:</p>
+<pre class="r"><code># verstelle die Art, wie Kontraste bestimmt werden --- Achtung! Immer wieder zurückstellen
+options(contrasts=c(unordered=&quot;contr.sum&quot;, ordered=&quot;contr.poly&quot;)) 
+reg_gsi_contr.sum &lt;- lm(bsi_post ~ group + stratum + group:stratum, data = osf) # contr.sum-Kodierung
+Anova(reg_gsi_contr.sum, type = 3)</code></pre>
 <pre><code>## Anova Table (Type III tests)
 ## 
 ## Response: bsi_post
-##               Sum Sq Df F value    Pr(&gt;F)    
-## (Intercept)   3108.1  1 35.6967 4.793e-08 ***
-## group         1037.5  1 11.9159 0.0008574 ***
-## stratum         50.2  2  0.2885 0.7500973    
-## group:stratum   13.8  2  0.0792 0.9239025    
-## Residuals     7662.0 88                      
+##                Sum Sq Df  F value    Pr(&gt;F)    
+## (Intercept)   16249.7  1 186.6310 &lt; 2.2e-16 ***
+## group          1185.6  1  13.6171 0.0003878 ***
+## stratum         184.7  2   1.0605 0.3506639    
+## group:stratum    13.8  2   0.0792 0.9239025    
+## Residuals      7662.0 88                       
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p>Die beiden Analysen kommen zum selben Ergebnis. Hier werden die Haupteffekte nicht nur gegeben der anderen Haupteffekte bestimmt, sondern es wird auch der Interaktionseffekt herausgerechnet. Da der Interaktionseffekt nicht signfikant ist, sollten wir allerdings besser das Ergebnis aus den Analysen mit Quadratsummen vom Typ II interpretieren.</p>
-<p>Zum Schluss am besten wieder zurückstellen:</p>
+<p>Die beiden Analysen kommen zum selben Ergebnis. Der Intercept-Output fehlt hier bei <code>ezANOVA</code>. Dieser ist allerdings auch nicht relevant für unsere Hypothesen.</p>
+<p>Bei Quadratsummen vom Typ III werden die Haupteffekte nicht nur gegeben der anderen Haupteffekte bestimmt, sondern es wird auch der Interaktionseffekt herausgerechnet. Da der Interaktionseffekt nicht signifikant ist, sollten wir allerdings besser das Ergebnis aus den Analysen mit Quadratsummen vom Typ II interpretieren.</p>
+<p>Zum Schluss am besten wieder alles zurückstellen:</p>
 <pre class="r"><code># Einstellungen zurücksetzen zum Default:
 options(contrasts=c(unordered=&quot;contr.treatment&quot;, ordered=&quot;contr.poly&quot;))</code></pre>
 <p>Da es sonst zu verschätzen Effekten kommen kann, wenn bspw. Quadratsummen vom Typ I oder Typ II verwendet werden.</p>
@@ -527,7 +531,7 @@ options(contrasts=c(unordered=&quot;contr.treatment&quot;, ordered=&quot;contr.p
 </div>
 <div id="fazit-aus-allen-analysen" class="section level2">
 <h2>Fazit aus allen Analysen</h2>
-<p>Insgesamt kamen alle Analysen zum selben Ergebnis: die Intervention zeigt einen Effekt auf die Symptomschwere unabhängig von der vorliegenden Diagnose (mit einer Irrtumswahrscheinlichkeit von <span class="math inline">\(5\%\)</span>). Wir haben in dieser Sitzung gesehen, dass Regression und ANOVA zum selben Ergebnis kommen, wenn die selben Hypothesen geprüft werden.</p>
+<p>Insgesamt kamen alle Analysen zum selben Ergebnis: die Intervention zeigt einen Effekt auf die Symptomschwere unabhängig von der vorliegenden Diagnose (mit einer Irrtumswahrscheinlichkeit von <span class="math inline">\(5\%\)</span>). Wir haben in dieser Sitzung gesehen, dass Regression und ANOVA zum selben Ergebnis kommen, wenn die selben Hypothesen geprüft werden. Die Art der Hypothese, die geprüft werden soll, hängt von der Wahl der Quadratsumme ab!</p>
 <hr />
 </div>
 <div id="r-skript" class="section level2">

@@ -1,0 +1,345 @@
+---
+title: ANCOVA und moderierte Regression
+date: '2021-10-15'
+slug: ancova-und-moderierte-regression
+categories:
+  - MSc5a
+tags:
+  - Regression
+  - ANCOVA
+  - Interaktionseffekte
+  - Moderation
+subtitle: ''
+summary: ''
+authors: [irmer]
+lastmod: '2021-10-15T16:40:21+02:00'
+featured: no
+header:
+  image: "/header/KliPsy_Sitzung_4.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/763765)"
+projects: []
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="einleitung" class="section level2">
+<h2>Einleitung</h2>
+<p>In dieser Sitzung schauen wir uns die Kovarianzanalyse, auch <strong>AN</strong>alysis <strong>O</strong>f <strong>COVA</strong>riance (ANCOVA), als Erweiterung der ANOVA an und nutzen diese als Überleitung zur moderierten Regressionsanalyse.
+Diese Sitzung basiert auf Literatur aus <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid et al. (2017)</a> Kapitel 13 sowie Kapitel 16 bis 19.</p>
+<div id="daten-laden" class="section level3">
+<h3>Daten laden</h3>
+<p>Wir verwenden wieder den Datensatz von <a href="https://psyarxiv.com/528tw/">Schaeuffele et al. (2020)</a>, die den Effekt des Unified Protocol (UP) als Internetintervention für bestimmte psychische Störungen durchgeführt haben. Wir laden den Datensatz ein und kürzen diesen (für mehr Informationen zum Datensatz sowie zum Einladen und Kürzen erhalten Sie in der vorherigen Sitzung zu <a href="/post/anova-vs-regression">ANOVA vs. Regression</a>):</p>
+<pre class="r"><code>osf &lt;- read.csv(file = url(&quot;https://osf.io/zc8ut/download&quot;))
+osf &lt;- osf[, c(&quot;ID&quot;, &quot;group&quot;, &quot;stratum&quot;, &quot;bsi_post&quot;, &quot;swls_post&quot;, &quot;pas_post&quot;)]
+
+# Missings ausschließen
+missings_ind &lt;- which(is.na(osf$pas_post))
+osf &lt;- osf[-missings_ind, ]
+head(osf) # finaler Datensatz</code></pre>
+<pre><code>##   ID     group stratum bsi_post swls_post pas_post
+## 1  1 Treatment     DEP        2        29        1
+## 2  2 Treatment     ANX       11        22        7
+## 3  3 Treatment     ANX       22         6        1
+## 4  4 Treatment     DEP        2        23        3
+## 7  7 Treatment     DEP       14        16        3
+## 8  8 Treatment     SOM        2        27        5</code></pre>
+<p>Wir beschränken uns auf einige wenige Variablen, die nach durchführen des Treatments erhoben wurden: <code>ID</code> (Teilnehmendennummer), <code>group</code> (Gruppenzugehörigkeit: Wartelistenkontrollgruppe vs. Treatmentgruppe), <code>stratum</code> (Krankheitsbild: Angststörung [<strong>ANX</strong>iety], Depression [<strong>DEP</strong>ression] oder somatische Belastungsstörung [<strong>SOM</strong>atic symptom disorder]), <code>bsi_post</code> (Symptomschwere), <code>swls_post</code> (Lebenszufriedenheit [<strong>S</strong>atisfaction <strong>W</strong>ith <strong>L</strong>ife <strong>S</strong>creening]) und <code>pas_post</code> (Panikstörung und Agoraphobie [<em>P</em>anic and <em>A</em>goraphobia <em>S</em>creening]).</p>
+</div>
+<div id="vorbereitung" class="section level3">
+<h3>Vorbereitung</h3>
+<p>Möchten wir nominalskalierte Prädiktoren (also Gruppenvariablen) in eine Regression aufnehmen, so ist es essentiell, dass diese auch als solche kodiert sind. Da manchmal Zahlen für Gruppenzugehörigkeiten verwendet werden, ist es ratsam sich direkt anzugewöhnen, Gruppenvariablen als <code>factor</code> zu kodieren:</p>
+<pre class="r"><code># Skalenniveaus anpassen: Factors bilden
+osf$group &lt;- factor(osf$group)
+osf$stratum &lt;- factor(osf$stratum)</code></pre>
+<p>Da wir später auch mit Interaktionen zu tun haben werden, zentrieren wir noch alle kontinuierlichen Prädiktoren im Modell. Zentrierung bedeutet, dass der Mittelwert der Variablen auf 0 gesetzt wird, indem dieser von der Variable abgezogen wird (<span class="math inline">\(X_c:=X-\bar{X}\)</span>, <span class="math inline">\(X_c\)</span> ist die zentrierte Version von <span class="math inline">\(X\)</span>). Zum verwenden wir <code>scale</code> mit den Zusatzargumenten <code>center = T</code> und <code>scale = F</code>.</p>
+<pre class="r"><code># Zentrieren
+osf$swls_post &lt;- scale(osf$swls_post, center = T, scale = F)
+osf$pas_post &lt;- scale(osf$pas_post, center = T, scale = F)</code></pre>
+<p>Hätten wir auch noch <code>scale = T</code> gewählt, so hätten wir nicht zentriert sondern standardisiert — also auch noch die Varianz auf 1 gesetzt, indem wir die Variablen noch durch die Standardabweichung geteilt hätten (<span class="math inline">\(X_z:=\frac{X-\bar{X}}{SD(X)}\)</span>, <span class="math inline">\(X_z\)</span> ist die zentrierte Version von <span class="math inline">\(X\)</span>).</p>
+</div>
+</div>
+<div id="kovarianzanalyse-ancova" class="section level2">
+<h2>Kovarianzanalyse: ANCOVA</h2>
+<p>In der letzten Sitzung hatten wir bemerkt, dass ANOVA und Regressionsanalysen (auch in <code>R</code>) so gut wie identisch sind und dass nur die Art und Weise wie Hypothesen aufgestellt werden sollen im Endeffekt entscheiden wie genau die Analysen ausfallen. Diese Hypothesen hatten sich in der Wahl der Quadratsummen geäußert.</p>
+<p>Die Kovarianzanalyse kann nun sowohl in ANOVA- als auch im Regressionssetting betrachtet werden. Entscheidend ist, für welchen Effekt wir uns interessieren. Im ANOVA-Setting wird eine (oder mehrere) kontinuierliche Kovariaten hinzugefügt, um deren Einfluss der Mittelwertsvergleich “bereinigt” werden soll. Damit sollen Varianzeinflüsse der Kovariate herausgerechnet werden, was die Power einen Mittelwertsunterschied zu finden erhöht. Im Regressionssetting soll eine Kombination aus Prädiktoren unterschiedlicher Skalenniveaus untersucht werden. Hier könnte bspw. neben einem kontinuierlichem Prädiktor auch eine nominalskalierte Gruppierungsvariable aufgenommen werden. Wenn wir uns eine einfache Regression vorstellen, so hätte dies zur Folge, dass wir für jede Gruppe ein Interzept einführen würden!</p>
+<div id="einfache-ancova" class="section level3">
+<h3>Einfache ANCOVA</h3>
+<p>Wir betrachten die ANCOVA im Regressionssetting. Wir verwenden also wieder die <code>lm</code>-Funktion um das Modell aufzustellen und wenden auf das resultierende Objekt wieder die <code>Anova</code>-Funktion aus dem <code>car</code>-Paket an.</p>
+<p>Wir möchten nun wissen, ob sich die Symptomschwere durch die Lebenszufriedenheit vorhersagen lässt. Dazu hatten wir am Anfang der vergangenen Sitzung bereits eine Untersuchung vorgenommen. Allerdings hatten wir auch die Ausprägung der Panikstörung und Agoraphobie mit in das Modell aufgenommen. Beide Prädiktoren hatten signifikante Varianzanteile an der Symptomschwere erklärt. Wir beschränken uns jetzt allerdings auf die Lebenszufriedenheit:</p>
+<pre class="r"><code>reg_swl &lt;- lm(bsi_post  ~  1  + swls_post, data = osf)
+summary(reg_swl)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = bsi_post ~ 1 + swls_post, data = osf)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -16.870  -6.053  -1.305   4.327  30.266 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  18.7979     0.9393  20.012  &lt; 2e-16 ***
+## swls_post    -0.7330     0.1371  -5.346 6.49e-07 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 9.107 on 92 degrees of freedom
+## Multiple R-squared:  0.237,  Adjusted R-squared:  0.2288 
+## F-statistic: 28.58 on 1 and 92 DF,  p-value: 6.494e-07</code></pre>
+<p>Der Zusammenhang zwischen Lebenszufriedenheit und Symptomschwere ist negativ und signifikant. Das bedeutet, dass die Symptomschwere geringer ausfällt für höhere Lebenszufriedenheit. Grafisch sieht das so aus (der Code zu den Grafiken ist für unseren inhaltlichen Überlegungen nicht so relevant und kann daher erst im <a href="#AppendixA">Appendix A</a> nachgelesen werden):</p>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Nun ist es aber so, dass einige der Proband:innen das Onlinetreatment erhalten haben. Wenn wir nun die Gruppierungsvariable mit in das Modell aufnehmen, so sehen wir mit bloßem Auge, dass sich die beiden Gruppen leicht im Mittel unterscheiden. Das sich das Treatment positiv auf die Symptomschwere auswirkt, hatten wir in der Sitzung zur <a href="/post/anova-vs-regression">ANOVA vs. Regression</a> bereits festgestellt. Wir färben die Gruppen unterschiedlich ein:</p>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" />
+Die Frage ist nun, ob dieser Unterschied auch statistisch bedeutsam ist. Dazu nehmen wir jetzt die Gruppierungsvariable in das Regressionsmodell auf. Was wir damit erreichen ist, dass wir durchschnittliche Unterschiede zwischen den beiden Gruppen mit in das Modell aufnehmen — und zwar für gegebene (feste) Ausprägung. Wenn wir also die Gruppierungsvariable aufnehmen, dann fügen wir ein gruppenspezifisches Interzept hinzu. So können wir die Gruppenunterschiede bereinigt um die Kovariate Lebenszufriedenheit interpretieren und genauso können wir den Zusammenhang zwischen Lebenszufriedenheit und Symptomschwere berinigt um Unterschiede durch die Behandlung interpretieren.</p>
+<p>Wir nennen die Dummyvariable der Gruppierungsvariable <span class="math inline">\(Z\)</span> und die Lebenszufriedenheit <span class="math inline">\(X\)</span>. Die Symptomschwere nennen wir <span class="math inline">\(Y\)</span>. Somit ergibt sich folgendes Regressionsmodell (das Residuum heißt <span class="math inline">\(e\)</span>) für Proband:innen <span class="math inline">\(i=1,\dots,n\)</span>:</p>
+<p><span class="math display">\[Y_i = \beta_0 + \beta_ZZ + \beta_XX+e_i\]</span>
+Es gelten nun zwei Regressionsgleichungen in den beiden Gruppen. Für <span class="math inline">\(Z=0\)</span> (Wartekontrollgruppe) gilt <span class="math inline">\(Y_i = \beta_0 + \beta_XX+e_i\)</span> und für <span class="math inline">\(Z=1\)</span> (Treatmentgruppe) gilt <span class="math inline">\(Y_i = (\beta_0 + \beta_Z) + \beta_XX+e_i\)</span>. Somit ist ersichtlich, dass durch Hinzunahme der Gruppierungsvariable wir gruppenspezifische Interzepts einführen. Das Interzept ist eine Funktion von <span class="math inline">\(Z\)</span>. Diese könnten wir bspw. <span class="math inline">\(g_I\)</span> nennen. Dann ist <span class="math inline">\(g_I(Z):=\beta_0+\beta_ZZ\)</span> das Interzept (insbesondere gilt: <span class="math inline">\(Y_i = g_I(Z) + \beta_XX+e_i\)</span>). Das Modell in <code>R</code> sieht ganz einfach so aus:</p>
+<pre class="r"><code>reg_ancova &lt;- lm(bsi_post  ~  1 + group + swls_post, data = osf)
+summary(reg_ancova)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = bsi_post ~ 1 + group + swls_post, data = osf)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -13.5459  -6.2084  -0.8385   5.4089  28.2297 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)    14.2295     1.3228  10.757  &lt; 2e-16 ***
+## groupWaitlist   7.9523     1.7592   4.520 1.85e-05 ***
+## swls_post      -0.6224     0.1269  -4.903 4.10e-06 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 8.275 on 91 degrees of freedom
+## Multiple R-squared:  0.377,  Adjusted R-squared:  0.3633 
+## F-statistic: 27.53 on 2 and 91 DF,  p-value: 4.473e-10</code></pre>
+<p>Der Effekt der Lebenszufriedenheit (<span class="math inline">\(\beta_X\)</span>) ist statistisch bedeutsam. Auch der Effekt der Gruppierungsvariable ist bedeutsam (<span class="math inline">\(\beta_Z\)</span>) [jeweils mit einer Irrtumswahrscheinlichkeit von <span class="math inline">\(5\%\)</span>]. Hätten wir mehrere Ausprägungen pro Gruppe, könnten wir leicht gesammelte Signifikanzentscheidungen pro Variable anfordern, indem wir den <code>Anova</code>-Befehl aus dem <code>car</code>-Paket verwenden:</p>
+<pre class="r"><code>library(car)</code></pre>
+<pre><code>## Loading required package: carData</code></pre>
+<pre class="r"><code>Anova(reg_ancova)</code></pre>
+<pre><code>## Anova Table (Type II tests)
+## 
+## Response: bsi_post
+##           Sum Sq Df F value    Pr(&gt;F)    
+## group     1399.2  1  20.434 1.853e-05 ***
+## swls_post 1646.1  1  24.040 4.099e-06 ***
+## Residuals 6231.2 91                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Was wir sofort sehen ist, dass die <span class="math inline">\(p\)</span>-Werte in der <code>summary</code> und im <code>Anova</code>-Output identisch sind. Das liegt an der Verwandschaft zwischen Regression und ANOVA (ANCOVA), welche wir in der vorangegangenen Sitzung diskutiert hatten (siehe <a href="/post/anova-vs-regression">ANOVA vs. Regression</a>).</p>
+<p>Grafisch sieht das so aus</p>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-9-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Pro Gruppe gibt es ein eigenes Interzept. Außerdem sehen wir deutlich welche wichtige Annahme implizit in dieser Modellierungsmethode steckt: der lineare Zusammenhang zwischen Lebenszufriedenheit und Symptomschwere ist in beiden Gruppen gleich!</p>
+</div>
+<div id="generalisierte-ancova" class="section level3">
+<h3>Generalisierte ANCOVA</h3>
+<p>Weichen wir die Annahme gleicher linearer Zusammenhänge pro Gruppe auf, landen wir bei der “generalisierten” ANCOVA. Was wir dazu tun müssen, ist für jede Gruppen eine eigene Steigung für die Lebenszufriedenheit einzuführen. Umsetzbar ist dies durch eine Interaktion zwischen der Lebenszufriedenheit und der Gruppierungsvariable. Die Interaktion ist hier etwas anders zu interpretieren, als für eine zweifaktorielle ANOVA. Die Modellgleichung sieht so aus:</p>
+<p><span class="math display">\[Y_i = \beta_0 + \beta_ZZ + \beta_XX + \beta_{ZX}ZX+e_i.\]</span>
+Wenn wir diese Gleichung nach der Variable <span class="math inline">\(X\)</span> umstellen, erhalten wir</p>
+<p><span class="math display">\[Y_i = \beta_0 + \beta_ZZ + (\beta_X + \beta_{ZX}Z)X+e_i.\]</span>
+An dieser Schreibweise ist ersichtlich, dass wir durch Hinzunahme der Interaktion eigentlich einen eigenen Steigungskoeffizienten pro Gruppe in das Modell hinzufügen. Es gelten wieder zwei Regressionsgleichungen in den beiden Gruppen. Für <span class="math inline">\(Z=0\)</span> (Wartekontrollgruppe) gilt <span class="math inline">\(Y_i = \beta_0 + \beta_XX+e_i\)</span> und für <span class="math inline">\(Z=1\)</span> (Treatmentgruppe) gilt <span class="math inline">\(Y_i = (\beta_0 + \beta_Z) + (\beta_X+\beta_{ZX})X+e_i\)</span>. Somit ist ersichtlich, dass durch Hinzunahme der Gruppierungsvariable inklusive Interaktion gruppenspezifische Interzepts und Slopes (Steigungskoeffizienten) eingeführt werden. Sowohl das Interzept als auch die Slope ist eine Funktion von <span class="math inline">\(Z\)</span>. Diese könnten wir bspw. <span class="math inline">\(g_I\)</span> und <span class="math inline">\(g_S\)</span> nennen — beide sind Funktionen von <span class="math inline">\(Z\)</span>. Dann ist <span class="math inline">\(g_I(Z):=\beta_0+\beta_ZZ\)</span> das Interzept und <span class="math inline">\(g_S(Z):=\beta_X + \beta_{ZX}Z\)</span> die Slope (insbesondere gilt: <span class="math inline">\(Y_i = g_I(Z) + g_S(Z)X+e_i\)</span>). Das Modell in <code>R</code> sieht im Grunde so aus, wie eine zweifaktorielle ANOVA, nur das Skalenniveau von <code>swls_post</code> ist eben das Intervallskalenniveau (kontinuierlicher Prädiktor):</p>
+<pre class="r"><code>reg_gen_ancova &lt;- lm(bsi_post  ~  1 + group + swls_post  + group:swls_post, 
+                     data = osf)
+summary(reg_gen_ancova)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = bsi_post ~ 1 + group + swls_post + group:swls_post, 
+##     data = osf)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -13.5986  -6.5874  -0.8768   5.1062  27.6775 
+## 
+## Coefficients:
+##                         Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)              14.1293     1.3473  10.487  &lt; 2e-16 ***
+## groupWaitlist             7.9958     1.7696   4.518 1.89e-05 ***
+## swls_post                -0.5571     0.1938  -2.875  0.00504 ** 
+## groupWaitlist:swls_post  -0.1153     0.2573  -0.448  0.65512    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 8.312 on 90 degrees of freedom
+## Multiple R-squared:  0.3783, Adjusted R-squared:  0.3576 
+## F-statistic: 18.26 on 3 and 90 DF,  p-value: 2.449e-09</code></pre>
+<p>Wir erkennen, dass bis auf die Interaktion (<span class="math inline">\(\beta_{ZX}\)</span>) alle Effekte signfikant sind. Gleiches Ergebnis liefert uns auch die <code>Anova</code></p>
+<pre class="r"><code>Anova(reg_gen_ancova, type = 2)</code></pre>
+<pre><code>## Anova Table (Type II tests)
+## 
+## Response: bsi_post
+##                 Sum Sq Df F value    Pr(&gt;F)    
+## group           1399.2  1 20.2549 2.021e-05 ***
+## swls_post       1646.1  1 23.8291 4.533e-06 ***
+## group:swls_post   13.9  1  0.2008    0.6551    
+## Residuals       6217.3 90                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Da die Interaktion nicht signifikant ist, bleiben wir bei Quadratsummen vom Typ II. Es gibt also keine gruppenspezifische Steigung der Lebenszufriedenheit. Das bedeutet, dass sich die Lebenszufriedenheit in beiden Gruppen gleich auf die Symptomschwere auswirkt. Grafisch sieht dies so aus:</p>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" />
+Wir erkennen nur ganz leicht einen Effekt der unterschiedlichen Steigungen (die rote Linie ist etwas weniger steil), allerdings ist dieser Unterschied nicht signifikant und lässt sich damit auch nicht auf die Population verallgemeinern.</p>
+<p>Wir schauen uns das Ganze nochmals für die Diagnose an und stellen das gleiche Modell wie oben auf, mit dem Unterschied, dass wir die Effekte des Treatments durch die der Diagnose austauschen:</p>
+<pre class="r"><code>reg_gen_ancova_s &lt;- lm(bsi_post ~ stratum + swls_post + stratum:swls_post, data = osf)
+Anova(reg_gen_ancova_s)</code></pre>
+<pre><code>## Anova Table (Type II tests)
+## 
+## Response: bsi_post
+##                   Sum Sq Df F value    Pr(&gt;F)    
+## stratum            151.5  2  0.9257    0.4001    
+## swls_post         2278.0  1 27.8449 9.345e-07 ***
+## stratum:swls_post  279.5  2  1.7083    0.1871    
+## Residuals         7199.4 88                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Die Diagnose scheint keinen Einfluss auf die Symptomschwere zu machen. Weder die Interzept nochts die Slopes unterscheiden sich über die Gruppen. Wir wollen uns trotzdem die Grafik ansehen:</p>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Hier erkennen wir zwar unterschiedliche Steigungen und Interzepts, allerdings sind keine der Unterschied statistisch bedeutsam.</p>
+<p>Genauso wären auch noch komplizierte Modelle möglich. Bspw. könnten wir für jede Kombination aus Gruppierung und Diagnose ein eigenes Regressionsmodell einführen. Grafisch sieht das so aus (für mehr dazu siehe <a href="#AppendixB">Appendix B</a>):</p>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
+<hr />
+</div>
+</div>
+<div id="r-skript" class="section level2">
+<h2>R-Skript</h2>
+<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/MSc1_R_Files/0_Intro_RCode.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
+<hr />
+</div>
+<div id="appendix" class="section level2">
+<h2>Appendix</h2>
+<div id="AppendixA" class="section level3">
+<h3>Appendix A</h3>
+<details>
+<summary>
+<strong>Code zu den Grafiken</strong>
+</summary>
+<p>Wir verwenden für diese Sitzung das <code>ggplot2</code>-Paket, welches nachdem es installiert wurde (<code>install.packages</code>) geladen werden muss. Für eine Einführung in <code>ggplot</code> können Sie gerne in den Unterlagen zu den Veranstaltungen im <a href="/lehre/#bsc7">Bachelor</a> vorbeischauen. Für noch mehr Grafiken siehe <a href="/extras/#ggplotting">Unterlagen zu <code>ggplotting</code></a>.</p>
+<pre class="r"><code>library(ggplot2) # ggplot2-Paket laden
+ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post))+
+  geom_point()+
+   geom_line(mapping = aes(x = swls_post, y = predict(reg_swl)))+
+   theme_minimal()</code></pre>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Wenn wir die Gruppierungsvariable als Farbkodierung verwenen (<code>col = group</code>), erhalten wir:</p>
+<pre class="r"><code>ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post, col = group))+
+  geom_point()+
+   geom_line(mapping = aes(x = swls_post, y = predict(reg_swl)), col = &quot;black&quot;)+
+   theme_minimal()</code></pre>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Wenn wir nun pro Gruppe ein Interzept einfügen (ANCOVA-Modell) erhalten wir:</p>
+<pre class="r"><code>ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post, col = group))+
+  geom_point()+
+  geom_line(mapping = aes(x = swls_post, y = predict(reg_ancova)))+
+  theme_minimal()</code></pre>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Beim generalisierten ANCOVA Modell landen wir, wenn wir auch noch jeweils einen Steigungskoeffizienten pro Gruppe einfügen:</p>
+<pre class="r"><code>ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post,  col = group))+
+  geom_point()+
+  geom_line(mapping = aes(x = swls_post, y = predict(reg_gen_ancova)))+
+  theme_minimal()</code></pre>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Außerdem schauen wir uns auch nochmals den Effekt der Diagnose an:</p>
+<pre class="r"><code>ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post,  col = stratum))+
+   geom_point()+
+  geom_line(mapping = aes(x = swls_post, y = predict(reg_gen_ancova_s)))+
+  theme_minimal()</code></pre>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>reg_gen_ancova_gs &lt;- lm(bsi_post ~ group*stratum*swls_post, data = osf)
+Anova(reg_gen_ancova_gs)</code></pre>
+<pre><code>## Anova Table (Type II tests)
+## 
+## Response: bsi_post
+##                         Sum Sq Df F value    Pr(&gt;F)    
+## group                   1388.5  1 19.6877 2.813e-05 ***
+## stratum                  100.7  2  0.7142    0.4926    
+## swls_post               1558.1  1 22.0929 1.035e-05 ***
+## group:stratum              6.9  2  0.0492    0.9521    
+## group:swls_post            6.0  1  0.0855    0.7707    
+## stratum:swls_post        286.5  2  2.0314    0.1377    
+## group:stratum:swls_post   16.5  2  0.1170    0.8897    
+## Residuals               5783.0 82                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post,  col = stratum, lty = group, pch = group))+
+   geom_point()+
+   geom_line(mapping = aes(x = swls_post, y = predict(reg_gen_ancova_gs)))+
+   theme_minimal()</code></pre>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+</details>
+</div>
+<div id="AppendixB" class="section level3">
+<h3>Appendix B</h3>
+<details>
+<summary>
+<strong>Weitere ANCOVA Modelle</strong>
+</summary>
+<p>Mit dem <code>*</code> können wir sowohl die Haupteffekte als auch die Interaktionseffekte in ein Modell aufnehmen.
+<code>group*stratum*swls_post</code> steht für <code>group + stratum + group:stratum + swls_post + group:swls_post + stratum:swls_post</code>. Insgesamt gibt es also 6 Interzept und 6 Steigungskoeffizienten:</p>
+<pre class="r"><code>reg_gen_ancova_gs &lt;- lm(bsi_post ~ group*stratum*swls_post, data = osf)
+summary(reg_gen_ancova_gs)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = bsi_post ~ group * stratum * swls_post, data = osf)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -12.918  -5.939  -1.681   4.796  21.676 
+## 
+## Coefficients:
+##                                    Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                         14.7876     2.1368   6.920 9.15e-10 ***
+## groupWaitlist                        8.6378     2.7487   3.143  0.00233 ** 
+## stratumDEP                          -1.0989     2.8489  -0.386  0.70069    
+## stratumSOM                          -3.4086    10.9618  -0.311  0.75663    
+## swls_post                           -0.8031     0.3759  -2.136  0.03564 *  
+## groupWaitlist:stratumDEP            -1.0886     3.8243  -0.285  0.77663    
+## groupWaitlist:stratumSOM            -0.5674    12.0018  -0.047  0.96241    
+## groupWaitlist:swls_post             -0.2549     0.4585  -0.556  0.57982    
+## stratumDEP:swls_post                 0.3287     0.4531   0.725  0.47024    
+## stratumSOM:swls_post                 0.6320     1.2845   0.492  0.62402    
+## groupWaitlist:stratumDEP:swls_post   0.2924     0.6054   0.483  0.63032    
+## groupWaitlist:stratumSOM:swls_post   0.2032     1.3909   0.146  0.88419    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 8.398 on 82 degrees of freedom
+## Multiple R-squared:  0.4218, Adjusted R-squared:  0.3442 
+## F-statistic: 5.437 on 11 and 82 DF,  p-value: 1.95e-06</code></pre>
+<p>Die einzelnen Effekte können wir wieder mit <code>Anova</code> auf Signifikanz prüfen:</p>
+<pre class="r"><code>Anova(reg_gen_ancova_gs)</code></pre>
+<pre><code>## Anova Table (Type II tests)
+## 
+## Response: bsi_post
+##                         Sum Sq Df F value    Pr(&gt;F)    
+## group                   1388.5  1 19.6877 2.813e-05 ***
+## stratum                  100.7  2  0.7142    0.4926    
+## swls_post               1558.1  1 22.0929 1.035e-05 ***
+## group:stratum              6.9  2  0.0492    0.9521    
+## group:swls_post            6.0  1  0.0855    0.7707    
+## stratum:swls_post        286.5  2  2.0314    0.1377    
+## group:stratum:swls_post   16.5  2  0.1170    0.8897    
+## Residuals               5783.0 82                      
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post,  col = stratum, lty = group, pch = group))+
+   geom_point()+
+   geom_line(mapping = aes(x = swls_post, y = predict(reg_gen_ancova_gs)))+
+   theme_minimal()</code></pre>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Es kommen keine neuen Effekte hinzu. Nur das Treatment und die Lebenszufriedenheit haben Vorhersagekraft für die Symptomschwere. Keine der Interaktionen ist statistisch bedeutsam!</p>
+</details>
+<hr />
+</div>
+</div>
+<div id="literatur" class="section level2">
+<h2>Literatur</h2>
+<p><a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, M., Gollwitzer, M., &amp; Schmitt, M. (2017).</a> <em>Statistik und Forschungsmethoden</em> (5. Auflage, 1. Auflage: 2010). Weinheim: Beltz.</p>
+</div>
+<div id="datensatz" class="section level2">
+<h2>Datensatz</h2>
+<p>Schaeuffele, C., Homeyer, S. L., Perea, L., Scharf, L., Schulz, A., Knaevelsrud, C., … Boettcher, J. (2020, December 16). The Unified Protocol as an Internet-based Intervention for Emotional Disorders: Randomized Controlled Trial. <a href="https://doi.org/10.31234/osf.io/528tw" class="uri">https://doi.org/10.31234/osf.io/528tw</a></p>
+<ul>
+<li><small> <em>Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.</em> </small></li>
+</ul>
+</div>
