@@ -64,7 +64,7 @@ summary(Depression$Geschlecht) # Zusammenfassung factor
 colMeans(Depression[1:4]) # Spaltenmittelwerte
 
 ### Zusammenhang und lineare Regression
-plot(Depression$Lebenszufriedenheit, Depression$Depressivitaet, xlab = "Lebenszufriedenheit", ylab = "Lebenszufriedenheit")
+plot(Depression$Lebenszufriedenheit, Depression$Depressivitaet, xlab = "Lebenszufriedenheit", ylab = "Depressivitaet")
 
 lm(Depressivitaet ~ Lebenszufriedenheit, Depression) # lineare Regression
 model <- lm(Depressivitaet ~ Lebenszufriedenheit, Depression) # Objektzuweisung
