@@ -15,7 +15,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer]
-lastmod: '2021-10-14T16:40:21+02:00'
+lastmod: '2021-10-19T16:40:21+02:00'
 featured: no
 header:
   image: "/header/KliPsy_Sitzung_3.jpg"
@@ -29,7 +29,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 ```
 
 ## Einleitung
-In dieser Sitzung schauen wir uns die Unterschiede und Gemeinsamkeiten von ANOVA und Regression an. Vielleicht ist es Ihnen auch schon einmal untergekommen, dass Ihnen gesagt wurde: ANOVA und Regression ist doch alles das Selbe --- alles nur das allgemeine lineare Modell (ALM). Diese Aussage ist im Grunde auch richtig und wir schauen uns diesen Sachverhalt im Folgenden genauer an. 
+In dieser Sitzung schauen wir uns die Unterschiede und Gemeinsamkeiten von ANOVA und Regression an. Vielleicht ist es Ihnen auch schon einmal untergekommen, dass Ihnen gesagt wurde: ANOVA und Regression ist doch alles dasselbe --- alles nur das allgemeine lineare Modell (ALM). Diese Aussage ist im Grunde auch richtig und wir schauen uns diesen Sachverhalt im Folgenden genauer an. 
 
 Diese Sitzung basiert auf Literatur aus [Eid et al. (2017)](https://hds.hebis.de/ubffm/Record/HEB366849158) Kapitel 13 sowie Kapitel 16 bis 19.
 
@@ -47,7 +47,7 @@ Das sind sehr viele Variablen. Wir beschränken uns in dieser und in der folgend
 osf <- osf[, c("ID", "group", "stratum", "bsi_post", "swls_post", "pas_post")]
 head(osf)
 ```
-Wir erkennen direkt, dass es einige fehlenden Werte auf den Variablen gibt. Der Einfachheit halber entfernen wir diese Missings. Wir führen also den listenweisen Fallauschluss (engl. list-wise deletion) durch. Dieser darf allerdings nur gemacht werden, wenn die fehlenden Werte rein zufällig passiert sind (missing completely at random!). Allerdings sei erwähnt, dass der listenweisen Fallauschluss natürlich die Stichprobengröße verringert und dadurch die Power der Analysen reduziert. Aus illustrationszwecken wollen wir uns damit nicht weiter aufhalten.
+Wir erkennen direkt, dass es einige fehlende Werte auf den Variablen gibt. Der Einfachheit halber entfernen wir diese Missings. Wir führen also den listenweisen Fallausschluss (engl. list-wise deletion) durch. Dieser darf allerdings nur gemacht werden, wenn die fehlenden Werte rein zufällig passiert sind (missing completely at random!). Allerdings sei erwähnt, dass der listenweise Fallausschluss natürlich die Stichprobengröße verringert und dadurch die Power der Analysen reduziert. Aus Illustrationszwecken wollen wir uns damit nicht weiter aufhalten.
 
 ```{r}
 missings_ind <- which(is.na(osf$pas_post))
@@ -67,14 +67,14 @@ In der vorherigen Sitzung haben wir noch einmal die Regressionsanalyse wiederhol
 reg <- lm(bsi_post ~ 1 + swls_post + pas_post, data = osf)
 summary(reg)
 ```
-Offensichtlich tragen beide Prädiktoren signifikant zur Varianzerklärung des Kriteriums bei. Damit können wir üfr die Population (mit einer Irrtumswahrscheinlichkeit von $5\%$) konkludieren, dass die Symptomeschwere mit steigender Lebenszufriedenheit sinkt und dass sie mit steigender Panik- und Agoraphobiesymptomatik steigt. Dies haben wir an den Parametertests und den zugehörigen $t$-Tests abgelesen. Allerdings können wir auch Sets von Prädiktoren auf signifikante Vorhersagekraft testen. Bspw. können wir untersuchen, ob die beiden Prädiktoren gemeinsam Varianz an der Symptomschwere erklären. Dazu müssen wir quasi ein leeres Regressionsmodell aufstellen welches nur ein Interzept enthält. Nennen wir dieses mal `reg0`. Anschließend können wir die beiden Modelle mit dem `anova`-Befehl vergleichen. Dieser führt dann den sogenannten $F$-Test durch:
+Offensichtlich tragen beide Prädiktoren signifikant zur Varianzerklärung des Kriteriums bei. Damit können wir für die Population (mit einer Irrtumswahrscheinlichkeit von $5\%$) konkludieren, dass höhere Symptomschwere mit geringerer Lebenszufriedenheit und höherer Panik- und Agoraphobiesymptomatik assoziiert ist. Dies haben wir an den Parametertests und den zugehörigen $t$-Tests abgelesen. Allerdings können wir auch Sets von Prädiktoren auf signifikante Vorhersagekraft testen. Bspw. können wir untersuchen, ob die beiden Prädiktoren gemeinsam Varianz an der Symptomschwere erklären. Dazu müssen wir quasi ein leeres Regressionsmodell aufstellen, welches nur ein Interzept enthält. Nennen wir dieses mal `reg0`. Anschließend können wir die beiden Modelle mit dem `anova`-Befehl vergleichen. Dieser führt dann den sogenannten $F$-Test durch:
 
 ```{r}
 reg0 <-  lm(bsi_post ~ 1, data = osf)
 anova(reg0, reg)
 ```
 
-Der `anova`-Output sagt uns zunächst welche beiden Modelle miteinander verglichen wurden. Diese werden hier `Model 1` und `Model 2` genannt. Anschließend erhalten wir für den Modellvergleich Informationen über die Residualfreiheitsgrade (`Res.Df`), die Residualquadratsumme (`RSS`, **R**esidual **S**um of **S**quares), Freiheitsgrade des Modellvergleichs (`Df`, auch die Differenz der `Res.Df` zwischen Modellen!), Differenz der Quadratsummen (`Sum of Sq`), empirischer $F$-Wert (`F`) sowie den zugehörigen $p$-Wert (`Pr(>F)`). Aus den ersten vier können wir den $F$-Wert bestimmen. Die Residualfreiheitsgrade sind $n-(p+1)$, wobei $n$ die Stichprobengröße und $p$ die Anzahl an Variablen im Modell ist. Somit ist $p+1$ gerade die Anzahl an Parametern ($\beta$s), wenn es ein Interzept gibt. Die Residualquadratsumme ist die quadratische Summe der Regressionsresiduen $\hat{e}_i:= y_i - \hat{y}_i$: $RSS := \sum_{i=1}^n ( y_i - \hat{y}_i)^2$. Die Freiheitsgrade entsprechen der Anzahl an Parametern, um welche sich die beiden Modelle unterscheiden. Da das eine Modell nur aus einem Interzept besteht und im zweiten zwei Variablen (also zwei Steigungskoeffizienten) enthalten sind gilt `Df` = 2. Die Differenz der Quadratsumme entspricht der erklärten Quadratsumme, die auf das Hinzufügen der Variablen in das Modell mit mehr Parameter/Variablen zurückzuführen ist. Wenn Sie sich zurückerinnern an den Determinationskoeffizienten, welcher den Anteil erklärter Varianz beschreibt, dann sie gesagt, dass dieser quasi den Anteil der erklärten Quadratsumme an der totalen Quadratsumme beschreibt. Wir berechnen diesen schnell mit Hand, indem wir das `anova`-Objekt abspeichern und die entsprechenden Informationen entnehmen.
+Der `anova`-Output sagt uns zunächst, welche beiden Modelle miteinander verglichen wurden. Diese werden hier `Model 1` und `Model 2` genannt. Anschließend erhalten wir für den Modellvergleich Informationen über die Residualfreiheitsgrade (`Res.Df`), die Residualquadratsumme (`RSS`, **R**esidual **S**um of **S**quares), Freiheitsgrade des Modellvergleichs (`Df`, auch die Differenz der `Res.Df` zwischen Modellen!), Differenz der Quadratsummen (`Sum of Sq`), empirischer $F$-Wert (`F`) sowie den zugehörigen $p$-Wert (`Pr(>F)`). Aus den ersten vier können wir den $F$-Wert bestimmen. Die Residualfreiheitsgrade sind $n-(p+1)$, wobei $n$ die Stichprobengröße und $p$ die Anzahl an Variablen im Modell ist. Somit ist $p+1$ gerade die Anzahl an Parametern ($\beta$s), wenn es ein Interzept gibt. Die Residualquadratsumme ist die quadratische Summe der Regressionsresiduen $\hat{e}_i:= y_i - \hat{y}_i$: $RSS := \sum_{i=1}^n ( y_i - \hat{y}_i)^2$. Die Freiheitsgrade entsprechen der Anzahl an Parametern, um welche sich die beiden Modelle unterscheiden. Da das eine Modell nur aus einem Interzept besteht und im zweiten zwei Variablen (also zwei Steigungskoeffizienten) enthalten sind, gilt `Df` = 2. Die Differenz der Quadratsumme entspricht der erklärten Quadratsumme, die auf das Hinzufügen der Variablen in das Modell mit mehr Parameter/Variablen zurückzuführen ist. Wenn Sie sich zurückerinnern an den Determinationskoeffizienten, welcher den Anteil erklärter Varianz beschreibt, dann sei gesagt, dass dieser quasi den Anteil der erklärten Quadratsumme an der totalen Quadratsumme beschreibt. Wir berechnen diesen schnell mit Hand, indem wir das `anova`-Objekt abspeichern und die entsprechenden Informationen entnehmen.
 
 ```{r}
 anova0 <- anova(reg0, reg)
@@ -83,12 +83,12 @@ R2 # R^2 mit Hand
 summary(reg)$r.squared # R^2 aus dem lm-Objekt
 var(predict(reg))/var(osf$bsi_post) # über die Vorhersage von Werten mittels "predict"
 ```
-Mit `predict` erhalten wir den vorhergesagten Werte $\hat{y}_i$ für jede Erhebung (sozusagen den bedingten Erwartungswert gegeben die Prädiktoren). Wir erkennen, dass $R^2$ nichts anderes ist als der Quotient aus der Varianz der vorhergesagten Werte und der Varianz des Kriteriums ($R^2\hat{=}\frac{\mathbb{V}ar[\hat{Y}]}{\mathbb{V}ar[Y]}$).
+Mit `predict` erhalten wir den vorhergesagten Wert $\hat{y}_i$ für jede Erhebung (sozusagen den bedingten Erwartungswert gegeben die Prädiktoren). Wir erkennen, dass $R^2$ nichts anderes ist als der Quotient aus der Varianz der vorhergesagten Werte und der Varianz des Kriteriums ($R^2\hat{=}\frac{\mathbb{V}ar[\hat{Y}]}{\mathbb{V}ar[Y]}$).
 
 Der $F$-Wert entsteht, indem wir $R^2$ für zwei Modelle miteinander vergleichen. Dabei sei $R^2_u$ das $R^2$ des uneingeschränkten Modells mit mehr Prädiktoren und $R^2_e$ das eingeschränkte $R^2$ mit weniger Prädiktoren. Dann ist 
 
 $$F := \frac{(R^2_u-R^2_e)/df_h}{(1-R^2_u)/df_e},$$
-wobei $df_h$ die Hypothesenfreiheitsgrade sind (`Df` oben) und $df_e$ sind die Fehlerfreiheitsgrade (`Res.Df` oben) des uneingeschränkten Modells. Ist das eingeschränkte Modell das Null-Modell ohne Prädiktoren, so gilt $R^2_e=0$, was die Formel nochmals vereinfacht. $1-R^2_u$ ist der Anteil unerklärter Varianz im uneingeschränkten Modell --- also dem Anteil Residualvarianz an der Gesamtvarianz. Entsprechend bekommen wir den empirischen $F$-Wert (`R2` von oben entspricht $R^2_u$):
+wobei $df_h$ die Hypothesenfreiheitsgrade sind (`Df` oben) und $df_e$ sind die Fehlerfreiheitsgrade (`Res.Df` oben) des uneingeschränkten Modells. Ist das eingeschränkte Modell das Null-Modell ohne Prädiktoren, so gilt $R^2_e=0$, was die Formel nochmals vereinfacht. $1-R^2_u$ ist der Anteil unerklärter Varianz im uneingeschränkten Modell --- also der Anteil der Residualvarianz an der Gesamtvarianz. Entsprechend bekommen wir den empirischen $F$-Wert (`R2` von oben entspricht $R^2_u$):
 
 ```{r}
 F_emp <- (R2/2)/((1-R2)/91)
@@ -96,10 +96,10 @@ F_emp # empirischer F-Bruch mit Hand
 anova0$F[2] # empirischer F-Bruch aus anova-Objekt
 ```
 
-Der $F$-Wert ist genau dann groß, wenn der das Varianzinkrement groß ist im Vergleich zur Fehlervarianz. Der Vergleich gegen das Null-Modell wird in jeder `summary` mit ausgegeben. Dies ist der $F$-Test, der im Output ganz am Ende ausgegeben wird. Dieser testet das multiple $R^2$ gegen 0 und ist damit ein Omnibustest für alle Prädiktoren gemeinsam im Modell.
+Der $F$-Wert ist genau dann groß, wenn das Varianzinkrement im Vergleich zur Fehlervarianz groß ist. Der Vergleich gegen das Null-Modell wird in jeder `summary` mit ausgegeben. Dies ist der $F$-Test, der im Output ganz am Ende ausgegeben wird. Dieser testet das multiple $R^2$ gegen 0 und ist damit ein Omnibustest für alle Prädiktoren gemeinsam im Modell.
 
 ## Regression: Kategoriale Prädiktoren
-Wir können in ein Regressionsmodell auf kategoriale Prädiktoren aufnehmen. Das haben wir bereits in der vergangenen Sitzung gemacht, indem wir das Geschlecht mit in die Gleichung aufgenommen haben. Der Default in `R` ist, dass Dummyvariablen verwendet werden, um Gruppenzugehörigkeiten auszudrücken. So kann erreicht werden, dass Abweichungen zu einer Referenzkategorie kodiert werden können. Wir sagen die Symptomschwere durch die Gruppenvariable, die die Zuweisung zum Treatment enthält, vorher. Zunächst müssen wir sichergehen, dass es sich bei dieser Variable um eine Gruppierungsvariable handelt, indem wir sie in einen `factor` umwandeln. 
+Wir können in ein Regressionsmodell auch kategoriale Prädiktoren aufnehmen. Das haben wir bereits in der vergangenen Sitzung gemacht, indem wir das Geschlecht mit in die Gleichung aufgenommen haben. Der Default in `R` ist, dass Dummyvariablen verwendet werden, um Gruppenzugehörigkeiten auszudrücken. So kann erreicht werden, dass Abweichungen zu einer Referenzkategorie kodiert werden können. Wir sagen die Symptomschwere durch die Gruppenvariable, die die Zuweisung zum Treatment enthält, vorher. Zunächst müssen wir sichergehen, dass es sich bei dieser Variable um eine Gruppierungsvariable handelt, indem wir sie in einen `factor` umwandeln. 
 
 ```{r}
 osf$group <- factor(osf$group)
@@ -118,7 +118,7 @@ levels(osf$group)
 aggregate(bsi_post ~ group, data = osf, FUN = mean)
 ```
 
-Wenn wir nun wieder einen Modellvergleich vornehmen, können wir den Effekte des Treatments bestimmen:
+Wenn wir nun wieder einen Modellvergleich vornehmen, können wir den Effekt des Treatments bestimmen:
 
 ```{r}
 anova(reg0, reg_dummy1)
@@ -164,13 +164,15 @@ Die zweite Hälfte der Ergebnisse (`$Levene's Test for Homogeneity of Variance`)
 
 Der erste Abschnitt der Ausgabe der `ezANOVA`-Funktion liefert die Ergebnisse der *ANOVA* selbst. Dabei wird zunächst die unabhängige Variable aufgeführt (`Effect`), dann die Anzahl der Zählerfreiheitsgrade (`DFn` = $df_1$), dann die Anzahl der Nennerfreiheitsgrade (`DFd` = $df_2$). Darauf wiederum folgt der $F$-Wert (`F` = $F_{emp}$) und der resultierende $p$-Wert. Die Ergebnisse sind komplett identisch mit dem Ergebnissen aus dem Regressionsteil! Die Nullhypothese wird bei einem $\alpha$-Fehlerniveau von .05 verworfen: die Mittelwerte der beiden Gruppen sind nicht gleich. Der `*` in der nächsten Spalte liefert uns diesbezüglich einen optischen Hinweis. 
 
-Die letzte Spalte liefert das generalisierte $\eta^2$ (`ges` = *Generalized Eta-Squared*), ein Effektstärkenmaß für ANOVAs. Dieses berechnet sich in diesem Fall einfach aus $\eta^2 = \frac{QS_{zw}}{QS_{tot}}$, wobei $QS_{zw}$ die Quadratsumme, die durch Variation zwischen den Gruppen entsteht und $QS_{tot}$, die die totale Quadratsumme der abhängigen Variablen beschreibt. Um die Quadtratsummen (`SSn` = $QS_{zw}$,`SSd` = $QS_{inn}$) zu erhalten, kann mithilfe des Arguments `detailed = TRUE` eine detaillierte Ausgabe angefordert werden.
+Die letzte Spalte liefert das generalisierte $\eta^2$ (`ges` = *Generalized Eta-Squared*), ein Effektstärkenmaß für ANOVAs. Dieses berechnet sich in diesem Fall einfach aus $\eta^2 = \frac{QS_{zw}}{QS_{tot}}$, wobei $QS_{zw}$ die Quadratsumme, die durch Variation zwischen den Gruppen entsteht und $QS_{tot}$, welche die totale Quadratsumme der abhängigen Variablen beschreibt. Um die Quadtratsummen (`SSn` = $QS_{zw}$,`SSd` = $QS_{inn}$) zu erhalten, kann mithilfe des Arguments `detailed = TRUE` eine detaillierte Ausgabe angefordert werden.
 
 ```{r ANOVA_III, exercise=TRUE, exercise.lines = 2}
 ezANOVA(data = osf, wid = ID, dv = bsi_post, between = group, detailed = T)
 ```
 
-Für $\eta^2$ haben sich - wie für viele Effektgrößen - Konventionen bezüglich der Interpretation etabliert. Für die Varianzanalyse wird $\eta^2 \approx .01$ als kleiner, $\eta^2 \approx .06$ als mittlerer und $\eta^2 \approx .14$ als großer Effekt interpretiert. Der Wert liegt hier bei `r round(summary(reg_dummy1)$r.squared,4)`, was einem großem Effekt entspricht. Somit gehen `r round(summary(reg_dummy1)$r.squared*100,2)`% der Variation auf die Gruppenzugehörigkeit zurück. Dieser Wert sollte Ihnen reichlich bekannt vorkommen. Hier gilt nämlich $\eta^2=R^2$ aus der Regression! Um dies genauer zu sehen, speichern wir uns die Ergebnisse der `ezANOVA` ab:
+Für $\eta^2$ haben sich - wie für viele Effektgrößen - Konventionen bezüglich der Interpretation etabliert. Für die Varianzanalyse wird $\eta^2 \approx .01$ als kleiner, $\eta^2 \approx .06$ als mittlerer und $\eta^2 \approx .14$ als großer Effekt interpretiert. Der Wert liegt hier bei `r round(summary(reg_dummy1)$r.squared,4)`, was einem großem Effekt entspricht. In der Praxis ist es jedoch empfehlenswert, Effektstärken nicht (allein) anhand von Konventionen zu interpretieren, sondern etwa Effekte vergleichbarer Studien oder Behandlungsinterventionen zu Rate zu ziehen.
+
+Die Effektstärke bedeutet, dass `r round(summary(reg_dummy1)$r.squared*100,2)`% der Variation auf die Gruppenzugehörigkeit zurück gehen. Dieser Wert sollte Ihnen reichlich bekannt vorkommen. Hier gilt nämlich $\eta^2=R^2$ aus der Regression! Um dies genauer zu sehen, speichern wir uns die Ergebnisse der `ezANOVA` ab:
 
 ```{r}
 ezANOVA1 <- ezANOVA(data = osf, wid = ID, dv = bsi_post, between = group, detailed = T)
@@ -187,20 +189,20 @@ Das liegt ganz einfach daran, dass die $F$-Brüche die gleichen Ergebnisse verre
 
 $$QS_{tot} = QS_{zw} + QS_{inn},$$
 
-wobei $QS_{inn}$ der Quadratsumme innerhalb der Gruppen entspricht. Dies ist gerade die Residualquadratsumme, da die Variation innerhalb der Gruppen in der ANOVA als Fehlervariation angesehen wird. Um die Quadratsummen für den $F$-Wert zu erhalten,, brauchen wir die mittleren Quadratsummen $MQS_{zw} = \frac{QS_{zw}}{df_{zw}}$ und $MQS_{inn} = \frac{QS_{inn}}{df_{inn}}$. Hierbei sind $df_{zw}=K-1$ die zwischen-Freiheitsgrade und $df_{inn}=n-K$ die innerhalb-Freiheitsgrade, wobei $K$ = Anzahlgruppen. Wir erkennen, dass für unser Beispiel $df_{zw}=df_h$ und $df_{inn}=df_{e}$ gilt. Nun können wir den $F$-Wert bestimmen. Dieser ergibt sich als
+wobei $QS_{inn}$ der Quadratsumme innerhalb der Gruppen entspricht. Dies ist gerade die Residualquadratsumme, da die Variation innerhalb der Gruppen in der ANOVA als Fehlervariation angesehen wird. Um die Quadratsummen für den $F$-Wert zu erhalten,, brauchen wir die mittleren Quadratsummen $MQS_{zw} = \frac{QS_{zw}}{df_{zw}}$ und $MQS_{inn} = \frac{QS_{inn}}{df_{inn}}$. Hierbei sind $df_{zw}=K-1$ die zwischen-Freiheitsgrade und $df_{inn}=n-K$ die innerhalb-Freiheitsgrade, wobei $K$ = Anzahl Gruppen. Wir erkennen, dass für unser Beispiel $df_{zw}=df_h$ und $df_{inn}=df_{e}$ gilt. Nun können wir den $F$-Wert bestimmen. Dieser ergibt sich als
 $$F_{emp} = \frac{MQS{zw}}{MQS{inn}}=\frac{QS_{zw}/df_{zw}}{QS_{inn}/df_{inn}}$$
-Wir erkennen, dass hier einfach die Variation zwischen den Gruppen (Variation der Mittelwerte) relativ zur (zufälligen) Variation innerhalb der Gruppen betrachtet wird. Ist die Variation zwischen den Gruppen relativ zur zufälligen Variation groß, so kann dies nicht durch Zufall passiert sein: die Mittelwerte müssen sich also bei einem großen $F$-Wert unterscheiden. Das Verhältnis der Quadratsummen ist mit $df_{zw} = K - 1$ und $df_{inn} = N - K$ $F$-verteilt. Daher wird der $F_{emp}$ mit dem $F_{krit}$ mit $df_1 = K - 1$ (Zählerfreiheitsgraden) und $df_2 = N - K$ (Nennerfreiheitsgraden) verglichen. Die Gleichheit kann nachvollzogen werden, indem wir dem $F$-Bruch mit der totalen Quadratsumme erweitern und einsehen, dass $\eta^2=R^2=\frac{QS_{zw}}{QS_{tot}}$ und $1-\eta^2=1-R^2=\frac{QS_{inn}}{QS_{tot}}$ in diesem Beispiel gilt und damit:
+Wir erkennen, dass hier einfach die Variation zwischen den Gruppen (Variation der Mittelwerte) relativ zur (zufälligen) Variation innerhalb der Gruppen betrachtet wird. Ist die Variation zwischen den Gruppen relativ zur zufälligen Variation groß, so gehen wir davon aus, dass dies ein nicht zufälliger Unterschied ist: die Mittelwerte müssen sich also bei einem großen $F$-Wert unterscheiden. Das Verhältnis der Quadratsummen ist mit $df_{zw} = K - 1$ und $df_{inn} = N - K$ $F$-verteilt. Daher wird der $F_{emp}$ mit dem $F_{krit}$ mit $df_1 = K - 1$ (Zählerfreiheitsgraden) und $df_2 = N - K$ (Nennerfreiheitsgraden) verglichen. Die Gleichheit kann nachvollzogen werden, indem wir dem $F$-Bruch mit der totalen Quadratsumme erweitern und einsehen, dass $\eta^2=R^2=\frac{QS_{zw}}{QS_{tot}}$ und $1-\eta^2=1-R^2=\frac{QS_{inn}}{QS_{tot}}$ in diesem Beispiel gilt und damit:
 
 $$F_{emp} = \frac{QS_{zw}/df_{zw}}{QS_{inn}/df_{inn}}\frac{QS_{tot}}{QS_{tot}}=\frac{\frac{QS_{zw}}{QS_{tot}}/df_{zw}}{\frac{QS_{inn}}{QS_{tot}}/df_{inn}}=\frac{\eta^2/df_{zw}}{(1-\eta^2)/df_{inn}}$$
 
-Auch der $t$-Test kommt zum selben Ergebnis. Wir müssen hier allerdings den "richtigen" $t$-Test verwenden und nicht die robuste Variante nach Welch. Das machen wir mit `var.equal = T`.
+Auch der $t$-Test kommt zum selben Ergebnis. Hier müssen wir der zugehörigen Funktion `t.test` allerdings noch sagen, dass wir Student's $t$-Test (der $t$-Test, den Sie vermutlich im 1. Semester kennengelernt haben) wünschen, da nur dieser die Äquivalenz aufweist. Die Defaultvariante in `R` ist die robuste Variante nach Welch (Welch's $t$-Test).  Allerdings sollten Sie für den "Heimgebrauch" immer Welch's Variante verwenden, da diese der anderen in den meisten fällen überlegen ist und zu weniger falsch-positiven Ergebnissen führt, wenn Voraussetzungen nicht erfüllt sind (Interessierte finden eine über diesen Kurs hinausgehende Quelle die dies untersucht und diskutiert [hier](https://www.rips-irsp.com/articles/10.5334/irsp.82/)). Wir verwenden Student's $t$-Test hier rein aus Demonstrationszwecken. Das machen wir mit der Zusatzeinstellung `var.equal = T` in der Funktion `t.test`.
 
 ```{r}
 ttest1 <- t.test(bsi_post ~ group, data = osf, var.equal = T)
 ttest1
 ```
 
-Auf den ersten Blick sieht das Ergebnis anders aus. Allerdings sind die $p$-Werte in allen 3 Verfahren identisch:
+Auf den ersten Blick sieht das Ergebnis anders aus als das Ergebnis der ANOVA oder der Regression. Allerdings sind die $p$-Werte in allen 3 Verfahren identisch:
 
 ```{r}
 ezANOVA1$ANOVA$p
@@ -215,16 +217,15 @@ anova(reg0, reg_dummy1)$F
 ttest1$statistic^2
 ```
 
-
 ## Mehrfaktorielle ANOVA
 Die Mehrfaktorielle ANOVA ist nun etwas kniffliger. Hier hängt bei der ANOVA die Signifikanzentscheidung der Gruppenkombination nämlich von der Quadratsummenwahl ab. Diese kann nämlich unterschiedlich gewählt werden, weswegen es verschiedene `R`-Pakete gibt, die dies für uns übernehmen. 
 
 In einer zweifaktoriellen ANOVA sind drei verschiedene Arten von Effekten möglich: Haupteffekt des Faktors A (erster Faktor), Haupteffekt des Faktors B (zweiter Faktor) und Interaktionseffekt (AxB). Die Wahl der Quadratsumme entscheidet nun, in welcher Reihenfolge die Prädiktoren in das Modell aufgenommen werden. In der `ezANOVA`-Funktion können wir die Quadratsumme ganz einfach mit dem Argument `type` einstellen. Es gibt drei Typen der Quadratsummen.
 
 ### Zweifaktorielle ANOVA: Quadratsumme vom Typ I
-Dieser Quadratsummentyp entspricht im Grunde der stückchenweisen Aufnehmen von Prädiktoren im Regressionskontext. Dies bedeutet, dass die Signifikanzentscheidung der Faktoren von der Reihenfolge der Aufnahme der Faktoren in das Modell abhängt. Das gilt auch für kontinuierliche Prädiktoren: je nach dem welche Prädiktoren bereits im Modell enthalten sind, liefert der nächste Prädiktor signifikante inkrementelle Varianzaufklärung des Kriteriums oder eben nicht. Diesem Umstand geschuldet wählen Selektionsverfahren wie etwa die Forward-Selektion immer denjenigen Prädiktor aus, der signifikante Vorhersagekraft leistet und die größte Veränderung in $R^2$ über die bereits enthaltenen Prädiktoren liefert. 
+Dieser Quadratsummentyp entspricht im Grunde dem stückchenweise Aufnehmen von Prädiktoren im Regressionskontext. Dies bedeutet, dass die Signifikanzentscheidung der Faktoren von der Reihenfolge der Aufnahme der Faktoren in das Modell abhängt. Das gilt auch für kontinuierliche Prädiktoren: je nachdem, welche Prädiktoren bereits im Modell enthalten sind, liefert der nächste Prädiktor signifikante inkrementelle Varianzaufklärung des Kriteriums oder eben nicht. Diesem Umstand geschuldet wählen Selektionsverfahren wie etwa die Forward-Selektion immer denjenigen Prädiktor aus, der signifikante Vorhersagekraft leistet und die größte Veränderung in $R^2$ über die bereits enthaltenen Prädiktoren liefert. 
 
-Wir können unser ANOVA-Modell erweitern um die Diagnose der Proband:innen erweitern, indem wir dem Argument `between` in `ezANOVA` einen Vektor von Variablen übergeben (`between = c(group, stratum)`). Bevor wir dies tun, sollten wir die Gruppierungsvariable `stratum` noch in einen `factor` umwandeln! Dann stellen wir noch den Quadratsummentype ein, speichern das Objekt als `ezANOVA1` ab und erhalten:
+Wir können unser ANOVA-Modell um die Diagnose der Proband:innen erweitern, indem wir dem Argument `between` in `ezANOVA` einen Vektor von Variablen übergeben (`between = c(group, stratum)`). Bevor wir dies tun, sollten wir die Gruppierungsvariable `stratum` noch in einen `factor` umwandeln! Dann stellen wir noch den Quadratsummentype ein, speichern das Objekt als `ezANOVA1` ab und erhalten:
 
 ```{r}
 osf$stratum <- factor(osf$stratum)
@@ -238,7 +239,7 @@ cat('## Warning: Using \"type==1\" is highly questionable when data are unbalanc
 ## there is more than one variable. Hopefully you are doing this for demonstration
 ## purposes only!')
 ```
-Hier wird uns mitgeteilt, dass das keine so gute Idee ist. Zum Glück machen wir das hier tatsächlich zu Demonstrationszwecken! Eines der Hauptprobleme ist nämlich, dass die Reihenfolge der Prädiktoren die Signifikanzentscheidung beeinflusst. Der Effekt `group` entspricht dem Haupteffekt der Treatmentzuweisung, `stratum` entspricht dem Haupteffekt der Diagnose und `group:stratum` entspricht dem Interaktionseffekt. Dem Output ist zu entnehmen, dass nur die Treatmentzuweisung einen signifikanten Einfluss auf die Symptomschwere hat. Somit hätte das Treatment einen Effekt, welcher unabhängig von der Diagnose sich auf die Symptomschwere auswirkt (mit einer Irrtumswahrscheinlichkeit von $5\%$). Das Ergebnis lässt sich auch super leicht grafisch darstellen, indem wir die `ezPlot`-Funktion aus dem `ez`-Paket verwenden. Diese nimmt die selben Argumente wie `ezANOVA` entgegen. Es fehlt lediglich die Aufteilung der Effekte. `x = stratum` lässt die Diagnose auf der $x$-Achse erscheinen. `split = group` lässt unterschiedliche Linien für Treatment und Wartekontrollgruppe erscheinen:
+Hier wird uns mitgeteilt, dass das keine so gute Idee ist. Zum Glück machen wir das hier tatsächlich zu Demonstrationszwecken! Eines der Hauptprobleme ist nämlich, dass die Reihenfolge der Prädiktoren die Signifikanzentscheidung beeinflusst. Der Effekt `group` entspricht dem Haupteffekt der Treatmentzuweisung, `stratum` entspricht dem Haupteffekt der Diagnose und `group:stratum` entspricht dem Interaktionseffekt. Dem Output ist zu entnehmen, dass nur die Treatmentzuweisung einen signifikanten Einfluss auf die Symptomschwere hat. Somit hätte das Treatment einen Effekt, welcher sich unabhängig von der Diagnose auf die Symptomschwere auswirkt (mit einer Irrtumswahrscheinlichkeit von $5\%$). Das Ergebnis lässt sich auch super leicht grafisch darstellen, indem wir die `ezPlot`-Funktion aus dem `ez`-Paket verwenden. Diese nimmt dieselben Argumente wie `ezANOVA` entgegen. Es fehlt lediglich die Aufteilung der Effekte. `x = stratum` lässt die Diagnose auf der $x$-Achse erscheinen. `split = group` lässt unterschiedliche Linien für Treatment und Wartekontrollgruppe erscheinen:
 
 ```{r}
 ezPlot(data = osf, dv = bsi_post, between = c(group, stratum), wid = ID, x = stratum, split = group)
@@ -246,15 +247,15 @@ ezPlot(data = osf, dv = bsi_post, between = c(group, stratum), wid = ID, x = str
 
 Die Fisher's Least Significant Distance (FLSD) ist eine Schätzung für die minimale Distanz zwischen Mittelwerten in Gruppen, die signifikant wäre. Damit gibt dieser Plot erste Anzeichen über mögliche signifikante Mittelwertsunterschiede.
 
-Wenn wir die selbe Analyse nun wiederholen und zuerst die Diagnose in das Modell aufnehmen, erhalten wir andere Ergebnisse:
+Wenn wir dieselbe Analyse nun wiederholen und zuerst die Diagnose in das Modell aufnehmen, erhalten wir andere Ergebnisse:
 
 ```{r}
 ezANOVA(data = osf, dv = bsi_post, between = c(stratum, group), wid = ID,
                     detailed = T, type = 1)
 ```
-Das spielt natürlich eine immer größere Rolle, je mehr Gruppierungsvariablen wir haben und je überlappender die Effekte sind. In diesem spezifischen Beispiel sind die Unterschiede gar nicht so groß und auch die Signifikanzentscheidung ist am Ende des Tages die selbe. Allerdings erkennen wir, dass der `F`-Wert der beiden Haupteffekte leicht unterschiedlich ist. Der `F`-Wert und die Signifikanzentscheidung der Interaktion ist in beiden Fällen gleich.
+Das spielt natürlich eine immer größere Rolle, je mehr Gruppierungsvariablen wir haben und je überlappender die Effekte sind. In diesem spezifischen Beispiel sind die Unterschiede gar nicht so groß und auch die Signifikanzentscheidung ist am Ende des Tages dieselbe. Allerdings erkennen wir, dass der `F`-Wert der beiden Haupteffekte leicht unterschiedlich ist. Der `F`-Wert und die Signifikanzentscheidung der Interaktion ist in beiden Fällen gleich.
 
-Um nun die selben Ergebnisse mit der Regressionsanalyse zu erhalten, wie in `ezANOVA1` müssen das entsprechenende Modell aufstellen. Um den Modellvergleich besser nachvollziehen zu können, stellen wir gleich eine Reihe von Modellen auf. Hierbei kann die Interaktion mit `:` in das Modell aufgenommen werden:
+Um nun dieselben Ergebnisse wie in `ezANOVA1` mit der Regressionsanalyse zu erhalten, müssen wir das entsprechende Modell aufstellen. Um den Modellvergleich besser nachvollziehen zu können, stellen wir gleich eine Reihe von Modellen auf. Hierbei kann die Interaktion mit `:` in das Modell aufgenommen werden:
 
 ```{r}
 reg0 <- lm(bsi_post ~ 1, data = osf)  # Null-Modell (leeres Modell)
@@ -266,12 +267,12 @@ reg_gsi <- lm(bsi_post ~ group + stratum + group:stratum, data = osf)  # Modell 
 
 Insgesamt erhalten wir also fünf Modelle. Um das inkrementelle Aufnehmen der Faktoren abzubilden, müssen wir diejenigen Modelle auswählen, die auseinander hervorgehen. Wir wollen zuerst den Effekt der Gruppierungsvariable (`group`) untersuchen. Anschließend wird dann die Diagnose (`stratum`) in das Modell aufgenommen. Als letztes fügen wir noch die Interaktion in das Modell hinzu. Somit benötigen wir das Modell `reg_s`, welches nur die Diagnose (`stratum`)  enthält, in diesen Modellvergleichen nicht. 
 
-Wir wollen nun diese Modelle inkrementell gegeneinander vergleichen. Dafür verwendenw wir die `anova`-Funktion, welcher wir einfach alle Modelle (in der richtigen Reihenfolge!!) übergeben. Wenn wir nun vier geschachtelte Modelle gegeneinander testen, erhalten wir jeweils paarweise Vergleiche. Wir beginnen mit dem Null-Modell und fügen dann das Treatment hinzu. Es folgt die Diagnose in das Modell und zum Schluss die Interaktion:
+Wir wollen nun diese Modelle inkrementell gegeneinander vergleichen. Dafür verwenden wir die `anova`-Funktion, welcher wir einfach alle Modelle (in der richtigen Reihenfolge!!) übergeben. Wenn wir nun vier geschachtelte Modelle gegeneinander testen, erhalten wir jeweils paarweise Vergleiche. Wir beginnen mit dem Null-Modell und fügen dann das Treatment hinzu. Es folgt die Diagnose in das Modell und zum Schluss die Interaktion:
 
 ```{r}
 anova(reg0, reg_g, reg_gs, reg_gsi)
 ```
-Die Effekte sind komplett identisch zum `ezANOVA1`-Output. Wir erkennen, dass Quadratsummen vom Typ I also einen schrittweisen Aufnehmen der Prädiktoren entspricht, wobei die Reihenfolge entscheidend ist. Im Übrigen hätten wir uns das Erstellen der Modelle sparen können und einfach `anova` auf `reg_gsi` anwenden können:
+Die Effekte sind komplett identisch zum `ezANOVA1`-Output. Wir erkennen, dass Quadratsummen vom Typ I also einem schrittweisen Aufnehmen der Prädiktoren entspricht, wobei die Reihenfolge entscheidend ist. Im Übrigen hätten wir uns das Erstellen der Modelle sparen können und einfach `anova` auf `reg_gsi` anwenden können:
 
 ```{r}
 anova(reg_gsi)
@@ -280,7 +281,7 @@ anova(reg_gsi)
 Allerdings war uns an dieser Stelle wichtig, zu zeigen, wie man auf die jeweiligen Modellvergleiche kommt. Die anderen Quadratsummentypen sollen nun unabhängig von der Reihenfolge jeweils Signifikanzentscheidungen für die Haupteffekte ausgeben können.
 
 ### Zweifaktorielle ANOVA: Quadratsumme vom Typ II
-Quadratsummen vom Typ II sind häufig der Default in Programmen, die nicht das schrittweise vorgehen wählen wollen. Dieser Typ sollte verwendet werden, wenn es keine Interaktion zwischen den Faktoren gibt. Dann können die Haupteffekte sinnvoll interpretiert werden. Die Effekte werden hier als Partialeffekte bestimmt. Es spielt also keine Rolle in welcher Reihenfolge die Faktoren aufgenommen werden. Wir rechnen zunächst wieder eine zweifaktorielle ANOVA mit dem `ezANOVA`-Befehl mit Quadratsummen vom zweiten Typ. Um den Output etwas zu verkürzen, lassen wir das Argument `detailed` weg:
+Quadratsummen vom Typ II sind häufig der Default in Programmen, die nicht das schrittweise Vorgehen wählen wollen. Dieser Typ sollte verwendet werden, wenn es keine Interaktion zwischen den Faktoren gibt. Dann können die Haupteffekte sinnvoll interpretiert werden. Die Effekte werden hier als Partialeffekte bestimmt. Es spielt also keine Rolle, in welcher Reihenfolge die Faktoren aufgenommen werden. Wir rechnen zunächst wieder eine zweifaktorielle ANOVA mit dem `ezANOVA`-Befehl mit Quadratsummen vom zweiten Typ. Um den Output etwas zu verkürzen, lassen wir das Argument `detailed` weg:
 
 ```{r}
 ezANOVA2 <- ezANOVA(data = osf, dv = bsi_post, between = c(group, stratum), wid = ID,
@@ -290,19 +291,19 @@ ezANOVA(data = osf, dv = bsi_post, between = c(stratum, group), wid = ID,
         type = 2)
 ```
 
-Zusätzlich zu den Tests auf Haupt- und Interaktionseffekte, wird uns auch noch der `$Levene's Test for Homogeneity of Variance` ausgegeben. Wie der Namen schon sagt, wird hier auf Varianzhomogenität geprüft. Es wird also die wichtige Annahme der ANOVA untersucht, dass die Varianzen in allen Gruppen gleich groß sind. Da der Test nicht signifikant ist, wird an dieser Annahme hier nicht gezweifelt. Wie sie sehen, spielt die Reihenfolge nun keine Rolle mehr. Die Tests auf Haupt- und Interaktionseffekte kommen zu identischen Ergebnisse --- nur die Reihenfolge im Output ändert sich. Es ist sehr schwierig mit Hilfe von Modellvergleichen diese Tests mit Hilfe der Regression zu replizieren. Wir können aber bspw. die `Anova`-Funktion aus dem `car`-Paket verwenden, um Quadratsummen vom Typ II aus einem `lm`-Objekt zu bekommen. Das Regressionsmodell mit zwei Faktoren inklusive Interaktion hieß `reg_gsi`:
+Zusätzlich zu den Tests auf Haupt- und Interaktionseffekte, wird uns auch noch der `$Levene's Test for Homogeneity of Variance` ausgegeben. Wie der Namen schon sagt, wird hier auf Varianzhomogenität geprüft. Es wird also die wichtige Annahme der ANOVA untersucht, dass die Varianzen in allen Gruppen gleich groß sind. Da der Test nicht signifikant ist, wird an dieser Annahme hier nicht gezweifelt. Wie Sie sehen, spielt die Reihenfolge nun keine Rolle mehr. Die Tests auf Haupt- und Interaktionseffekte kommen zu identischen Ergebnisse --- nur die Reihenfolge im Output ändert sich. Es ist sehr schwierig, mit Hilfe von Modellvergleichen diese Tests mit Hilfe der Regression zu replizieren. Wir können aber bspw. die `Anova`-Funktion aus dem `car`-Paket verwenden, um Quadratsummen vom Typ II aus einem `lm`-Objekt zu bekommen. Das Regressionsmodell mit zwei Faktoren inklusive Interaktion hieß `reg_gsi`:
 
 ```{r}
 library(car)
 Anova(reg_gsi, type = 2)
 ```
 
-Auch diese kommt zum selben Ergebnis. Die Interaktion ist nicht signifikant, also können wir die Haupteffekte interpretieren. Von diesen ist nur der Haupteffekt von des Treatments signifikant. Wenn wir konzeptionell verstehen wollen, was genau hier passiert, können wir uns mal die Effekte ohne den Interaktionseffekt ansehen, der sowieso nicht signifikant war. Dazu wenden wir die `Anova`-Funktion aus dem `car`-Paket auf das zweifaktorielle Modell ohne Interaktion an (dieses hieß `reg_gs`). Wenn wir dieses Ergebnis nun mit den Modellvergleichen von oben vergleichen, fallen uns Ähnlichkeiten auf. Um das genauer zu zeigen, führen wir nun den inkrementellen Test der Haupteffekt jeweils über den anderen Haupteffekt hinaus durch. Wir testen also das Inkrement erklärter Varianz des Treatments über die Diagnose hinaus, sowie das Inkrement erklärter Varianz der Diagnose über das Treatment hinaus:
+Auch diese kommt zum selben Ergebnis. Die Interaktion ist nicht signifikant, also können wir die Haupteffekte interpretieren. Von diesen ist nur der Haupteffekt des Treatments signifikant. Wenn wir konzeptionell verstehen wollen, was genau hier passiert, können wir uns mal die Effekte ohne den Interaktionseffekt ansehen, der sowieso nicht signifikant war. Dazu wenden wir die `Anova`-Funktion aus dem `car`-Paket auf das zweifaktorielle Modell ohne Interaktion an (dieses hieß `reg_gs`). Wenn wir dieses Ergebnis nun mit den Modellvergleichen von oben vergleichen, fallen uns Ähnlichkeiten auf. Um das genauer zu zeigen, führen wir nun den inkrementellen Test der Haupteffekte jeweils über den anderen Haupteffekt hinaus durch. Wir testen also das Inkrement erklärter Varianz des Treatments über die Diagnose hinaus, sowie das Inkrement erklärter Varianz der Diagnose über das Treatment hinaus:
 
 ```{r}
 Anova(reg_gs, type = 2) # simulatane Inkrementsprüfung
 anova(reg_s, reg_gs) # Inkrement des Treatments
-anova(reg_g, reg_gs) # Inrkement der Diagnose
+anova(reg_g, reg_gs) # Inkrement der Diagnose
 ```
 
 Wir erkennen, dass die Tests der Inkrement jeweils der Haupteffektsprüfung mit Quadratsummen vom Typ II entsprechen. Es ist also so, dass die unterschiedlichen Quadratsummen keine neue Methode darstellen, sondern einfach bestimmten Hypothesen entsprechen. Diesen sollten wir uns bewusst sein, bevor wir die Ergebnisse interpretieren. 
@@ -345,18 +346,18 @@ Zum Schluss am besten wieder alles zurückstellen:
 options(contrasts=c(unordered="contr.treatment", ordered="contr.poly"))
 ```
 
-Da es sonst zu verschätzen Effekten kommen kann, wenn bspw. Quadratsummen vom Typ I oder Typ II verwendet werden.
+Dies ist wichtig, da es sonst zu verschätzen Effekten kommen kann, wenn bspw. Quadratsummen vom Typ I oder Typ II verwendet werden.
 
 ## Fazit aus allen Analysen
 
-Insgesamt kamen alle Analysen zum selben Ergebnis: die Intervention zeigt einen Effekt auf die Symptomschwere unabhängig von der vorliegenden Diagnose (mit einer Irrtumswahrscheinlichkeit von $5\%$). Wir haben in dieser Sitzung gesehen, dass Regression und ANOVA zum selben Ergebnis kommen, wenn die selben Hypothesen geprüft werden. Die Art der Hypothese, die geprüft werden soll, hängt von der Wahl der Quadratsumme ab!
+Insgesamt kamen alle Analysen zum selben Ergebnis: die Intervention zeigt einen Effekt auf die Symptomschwere unabhängig von der vorliegenden Diagnose (mit einer Irrtumswahrscheinlichkeit von $5\%$). Wir haben in dieser Sitzung gesehen, dass Regression und ANOVA zum selben Ergebnis kommen, wenn dieselben Hypothesen geprüft werden. Die Art der Hypothese, die geprüft werden soll, hängt von der Wahl der Quadratsumme ab!
 
 ***
 
 ## R-Skript
-Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](/post/MSc1_R_Files/0_Intro_RCode.R).
+Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](/post/).
 
-***
+*** 
 
 <!--
 ## Appendix
