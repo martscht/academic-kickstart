@@ -27,7 +27,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 
 ## Einleitung
 In dieser Sitzung schauen wir uns die Kovarianzanalyse, auch **AN**alysis **O**f **COVA**riance (ANCOVA), als Erweiterung der ANOVA an und nutzen diese als Überleitung zur moderierten Regressionsanalyse.
-Diese Sitzung basiert auf Literatur aus [Eid et al. (2017)](https://hds.hebis.de/ubffm/Record/HEB366849158) Kapitel 13 sowie Kapitel 16 bis 19.
+Diese Sitzung basiert auf Literatur aus [Eid et al. (2017)](https://hds.hebis.de/ubffm/Record/HEB366849158) Kapitel  19 (insbesondere 19.9-19.12).
 
 
 ### Daten laden
@@ -63,7 +63,9 @@ osf$swls_post <- scale(osf$swls_post, center = T, scale = F)
 osf$pas_post <- scale(osf$pas_post, center = T, scale = F)
 ```
 
-Hätten wir auch noch `scale = T` gewählt, so hätten wir nicht zentriert sondern standardisiert --- also auch noch die Varianz auf 1 gesetzt, indem wir die Variablen noch durch die Standardabweichung geteilt hätten ($X_z:=\frac{X-\bar{X}}{SD(X)}$, $X_z$ ist die zentrierte Version von $X$).
+Die Werte von zentrierten Variablen sind etwas anders zu interpretieren als jene in der ursprünglichen Skala. 
+
+Hätten wir auch noch `scale = T` gewählt, so hätten wir nicht zentriert sondern standardisiert --- also auch noch die Varianz auf 1 gesetzt, indem wir die Variablen noch durch die Standardabweichung geteilt hätten ($X_z:=\frac{X-\bar{X}}{SD(X)}$, $X_z$ ist die standardisierte Version von $X$). 
 
 ## Kovarianzanalyse: ANCOVA
 In der letzten Sitzung hatten wir bemerkt, dass ANOVA und Regressionsanalysen (auch in `R`) so gut wie identisch sind und dass nur die Art und Weise wie Hypothesen aufgestellt werden sollen im Endeffekt entscheiden wie genau die Analysen ausfallen. Diese Hypothesen hatten sich in der Wahl der Quadratsummen geäußert. 
@@ -184,6 +186,108 @@ ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post,  col = stratum, l
    theme_minimal()
 ```
 
+## Moderierte Regression
+Wenn wir uns nun vorstellen, dass wir unendlich viele Gruppen hätten, dann wäre es theoretisch möglich für jede Slope oder für jedes Interzept eine solche Gruppe zu finden. So ähnlich funktioniert nun die moderierte Regression. Anstatt dass wir unendlich viele Gruppen haben, nehmen wir einen kontinuierlichen Prädiktor her. Diesen Prädiktor nennen wir Moderator. Wenn wir nun eine Interaktion zwischen unserem eigentlichen (kontinuierlichem) Prädiktor und dem Moderator in die Regressionsgleichung einführen, dann erhalten wir ein Regressionsmodell, welches der generalisierten ANCOVA sehr ähnlich sieht. Wir nennen den Moderator wie oben $Z$, stellen die Gleichung nach $X$ (unserem Prädiktor) um und benennen das Interzept und die Slope in Abhängigkeit von $Z$:
+
+\begin{align}
+Y_i &= \beta_0 + \beta_ZZ + \beta_XX + \beta_{ZX}ZX+e_i,\\[1.5ex]
+&= \underbrace{\beta_0 + \beta_ZZ}_{g_I(Z)} + \underbrace{(\beta_X + \beta_{ZX}Z)}_{g_S(Z)}X+e_i.
+\end{align}
+
+Wir erkennen wieder ein Interzept und eine Slope, welche jeweils abhängig von der Ausprägung des Moderators $Z$ ist. Bis hierhin unterscheiden sich die Gleichungen der moderierter Regression und generalisierter ANCOVA nicht. Allerdings kann $Z$ in der moderierten Regression (theoretisch) jeden beliebigen Wert annehmen. Außerdem sei an dieser Stelle gesagt, dass die Bezeichnungen für Moderator und Prädiktor nicht von den Daten abgeleitet werden können. Sie sind rein konzeptioneller Natur. Das äußert sich darin, dass wir für die moderierte Regression im Gegensatz zur ANCOVA die Rolle der beiden Prädiktoren vertauschen können. Wir können also die Gleichung einfach anders aufstellen und schon haben wir ein Interzept und eine Slope von $Z$ auf $Y$, die jeweils abhängig sind von $X$.
+
+Um die Analyse besser interpretierbar zu machen und um möglicher Multikollinearität zwischen linearen und nichtlinearem Termen (Interaktion) vorzubeugen, sollte sowohl der Prädiktor als auch der Moderator zentriert sein. Das haben wir ganz am Anfang der Sitzung bereits mit dem `scale`-Befehl gemacht, da dies bereits für die ANCOVA von Relevanz war!
+
+Wenn dem so ist, dann lässt sich der Wert $Z=0$, also der Mittelwert von $Z$, sehr schön interpretieren. Dann ist nämlich $g_I(0)=\beta_0$ und $g_S(0)=\beta_X$. Wir erkennen also, dass $\beta_0$ und $\beta_X$ jeweils das durchschnittliche Interzept und die durchschnittliche Slope beschreiben. Die Koeffizienten $\beta_Z$ und $\beta_{ZX}$ symbolisieren dann die Abweichungen vom mittleren Interzept oder der mittleren Slope in Abhängigkeit von $Z$. Die Berechnung in `R` laufen mit dem `lm`-Befehl ab. Wir fügen einfach eine Interaktion zwischen dem Prädiktor und dem Moderator ein.
+
+Wir wollen nun die Beziehung zwischen der Symptomschwere als abhängige Variable und den Prädiktoren Lebenszufriedenheit und Panikstörungs- und Agoraphobiesymptomatik untersuchen. Hierbei soll die Panikstörungs- und Agoraphobiesymptomatik der Prädiktor sein, welcher durch die Lebenszufriedenheit moderiert wird. Wir wollen also untersuchen, ob für unterschiedliche Ausprägungen der Lebenszufriedenheit auch unterschiedliche (lineare) Beziehungen zwischen Panikstörungs- und Agoraphobiesymptomatik und Symptomschwere bestehen. Wir stellen zunächst das Modell auf und interpretieren die Parameter. Das Modellobjekt nennen wir `mod_reg`:
+
+```{r}
+mod_reg <- lm(bsi_post ~ swls_post + pas_post + swls_post:pas_post, data = osf)
+summary(mod_reg)
+```
+
+Die Ergebnisse sind recht eindeutig. Die beiden linearen Effekte von `swls_post` und `pas_post` sind statistisch bedeutsam. Die Interaktion/Moderation allerdings nicht. Dies bedeutet, dass die Beziehung zwischen Panikstörungs- und Agoraphobiesymptomatik und Symptomschwere nicht durch die Ausprägung der Lebenszufriedenheit moderiert (beeinflusst) wird. Die linearen Effekte gehen ferner in die erwartete Richtung: die Symptomschwere steigt mit steigender Ausprägung der Panikstörungs- und Agoraphobiesymptomatik (unter Konstanthaltung der Lebenszufriedenheit). Außerdem sinkt die Symptomschwere mit steigender Lebenszufriedenheit.
+
+Wir können ein Gefühl für die Moderation bekommen, indem wir die Ergebnisse grafisch darstellen. Dazu nutzen wir sogenannte Simple-Slope Grafiken. Diese stellen für verschiedene Ausprägungen des Moderators die Beziehung zwischen Prädiktor und abhängiger Variable als Linie dar. Dazu können wir praktischerweise ein Paket benutzen. Dieses heißt `interactions` und muss nach Installation zunächst geladen werden. Aus diesem Paket nutzen wir die Funktion `interact_plot`. Dieser müssen wir 3 Argumente übergeben: `model` ist unser Regressionsmodell (`mod_reg`, welches wir zuvor geschätzt hatten), `pred` setzt den Prädiktor fest (hier: `pas_post`) und `modx` setzt den Moderator (hier: `swls_post`) fest:
+
+```{r}
+library(interactions)
+interact_plot(model = mod_reg, pred = pas_post, modx = swls_post)
+```
+
+Wir bekommen eine Grafik mit Symptomschwere auf der y-Achse und Panikstörungs- und Agoraphobiesymptomatik auf der x-Achse. Es werden drei Linien für drei unterschiedliche Ausprägungen der Lebenszufriedenheit dargestellt: `+ 1 SD`, `Mean`, `- 1 SD`. Diese Werte stehen für den durchschnittlichen Wert der Lebenszufriedenheit (`Mean`) sowie zwei $\pm$ eine Standardabweichung weit weg vom Mittelwert (`+ 1 SD`, `- 1 SD`). An diesem Plot lassen sich die oben beschriebenen Effekte recht gut ablesen. Da die drei Linien nicht komplett aufeinander liegen, ist ersichtlich, dass es Unterschiede in den Interzepts oder Slopes in Abhängigkeit der Lebenszufriedenheit geben muss. Die Unterschiedlichkeit der Interzepts lässt sich sehr gut sehen. Diese hatten wir oben durch den signifikanten linearen Effekt der Lebenszufriedenheit auf die Symptomschwere erkannt. Die Interaktion/Moderation ist nicht signifikant. Das erkennen wir im Plot daran, dass die drei Linien fast parallel sind. Rein deskriptiv war der Moderationseffekt negativ. Das bedeutet, dass mit steigender Lebenszufriedenheit die Beziehung zwischen Symptomschwere und Panikstörungs- und Agoraphobiesymptomatik geringer ausfällt. Das können wir auch im Plot erahnen (allerdings war der Effekt nicht signifikant).
+
+Im Gegensatz zur ANCOVA, die wir weiter oben kennengelernt hatten, gibt es natürlich nicht nur diese drei Linien. Der Moderator kann jede beliebige Ausprägung annehmen. Dies kann in folgender Grafik abgelesen werden (für den Code zur Grafik siehe [Appendix C](#AppendixC)).
+
+```{r, echo = F, fig.align="center", fig.height=6, message=F, warning = F}
+library(plot3D)
+# Übersichtlicher: Vorbereitung
+x <- c(osf$pas_post)
+y <- c(osf$bsi_post)
+z <- c(osf$swls_post)
+fit <- lm(y ~ x*z)
+grid.lines = 26
+x.pred <- seq(min(x), max(x), length.out = grid.lines)
+z.pred <- seq(min(z), max(z), length.out = grid.lines)
+xz <- expand.grid(x = x.pred, z = z.pred)
+y.pred <- matrix(predict(fit, newdata = data.frame(xz)), 
+                 nrow = grid.lines, ncol = grid.lines)
+fitpoints <- predict(fit)
+
+# Plot:
+scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
+          theta = -20, phi = 30, ticktype = "detailed",
+          xlab = "Panikstörungs- und Agoraphobiesymptomatik", ylab = "Lebenszufriedenheit", zlab = "Symptomschwere",  
+          surf = list(x = x.pred, y = z.pred, z = y.pred,  
+                      facets = NA, fit = fitpoints), 
+          main = "Moderierte Regression")
+```
+Hier ist die x-Achse ($-links\longleftrightarrow rechts+$) der Prädiktor Panikstörungs- und Agoraphobiesymptomatik (`pas_post`) und in die Tiefe wird der Moderator Lebenszufriedenheit (`swls_post`) dargestellt (oft z-Achse: ($-vorne\longleftrightarrow hinten+$)). Die y-Achse (im Plot heißt diese blöderweise z-Achse) ist die Symptomschwere dargestellt ($-unten\longleftrightarrow oben+$). Wir erkennen in dieser Ansicht ein wenig die Simple-Slopes von zuvor, denn die Achse der Leseleistung läuft ins negative "aus dem Bilderschirm hinaus", während sie ins positive "in den Bildschirm hinein" verläuft. Der nähere Teil der "Hyperebene" weißt eine höhere Beziehung zwischen Panikstörungs- und Agoraphobiesymptomatik und Symptomschwere auf, während der Teil, der weiter entfernt liegt, eine kleinere Beziehung aufweist. Genau das haben wir auch in den Simple Slopes zuvor gesehen. Dort war für hohe Lebenszufriedenheit die Beziehung zwischen Panikstörungs- und Agoraphobiesymptomatik und Symptomschwere auch schwächer. Wichtig ist, dass in diesem Plot die Beziehung zwischen Panikstörungs- und Agoraphobiesymptomatik und Symptomschwere für eine fest gewählte Ausprägung der Lebenszufriedenheit tatsächlich linear verläuft. Es ist also so, dass wir quasi ganz viele Linien aneinander kleben, um diese gewölbte Ebene zu erhalten. Allerdings war die Interaktion nicht statistisch bedeutsam, sodass dies nicht auf die Population zu verallgemeinern ist.
+
+Unser Moderationseffekt war nicht signifikant. Wäre er es gewesen, müssten wir noch sicherstellen, ob nicht eigentlich ein quadratischer Effekt besteht. Denn es ist so, dass der Interaktionsterm mit quadratischen Termen korreliert sein kann, wenn die zugrundeliegenden Variablen korreliert sind. So kann es zu Multikollinearität im Modell kommen und wir könnten uns fälschlicherweise für einen Interaktionseffekt entscheiden, obwohl es tatsächlich einen quadratischen Effekt gibt. Quadratische Effekte können wir in ein Regressionsmodell aufnehmen, indem wir eintweder eine neue Variable mit quadrierten (aber zentrieren!) Werten erstellen, oder indem wir innerhalb des `lm`-Befehls die `I()` sogenannte `as.is`-Funktion verwenden, mit welcher wir einfache Transformationen an bestehendenen Daten in Modellen verwenden können, ohne explizit Daten dafür erstellen zu müssen:
+
+```{r}
+mod_quad_reg <- lm(bsi_post ~ swls_post + pas_post + swls_post:pas_post + I(swls_post^2) + I(pas_post^2), data = osf)
+summary(mod_quad_reg)
+```
+Wir erkennen, dass es einen quadratischen Effekt der Lebenszufriedenheit gibt. Die Interaktion ist allerdings wieder nicht signifikant.  Grafisch sieht dies nun so aus:
+
+```{r}
+interact_plot(model = mod_quad_reg, pred = pas_post, modx = swls_post)
+```
+
+Die Simple-Slopes sind keine einfachen Steigungen mehr, sondern gleichen "einfachen" Parabeln. Die Interpretation ist immer ähnlich zu Simple-Slopes zuvor. Die Beziehung zwischen Symptomschwere und Panikstörungs- und Agoraphobiesymptomatik fällt geringer aus für höhere Lebenszufriedenheit. Außerdem lässt sich ein Plateau vermuten für große Panikstörungs- und Agoraphobiesymptomatik-Werte. Der 3D-Plot zeigt uns, dass es diesmal nicht aneinandergeklebte Linien sondern Parabeln sind:
+
+```{r, echo = F, fig.align="center", fig.height=6, message=F, warning = F}
+library(plot3D)
+# Übersichtlicher: Vorbereitung
+x <- c(osf$pas_post)
+y <- c(osf$bsi_post)
+z <- c(osf$swls_post)
+fit <- lm(y ~ x*z + I(x^2) + I(z^2))
+grid.lines = 26
+x.pred <- seq(min(x), max(x), length.out = grid.lines)
+z.pred <- seq(min(z), max(z), length.out = grid.lines)
+xz <- expand.grid(x = x.pred, z = z.pred)
+y.pred <- matrix(predict(fit, newdata = data.frame(xz)), 
+                 nrow = grid.lines, ncol = grid.lines)
+fitpoints <- predict(fit)
+
+# Plot:
+scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
+          theta = -20, phi = 30, ticktype = "detailed",
+          xlab = "Panikstörungs- und Agoraphobiesymptomatik", ylab = "Lebenszufriedenheit", zlab = "Symptomschwere",  
+          surf = list(x = x.pred, y = z.pred, z = y.pred,  
+                      facets = NA, fit = fitpoints), 
+          main = "Moderierte Regression\nmit quadratischen Effekten")
+```
+Entlang der Achse der Lebenszufriedenheit ist diese Krümmung auch statistisch bedeutsam. Wir erkennen deutlich, dass eine hohe Lebenszufriedenheit sich positiv auf die Symptomschwere auswirkt, da diese dann niedriger ausgeprägt ist. Außerdem scheint es (rein deskriptiv) so zu sein, dass dann auch die Beziehung zwischen Symptomschwere und Panikstörungs- und Agoraphobiesymptomatik geringer ausfällt. Allerdings war dieser Effekt nicht statistisch bedeutsam. 
+
+## Fazit
+Wir mit der ANCOVA und der moderierten Regressionsanalyse zwei Modelle kennengelernt, welche durch Interkationen aus linearen Modellen hervorgehen. Damit lassen sich lineare Beziehung in Abhängigkeit weiterer Variablen ausdrücken: entweder in Abhängigkeit von Grupperingsvariablen (dann landen wir im ANCOVA-Setting) oder in Abhängigkeit von kontinuierlichen Kovariaten (das ist dann die moderierte Regression).
+
+
 ***
 
 ## R-Skript
@@ -268,6 +372,59 @@ ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post,  col = stratum, l
 
 Es kommen keine neuen Effekte hinzu. Nur das Treatment und die Lebenszufriedenheit haben Vorhersagekraft für die Symptomschwere. Keine der Interaktionen ist statistisch bedeutsam!
 
+</details>
+
+### Appendix B {#AppendixC}
+
+<details><summary>**Plots zur moderierten Regression**</summary>
+
+
+```{r, echo = F, fig.align="center", fig.height=6, message=F, warning = F}
+library(plot3D)
+# Übersichtlicher: Vorbereitung
+x <- c(osf$pas_post)
+y <- c(osf$bsi_post)
+z <- c(osf$swls_post)
+fit <- lm(y ~ x + z + x:z)
+grid.lines = 26
+x.pred <- seq(min(x), max(x), length.out = grid.lines)
+z.pred <- seq(min(z), max(z), length.out = grid.lines)
+xz <- expand.grid(x = x.pred, z = z.pred)
+y.pred <- matrix(predict(fit, newdata = data.frame(xz)), 
+                 nrow = grid.lines, ncol = grid.lines)
+fitpoints <- predict(fit)
+
+# Plot:
+scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
+          theta = -30, phi = 30, ticktype = "detailed",
+          xlab = "Panikstörungs- und Agoraphobiesymptomatik", ylab = "Lebenszufriedenheit", zlab = "Symptomschwere",  
+          surf = list(x = x.pred, y = z.pred, z = y.pred,  
+                      facets = NA, fit = fitpoints), 
+          main = "Moderierte Regression")
+```
+
+```{r, echo = F, fig.align="center", fig.height=6, message=F, warning = F}
+# Übersichtlicher: Vorbereitung
+x <- c(osf$pas_post)
+y <- c(osf$bsi_post)
+z <- c(osf$swls_post)
+fit <- lm(y ~ x + z + z:x + I(x^2) + I(z^2)) # Modellerweiterung um quadratische Effekte
+grid.lines = 26
+x.pred <- seq(min(x), max(x), length.out = grid.lines)
+z.pred <- seq(min(z), max(z), length.out = grid.lines)
+xz <- expand.grid(x = x.pred, z = z.pred)
+y.pred <- matrix(predict(fit, newdata = data.frame(xz)), 
+                 nrow = grid.lines, ncol = grid.lines)
+fitpoints <- predict(fit)
+
+# Plot:
+scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
+          theta = -20, phi = 30, ticktype = "detailed",
+          xlab = "Panikstörungs- und Agoraphobiesymptomatik", ylab = "Lebenszufriedenheit", zlab = "Symptomschwere",  
+          surf = list(x = x.pred, y = z.pred, z = y.pred,  
+                      facets = NA, fit = fitpoints), 
+          main = "Moderierte Regression\nmit quadratischen Effekten")
+```
 </details>
 
 ***
