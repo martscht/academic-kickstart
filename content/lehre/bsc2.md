@@ -74,7 +74,7 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 | --- | --- | --- | --- | --- |
 | 1 | **R-Intro** | [Inhalte](/post/r-crash-kurs) | [Aufgaben](/post/r-crash-kurs-aufgaben) | Lösungen
 | 2 | **Deskriptivstatistik für Nominal- und Ordinalskalen** | [Inhalte](/post/deskriptiv-nominal) | [Aufgaben](/post/deskriptiv-nominal-aufgaben) | Lösungen |
-| 3 | **Deskriptivstatistik für Intervallskalen** | Inhalte | Aufgaben | Lösungen |
+| 3 | **Deskriptivstatistik für Intervallskalen** | [Inhalte](/post/deskriptiv-intervall) | [Aufgaben](/post/deskriptiv-intervall-aufgaben) | [Lösungen](/post/deskriptiv-intervall-loesungen) |
 | 4 | **Verteilungen** | [Inhalte](/post/verteilungen) | [Aufgaben](/post/verteilungen-aufgaben) | Lösungen |
 | 5 | **Tests und Konfidenzintervalle** | [Inhalte](/post/tests-und-konfidenzintervalle) | [Aufgaben](/post/tests-und-konfidenzintervalle-aufgaben) | Lösungen |
 | 6 | **Tests für unabhängige Stichproben** | [Inhalte](/post/gruppenvergleiche-unabhaengig) | Aufgaben | Lösungen |
