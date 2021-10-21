@@ -80,7 +80,7 @@ IDs <- as.numeric(row.names(InfPlot))
 # Werte der identifizierten Fälle
 InfPlot
 
-# Rohdaten der auffälligen Fälle (gerundet für bessere Übersichtlichkeit)
+# Rohdaten der auffälligen Fälle
 Depression[IDs,]
 # z-standardisierte Werte der auffälligen Fälle
 scale(Depression[,1:4])[IDs,]
