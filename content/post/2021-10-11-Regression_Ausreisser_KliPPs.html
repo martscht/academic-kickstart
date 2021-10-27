@@ -179,13 +179,14 @@ summary(model)</code></pre>
 <p>Nochmal zur Wiederholung: Der Pipe-Operator übergibt immer das resultiernde Objekt des vorherigen Befehls an die erste Stelle der folgenden Funktion. Somit können wir die Pipe wie folgt lesen: “Nehme <code>model</code> und wende darauf <code>lm.beta()</code> and, nehme anschließend das resultierende Objekt und wende darauf <code>summary()</code> an.”</p>
 <p><code>summary</code> ist eine weiterverbreitete Funktion, die Objekte zusammenfasst und interessante Informationen für uns auf einmal bereitstellt. <code>R</code> Outputs sehen fast immer so aus, weswegen es von unabdingbarer Wichtigkeit ist, dass wir uns mit diesem Output vertraut machen. Im Grunde werden uns alle nötigen Informationen, was in dieser Zusammenfassung steht, durch die Überschrift und Spaltenüberschriften gegeben. Was können wir diesem nun Schritt für Schritt entnehmen?</p>
 <pre><code>## 
-##  Call:
-##  lm(formula = Depressivitaet ~ 1 + Geschlecht + Lebenszufriedenheit, data = Depression)</code></pre>
+## Call:
+## lm(formula = Depressivitaet ~ 1 + Geschlecht + Lebenszufriedenheit, 
+##     data = Depression)</code></pre>
 <p>Fasst noch einmal zusammen, welches Objekt “zusammengefasst” wird. Hier steht sozusagen das zuvor untersuchte <code>lm</code>-Objekt (<code>model</code>, bzw. <code>lm.beta(model)</code>).</p>
 <pre><code>## 
 ## Residuals:
-##     Min       1Q   Median       3Q      Max 
-## -3.4037  -0.6711   0.0121   0.6952   3.3289</code></pre>
+##     Min      1Q  Median      3Q     Max 
+## -3.4037 -0.6711  0.0121  0.6952  3.3289</code></pre>
 <p>Diese Deskriptivstatistiken (gerundet auf 3 Nachkommastellen) geben uns ein Gefühl für die Datengrundlage: die Überschrift sagt uns, dass es hierbei um die Residuen im Regressionsmodell geht. <code>Min</code> steht für das Minimum (-3.404), <code>1Q</code> beschreibt das erste Quartil (-0.671); also den Prozentrang von 25% - es liegen 25% darunter und 75% der Werte darüber; <code>Median</code> beschreibt den 50. Prozentrang (0.012), <code>3Q</code> beschreibt das 3. Quartil, also Prozentrang 75% (0.695) und <code>Max</code> ist der maximale Wert der Residuen (3.329). Der Mittelwert trägt hier keine Information, da die Residuen immer so bestimmt werden, dass sie im Mittel verschwinden, also ihr Mittelwert bei 0 liegt. Da der Median auch sehr nah an der 0 liegt, zeigt dies, dass die Residuen wahrscheinlich recht symmetrisch verteilt sind. Auch das 1. und 3. Quartil verteilen sich ähnlich (also entgegengesetzte Vorzeichen aber betraglich ähnliche Werte), was ebenfalls für die Symmetrie spricht. Wir können die Residuen unserem <code>model</code>-Objekt ganz leicht entlocken, indem wir den Befehl <code>resid</code> auf dieses Objekt anwenden oder <code>model$residuals</code> tippen. Bspw. ergibt sich der Mittelwert als:</p>
 <pre class="r"><code>mean(x = resid(model)) # Mittelwert mit Referenzierung aus dem lm Objekt &quot;model&quot;</code></pre>
 <pre><code>## [1] -6.002143e-17</code></pre>
@@ -194,12 +195,16 @@ summary(model)</code></pre>
 <p>Nun kommen wir zum eigentlich Spannenden, nämlich der Übersicht über die Parameterschätzung (<code>Coefficients</code>). Diese sieht in sehr vielen Analysen sehr ähnlich aus (z.B. logistische Regression oder Multi-Level-Analysen/hierarchische Regression aus diesem Kurs).</p>
 <pre><code>## 
 ## Coefficients:
-##                     Estimate Standardized Std. Error t value Pr(&gt;|t|)    
-## (Intercept)         7.23528       0.00000    0.64773   11.17  &lt; 2e-16 *** 
-## Geschlechtweiblich  1.91174       0.53257    0.28879    6.62 2.83e-09 *** 
-## Lebenszufriedenehit -0.36632     -0.31940    0.09227   -3.97 0.000147 ***
+##                     Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)          7.23528    0.64773   11.17  &lt; 2e-16 ***
+## Geschlechtweiblich   1.91174    0.28879    6.62 2.83e-09 ***
+## Lebenszufriedenheit -0.36632    0.09227   -3.97 0.000147 ***
 ## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.286 on 87 degrees of freedom
+## Multiple R-squared:  0.4833, Adjusted R-squared:  0.4714 
+## F-statistic: 40.68 on 2 and 87 DF,  p-value: 3.362e-13</code></pre>
 <p>Insgesamt gibt es 6 Spalten, wobei die <code>Standardized</code>-Spalte extra durch das Paket <code>lm.beta</code> angefordert wurde (sie ist also nicht immer in der Summary enthalten). In der ersten Spalte stehen die Variablennamen, die selbsterklärend sein sollten. Die Spalte <code>Estimate</code> zeigt den unstandardisierten Parameter (hier Regressionsgewicht). Z.B. liegt das Interzept <span class="math inline">\(b_0\)</span> bei 7.2353. Das Partialregressionsgewicht vom Geschlecht <span class="math inline">\(b_\text{Geschlecht}\)</span> liegt bei 1.9117. Da Frauen mit <code>1</code> kodiert sind, bedeutet dies: Wenn Frauen im Vergleich zu Männern betrachtet werden, so steigt die Depressivitaet durchschnittlich um 1.9117 Punkte (“durchschnittlich” in der Interpretation ist enorm wichtig, da es ja noch den Vorhersagefehler für individuelle Vergleiche gibt). Folglich können wir das Interzept ebenfalls interpretieren: Ein Mann mit einem Lebenszufriedenheit von 0 (dieser Wert ist leider unrealistisch, da die Skala hier nicht zentriert wurde - die Effekte von Zentrierung schauen wir uns in der Sitzung zur <a href="/post/under-construction">Hierarchischen Regression</a> genauer an!) hat eine durchschnittliche Leseleistung von 7.2353.</p>
 <p>In der Spalte <code>Standardized</code> stehen die standardisierten Regressionsgewichte. Hier werden die Daten so transformiert, dass sowohl die AV als auch die UVs jeweils Mittelwerte von 0 und Varianzen (bzw. Standardabweichungen) von 1 aufweisen. Das Interzept ist nun nicht länger interessant. Wenn <span class="math inline">\(y\)</span> einen Mittelwert von 0 hat und auch die unabhängigen Variablen zentriert sind (also Mittelwerte von 0 haben), dann ist das Interzept gerade jener vorhergesagte Wert für <span class="math inline">\(y\)</span>, der anfällt, wenn alle Prädiktoren den Wert 0 -also ihren Mittelwert - annehmen. Bei der Regression ist es aber so, dass an der Stelle, an der die Prädiktoren ihren Mittelwert annehmen, auch der Mittelwert von <span class="math inline">\(y\)</span> liegt; hier also der Wert 0. Folglich ist das Interzept im standardisierten Fall <strong><em>immer</em></strong> 0.
 Das standardisierte Regressionsgewicht der Lebenszufriedenheit <span class="math inline">\(\beta_\text{Lebenszufriedenheit}\)</span> liegt bei -0.3194, was bedeutet, dass bei einer Erhöhung der Lebenszufriedenheit um eine Standardabweichung die Depressivitaet im Mittel (im Durchschnitt) um -0.3194 Standardabweichungen fällt.</p>
@@ -208,10 +213,11 @@ Das standardisierte Regressionsgewicht der Lebenszufriedenheit <span class="math
 <p>In der Spalte <code>Pr(&gt;|t|)</code> stehen die zugehörigen <span class="math inline">\(p\)</span>-Werte. “Pr” steht für die Wahrscheinlichkeit (<strong>Pr</strong>obability), dass die Teststatistik (hier der <span class="math inline">\(t\)</span>-Wert) im Betrag ein extremeres Ergebnis aufzeigt, als das Beobachtete. Außerdem bekommen wir noch mit Sternchen angezeigt, auf welchem Signifikanzniveau die einzelnen Parameter statistisch bedeutsam sind.</p>
 <p>Zusammenfassend entnehmen wir dem Output, dass das Interzept bedeutsam von 0 verschieden ist - auch die Effekte der Prädiktoren sind auf dem 5%-Niveau statistisch signifikant. Dies bedeutet bspw. für die Lebenszufriedenheit, dass <em>mit einer Irrtumswahrscheinlichkeit von 5% der Regressionsparameter der Lebenszufriedenheit in der Population nicht 0 ist und somit auch in der Population mit dieser Irrtumswahrscheinlichkeit von einem Effekt zu sprechen ist</em>. Hierbei ist es essentiell, dass sich die statistiche Interpretation immer auf die Population bezieht. Dass ein Koeffizient nicht 0 ist (in der Stichprobe), erkennen wir einfach daran, dass er von 0 abweicht, allerdings kann dieses Ergebnis eben durch Zufall aufgetreten sein. Häufig weichen Werte in unserer Stichprobe offensichtlich von 0 ab, allerdings nicht stark genug, als dass wir dies auch für die Population schlussfolgern (<em>auch:</em> schließen/inferieren, desewegen auch <strong>Inferenzstatistik</strong>/schließende Statistik) würden (mit einer Irrtumswahrscheinlichkeit von 5%).</p>
 <p>Regressionskoeffizienten können einzeln signifikant sein, ohne, dass signifikante Anteile der Variation der abhängigen Variable erklärt werden.</p>
-<pre><code>## 
-## Residual standard error: 1.286 on 87 degrees of freedom
-## Multiple R-squared:  0.4833, Adjusted R-squared:  0.4714 
-## F-statistic: 40.68 on 2 and 87 DF,  p-value: 3.362e-13</code></pre>
+<pre><code>## NA
+## NA
+## NA
+## NA
+## NA</code></pre>
 <p>Dazu entnehmen wir dem letzten Block den Standardfehler der Residuen (<code>Residual standard error</code>), der im Grunde die Fehlervariation von <span class="math inline">\(y\)</span> beschreibt, sowie das multiple <span class="math inline">\(R^2\)</span> (<code>Multiple R-squared</code>), welches anzeigt, dass ca. 35.5% der Variation der Depressivitaet auf die Prädiktoren Geschlecht und Lebenszufriedenheit zurückgeführt werden kann. Dieses Varianzinkrement ist statistisch signifikant, was wir am <span class="math inline">\(F\)</span>-Test in der letzten Zeile ablesen können. Der <span class="math inline">\(F\)</span>-Wert (<code>F-statistic</code>) liegt bei 26.75, wobei die Hypothesenfreiheitsgrade hier gerade 2 sind (<span class="math inline">\(df_h\)</span>) und die Residualfreiheitsgrade bei 97 (<span class="math inline">\(df_e\)</span>) liegen. Der zugehörige <span class="math inline">\(p\)</span>-Wert ist deutlich kleiner als 5% und liegt bei <span class="math inline">\(5.594*10^{-10}\)</span>. Dies bedeutet, dass mit einer Irrtumswahrscheinlichkeit von 5% auch in der Population eine Vorhersage der Leseleistung durch Geschlecht und Intelligenz gemeinsam angenommen werden kann (<span class="math inline">\(R^2\neq0\)</span>). In einem Artikel (oder einer Abschlussarbeit) würden wir zur Untermauerung <em>F</em>(2,97)=26.75, p&lt;.001 in den Fließtext schreiben.</p>
 <p>Außerdem könnten wir natürlich auch das mit <code>summary</code> erstellte Objekt unter einem Namen abspeichern und ihm dann weitere Informationen entlocken. Bspw. erhalten wir mit <code>$coefficients</code> die Tabelle der Koeffizienten.</p>
 <pre class="r"><code>summary_model &lt;- summary(lm.beta(model))
