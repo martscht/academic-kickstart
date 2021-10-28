@@ -13,7 +13,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer]
-lastmod: '2021-10-27T16:40:21+02:00'
+lastmod: '2021-10-28T16:40:21+02:00'
 featured: no
 header:
   image: "/header/KliPsy_Sitzung_4.jpg"
@@ -45,29 +45,29 @@ head(osf) # finaler Datensatz</code></pre>
 ## 4  4 Treatment     DEP        2        23        3
 ## 7  7 Treatment     DEP       14        16        3
 ## 8  8 Treatment     SOM        2        27        5</code></pre>
-<p>Wir beschränken uns auf einige wenige Variablen, die nach durchführen des Treatments erhoben wurden: <code>ID</code> (Teilnehmendennummer), <code>group</code> (Gruppenzugehörigkeit: Wartelistenkontrollgruppe vs. Treatmentgruppe), <code>stratum</code> (Krankheitsbild: Angststörung [<strong>ANX</strong>iety], Depression [<strong>DEP</strong>ression] oder somatische Belastungsstörung [<strong>SOM</strong>atic symptom disorder]), <code>bsi_post</code> (Symptomschwere), <code>swls_post</code> (Lebenszufriedenheit [<strong>S</strong>atisfaction <strong>W</strong>ith <strong>L</strong>ife <strong>S</strong>creening]) und <code>pas_post</code> (Panikstörung und Agoraphobie [<em>P</em>anic and <em>A</em>goraphobia <em>S</em>creening]).</p>
+<p>Wir beschränken uns auf einige wenige Variablen, die nach Durchführung des Treatments erhoben wurden: <code>ID</code> (Teilnehmendennummer), <code>group</code> (Gruppenzugehörigkeit: Wartelistenkontrollgruppe vs. Treatmentgruppe), <code>stratum</code> (Krankheitsbild: Angststörung [<strong>ANX</strong>iety], Depression [<strong>DEP</strong>ression] oder somatische Belastungsstörung [<strong>SOM</strong>atic symptom disorder]), <code>bsi_post</code> (Symptomschwere), <code>swls_post</code> (Lebenszufriedenheit [<strong>S</strong>atisfaction <strong>W</strong>ith <strong>L</strong>ife <strong>S</strong>creening]) und <code>pas_post</code> (Panikstörung und Agoraphobie [<strong>P</strong>anic and <strong>A</strong>goraphobia <strong>S</strong>creening]).</p>
 </div>
 <div id="Vorbereitung" class="section level3">
 <h3>Vorbereitung</h3>
-<p>Möchten wir nominalskalierte Prädiktoren (also Gruppenvariablen) in eine Regression aufnehmen, so ist es essentiell, dass diese auch als solche kodiert sind. Da manchmal Zahlen für Gruppenzugehörigkeiten verwendet werden, ist es ratsam sich direkt anzugewöhnen, Gruppenvariablen als <code>factor</code> zu kodieren:</p>
+<p>Möchten wir nominalskalierte Prädiktoren (also Gruppenvariablen) in eine Regression aufnehmen, so ist es essentiell, dass diese auch als solche kodiert sind. Da manchmal Zahlen für Gruppenzugehörigkeiten verwendet werden, ist es ratsam, sich direkt anzugewöhnen, Gruppenvariablen als <code>factor</code> zu kodieren:</p>
 <pre class="r"><code># Skalenniveaus anpassen: Factors bilden
 osf$group &lt;- factor(osf$group)
 osf$stratum &lt;- factor(osf$stratum)</code></pre>
-<p>Da wir später auch mit Interaktionen zu tun haben werden, zentrieren wir noch alle kontinuierlichen Prädiktoren im Modell. Zentrierung bedeutet, dass der Mittelwert der Variablen auf 0 gesetzt wird, indem dieser von der Variable abgezogen wird (<span class="math inline">\(X_c:=X-\bar{X}\)</span>, <span class="math inline">\(X_c\)</span> ist die zentrierte Version von <span class="math inline">\(X\)</span>). Zum Zentrieren verwenden wir <code>scale</code> mit den Zusatzargumenten <code>center = T</code> und <code>scale = F</code>.</p>
+<p>Da wir später auch mit Interaktionen zu tun haben werden, zentrieren wir noch alle kontinuierlichen Prädiktoren im Modell. Zentrierung bedeutet, dass der Mittelwert der Variablen auf 0 gesetzt wird, indem dieser von jeder einzelnen Beobachtung abgezogen wird (<span class="math inline">\(X_{c,i}:=X_i-\bar{X}\)</span>, <span class="math inline">\(X_{c,i}\)</span> ist die zentrierte Version von <span class="math inline">\(X_i\)</span> für Beobachtung <span class="math inline">\(i\)</span>). Zum Zentrieren verwenden wir <code>scale</code> mit den Zusatzargumenten <code>center = T</code> und <code>scale = F</code>.</p>
 <pre class="r"><code># Zentrieren
 osf$swls_post &lt;- scale(osf$swls_post, center = T, scale = F)
 osf$pas_post &lt;- scale(osf$pas_post, center = T, scale = F)</code></pre>
 <p>Die Werte von zentrierten Variablen sind etwas anders zu interpretieren als jene in der ursprünglichen Skala. Ein Wert von 0 steht hier für den durchschnittlichen Wert auf dieser Variable.</p>
-<p>Hätten wir auch noch <code>scale = T</code> gewählt, so hätten wir nicht zentriert sondern standardisiert — also auch noch die Varianz auf 1 gesetzt, indem wir die Variablen noch durch die Standardabweichung geteilt hätten (<span class="math inline">\(X_z:=\frac{X-\bar{X}}{SD(X)}\)</span>, <span class="math inline">\(X_z\)</span> ist die standardisierte Version von <span class="math inline">\(X\)</span>). Wir haben hier “nur” zentriert, da die Zentrierung schon ausreicht, um mögliche Multikollinearität zu vermeiden (dazu später etwas mehr). Die Standardisierung ist sozusagen nur “nice to have” und vereinfacht die Interpretation. Da wir nicht den Eindruck erwecken wollten, dass dies zwangsläufig nötig ist, haben wir nur zentriert und nicht standardisiert.</p>
+<p>Hätten wir auch noch <code>scale = T</code> gewählt, so hätten wir nicht nur zentriert, sondern ebenfalls standardisiert — also auch noch die Varianz auf 1 gesetzt, indem wir die Variablen noch durch die Standardabweichung geteilt hätten (<span class="math inline">\(X_z:=\frac{X-\bar{X}}{SD(X)}\)</span>, <span class="math inline">\(X_z\)</span> ist die standardisierte Version von <span class="math inline">\(X\)</span>). Wir haben hier “nur” zentriert, da die Zentrierung schon ausreicht, um mögliche Multikollinearität zu vermeiden (dazu später etwas mehr). Die Standardisierung ist sozusagen nur “nice to have” und vereinfacht die Interpretation. Da wir nicht den Eindruck erwecken wollten, dass dies zwangsläufig nötig ist, haben wir nur zentriert und nicht standardisiert.</p>
 </div>
 </div>
 <div id="kovarianzanalyse-ancova" class="section level2">
 <h2>Kovarianzanalyse: ANCOVA</h2>
-<p>In der letzten Sitzung hatten wir bemerkt, dass ANOVA und Regressionsanalysen (auch in <code>R</code>) so gut wie identisch sind und dass nur die Art und Weise wie Hypothesen aufgestellt werden sollen im Endeffekt entscheiden wie genau die Analysen ausfallen. Diese Hypothesen hatten sich in der Wahl der Quadratsummen geäußert.</p>
-<p>Die Kovarianzanalyse kann nun sowohl in ANOVA- als auch im Regressionssetting betrachtet werden. Entscheidend ist, für welchen Effekt wir uns interessieren. Im ANOVA-Setting wird eine (oder mehrere) kontinuierliche Kovariaten hinzugefügt, um deren Einfluss der Mittelwertsvergleich “bereinigt” werden soll. Damit sollen Varianzeinflüsse der Kovariate herausgerechnet werden, was die Power einen Mittelwertsunterschied zu finden, erhöht. Im Regressionssetting soll eine Kombination aus Prädiktoren unterschiedlicher Skalenniveaus untersucht werden. Hier könnte bspw. neben einem kontinuierlichem Prädiktor auch eine nominalskalierte Gruppierungsvariable aufgenommen werden. Wenn wir uns eine einfache Regression vorstellen, so hätte dies zur Folge, dass wir für jede Gruppe ein Interzept einführen würden!</p>
+<p>In der letzten Sitzung hatten wir bemerkt, dass ANOVA und Regressionsanalysen (auch in <code>R</code>) so gut wie identisch sind und dass nur die Art und Weise, wie Hypothesen aufgestellt werden sollen, im Endeffekt entscheiden, wie genau die Analysen ausfallen. Diese Hypothesen hatten sich in der Wahl der Quadratsummen geäußert.</p>
+<p>Die Kovarianzanalyse kann nun sowohl in ANOVA- als auch im Regressionssetting betrachtet werden. Entscheidend ist, für welchen Effekt wir uns interessieren. Im ANOVA-Setting wird eine (oder mehrere) kontinuierliche Kovariate hinzugefügt, um deren Einfluss der Mittelwertsvergleich “bereinigt” werden soll. Damit sollen Varianzeinflüsse der Kovariate herausgerechnet werden, was die Power erhöht, einen Mittelwertsunterschied zu finden. Im Regressionssetting soll eine Kombination aus Prädiktoren unterschiedlicher Skalenniveaus untersucht werden. Hier könnte bspw. neben einem kontinuierlichem Prädiktor auch eine nominalskalierte Gruppierungsvariable aufgenommen werden. Wenn wir uns eine einfache Regression vorstellen, so hätte dies zur Folge, dass wir für jede Gruppe ein Interzept einführen würden!</p>
 <div id="einfache-ancova" class="section level3">
 <h3>Einfache ANCOVA</h3>
-<p>Wir betrachten die ANCOVA im Regressionssetting. Wir verwenden also wieder die <code>lm</code>-Funktion um das Modell aufzustellen und wenden auf das resultierende Objekt wieder die <code>Anova</code>-Funktion aus dem <code>car</code>-Paket an. Wir verwenden hier nicht <code>ezANOVA</code>, da wir die Gleichungsnotation der Regression verwenden wollen und weil <code>ezANOVA</code> für ANCOVAs erstmal nur eine <em>Betaversion</em> enthält.</p>
+<p>Wir betrachten die ANCOVA im Regressionssetting. Wir verwenden also wieder die <code>lm</code>-Funktion, um das Modell aufzustellen und wenden auf das resultierende Objekt wieder die <code>Anova</code>-Funktion aus dem <code>car</code>-Paket an. Wir verwenden hier nicht <code>ezANOVA</code>, da wir die Gleichungsnotation der Regression verwenden wollen und weil <code>ezANOVA</code> für ANCOVAs erstmal nur eine <em>Betaversion</em> enthält.</p>
 <p>An dieser Stelle sei gesagt, dass wir im Grunde eine ANCOVA schon in der Sitzung zur <a href="/post/regression-aussreisser-klipps">Regression</a> durchgeführt haben, ohne dies genau zu erläutern. Dort hatten wir die Depressivität durch das Geschlecht sowie die Lebenszufriedenheit vorhergesagt. Das Geschlecht war hier dichotom und die Lebenszufriedenheit wurde als kontinuierlich angesehen.</p>
 <p>Wir möchten nun für unseren Datensatz <code>osf</code> wissen, ob sich die Symptomschwere durch die Lebenszufriedenheit vorhersagen lässt. Dazu hatten wir am Anfang der vergangenen Sitzung bereits eine Untersuchung vorgenommen. Allerdings hatten wir auch die Ausprägung der Panikstörung und Agoraphobie mit in das Modell aufgenommen. Beide Prädiktoren hatten signifikante Varianzanteile an der Symptomschwere erklärt. Wir beschränken uns jetzt allerdings auf die Lebenszufriedenheit:</p>
 <pre class="r"><code>reg_swl &lt;- lm(bsi_post ~ 1 + swls_post, data = osf)
@@ -90,19 +90,17 @@ summary(reg_swl)</code></pre>
 ## Residual standard error: 9.107 on 92 degrees of freedom
 ## Multiple R-squared:  0.237,  Adjusted R-squared:  0.2288 
 ## F-statistic: 28.58 on 1 and 92 DF,  p-value: 6.494e-07</code></pre>
-<p>Der Zusammenhang zwischen Lebenszufriedenheit und Symptomschwere ist negativ und signifikant. Das bedeutet, dass die Symptomschwere geringer ausfällt für höhere Lebenszufriedenheit. Grafisch sieht das so aus (der Code zu den Grafiken ist für unseren inhaltlichen Überlegungen nicht so relevant und kann daher bei Interesse in <a href="#AppendixA">Appendix A</a> nachgelesen werden):</p>
+<p>Der Zusammenhang zwischen Lebenszufriedenheit und Symptomschwere ist negativ und signifikant. Das bedeutet, dass die Symptomschwere geringer ausfällt für höhere Lebenszufriedenheit. Grafisch sieht das so aus (der Code zu den Grafiken ist für unsere inhaltlichen Überlegungen nicht so relevant und kann daher bei Interesse in <a href="#AppendixA">Appendix A</a> nachgelesen werden):</p>
 <p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Die Zentrierung der Lebenszufriedenheit ist leicht zu erkennen. Die Werte streuen um die Null. Außerdem ist so das Interzept gut zu interpretieren. Es entspricht der durchschnittlichen Ausprägung der Symptomschwere!</p>
 <p>Nun ist es aber so, dass einige der Proband:innen das Onlinetreatment erhalten haben. Wenn wir nun die Gruppierungsvariable mit in das Modell aufnehmen, so sehen wir mit bloßem Auge, dass sich die beiden Gruppen leicht im Mittel unterscheiden.</p>
-<pre class="r"><code>ggplot(data = osf,  mapping = aes(x = group, y = bsi_post, col = group, group = group))+geom_point()+
-     theme_minimal()</code></pre>
 <p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Das sich das Treatment positiv auf die Symptomschwere auswirkt, hatten wir in der Sitzung zur <a href="/post/anova-vs-regression">ANOVA vs. Regression</a> bereits festgestellt. Wir färben die Gruppen unterschiedlich ein und fügen so die Gruppierung in die Regression zuvor ein:</p>
+<p>Dass sich das Treatment positiv auf die Symptomschwere auswirkt, hatten wir in der Sitzung zur <a href="/post/anova-vs-regression">ANOVA vs. Regression</a> bereits festgestellt. Wir färben die Gruppen unterschiedlich ein und fügen so die Gruppierung in die Regression zuvor ein:</p>
 <p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-7-1.png" width="672" style="display: block; margin: auto;" />
-Die Frage ist nun, ob dieser Unterschied auch statistisch bedeutsam ist. Dazu nehmen wir jetzt die Gruppierungsvariable in das Regressionsmodell auf. Was wir damit erreichen ist, dass wir durchschnittliche Unterschiede zwischen den beiden Gruppen mit in das Modell aufnehmen — und zwar für eine gegebene (feste) Ausprägung. Wenn wir also die Gruppierungsvariable aufnehmen, dann fügen wir ein gruppenspezifisches Interzept hinzu. So können wir die Gruppenunterschiede bereinigt um die Kovariate Lebenszufriedenheit interpretieren und genauso können wir den Zusammenhang zwischen Lebenszufriedenheit und Symptomschwere berinigt um Unterschiede durch die Behandlung interpretieren.</p>
+Die Frage ist nun, ob dieser Unterschied auch statistisch bedeutsam ist. Dazu nehmen wir jetzt die Gruppierungsvariable in das Regressionsmodell auf. Was wir damit erreichen ist, dass wir durchschnittliche Unterschiede zwischen den beiden Gruppen mit in das Modell aufnehmen — und zwar für eine gegebene (feste) Ausprägung. Wenn wir also die Gruppierungsvariable aufnehmen, dann fügen wir ein gruppenspezifisches Interzept hinzu. So können wir die Gruppenunterschiede bereinigt um die Kovariate Lebenszufriedenheit interpretieren und genauso können wir den Zusammenhang zwischen Lebenszufriedenheit und Symptomschwere bereinigt um Unterschiede durch die Behandlung interpretieren.</p>
 <p>Wir nennen die Dummyvariable der Gruppierungsvariable <span class="math inline">\(Z\)</span> und die Lebenszufriedenheit <span class="math inline">\(X\)</span>. Die Symptomschwere nennen wir <span class="math inline">\(Y\)</span>. Somit ergibt sich folgendes Regressionsmodell (das Residuum heißt <span class="math inline">\(e\)</span>) für Proband:innen <span class="math inline">\(i=1,\dots,n\)</span>:</p>
 <p><span class="math display">\[Y_i = \beta_0 + \beta_ZZ + \beta_XX+e_i\]</span>
-Es gelten nun zwei Regressionsgleichungen in den beiden Gruppen. Für <span class="math inline">\(Z=0\)</span> (Wartekontrollgruppe) gilt <span class="math inline">\(Y_i = \beta_0 + \beta_XX+e_i\)</span> und für <span class="math inline">\(Z=1\)</span> (Treatmentgruppe) gilt <span class="math inline">\(Y_i = (\beta_0 + \beta_Z) + \beta_XX+e_i\)</span>. Somit ist ersichtlich, dass durch Hinzunahme der Gruppierungsvariable wir gruppenspezifische Interzepts einführen. Das Interzept ist eine Funktion von <span class="math inline">\(Z\)</span>. Diese könnten wir bspw. <span class="math inline">\(g_I\)</span> nennen. Dann ist <span class="math inline">\(g_I(Z):=\beta_0+\beta_ZZ\)</span> das Interzept (insbesondere gilt: <span class="math inline">\(Y_i = g_I(Z) + \beta_XX+e_i\)</span>). Das Modell in <code>R</code> sieht ganz einfach so aus (wir fügen einfach alle Prädiktoren mit <code>+</code> getrennt in die Regressionsgleichung ein und schleifen der Vollständigkeit halber wieder das Interzept <code>1</code> mit, welches per Default immer in der Gleichung ist):</p>
+Es gelten nun zwei Regressionsgleichungen in den beiden Gruppen. Für <span class="math inline">\(Z=0\)</span> (Wartekontrollgruppe) gilt <span class="math inline">\(Y_i = \beta_0 + \beta_XX+e_i\)</span> und für <span class="math inline">\(Z=1\)</span> (Treatmentgruppe) gilt <span class="math inline">\(Y_i = (\beta_0 + \beta_Z) + \beta_XX+e_i\)</span>. Somit ist ersichtlich, dass wir durch Hinzunahme der Gruppierungsvariable gruppenspezifische Interzepts einführen. Das Interzept ist eine Funktion von <span class="math inline">\(Z\)</span>. Diese könnten wir bspw. <span class="math inline">\(g_I\)</span> nennen. Dann ist <span class="math inline">\(g_I(Z):=\beta_0+\beta_ZZ\)</span> das Interzept (insbesondere gilt: <span class="math inline">\(Y_i = g_I(Z) + \beta_XX+e_i\)</span>). Das Modell in <code>R</code> sieht ganz einfach so aus (wir fügen einfach alle Prädiktoren mit <code>+</code> getrennt in die Regressionsgleichung ein und schleifen der Vollständigkeit halber wieder das Interzept <code>1</code> mit, welches per Default immer in der Gleichung ist):</p>
 <pre class="r"><code>reg_ancova &lt;- lm(bsi_post  ~  1 + group + swls_post, data = osf)
 summary(reg_ancova)</code></pre>
 <pre><code>## 
@@ -124,7 +122,7 @@ summary(reg_ancova)</code></pre>
 ## Residual standard error: 8.275 on 91 degrees of freedom
 ## Multiple R-squared:  0.377,  Adjusted R-squared:  0.3633 
 ## F-statistic: 27.53 on 2 and 91 DF,  p-value: 4.473e-10</code></pre>
-<p>Wir erkennen also, dass, um eine ANCOVA zu schätzen, kein Extrapaket o.ä. benötigt wird, sondern die richtige Formatierung der Variablen, die in das Modell aufgenommen werden, entscheiden, welches Modell genau geschätzt wird.</p>
+<p>Wir erkennen also, dass, um eine ANCOVA zu schätzen, kein Extrapaket o.ä. benötigt wird, sondern die richtige Formatierung der Variablen, die in das Modell aufgenommen werden, entscheidet, welches Modell genau geschätzt wird.</p>
 <p>Der Effekt der Lebenszufriedenheit (<span class="math inline">\(\beta_X\)</span>) ist statistisch bedeutsam. Auch der Effekt der Gruppierungsvariable ist bedeutsam (<span class="math inline">\(\beta_Z\)</span>) [jeweils mit einer Irrtumswahrscheinlichkeit von <span class="math inline">\(5\%\)</span>]. Hätten wir mehrere Ausprägungen pro Gruppe, könnten wir leicht gesammelte Signifikanzentscheidungen pro Variable anfordern, indem wir den <code>Anova</code>-Befehl aus dem <code>car</code>-Paket verwenden:</p>
 <pre class="r"><code>library(car)</code></pre>
 <pre><code>## Loading required package: carData</code></pre>
@@ -138,19 +136,19 @@ summary(reg_ancova)</code></pre>
 ## Residuals 6231.2 91                      
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p>Was wir sofort sehen ist, dass die <span class="math inline">\(p\)</span>-Werte in der <code>summary</code> und im <code>Anova</code>-Output identisch sind. Das liegt an der Verwandschaft zwischen Regression und ANOVA (ANCOVA), welche wir in der vorangegangenen Sitzung diskutiert hatten und daran, dass wir hier nur eine Gruppierungsvariable mit zwei Gruppen verwendet haben (siehe <a href="/post/anova-vs-regression">ANOVA vs. Regression</a>).</p>
+<p>Was wir sofort sehen ist, dass die <span class="math inline">\(p\)</span>-Werte in der <code>summary</code> und im <code>Anova</code>-Output identisch sind. Das liegt an der Verwandtschaft zwischen Regression und ANOVA (ANCOVA), welche wir in der vorangegangenen Sitzung diskutiert hatten und daran, dass wir hier nur eine Gruppierungsvariable mit zwei Gruppen verwendet haben (siehe <a href="/post/anova-vs-regression">ANOVA vs. Regression</a>).</p>
 <p>Grafisch sieht das so aus</p>
 <p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-10-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Pro Gruppe gibt es ein eigenes Interzept. Außerdem sehen wir deutlich welche wichtige Annahme implizit in dieser Modellierungsmethode steckt: der lineare Zusammenhang zwischen Lebenszufriedenheit und Symptomschwere ist in beiden Gruppen gleich!</p>
+<p>Pro Gruppe gibt es ein eigenes Interzept. Außerdem sehen wir deutlich, welche wichtige Annahme implizit in dieser Modellierungsmethode steckt: der lineare Zusammenhang zwischen Lebenszufriedenheit und Symptomschwere ist in beiden Gruppen gleich!</p>
 </div>
 <div id="generalisierte-ancova" class="section level3">
 <h3>Generalisierte ANCOVA</h3>
-<p>Weichen wir die Annahme gleicher linearer Zusammenhänge pro Gruppe auf, landen wir bei der “generalisierten” ANCOVA. Was wir dazu tun müssen, ist für jede Gruppen eine eigene Steigung für die Lebenszufriedenheit einzuführen. Umsetzbar ist dies durch eine Interaktion zwischen der Lebenszufriedenheit und der Gruppierungsvariable. Die Interaktion ist hier etwas anders zu interpretieren, als für eine zweifaktorielle ANOVA. Es sind nicht länger die Mittelwerte in den Gruppen, die von der spezifischen Kombination der Gruppenzugehörigkeiten abhängen, sondern die lineare Beziehung zwischen dem kontinuierlichem Prädiktor und dem Kriterium ist für jede Gruppe unterschiedlich! Natürlich können zusätzlich noch die Mittelwerte unterschiedlich sein. Das wird dann durch das Interzept mit abgebildet. Die Modellgleichung sieht so aus:</p>
+<p>Weichen wir die Annahme gleicher linearer Zusammenhänge pro Gruppe auf, landen wir bei der “generalisierten” ANCOVA. Was wir dazu tun müssen, ist für jede Gruppe eine eigene Steigung für die Lebenszufriedenheit einzuführen. Umsetzbar ist dies durch eine Interaktion zwischen der Lebenszufriedenheit und der Gruppierungsvariable. Die Interaktion ist hier etwas anders zu interpretieren als für eine zweifaktorielle ANOVA. Es sind nicht länger die Mittelwerte in den Gruppen, die von der spezifischen Kombination der Gruppenzugehörigkeiten abhängen, sondern die lineare Beziehung zwischen dem kontinuierlichen Prädiktor und dem Kriterium ist für jede Gruppe unterschiedlich! Natürlich können zusätzlich noch die Mittelwerte unterschiedlich sein. Das wird dann durch das Interzept mit abgebildet. Die Modellgleichung sieht so aus:</p>
 <p><span class="math display">\[Y_i = \beta_0 + \beta_ZZ + \beta_XX + \beta_{ZX}ZX+e_i.\]</span>
 Wenn wir diese Gleichung nach der Variable <span class="math inline">\(X\)</span> umstellen, erhalten wir</p>
 <p><span class="math display">\[Y_i = \beta_0 + \beta_ZZ + (\beta_X + \beta_{ZX}Z)X+e_i.\]</span>
-An dieser Schreibweise ist ersichtlich, dass wir durch Hinzunahme der Interaktion eigentlich einen eigenen Steigungskoeffizienten pro Gruppe in das Modell hinzufügen. Es gelten wieder zwei Regressionsgleichungen in den beiden Gruppen. Für <span class="math inline">\(Z=0\)</span> (Wartekontrollgruppe) gilt <span class="math inline">\(Y_i = \beta_0 + \beta_XX+e_i\)</span> und für <span class="math inline">\(Z=1\)</span> (Treatmentgruppe) gilt <span class="math inline">\(Y_i = (\beta_0 + \beta_Z) + (\beta_X+\beta_{ZX})X+e_i\)</span>. Somit ist ersichtlich, dass durch Hinzunahme der Gruppierungsvariable inklusive Interaktion gruppenspezifische Interzepts und Slopes (Steigungskoeffizienten) eingeführt werden. Sowohl das Interzept als auch die Slope ist eine Funktion von <span class="math inline">\(Z\)</span>. Diese könnten wir bspw. <span class="math inline">\(g_I\)</span> und <span class="math inline">\(g_S\)</span> nennen — beide sind Funktionen von <span class="math inline">\(Z\)</span>. Dann ist <span class="math inline">\(g_I(Z):=\beta_0+\beta_ZZ\)</span> das Interzept und <span class="math inline">\(g_S(Z):=\beta_X + \beta_{ZX}Z\)</span> die Slope (insbesondere gilt: <span class="math inline">\(Y_i = g_I(Z) + g_S(Z)X+e_i\)</span>).</p>
-<p>Damit die Interaktion sinnvoll interpretierbar ist, müssen wir annehmen, dass die kontinuierliche Kovariate sich nicht über die Gruppen im Mittel unterscheidet. Unterschiedliche Beziehungen mit Kriterium hatten wir bereits zugelassen. Diese Annahme entfällt also. Um keine artifizielle lineare Beziehung zwischen Gruppierungsvariable und kontinuierlichem Prädiktor zu erzeugen, war die Zentrierung des Prädiktors mit dem <code>scale</code>-Befehl von Nöten (siehe <a href="#Vorbereitung">oben</a>).</p>
+An dieser Schreibweise ist ersichtlich, dass wir durch Hinzunahme der Interaktion eigentlich einen eigenen Steigungskoeffizienten pro Gruppe in das Modell hinzufügen. Es gelten wieder zwei Regressionsgleichungen in den beiden Gruppen. Für <span class="math inline">\(Z=0\)</span> (Wartekontrollgruppe) gilt <span class="math inline">\(Y_i = \beta_0 + \beta_XX+e_i\)</span> und für <span class="math inline">\(Z=1\)</span> (Treatmentgruppe) gilt <span class="math inline">\(Y_i = (\beta_0 + \beta_Z) + (\beta_X+\beta_{ZX})X+e_i\)</span>. Somit ist ersichtlich, dass durch Hinzunahme der Gruppierungsvariable inklusive Interaktion gruppenspezifische Interzepts und Slopes (Steigungskoeffizienten) eingeführt werden. Sowohl das Interzept als auch die Slope sind eine Funktion von <span class="math inline">\(Z\)</span>. Diese könnten wir bspw. <span class="math inline">\(g_I\)</span> und <span class="math inline">\(g_S\)</span> nennen — beide sind Funktionen von <span class="math inline">\(Z\)</span>. Dann ist <span class="math inline">\(g_I(Z):=\beta_0+\beta_ZZ\)</span> das Interzept und <span class="math inline">\(g_S(Z):=\beta_X + \beta_{ZX}Z\)</span> die Slope (insbesondere gilt: <span class="math inline">\(Y_i = g_I(Z) + g_S(Z)X+e_i\)</span>).</p>
+<p>Damit die Interaktion sinnvoll interpretierbar ist, müssen wir annehmen, dass sich der kontinuierliche Prädiktor (die kontinuierliche Kovariate) im Mittel nicht über die Gruppen unterscheidet. Unterschiedliche Beziehungen mit dem Kriterium hatten wir bereits zugelassen. Diese Annahme entfällt also. Um keine artifizielle lineare Beziehung zwischen Gruppierungsvariable und kontinuierlichem Prädiktor zu erzeugen, war die Zentrierung des Prädiktors mit dem <code>scale</code>-Befehl von Nöten (siehe <a href="#Vorbereitung">oben</a>).</p>
 <p>Das Modell in <code>R</code> sieht im Grunde so aus, wie eine zweifaktorielle ANOVA, nur das Skalenniveau von <code>swls_post</code> ist eben das Intervallskalenniveau (kontinuierlicher Prädiktor):</p>
 <pre class="r"><code>reg_gen_ancova &lt;- lm(bsi_post  ~  1 + group + swls_post  + group:swls_post, 
                      data = osf)
@@ -204,7 +202,7 @@ Anova(reg_gen_ancova_s)</code></pre>
 ## Residuals         7199.4 88                      
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p>Die Diagnose scheint keinen Einfluss auf die Symptomschwere zu machen. Weder die Interzept nochts die Slopes unterscheiden sich über die Gruppen. Wir wollen uns trotzdem die Grafik ansehen:</p>
+<p>Die Diagnose scheint keinen Einfluss auf die Symptomschwere zu haben. Weder die Interzept noch die Slopes unterscheiden sich über die Gruppen. Wir wollen uns trotzdem die Grafik ansehen:</p>
 <p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Hier erkennen wir zwar unterschiedliche Steigungen und Interzepts, allerdings sind keine der Unterschied statistisch bedeutsam.</p>
 <p>Genauso wären auch noch komplizierte Modelle möglich. Bspw. könnten wir für jede Kombination aus Gruppierung und Diagnose ein eigenes Regressionsmodell einführen. Grafisch sieht das so aus (für mehr dazu siehe <a href="#AppendixB">Appendix B</a>):</p>
@@ -213,12 +211,12 @@ Anova(reg_gen_ancova_s)</code></pre>
 </div>
 <div id="moderierte-regression" class="section level2">
 <h2>Moderierte Regression</h2>
-<p>Wenn wir uns nun vorstellen, dass wir unendlich viele Gruppen hätten, dann wäre es theoretisch möglich für jede Ausprägung der Slope oder für des Interzepts eine solche Gruppe zu finden. So ähnlich funktioniert nun die moderierte Regression. Anstatt dass wir unendlich viele Gruppen haben, nehmen wir einen kontinuierlichen Prädiktor her. Diesen Prädiktor nennen wir Moderator. Wenn wir nun eine Interaktion zwischen unserem eigentlichen (kontinuierlichen) Prädiktor und dem Moderator in die Regressionsgleichung aufnehmen, dann erhalten wir ein Regressionsmodell, welches der generalisierten ANCOVA sehr ähnlich sieht. Wir nennen den Moderator wie oben <span class="math inline">\(Z\)</span>, stellen die Gleichung nach <span class="math inline">\(X\)</span> (unserem Prädiktor) um und benennen das Interzept und die Slope in Abhängigkeit von <span class="math inline">\(Z\)</span>:</p>
+<p>Wenn wir uns nun vorstellen, dass wir unendlich viele Gruppen hätten, dann wäre es theoretisch möglich, für jede Gruppe eine Ausprägung der Slope oder des Interzepts zu finden. So ähnlich funktioniert nun die moderierte Regression. Anstatt dass wir unendlich viele Gruppen haben, nehmen wir einen kontinuierlichen Prädiktor her. Diesen Prädiktor nennen wir Moderator. Wenn wir nun eine Interaktion zwischen unserem eigentlichen (kontinuierlichen) Prädiktor und dem Moderator in die Regressionsgleichung aufnehmen, dann erhalten wir ein Regressionsmodell, welches der generalisierten ANCOVA sehr ähnlich sieht. Wir nennen den Moderator wie oben <span class="math inline">\(Z\)</span>, stellen die Gleichung nach <span class="math inline">\(X\)</span> (unserem Prädiktor) um und benennen das Interzept und die Slope in Abhängigkeit von <span class="math inline">\(Z\)</span>:</p>
 <p><span class="math display">\[\begin{align}
 Y_i &amp;= \beta_0 + \beta_ZZ + \beta_XX + \beta_{ZX}ZX+e_i,\\[1.5ex]
 &amp;= \underbrace{\beta_0 + \beta_ZZ}_{g_I(Z)} + \underbrace{(\beta_X + \beta_{ZX}Z)}_{g_S(Z)}X+e_i.
 \end{align}\]</span></p>
-<p>Wir erkennen wieder ein Interzept und eine Slope, welche jeweils abhängig von der Ausprägung des Moderators <span class="math inline">\(Z\)</span> ist. Bis hierhin unterscheiden sich die Gleichungen der moderierter Regression und generalisierter ANCOVA nicht. Allerdings kann <span class="math inline">\(Z\)</span> in der moderierten Regression (theoretisch) jeden beliebigen Wert annehmen. Außerdem sei an dieser Stelle gesagt, dass die Bezeichnungen für Moderator und Prädiktor nicht von den Daten abgeleitet werden können. Sie sind rein konzeptioneller Natur. Das äußert sich darin, dass wir für die moderierte Regression im Gegensatz zur ANCOVA die Rolle der beiden Prädiktoren vertauschen können. Wir können also die Gleichung einfach anders aufstellen und schon haben wir ein Interzept und eine Slope von <span class="math inline">\(Z\)</span> auf <span class="math inline">\(Y\)</span>, die jeweils abhängig sind von <span class="math inline">\(X\)</span>.</p>
+<p>Wir erkennen wieder ein Interzept und eine Slope, welche jeweils abhängig von der Ausprägung des Moderators <span class="math inline">\(Z\)</span> ist. Bis hierhin unterscheiden sich die Gleichungen der moderierten Regression und generalisierten ANCOVA nicht. Allerdings kann <span class="math inline">\(Z\)</span> in der moderierten Regression (theoretisch) jeden beliebigen Wert annehmen. Außerdem sei an dieser Stelle gesagt, dass die Bezeichnungen für Moderator und Prädiktor nicht von den Daten abgeleitet werden können. Sie sind rein konzeptioneller Natur. Das äußert sich darin, dass wir für die moderierte Regression im Gegensatz zur ANCOVA die Rolle der beiden Prädiktoren vertauschen können. Wir können also die Gleichung einfach anders aufstellen und schon haben wir ein Interzept und eine Slope von <span class="math inline">\(Z\)</span> auf <span class="math inline">\(Y\)</span>, die jeweils abhängig sind von <span class="math inline">\(X\)</span>.</p>
 <p>Um die Analyse besser interpretierbar zu machen und um möglicher Multikollinearität zwischen linearen und nichtlinearen Termen (Interaktion) vorzubeugen, sollte sowohl der Prädiktor als auch der Moderator zentriert sein. Das haben wir ganz am Anfang der Sitzung im Block <a href="#Vorbereitung">Vorbereitung</a> bereits mit dem <code>scale</code>-Befehl gemacht, da dies bereits für die ANCOVA von Relevanz war!</p>
 <p>Wenn Prädiktor und Moderator zentriert sind, dann lässt sich der Wert <span class="math inline">\(Z=0\)</span>, also der Mittelwert von <span class="math inline">\(Z\)</span>, sehr schön interpretieren. Dann ist nämlich <span class="math inline">\(g_I(0)=\beta_0\)</span> und <span class="math inline">\(g_S(0)=\beta_X\)</span>. Wir erkennen also, dass <span class="math inline">\(\beta_0\)</span> und <span class="math inline">\(\beta_X\)</span> jeweils das durchschnittliche Interzept und die durchschnittliche Slope beschreiben. Die Koeffizienten <span class="math inline">\(\beta_Z\)</span> und <span class="math inline">\(\beta_{ZX}\)</span> symbolisieren dann die Abweichungen vom mittleren Interzept oder der mittleren Slope in Abhängigkeit von <span class="math inline">\(Z\)</span>. Die Berechnung in <code>R</code> laufen mit dem <code>lm</code>-Befehl ab. Wir fügen einfach eine Interaktion zwischen dem Prädiktor und dem Moderator ein.</p>
 <p>Inhaltlich wollen wir nun die Beziehung zwischen der Symptomschwere als abhängige Variable und den Prädiktoren Lebenszufriedenheit und Panikstörungs- und Agoraphobiesymptomatik untersuchen. Hierbei soll die Panikstörungs- und Agoraphobiesymptomatik der Prädiktor sein, welcher durch die Lebenszufriedenheit moderiert wird. Wir wollen also untersuchen, ob für unterschiedliche Ausprägungen der Lebenszufriedenheit auch unterschiedliche (lineare) Beziehungen zwischen Panikstörungs- und Agoraphobiesymptomatik und Symptomschwere bestehen. Wir stellen zunächst das Modell auf und interpretieren die Parameter. Das Modellobjekt nennen wir <code>mod_reg</code>:</p>
@@ -253,10 +251,10 @@ interact_plot(model = mod_reg, pred = pas_post, modx = swls_post)</code></pre>
 <p>Wir bekommen eine Grafik mit Symptomschwere auf der y-Achse und Panikstörungs- und Agoraphobiesymptomatik auf der x-Achse. Es werden drei Linien für drei unterschiedliche Ausprägungen der Lebenszufriedenheit (dem Moderator) dargestellt: <code>+ 1 SD</code>, <code>Mean</code>, <code>- 1 SD</code>. Diese Werte stehen für den durchschnittlichen Wert der Lebenszufriedenheit (<code>Mean</code>) sowie für zwei Werte, die <span class="math inline">\(\pm\)</span> eine Standardabweichung weit weg vom Mittelwert (<code>+ 1 SD</code>, <code>- 1 SD</code>) liegen. An diesem Plot lassen sich die oben beschriebenen Effekte recht gut ablesen. Da die drei Linien nicht komplett aufeinander liegen, ist ersichtlich, dass es Unterschiede in den Interzepts oder Slopes in Abhängigkeit der Lebenszufriedenheit geben muss. Die Unterschiedlichkeit der Interzepts lässt sich sehr gut sehen. Diese hatten wir oben durch den signifikanten linearen Effekt der Lebenszufriedenheit auf die Symptomschwere erkannt. Die Interaktion/Moderation ist nicht signifikant. Das erkennen wir im Plot daran, dass die drei Linien fast parallel sind (denn sind Geraden parallel, so müssen ihre Steigungskoeffizienten identisch sein!). Rein deskriptiv war der Moderationseffekt negativ. Das bedeutet, dass mit steigender Lebenszufriedenheit die Beziehung zwischen Symptomschwere und Panikstörungs- und Agoraphobiesymptomatik geringer ausfällt (in unserer Stichprobe — verallgemeinern auf die Population lässt sich diese Aussage leider nicht, auch wenn sie sehr plausibel klingt). Das können wir auch im Plot.</p>
 <p>Im Gegensatz zur ANCOVA, die wir weiter oben kennengelernt hatten, gibt es natürlich nicht nur diese drei Linien. Der Moderator kann jede beliebige Ausprägung annehmen. Dies kann in folgender Grafik abgelesen werden (für den Code zur Grafik siehe <a href="#AppendixC">Appendix C</a>).</p>
 <p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-19-1.png" width="576" style="display: block; margin: auto;" /></p>
-<p>Hier ist die x-Achse (<span class="math inline">\(-links\longleftrightarrow rechts+\)</span>) der Prädiktor Panikstörungs- und Agoraphobiesymptomatik (<code>pas_post</code>) und in die Tiefe wird der Moderator Lebenszufriedenheit (<code>swls_post</code>) dargestellt (oft z-Achse: (<span class="math inline">\(-vorne\longleftrightarrow hinten+\)</span>)). Die y-Achse (im Plot heißt diese blöderweise z-Achse) ist die Symptomschwere dargestellt (<span class="math inline">\(-unten\longleftrightarrow oben+\)</span>). Wir erkennen in dieser Ansicht ein wenig die Simple-Slopes von zuvor, denn die Achse der Leseleistung läuft ins negative “aus dem Bilderschirm hinaus”, während sie ins positive “in den Bildschirm hinein” verläuft. Der nähere Teil der “Hyperebene” weißt eine höhere Beziehung zwischen Panikstörungs- und Agoraphobiesymptomatik und Symptomschwere auf, während der Teil, der weiter entfernt liegt, eine kleinere Beziehung aufweist. Genau das haben wir auch in den Simple Slopes zuvor gesehen. Dort war für hohe Lebenszufriedenheit die Beziehung zwischen Panikstörungs- und Agoraphobiesymptomatik und Symptomschwere auch schwächer. Wichtig ist, dass in diesem Plot die Beziehung zwischen Panikstörungs- und Agoraphobiesymptomatik und Symptomschwere für eine fest gewählte Ausprägung der Lebenszufriedenheit tatsächlich linear verläuft. Es ist also so, dass wir quasi ganz viele Linien aneinander kleben, um diese gewölbte Ebene zu erhalten. Allerdings war die Interaktion nicht statistisch bedeutsam, sodass dies nicht auf die Population zu verallgemeinern ist.</p>
+<p>Hier ist die x-Achse (<span class="math inline">\(-links\longleftrightarrow rechts+\)</span>) der Prädiktor Panikstörungs- und Agoraphobiesymptomatik (<code>pas_post</code>) und in die Tiefe wird der Moderator Lebenszufriedenheit (<code>swls_post</code>) dargestellt (oft z-Achse: (<span class="math inline">\(-vorne\longleftrightarrow hinten+\)</span>)). Die y-Achse (im Plot heißt diese blöderweise z-Achse) ist die Symptomschwere dargestellt (<span class="math inline">\(-unten\longleftrightarrow oben+\)</span>). Wir erkennen in dieser Ansicht ein wenig die Simple-Slopes von zuvor, denn die Achse der Leseleistung läuft ins negative “aus dem Bilderschirm hinaus”, während sie ins positive “in den Bildschirm hinein” verläuft. Der nähere Teil der “Hyperebene” weißt eine höhere Beziehung zwischen Panikstörungs- und Agoraphobiesymptomatik und Symptomschwere auf, während der Teil, der weiter entfernt liegt, eine kleinere Beziehung aufweist. Genau das haben wir auch in den Simple Slopes zuvor gesehen. Dort war für hohe Lebenszufriedenheit die Beziehung zwischen Panikstörungs- und Agoraphobiesymptomatik und Symptomschwere auch schwächer. Wichtig ist, dass in diesem Plot die Beziehung zwischen Panikstörungs- und Agoraphobiesymptomatik und Symptomschwere für eine fest gewählte Ausprägung der Lebenszufriedenheit tatsächlich linear verläuft. Es ist also so, dass wir quasi ganz viele Linien aneinanderkleben, um diese gewölbte Ebene zu erhalten. Allerdings war die Interaktion nicht statistisch bedeutsam, sodass dies nicht auf die Population zu verallgemeinern ist.</p>
 <div id="absicherung-gegen-quadratische-effekte-und-multikollinearität" class="section level3">
 <h3>Absicherung gegen quadratische Effekte und Multikollinearität</h3>
-<p>Unser Moderationseffekt war nicht signifikant. Wäre er es gewesen, müssten wir noch sicherstellen, ob nicht eigentlich ein quadratischer Effekt besteht. Denn es ist so, dass der Interaktionsterm mit quadratischen Termen korreliert sein kann, wenn die zugrundeliegenden Variablen korreliert sind. So kann es zu Multikollinearität im Modell kommen und wir könnten uns fälschlicherweise für einen Interaktionseffekt entscheiden, obwohl es tatsächlich einen quadratischen Effekt gibt. Quadratische Effekte können wir in ein Regressionsmodell aufnehmen, indem wir eintweder eine neue Variable mit quadrierten (aber zentrieren!) Werten erstellen, oder indem wir innerhalb des <code>lm</code>-Befehls die <code>I()</code> sogenannte <code>as.is</code>-Funktion verwenden, mit welcher wir einfache Transformationen an bestehendenen Daten in Modellen verwenden können, ohne explizit Daten dafür erstellen zu müssen:</p>
+<p>Unser Moderationseffekt war nicht signifikant. Wäre er es gewesen, müssten wir noch sicherstellen, ob nicht eigentlich ein quadratischer Effekt besteht. Denn es ist so, dass der Interaktionsterm mit quadratischen Termen korreliert sein kann, wenn die zugrundeliegenden Variablen korreliert sind. So kann es zu Multikollinearität im Modell kommen und wir könnten uns fälschlicherweise für einen Interaktionseffekt entscheiden, obwohl es tatsächlich einen quadratischen Effekt gibt. Quadratische Effekte können wir in ein Regressionsmodell aufnehmen, indem wir entweder eine neue Variable mit quadrierten (aber zentrierten!) Werten erstellen, oder indem wir innerhalb des <code>lm</code>-Befehls die <code>I()</code> sogenannte <code>as.is</code>-Funktion verwenden, mit welcher wir einfache Transformationen an bestehenden Daten in Modellen verwenden können, ohne explizit Daten dafür erstellen zu müssen:</p>
 <pre class="r"><code>mod_quad_reg &lt;- lm(bsi_post ~ swls_post + pas_post + swls_post:pas_post + I(swls_post^2) + I(pas_post^2), data = osf)
 summary(mod_quad_reg)</code></pre>
 <pre><code>## 
@@ -285,13 +283,13 @@ summary(mod_quad_reg)</code></pre>
 <p>Wir erkennen, dass es einen quadratischen Effekt der Lebenszufriedenheit gibt. Die Interaktion ist allerdings wieder nicht signifikant. Grafisch sieht dies nun so aus:</p>
 <pre class="r"><code>interact_plot(model = mod_quad_reg, pred = pas_post, modx = swls_post)</code></pre>
 <p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Die Simple-Slopes sind keine einfachen Steigungen mehr, sondern gleichen “einfachen” Parabeln. Die Interpretation ist immer ähnlich zu den Simple-Slopes von zuvor. Die Beziehung zwischen Symptomschwere und Panikstörungs- und Agoraphobiesymptomatik fällt geringer aus für höhere Lebenszufriedenheit. Außerdem lässt sich ein Plateau vermuten für große Panikstörungs- und Agoraphobiesymptomatik-Werte. Der 3D-Plot zeigt uns, dass es diesmal nicht aneinander geklebte Linien sondern Parabeln sind:</p>
+<p>Die Simple-Slopes sind keine einfachen Steigungen mehr, sondern gleichen “einfachen” Parabeln. Die Interpretation ist immer ähnlich zu den Simple-Slopes von zuvor. Die Beziehung zwischen Symptomschwere und Panikstörungs- und Agoraphobiesymptomatik fällt geringer aus für höhere Lebenszufriedenheit. Außerdem lässt sich ein Plateau vermuten für große Panikstörungs- und Agoraphobiesymptomatik-Werte. Der 3D-Plot zeigt uns, dass es diesmal nicht aneinander geklebte Linien, sondern Parabeln sind:</p>
 <p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-22-1.png" width="576" style="display: block; margin: auto;" /></p>
 <p>Entlang der Achse der Lebenszufriedenheit ist diese Krümmung auch statistisch bedeutsam. Wir erkennen deutlich, dass eine hohe Lebenszufriedenheit sich positiv auf die Symptomschwere auswirkt, da diese dann niedriger ausgeprägt ist. Außerdem scheint es (rein deskriptiv) so zu sein, dass dann auch die Beziehung zwischen Symptomschwere und Panikstörungs- und Agoraphobiesymptomatik geringer ausfällt. Allerdings war dieser Effekt nicht statistisch bedeutsam.</p>
 </div>
 <div id="umgang-mit-quadratischen-und-interaktionseffekten" class="section level3">
 <h3>Umgang mit quadratischen und Interaktionseffekten</h3>
-<p>In der Regel interessieren sich Forschende für Interaktionseffekte, da diese Beziehungen zwischen Variablen in Abhängigkeit von Moderatoren darstellen. So können bspw. Puffer-Effekte untersucht werden. Um sicher zu gehen, dass es einen Interaktionseffekt in den Daten gibt, sollte zunächst ein rein quadratisches Modell aufgestellt werden und dieses sollte dann mit dem quadratischen moderierten Regressionsmodell verglichen werden. Ist das erklärte Varianzinkrement der Interaktion statistisch bedeutsam, kann von einer Moderation gesprochen werden. Sind quadratische Effekte auch statistisch Bedeutsam, sollten sie ebenfalls in das Modell mit aufgenommen werden. Vorgehen:</p>
+<p>In der Regel interessieren sich Forschende für Interaktionseffekte, da diese Beziehungen zwischen Variablen in Abhängigkeit von Moderatoren darstellen. So können bspw. Puffer-Effekte untersucht werden. Um sicher zu gehen, dass es einen Interaktionseffekt in den Daten gibt, sollte zunächst ein rein quadratisches Modell aufgestellt werden und dieses sollte dann mit dem quadratischen moderierten Regressionsmodell verglichen werden. Ist das erklärte Varianzinkrement der Interaktion statistisch bedeutsam, kann von einer Moderation gesprochen werden. Sind quadratische Effekte auch statistisch bedeutsam, sollten sie ebenfalls in das Modell mit aufgenommen werden. Vorgehen:</p>
 <pre class="r"><code>quad_reg &lt;-  lm(bsi_post ~ swls_post + pas_post  + I(swls_post^2) + I(pas_post^2), data = osf)
 anova(quad_reg, mod_quad_reg)</code></pre>
 <pre><code>## Analysis of Variance Table
@@ -307,7 +305,7 @@ anova(quad_reg, mod_quad_reg)</code></pre>
 </div>
 <div id="fazit" class="section level2">
 <h2>Fazit</h2>
-<p>Wir haben mit der “generalisierten” ANCOVA und der moderierten Regressionsanalyse zwei Modelle kennengelernt, welche durch Interkationen aus linearen Modellen hervorgehen. Damit lassen sich lineare Beziehung in Abhängigkeit weiterer Variablen ausdrücken: entweder in Abhängigkeit von Grupperingsvariablen (dann landen wir im generalisierten ANCOVA-Setting) oder in Abhängigkeit von kontinuierlichen Kovariaten (das ist dann die moderierte Regression).</p>
+<p>Wir haben mit der “generalisierten” ANCOVA und der moderierten Regressionsanalyse zwei Modelle kennengelernt, welche durch Interkationen aus linearen Modellen hervorgehen. Damit lassen sich lineare Beziehung in Abhängigkeit weiterer Variablen ausdrücken: entweder in Abhängigkeit von Gruppierungsvariablen (dann landen wir im generalisierten ANCOVA-Setting) oder in Abhängigkeit von kontinuierlichen Prädiktoren (Kovariaten; das ist dann die moderierte Regression).</p>
 <hr />
 </div>
 <div id="r-skript" class="section level2">
@@ -330,31 +328,35 @@ ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post))+
    geom_line(mapping = aes(x = swls_post, y = predict(reg_swl)))+
    theme_minimal()</code></pre>
 <p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Wenn wir die Gruppierungsvariable als Farbkodierung verwenen (<code>col = group</code>), erhalten wir:</p>
+<p>Wenn wir uns für Gruppenunterschiede über <code>group</code> interessieren, schauen wir uns folgenden Plot an:</p>
+<pre class="r"><code>ggplot(data = osf,  mapping = aes(x = group, y = bsi_post, col = group, group = group))+geom_point()+
+     theme_minimal()</code></pre>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Wenn wir die Gruppierungsvariable als Farbkodierung verwenden (<code>col = group</code>) im Regressionsplot verwenden, erhalten wir:</p>
 <pre class="r"><code>ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post, col = group))+
   geom_point()+
    geom_line(mapping = aes(x = swls_post, y = predict(reg_swl)), col = &quot;black&quot;)+
    theme_minimal()</code></pre>
-<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Wenn wir nun pro Gruppe ein Interzept einfügen (ANCOVA-Modell) erhalten wir:</p>
 <pre class="r"><code>ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post, col = group))+
   geom_point()+
   geom_line(mapping = aes(x = swls_post, y = predict(reg_ancova)))+
   theme_minimal()</code></pre>
-<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Beim generalisierten ANCOVA Modell landen wir, wenn wir auch noch jeweils einen Steigungskoeffizienten pro Gruppe einfügen:</p>
 <pre class="r"><code>ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post,  col = group))+
   geom_point()+
   geom_line(mapping = aes(x = swls_post, y = predict(reg_gen_ancova)))+
   theme_minimal()</code></pre>
-<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-28-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Außerdem schauen wir uns auch nochmals den Effekt der Diagnose an:</p>
 <pre class="r"><code>ggplot(data = osf,  mapping = aes(x = swls_post, y = bsi_post,  col = stratum))+
    geom_point()+
   geom_line(mapping = aes(x = swls_post, y = predict(reg_gen_ancova_s)))+
   theme_minimal()</code></pre>
-<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-28-1.png" width="672" style="display: block; margin: auto;" /></p>
-Den letzen Plot zum ANCOVA Block wird in <a href="#AppendixB">Appendix B</a> erläutert.
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-29-1.png" width="672" style="display: block; margin: auto;" /></p>
+Der letzte Plot zum ANCOVA Block wird in <a href="#AppendixB">Appendix B</a> erläutert.
 </details>
 </div>
 <div id="AppendixB" class="section level3">
@@ -415,7 +417,7 @@ summary(reg_gen_ancova_gs)</code></pre>
    geom_point()+
    geom_line(mapping = aes(x = swls_post, y = predict(reg_gen_ancova_gs)))+
    theme_minimal()</code></pre>
-<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-30-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-31-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Es kommen keine neuen Effekte hinzu. Nur das Treatment und die Lebenszufriedenheit haben Vorhersagekraft für die Symptomschwere. Keine der Interaktionen ist statistisch bedeutsam!</p>
 </details>
 </div>
@@ -446,7 +448,7 @@ scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
           surf = list(x = x.pred, y = z.pred, z = y.pred,  
                       facets = NA, fit = fitpoints), 
           main = &quot;Moderierte Regression&quot;)</code></pre>
-<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-31-1.png" width="576" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-32-1.png" width="576" style="display: block; margin: auto;" /></p>
 <pre class="r"><code># Übersichtlicher: Vorbereitung
 x &lt;- c(osf$pas_post)
 y &lt;- c(osf$bsi_post)
@@ -467,9 +469,91 @@ scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
           surf = list(x = x.pred, y = z.pred, z = y.pred,  
                       facets = NA, fit = fitpoints), 
           main = &quot;Moderierte Regression\nmit quadratischen Effekten&quot;)</code></pre>
-<img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-32-1.png" width="576" style="display: block; margin: auto;" />
+<img src="/post/2021-10-15-ANCOVA_und_moderierte_Regression_files/figure-html/unnamed-chunk-33-1.png" width="576" style="display: block; margin: auto;" />
+</details>
+</div>
+<div id="appendix-d" class="section level3">
+<h3>Appendix D</h3>
+<details>
+<summary>
+<strong>Exkurs: Effekte der Zentrierung</strong>
+</summary>
+<p>In diesem Abschnitt schauen wir uns den Effekt der Zentrierung an einem vereinfachten Beispiel an. Dieser Abschnitt fundiert auf dem <a href="/post/quadratische-und-moderierte-regression#AppendixA">Appendix A in der Sitzung zu moderierter Regression aus dem Bachelor</a>.</p>
+<p>Um den Sachverhalt zu vereinfachen, erstellen wir einen Vektor (also eine Variable) <span class="math inline">\(A\)</span> der die Zahlen von 0 bis 10 enthält in 0.1 Schritten:</p>
+<pre class="r"><code>A &lt;- seq(0, 10, 0.1)</code></pre>
+<p>Nun bestimmen wir zunächst die Korrelation zwischen <span class="math inline">\(A\)</span> und <span class="math inline">\(A^2\)</span>:</p>
+<pre class="r"><code>cor(A, A^2)</code></pre>
+<pre><code>## [1] 0.9676503</code></pre>
+<p>welche sehr hoch ausfällt. Nun zentrieren wir die Daten. Das geht entweder händisch oder mit der <code>scale</code> Funktion:</p>
+<pre class="r"><code>A_c &lt;- A - mean(A)
+mean(A_c)</code></pre>
+<pre><code>## [1] 2.639528e-16</code></pre>
+<pre class="r"><code>A_c2 &lt;- scale(A, center = T, scale = F)  # scale = F bewirkt, dass nicht auch noch die SD auf 1 gesetzt werden soll
+mean(A_c2)</code></pre>
+<pre><code>## [1] 2.639528e-16</code></pre>
+<p>Nun vergleichen wir die Korrelationen zwischen <span class="math inline">\(A_c\)</span> mit <span class="math inline">\(A_c^2\)</span> mit der Korrelation zwischen <span class="math inline">\(A\)</span> und <span class="math inline">\(A^2\)</span>:</p>
+<pre class="r"><code>cor(A_c, A_c^2)</code></pre>
+<pre><code>## [1] 1.763581e-16</code></pre>
+<pre class="r"><code>cor(A, A^2)</code></pre>
+<pre><code>## [1] 0.9676503</code></pre>
+<pre class="r"><code># auf 15 Nachkommastellen gerundet:
+round(cor(A_c, A_c^2), 15)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>round(cor(A, A^2), 15)</code></pre>
+<pre><code>## [1] 0.9676503</code></pre>
+<p>Beide Korrelation unterscheiden sich enorm. Die Korrelation zwischen <span class="math inline">\(A_c\)</span> und <span class="math inline">\(A_c^2\)</span> ist 0 und damit drastisch geringer, als die Korrelation zwischen <span class="math inline">\(A\)</span> und <span class="math inline">\(A^2\)</span>. Was hat das Ganze nun mit Interaktionen zu tun? Im Grunde ist ja eine Interaktion ein Produkt zweier Prädiktoren: bspw. <span class="math inline">\(X*Z\)</span>. Wenn wir für <span class="math inline">\(Z=X\)</span> wählen, dann erhalten wir natürlich <span class="math inline">\(X^2\)</span>, was also einen Spezielfall einer Interaktion darstellt — nämlich die Interaktion mit sich selbst!</p>
+<p>Wir simulieren noch schnell zwei normalverteilte Variablen und schauen uns die Korrelation mit der Interaktion an:</p>
+<pre class="r"><code>set.seed(1234) # Vergleichbarkeit
+X &lt;- rnorm(1000, mean = 2, sd = 1) # 1000 normalverteile Zufallsvariablen mit Mittelwert 2 und Standardabweichung = 1
+Z &lt;- X + rnorm(1000, mean = 1, sd = 0.5) # generiere Z ebenfalls normalverteilt und korreliert zu X
+cor(X, Z)      # Korrelation zwischen X und Z</code></pre>
+<pre><code>## [1] 0.9022937</code></pre>
+<p><span class="math inline">\(X\)</span> und <span class="math inline">\(Z\)</span> sind zu 0.902 korreliert. Wir zentrieren die beiden Variablen und schauen uns jeweils die Korrelationen untereinander und mit der Interaktion an:</p>
+<pre class="r"><code>X_c &lt;- scale(X, center = T, scale = F)
+Z_c &lt;- scale(Z, center = T, scale = F)
+
+cor(X, X*Z)</code></pre>
+<pre><code>## [1] 0.9347276</code></pre>
+<pre class="r"><code>cor(X_c, X_c*Z_c)</code></pre>
+<pre><code>##            [,1]
+## [1,] 0.01993774</code></pre>
+<p>Die Korrelation zwischen <span class="math inline">\(X\)</span> und <span class="math inline">\(X*Z\)</span> liegt bei 0.935, während sie bei den zentrierten Varianten <span class="math inline">\(X_c\)</span> und <span class="math inline">\(X_c*Z_c\)</span> bei 0.02 liegt. Damit resultiert die erste Variante in Multikollinearitätsproblemen in einem Regressionsmodell, während die zweite dies nicht tut.</p>
+<div id="mathematische-begründung" class="section level4">
+<h4>Mathematische Begründung</h4>
+<p>Dieser Abschnitt ist für die “Warum ist das so?”-Fragenden bestimmt und ist als reinen Zusatz zu erkennen. Wir konzentrieren uns weider auf das Quadrat, da es einfacher zu untersuchen ist.</p>
+<p>Wir wissen, dass die Korrelation der Bruch aus der Kovarianz zweier Variablen geteilt durch deren Standardabweichung ist. Aus diesem Grund reicht es, die Kovarianz zweier Variablen zu untersuchen, um zu schauen, wann die Korrelation 0 ist. Wir hatten oben die Variablen zentriert und bemerkt, dass dann die Korrelation zwischen <span class="math inline">\(A_c\)</span> und <span class="math inline">\(A_c^2\)</span> verschwindet. Warum ist das so? Dazu stellen wir <span class="math inline">\(A\)</span> in Abhängigkeit von seinem Mittelwert <span class="math inline">\(\mu_A\)</span> und <span class="math inline">\(A_c\)</span>, der zentrierten Version von <span class="math inline">\(A\)</span>, dar:</p>
+<p><span class="math display">\[A := \mu_A + A_c\]</span></p>
+<p>So kann jede Variable zerlegt werden: in seinen Mittelwert (hier: <span class="math inline">\(\mu_A\)</span>) und die Abweichung vom Mittelwert (hier: <span class="math inline">\(A_c\)</span>). Nun bestimmen wir die Kovarianz zwischen den Variablen <span class="math inline">\(A\)</span> und <span class="math inline">\(A^2\)</span> und setzen in diesem Prozess <span class="math inline">\(\mu_A+A_c\)</span> für <span class="math inline">\(A\)</span> ein und wenden die binomische Formel an <span class="math inline">\((a+b)^2=a^2+2ab+b^2\)</span>.</p>
+<p><span class="math display">\[\begin{align}
+\mathbb{C}ov[A, A^2] &amp;= \mathbb{C}ov[\mu_A + A_c, (\mu_A + A_c)^2]\\
+&amp;= \mathbb{C}ov[A_c, \mu_A^2 + 2\mu_AA_c + A_c^2]\\
+&amp;=  \mathbb{C}ov[A_c, \mu_A^2] + \mathbb{C}ov[A_c, 2\mu_AA_c] + \mathbb{C}ov[A_c, A_c^2]
+\end{align}\]</span></p>
+<p>An dieser Stelle pausieren wir kurz und bemerken, dass wir diese beiden Ausdrücke schon kennen <span class="math inline">\(\mathbb{C}ov[A_c, \mu_A^2] = \mathbb{C}ov[A_c, A_c^2] = 0\)</span>. Ersteres ist die Kovarianz zwischen einer Konstanten und einer Variable, welche immer 0 ist und, dass die Kovarianz zwischen <span class="math inline">\(A_c\)</span> und <span class="math inline">\(A_c^2\)</span> 0 ist, hatten wir oben schon bemerkt!</p>
+<p>Folglich können wir sagen, dass</p>
+<p><span class="math display">\[\begin{align}
+\mathbb{C}ov[A, A^2] &amp;= \mathbb{C}ov[A_c, 2\mu_AA_c] \\
+&amp;= 2\mu_A\mathbb{C}ov[A_c,A_c]=2\mu_A\mathbb{V}ar[A],
+\end{align}\]</span></p>
+<p>wobei wir hier benutzen, dass die Kovarianz mit sich selbst die Varianz ist und dass die zentrierte Variable <span class="math inline">\(A_c\)</span> die gleiche Varianz wie <span class="math inline">\(A\)</span> hat. Dies können wir leicht prüfen:</p>
+<pre class="r"><code>var(A)</code></pre>
+<pre><code>## [1] 8.585</code></pre>
+<pre class="r"><code>var(A_c)</code></pre>
+<pre><code>## [1] 8.585</code></pre>
+<pre class="r"><code># Kovarianz 
+cov(A, A^2)</code></pre>
+<pre><code>## [1] 85.85</code></pre>
+<pre class="r"><code>2*mean(A)*var(A)</code></pre>
+<pre><code>## [1] 85.85</code></pre>
+<pre class="r"><code># zentriert:
+round(cov(A_c, A_c^2), 14)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<pre class="r"><code>round(2*mean(A_c)*var(A_c), 14)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<p>Der zentrierte Fall ist auf 14 Nachkommastellen identisch und weicht danach nur wegen der sogenannten Maschinengenauigkeit von einander ab. Somit ist klar, dass wenn der Mittelwert = 0 ist, dann ist auch die Korrelation zwischen einer Variable und seinem Quadrat 0. Analoge Überlegungen können genutzt werden, um das gleiche für die Interaktion von Variablen zu sagen.</p>
 </details>
 <hr />
+</div>
 </div>
 </div>
 <div id="literatur" class="section level2">
