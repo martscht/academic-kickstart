@@ -30,10 +30,10 @@ library(ggplot2) # ggplot2 und dplyr werden nur für Grafiken benötigt
 ```
 
 ## Einleitung
-In dieser Sitzung wollen wir dichotome abhängige Variablen mit der logistischen Regression  (vgl. bspw. [Eid, Gollwitzer & Schmitt, 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 22 und [Pituch und Stevens, 2016,](https://hds.hebis.de/ubffm/Record/HEB371183324) Kapitel 11) analysieren. Diese Daten sind dahingehend speziell, dass die abhängige Variable nur zwei Ausprägungen hat, welche in der Regel mit $0$ und $1$ kodiert werden. Dies führt dazu, dass der Wertebereich der abhängigen Variable so gut wie gar nicht durch die Vorhersage innerhalb einer normalen Regressionsanalyse "getroffen" wird, die Residuen nicht länger unabhängig von der Ausprägung der abhängigen Variablen sind und auch die Normalverteilungsannahme der Residuen verletzt ist. Wir wollen uns ein reales Datenbeispiel ansehen, in welchem die Überlebenswahrscheinlichkeit des Titanicunglücks durch das Alter sowie die Klassenzugehörigkeit auf dem Schiff vorhergesagt werden soll. Der Datensatz ist öffentlich zugänglich auf [Open-Daten-Soft](https://public.opendatasoft.com) zu finden. Sie können sich den [vollständigen Datensatz hier](https://public.opendatasoft.com/explore/dataset/titanic-passengers) ansehen.  Sie können den im Folgenden verwendeten  [`r fontawesome::fa("download")` Datensatz "Titanic.rda" hier herunterladen](https://pandar.netlify.app/post/Titanic.rda).
+In dieser Sitzung wollen wir dichotome abhängige Variablen mit der logistischen Regression  (vgl. bspw. [Eid, Gollwitzer & Schmitt, 2017](https://hds.hebis.de/ubffm/Record/HEB366849158), Kapitel 22 und [Pituch und Stevens, 2016,](https://hds.hebis.de/ubffm/Record/HEB371183324) Kapitel 11) analysieren. Diese Daten sind dahingehend speziell, dass die abhängige Variable nur zwei Ausprägungen hat, welche in der Regel mit $0$ und $1$ kodiert werden. Dies führt zu verschiedenen Problemen in der linearen Regression, die wir gleich betrachten wollen. Wir wollen uns ein reales Datenbeispiel ansehen, in welchem die Wahrscheinlichkeit der Drogenabhängigkeit durch einen Depressionsscore und das Geschlecht vorhergesagt werden soll. Der Datensatz ist öffentlich zugänglich auf dem [Open-Science-Framework](https://osf.io/prc92/) zu finden. 
 
 ### Daten laden
-Wir laden zunächst die Daten: entweder lokal von Ihrem Rechner. Beachten Sie, dass es sich bei dem Datensatz um einen im Format von SPSS handelt. Um diesen in `R` einzulesen, kann das Paket `haven` installiert und die Funktion `read_sav` genutzt werden. Der Rest des verwendeten Codes entspricht dem Code, den wir auch bei `load` verwendet haben.
+Wir laden zunächst die Daten: entweder lokal von Ihrem Rechner. Beachten Sie, dass es sich bei dem Datensatz um einen im Format von SPSS handelt. Um diesen in `R` einzulesen, kann das Paket `haven` installiert und die Funktion `read_sav` genutzt werden. Der Rest des verwendeten Codes entspricht dem Code, den wir auch bei `load` verwendet haben. Wir weisen den Datensatz aber direkt einem Objekt zu, da er sonst nur in der Konsole angezeigt werden würde. Falls Sie den Datensatz lokal verwenden wollen, müssen Sie ihn natürlich zunächst von der bereits angegebenen Seite herunterladen.
 
 ```{r, eval = F}
 install.packages("haven")
@@ -41,17 +41,15 @@ library(haven)
 osf <- read.sav("C:/Users/Musterfrau/Desktop/data")
 ```
 
-Oder wir laden direkt über die Website:
+Sie können den Datensatz aber auch direkt über die Website in das Environment einladen. Dafür verwenden Sie den folgendenen Befehl:
 
-```{r, eval = T}
+```{r, eval = T, message=F, warning=F}
 library(haven)
 osf <- read_sav(file = url("https://osf.io/prc92/download"))
 ```
 
-
 Nun sollte in `R`-Studio oben rechts in dem Fenster unter der Rubrik "Data" unser Datensatz mit dem Namen "_osf_" erscheinen.
-
-Bevor wir Ihn verwenden, wurden alle fehlenden Werte entfernt (wir gehen einfach mal davon aus, dass das keine Effekte auf die Ergebnisse hat, obwohl wir dies selbstverständlich prüfen müssten) und es wurden einige Variablen rekodiert bzw. entfernt.
+.
 
 ### Übersicht über die Daten
 Wir wollen uns einen Überblick über die Daten verschaffen:
@@ -69,39 +67,41 @@ Auch in diesem Datensatz gibt es natürlich fehlende Werte. Zur Illustration wer
 missings_id <- which(is.na(osf$ANYDUMMY) |
                         is.na(osf$GENDER_R) |
                         is.na(osf$Depression_lvl))
-missings_id
+length(missings_id)
 ```
 
-Durch die Kombination aus `which` und `is.na` werden alle Zeilennummern identifiziert, in denen eine der drei Variablen fehlend ist. Der vertikale Strich steht dabei für eine Verknüpfung mit "oder". Es reicht also ein fehlender Wert auf einer der Variablen, um in dem Objekt `missings_id` getracked zu werden. Nun müssen wir die Fälle noch ausschließen:
+Durch die Kombination aus `which` und `is.na` werden alle Zeilennummern identifiziert, in denen eine der drei Variablen fehlend ist. Der vertikale Strich steht dabei für eine Verknüpfung mit "oder". Es reicht also ein fehlender Wert auf einer der Variablen, um in dem Objekt `missings_id` getracked zu werden. Insgesamt sind von unserem Ausschluss `r length(missings_id)` Personen betroffen. Nun müssen wir die Fälle noch ausschließen:
 
 ```{r}
 osf <- osf[-missings_id, ]
 dim(osf) # nach Fallauschluss
 ```
-Die Menge an Personen hat sich drastische reduziert. Dennoch können wir mit der vorhanden Stichprobe, die Funktionsweise der logistischen Regression gut erläutern.
+Die Menge an Personen hat sich drastische reduziert. Dennoch können wir mit der vorhanden Stichprobe, die Funktionsweise der logistischen Regression gut erläutern. Für diese wollen wir auch noch das Geschlecht als Variable des Typs `factor` hinterlegen. Dabei steht `0` für weiblich und `1` für männlich. 
+
+```{r}
+osf$GENDER_R <- as.factor(osf$GENDER_R)
+levels(osf$GENDER_R) <- c("weiblich", "maennlich")
+```
 
 ### Fragestellungen
 
 Für unser Beispiel wollen wir die Drogenabhängigkeit als abhängige Variable benutzen. Dabei wollen wir untersuchen, ob der Depressionswert oder das Geschlecht eine Vorhersage leisten können.
 
-### Warum keine lineare Regression
-Um das Überleben zu modellieren, könnten wir eine [Regressionsanalyse](/post/regression-ausreisser-klipps) heranziehen und das Überleben (`ANYDUMMY`) durch bspw. den Depressionswert  (`Depression_lvl`) vorhersagen:
+### Warum keine lineare Regression?
+Um die Drogenabhängigkeit zu modellieren, könnten wir eine [Regressionsanalyse](/post/regression-aussreisser-klipps/) heranziehen und das Überleben (`ANYDUMMY`) durch bspw. den Depressionswert  (`Depression_lvl`) vorhersagen. Wir nennen unser Modell zur Modellierung der Drogenabhängigkeit `reg_model`.
 
-Wir nennen unser Modell zur Modellierung der Drogenabhängigkeit `reg_model`.
 ```{r}
 reg_model <- lm(ANYDUMMY ~ 1 + Depression_lvl, data = osf)
 summary(reg_model)
 ```
 
-Laut der einfachen Regressionsanalyse scheint das das Depression sehr gering mit dem Drogenkonsum zusammen zu hängen. Lassen Sie sich dabei von der Signifikanz nicht täuschen. Der Zusammenhang würde zwar für die Population angenommen werden, aber das liegt eher an der großen Stichprobe. Die erklärte Varianz wäre aber bei einem Prozent.
+Laut der einfachen Regressionsanalyse scheint es, dass der Depressionsscore sehr gering mit dem Drogenkonsum zusammenhängt. Lassen Sie sich dabei von der Signifikanz nicht täuschen. Der Zusammenhang würde zwar für die Population angenommen werden, aber das heißt nicht, dass es ein starker Zusammenhang ist. Die erklärte Varianz wäre aber bei einem Prozent.
 
 Betrachten wir nun exemplarisch zwei Voraussetzungen der Regression.
 
-```{r, message=F}
-library(car) # nötiges Paket laden
-```
 
-```{r}
+```{r, echo = F, fig = T, message=F, warning=F}
+library(car) # nötiges Paket laden
 avPlots(model = reg_model, pch = 16)
 
 library(MASS)# nötiges Paket laden
@@ -111,20 +111,9 @@ xWerte <- seq(from = min(res), to = max(res), by = 0.01)
 lines(x = xWerte, y = dnorm(x = xWerte, mean = mean(res), sd = sd(res)), lwd = 3)
 ```
 
-In dieser Analyse sind einige Annahmen der Regressionsanalyse verletzt: Normalverteilung der Residuen, Homoskedastizität und auch Unabhängigkeit der Residuen. Den Verteilungen der Residuen können wir deutlich entnehmen, dass diese systematisch ausfallen (mit steigender Depression steigen die Residuen linear an) und auch die Normalverteilungsannahme ist deutlich verletzt. Eine Regression erscheint nicht sinnvoll. Den Ergebnisse der Signifikanzentscheidungen kann nicht getraut werden. Wir müssen uns also irgendwie anders mit den Daten auseinandersetzen! Aus diesem Grund wollen wir die logistische Regression heranziehen. 
+In dieser Analyse sind einige Annahmen der Regressionsanalyse verletzt: Normalverteilung der Residuen, Homoskedastizität und auch Unabhängigkeit der Residuen. Den Verteilungen der Residuen können wir deutlich entnehmen, dass diese systematisch ausfallen (mit steigender Depression steigen die Residuen linear an) und auch die Normalverteilungsannahme ist deutlich verletzt. Eine Regression erscheint nicht sinnvoll. Den Ergebnisse der Signifikanzentscheidungen kann nicht getraut werden. Zusätzlich würde eine Vorhersage der abhängigen Variable viele Werte außerhalb der beiden sinnvollen Ausprägungen `0` und `1` ergeben. Wir müssen uns also irgendwie anders mit den Daten auseinandersetzen! Aus diesem Grund wollen wir die logistische Regression heranziehen. 
 
-In einer Regressionsanalyse wird der Mittelwert gegeben die unabhängigen Variablen modelliert. Es handelt sich also um einen bedingten Mittelwert. Dies ist daran ersichtlich, dass die Residuen im Mittel zu jeder Ausprägung von $\hat{y}$ gerade Null sind und somit im Mittel immer der vorhergesagte Wert eintritt. Dieser mittlere Wert ist gerade der Mittelwert oder (korrekter) der Erwartungswert an dieser Stelle.
-
-Gleiches wollen wir auf eine 0-1-Variable verallgemeinern. Wenn Sie einen Münzwurf durchführen und Kopf als 1 und Zahl als 0 kodieren, so erhalten Sie eine Zahlenfolge von 0en und 1en. Wenn Sie nun die relative Häufigkeit (also die Wahrscheinlichkeit) untersuchen wollen, dass Kopf auftritt, so müssen Sie lediglich den Mittelwert über alle 0en und 1en bestimmen. Dieser Mittelwert ist dann genau die Wahrscheinlichkeit, dass die Münze Kopf zeigt. Im folgenden Beispiel ist die relative Häufigkeit Kopf zu werfen 25%:
-
-```{r}
-Münze <- c(0, 1, 0, 0)
-mean(Münze)
-```
-
-Diese 25% sind selbstverständlich nur eine Schätzung für die wahre Wahrscheinlichkeit, Kopf zu werfen. In einer idealen Welt würden wir davon ausgehen, dass die Wahrscheinlichkeit bei 50% liegt! _Für Interessierte unter Ihnen:_ dieser Mittelwert ist der Maximum-Likelihood (ML) Schätzer für die Auftretenswahrscheinlichkeit von Kopf.
-
-Im Grunde wird bei der logistischen Regression die Wahrscheinlichkeit des Erfolgs (was auch immer das ist: Kopf bei einem Münzwurf, Überleben eines Unglücks ja/nein, befördert ja/nein, _oder besonders im psychologischen oder medizinischen Kontext relevant:_ erkrankt ja/nein, genesen ja/nein etc.) modelliert, welche eigentlich einfach wieder dem Mittelwert entspricht (bzw. der bedingten Erwartung). Die Funktion in `R` hierzu heißt `glm`, was für **G**eneralized **L**inear **M**odel steht. Um den Wertebereich der AV einzuhalten, wird die Erfolgswahrscheinlichkeit so transformiert, dass sie linear durch die UVs vorhergesagt werden kann, aber die Wahrscheinlichkeit trotzdem zwischen 0 und 1 liegt. Gehen wir bspw. von zwei Prädiktoren $X_1$ und $X_2$ aus:
+Im Grunde wird bei der logistischen Regression die Wahrscheinlichkeit des Erfolgs (was auch immer der Erfolg ist: erkrankt ja/nein, genesen ja/nein etc.) modelliert. Der Trick dabei ist, dass sich diese Wahrscheinlichkeit auf unterschiedlichen Ausprägungen der Prädiktoren unterschiedlich verhalten kann. Sie wird also durch die Prädiktoren _bedingt_. Die Funktion in `R` hierzu heißt `glm`, was für **G**eneralized **L**inear **M**odel steht. Um den Wertebereich der AV einzuhalten, wird die Erfolgswahrscheinlichkeit so transformiert, dass sie linear durch die UVs vorhergesagt werden kann, aber die Wahrscheinlichkeit trotzdem zwischen 0 und 1 liegt. Gehen wir bspw. von zwei Prädiktoren $X_1$ und $X_2$ aus:
 
 \begin{align*}
 p &= \mathbb{P}(Y = 1 | X_1 = x_1, X_2 = x_2) = \frac{e^{\beta_0 + \beta_1x_1 + \beta_2x_2}}{1 + e^{\beta_0 + \beta_1x_1 + \beta_2x_2}}\\[2ex]
@@ -132,16 +121,13 @@ odds(p) & = \frac{\mathbb{P}(Y = 1 | X_1 = x_1, X_2 = x_2)}{1-\mathbb{P}(Y = 1 |
 logit(p) &  = \ln\left(\frac{\mathbb{P}(Y = 1 | X_1 = x_1, X_2 = x_2)}{1-\mathbb{P}(Y = 1 | X_1 = x_1, X_2 = x_2)}\right) = \beta_0 + \beta_1x_1 + \beta_2x_2
 \end{align*}
 
-Hier ist $\ln$ der natürlich Logarithmus zur Basis $e$ ($e$ ist die Eulersche Zahl $\approx 2.718282$). Der $logit$ stellt hierbei die Link-Funktion dar, die den Erwartungswert den wir Untersuchen wollen, linear durch die Prädiktoren darstellen lässt. Die $odds$ und $p$ sind dann nur Retransformationen, die aus der Link-Funktion resultieren. Einige Wiederholungen zu Exponenten- oder Logarithmusregeln können Sie am Anfang der [Sitzung zu exponentiellem Wachstum aus dem Bachelor](/post/nichtlineare-regression) nachlesen.
-
-
-Eine Schreibweise für die normale Regression ist $\mathbb{E}[Y | X_1 = x_1, X_2 = x_2]=\beta_0 + \beta_1x_1 + \beta_2x_2$. Gilt für $Y=0,1$, so ist $\mathbb{E}[Y | X_1 = x_1, X_2 = x_2] = \mathbb{P}(Y = 1 | X_1 = x_1, X_2 = x_2)=p$, also der (bedingte) Mittelwert über $Y$ ist die (bedingte) Wahrscheinlichkeit, dass $Y=1$ (wie wir oben am Münzwurfbeispiel gesehen haben). Somit ist ersichtlich, dass bei der logistischen Regression im Grunde nichts anderes als der (bedingte) Mittelwert/die (bedingte) Erwartung, dass $Y=1$ ist, modelliert wird. 
+Hier ist $\ln$ der natürliche Logarithmus zur Basis $e$ ($e$ ist die Eulersche Zahl $\approx 2.718282$). Der $logit$ stellt hierbei die Link-Funktion dar, die eine transformierte Version der interessanten Wahrscheinlichkeit, linear durch die Prädiktoren darstellen lässt. Die $odds$ und $p$ sind dann nur Retransformationen, die aus der Link-Funktion resultieren. Einige Wiederholungen zu Exponenten- oder Logarithmusregeln können Sie am Anfang der [Sitzung zu exponentiellem Wachstum aus dem Bachelor](/post/nichtlineare-regression) nachlesen.
 
 
 ### Generalisiertes Lineares Modell: Logistische Regressionsanalyse
 
-### Hypothese 1: Depression als Prädiktor
-Für die erste Hypothese müssen wir den Einfluss des des Depressionsscores auf die Überlebenswahrscheinlichkeit bestimmen. Dafür wollen wir eine logistische Regressionsanlyse durchführen. In dieser werden die Residuen nicht länger als normalverteilt angenommen, sondern die AV wird als (bedingt) binomialverteilt modelliert. Wir nennen das Modell `glm_model`, da wir uns im Generalisierten Linearen Model bewegen. Die Funktion `glm` übernimmt für uns die richtige Transformation, nämlich den Logit als Link-Funktion, indem wir noch das Zusatzargument `family = "binomial"` festlegen. Die Binomialverteilung ist gerade jene Verteilung, die beschreibt, wie häufig bei $n$ Versuchen Erfolg eintritt (also genau die richtige Verteilung für unser Modell!).
+#### Fragestellung 1: Depression als Prädiktor
+Für die erste Hypothese müssen wir den Einfluss des Depressionsscores auf die Wahrscheinlichkeit der Drogenabhängigkeit bestimmen. Dafür wollen wir eine logistische Regressionsanlyse durchführen. In dieser werden die Residuen nicht länger als normalverteilt angenommen, sondern die AV wird als (bedingt) binomialverteilt modelliert. Wir nennen das Modell `glm_model`, da wir uns im Generalisierten Linearen Model bewegen. Die Funktion `glm` übernimmt für uns die richtige Transformation, nämlich den Logit als Link-Funktion, indem wir noch das Zusatzargument `family = "binomial"` festlegen. Die Binomialverteilung ist gerade jene Verteilung, die beschreibt, wie häufig bei $n$ Versuchen Erfolg eintritt (also genau die richtige Verteilung für unser Modell!).
 
 ```{r}
 glm_model <- glm(ANYDUMMY ~ 1 + Depression_lvl, family = "binomial", data = osf)
@@ -151,49 +137,42 @@ summary(glm_model)
 Der Output der Summary unterscheidet sich geringfügig von der der normalen Regressionsanalyse:
 
 ```{r, echo = F}
-cat('
- Call:
- glm(formula = survived ~ 1 + age, family = "binomial", data = Titanic)
+output <- capture.output(summary(glm_model))
 
- Deviance Residuals: 
-     Min       1Q   Median       3Q      Max  
- -1.1488  -1.0361  -0.9544   1.3159   1.5908')
+cat(paste(output[1:8], collapse = "\n"))
 ```
 
-zeigt uns, dass wir kein `lm`-Objekt sondern ein `glm`-Objekt vor uns haben. Außerdem werden uns dieses Mal `Deviance Residuals` angezeigt anstatt normale Residuen. Das Schätzverfahren ist ein anderes. Es wird nicht das Kleinste-Quadrate-Verfahren angewandt, sondern die Maximum-Likelihood-Schätzmethode (ML).
+zeigt uns, dass wir kein `lm`-Objekt sondern ein `glm`-Objekt vor uns haben. Außerdem werden uns dieses Mal `Deviance Residuals` angezeigt anstatt normale Residuen. Mit der Bedeutung dieser Residuen werden wir uns im Rahmen des Seminars nicht auseinandersetzen. Das Schätzverfahren ist ein anderes. Es wird nicht das Kleinste-Quadrate-Verfahren angewandt, sondern die Maximum-Likelihood-Schätzmethode (ML).
 
 ```{r, echo = F}
-cat('
- Coefficients:
-              Estimate Std. Error z value Pr(>|z|)
- (Intercept) -0.05672    0.17358  -0.327   0.7438  
- age         -0.01096    0.00533  -2.057   0.0397 *
- ---
- Signif. codes:  0 \'***\' 0.001 \'**\' 0.01 \'*\' 0.05 \'.\' 0.1 \' \' 1')
+cat(paste(output[9:18], collapse = "\n"))
 ```
 
-Der Überblick über die (ML-)Parameterschätzung unterscheidet sich kaum von der normalen Regression. Lediglich die $t$-Werte werden durch $z$-Werte ersetzt. Die Idee hinter der Signifikanzentscheidung ist aber komplett identisch (außerdem geht die $t$-Verteilung für große $n$ in die $z$-(Standardnormal-)Verteilung über). Hier scheint sich ein signifikanter Effekt des Alters zu zeigen.
+
+Der Überblick über die (ML-)Parameterschätzung unterscheidet sich kaum von der normalen Regression. Lediglich die $t$-Werte werden durch $z$-Werte ersetzt. Die Idee hinter der Signifikanzentscheidung ist aber komplett identisch (außerdem geht die $t$-Verteilung für große $n$ in die $z$-(Standardnormal-)Verteilung über). Hier scheint sich ein signifikanter Effekt des Depressionsscores zu zeigen.
 
 ```{r, echo = F}
-cat('     Null deviance: 964.52  on 713  degrees of freedom
- Residual deviance: 960.23  on 712  degrees of freedom
- AIC: 964.23
-
- Number of Fisher Scoring iterations: 4')
+cat(paste(output[19:24], collapse = "\n"))
 ```
 
-In diesem Abschnitt werden die Devianzen angezeigt. Diese beschreiben gerade die Log-Likelihooddifferenz zum saturierten Modell (also de facto die Abweichung des Modells zu den Daten). Die `Null deviance` beschreibt hier den Unterschied eines Modells ohne Prädiktoren zu den Daten. Dieses hat hier `713` Freiheitsgrade. Unter `Residual deviance` wird nun die Devianz unseres angenommenen Modells verstanden. Da wir einen Prädiktor mit in das Modell aufgenommen haben (das Alter), geht ein Freiheitsgrad für diesen Parameter verloren, weswegen die Residualdevianz hier `712` Freiheitsgrade hat (siehe bspw. [Eid, et al., 2017,](https://hds.hebis.de/ubffm/Record/HEB366849158) Kapitel 22.8 und insbesondere Seiten 823-824). Der AIC (Akaike's Information Criterion) unseres Modells liegt bei ` AIC: 964.23`. Mit Hilfe dieses AICs können auch nicht geschachtelte Modelle sowie Modelle mit unterschiedlichen Annahmen verglichen werden. Eine Signifikanzentscheidung ist allerdings nicht möglich (siehe bspw. [Eid, et al., 2017,](https://hds.hebis.de/ubffm/Record/HEB366849158) Seite 750). `Number of` `Fisher Scoring` `iterations: 4` gibt an, wie lange der Fisher-Scoring-Algorithmus gebraucht hat, um die Standardfehler zu bestimmen. Dies kann Auskunft über mögliche Konvergenzschwierigkeiten liefern. Hier ist ein Wert von 4 aber sehr niedrig!
+In diesem Abschnitt werden die Devianzen angezeigt. Diese beschreiben gerade die Log-Likelihooddifferenz zum saturierten Modell (also de facto die Abweichung des Modells zu den Daten). Die `Null deviance` beschreibt hier den Unterschied eines Modells ohne Prädiktoren zu den Daten. Dieses hat hier `r glm_model$df.null` Freiheitsgrade. Unter `Residual deviance` wird nun die Devianz unseres angenommenen Modells verstanden. Da wir einen Prädiktor mit in das Modell aufgenommen haben (Depressionsscore), geht ein Freiheitsgrad für diesen Parameter verloren, weswegen die Residualdevianz hier `r glm_model$df.residual` Freiheitsgrade hat (siehe bspw. [Eid, et al., 2017,](https://hds.hebis.de/ubffm/Record/HEB366849158) Kapitel 22.8 und insbesondere Seiten 823-824). Der AIC (Akaike's Information Criterion) unseres Modells liegt bei `r round(glm_model$aic,0)`. Mit Hilfe dieses AICs können auch nicht geschachtelte Modelle sowie Modelle mit unterschiedlichen Annahmen verglichen werden. Eine Signifikanzentscheidung ist allerdings nicht möglich (siehe bspw. [Eid, et al., 2017,](https://hds.hebis.de/ubffm/Record/HEB366849158) Seite 750). `r cat(paste(output[24:24], collapse = "\n"))` gibt an, wie lange der Fisher-Scoring-Algorithmus gebraucht hat, um die Standardfehler zu bestimmen. Dies kann Auskunft über mögliche Konvergenzschwierigkeiten liefern. Hier ist ein Wert von `r glm_model$iter` aber sehr niedrig!
 
 
 
 #### Fazit der Analyse
-Der Effekt des Alters ist statistisch signifikant. Wir haben dieses Mal ein sinnvolleres Modell eingesetzt, was bedeutet, dass wir den Ergebnissen eher trauen können. Insgesamt stützen die Daten unsere erste Hypothese. Allerdings ist dieser Effekt sehr klein (dazu später mehr, wenn wir zur Ergebnisinterpretation und zur Einordnung der Koeffizienten kommen). Wenn wir den Wertebereich entlang der x-Achse sehr/unrealistisch groß wählen und das Alter von -500 bis 500 laufen lassen, so können wir uns die linearen und nichtlinearen Beziehungen zwischen Alter und Logit und Alter und Odds und Wahrscheinlichkeit ansehen, andernfalls ist der Effekt so klein, dass wir kaum etwas erkennen. `m_age$coefficients[1] +` `m_age$coefficients[2]*AltersWerte` ist hierbei die Formel für den Logit, da die Parameterschätzungen einfach die $\beta$-Koeffizienten sind, welche linear verknüpft den Logit ergeben. Wir könnten hier auch mit `predict` arbeiten, um die vorhergesagten Werte des Logit dieser Analyse zu erhalten -- allerdings nur für jede Person und nicht für ein hypothetisches Alter von -500 bis 500. Glücklicherweise sind Logit, Odds und Wahrscheinlichkeit sehr leicht ineinander überführbar:
+Der Effekt des Despressionsscores ist statistisch signifikant. Wir haben dieses Mal ein sinnvolleres Modell eingesetzt, was bedeutet, dass wir den Ergebnissen eher trauen können. Insgesamt stützen die Daten unsere erste Hypothese. Allerdings ist dieser Effekt sehr klein (dazu später mehr, wenn wir zur Ergebnisinterpretation und zur Einordnung der Koeffizienten kommen). Wenn wir den Wertebereich entlang der x-Achse sehr/unrealistisch groß wählen und das Alter von -20 bis 60 laufen lassen, so können wir uns die linearen und nichtlinearen Beziehungen zwischen Depressionsscore - Logit, Depressionsscore - Odds und Depressionsscore - Wahrscheinlichkeit ansehen, andernfalls ist der Effekt so klein, dass wir kaum etwas erkennen. `glm_model$coefficients[1] + glm_model$coefficients[2]*Depressionswerte` ist hierbei die Formel für den Logit, da die Parameterschätzungen einfach die $\beta$-Koeffizienten sind, welche linear verknüpft den Logit ergeben. 
 
 ```{r}
 Depressionswerte <- seq(-20, 60, 0.1)
 logit <- glm_model$coefficients[1] + glm_model$coefficients[2]*Depressionswerte 
 plot(x = Depressionswerte, y = logit, type = "l", col = "blue", lwd = 3)
+```
 
+`type = "l"` fordert eine Linie anstatt von Punkten an, `lwd = 3` sagt, dass diese Linie dreimal so dick wie der Default sein soll und `col = "blue"` sagt, dass die Linie blau sein soll.
+
+Glücklicherweise sind Logit, Odds und Wahrscheinlichkeit sehr leicht ineinander überführbar. Für die Berechnung der Odds muss nur die Funktion `exp` auf die Logit-Werte angewendet werden, während die Wahrscheinlichkeit die Odds geteilt durch eins plus Odds ist.
+
+```{r}
 odds <- exp(logit)
 plot(x = Depressionswerte, y = odds, type = "l", col = "blue", lwd = 3)
 
@@ -201,45 +180,30 @@ p <- odds/(1 + odds)
 plot(x = Depressionswerte, y = p, type = "l", col = "blue", lwd = 3)
 ```
 
-`type = "l"` fordert eine Linie anstatt von Punkten an, `lwd = 3` sagt, dass diese Linie dreimal so dick wie der Default sein soll und `col = "blue"` sagt, dass die Linie blau sein soll. Wir erkennen in allen drei Plots die negative Beziehung zwischen Überleben und Alter. Der Logit ist eine lineare Funktion (Wertebereich [$-\infty$,$\infty$]). Somit steigt (bzw. sinkt) der Logit um $\beta_1$, wenn der Prädiktor (hier Alter) um eine Einheit erhöht wird. Die Odds sind eine Exponentialfunktion (Wertebereich [0,$\infty$]) und bei der Wahrscheinlichkeit handelt es sich um eine sogenannte Ogive (Wertebereich [0,1]). Die Odds steigen (bzw. sinken) um den Faktor $e^{\beta_1}$ (auch Odds-Ratio genannt), wenn der Prädiktor (hier Alter) um eine Einheit erhöht wird - die Beziehung zwischen Odds und Prädiktor ist somit multiplikativ! Wir schauen uns die Parameterinterpretation der Odds im nächsten Abschnitt genauer an. Wie sich die Wahrscheinlichkeit verändert, ist nicht pauschal zu sagen. Diese Veränderung hängt von der Ausprägung des Prädiktors ab und lässt sich nicht durch eine einzige Zahl quantifizieren. Wir erkennen aber, dass die Ogive erst deutlich nach einem Alter von Null nach links laufend flacher gegen 1 geht. Im Intervall von 0 bis 80 (also realistischem Alter) ist die Wahrscheinlichkeit zu überleben kleiner als 50% und fallend mit dem Alter. In [Appendix A](#AppendixA) haben Sie die Möglichkeit, spielerisch die Einflüsse der Parameter in der logistischen Regression kennen zu lernen.
+Wir erkennen in allen drei Plots die positive Beziehung zwischen Drogenabhängigkeit und Depressionsscore. Der Logit ist eine lineare Funktion (Wertebereich [$-\infty$,$\infty$]). Somit steigt (bzw. sinkt) der Logit um $\beta_1$, wenn der Prädiktor (hier Depressionsscore) um eine Einheit erhöht wird. Die Odds sind eine Exponentialfunktion (Wertebereich [0,$\infty$]) und bei der Wahrscheinlichkeit handelt es sich um eine sogenannte Ogive (Wertebereich [0,1]). Die Odds steigen (bzw. sinken) um den Faktor $e^{\beta_1}$ (auch Odds-Ratio genannt), wenn der Prädiktor (hier Depressionsscore) um eine Einheit erhöht wird - die Beziehung zwischen Odds und Prädiktor ist somit multiplikativ! Wir schauen uns die Parameterinterpretation der Odds im nächsten Abschnitt genauer an. Wie sich die Wahrscheinlichkeit verändert, ist nicht pauschal zu sagen. Diese Veränderung hängt von der Ausprägung des Prädiktors ab und lässt sich nicht durch eine einzige Zahl quantifizieren. Wir erkennen aber, dass die Ogive erst nach einem Depressionsscore von Null nach links laufend flacher gegen 0 geht. Im Intervall von 0 bis 9 (also möglichen Depressionsscores) ist die Wahrscheinlichkeit der Drogenabhängigkeit kleiner als 20% und steigend mit dem Depressionsscore. In [Appendix A](#AppendixA) haben Sie die Möglichkeit, spielerisch die Einflüsse der Parameter in der logistischen Regression kennen zu lernen.
 
-### Hypothese 2
-Nun wollen wir das Geschlecht mit in unser Modell aufnehmen und somit Hypothese 2 untersuchen. Da das Geschlecht hier auch nur 2 Ausprägungen hat, kann dieser Effekt als Vergleich zwischen Gruppen verstanden werden. Intern wird dann mit "Dummy"-Variablen gerechnet. Wir können sicher gehen, dass mit "Dummy"-Variablen gerechnet wird (dies ist analog dazu, dass wir das Geschlecht mit 0 und 1 kodieren, anstatt 1 und 2 - so wie wir dies in den anderen Sitzungen getan hatten!), indem wir `R` sagen, dass es sich bei der Variable Geschlecht um einen "Faktor" handelt, der Gruppenzugehörigkeit symbolisiert. Wir können prüfen, ob diese Variable ein Faktor ist, indem wir `is.factor` auf die Variable `sex` anwenden.
-
-```{r}
-is.factor(osf$GENDER_R)
-```
-Es scheint sich also um einen Faktor zu handeln. Falls dies nicht der Fall gewesen wäre, so hätten wir `as.factor` auf die Variable anwenden können. Wäre das Geschlecht über Strings kodiert (bspw. "m" und "w"), so würde `R` dies automatisch in einen Faktor umwandeln, sobald es in einem Modell als Variable verwendet wird. Mit der Funktion `table` erhalten wir einen Überblick über die Kombination an Überlebenden und dem Geschlecht.
+### Fragestellung 2: Geschlecht als Prädiktor
+Nun wollen wir das Geschlecht mit in unser Modell aufnehmen und somit Hypothese 2 untersuchen. Da das Geschlecht hier auch nur 2 Ausprägungen hat, kann dieser Effekt als Vergleich zwischen Gruppen verstanden werden. Diese Dummy-Variable haben wir zu Beginn schon als Faktor festgelegt. Mit der Funktion `table` erhalten wir einen Überblick über die Kombination an Frogenabhängigkeit und dem Geschlecht.
 
 ```{r}
 table(osf$GENDER_R, osf$ANYDUMMY)
 ```
 
-In der Tabelle wird entlang der Spalten das Geschlecht vs. der Überlebensstatus in den Zeilen abgetragen. Dieser Tabelle ist zu entnehmen, dass der relative Anteil an Frauen, die das Unglück überlebt haben, höher ist als der der Männer: 197 vs. 64 für die Frauen und 93 vs. 360 für die Männer. Auch absolut gesehen haben mehr Frauen das Unglück überlebt. Folglich würden wir einen Geschlechtereffekt erwarten. Diese 4-Feldertafel könnten wir auch heranziehen, um einen $\chi^2$-Unabhängigkeitstest durchzuführen. Wir wollen aber den Effekt des Geschlechts über das Alter hinaus auf die Überlebenswahrscheinlichkeit des Titanicunglücks modellieren:
+In der Tabelle wird entlang der Spalten die Drogenabhängigkeit vs. das Geschlecht in den Zeilen abgetragen. Dieser Tabelle ist zu entnehmen, dass der relative Anteil an Männerr, die unter einer Abhängigkeit leiden, höher ist als der der Frauen: `r table(osf$GENDER_R, osf$ANYDUMMY)[2,2]` vs. `r table(osf$GENDER_R, osf$ANYDUMMY)[2,1]` für die Männer und `r table(osf$GENDER_R, osf$ANYDUMMY)[1,2]` vs. `r table(osf$GENDER_R, osf$ANYDUMMY)[1,1]` für die Frauen. Auch absolut gesehen leiden mehr Männer unter einer Abhängigkeit. Da die Unterschiede aber recht klein sind, ist ein Geschlechtereffekt erstmal fraglich. Diese 4-Feldertafel könnten wir auch heranziehen, um einen $\chi^2$-Unabhängigkeitstest durchzuführen. Wir wollen aber den Effekt des Geschlechts über den Depressionsscore hinaus auf die Wahrscheinlichkeit der Drogenabhängigkeit modellieren:
 
 ```{r}
 glm_model2 <-  glm(ANYDUMMY ~ 1 + Depression_lvl + GENDER_R, family = "binomial", data = osf)
 summary(glm_model2)
 ```
 
-Das besondere an diesem Output ist, dass bei der Variable Geschlecht eine kleine `1` dahinter steht:
+Das Besondere an diesem Output ist, dass bei der Variable Geschlecht noch `maennlich` dahinter steht:
 
 ```{r, echo = F}
-cat(' Coefficients:
-              Estimate Std. Error z value Pr(>|z|)
- (Intercept) -1.188647   0.222432  -5.344  9.1e-08 ***
- age         -0.005426   0.006310  -0.860     0.39    
- sex1         2.465920   0.185384  13.302  < 2e-16 ***')
+output <- capture.output(summary(glm_model2))
+cat(paste(output[9:19], collapse = "\n"))
 ```
 
-Dies gibt an, dass hier dummy-kodiert wurde und der Effekt von 1 (Frauen) im Vergleich zur Referenzgruppe (also 2, der Männer) dargestellt ist. Wir bekommen einen Überblick über die Kodierung, indem wir entweder die Variable Geschlecht ansehen oder die Funktion `levels` auf das Geschlecht anwenden:
-
-```{r}
-osf$GENDER_R
-levels(osf$GENDER_R)
-```
-
-Bei ersterer Wahl wird, nachdem alle Ausprägungen ausgegeben wurden, `## Levels: 2 1` dargestellt. Dies ist der gleiche Output, den auch die Funktion `levels` erzeugt. Er ist folgendermaßen zu verstehen: es gibt hier zwei Faktoren/Gruppenzugehörigkeiten/Kategorien, wobei der Faktor mit dem Namen 2 (also die Männer) als Referenz für die Kodierung verwendet wird. Somit sind alle Effekt immer im Vergleich zur Referenzkategorie zu interpretieren. Mit Hilfe von `relevel` könnten wir die Referenzkategorie ändern und dann der Variable erneut zuordnen via `Titanic$sex_relevel <-` `relevel(Titanic$sex, ref = "1")` (hier würde eine neue Variable mit mit dem Namen `sex_relevel` dem Datensatz angehängt werden, in welchem die Frauen die Referenzkategorie darstellen würden).
+Dies gibt an, dass hier dummy-kodiert wurde und der Effekt von 1 (maennlich) im Vergleich zur Referenzgruppe (also 0, weiblich) dargestellt ist. 
 
 #### Ergebnisinterpretation
 Die $\beta$-Gewichte zu interpretieren, hat wenig inhaltliche Aussagekraft. Wir könnten bspw. für das Geschlecht lediglich die Aussage treffen, dass (unter Konstanthaltung aller weiteren Prädiktoren im Modell), wenn Frauen im Vergleich zu Männern betrachtet werden, der Logit (der Überlebenswahrscheinlichkeit) um 2.46 steigt. Wenn wir allerdings anstatt des Logits die Odds heranziehen, so können wir mit Hilfe des Odds-Ratio doch eine Aussage über die Überlebenswahrscheinlichkeit treffen. Dazu müssen wir die $\beta$-Gewichte transformieren via $e^\beta$:
@@ -348,6 +312,28 @@ Sie führen diese Funktion aus, indem Sie alles von `Logistic_functions <- funct
 
 ```{r, fig.height=7}
 Logistic_functions(beta0 = 1, beta1 = -.5)
+```
+
+</details>
+
+### Appendix B {#AppendixB}
+
+<details><summary>**Fortgeschrittene Grafiken**</summary>
+
+Zunächst beschäftigen wir uns mit den beiden Grafiken, die die Residuen der linearen Regression zwischen Depressionsscore und Drogenabhängigkeit betrachten. Für den ersten Plot benötigen wir das Paket `car`.
+```{r, message=F, warning=F}
+library(car) # nötiges Paket laden
+avPlots(model = reg_model, pch = 16)
+```
+
+Für die Erstellung des zweiten Plots muss das Paket `MASS` aktiviert sein.
+
+```{r, message=F, warning=F}
+library(MASS)# nötiges Paket laden
+res <- studres(reg_model) # Studentisierte Residuen als Objekt speichern
+hist(res, freq = F)
+xWerte <- seq(from = min(res), to = max(res), by = 0.01)
+lines(x = xWerte, y = dnorm(x = xWerte, mean = mean(res), sd = sd(res)), lwd = 3)
 ```
 
 </details>
