@@ -51,7 +51,7 @@ Absolut | absoluter Wert | Identität | ... | ... |
 
 ## Vorbereitende Schritte
 
-Den Datensatz haben wir bereits über diesen Link heruntergeladen [hier <i class="fas fa-download"></i> herunterladen](/post/fb21.rda) oder Sie können Ihn direkt mittels Link einladen.
+Den Datensatz haben wir bereits über diesen [<i class="fas fa-download"></i> Link heruntergeladen](/post/fb21.rda) und können ihn über den lokalen Speicherort einladen oder Sie können Ihn direkt mittels des folgenden Befehls aus dem Internet in das Environment bekommen:
 
 ```{r}
 load(url('https://pandar.netlify.app/post/fb21.rda'))  # Daten laden
@@ -59,7 +59,6 @@ names(fb21)        # Namen der Variablen
 dim(fb21)          # Anzahl Zeile und Spalten
 ```
 
-Vor dem Start des Skripts muss er natürlich wieder in unser Environment eingeladen werden.
 
 
 ***
@@ -76,7 +75,7 @@ Vor dem Start des Skripts muss er natürlich wieder in unser Environment eingela
 ### Konstruierte mindestens intervallskalierte Variablen
 
 * Fragebogendaten werden meist ordinalskaliert erhoben (einzelne Items)
-* Um Intervallskalenniveau zu erreichen werden Items zu Skalenwerten verrechnet (Summe oder Mittelwert)
+* Um Intervallskalenniveau zu erreichen, werden Items zu Skalenwerten verrechnet (Summe oder Mittelwert)
 * Erzeugt viele mögliche Ausprägungen und wird als intervallskaliert behandelt
 
 
@@ -194,26 +193,26 @@ $s^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n}$
 
 $\hat{\sigma}^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n - 1}$
 
-Ein enger Zusammenhang zwischen Populationsvarianz und empirischer Varianz ist bereits nur durch Ansicht der Formeln erkenntlich. Eine Erklärung über diesen wird es erst im weiteren Verlauf der Vorlesung geben. Wir wollen uns nun darauf konzentrieren, wie man technisch den Wert, den wir durch `var()` erhalten, für unsere Zwecke nutzen können.
+Ein enger Zusammenhang zwischen Populationsvarianz und empirischer Varianz ist bereits nur durch Ansicht der Formeln erkenntlich. Eine Erklärung über diesen wird es erst im weiteren Verlauf der Vorlesung geben. Wir wollen uns nun darauf konzentrieren, wie wir technisch den Wert, den wir durch `var()` erhalten, für unsere Zwecke nutzen können.
 
-Um in R die empirische Varianz mithilfe der `var()`-Funktion zu berechnen, kann man die Populationsvarianz nutzen. Multipliziert man sie mit $\frac{n - 1}{n}$ erhält man die empirische Varianz.
+Um in R die empirische Varianz mithilfe der `var()`-Funktion zu berechnen, kann man die Populationsvarianz nutzen. Multipliziert man sie mit $\frac{n - 1}{n}$, erhält man die empirische Varianz.
 
 ```{r}
 # Umrechnung der Varianzen
 var(fb21$lz, na.rm = TRUE) * (nrow(fb21) - 1) / nrow(fb21)
 ```
 
-Achtung! Dies funktioniert in unserem Fall wieder nicht, da die Verwendung von `nrow(fb21)`  - wie oben bereits angemerkt - nicht sinnvoll ist: `nrow(fb21)` ist nicht gleich n (eine Person hat einen fehlenden Wert), daher besser:
+Achtung! Dies funktioniert in unserem Fall wieder nicht, da die Verwendung von `nrow(fb21)`  - wie oben bereits angemerkt - nicht sinnvoll ist: `nrow(fb21)` ist nicht gleich n (es kommt `NA` `r sum(is.na(fb21$lz))` Mal vor), daher besser:
 
 ```{r}
 # Umrechnung der Varianzen
 var(fb21$lz, na.rm = TRUE) * (length(na.omit(fb21$lz)) - 1) / (length(na.omit(fb21$lz)))
 ```
 
-Alternativ:
+Alternativ, wenn man die fehlenden Werte händisch abzieht:
 ```{r}
 # Umrechnung der Varianzen
-var(fb21$lz, na.rm = TRUE) * (96 - 1) / 96
+var(fb21$lz, na.rm = TRUE) * (112 - 1) / 112
 ```
 
 
@@ -249,11 +248,11 @@ In der Vorlesung haben Sie gelernt, dass eine Variable zentriert oder standardis
 ```{r}
 # Zentrierung
 lz_c <- fb21$lz - mean(fb21$lz, na.rm = TRUE)
-head(lz_c)
+head(lz_c)    # erste 6 zentrierte Werte
 
 # Standardisierung
 lz_z <- lz_c / sd(fb21$lz, na.rm = TRUE)
-head(lz_z)
+head(lz_z)    # erste 6 standardisierte Werte
 ```
 
 ...oder mit Hilfe bereits existierender Funktionen:
@@ -278,19 +277,15 @@ lz_c <- scale(fb21$lz,
 
 ### Positive & Negative Items
 
-Viele Fragebögen enthalten sowohl positiv als auch negativ forumulierte Items
+Viele Fragebögen enthalten sowohl positiv als auch negativ formulierte Items,
 
 * ...um die Befragung abwechslungsreich zu gestalten
 * ...um das psychologische Konstrukt umfassender zu erheben
 * ...um Antworttendenzen leichter identifizieren zu können
 
-Vor der Skalenbildung müssen alle Items in eine Richtung gebracht werden:
-**Rekodierung**
+Vor der Skalenbildung müssen alle Items in eine Richtung gebracht werden: Das wird auch als **Rekodierung** bezeichnet.
 
 **Beispiel: Fragebogen zur Prokrastionationstendenz**
-
-
-
 
 * Skala soll bei hohen Werten höhere Prokrastinationstendenz darstellen    
 * Negativ formulierte Items müssen invertiert werden    
@@ -302,8 +297,8 @@ Vor der Skalenbildung müssen alle Items in eine Richtung gebracht werden:
 **Variante 1: Lineare Transformation**
 ```{r}
 fb21$prok2_r <- -1 * (fb21$prok2 - 5)
-head(fb21$prok2)
-head(fb21$prok2)
+head(fb21$prok2)     # erste 6 Werte ohne Transformation
+head(fb21$prok2_r)   # erste 6 Werte mit Transformation
 ```
 
 * Allgemeine Form: $-1 \cdot (x_m - x_{\max} - 1)$   
@@ -326,7 +321,7 @@ head(fb21$prok3_r)
 
 * Durch logische Filter Personen auswählen, die auf Originalvariable den relevanten Wert haben  
 * Auf rekodierter Variable neuen Wert zuweisen  
-* Vorteil: extrem fexibel, jede Transformation möglich  
+* Vorteil: extrem flexibel, jede Transformation möglich  
 * Nachteil: umständlich zu schreiben  
 
 Um Code zu sparen, invertieren wir also die restlichen Items mittels der linearen Transformation.
