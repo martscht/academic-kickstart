@@ -17,7 +17,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer]
-lastmod: '2021-10-08T16:40:21+02:00'
+lastmod: '2021-11-02T16:40:21+02:00'
 featured: no
 header:
   image: "/header/FEI_Sitzung0_post.jpg"
@@ -250,6 +250,7 @@ abline(a = 1, b = 0, lwd = 3)
 Wir sehen sehr deutlich, dass die Teststatistik $T$ deutlich nach rechts verschoben ist und nicht mehr zur theoretischen Verteilung unter der $H_0$-Hypothese passt. Auch die $p$-Werte sind alles andere als gleichverteilt. Folglich sprechen extreme $t$-Werte gegen die Null-Hypothese, weswegen wir diese verwerfen, wenn wir einen extremen Wert beobachten. Hier liegen `r round(mean(ps < 0.05)*100,2)`% der $p$-Werte unterhalb von $0.05$. Dies wird auch als **Power** (siehe im Kapitel 8 in [Eid, et al., 2017](https://hds.hebis.de/ubffm/Record/HEB366849158) Wiederholungen der Begriffe Power und $\alpha$-Fehler) bezeichnet. Somit hat der $t$-Test für eine Mittelwertsdifferenz von $d$=.1 und eine Stichprobengröße von insgesamt n = 2000 eine Power von rund `r round(mean(ps < 0.05)*100,2)`%. Dies bedeutet, dass in diesem Fall die $H_0$ in `r round(mean(ps < 0.05)*100,2)`% der Fälle richtigerweise verworfen wird. Schauen wir uns die Power der $t$-Tests einmal für verschiedene Stichprobengröße ($n$) und Mittelwertsdifferenzen ($d$) an:
 
 ```{r, echo = F, fig.align="center", fig.height=10, fig.width=10}
+ps_null <- ps
 load(url("https://github.com/jpirmer/MSc1_FEI/blob/master/data/Erg.RData?raw=true"))
 library(papaja)
 library(ggplot2)
@@ -266,7 +267,34 @@ Die horizontal gepunktete Linie zeigt eine Power von 5% (also das vorgegebene $\
 
 Wir sehen sehr deutlich, dass für alle Stichprobengrößen (farblich kodiert) von $n=2$ bis $n=1000$ (pro Gruppe) die Power bei einer Mittelwertsdifferenz von 0 gerade bei ca. 5% liegt. Die Mittelwertsdifferenz von 0 beschreibt gerade die Null-Hypothese, dass es keinen Mittelwertsunterschied gibt. In diesem Fall beobachten wir den $\alpha$-Fehler dieses Tests, nämlich die Wahrscheinlichkeit, zufällig die Null-Hypothese zu verwerfen, obwohl diese gilt. Die Power von 5% war somit zu erwarten, da dies gerade das $\alpha$-Niveau dieses Tests ist (welches wir uns auch vorher so vorgegeben haben). In der Regel wird $\alpha = .05$ gewählt. 
 
-Was wir auch erkennen ist, dass für sehr große Stichproben die Power dieses Tests schon für sehr kleine Mittelwertsdifferenzen groß ist (idealerweise sprechen Methodiker von einem Test mit hinreichender Power, wenn diese größer als 80% ist). Dieses Beispiel zeigt sehr schön auf, dass damit die Power (also die Wahrscheinlichkeit einen Effekt zu finden, wenn dieser da ist) hoch ist, es einen Effekt geben muss (was sehr trivial klingt und es eigentlich auch ist) und zudem die Stichprobengröße hinreichend groß sein muss. Mit hinreichend groß hält sich der/die Statistiker/in die Hintertür offen zu sagen, dass: a) im Falle eines kleinen Effekts die Stichprobengröße eben sehr groß sein muss, um diesen zu erkennen und b) bei Vorliegen eines sehr großen Effekts schon eine kleine Stichprobengröße ausreicht, um den Effekt mit hinreichender Wahrscheinlichkeit auch als solchen zu identifizieren. Das ist auch der Grund, warum es *Poweranalysen* gibt, mit welchen bestimmt werden kann, wie groß die Stichprobengröße sein muss, um bei einem vorgegebenem erwarteten Effekt hinreichende Power zu haben, diese auch zu entdecken. Für sehr einfache Tests gibt es auch geschlossene Formeln, um bspw. Stichprobengröße zu finden, mit welcher vorgegebene Effekte mit hinreichend großer Wahrscheinlichkeit aufgedeckt werden können.
+Was wir auch erkennen ist, dass für sehr große Stichproben die Power dieses Tests schon für sehr kleine Mittelwertsdifferenzen groß ist (idealerweise sprechen Methodiker von einem Test mit hinreichender Power, wenn diese größer als 80% ist). Dieses Beispiel zeigt sehr schön auf, dass damit die Power (also die Wahrscheinlichkeit einen Effekt zu finden, wenn dieser da ist) hoch ist, es einen Effekt geben muss (was sehr trivial klingt und es eigentlich auch ist) und zudem die Stichprobengröße hinreichend groß sein muss. Mit hinreichend groß hält sich der/die Statistiker/in die Hintertür offen zu sagen, dass: a) im Falle eines kleinen Effekts die Stichprobengröße eben sehr groß sein muss, um diesen zu erkennen und b) bei Vorliegen eines sehr großen Effekts schon eine kleine Stichprobengröße ausreicht, um den Effekt mit hinreichender Wahrscheinlichkeit auch als solchen zu identifizieren. Das ist auch der Grund, warum es *Poweranalysen* gibt, mit welchen bestimmt werden kann, wie groß die Stichprobengröße sein muss, um bei einem vorgegebenem erwarteten Effekt hinreichende Power zu haben, diese auch zu entdecken. Für sehr einfache Tests gibt es auch geschlossene Formeln, um bspw. Stichprobengröße zu finden, mit welcher vorgegebene Effekte mit hinreichend großer Wahrscheinlichkeit aufgedeckt werden können. Eines dieser Pakete ist das `pwr` Paket. Mit diesem können wir die oben dargestellte Grafik auch ohne Simulation (nur mit Formeln) erstellen (um das Ganze übersichtlicher zu gestalten, sind hier mehr Stichprobengrößen abgetragen, allerdings werden nur Stichproben von 2 bis 500 im Plot integriert):
+
+```{r, echo = F,fig.align="center", fig.height=10, fig.width=10}
+library(pwr)
+Erg <- c()
+for(n in c(2, seq(5, 500, 5)))
+{
+     d = seq(-1,1,0.02)   
+     temp <- pwr.t.test(n = n, d = d)
+     Erg <- rbind(Erg, cbind(temp$power, d, n))
+     
+}
+Erg <- data.frame(Erg)
+names(Erg) <- c("Power", "d", "n")
+
+library(papaja)
+library(ggplot2)
+ggplot(data = Erg, aes(x = d, y = Power, col = n, group = n))+
+     geom_line(lwd=1)+
+     geom_abline(slope = 0,intercept = .05, lty = 3)+
+     geom_abline(slope = 0,intercept = .8, lty = 2) + 
+     scale_colour_gradientn(colours=rainbow(4))+
+     ggtitle("Power vs. d and n", subtitle = " Using formulas instead of simulation")+ theme_apa(base_size = 20)
+```
+
+Wir erkennen deutlich, wie "smooth" der Plot eigentlich aussehen sollte. Daran ist ersichtlich, dass unsere Simulation wesentlich mehr Wiederholung benötigt, um ein solches Bild abzugeben.
+
+Für Interessierte ist in [Appendix B](#AppendixB) ein kleiner Exkurs in `pwr` dargestellt. 
 
 ### Verstöße gegen die Modellannahmen
 Liegen andere Verstöße gegen die Modellannahmen vor, dann kann es fälschlicherweise zu signifikanten Ergebnissen kommen, obwohl es in der Population gar keinen Effekt gibt. Dies ist oft bei kleinen Stichproben ein Problem. Nehmen wir beispielsweise an, dass die beiden Gruppen sehr gegenläufig schief verteilt sind.
@@ -311,7 +339,7 @@ Insgesamt sieht die Verteilung der $T$-Werte einigermaßen in Ordnung, wenn auch
 
 Diese Sitzung sollte als Einführung in `R`, Vorbereitung für die Regressionssitzung und kleine Wiederholung einiger wichtiger inferenzstatistischer Begriffe (wie etwas $\alpha$-Fehler, Power, Hypothese etc.) fungieren. Wie wir Histogramme erstellen und Verteilungen vergleichen, erfahren wir in der nächsten Sitzung im Rahmen der Voraussetzungen der [Regressionsanalyse und Ausreißerdiagnostik](/post/regression-und-ausreisserdiagnostik).
 
-Eine Übersicht über Matrixalgebra in `R` erhalten Sie in [Appendix B](#AppendixB).
+Eine Übersicht über Matrixalgebra in `R` erhalten Sie in [Appendix C](#AppendixC).
 
 Eine schöne Einleitung in Plots in `R`, wie man diese erstellt, bearbeitet und abspeichert, können Sie in den Unterlagen aus dem Bachelor (PsyBsc2) zu [R Deskriptivstatistik](/post/r-deskriptiv) nachlesen, wenn Sie denn wollen.
 
@@ -451,6 +479,23 @@ Für jeweils 100 Erhebungen pro Gruppe ist der Verstoß gegen die Normalverteilu
 </details>
 
 ### Appendix B {#AppendixB} 
+
+<details><summary>**Poweranalysen: geschlossene Formeln**</summary>
+Für den $t$-Test lässt sich die Power auch über Formeln finden. Diese sind im `pwr`-Paket implementiert. Die Funktion `pwr.t.test` ist die Richtige. Sie nimmt zwei wichtige Argumente entgegen: `n` und `d`. Hierbei ist $n$ die Stichprobengröße und $d$ ist die Effektstärke nach Cohen:
+
+$$d:=\frac{|\mu_1-\mu_2|}{\sigma},$$
+wobei $\mu_1$ und $\mu_2$ die beiden Mittelwerte in den Gruppen sind und $\sigma$
+ ist die wahre Standardabweichung über die beiden Gruppen hinweg. Dadurch, dass bei uns die Varianz jeweils 1 in den Gruppen war, hatten wir durch Zufall auch oben die Effektstärke nach Cohen gewählt! Die Grafiken sind also durchaus vergleichbar. Wir schauen uns die Power von einer Effektstärke von 0.1 bei einer Stichprobengröße von 1000 an:
+ 
+```{r}
+ library(pwr)
+ pwr.t.test(n = 1000, d = 0.1)
+```
+Die Power liegt bei 0.6083, also bei 60.83%. Sie ist damit also gar nicht so verschieden zu unseren `r round(mean(ps_null < 0.05)*100,2)`%. Das liegt hier nun daran, dass die Stichproben sehr groß sind und damit die Asymptotik gut greift. Bei kleinen Stichproben sind sehr viele Replikationen nötig, damit die Power auch dort nahe der theoretischen Power liegt! Mehr Informationen zum `pwr`-Paket (bspw. Power von ANOVAs) finden sie [hier](https://www.statmethods.net/stats/power.html).
+
+</details>
+
+### Appendix C {#AppendixC} 
 
 <details><summary>**Matrixalgebra**</summary>
 
