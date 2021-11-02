@@ -126,7 +126,11 @@ hist(fb21$lz,
 
 ## Mittelwert
 
+Betrachten wir nun, wie ihn `R` das Maß der zentralen Tendenz für mindestens intervallskalierte Daten per Funktion bestimmt werden kann. In der Vorlesung haben Sie die Formel zur Bestimmung kennen gelernt.
+
 **Formel:** ${x} = \frac{\sum_{m = 1}^n x_m}{n} = \frac{1}{n} \sum_{m = 1}^n x_m$
+
+In `R` ist die Funktion zum Glück sehr intuitiv benannt. Dabei muss auch hier beachtet werden, dass fehlende Werte über `na.rm = T` ausgeschlossen werden
 
 ```{r}
 # Arithmetisches Mittel
@@ -135,7 +139,11 @@ mean(fb21$lz, na.rm = TRUE)
 
 ## Varianz
 
+Für die Varianz haben Sie in der Vorlesung folgende Formel kennen gelernt:
+
 **Formel:** $s^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n}$
+
+Wollen wir diese nun per Hand bestimmen, könnte folgender Code das für uns erledigen:
 
 ```{r}
 # Händische Varianzberechnung
@@ -175,7 +183,7 @@ sum((fb21$lz - mean(fb21$lz, na.rm = TRUE))^2, na.rm = TRUE) / (length(na.omit(f
 
 ## Verschiedene Varianzschätzer
 
-Folgendes Ergebnis liefert R, wenn wir die R-Funktion `var()` zur Berechnung der Varianz verwenden:
+Sie haben sich eventuell schon gewundert, warum wir eine so bekannten Wert wie die Varianz per Hand bestimmen müssen. Mit der ersten Intuition findet man bereits eine Funktion für die Berechenung `var`. Folgendes Ergebnis liefert R, wenn wir die R-Funktion `var()` zur Berechnung der Varianz verwenden:
 ```{r}
 # R-interne Varianzberechnung
 var(fb21$lz, na.rm = TRUE)
@@ -222,16 +230,25 @@ Auch bei der Standardabweichung bestimmt R den Populationsschätzer $\hat{\sigma
 
 $\hat{\sigma}_{X} = \sqrt{\hat{\sigma}^2_{X}} = \sqrt{\frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n - 1}}$
 
+
 ```{r}
 # Standardabweichung in R
 sd(fb21$lz, na.rm = TRUE) # Populationsschaetzer
 ```
 
+
 In der Vorlesung hingegen haben Sie die empirische Standardabweichung kennen gelernt.
 
 $s_{X} = \sqrt{s^2_{X}} = \sqrt{\frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n}}$
 
-Wir müssten das Ergebnis also wieder mit einem Faktor ($\sqrt{\frac{n - 1}{n}}$) multiplizieren, um die emprische Standardabweichung zu erhalten. Alternativ kann diese natürlich auch komplett händisch berechnet werden. Dafür können wir einfach den bereits geschriebenen Code für die empirische Varianz nehmen und aus dem Ergebnis die Wurzel ziehen.
+Wir müssten das Ergebnis also wieder mit einem Faktor ($\sqrt{\frac{n - 1}{n}}$) multiplizieren, um die emprische Standardabweichung zu erhalten. 
+
+```{r}
+# Umrechnung der Standardabweichung
+sd(fb21$lz, na.rm = TRUE) * sqrt((112 - 1) / 112)
+```
+
+Alternativ kann diese natürlich auch komplett händisch berechnet werden. Dafür können wir einfach den bereits geschriebenen Code für die empirische Varianz nehmen und aus dem Ergebnis die Wurzel ziehen.
 
 ```{r}
 # Händische Berechnung der empirischen Standardabweichung
@@ -334,15 +351,27 @@ fb21$prok8_r <- -1 * (fb21$prok8 - 5)
 
 ## Skalenwerte erstellen
 
-Skalenwerte werden zumeist als Summen oder Mittelwerte der Items erstellt
-
-**Skalenwert Prokrastinationstendenz**
+Skalenwerte werden zumeist als Summen oder Mittelwerte der Items erstellt. Dafür kann man beispielsweise sich alle Daten in einen eigenen kleinen Datensatz ablegen. Dieser Datensatz kann genutzt werden, um den Skalenwert wieder im Original abzulegen. Jede Person repräsentiert eine Zeile - `rowMeans` berechnet den Mittelwert der Zeilen. Somit erhält jede Person einen eigenen Mittelwert über die Einträge. Führen wir das ganze beispielsweise für den Skalenwert zur Prokrastinationstendenz durch, das mit den 10 Items erhoben wurde. Wichtig ist hier auch, dass wir die rekodierten Items nehmen, da diese ja die "korrekte Richtung" aufweisen.
 
 ```{r}
 # Datensatz der relevanten Variablen
-prokrastination <- fb21[, c('prok1', 'prok2_r', 'prok3_r', 'prok4', 'prok5_r', 'prok6', 'prok7_r', 'prok8_r', 'prok9', 'prok10')]
+prokrastination <- fb21[, c('prok1', 'prok2_r', 'prok3_r',
+                            'prok4', 'prok5_r', 'prok6', 
+                            'prok7_r', 'prok8_r', 'prok9', 
+                            'prok10')]
 # Skalenwert in Originaldatensatz erstellen
 fb21$prok_ges <- rowMeans(prokrastination)
+head(fb21$prok_ges)
+```
+
+Natürlich kann die Erstellung auch in einem Befehl passieren - beispielsweise durch Verwendung der Pipe. Es gibt aber auch noch viele andere Optionen zur Skalenbildung - es wird (wie eigentlich fast immer) nur ein Ausschnitt der Möglichkeiten gezeigt.
+
+```{r}
+# Direkter Befehle
+fb21$prok_ges <- fb21[, c('prok1', 'prok2_r', 'prok3_r',
+                          'prok4', 'prok5_r', 'prok6',
+                          'prok7_r', 'prok8_r', 'prok9', 
+                          'prok10')] |> rowMeans()
 head(fb21$prok_ges)
 ```
 

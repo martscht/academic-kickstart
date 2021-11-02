@@ -177,14 +177,18 @@ hist(fb21$lz,
 </div>
 <div id="mittelwert" class="section level2">
 <h2>Mittelwert</h2>
+<p>Betrachten wir nun, wie ihn <code>R</code> das Maß der zentralen Tendenz für mindestens intervallskalierte Daten per Funktion bestimmt werden kann. In der Vorlesung haben Sie die Formel zur Bestimmung kennen gelernt.</p>
 <p><strong>Formel:</strong> <span class="math inline">\({x} = \frac{\sum_{m = 1}^n x_m}{n} = \frac{1}{n} \sum_{m = 1}^n x_m\)</span></p>
+<p>In <code>R</code> ist die Funktion zum Glück sehr intuitiv benannt. Dabei muss auch hier beachtet werden, dass fehlende Werte über <code>na.rm = T</code> ausgeschlossen werden</p>
 <pre class="r"><code># Arithmetisches Mittel
 mean(fb21$lz, na.rm = TRUE)</code></pre>
 <pre><code>## [1] 4.991071</code></pre>
 </div>
 <div id="varianz" class="section level2">
 <h2>Varianz</h2>
+<p>Für die Varianz haben Sie in der Vorlesung folgende Formel kennen gelernt:</p>
 <p><strong>Formel:</strong> <span class="math inline">\(s^2_{X} = \frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n}\)</span></p>
+<p>Wollen wir diese nun per Hand bestimmen, könnte folgender Code das für uns erledigen:</p>
 <pre class="r"><code># Händische Varianzberechnung
 sum((fb21$lz - mean(fb21$lz, na.rm = TRUE))^2, na.rm = TRUE) / (nrow(fb21)-2)</code></pre>
 <pre><code>## [1] 1.273135</code></pre>
@@ -206,7 +210,7 @@ sum((fb21$lz - mean(fb21$lz, na.rm = TRUE))^2, na.rm = TRUE) / (length(na.omit(f
 </div>
 <div id="verschiedene-varianzschätzer" class="section level2">
 <h2>Verschiedene Varianzschätzer</h2>
-<p>Folgendes Ergebnis liefert R, wenn wir die R-Funktion <code>var()</code> zur Berechnung der Varianz verwenden:</p>
+<p>Sie haben sich eventuell schon gewundert, warum wir eine so bekannten Wert wie die Varianz per Hand bestimmen müssen. Mit der ersten Intuition findet man bereits eine Funktion für die Berechenung <code>var</code>. Folgendes Ergebnis liefert R, wenn wir die R-Funktion <code>var()</code> zur Berechnung der Varianz verwenden:</p>
 <pre class="r"><code># R-interne Varianzberechnung
 var(fb21$lz, na.rm = TRUE)</code></pre>
 <pre><code>## [1] 1.284604</code></pre>
@@ -239,7 +243,11 @@ sd(fb21$lz, na.rm = TRUE) # Populationsschaetzer</code></pre>
 <pre><code>## [1] 1.133404</code></pre>
 <p>In der Vorlesung hingegen haben Sie die empirische Standardabweichung kennen gelernt.</p>
 <p><span class="math inline">\(s_{X} = \sqrt{s^2_{X}} = \sqrt{\frac{\sum_{m=1}^n (x_m - \bar{x})^2}{n}}\)</span></p>
-<p>Wir müssten das Ergebnis also wieder mit einem Faktor (<span class="math inline">\(\sqrt{\frac{n - 1}{n}}\)</span>) multiplizieren, um die emprische Standardabweichung zu erhalten. Alternativ kann diese natürlich auch komplett händisch berechnet werden. Dafür können wir einfach den bereits geschriebenen Code für die empirische Varianz nehmen und aus dem Ergebnis die Wurzel ziehen.</p>
+<p>Wir müssten das Ergebnis also wieder mit einem Faktor (<span class="math inline">\(\sqrt{\frac{n - 1}{n}}\)</span>) multiplizieren, um die emprische Standardabweichung zu erhalten.</p>
+<pre class="r"><code># Umrechnung der Standardabweichung
+sd(fb21$lz, na.rm = TRUE) * sqrt((112 - 1) / 112)</code></pre>
+<pre><code>## [1] 1.128333</code></pre>
+<p>Alternativ kann diese natürlich auch komplett händisch berechnet werden. Dafür können wir einfach den bereits geschriebenen Code für die empirische Varianz nehmen und aus dem Ergebnis die Wurzel ziehen.</p>
 <pre class="r"><code># Händische Berechnung der empirischen Standardabweichung
 (sum((fb21$lz - mean(fb21$lz, na.rm = TRUE))^2,
     na.rm = TRUE) / (length(na.omit(fb21$lz)))) |&gt; sqrt()</code></pre>
@@ -340,12 +348,22 @@ fb21$prok8_r &lt;- -1 * (fb21$prok8 - 5)</code></pre>
 </div>
 <div id="skalenwerte-erstellen" class="section level2">
 <h2>Skalenwerte erstellen</h2>
-<p>Skalenwerte werden zumeist als Summen oder Mittelwerte der Items erstellt</p>
-<p><strong>Skalenwert Prokrastinationstendenz</strong></p>
+<p>Skalenwerte werden zumeist als Summen oder Mittelwerte der Items erstellt. Dafür kann man beispielsweise sich alle Daten in einen eigenen kleinen Datensatz ablegen. Dieser Datensatz kann genutzt werden, um den Skalenwert wieder im Original abzulegen. Jede Person repräsentiert eine Zeile - <code>rowMeans</code> berechnet den Mittelwert der Zeilen. Somit erhält jede Person einen eigenen Mittelwert über die Einträge. Führen wir das ganze beispielsweise für den Skalenwert zur Prokrastinationstendenz durch, das mit den 10 Items erhoben wurde. Wichtig ist hier auch, dass wir die rekodierten Items nehmen, da diese ja die “korrekte Richtung” aufweisen.</p>
 <pre class="r"><code># Datensatz der relevanten Variablen
-prokrastination &lt;- fb21[, c(&#39;prok1&#39;, &#39;prok2_r&#39;, &#39;prok3_r&#39;, &#39;prok4&#39;, &#39;prok5_r&#39;, &#39;prok6&#39;, &#39;prok7_r&#39;, &#39;prok8_r&#39;, &#39;prok9&#39;, &#39;prok10&#39;)]
+prokrastination &lt;- fb21[, c(&#39;prok1&#39;, &#39;prok2_r&#39;, &#39;prok3_r&#39;,
+                            &#39;prok4&#39;, &#39;prok5_r&#39;, &#39;prok6&#39;, 
+                            &#39;prok7_r&#39;, &#39;prok8_r&#39;, &#39;prok9&#39;, 
+                            &#39;prok10&#39;)]
 # Skalenwert in Originaldatensatz erstellen
 fb21$prok_ges &lt;- rowMeans(prokrastination)
+head(fb21$prok_ges)</code></pre>
+<pre><code>## [1] 2.5 2.1 1.7  NA 1.6 2.0</code></pre>
+<p>Natürlich kann die Erstellung auch in einem Befehl passieren - beispielsweise durch Verwendung der Pipe. Es gibt aber auch noch viele andere Optionen zur Skalenbildung - es wird (wie eigentlich fast immer) nur ein Ausschnitt der Möglichkeiten gezeigt.</p>
+<pre class="r"><code># Direkter Befehle
+fb21$prok_ges &lt;- fb21[, c(&#39;prok1&#39;, &#39;prok2_r&#39;, &#39;prok3_r&#39;,
+                          &#39;prok4&#39;, &#39;prok5_r&#39;, &#39;prok6&#39;,
+                          &#39;prok7_r&#39;, &#39;prok8_r&#39;, &#39;prok9&#39;, 
+                          &#39;prok10&#39;)] |&gt; rowMeans()
 head(fb21$prok_ges)</code></pre>
 <pre><code>## [1] 2.5 2.1 1.7  NA 1.6 2.0</code></pre>
 </div>
