@@ -119,7 +119,7 @@ trauma <- data_trauma
 
 # delete temporal data
 temps <- c("bdi", "bdi_group", "data", "data_trauma", "dissociation", "future",  "gender", "past_neg",
-           "path", "sas", "sas_group", "sexual_assault", "trauma_exp_form", "trauma_exp_kind", "x", "y", "temps") 
+            "sas", "sas_group", "sexual_assault", "trauma_exp_form", "trauma_exp_kind", "x", "y", "temps") 
 rm(list = temps) # nur noch der Datensatz trauma im Verzeichnis geladen
 
 
