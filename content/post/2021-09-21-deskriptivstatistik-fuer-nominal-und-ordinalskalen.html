@@ -119,7 +119,7 @@ names(fb21)        # Namen der Variablen</code></pre>
 </div>
 <div id="nominalskalierte-variablen" class="section level2">
 <h2>Nominalskalierte Variablen</h2>
-<p>Typische Beispiele für nominalskalierte Variablen in der Psychologie sind das Geschlecht (z.B. Variable “geschl” in <code>fb21</code>) oder die Experimentalbedingung (z.B. “Experimentalgruppe” und “Kontrollgruppe”). Nominalskalierte Variablen sollten in <code>R</code> als <strong>Faktoren</strong> hinterlegt werden. Faktoren in <code>R</code> sind Vektoren mit einer vorab definierten Menge an vorgegebenen möglichen Ausprägungsmöglichkeiten. Sowohl numerische als auch character-Variablen können als Faktor kodiert werden, was mit jeweiligen Vorteilen einhergeht:</p>
+<p>Typische Beispiele für nominalskalierte Variablen in der Psychologie sind das Geschlecht (z.B. Variable “geschl” in <code>fb21</code>), die Experimentalbedingung (z.B. “Experimentalgruppe” und “Kontrollgruppe”). Nominalskalierte Variablen sollten in <code>R</code> als <strong>Faktoren</strong> hinterlegt werden. Faktoren in <code>R</code> sind Vektoren mit einer vorab definierten Menge an vorgegebenen möglichen Ausprägungsmöglichkeiten. Sowohl numerische als auch character-Variablen können als Faktor kodiert werden, was mit jeweiligen Vorteilen einhergeht:</p>
 <ul>
 <li>für numerische Variablen: es können (aussagekräftige) Labels zugewiesen (“hinterlegt”) werden. Diese werden dann für Tabellen und Grafiken übernommen<br />
 </li>
@@ -283,7 +283,7 @@ prop.table(tab)         # Relative</code></pre>
 ## [13] &quot;azure&quot;         &quot;azure1&quot;        &quot;azure2&quot;        &quot;azure3&quot;       
 ## [17] &quot;azure4&quot;        &quot;beige&quot;         &quot;bisque&quot;        &quot;bisque1&quot;</code></pre>
 <p>Die Farben aus der Liste können als Zahl (Index) oder per Name angesprochen werden. Eine vollständige Liste der Farben findet sich zum Beispiel unter <a href="http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf">http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf</a>. Farben können aber auch per RGB-Vektor (Funktion <code>rgb()</code>) oder HEX-Wert angesprochen werden.</p>
-<p>Zusätzlich können Farbpaletten verwendet werden. Sie bestehen aus einem Farbverlauf, aus dem einzelne Farben “herausgezogen” werden, wodurch ein zusammengehöriges Farbthema in einer Abbildung entsteht. <code>R</code> liefert einige dieser Paletten: <code>rainbow(...)</code>, <code>heat.colors(...)</code>, <code>topo.colors(...)</code>, … Die Farbpalette wird ebenfalls per <code>col</code>-Argugment spezifiziert. Technisch handelt es sich um eine Funktion, für die als Argument die Anzahl der Farben spezifiziert werden muss, die aus der Palette “gezogen” werden sollen. Beispielsweise werden mit <code>col = rainbow(5)</code> fünf Farben aus der rainbow-Palette gezogen. Man kann natürlich auch eigene Farben festlegen. Diese müsste man als Vektor dem Argument <code>col</code> übergeben und dabei auf die richitge Benennung achten <code>col = c("green", "blue", "orange", "red", "yellow")</code></p>
+<p>Zusätzlich können Farbpaletten verwendet werden. Sie bestehen aus einem Farbverlauf, aus dem einzelne Farben “herausgezogen” werden, wodurch ein zusammengehöriges Farbthema in einer Abbildung entsteht. <code>R</code> liefert einige dieser Paletten: <code>rainbow(...)</code>, <code>heat.colors(...)</code>, <code>topo.colors(...)</code>, … Die Farbpalette wird ebenfalls per <code>col</code>-Argugment spezifiziert. Technisch handelt es sich um eine Funktion, für die als Argument die Anzahl der Farben spezifiziert werden muss, die aus der Palette “gezogen” werden sollen. Beispielsweise werden mit <code>col = rainbow(5)</code> fünf Farben aus der rainbow-Palette gezogen.</p>
 <p><strong>Beispiel für angepasste Abbildung</strong></p>
 <pre class="r"><code>barplot(tab,
  col = rainbow(5),
@@ -338,17 +338,19 @@ ln_hj                       # Ergebnisse für jede Kategorie</code></pre>
 ##  -2.4941233  -1.6468254  -1.7469089  -1.9187592  -0.9071582</code></pre>
 <pre class="r"><code>summand &lt;- ln_hj * hj       # Berechnung für jede Kategorie
 summe &lt;- sum(summand)       # Gesamtsumme
+k &lt;- dim(tab)               # Anzahl Kategorien
 relinf &lt;- -1/log(5) * summe # Relativer Informationsgehalt
 relinf</code></pre>
 <pre><code>## [1] 0.9168214</code></pre>
 <p>Eine kleine Abkürzung durch Einsparen der Schritte am Ende könnte hier folgendermaßen mittels Pipe erreicht werden:</p>
-<pre class="r"><code>relinf &lt;- (ln_hj * hj) |&gt; sum() * (-1/log(5))  # Relativer Informationsgehalt
+<pre class="r"><code>relinf &lt;- (ln_hj * hj) |&gt; sum() * (-1/log(k))  # Relativer Informationsgehalt
 relinf</code></pre>
 <pre><code>## [1] 0.9168214</code></pre>
 <p>Eine alternative Schreibweise, die ohne Zwischenschritte auskommt, dafür aber stark verschachtelt ist, lautet:</p>
-<pre class="r"><code>- 1/log(5) * sum(prop.table(table(fb21$fach)) * log(prop.table(table(fb21$fach))))</code></pre>
+<pre class="r"><code>- 1/log(dim(table(fb21$fach))) * sum(prop.table(table(fb21$fach)) * log(prop.table(table(fb21$fach))))</code></pre>
 <pre><code>## [1] 0.9168214</code></pre>
-<p>Der relative Informationsgehalt der Variable <code>fach</code> beträgt demnach 0.917. Da der mögliche Wertebereich zwischen 0 (für alle Personen selbe Kategorie) und 1 (für alle Kategorien gleich viele Personen) variiert, kann hier von einer starken Verteilung der Personen ausgegangen werden.</p>
+<p>Wie man hier sieht, stößt die Schachtelung ohne das Speichern von Zwischenergebnissen oder das nutzen der Pipe schnell an die Grenzen der Übersichtlichkeit.</p>
+<p>In allen drei Varianten kommen wir aber zum gleichen Schluss: der relative Informationsgehalt der Variable <code>fach</code> beträgt 0.917. Da der mögliche Wertebereich zwischen 0 (für alle Personen selbe Kategorie) und 1 (für alle Kategorien gleich viele Personen) variiert, kann hier von einer starken Verteilung der Personen ausgegangen werden.</p>
 <hr />
 </div>
 <div id="ordinalskalierte-variablen" class="section level2">

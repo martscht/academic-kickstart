@@ -69,7 +69,7 @@ Der Datensatz hat also `r nrow(fb21)` Beobachtungen auf `r ncol(fb21)` Variablen
 
 ## Nominalskalierte Variablen
 
-Typische Beispiele für nominalskalierte Variablen in der Psychologie sind das Geschlecht (z.B. Variable "geschl" in `fb21`) oder die Experimentalbedingung (z.B. "Experimentalgruppe" und "Kontrollgruppe"). Nominalskalierte Variablen sollten in `R` als **Faktoren** hinterlegt werden. Faktoren in `R` sind Vektoren mit einer vorab definierten Menge an vorgegebenen möglichen Ausprägungsmöglichkeiten. Sowohl numerische als auch character-Variablen können als Faktor kodiert werden, was mit jeweiligen Vorteilen einhergeht:
+Typische Beispiele für nominalskalierte Variablen in der Psychologie sind das Geschlecht (z.B. Variable "geschl" in `fb21`), die Experimentalbedingung (z.B. "Experimentalgruppe" und "Kontrollgruppe"). Nominalskalierte Variablen sollten in `R` als **Faktoren** hinterlegt werden. Faktoren in `R` sind Vektoren mit einer vorab definierten Menge an vorgegebenen möglichen Ausprägungsmöglichkeiten. Sowohl numerische als auch character-Variablen können als Faktor kodiert werden, was mit jeweiligen Vorteilen einhergeht:
 
 * für numerische Variablen: es können (aussagekräftige) Labels zugewiesen ("hinterlegt") werden. Diese werden dann für Tabellen und Grafiken übernommen    
 * Für character-Variablen: Faktoren können für Analysen verwendet werden (z.B. als Prädiktoren in einer Regression), was für character-Variablen nicht möglich gewesen wäre  
@@ -253,7 +253,7 @@ colors()[1:20]
 
 Die Farben aus der Liste können als Zahl (Index) oder per Name angesprochen werden. Eine vollständige Liste der Farben findet sich zum Beispiel unter [http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf](http://www.stat.columbia.edu/~tzheng/files/Rcolor.pdf). Farben können aber auch per RGB-Vektor (Funktion `rgb()`) oder HEX-Wert angesprochen werden.
 
-Zusätzlich können Farbpaletten verwendet werden. Sie bestehen aus einem Farbverlauf, aus dem einzelne Farben "herausgezogen" werden, wodurch ein zusammengehöriges Farbthema in einer Abbildung entsteht. `R` liefert einige dieser Paletten: `rainbow(...)`, `heat.colors(...)`, `topo.colors(...)`, ... Die Farbpalette wird ebenfalls per `col`-Argugment spezifiziert. Technisch handelt es sich um eine Funktion, für die als Argument die Anzahl der Farben spezifiziert werden muss, die aus der Palette "gezogen" werden sollen. Beispielsweise werden mit `col = rainbow(5)` fünf Farben aus der rainbow-Palette gezogen. Man kann natürlich auch eigene Farben festlegen. Diese müsste man als Vektor dem Argument `col` übergeben und dabei auf die richitge Benennung achten `col = c("green", "blue", "orange", "red", "yellow")`
+Zusätzlich können Farbpaletten verwendet werden. Sie bestehen aus einem Farbverlauf, aus dem einzelne Farben "herausgezogen" werden, wodurch ein zusammengehöriges Farbthema in einer Abbildung entsteht. `R` liefert einige dieser Paletten: `rainbow(...)`, `heat.colors(...)`, `topo.colors(...)`, ... Die Farbpalette wird ebenfalls per `col`-Argugment spezifiziert. Technisch handelt es sich um eine Funktion, für die als Argument die Anzahl der Farben spezifiziert werden muss, die aus der Palette "gezogen" werden sollen. Beispielsweise werden mit `col = rainbow(5)` fünf Farben aus der rainbow-Palette gezogen.
 
 
 **Beispiel für angepasste Abbildung**
@@ -334,6 +334,7 @@ ln_hj <- log(hj)            # Logarithmus bestimmen
 ln_hj                       # Ergebnisse für jede Kategorie
 summand <- ln_hj * hj       # Berechnung für jede Kategorie
 summe <- sum(summand)       # Gesamtsumme
+k <- dim(tab)               # Anzahl Kategorien
 relinf <- -1/log(5) * summe # Relativer Informationsgehalt
 relinf
 ```
@@ -341,7 +342,7 @@ relinf
 Eine kleine Abkürzung durch Einsparen der Schritte am Ende könnte hier folgendermaßen mittels Pipe erreicht werden:
 
 ```{r}
-relinf <- (ln_hj * hj) |> sum() * (-1/log(5))  # Relativer Informationsgehalt
+relinf <- (ln_hj * hj) |> sum() * (-1/log(k))  # Relativer Informationsgehalt
 relinf
 ```
 
@@ -349,10 +350,12 @@ relinf
 Eine alternative Schreibweise, die ohne Zwischenschritte auskommt, dafür aber stark verschachtelt ist, lautet:
 
 ```{r}
-- 1/log(5) * sum(prop.table(table(fb21$fach)) * log(prop.table(table(fb21$fach))))
+- 1/log(dim(table(fb21$fach))) * sum(prop.table(table(fb21$fach)) * log(prop.table(table(fb21$fach))))
 ```
 
-Der relative Informationsgehalt der Variable `fach` beträgt demnach `r round(relinf, 3)`. Da der mögliche Wertebereich zwischen 0 (für alle Personen selbe Kategorie) und 1 (für alle Kategorien gleich viele Personen) variiert, kann hier von einer starken Verteilung der Personen ausgegangen werden.
+Wie man hier sieht, stößt die Schachtelung ohne das Speichern von Zwischenergebnissen oder das nutzen der Pipe schnell an die Grenzen der Übersichtlichkeit. 
+
+In allen drei Varianten kommen wir aber zum gleichen Schluss: der relative Informationsgehalt der Variable `fach` beträgt `r round(relinf, 3)`. Da der mögliche Wertebereich zwischen 0 (für alle Personen selbe Kategorie) und 1 (für alle Kategorien gleich viele Personen) variiert, kann hier von einer starken Verteilung der Personen ausgegangen werden.
 
 
 ***
