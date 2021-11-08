@@ -96,19 +96,19 @@ sum(pos$sum) / nrow(pos)</code></pre>
 <pre><code>## [1] 7</code></pre>
 <p>Wie aus der Vorlesung und der eigenen Brettspielerfahrung bekannt, ist der Erwartungswert für ein einzelnes Ereignis nicht aussagekräftig - man würfelt nicht mit jedem Wurf 7. Doch gibt es eine Beziehung zwischen beobachteter und erwarteter Häufigkeit, die man durch häufiges Wiederholen abbilden kann. Dafür könnte man 1000 Mal per Hand die Würfel werfen und das Ergebnis jeweils in <code>R</code> notieren, doch natürlich bietet das Programm auch einen Shortcut. Mit der Funktion <code>sample()</code> kann zufällig aus einer definierten Menge gezogen werden. Ein einmaliges Werfen eines Würfels würde dabei so aussehen.</p>
 <pre class="r"><code>sample(x = wuerfel, size = 1)</code></pre>
-<pre><code>## [1] 3</code></pre>
+<pre><code>## [1] 5</code></pre>
 <p>Unter dem Argument <code>x</code> kann definiert werden, aus welcher Menge an Objekten zufällig gezogen wird - in diesem Fall die Ziffern zwischen 1 und 6, die im Objekt <code>wuerfel</code> hinterlegt sind. <code>size</code> definiert die Anzahl an Wiederholungen. Wenn wir nun also zwei Würfel werfen wollen, können wir die <code>size</code> einfach erhöhen. Dabei ist es außerdem wichtig, ob das Experiment mit oder ohne Zurücklegen durchgeführt wird. Dafür ist das Argument <code>replace</code> verantwortlich, das standardmäßig auf <code>FALSE</code> steht. Da die Würfel jedoch auch die selbe Zahl anzeigen können, agieren wir mit Zurücklegen und müssen das Argument auf <code>TRUE</code> setzen.</p>
 <pre class="r"><code>sample(x = wuerfel, size = 2, replace = TRUE)</code></pre>
-<pre><code>## [1] 5 3</code></pre>
+<pre><code>## [1] 2 1</code></pre>
 <p>Für die Verteilung der Ergebnisse ist es vor allem wichtig, wie die Summe aus den beiden Ziffern aussieht. Die Funktionen kann man in einer Zeile kombinieren.</p>
 <pre class="r"><code>sample(x = wuerfel, size = 2, replace = TRUE) |&gt; sum()</code></pre>
-<pre><code>## [1] 4</code></pre>
+<pre><code>## [1] 8</code></pre>
 <p>Des Weiteren soll der Wurf nicht nur einmal mit den beiden Würfeln durchgeführt werden, sondern häufiger wiederholt werden. Hier hilft Ihnen <code>replicate()</code>, wobei die Anzahl an wiederholten Durchführungen einer Funktion im Argument <code>n</code> festgelegt werden kann. Weiterhin muss im Argument <code>expr</code> die Funktion genannt werden, die wiederholt werden soll.</p>
 <pre class="r"><code>replicate(n = 10, expr = sum(sample(x = wuerfel, size = 2, replace = TRUE)))</code></pre>
-<pre><code>##  [1]  9  8  7 10  8  9  8  5  4 11</code></pre>
+<pre><code>##  [1]  3  8 10  8  4  5  5  8  7  8</code></pre>
 <p>Beachten Sie jedoch, dass Sie bei zweimaliger Durchführung desselben Befehls nicht zwei Mal dasselbe Ergebnis bekommen werden, da <code>R</code> den Zufall jeweils neu simuliert.</p>
 <pre class="r"><code>replicate(n = 10, expr = sum(sample(x = wuerfel, size = 2, replace = TRUE)))</code></pre>
-<pre><code>##  [1]  5  7  7  4  4  4 10  5  9 12</code></pre>
+<pre><code>##  [1]  8  2  5 10  5  6  9 11 10  5</code></pre>
 <p>Zur Konstanthaltung der Ergebnisse eines Zufallsvorgangs kann <code>set.seed()</code> genutzt werden, durch das der <code>R</code> interne Zufallsgenerator stets an der selben Stelle gestartet wird. Dies ermöglicht die Reproduzierbarkeit des Ergebnisses (Anmerkung: bei verschiedenen Versionen von <code>R</code> könnte der Befehl auch andere Resultate produzieren).</p>
 <pre class="r"><code>set.seed(500)
 replicate(n = 10, expr = sum(sample(x = wuerfel, size = 2, replace = TRUE)))</code></pre>
@@ -153,6 +153,7 @@ hist(results_10000, xlim = c(1.5,12.5), breaks = c(1.5:12.5))</code></pre>
     P(X = x) = {n \choose x} \cdot \pi^x \cdot (1 - \pi)^{n-x}
   \end{equation*}\]</span></p>
 <ol style="list-style-type: decimal">
+<li><span class="math inline">\(x\)</span> Anzahl der Treffer</li>
 <li><span class="math inline">\(n\)</span> Anzahl der Wiederholungen</li>
 <li><span class="math inline">\(\pi^x\)</span> Wahrscheinlichkeit von <span class="math inline">\(x\)</span> Treffern</li>
 <li><span class="math inline">\((1-\pi)^{n-x}\)</span> Wahrscheinlichkeit von <span class="math inline">\(n-x\)</span> Nieten</li>
@@ -170,7 +171,7 @@ probs &lt;- dbinom(x, size = 100, prob = 0.2) #Wahrscheinlichkeiten für alle m�
 plot(x = x, y = probs, type = &quot;h&quot;, xlab = &quot;Häufigkeiten des Ereignis Grün&quot;, ylab = &quot;Wahrscheinlichkeit bei 100 Drehungen&quot;)</code></pre>
 <p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
 <p>Die Funktion <code>plot()</code> gibt uns die Möglichkeit, eigene <code>x</code> und <code>y</code> Werte zu definieren. Es werden alle Zahlen zwischen 0 und 100 mit der dazugehörigen Wahrscheinlichkeit abgebildet. <code>type</code> gibt uns die Möglichkeit, verschiedene Darstellungsarten zu wählen (<code>h</code> steht in dem Fall für histogrammähnliche Striche). <code>xlab</code> und <code>ylab</code> ermöglichen die Achsenbeschriftung.</p>
-<p>Eine weitere wichtige Funktion ist die <em>Verteilungsfunktion</em> der Binomialverteilung. Hier werden die Werte der niedrigeren Zahlen <em>kumuliert</em> - das bedeutet aufaddiert. Eine passende Fragestellung hierzu wäre: Wie wahrscheinlich ist es, dass höchstens 30 Mal grün gedreht wird bei 100 Versuchen? Auch hierfür ist in R eine Funktion definiert mit dem Namen <code>pbinom()</code>. <code>q</code> gibt nun die Zahl an, bis zu der alle Wahrscheinlichkeiten aufaddiert werden. <code>size</code> und <code>prob</code> erhalten ihre Bedeutung. <code>lower.tail = TRUE</code> (Standardeinstellung) sorgt für eine Aufaddierung der Werte startend bei 0 (also 0 bis 30 Mal grün). Bei <code>lower.tail = FALSE</code> würde von der anderen Seite, also der <code>size</code> zugeordneten Zahl, begonnen werden. Die Aufaddierung der Werte geht dann bis zu dem Wert <code>1 + q</code> (31 bis 100 Mal grün). Höchstens 30 mal bedeutet dabei, dass die 30 im Intervall mit einbezogen wird. Bei weniger als 30 mal könnte man <code>q = 29</code> verwenden, da die Binomialverteilung stets diskrete Variablen abbildet.</p>
+<p>Eine weitere wichtige Funktion ist die <em>Verteilungsfunktion</em> der Binomialverteilung. Hier werden die Werte der niedrigeren Zahlen <em>kumuliert</em> - das bedeutet aufaddiert. Eine passende Fragestellung hierzu wäre: Wie wahrscheinlich ist es, dass höchstens 30 Mal grün gedreht wird bei 100 Versuchen? Auch hierfür ist in R eine Funktion definiert mit dem Namen <code>pbinom()</code>. <code>q</code> gibt nun die Zahl an, bis zu der alle Wahrscheinlichkeiten aufaddiert werden. <code>size</code> und <code>prob</code> erhalten ihre Bedeutung. <code>lower.tail = TRUE</code> (Standardeinstellung) sorgt für eine Aufaddierung der Werte startend bei 0 (also 0 bis 30 Mal grün). Bei <code>lower.tail = FALSE</code> würde von der anderen Seite, also der <code>size</code> zugeordneten Zahl, begonnen werden. Die Aufaddierung der Werte geht dann von dem maximalen Wert (also <span class="math inline">\(n\)</span> und in diesem Fall 100) bis zu dem Wert <code>1 + q</code> (31 bis 100 Mal grün). Höchstens 30 mal bedeutet dabei, dass die 30 im Intervall mit einbezogen wird. Bei weniger als 30 mal könnte man <code>q = 29</code> verwenden, da die Binomialverteilung stets diskrete Variablen abbildet.</p>
 <pre class="r"><code>pbinom(q = 30, size = 100, prob = 0.2, lower.tail = TRUE)</code></pre>
 <pre><code>## [1] 0.9939407</code></pre>
 <p>Um die Wahrscheinlichkeit innerhalb eines Intervalls zu berechnen, kann die Funktion einfach zwei mal genutzt und die Werte voneinander subtrahiert werden. Für die Fragestllung, wie wahrscheinlich Werte im Intervall von 25 und 30 sind, würde die Funktion folgendermaßen aussehen:</p>
@@ -182,7 +183,7 @@ probs &lt;- pbinom(x, size = 100, prob = 0.2) #Wahrscheinlichkeiten für alle m�
 plot(x = x, y = probs, type = &quot;h&quot;, xlab = &quot;Häufigkeiten für Ereignis Grün&quot;, ylab = &quot;kumulierte Wahrscheinlichkeit&quot;)</code></pre>
 <p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
 <p>Es ist bereits ein Muster zu erkennen: Der Buchstabe vor dem Funktionsname <code>"binom()"</code> (<code>"d"</code> als Punktwahrscheinlichkeit für ein bestimmtes <code>x</code> bzw. <code>"p"</code> als kumulierte Wahrscheinlichkeit für ein bestimmtes <code>x</code>) verändert die Funktion. Des Weiteren bietet R noch die zufällige Simulation des Experimentes mit <code>"r"</code> und den Präfix <code>"q"</code> für die Quantilfunktion.</p>
-<p><code>qbinom()</code> beantwortet uns die entgegengesetzte Fragestellung von <code>dbinom()</code>. Wir wollen hier herausfinden, welche Anzahl an Treffern in den unteren 10 Prozent der Verteilung liegen. Auch hier werden die einzelnen Wahrscheinlichkeiten wieder aufaddiert / kumuliert.</p>
+<p><code>qbinom()</code> beantwortet uns die entgegengesetzte Fragestellung von <code>pbinom()</code>. Wir wollen hier herausfinden, welche Anzahl an Treffern in den unteren 10 Prozent der Verteilung liegen. Auch hier werden die einzelnen Wahrscheinlichkeiten wieder aufaddiert / kumuliert.</p>
 <pre class="r"><code>qbinom(p = 0.1, size = 100, prob = 0.2, lower.tail = TRUE)</code></pre>
 <pre><code>## [1] 15</code></pre>
 <p><code>p</code> gibt die Anzahl an Prozent an, die die kumulierten Wahrscheinlichkeiten höchstens erreichen dürfen - also 10 Prozent. <code>lower.tail = TRUE</code> steht auch hier dafür, dass wir bei 0 mit der Betrachtung anfangen. Das Ergebnis der Funktion nennt den Wert, der die Grenze überschreitet (in diesem Fall 15). Die kumulierten Wahrscheinlichkeiten von 0 bis 14 Mal grün drehen übersteigen also nicht unsere Grenze von <code>p = 0.1</code>.</p>
