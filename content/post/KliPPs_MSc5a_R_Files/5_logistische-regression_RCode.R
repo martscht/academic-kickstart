@@ -3,10 +3,6 @@
 # von Kai Nehler
 
 
-## Vorbereitungen
-knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
-library(ggplot2) # ggplot2 und dplyr werden nur für Grafiken benötigt
-
 ## Daten laden
 install.packages("haven")
 library(haven)
@@ -68,16 +64,6 @@ glm_model2 <-  glm(ANYDUMMY ~ 1 + Depression_lvl + GENDER_R, family = "binomial"
 summary(glm_model2)
 
 exp(glm_model2$coefficients) # Odds-Ratios
-
-#### Grafische Veranschaulichung
-logit_glm2 <- predict(glm_model2)           # Logit unter Modell m2 bestimmen
-odds_glm2 <- exp(logit_glm2)          # Logit unter Modell m2 in Odds transformieren
-p_glm2 <- odds_glm2/(1 + odds_glm2)     # Odds in Wahrscheinlichkeiten transformieren
-
-# dem Datensatz anhängen:
-osf$logit_glm2 <- logit_glm2
-osf$odds_glm2 <- odds_glm2
-osf$p_glm2 <- p_glm2
 
 
 
