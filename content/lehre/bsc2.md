@@ -76,9 +76,9 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 | 2 | **Deskriptivstatistik für Nominal- und Ordinalskalen** | [Inhalte](/post/deskriptiv-nominal) | [Aufgaben](/post/deskriptiv-nominal-aufgaben) | [Lösungen](/post/deskriptiv-nominal-loesungen) |
 | 3 | **Deskriptivstatistik für Intervallskalen** | [Inhalte](/post/deskriptiv-intervall) | [Aufgaben](/post/deskriptiv-intervall-aufgaben) | [Lösungen](/post/deskriptiv-intervall-loesungen) |
 | 4 | **Verteilungen** | [Inhalte](/post/verteilungen) | [Aufgaben](/post/verteilungen-aufgaben) | [Lösungen](/post/verteilungen-loesungen) |
-| 5 | **Tests und Konfidenzintervalle** | [Inhalte](/post/tests-und-konfidenzintervalle) | [Aufgaben](/post/tests-und-konfidenzintervalle-aufgaben) | Lösungen |
-| 6 | **Tests für unabhängige Stichproben** | [Inhalte](/post/gruppenvergleiche-unabhaengig) | Aufgaben | Lösungen |
-| 7 | **Tests für abhängige Stichproben** | [Inhalte](/post/gruppenvergleiche-abhaengig) | Aufgaben | Lösungen |
+| 5 | **Tests und Konfidenzintervalle** | Inhalte | Aufgaben | Lösungen |
+| 6 | **Tests für unabhängige Stichproben** | Inhalte | Aufgaben | Lösungen |
+| 7 | **Tests für abhängige Stichproben** | Inhalte | Aufgaben | Lösungen |
 | 8 | **Korrelation** | Inhalte | Aufgaben | Lösungen |
 | 9 | **Regression** | Inhalte | Aufgaben | Lösungen |
 | 10 | **Simulation und Poweranalyse** | Inhalte | Aufgaben | Lösungen |
