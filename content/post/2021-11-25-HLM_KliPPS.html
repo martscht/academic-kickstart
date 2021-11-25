@@ -1,0 +1,379 @@
+---
+title: "Hierarchische Regression"
+output:
+  html_document
+  
+date: '2021-11-24'
+slug: hlm
+categories:
+     - MSc5a
+     
+tags:
+- Regression
+- Hierarchische Daten
+- Zufallseffekte
+
+subtitle: ''
+summary: ''
+authors: [hartig, irmer]
+lastmod: '2021-04-28 12:00:12 CEST'
+featured: no
+header:
+     image: "/header/HLM_head.jpg"
+     caption: "[Courtesy of pxhere](https://pxhere.com/de/photo/928395)"
+projects: []
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="pakete-laden" class="section level4">
+<h4>Pakete laden</h4>
+<pre class="r"><code># Benötigte Pakete --&gt; Installieren, falls nicht schon vorhanden
+library(lme4)         # Für die Mehrebenen-Regression
+library(dplyr)        # Komfort-Funktionen für die Datentransformationen
+library(ICC)          # Für die einfache Berechung von ICCs
+library(ggplot2)      # Für Grafiken
+library(interactions) # Zur Veranschaulichung von Moderator-Effekten</code></pre>
+</div>
+<div id="einleitung-und-datenbeispiel" class="section level2">
+<h2>Einleitung und Datenbeispiel</h2>
+<p>Daten in der klinisch-psychologischen Forschung haben häufig eine sogenannte <em>hierarchische Struktur</em> oder <em>Mehrebenen-Struktur</em>, in der Beobachtungen auf einer ersten Ebene in Beobachtungseinheiten auf einer übergeordneten Ebene gruppiert sind. Typische Strukturen sind Individuen in Gruppen (z. B. Patient*innen in Therapiepraxen oder in Kliniken) oder Messzeitpunkte in Personen (z. B. Befragungszeitpunkte im Verlauf einer Therapiestudie).</p>
+<p>Unser Datenbeispiel stammt aus einer <a href="https://www.frontiersin.org/articles/10.3389/fpsyg.2020.590276/full" target="_blank">Studie zum psychischen Wohlbefinden von Individuen während des pandemie-bedingten Lockdowns in Frankreich</a>. Es handelt sich um hierarchische Daten mit Messzeitpunkten auf Ebene 1 und Individuen auf Ebene 2. Zunächst laden wir diesen Datensatz aus dem OSF und nehmen ein paar Schritte zur Vorbereitung vor:</p>
+<pre class="r"><code># Daten einlesen und vorbereiten 
+lockdown &lt;- read.csv(url(&quot;https://osf.io/dc6me/download&quot;))
+
+# Entfernen der Personen, für die weniger als zwei Messpunkte vorhanden sind
+# (Auschluss von Fällen, deren ID nur einmal vorkommt)
+lockdown &lt;- lockdown[-which(lockdown$ID %in% names(which(table(lockdown$ID)==1))),] 
+
+# Daten aufbereiten, Variablen auswählen extrahieren und in Nummern umwandeln
+# Entfernen von Minderjährigen &amp; unbestimmtes Gender mit den Funktionen filter() und select () aus dplyr.
+lockdown &lt;- lockdown %&gt;%
+  filter(Age &gt; 18 &amp; Gender == 1 | Gender == 2) %&gt;%
+  select(c(&quot;ID&quot;, &quot;Wave&quot;, &quot;Age&quot;, &quot;Gender&quot;, &quot;Income&quot;, &quot;EWB&quot;,&quot;PWB&quot;,&quot;SWB&quot;,
+           &quot;IWB&quot;,&quot;E.threat&quot;,&quot;H.threat&quot;, &quot;Optimism&quot;,
+           &quot;Self.efficacy&quot;,&quot;Hope&quot;,&quot;P.Wisdom&quot;,&quot;ST.Wisdom&quot;,&quot;Grat.being&quot;,
+           &quot;Grat.world&quot;,&quot;PD&quot;,&quot;Acc&quot;,&quot;Time&quot;,&quot;EWB.baseline&quot;,&quot;PWB.baseline&quot;,
+           &quot;SWB.baseline&quot;,&quot;IWB.baseline&quot;))
+
+# Standardisieren der AVs
+lockdown[,c(&quot;EWB&quot;, &quot;PWB&quot;, &quot;SWB&quot;, &quot;IWB&quot;)] &lt;- scale(lockdown[,c(&quot;EWB&quot;, &quot;PWB&quot;, &quot;SWB&quot;, &quot;IWB&quot;)])
+# Standardisieren möglicher Prädiktoren
+lockdown[,c(&quot;E.threat&quot;, &quot;H.threat&quot;, &quot;Optimism&quot;, &quot;Self.efficacy&quot;, &quot;Hope&quot;, &quot;P.Wisdom&quot;, 
+            &quot;ST.Wisdom&quot;, &quot;Grat.being&quot;, &quot;Grat.world&quot;)] &lt;-
+  scale(lockdown[,c(&quot;E.threat&quot;, &quot;H.threat&quot;, &quot;Optimism&quot;, &quot;Self.efficacy&quot;, &quot;Hope&quot;, &quot;P.Wisdom&quot;, 
+            &quot;ST.Wisdom&quot;, &quot;Grat.being&quot;, &quot;Grat.world&quot;)])</code></pre>
+<div id="variablen-im-datensatz" class="section level3">
+<h3>Variablen im Datensatz</h3>
+<p>In diesem Datensatz stehen die Daten eines Messzeitpunktes in je einer Zeile, d.h. die Daten einer Person stehen in mehreren Zeilen (diese Struktur wird oft auch als <em>long format</em> bezeichtet - im Kontrast zum <em>wide format</em>, bei dem die Daten jeder Person in einer Zeile in verschiedenen Variablen stehen). Die Variable ID markiert, welche Daten zur selben Person gehören.</p>
+<p>Die Variable <em>Wave</em> kennzeichnet mit Werten von 0 bis 5 die Erhebungswelle, zu der die Befragung erfolgt ist. Eine Person, die zu allen Zeitpunkten teilgenommen hat, hat sechs Zeilen mit den Wellen von 0 bis 5. Die Variable <em>Time</em> gibt die Zeit in Wochen an, die die befragte Person zum jeweiligen Zeitpunkt schon im Lockdown war.</p>
+<p>Die abhängigen Variablen sind verschiedene Konstrukte, die Aspekte des Wohlbefindens (<em>well being</em>) einer Person beinhalten. In diesem Beispiel beschränken wir uns auf die wesentlichen Konstrukte des Papers, nämlich dem drei-dimensionalen Model of positive mental health (Keyes, 2002) und inner harmony (Dambrun at al., 2012). Die folgenden abhängigen Variablen wurden zu jedem Messzeitpunkt erfasst:</p>
+<ul>
+<li>EWB: <em>Emotional Well-Being</em> ist definiert als ein hohes Maß an positivem Affekt, ein geringes Maß an negativem Affekt und ein hohes Maß an Zufriedenheit mit dem eigenen Leben.</li>
+<li>PWB: <em>Psychological Well-Being</em> wurde als eine Kombination aus Selbstakzeptanz, Autonomie, Lebenssinn, positiven Beziehungen zu anderen, Umweltbewältigung und persönlichem Wachstum operationalisiert.</li>
+<li>SWB: <em>Social Well-Being</em> bewertet das positive soziale Funktionieren anhand von fünf Aspekten: soziale Kohärenz, soziale Verwirklichung, soziale Integration, soziale Akzeptanz und sozialer Beitrag.</li>
+<li>IWB: <em>Inner Well-Being</em> kann als ein Gefühl des Seelenfriedens mit geringer Erregung verstanden werden, von dem angenommen wird, dass es stabiler und weniger abhängig von äußeren Reizen ist als positive Gefühle mit hoher Erregung.</li>
+</ul>
+<p>Als <em>Prädiktoren</em> können Variablen verwendet werden, die auf <em>Personenebene (Ebene 2)</em> angesiedelt sind - diese wurden nur zum ersten Zeitpunkt erfasst und dann als über die Zeit stabil betrachtet. Dies sind Personenvariablen wie Alter und Geschlecht, zudem verschiedene psychologischen Ressourcen wie Optimismus (Optimism), Selbstwirksamkeit (Self-efficacy), Hoffnung (Hope), Weisheit (P.Wisdom &amp; ST.Wisdom), Dankbarkeit gegenüber der eigenen Existenz und der Welt (Grat.being &amp; Grat.world) und Akzeptanz (Acceptance). Eine genauere Beschreibung dieser Variablen im Kontext der Studie finden Sie im Paper auf den Seiten 2 bis 5.</p>
+<p>Als <em>Prädiktoren auf Ebene 1</em> können Variablen verwendet werden, die mehrfach erfragt wurden und über die Zeit variieren. Dies ist die o.g. im Lockdown verbrachte Zeit (Time) sowie die wahrgenommene ökonomische Bedrohung, also Jobgefahr, Geldnot, etc. (E.threat) und die wahrgenommene gesundheitliche Bedrohung, also die Wahrscheinlichkeit einer Erkrankung und deren Folgen (H.threat).</p>
+</div>
+<div id="fragestellungen" class="section level3">
+<h3>Fragestellungen</h3>
+<p>Bezogen auf die AV Psychological Well-Being (PWB) werden hier die Folgenden Fragestellungen untersucht:</p>
+<ol style="list-style-type: decimal">
+<li><a href="#ICC">Wie groß sind die Unterschiede im Niveau des Wohlbefindens <em>zwischen Personen</em> in Relation zu den <em>Schwankungen innerhalb von Personen</em>?</a></li>
+<li><a href="#Zeiteffekte">Wie wirkt sich die Zeit im Lockdown auf das Wohlbefinden aus?</a></li>
+<li><a href="#Alterseffkte">Hat das Alter der befragten Personen einen Effekt auf das Wohlbefinden?</a></li>
+<li><a href="#Wechselwirkung">Hat das Alter der befragten Personen einen Effekt auf den Effekt des Lockdowns?</a></li>
+</ol>
+</div>
+</div>
+<div id="ICC" class="section level2">
+<h2>1. Unterschiede zwischen und innerhalb von Personen</h2>
+<div id="intraklassenkorrelation" class="section level3">
+<h3>Intraklassenkorrelation</h3>
+<p>Die Intraklassenkorrelation (ICC, <span class="math inline">\(\rho_{ICC}\)</span>) gibt den Varianzanteil einer Variablen an, der auf Unterschiede in den Beobachtungseinheiten zurückgeht.</p>
+<p><span class="math display">\[\rho_{ICC}=\frac{\sigma^2_{between}}{\sigma^2_{between}+\sigma^2_{within}}\]</span></p>
+<p>In unserem Fall ist das die Varianz <span class="math inline">\(\sigma^2_{between}\)</span> in der Befindlichkeit <em>zwischen Personen</em> (= Ebene-2-Einheiten). Die Varianz <span class="math inline">\(\sigma^2_{within}\)</span> innerhalb der Beobachtungseinheiten entspricht den Schankungen der individuellen Befindlichkeiten zwischen den Zeitpunkten (= Ebene-1-Einheiten). Die ICC ist hier ein Maß dafür, wie groß <em>inter</em>individuell stabile Unterschied im Befindlichkeitsniveau in Relation zur Gesamtstreuung einschließlich der <em>intra</em>individuellen Schwankungen sind.</p>
+<p>Eine einfache Methode zur Berechnung der ICC kann auf Basis der Varianzkomponenten (Inner- und Zwischengruppenvarianzen) einer einfaktoriellen ANOVA erfolgen. Mit der Funktion <code>ICCest</code> des Pakets <code>ICC</code> ermitteln wir die ICCs für die vier Befindlichkeitsvariablen:</p>
+<pre class="r"><code># ICCs auf Basis der Varianzkomponenten mit der Funktion ICCbare
+ICCbare(ID, EWB, data = lockdown)</code></pre>
+<pre><code>## [1] 0.7208599</code></pre>
+<pre class="r"><code>ICCbare(ID, PWB, data = lockdown)</code></pre>
+<pre><code>## [1] 0.7933402</code></pre>
+<pre class="r"><code>ICCbare(ID, SWB, data = lockdown)</code></pre>
+<pre><code>## [1] 0.7738752</code></pre>
+<pre class="r"><code>ICCbare(ID, IWB, data = lockdown)</code></pre>
+<pre><code>## [1] 0.7120053</code></pre>
+<p>Wir erhalten für die Befindlichkeitsvariablen die folgenden ICCs:</p>
+<ul>
+<li>Emotional Wellbeing (EWB): <span class="math inline">\(\rho_{ICC} = 0.721\)</span></li>
+<li>Psychological Well-being (PWB): <span class="math inline">\(\rho_{ICC} = 0.793\)</span></li>
+<li>Social Well-Being (SWB): <span class="math inline">\(\rho_{ICC} = 0.774\)</span></li>
+<li>Inner well-being (IWB): <span class="math inline">\(\rho_{ICC} = 0.712\)</span></li>
+</ul>
+<p>Die Unterschiede zwischen Personen sind also durchweg größer als die Schwankungen innerhalb der Personen. Mehr als 70% der Varianz in den Variablen lässt sich auf stabile Unterschiede zwischen Personen zurückführen.</p>
+</div>
+<div id="grafische-veranschaulischung-der-inter--und-intraindividuellen-unterschiede" class="section level3">
+<h3>Grafische Veranschaulischung der inter- und intraindividuellen Unterschiede</h3>
+<p>Um ein Gefühl für die Unterschiede zwischen und innerhalb von Personen zu bekommen, werden die individuellen Verläufe über die Zeit (Trajektorien) häufig als Liniendiagramme veranschaulicht. Bei einem großen Datensatz ist die Darstellung aller Fälle jedoch oft nicht mehr anschaulich:</p>
+<pre class="r"><code># Individuelle Verläufe für Psychological Well Being
+ggplot(lockdown, aes(x=Wave, y=PWB, color=ID)) +
+  theme_bw() + guides(color=&quot;none&quot;) +
+  geom_line()</code></pre>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
+<p>Für die grafische Veranschaulichung wählen wir hier daher eine kleine Zahl von Fällen, die zudem Daten zu allen sechs Zeitpunkten haben:</p>
+<pre class="r"><code>IDs.subset &lt;- c(&quot;03858ebe&quot;, &quot;ddf85cd4&quot;, &quot;fab6bb4d&quot;, &quot;c7b6e168&quot;, &quot;c0661f6a&quot;, &quot;f005ee8d&quot;, &quot;f037053f&quot;, &quot;166a701e&quot;,
+                &quot;3ff1ffae&quot;, &quot;486d63a8&quot;, &quot;4b6a0366&quot;, &quot;ba2ccd92&quot;, &quot;cdbfa68a&quot;, &quot;f43569d8&quot;, &quot;c0c3cb43&quot;)
+# Grafik mit dem Subset
+ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Wave, y=PWB, color=ID)) +
+  theme_bw() + guides(color=&quot;none&quot;) +
+  geom_line()</code></pre>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p>Die Grafik veranschaulicht, dass die Unterschiede zwischen dem Niveau der Linien, also zwischen Personen, stärker sind als die Schwankungen innerhalb der Linien über die Zeit (also innerhalb von Personen).</p>
+<p>Die unterschiedliche Bedeutung der beiden Variablen <code>Wave</code> (Messzeitpunkt) und <code>Time</code> (Zeit im Lockdown in Wochen) können wir durch eine Grafik anschaulich machen, in der wir statt des Messzeitpunkts die Zeit nehmen. Man sieht, dass die Linien hier unterschiedlich lang sind, da die befragten Personen zum Zeitpunkt der Beantwortung unterschiedlich lang im Lockdown waren:</p>
+<pre class="r"><code># Grafik mit dem Subset, Zeit als UV
+ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=PWB, color=ID)) +
+  theme_bw() + guides(color=&quot;none&quot;) +
+  geom_line()</code></pre>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
+</div>
+<div id="nullmodell" class="section level3">
+<h3>Nullmodell</h3>
+<p>Als erstes Modell berechnen wir für Psychological Wellbeing das Nullmodell ohne Prädiktoren. Dieses Modell kann für Modelle mit Prädiktoren als Referenz für Modellvergleiche dienen. Außerdem können wir auf dessen Basis auch eine Schätzung für die Intraklassenkorrelation bilden, beide benötigten Varianzkomponenten <span class="math inline">\(\sigma^2_{between}\)</span> und <span class="math inline">\(\sigma^2_{within}\)</span> werden im Modell geschätzt.</p>
+<p>Der Ausgabe für das Nullmodell können wir entnehmen, dass die Varianz des Intercepts <span class="math inline">\(\sigma^2_{between}=0.804\)</span> beträgt, die Residualvarianz, die hier der Innerpersonen-Varianz entspricht, <span class="math inline">\(\sigma^2_{within}=0.207\)</span>. Hieraus resultiert eine ICC von <span class="math inline">\(\rho_{ICC}=0.795\)</span>. Geringfügige Abweichungen durch die oben mit der Funktion <code>ICCbare</code>ermittelten Ergebnisse können durch die unterschiedlichen Schätzmethoden (Kleinstquadrate vs. ML) zustande kommen.</p>
+<pre class="r"><code># Nulllmodell für PWB
+m0 &lt;- lmer(PWB ~ 1 + (1 | ID), data = lockdown)
+summary(m0)</code></pre>
+<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
+## Formula: PWB ~ 1 + (1 | ID)
+##    Data: lockdown
+## 
+## REML criterion at convergence: 4159.5
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.4398 -0.5170  0.0187  0.5277  3.6003 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  ID       (Intercept) 0.8037   0.8965  
+##  Residual             0.2070   0.4549  
+## Number of obs: 2192, groups:  ID, 486
+## 
+## Fixed effects:
+##              Estimate Std. Error t value
+## (Intercept) -0.007208   0.041988  -0.172</code></pre>
+</div>
+</div>
+<div id="Zeiteffekte" class="section level2">
+<h2>2. Effekte der Zeit</h2>
+<p>Im Folgenden werden wir untersuchen, ob die Zeit (<code>Time</code>) im Lockdown sich auf das Wohlbefinden auswirkt. Zeit ist ein Ebene-1-Prädiktor, dessen Effekt wir entweder “nur” als festen Effekt modellieren können, oder als Zufallseffekt (<em>random slope</em>), hinsichtlich dessen sich Personen unterscheiden können. Wir werden beide Varianten analysieren und vergleichen.</p>
+<div id="fester-effekt" class="section level3">
+<h3>Fester Effekt</h3>
+<p>Den Effekt über alle Personen hinweg können wir in einem Modell schätzen, in dem die Zeit als fester Effekt enthalten ist:</p>
+<ul>
+<li>Gleichung auf Ebene 1: <span class="math inline">\(Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}\)</span></li>
+<li>Interzept auf Ebene 2: <span class="math inline">\(\beta_{0j}=\gamma_{00}+u_{0j}\)</span></li>
+<li>Slope auf Ebene 2: <span class="math inline">\(\beta_{1j}=\gamma_{10}\)</span></li>
+<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{01}X_{ij} + u_{0j} + r_{ij}\)</span></li>
+<li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + X + (1 | ID)</code></li>
+</ul>
+<p>In der Anwendung auf die abhängige Variable Psychological Wellbeing (PWB) in R sehen wir, dass Zeit einen signifikanten Effekt hat.</p>
+<p>Bei mehr als einem Parameter für feste Effekte gibt die <code>lmer</code>-Funktion eine Ausgabe zur “Correlation of Fixed Effects”. Diese ist kurz gesagt inhaltlich in aller Regel irrelevant und kann ignoriert werden. Sie hat nichts mit der Korrelation von Variablen im Modell zu tun, sondern sagt etwas über <em>Abhängigkeiten der Parameterschätzungen</em>. Eine von null verschiedene Korrelation bedeutet, dass sich die Effekte bei einer Replikation der Studie nicht unabhängig voneinander verändern würden.</p>
+<pre class="r"><code>PWB.time.fixed &lt;- lmer(PWB ~ 1 + Time + (1 | ID), data = lockdown)
+summary(PWB.time.fixed)</code></pre>
+<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
+## Formula: PWB ~ 1 + Time + (1 | ID)
+##    Data: lockdown
+## 
+## REML criterion at convergence: 4085.4
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.5926 -0.5053  0.0400  0.5305  3.6021 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  ID       (Intercept) 0.8093   0.8996  
+##  Residual             0.1970   0.4439  
+## Number of obs: 2192, groups:  ID, 486
+## 
+## Fixed effects:
+##              Estimate Std. Error t value
+## (Intercept)  0.176058   0.046499   3.786
+## Time        -0.035833   0.003875  -9.247
+## 
+## Correlation of Fixed Effects:
+##      (Intr)
+## Time -0.426</code></pre>
+<p>Da wir die AV standardisiert haben und die Zeit in Wochen angegeben ist, können wir den Effekt dahingehend interpretieren, dass sich PWB mit jeder Woche im Lockdown um <span class="math inline">\(0.036\)</span> Standardabweichungen verschlechtert.</p>
+<p>Die folgende Grafik veranschaulicht die Vorhersage aus dem Modell anhand der Teilmenge von Fällen, die für die Darstellung der Rohdaten oben verwendet wurde. Man sieht, dass für alle Fälle dieselbe Steigung für die Zeit angenommen wird.</p>
+<pre class="r"><code># Vorhergesagte Werte im Datensatz speichern
+lockdown$pred &lt;- predict(PWB.time.fixed)
+# Grafik mit dem Subset
+ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=pred, color=ID)) +
+  theme_bw() + guides(color=&quot;none&quot;) +
+  geom_line()</code></pre>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+</div>
+<div id="zufallseffekt-random-slope" class="section level3">
+<h3>Zufallseffekt (<em>random slope</em>)</h3>
+<p>In einem nächsten Schritt untersuchen wir nun, ob sich der Effekt der Zeit auf das Wohlbefinden zwischen Personen unterscheidet. Hierzu wird der Effekt von Zeit als Zufallseffekt (<em>random slope</em>) modelliert:</p>
+<ul>
+<li>Gleichung auf Ebene 1: <span class="math inline">\(Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}\)</span></li>
+<li>Interzept auf Ebene 2: <span class="math inline">\(\beta_{0j}=\gamma_{00}+u_{0j}\)</span></li>
+<li>Slope auf Ebene 2: <span class="math inline">\(\beta_{1j}=\gamma_{10}+u_{1j}\)</span></li>
+<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{01}X_{ij} + u_{0j}X_{ij} + u_{0j} + r_{ij}\)</span></li>
+<li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + X + (1 + X | ID)</code></li>
+</ul>
+<pre class="r"><code>PWB.time.random &lt;- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown)
+summary(PWB.time.random)</code></pre>
+<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
+## Formula: PWB ~ 1 + Time + (1 + Time | ID)
+##    Data: lockdown
+## 
+## REML criterion at convergence: 4037.8
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.7790 -0.4617  0.0404  0.4979  3.8950 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev. Corr 
+##  ID       (Intercept) 0.862984 0.92897       
+##           Time        0.003915 0.06257  -0.25
+##  Residual             0.167694 0.40950       
+## Number of obs: 2192, groups:  ID, 486
+## 
+## Fixed effects:
+##              Estimate Std. Error t value
+## (Intercept)  0.177684   0.046985   3.782
+## Time        -0.036133   0.004678  -7.725
+## 
+## Correlation of Fixed Effects:
+##      (Intr)
+## Time -0.449</code></pre>
+<p>Mit mehr als einem Zufallseffekt im Modell enthält die Ausgabe nicht nur deren Varianzen, sondern auch deren Korrelation. In unserem Fall beträgt die Korrelation zwischen dem Intercept <span class="math inline">\(\beta_0\)</span> und dem Regressionskoeffizienten <span class="math inline">\(\beta_1\)</span> für ‘Time’ <span class="math inline">\(r=-0.25\)</span>. Das Intercept <span class="math inline">\(\beta_{0j}\)</span> ist das erwartete Wohlbefinden einer Person <span class="math inline">\(j\)</span> zu Beginn des Lockdowns (null Wochen im Lockdown). Die Steigung <span class="math inline">\(\beta_{1j}\)</span> ist die erwartete Veränderung des individuellen Wohlbefindens mit jeder weiteren Woche im Lockdown. Die leicht negative Korrelation bedeutet, dass das Wohlbefinden von Personen mit einem zu Beginn höheren Niveau etwas stärker negativ entwickelt.</p>
+<p>Der Ausgabe können wir entnehmen, dass die Varianz des Zeiteffekts $var(u_1)=$0.0039 beträgt. Ob dieser auf den ersten Blick kleine Effekt signifikant ist, können wir durch den Vergleich des Modells mit und ohne Zufallseffekt testen. Die <code>anova</code>-Funktion schätzt die Modelle standardmäßig für den Modellvergleich neu, und zwar mit Maximum Likelihood (ML) statt der Standardmethode Restricted Maximum Likelihood (REML). Dies muss hier mit der Option <code>refit=FALSE</code> unterdrückt werden, da der Test von Zufallseffekten auf der REML-Schätzung basieren sollte.</p>
+<pre class="r"><code>anova(PWB.time.fixed, PWB.time.random, refit=FALSE)</code></pre>
+<pre><code>## Data: lockdown
+## Models:
+## PWB.time.fixed: PWB ~ 1 + Time + (1 | ID)
+## PWB.time.random: PWB ~ 1 + Time + (1 + Time | ID)
+##                 npar    AIC    BIC  logLik deviance  Chisq Df Pr(&gt;Chisq)    
+## PWB.time.fixed     4 4093.4 4116.2 -2042.7   4085.4                         
+## PWB.time.random    6 4049.8 4083.9 -2018.9   4037.8 47.608  2  4.594e-11 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Der Modellvergleich zeigt, dass die Varianz des Zeiteffekts signifikant ist (<span class="math inline">\(\chi^2=47.61\)</span>, <span class="math inline">\(df=2\)</span>). Dennoch bleibt dieser Wert noch wenig anschaulich. Eine Möglichkeit zur grafischen Veranschaulichung ist die Darstellung der vorhergesagten individuellen Verläufe, auch hier wieder mit der oben verwendeten Teilmenge von Fällen. Die geschätzen Trajektorien unterscheiden sich nun in ihren Steigungen, manche zeigen eine deutliche Abnahme des Wohlbefindens, andere bleiben eher auf einem konstanten Niveau oder zeigen sogar einen Anstieg.</p>
+<pre class="r"><code># Vorhergesagte Werte im Datensatz speichern
+lockdown$pred &lt;- predict(PWB.time.random)
+# Grafik mit dem Subset
+ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=pred, color=ID)) +
+  theme_bw() + guides(color=&quot;none&quot;) +
+  geom_line()</code></pre>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p>Eine weitere Art, sich die Streuung des Zufallseffekts grafisch zu veranschaulichen, ist ein Histogramm. Mit der Funktion <code>fixef</code> lassen sich die festen Effekte des Modells auslesen, mit <code>randef</code> die Zufallseffekte für jede Ebene-2-Einheit, hier also Personen. Die Verteilung der geschätzen individuellen Zeiteffekte <span class="math inline">\(\beta_{1j}\)</span> ergibt sich aus der Verteilung des festen Effekts plus den Ebene-2-Residuen: <span class="math inline">\(\gamma_{10}+u_{1j}\)</span>. Wir sehen, dass ein großer Teil der Slopes im negativen Bereich liegt, einige jedoch auch im positiven, was einer leichten Verbesserung des Wohlbefindens mit zunehmender Zeit im Lockdown entsprechen würde.</p>
+<pre class="r"><code># Histogramm der individuellen Slopes als Summe aus festem Effekt und Residuen
+hist(fixef(PWB.time.random)[&quot;Time&quot;] + ranef(PWB.time.random)$ID$Time, 
+     main=&quot;Histogramm des Zeiteffekts&quot;, xlab = expression(beta[1]), 
+     breaks = seq(-0.2,0.2,0.025))
+abline(v=fixef(PWB.time.random)[&quot;Time&quot;], col=&quot;blue&quot;) # Lage des festen Effektes kennzeichnen</code></pre>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+</div>
+</div>
+<div id="Alterseffkte" class="section level2">
+<h2>3. Effekte des Alters als Prädiktor auf Personen-Ebene</h2>
+<p>Im Datensatz sind eine Reihe von Variablen enthalten, die für jede Person einmal erhoben wurden und als über die Zeit stabil angenommen werden - diese können als Ebene-2-Prädiktoren verwendet werden. Exemplarisch analysieren wir den Effekt des Alters auf das Wohlbefinden. Das Modell enthält einen festen Effekt für den Ebene-2-Prädiktor und (wie immer) einen Zufallseffekt für den random slope:</p>
+<ul>
+<li>Gleichung auf Ebene 1: <span class="math inline">\(Y_{ij}=\beta_{0j}+r_{ij}\)</span></li>
+<li>Interzept auf Ebene 2: <span class="math inline">\(\beta_{0j}=\gamma_{00}+\gamma_{01}Z_j+u_{0j}\)</span></li>
+<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{10}Z_j + u_{0j} + r_{ij}\)</span></li>
+<li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + Z + (1 | ID)</code></li>
+</ul>
+<p>Um die Modellparameter besser interpretieren zu können, zentrieren wir die Variabe zunächst um ihren Mittelwert (<span class="math inline">\(M(Age)=43.27\)</span>).</p>
+<p>Im Ergebnis sehen wir, dass Alter einen positiven Effekt auf das Psychische Wohlbefinden hat. Mit einem Jahr höherem Alter ändert sich das Niveau des Wohlbefindens um 0.013 Standardabweichungen. Das sieht numerisch wenig aus, bedeutet aber z. B. schon zwischen Zwanzigjährigen und Vierzigjährigen einen erwarteten Unterschied von 0.263 Standardabweichungen.</p>
+<pre class="r"><code>PWB.Age &lt;- lmer(PWB ~ 1 + Age + (1 | ID), data = lockdown)
+summary(PWB.Age)</code></pre>
+<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
+## Formula: PWB ~ 1 + Age + (1 | ID)
+##    Data: lockdown
+## 
+## REML criterion at convergence: 4150.3
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.4318 -0.5176  0.0279  0.5241  3.5569 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  ID       (Intercept) 0.7726   0.8790  
+##  Residual             0.2070   0.4549  
+## Number of obs: 2192, groups:  ID, 486
+## 
+## Fixed effects:
+##              Estimate Std. Error t value
+## (Intercept) 0.0007091  0.0412569   0.017
+## Age         0.0131503  0.0029877   4.401
+## 
+## Correlation of Fixed Effects:
+##     (Intr)
+## Age 0.044</code></pre>
+</div>
+<div id="Wechselwirkung" class="section level2">
+<h2>4. Interaktion zwischen Personen- und Zeitebene</h2>
+<p>Schließlich schätzen wir ein gemeinsames Modell mit Zeit und Alter. In diesem lassen wir für die Zeit wieder einen random slope zu, darüber hinaus eine Wechselwirkung (Cross-Level-Interaktion) zwischen Alter und Zeit. Inhaltlich bedeutet diese Wechselwirkung, dass der Effekt der Zeit im Lockdown auf das Wohlbefinden sich mit dem Alter verändern kann.</p>
+<ul>
+<li>Gleichung auf Ebene 1: <span class="math inline">\(Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}\)</span></li>
+<li>Interzept auf Ebene 2: <span class="math inline">\(\beta_{0j}=\gamma_{00}+\gamma_{01}Z_j+u_{0j}\)</span></li>
+<li>Slope auf Ebene 2: <span class="math inline">\(\beta_{1j}=\gamma_{10}+\gamma_{11}Z_j+u_{1j}\)</span></li>
+<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{10}Z_j + \gamma_{01}X_{ij} + \gamma_{11}Z_jX_{ij} + u_{0j}X_{ij} + u_{0j} + r_{ij}\)</span></li>
+<li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + X + (1 + X | ID)</code></li>
+</ul>
+<p>Für dieses Modell zentrieren wie auch die Zeit-Variable. Deren Nullpunkt ist zwar ohne Zentrierung anschaulicher, aber für die Interpretation des Moderatoreffekts sollten die beteiligten Prädiktoren zentriert sein. In den festen Effekten sehen wir, dass</p>
+<ul>
+<li>der signifikante Alterseffekt bestehen bleibt,</li>
+<li>der negative Zeiteffekt in nicht mehr signifikant ist und</li>
+<li>die Wechselwirkung ebenfalls nicht signifikant ist.</li>
+</ul>
+<p>Der Effekt der Zeit im Lockdown hängt demzufolge nicht vom Alter der betroffenen ab. Trotzdem zur Interpretation: Ein negativer Moderatoreffekt würde bedeuten, dass der negative Effekt des Lockdowns mit zunehmendem Alter noch stärker negativ wird.</p>
+<pre class="r"><code>mean(lockdown$Time)</code></pre>
+<pre><code>## [1] 5.353394</code></pre>
+<pre class="r"><code>lockdown$Time &lt;- scale(lockdown$Time, scale = FALSE)
+PWB.Age.Time &lt;- lmer(PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID), data = lockdown)
+summary(PWB.Age.Time)</code></pre>
+<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
+## Formula: PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID)
+##    Data: lockdown
+## 
+## REML criterion at convergence: 4040.3
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.7724 -0.4742  0.0457  0.4974  3.8941 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev. Corr
+##  ID       (Intercept) 0.784388 0.88566      
+##           Time        0.003921 0.06262  0.12
+##  Residual             0.167712 0.40953      
+## Number of obs: 2192, groups:  ID, 486
+## 
+## Fixed effects:
+##               Estimate Std. Error t value
+## (Intercept) -0.0070261  0.0414017  -0.170
+## Age          0.0135161  0.0029982   4.508
+## Time        -0.0362995  0.0046801  -7.756
+## Age:Time    -0.0002579  0.0003394  -0.760
+## 
+## Correlation of Fixed Effects:
+##          (Intr) Age    Time  
+## Age       0.042              
+## Time      0.102 -0.011       
+## Age:Time -0.012  0.101 -0.015</code></pre>
+<p>Zur grafischen Veranschaulichung der Wechselwirkung kann wie bei der moderierten Regression im linearen Modell auch hier die Funktion <code>interact_plot</code> verwendet werden. Die Lage der Linien zeigt gut den positiven Haupteffekt des Alters auf das Wohlbefinden. Zugleich veranschaulichen die fast parallelen Geraden das Nicht-Vorliegen einer Wechselwirkung.</p>
+<pre class="r"><code>interact_plot(model = PWB.Age.Time, pred = Time, modx = Age)</code></pre>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+</div>
