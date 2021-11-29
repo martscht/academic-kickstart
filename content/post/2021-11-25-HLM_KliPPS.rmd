@@ -18,12 +18,12 @@ lastmod: '2021-04-28 12:00:12 CEST'
 featured: no
 header:
      image: "/header/HLM_head.jpg"
-     caption: "[Courtesy of pxhere](https://pxhere.com/de/photo/928395)"
+     caption: "[Courtesy of pxhere](https://pxhere.com/de/photo/991196)"
 projects: []
 ---
 
 #### Pakete laden
-```{r message=FALSE}
+```{r, message=FALSE, warning = FALSE}
 # Benötigte Pakete --> Installieren, falls nicht schon vorhanden
 library(lme4)         # Für die Mehrebenen-Regression
 library(dplyr)        # Komfort-Funktionen für die Datentransformationen
@@ -32,14 +32,11 @@ library(ggplot2)      # Für Grafiken
 library(interactions) # Zur Veranschaulichung von Moderator-Effekten
 ```
 
-
 ## Einleitung und Datenbeispiel
 
 Daten in der klinisch-psychologischen Forschung haben häufig eine sogenannte *hierarchische Struktur* oder *Mehrebenen-Struktur*, in der Beobachtungen auf einer ersten Ebene in Beobachtungseinheiten auf einer übergeordneten Ebene gruppiert sind. Typische Strukturen sind Individuen in Gruppen (z. B. Patient*innen in Therapiepraxen oder in Kliniken) oder Messzeitpunkte in Personen (z. B. Befragungszeitpunkte im Verlauf einer Therapiestudie).
 
 Unser Datenbeispiel stammt aus einer [Studie zum psychischen Wohlbefinden von Individuen während des pandemie-bedingten Lockdowns in Frankreich](https://www.frontiersin.org/articles/10.3389/fpsyg.2020.590276/full){target="_blank"}. Es handelt sich um hierarchische Daten mit Messzeitpunkten auf Ebene 1 und Individuen auf Ebene 2. Zunächst laden wir diesen Datensatz aus dem OSF und nehmen ein paar Schritte zur Vorbereitung vor:
-
-
 
 ```{r message=FALSE, warning=TRUE}
 # Daten einlesen und vorbereiten 
@@ -101,7 +98,7 @@ Die Intraklassenkorrelation (ICC, $\rho_{ICC}$) gibt den Varianzanteil einer Var
 
 $$\rho_{ICC}=\frac{\sigma^2_{between}}{\sigma^2_{between}+\sigma^2_{within}}$$
 
-In unserem Fall ist das die Varianz $\sigma^2_{between}$ in der Befindlichkeit *zwischen Personen* (= Ebene-2-Einheiten). Die Varianz $\sigma^2_{within}$ innerhalb der Beobachtungseinheiten entspricht den Schankungen der individuellen Befindlichkeiten zwischen den Zeitpunkten (= Ebene-1-Einheiten). Die ICC ist hier ein Maß dafür, wie groß *inter*individuell stabile Unterschied im Befindlichkeitsniveau in Relation zur Gesamtstreuung einschließlich der *intra*individuellen Schwankungen sind.
+In unserem Fall ist das die Varianz $\sigma^2_{between}$ in der Befindlichkeit *zwischen Personen* (= Ebene-2-Einheiten). Die Varianz $\sigma^2_{within}$ innerhalb der Beobachtungseinheiten entspricht den Schwankungen der individuellen Befindlichkeiten zwischen den Zeitpunkten (= Ebene-1-Einheiten). Die ICC ist hier ein Maß dafür, wie groß *inter*individuell stabile Unterschiede im Befindlichkeitsniveau in Relation zur Gesamtstreuung einschließlich der *intra*individuellen Schwankungen sind.
 
 Eine einfache Methode zur Berechnung der ICC kann auf Basis der Varianzkomponenten (Inner- und Zwischengruppenvarianzen) einer einfaktoriellen ANOVA erfolgen. Mit der Funktion `ICCest` des Pakets `ICC` ermitteln wir die ICCs für die vier Befindlichkeitsvariablen: 
 
@@ -137,7 +134,6 @@ ggplot(lockdown, aes(x=Wave, y=PWB, color=ID)) +
 
 Für die grafische Veranschaulichung wählen wir hier daher eine kleine Zahl von Fällen, die zudem Daten zu allen sechs Zeitpunkten haben:
 
-
 ```{r}
 IDs.subset <- c("03858ebe", "ddf85cd4", "fab6bb4d", "c7b6e168", "c0661f6a", "f005ee8d", "f037053f", "166a701e",
                 "3ff1ffae", "486d63a8", "4b6a0366", "ba2ccd92", "cdbfa68a", "f43569d8", "c0c3cb43")
@@ -156,7 +152,6 @@ ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Wave, y=PWB, color=ID)) +
 # IDs.subset <- sample(IDs.subset, 15)
 ```
 
-
 Die Grafik veranschaulicht, dass die Unterschiede zwischen dem Niveau der Linien, also zwischen Personen, stärker sind als die Schwankungen innerhalb der Linien über die Zeit (also innerhalb von Personen).
 
 Die unterschiedliche Bedeutung der beiden Variablen `Wave` (Messzeitpunkt) und `Time` (Zeit im Lockdown in Wochen) können wir durch eine Grafik anschaulich machen, in der wir statt des Messzeitpunkts die Zeit nehmen. Man sieht, dass die Linien hier unterschiedlich lang sind, da die befragten Personen zum Zeitpunkt der Beantwortung unterschiedlich lang im Lockdown waren:
@@ -168,7 +163,6 @@ ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=PWB, color=ID)) +
   geom_line()
 ```
 
-
 ### Nullmodell
 
 ```{r include=FALSE}
@@ -178,7 +172,7 @@ sig2_w <- summary(m0)$sigma^2
 
 ```
 
-Als erstes Modell berechnen wir für Psychological Wellbeing das Nullmodell ohne Prädiktoren. Dieses Modell kann für Modelle mit Prädiktoren als Referenz für Modellvergleiche dienen. Außerdem können wir auf dessen Basis auch eine Schätzung für die Intraklassenkorrelation bilden, beide  benötigten Varianzkomponenten $\sigma^2_{between}$ und $\sigma^2_{within}$ werden im Modell geschätzt.
+Als erstes Modell berechnen wir für Psychological Wellbeing das Nullmodell ohne Prädiktoren. Dieses Modell kann für Modelle mit Prädiktoren als Referenz für Modellvergleiche dienen. Außerdem können wir auf dessen Basis auch eine Schätzung für die Intraklassenkorrelation bilden. Beide  benötigten Varianzkomponenten $\sigma^2_{between}$ und $\sigma^2_{within}$ werden im Modell geschätzt.
 
 Der Ausgabe für das Nullmodell können wir entnehmen, dass die Varianz des Intercepts $\sigma^2_{between}=`r round(sig2_b,3)`$ beträgt, die Residualvarianz, die hier der Innerpersonen-Varianz entspricht, $\sigma^2_{within}=`r round(sig2_w,3)`$. Hieraus resultiert eine ICC von $\rho_{ICC}=`r round(sig2_b / (sig2_b+sig2_w),3)`$. Geringfügige Abweichungen durch die oben mit der Funktion `ICCbare`ermittelten Ergebnisse können durch die unterschiedlichen Schätzmethoden (Kleinstquadrate vs. ML) zustande kommen.
 
@@ -189,7 +183,6 @@ m0 <- lmer(PWB ~ 1 + (1 | ID), data = lockdown)
 summary(m0)
 
 ```
-
 
 ## 2. Effekte der Zeit{#Zeiteffekte}
 
@@ -244,12 +237,11 @@ summary(PWB.time.random)
 
 Mit mehr als einem Zufallseffekt im Modell enthält die Ausgabe nicht nur deren Varianzen, sondern auch deren Korrelation. In unserem Fall beträgt die Korrelation zwischen dem Intercept $\beta_0$ und dem Regressionskoeffizienten $\beta_1$ für 'Time' $r=`r round(data.frame(VarCorr(PWB.time.random))[3,"sdcor"],2)`$. Das Intercept $\beta_{0j}$ ist das erwartete Wohlbefinden einer Person $j$ zu Beginn des Lockdowns (null Wochen im Lockdown). Die Steigung $\beta_{1j}$ ist die erwartete Veränderung des individuellen Wohlbefindens mit jeder weiteren Woche im Lockdown. Die leicht negative Korrelation bedeutet, dass das Wohlbefinden von Personen mit einem zu Beginn höheren Niveau etwas stärker negativ entwickelt.
 
-Der Ausgabe können wir entnehmen, dass die Varianz des Zeiteffekts $var(u_1)=$`r round(VarCorr(PWB.time.random)$ID[2,2],4)` beträgt. Ob dieser auf den ersten Blick kleine Effekt signifikant ist, können wir durch den Vergleich des Modells mit und ohne Zufallseffekt testen. Die `anova`-Funktion schätzt die Modelle standardmäßig für den Modellvergleich neu, und zwar mit Maximum Likelihood (ML) statt der Standardmethode Restricted Maximum Likelihood (REML). Dies muss hier mit der Option `refit=FALSE` unterdrückt werden, da der Test von Zufallseffekten auf der REML-Schätzung basieren sollte. 
+Der Ausgabe können wir entnehmen, dass die Varianz des Zeiteffekts $var(u_1)=`r round(VarCorr(PWB.time.random)$ID[2,2],4)`$ beträgt. Ob dieser auf den ersten Blick kleine Effekt signifikant ist, können wir durch den Vergleich des Modells mit und ohne Zufallseffekt testen. Die `anova`-Funktion schätzt die Modelle standardmäßig für den Modellvergleich neu, und zwar mit Maximum Likelihood (ML) statt der Standardmethode Restricted Maximum Likelihood (REML). Dies muss hier mit der Option `refit=FALSE` unterdrückt werden, da der Test von Zufallseffekten auf der REML-Schätzung basieren sollte. 
 
 ```{r include=FALSE}
 diff <- anova(PWB.time.fixed, PWB.time.random, refit=FALSE)
 ```
-
 
 ```{r}
 anova(PWB.time.fixed, PWB.time.random, refit=FALSE)
@@ -315,10 +307,10 @@ Schließlich schätzen wir ein gemeinsames Modell mit Zeit und Alter. In diesem 
 Für dieses Modell zentrieren wie auch die Zeit-Variable. Deren Nullpunkt ist zwar ohne Zentrierung anschaulicher, aber für die Interpretation des Moderatoreffekts sollten die beteiligten Prädiktoren zentriert sein. In den festen Effekten sehen wir, dass
 
 * der signifikante Alterseffekt bestehen bleibt,
-* der negative Zeiteffekt in nicht mehr signifikant ist und
+* der negative Zeiteffekt bestehen bleibt und
 * die Wechselwirkung ebenfalls nicht signifikant ist. 
 
-Der Effekt der Zeit im Lockdown hängt demzufolge nicht vom Alter der betroffenen ab. Trotzdem zur Interpretation: Ein negativer Moderatoreffekt würde bedeuten, dass der negative Effekt des Lockdowns mit zunehmendem Alter noch stärker negativ wird.
+Der Effekt der Zeit im Lockdown hängt demzufolge nicht vom Alter der Betroffenen ab. Trotzdem zur Interpretation: Ein negativer Moderatoreffekt würde bedeuten, dass der negative Effekt des Lockdowns mit zunehmendem Alter noch stärker negativ wird.
 
 ```{r}
 mean(lockdown$Time)
