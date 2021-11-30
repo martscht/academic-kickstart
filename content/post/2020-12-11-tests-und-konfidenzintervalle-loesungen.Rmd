@@ -23,25 +23,26 @@ publishDate: '2021-12-03'
 
 ## Vorbereitung
 
-Laden Sie zunächst den Datensatz `fb20` von der pandar-Website.
+Laden Sie zun?chst den Datensatz `fb21` von der pandar-Website.
 
 ```{r}
-fb20 <- read.table('https://pandar.netlify.app/post/fb20.csv', 
-  header = TRUE,
-  sep = ',',
-  na.strings = '-99')
+fb21 <- read.table('https://pandar.netlify.app/post/fb21.csv', 
+                   header = TRUE,
+                   sep = ',',
+                   na.strings = 'NA',
+                   stringsAsFactors = F)
 ```
 
-Alternativ können Sie die fertige R-Daten-Datei [<i class="fas fa-download"></i> hier herunterladen](/post/fb20.rda). Die Bedeutung der einzelnen Variablen und ihre Antwortkategorien können Sie dem Dokument [Variablenübersicht.docx](/post/variablen.pdf) entnehmen.
+Alternativ k?nnen Sie die fertige R-Daten-Datei [<i class="fas fa-download"></i> hier herunterladen](/post/fb21.rda). Die Bedeutung der einzelnen Variablen und ihre Antwortkategorien k?nnen Sie dem Dokument [Variablen?bersicht.docx](/post/variablen.pdf) entnehmen.
 
-Prüfen Sie zur Sicherheit, ob alles funktioniert hat:
+Pr?fen Sie zur Sicherheit, ob alles funktioniert hat:
 
 ```{r}
-dim(fb20)
-str(fb20)
+dim(fb21)
+str(fb21)
 ```
 
-Der Datensatz besteht aus `r nrow(fb20)` Zeilen (Beobachtungen) und `r ncol(fb20)` Spalten (=Variablen).
+Der Datensatz besteht aus `r nrow(fb21)` Zeilen (Beobachtungen) und `r ncol(fb21)` Spalten (=Variablen).
 
 ***
 
@@ -57,7 +58,7 @@ library(psych)
 library(nortest)
 library(car)
 
-load('fb20.rda')
+load('fb21.rda')
 ```
 
 ## Aufgabe 1
@@ -69,13 +70,13 @@ load('fb20.rda')
 **Variante 1**:
 
 ```{r}
-mean.lz <- mean(fb20$lz, na.rm = T) #Mittelwert
+mean.lz <- mean(fb21$lz, na.rm = T) #Mittelwert
 mean.lz
 
-sd.lz <- sd(fb20$lz, na.rm = T) #Standardabweichung
+sd.lz <- sd(fb21$lz, na.rm = T) #Standardabweichung
 sd.lz
 
-n.lz <- length(na.omit(fb20$lz)) #Stichprobengroesse
+n.lz <- length(na.omit(fb21$lz)) #Stichprobengroesse
 se.lz <- sd.lz/sqrt(n.lz) #Standardfehler
 se.lz
 ```
@@ -83,23 +84,23 @@ se.lz
 **Variante 2**:
 
 ```{r}
-describe(fb20$lz) #Funktion aus Paket "psych"
+describe(fb21$lz) #Funktion aus Paket "psych"
 ```
 
 **1.2 Sind die Lebenszufriedenheitswerte normalverteilt? Veranschaulichen Sie dies mit einem geeigneten Plot. Benutzen Sie die qqPlot-Funktion aus dem car-Paket sowie die lillie.test-Funktion aus dem nortest-Paket. Wie unterscheiden sie sich? Wann kann man in diesem Fall von einer Normalverteilung ausgehen?**
 
 ```{r}
 #geeigneter Plot: QQ-Plot. Alle Punkte sollten auf einer Linie liegen.
-qqnorm(fb20$lz)
-qqline(fb20$lz)
+qqnorm(fb21$lz)
+qqline(fb21$lz)
 
 #Die qqPlot-Funktion zeichnet ein Konfidenzintervall in den QQ-Plot. Dies macht es fuer den Betrachter einfacher zu entscheiden, ob alle Punkte in etwa auf einer Linie liegen. Die Punkte sollten nicht ausserhalb der blauen Linien liegen.
-qqPlot(fb20$lz)
+qqPlot(fb21$lz)
 
-#Der Lillie-Test (Kolmogorov-Smirnov Test), testet die H0, dass eine Normalverteilung vorliegt. Daher sollte der Test nicht signifikant sein
-lillie.test(fb20$lz)
+#Der Lillie-Test (Kolmogorov-Smirnov Test) testet die H0, dass eine Normalverteilung vorliegt. Daher sollte der Test nicht signifikant sein
+lillie.test(fb21$lz)
 ```
-Sowohl der QQ-Plot als auch der Lilliefors-Test pruefen die Daten auf Normalverteilung, wobei der QQ-Plot grafisch und der Lilliefors-Test inferenzstatistisch vorgeht. Obwohl der QQ-Plot nicht eindeutig ist, kann man davon ausgehen, dass die Daten **nicht** normalverteilt sind.
+Sowohl der QQ-Plot als auch der Lilliefors-Test pruefen die Daten auf Normalverteilung, wobei der QQ-Plot grafisch und der Lilliefors-Test inferenzstatistisch vorgeht. Beides weist darauf hin, dass die Daten **nicht** normalverteilt sind.
 
 **1.3 Unterscheidet sich die Lebenszufriedenheit der Psychologie-Studierenden von der Lebenszufriedenheit der Gesamtbevoelkerung ($\mu$ = 4.7)? Bestimmen Sie das 99%ige Konfidenzintervall.**
 
@@ -119,8 +120,8 @@ $H_1$: Die durchschnittliche Lebenzufriedenheit der Psychologie-Studierenden $\m
 $H_1$: $\mu_0$ $\neq$ $\mu_1$
 
 ```{r}
-t.test(fb20$lz, mu=4.7)
-t.test(fb20$lz, mu=4.7, conf.level = 0.99) #Default ist 95%, deshalb erhoehen wir auf 99%
+t.test(fb21$lz, mu=4.7)
+t.test(fb21$lz, mu=4.7, conf.level = 0.99) #Default ist 95%, deshalb erhoehen wir auf 99%
 ```
 
 Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen werden. Die Psychologie-Studierenden unterscheiden sich in ihrer Lebenszufriedenheit von der Gesamtbevoelkerung. 
@@ -160,15 +161,17 @@ z_krit
 z.note > z_krit #Signifikanzentscheidung
 ```
 
-Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ (keine Veraenderung) verworfen werden. Die Abschlussnote hat sich ueber die Jahre verbessert.
+Mit einer Irrtumswahrscheinlichkeit von 5% wird die $H_0$ (keine Veraenderung) verworfen. Die Abschlussnote hat sich ueber die Jahre verbessert.
 
-**2.2 Wie wahrscheinlich ist angesichts der bekannten Normalverteilung der z-Werte dieser z-Wert?**
+**2.2 Wieviel Prozent der damaligen Fälle hatten eine bessere Abschlussnote als die neue ermittelte Abschlussnote von 1.81?**
 
 ```{r}
-pnorm(z.note)
+pnorm(q = 1.81, mean = 2.01,sd = .57, lower.tail = T)*100
 ```
 
-## Aufgabe 3 (Zusatz)
+Nur 36.28% der Fälle hatten eine bessere Abschlussnote als 1.81. Dies unterstützt das Ergebnis, dass sich der neue Wert von dem bisherigen Mittelwert unterscheidet.   
+
+## Aufgabe 3
 
 **3.1 Unterscheiden sich die Extraversionswerte (`extra`) der Studierenden der Psychologie (1. Semester) von den Extraversionswerten der Gesamtbevoelkerung ($\mu$ = 3.5)? Bestimmen Sie das 95%ige Konfidenzintervall und die Effektgroesse.**
 
@@ -185,48 +188,58 @@ $H_1$: Die durchschnittlichen Extraversionswerte der Psychologie-Studierenden $\
 $H_1$: $\mu_0$ $\neq$ $\mu_1$
 
 ```{r}
-t.test(fb20$extra, mu=3.5)
+t.test(fb21$extra, mu=3.5)
 ```
 
-Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ beibehalten werden. Die Psychologie-Studierenden unterscheiden sich nicht in ihrer Extraversion von der Gesamtbevoelkerung. 
-Mit einer 95%-igen Wahrscheinlichkeit liegt der wahre Extraversionswert $\mu$ zwischen 3.33 und 3.60.
+Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen werden. Die Psychologie-Studierenden unterscheiden sich in ihrer Extraversion von der Gesamtbevoelkerung. 
+Das 95%-ige Konfidenzintervall liegt zwischen 3.22 und 3.49. Das bedeutet, dass in 95% der Fälle in einer wiederholten Ziehung aus der Grundgesamtheit die mittleren Vertraeglichkeitswerte zwischen 3.22 und 3.49 liegen.
 
-Da sich die Werte nicht signifikant unterscheiden, ist es nicht sinnvoll die Effektgroesse zu berechnen.
+**Effektgroesse:**
 
-**3.2 Sind die Prokrastinationswerte (`pro`) der Psychologie-Studierenden (1. Semester) groesser als die Prokrastinationswerte der Gesamtbevoelkerung ($\mu$ = 2.1)? Bestimmen Sie das 99%ige Konfidenzintervall und die Effektgroesse.**
+```{r}
+mean_extra <- mean(fb21$extra, na.rm = T) #MW der Stichprobe
+sd_extra <- sd(fb21$extra, na.rm = T) #Stichproben SD (Populationsschaetzer)
+mean_Popu_extra <- 3.5 #MW der Grundgesamtheit
+d1 <- abs((mean_extra - mean_Popu_extra)/sd_extra) #abs(), da Betrag
+d1
+```
+
+Die Effektgroesse ist als klein einzuordnen.
+
+**3.2 Sind die Nerdiness-Werte (`nerd`) der Psychologie-Studierenden (1. Semester) groesser als die Nerdiness-Werte der Gesamtbevoelkerung ($\mu$ = 2.9)? Bestimmen Sie das 99%ige Konfidenzintervall und die Effektgroesse.**
 
 **Hypothesengenerierung:**
 
 $\alpha$ = .05 
 
-$H_0$: Die durchschnittlichen Prokrastinationswerte der Psychologie-Studierenden $\mu_1$ sind geringer oder gleich gross wie die Werte der Gesamtbevoelkerung $\mu_0$.
+$H_0$: Die durchschnittlichen Nerdiness-Werte der Psychologie-Studierenden $\mu_1$ sind geringer oder gleich gross wie die Werte der Gesamtbevoelkerung $\mu_0$.
 
 $H_0$: $\mu_0$ $\geq$ $\mu_1$
 
-$H_1$: Die durchschnittlichen Prokrastinationswerte der Psychologie-Studierenden $\mu_1$ sind groesser als die Werte der Gesamtbevoelkerung $\mu_0$.
+$H_1$: Die durchschnittlichen Nerdiness-Werte der Psychologie-Studierenden $\mu_1$ sind groesser als die Werte der Gesamtbevoelkerung $\mu_0$.
 
 $H_1$: $\mu_0$ $<$ $\mu_1$
 
 ```{r}
-t.test(fb20$pro, mu=2.1, alternative="greater", conf.level = 0.99)
+t.test(fb21$nerd, mu=2.9, alternative="greater", conf.level = 0.99)
 ```
 
-Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen und die $H_1$ angenommen werden. Die Psychologie-Studierenden haben hoehere Prokrastinationswerte im Vergleich zur Gesamtbevoelkerung.
-Mit einer 99%-igen Wahrscheinlichkeit liegt der wahre Prokrastinationswert $\mu$ zwischen 2.23 und Inf (Ausserhalb des definierten Wertebereichs).
+Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen und die $H_1$ angenommen werden. Die Psychologie-Studierenden haben hoehere Nerdiness-Werte im Vergleich zur Gesamtbevoelkerung.
+Mit einer 99%-igen Wahrscheinlichkeit liegt der wahre Nerdiness-Wert $\mu$ zwischen 2.96 und Inf (Ausserhalb des definierten Wertebereichs).
 
 **Effektgroesse:**
 
 ```{r}
-mean_pro <- mean(fb20$pro, na.rm = T) #MW der Stichprobe
-sd_pro <- sd(fb20$pro, na.rm = T) #Stichproben SD (Populationsschaetzer)
-mean_Popu_pro <- 2.1 #MW der Grundgesamtheit
-d2 <- abs((mean_pro - mean_Popu_pro)/sd_pro) #abs(), da Betrag
+mean_nerd <- mean(fb21$nerd, na.rm = T) #MW der Stichprobe
+sd_nerd <- sd(fb21$nerd, na.rm = T) #Stichproben SD (Populationsschaetzer)
+mean_Popu_nerd <- 2.9 #MW der Grundgesamtheit
+d2 <- abs((mean_nerd - mean_Popu_nerd)/sd_nerd) #abs(), da Betrag
 d2
 ```
 
-Die Effektgroesse ist als mittel einzuordnen.
+Die Effektgroesse ist als klein bis mittel einzuordnen.
 
-**3.3 Sind die Psychologie-Studierenden (1. Semester) vertraeglicher (`vertr`) als die Grundgesamtheit ($\mu$ = 3.5)? Bestimmen Sie das 95%ige Konfidenzintervall und die Effektgroesse.**
+**3.3 Sind die Psychologie-Studierenden (1. Semester) vertraeglicher (`vertr`) als die Grundgesamtheit ($\mu$ = 3.9)? Bestimmen Sie das 95%ige Konfidenzintervall und die Effektgroesse.**
 
 **Hypothesengenerierung:**
 
@@ -241,20 +254,20 @@ $H_1$: Die durchschnittlichen Vertraeglichkeitswerte der Psychologie-Studierende
 $H_1$: $\mu_0$ $<$ $\mu_1$
 
 ```{r}
-t.test(fb20$vertr, mu=3.5, alternative = "greater")
+t.test(fb21$vertr, mu=3.9, alternative = "greater")
 ```
 
 Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen und die $H_1$ angenommen werden. Die Psychologie-Studierenden haben hoehere Vertraeglichkeitswerte im Vergleich zur Gesamtbevoelkerung.
-Mit einer 95%-igen Wahrscheinlichkeit liegt der wahre Vertraeglichkeitswert $\mu$ zwischen 4.22 und Inf (Ausserhalb des definierten Wertebereichs).
+Das 95%-ige Konfidenzintervall liegt zwischen 4.09 und Inf (Ausserhalb des definierten Wertebereichs). Das bedeutet, dass in 95% der Fälle in einer wiederholten Ziehung aus der Grundgesamtheit die mittleren Vertraeglichkeitswerte zwischen 4.09 und Inf (Ausserhalb des definierten Wertebereichs) liegen.
 
 **Effektgroesse:**
 
 ```{r}
-mean_vertr <- mean(fb20$vertr, na.rm = T) #MW der Stichprobe
-sd_vertr <- sd(fb20$vertr, na.rm = T) #Stichproben SD (Populationsschaetzer)
-mean_Popu_vertr <- 3.99 #MW der Grundgesamtheit
+mean_vertr <- mean(fb21$vertr, na.rm = T) #MW der Stichprobe
+sd_vertr <- sd(fb21$vertr, na.rm = T) #Stichproben SD (Populationsschaetzer)
+mean_Popu_vertr <- 3.9 #MW der Grundgesamtheit
 d3 <- abs((mean_vertr - mean_Popu_vertr)/sd_vertr) #abs(), da Betrag
 d3
 ```
 
-Die Effektgroesse ist als mittel einzuordnen.
+Die Effektgroesse ist als mittel bis hoch einzuordnen.
