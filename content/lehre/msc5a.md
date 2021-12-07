@@ -76,7 +76,7 @@ Das Modul KliPPsMSc5 ist in zwei Teile untergliedert. Im ersten Semester besuche
 |  II | 1 | **ANOVA vs. Regression** | [Inhalte](/post/anova-vs-regression)  | -- |
 |  II | 2 | **ANCOVA und moderierte Regression** | [Inhalte](/post/ancova-und-moderierte-regression)  | -- |
 |  II | 3 | **Logistische Regressionsanalyse** | [Inhalte](/post/logistische-regression-klipps)  | [Quizdaten](/post/msc5a-daten/#Block2) |
-| III | 1 | **Hierarchische Regression** | [Inhalte](/post/hlm)  | [Quizdaten](/post/under-construction) |
+| III | 1 | **Hierarchische Regression** | [Inhalte](/post/hlm)  | [Quizdaten](/post/msc5a-daten/#Block3) |
 | IV  | 1 | **Meta-Analyse** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
 | Va | 1 | **Kausalschätzer** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
 | Vb | 1 | **Netzwerkanalyse** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
