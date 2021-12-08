@@ -13,7 +13,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer]
-lastmod: '2021-01-14T19:22:32+02:00'
+lastmod: '2021-12-08T19:22:32+02:00'
 featured: no
 header:
   image: "/header/MSc5_Selection_post.jpg"
@@ -21,6 +21,7 @@ header:
 projects: []
 ---
 
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <div id="einleitung" class="section level2">
@@ -217,7 +218,7 @@ summary(heckman)</code></pre>
 ##  2-step Heckman / heckit estimation
 ##  1000 observations (770 censored and 230 observed)
 ##  7 free parameters (df = 994)</code></pre>
-<p>dass hier das 2-Stufige Heckman-Modell angesetzt wurde. Insgesamt von den 1000 Beoachtungen waren 770 zensiert (nicht beobachtet) und nur 230 konnten beobachtet werden. Insgesamt wurden 7 Parameter geschätzt (<span class="math inline">\(\beta_0, \beta_1, b_0, b_1, r, \sigma\)</span> und <span class="math inline">\(\rho\)</span>, wobei <span class="math inline">\(\rho\)</span> eine Schätzung für die Korrelation zwischen den Residuen der Selektionsgleichung und der Regressionsgleichung ist - diesen Parameter haben wir bisher nicht benutzt).</p>
+<p>dass hier das 2-Stufige Heckman-Modell angesetzt wurde (es gibt auch eine simultane Maximum-Liklihood [ML] Methode, die wir uns etwas später auch ansehen). Insgesamt von den 1000 Beoachtungen waren 770 zensiert (nicht beobachtet) und nur 230 konnten beobachtet werden. Insgesamt wurden 7 Parameter geschätzt (<span class="math inline">\(\beta_0, \beta_1, b_0, b_1, r, \sigma\)</span> und <span class="math inline">\(\rho\)</span>, wobei <span class="math inline">\(\rho\)</span> eine Schätzung für die Korrelation zwischen den Residuen der Selektionsgleichung und der Regressionsgleichung ist - diesen Parameter haben wir bisher nicht benutzt).</p>
 <pre><code>##  Probit selection equation:
 ##              Estimate Std. Error t value Pr(&gt;|t|)    
 ##  (Intercept) -1.97383    0.10924  -18.07   &lt;2e-16 ***
@@ -249,10 +250,45 @@ summary(heckman)</code></pre>
 <p>So können die Koeffizienten auf leichte Weise weiterverwendet werden (bspw. für eine Simulationsstudie).</p>
 <p><strong>Ergebnisinterpretation:</strong> Insgesamt ist keiner der Parameter im Regressionsmodell des Heckman-Modells signifikant. Da wir aber das Modell vorgegeben haben, wird dies daran liegen, dass die Stichprobengröße zu klein ausgefallen ist. Wir wissen nämlich, dass es Effekte gab!</p>
 <p>Wiederholen Sie doch einmal gleiches Modell für eine Stichprobengröße von <span class="math inline">\(n=10^5\)</span> (Achtung: unter Umständen müssen Sie hier eine Weile auf das Ergebnis warten!). Sie können auch gerne die in <a href="#AppendixB">Appendix B</a> zu findende Funktion nutzen, mit welcher Sie das Heckman-Modell direkt als <code>data.frame</code> simulieren können und anschließend mit den oben besprochenen Mitteln auswerten können.</p>
-<p>Wenn Sie erstmal einen vorgefertigten Datensatz untersuchen wollen, so laden Sie sich doch diesen herunter: <a href="/post/HeckData.rda"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> Datensatz “<code>HeckData.rda</code>”</a>. Sie können <code>HeckData.rda</code> auch analog herunterladen und direkt einladen:</p>
+<p>Wenn Sie die ML-Variante verwenden wollen, in der alle Parameter simultan geschätzt werden, dann müssen Sie die <code>selection</code> Funktion aus dem gleichen Paket verwenden. Das interessante hier ist nun, dass auch <code>rho</code> und <code>sigma</code> eine Signifikanzentscheidung erhalten. Ansonsten sind die beiden Varianten sehr ähnlich. Die ML-Variante ist numerisch aufwendiger (der PC hat mehr zu tun), ist allerdings, wenn alle Annahmen erfüllt, dann hat die ML-Variante kleiner Standardfehler. Sie die Annahmen nicht erfüllt, dann ist die zweistufige Variante etwas robuster, da nicht so viele Parameter gleichzeitig geschätzt werden müssen:</p>
+<pre class="r"><code>heckman_ML &lt;- selection(selection = s ~ 1 + X, outcome = Y_obs ~ 1 + X)
+summary(heckman_ML)</code></pre>
+<pre><code>## --------------------------------------------
+## Tobit 2 model (sample selection model)
+## Maximum Likelihood estimation
+## Newton-Raphson maximisation, 7 iterations
+## Return code 1: gradient close to zero (gradtol)
+## Log-Likelihood: -919.1355 
+## 1000 observations (770 censored and 230 observed)
+## 6 free parameters (df = 994)
+## Probit selection equation:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  -1.9658     0.1087  -18.08   &lt;2e-16 ***
+## X             0.4739     0.0331   14.32   &lt;2e-16 ***
+## Outcome equation:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -0.04707    1.32532  -0.036    0.972    
+## X            1.18706    0.21928   5.413 7.76e-08 ***
+##    Error terms:
+##       Estimate Std. Error t value Pr(&gt;|t|)    
+## sigma  3.16491    0.34039   9.298   &lt;2e-16 ***
+## rho    0.81232    0.09426   8.618   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## --------------------------------------------</code></pre>
+<p>Ganz oben in der Summary steht nun, dass es sich um die ML-Methode handelt. <code>sigma</code> und <code>rho</code> haben nun auch eine Signifikanzentscheidung. Die Ergebnisse sind allerdings so gut wie identisch zum zweistufigen Verfahren.</p>
+<pre class="r"><code>coef(summary(heckman_ML))</code></pre>
+<pre><code>##                Estimate Std. Error      t value     Pr(&gt;|t|)
+## (Intercept) -1.96576392 0.10871837 -18.08124947 2.130815e-63
+## X            0.47390677 0.03309905  14.31783549 2.053078e-42
+## (Intercept) -0.04707479 1.32532398  -0.03551946 9.716727e-01
+## X            1.18705607 0.21928459   5.41331268 7.756977e-08
+## sigma        3.16491167 0.34038533   9.29802601 8.821179e-20
+## rho          0.81231960 0.09426220   8.61766038 2.655787e-17</code></pre>
+<p>Wenn Sie erstmal einen vorgefertigten Datensatz untersuchen wollen, so laden Sie sich doch diesen herunter: <a href="/post/HeckData.rda"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> Datensatz “<code>HeckData.rda</code>”</a>. Sie können <code>HeckData.rda</code> auch analog herunterladen und direkt einladen:</p>
 <pre class="r"><code>load(url(&quot;https://pandar.netlify.app/post/HeckData.rda&quot;))</code></pre>
 <p>In diesem Datensatz sind zu in dieser Sitzung präsentierten Parametern (<span class="math inline">\(\beta_0=-2,\beta_1=0.5, b_0 = 0.5, b_1=1.2, r= 2,\sigma=2\)</span>) die Variablen <span class="math inline">\(X,Y_{obs}\)</span> und <span class="math inline">\(s\)</span> enthalten, sowie - zu Demonstrationszwecken - <span class="math inline">\(Z\)</span> und <span class="math inline">\(Y\)</span>.</p>
-<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/2_Sample_Selection_Bias-RCode.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
+<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="https://raw.githubusercontent.com/jpirmer/MSc1_FEI/master/R-Scripts/2_Sample_Selection_Bias-RCode.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
 </div>
 </div>
 <div id="appendix" class="section level2">
@@ -266,19 +302,19 @@ cuts &lt;- cut(h$breaks, c(-4,-1,4)) # Grenzen festlegen für Färbung
 plot(h, col=cuts,  freq = F)
 lines(x = seq(-4,4,0.01), dnorm(seq(-4,4,0.01)), col = &quot;blue&quot;, lwd = 3)
 abline(v = -1, lwd = 3, lty = 3, col = &quot;gold3&quot;)</code></pre>
-<p><img src="/post/2020-11-06-MSc5_Selektionseffekte_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-11-06-MSc5_Selektionseffekte_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>h &lt;- hist(Z, breaks=50, plot=FALSE)
 cuts &lt;- cut(h$breaks, c(-4,2,4)) # Grenzen festlegen für Färbung
 plot(h, col=cuts,  freq = F)
 lines(x = seq(-4,4,0.01), dnorm(seq(-4,4,0.01)), col = &quot;blue&quot;, lwd = 3)
 abline(v = 2, lwd = 3, lty = 3, col = &quot;gold3&quot;)</code></pre>
-<p><img src="/post/2020-11-06-MSc5_Selektionseffekte_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-11-06-MSc5_Selektionseffekte_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>plot(X, Y, pch = 16, col = &quot;skyblue&quot;, cex = 1.5)
 points(X, Y_obs, pch = 16, col = &quot;black&quot;)
 abline(reg_pop, col = &quot;blue&quot;, lwd = 5)
 abline(reg_obs, col = &quot;gold3&quot;, lwd = 5)
 legend(x = &quot;bottomright&quot;, legend = c(&quot;all&quot;, &quot;observed&quot;, &quot;regression: all&quot;, &quot;regression: observed&quot;), col = c(&quot;skyblue&quot;, &quot;black&quot;, &quot;blue&quot;, &quot;gold3&quot;), lwd = c(NA, NA, 5, 5), pch = c(16, 16, NA, NA))</code></pre>
-<p><img src="/post/2020-11-06-MSc5_Selektionseffekte_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2020-11-06-MSc5_Selektionseffekte_files/figure-html/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="AppendixB" class="section level3">
 <h3>Appendix B: Heckman Modell simulieren</h3>
@@ -350,6 +386,7 @@ summary(heckman_model)</code></pre>
 <h2>Literatur</h2>
 <p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=ED478203%7Ceric">Briggs, D. C. (2004).</a> Causal inference and the Heckman model. <em>Journal of Educational and Behavioral Statistics, 29</em>(4), 397–420.</p>
 <p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=edsjsr.10.2307.1912352%7Cedsjsr">Heckman, J. (1979).</a> Sample selection bias as a specification error.<em>Econometrica</em>, 47, 153–161.</p>
+<p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=0164441%7Ceoh">Heckman, J. (1976).</a> The common structure of statistical models of truncation, sample selection and limited dependent variables and a simple estimator for such models. <em>Annals of Economic and Social Measurement, 5</em>(4).</p>
 <p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.C30BA3A7%7Cedsbas">Toomet, O., &amp; Henningsen, A. (2008).</a> Sample selection models in R: Package sampleSelection.<em>Journal of Statistical Software, 27</em>(7), 1-23.</p>
 <ul>
 <li><small> <em>Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.</em></li>

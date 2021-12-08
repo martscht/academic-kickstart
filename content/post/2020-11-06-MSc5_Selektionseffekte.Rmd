@@ -13,7 +13,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer]
-lastmod: '2021-01-14T19:22:32+02:00'
+lastmod: '2021-12-08T19:22:32+02:00'
 featured: no
 header:
   image: "/header/MSc5_Selection_post.jpg"
@@ -200,7 +200,7 @@ cat(' --------------------------------------------
  1000 observations (770 censored and 230 observed)
  7 free parameters (df = 994)')
 ```
-dass hier das 2-Stufige Heckman-Modell angesetzt wurde. Insgesamt von den 1000 Beoachtungen waren 770 zensiert (nicht beobachtet) und nur 230 konnten beobachtet werden. Insgesamt wurden 7 Parameter geschätzt ($\beta_0, \beta_1, b_0, b_1, r, \sigma$ und $\rho$, wobei $\rho$ eine Schätzung für die Korrelation zwischen den Residuen der Selektionsgleichung und der Regressionsgleichung ist - diesen Parameter haben wir bisher nicht benutzt).
+dass hier das 2-Stufige Heckman-Modell angesetzt wurde (es gibt auch eine simultane Maximum-Liklihood [ML] Methode, die wir uns etwas später auch ansehen). Insgesamt von den 1000 Beoachtungen waren 770 zensiert (nicht beobachtet) und nur 230 konnten beobachtet werden. Insgesamt wurden 7 Parameter geschätzt ($\beta_0, \beta_1, b_0, b_1, r, \sigma$ und $\rho$, wobei $\rho$ eine Schätzung für die Korrelation zwischen den Residuen der Selektionsgleichung und der Regressionsgleichung ist - diesen Parameter haben wir bisher nicht benutzt).
 
 ```{r, echo = F}
 cat(' Probit selection equation:
@@ -242,6 +242,19 @@ So können die Koeffizienten auf leichte Weise weiterverwendet werden (bspw. fü
 **Ergebnisinterpretation:** Insgesamt ist keiner der Parameter im Regressionsmodell des Heckman-Modells signifikant. Da wir aber das Modell vorgegeben haben, wird dies daran liegen, dass die Stichprobengröße zu klein ausgefallen ist. Wir wissen nämlich, dass es Effekte gab!
 
 Wiederholen Sie doch einmal gleiches Modell für eine Stichprobengröße von $n=10^5$ (Achtung: unter Umständen müssen Sie hier eine Weile auf das Ergebnis warten!). Sie können auch gerne die in [Appendix B](#AppendixB) zu findende Funktion nutzen, mit welcher Sie das Heckman-Modell direkt als `data.frame` simulieren können und anschließend mit den oben besprochenen Mitteln auswerten können. 
+
+Wenn Sie die ML-Variante verwenden wollen, in der alle Parameter simultan geschätzt werden, dann müssen Sie die `selection` Funktion aus dem gleichen Paket verwenden. Das interessante hier ist nun, dass auch `rho` und `sigma` eine Signifikanzentscheidung erhalten. Ansonsten sind die beiden Varianten sehr ähnlich. Die ML-Variante ist numerisch aufwendiger (der PC hat mehr zu tun), ist allerdings, wenn alle Annahmen erfüllt, dann hat die ML-Variante kleiner Standardfehler. Sie die Annahmen nicht erfüllt, dann ist die zweistufige Variante etwas robuster, da nicht so viele Parameter gleichzeitig geschätzt werden müssen:
+
+```{r}
+heckman_ML <- selection(selection = s ~ 1 + X, outcome = Y_obs ~ 1 + X)
+summary(heckman_ML)
+```
+
+Ganz oben in der Summary steht nun, dass es sich um die ML-Methode handelt. `sigma` und `rho` haben nun auch eine Signifikanzentscheidung. Die Ergebnisse sind allerdings so gut wie identisch zum zweistufigen Verfahren. 
+
+```{r}
+coef(summary(heckman_ML))
+```
 
 Wenn Sie erstmal einen vorgefertigten Datensatz untersuchen wollen, so laden Sie sich doch diesen herunter: [`r fontawesome::fa("download")` Datensatz "`HeckData.rda`"](/post/HeckData.rda). Sie können `HeckData.rda` auch analog herunterladen und direkt einladen:
 ```{r,eval = F}
@@ -352,6 +365,8 @@ cat(' --------------------------------------------
 [Briggs, D. C. (2004).](https://hds.hebis.de/ubffm/EBSCO/Record?id=ED478203|eric) Causal inference and the Heckman model. *Journal of Educational and Behavioral Statistics, 29*(4), 397--420.
 
 [Heckman, J. (1979).](https://hds.hebis.de/ubffm/EBSCO/Record?id=edsjsr.10.2307.1912352|edsjsr)  Sample selection bias as a specification error.*Econometrica*, 47, 153–161.
+
+[Heckman, J. (1976).](https://hds.hebis.de/ubffm/EBSCO/Record?id=0164441|eoh) The common structure of statistical models of truncation, sample selection and limited dependent variables and a simple estimator for such models. *Annals of Economic and Social Measurement, 5*(4). 
 
 [Toomet, O., & Henningsen, A. (2008).](https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.C30BA3A7|edsbas)  Sample selection models in R: Package sampleSelection.*Journal of Statistical Software, 27*(7), 1-23.
 
