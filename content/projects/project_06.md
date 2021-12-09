@@ -26,7 +26,7 @@ subtitle = "FormR"
   # Filter posts by a taxonomy term.
   [content.filters]
     tag = ""
-    category = "Projekt-6"
+    category = "Projekt-formr"
     publication_type = ""
     exclude_featured = false
 
