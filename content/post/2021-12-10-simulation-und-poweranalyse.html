@@ -1,0 +1,326 @@
+---
+title: Simulation und Poweranalyse
+author: 
+date: '2021-09-21'
+slug: simulation
+categories:
+  - BSc2
+tags:
+  - Simulation
+  - Poweranalyse
+subtitle: ''
+summary: ''
+authors: [irmer]
+lastmod: '2021-12-10T13:13:57+01:00'
+featured: no
+header:
+  image: "/header/BSc2_Sim_Power.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/674621)"
+projects: []
+
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<details>
+<summary>
+Kernfragen dieser Lehreinheit
+</summary>
+<ul>
+<li>Wie können Variablen und ganze Modelle simuliert werden?</li>
+<li>Wie lassen sich der <span class="math inline">\(\alpha\)</span>-Fehler (Type I-error, Fehler erster Art) und die Power (Testmacht, Teststärke) empirisch bestimmen?</li>
+<li>Welche anderen Möglichkeiten, den <span class="math inline">\(\alpha\)</span>-Fehler und die Power zu bestimmen, gibt es?</li>
+<li>Wie lassen sich Power-Plots erstellen und was bedeuten sie?</li>
+</ul>
+</details>
+<hr />
+<div id="Einleitung" class="section level2">
+<h2>Einleitung</h2>
+<p>In den Vergangenen Sitzungen haben wir verschiedene Tests für unterschiedliche Fragestellungen kennengelernt: <span class="math inline">\(t\)</span>-Test und Wilcoxon-Test für Mittelwertsvergleiche zweier Gruppen sowie den Korrelationstest, um die Beziehung zweier Variablen zu untersuchen. Wie fast alle statistischen Tests folgen die erwähnten Tests einer gewissen Logik. Unter der Null-Hypothese (<span class="math inline">\(H_0\)</span>, sie heißt Null-Hypothese, da in der Regel Effekte gegen Null abgesichert werden) und wenn alle Voraussetzungen des Tests erfüllt sind (bspw. Normalverteilung der Variablen beim <span class="math inline">\(t\)</span>-Test und beim Korrelationstest) hat die jeweilige Teststatistik eine (mathematisch) herleitbare Verteilung. Diese kennen Sie bereits aus der Vorlesung. Bspw. ist es die <span class="math inline">\(t(n-2)\)</span> Verteilung beim <span class="math inline">\(t\)</span>-Test für unabhängige Stichproben mit Gesamtstichprobengröße <span class="math inline">\(n\)</span>. An Hand dieser Verteilung wird der kritische <span class="math inline">\(t\)</span>-Wert <span class="math inline">\(t_\text{krit.}\)</span> abgelesen, ab welchem dann die Null-Hypothese verworfen wird, wenn der emprische <span class="math inline">\(t\)</span>-Wert (im Betrag) extremer ausfällt. Also:</p>
+<p><span class="math display">\[\begin{align}
+|t_\text{emp.}| &amp;\le t_\text{krit.} \Longrightarrow H_0\\
+|t_\text{emp.}| &amp;&gt; t_\text{krit.} \Longrightarrow H_1
+\end{align}\]</span></p>
+<p>Wenn wir uns ein <span class="math inline">\(\alpha\)</span>-Fehlerniveau von <span class="math inline">\(5\%\)</span> vorgeben, dann ist diese Aussage gleichbedeutend mit, dass der <span class="math inline">\(p\)</span>-Wert jeweils kleiner ist als der “kritische” <span class="math inline">\(p\)</span>-Wert, welcher dem <span class="math inline">\(\alpha\)</span>-Niveau entspricht. Es gilt also:</p>
+<p><span class="math display">\[\begin{align}
+p &amp;\ge \alpha\ (=5\%) \Longrightarrow H_0\\
+p &amp;&lt; \alpha\ (=5\%) \Longrightarrow H_1
+\end{align}\]</span></p>
+<p>Gilt die Null-Hypothese, so sollte der Test nur in höchstens <span class="math inline">\(\alpha=5\%\)</span> der Fälle ein signifikantes Ergebnis anzeigen. Die Aussage beschreibt eigentlich ein Gedankenexperiment: <em>Wenn wir das gleiche Experiment unendlich häufig und unabhängig von einander wiederholen könnten und somit unendlich Häufig aus einer Population (Grundgesamtheit) ziehen könnte, in welcher es <strong>keinen</strong> Effekt (bspw. Unterschied zwischen Gruppen oder Zusammenhang zwischen Variablen) gibt, dann sollte in höchstens <span class="math inline">\(5\%\)</span> der Fälle (Replikationen) rein durch Zufall ein signifikantes Ergebnis beim Durchführen des inferenzstatistischen Test herauskommen.</em></p>
+<p>Hierbei ist es extrem Wichtig, dass ein solcher Test diese Eigenschaften erfüllt, da wir bei einem erhöhten <span class="math inline">\(\alpha\)</span>-Fehlerniveau (bspw. <span class="math inline">\(30\%\)</span>), dann gar nicht mehr wüssten, ob ein signifikanten Ergebnis herauskam, weil es einen Effekt gibt, oder weil der Test nicht richtig funktioniert. Anders herum sollte ein inferenzstatistischer Test die <span class="math inline">\(H_0\)</span> möglichst häufig verwerfen, wenn die <span class="math inline">\(H_0\)</span> tatsächlich nicht gilt in der Population und es somit einen bedeutsamen Effekt gibt. Die Wahrscheinlichkeit die <span class="math inline">\(H_0\)</span> richtigerweise zu verwerfen (weil in Wahrheit <span class="math inline">\(H_1\)</span> gilt), nennen wir die Power (Testmacht, Teststärke) eines Tests. Sie sollte möglichst hoch sein. Unter Statistikerinnen und Statistikern hat sich die Konvention eingegliedert, dass eine Power von <span class="math inline">\(80\%\)</span> als gut angesehen wird. <em>Zurück zu unserem Gedankenexperiment: Eine Power von <span class="math inline">\(80\%\)</span> bedeutet, wenn wir das gleiche Experiment unendlich häufig und unabhängig von einander wiederholen könnten und somit unendlich Häufig aus einer Population (Grundgesamtheit) ziehen könnte, in welcher es <strong>einen bedeutsamen</strong> Effekt gibt, dann sollte in mindestens <span class="math inline">\(80\%\)</span> der Fälle ein signifikantes Ergebnis beim Durchführen des inferenzstatistischen Test herauskommen.</em></p>
+<p>Im Folgenden wollen wir dieses Gedankenexperiment in die Tat umsetzen und unsere Kenntnisse über das Simulieren von Zufallszahlen verwenden, um die Power und den Fehler 1. Art (<span class="math inline">\(\alpha\)</span>-Fehler) empirisch zu prüfen. Hierbei beschränken wir uns auf den <span class="math inline">\(t\)</span>-Test (in <code>R t.test</code>) und den Korrelationstest (in <code>R cor.test</code>).</p>
+</div>
+<div id="simulation-und-alpha-fehler" class="section level2">
+<h2>Simulation und <span class="math inline">\(\alpha\)</span>-Fehler</h2>
+<p>Sie haben nun die Möglichkeit in einen möglichen Forschungsbereich von Methodikerinnen und Methodikern hineinzublicken: Simulationsstudien. Wir wollen das eben beschriebene Gedankenexperiment nun in die Tat umsetzen. Dazu müssen wir jeweils Variablen simulieren und diese dann mit den entsprechenden Tests analysieren.</p>
+<div id="mittelwertsvergleiche-t-test-unter-h_0" class="section level3">
+<h3>Mittelwertsvergleiche: <span class="math inline">\(t\)</span>-Test unter <span class="math inline">\(H_0\)</span></h3>
+<p>Der (klassische) <span class="math inline">\(t\)</span>-Test hat folgende Voraussetzungen:</p>
+<ul>
+<li>die Erhebungen sind von einander unabhängig</li>
+<li>die Varianzen in den beiden Gruppen sind gleich groß</li>
+<li>die Variablen sind normalverteilt</li>
+</ul>
+<p>Wir simulieren nun zwei Vektoren <span class="math inline">\(X\)</span> und <span class="math inline">\(Y\)</span> der Länge <span class="math inline">\(N=20\)</span>, welche standardnormalverteilt sind. Somit sind die die Varianzen über die Gruppen gleich. <code>R</code> simuliert unabhängige Zufallszahlen, sodass alle Voraussetzungen erfüllt sind. Mit <code>set.seed(1234)</code> machen wir die Analysen außerdem vergleichbar.</p>
+<pre class="r"><code>N &lt;- 20
+set.seed(1234)
+X &lt;- rnorm(N)
+Y &lt;- rnorm(N)</code></pre>
+<p>Da beide Variablen standardnormalverteilt sind, bedeutet dies, dass die <span class="math inline">\(H_0\)</span> hier erfüllt ist, da beide Variablen einen Mittelwert von 0 haben: <span class="math inline">\(\mu_X=\mu_Y = 0\)</span>. Da es sich hier allerdings um eine Zufallsziehung handelt, sind die Mittelwerte der beiden Variablen natürlich nicht exakt 0:</p>
+<pre class="r"><code>mean(X)</code></pre>
+<pre><code>## [1] -0.2506641</code></pre>
+<pre class="r"><code>mean(Y)</code></pre>
+<pre><code>## [1] -0.5770699</code></pre>
+<p>sondern sie weichen (zufällig) von der 0 ab. Diese Abweichung ist wird auch Samplevariation genannt. Wir können nun mit Hilfe des <span class="math inline">\(t\)</span>-Tests untersuchen, ob die beiden Variablen dengleichen Mittelwert haben (da wir den originalen <span class="math inline">\(t\)</span>-Test durchführen wollen, müssen wir <code>var.equal = TRUE</code> wählen, da sonst die Variante von <code>Welch</code> gerechnet wird):</p>
+<pre class="r"><code>ttestH0 &lt;- t.test(X, Y, var.equal = TRUE)
+ttestH0</code></pre>
+<pre><code>## 
+##  Two Sample t-test
+## 
+## data:  X and Y
+## t = 1.1349, df = 38, p-value = 0.2635
+## alternative hypothesis: true difference in means is not equal to 0
+## 95 percent confidence interval:
+##  -0.2558241  0.9086358
+## sample estimates:
+##  mean of x  mean of y 
+## -0.2506641 -0.5770699</code></pre>
+<pre class="r"><code>ttestH0$statistic # t-Wert</code></pre>
+<pre><code>##        t 
+## 1.134902</code></pre>
+<pre class="r"><code>ttestH0$p.value   # zugehöriger p-Wert</code></pre>
+<pre><code>## [1] 0.2635244</code></pre>
+<p>Die Mittelwertsdifferenz liegt bei -0.3264, was einen <span class="math inline">\(t_\text{emp.}\)</span>-Wert von $t_=$1.1349 ergibt. Der zugehörige <span class="math inline">\(p\)</span>-Wert liegt bei $p=$0.2635. Somit ist diese Mittelwertsdifferenz auf einem <span class="math inline">\(\alpha\)</span>-Niveau von <span class="math inline">\(5\%\)</span> nicht statistisch bedeutsam. Wir sind an dieser Stelle aber nicht daran interessiert, wie der <span class="math inline">\(p\)</span>-Wert in diesem spezifischen Experiment (mit Seed = 1234) ausfällt, sondern, wir möchten wissen, ob für häufiges Wiederholen, die Null-Hypothese in ca. <span class="math inline">\(5\%\)</span> der Fälle verworfen wird. Wir könnten uns jetzt hinsetzen und den oben gezeigten Code immer wieder ausführen und den <span class="math inline">\(p\)</span>-Wert notieren. Das erscheint sehr lästig. Wir können hier bspw. die <code>replicate</code>-Funktion verwenden. Dieser können wir die 4 Zeilen, die zum <span class="math inline">\(p\)</span>-Wert führen, in geschwungenden Klammern (<code>{</code>…<code>}</code>) übergeben und die Funktion führt dann den Code so häufig durch, wie wir dies gerne hätten. Bspw. könnten wir den Code zunächst 10 Mal ausführen lassen:</p>
+<pre class="r"><code>set.seed(1234)
+replicate(n = 10, expr = {X &lt;- rnorm(N)
+                          Y &lt;- rnorm(N)
+                          ttestH0 &lt;- t.test(X, Y, var.equal = TRUE)
+                          ttestH0$p.value})</code></pre>
+<pre><code>##  [1] 0.26352442 0.03081077 0.21285027 0.27429670 0.53201656 0.79232864
+##  [7] 0.93976306 0.43862992 0.96766599 0.68865560</code></pre>
+<p>Uns werden insgesamt 10 <span class="math inline">\(p\)</span>-Werte übergeben. Wenn wir genau hinsehen, dann erkennen wir den ersten <span class="math inline">\(p\)</span>-Wert wieder. Dies ist der <span class="math inline">\(p\)</span>-Wert unseres Experiments weiter oben. Wiederholen wir nun das Experiment nicht nur 10 Mal, sondern 10000 Mal, dann erhalten wir eine gute Übersicht über das Verhalten der <span class="math inline">\(p\)</span>-Werte unter der Null-Hypothese. Dies speichern wir unter dem Namen <code>pt_H0</code> ab (für <span class="math inline">\(p\)</span>-Werte für den <span class="math inline">\(t\)</span>-Test unter der <span class="math inline">\(H_0\)</span>-Hypothese):</p>
+<pre class="r"><code>set.seed(1234)
+pt_H0 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
+                                      Y &lt;- rnorm(N)
+                                      ttestH0 &lt;- t.test(X, Y, var.equal = TRUE)
+                                      ttestH0$p.value})</code></pre>
+<p>Schauen wir uns doch mal die Verteilung der <span class="math inline">\(p\)</span>-Werte an:</p>
+<pre class="r"><code>hist(pt_H0, breaks = 20) </code></pre>
+<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p>Die <span class="math inline">\(p\)</span>-Werte erscheinen einigermaßen gleichverteilt auf dem Intervall [0,1]. Dies ist auch genau gewünscht. Unter der <span class="math inline">\(H_0\)</span>-Hypothese ist der <span class="math inline">\(p\)</span>-Wert uniform (gleichverteilt) auf dem Intervall [0,1]. Somit tritt jeder Wert mit der selben Wahrscheinlichkeit auf. Dies bedeutet gleichzeitig, dass in dem Intervall [0, 0.05) gerade <span class="math inline">\(5\%\)</span> der Fälle Landen sollten. Dies ist gerade das Intervall in dem die signifikanten Ergebnisse landen. Somit erkennen wir, dass unter <span class="math inline">\(H_0\)</span> die Null-Hypothese nur in <span class="math inline">\(5\%\)</span> verworfen werden sollte, wenn wir uns eine <span class="math inline">\(\alpha\)</span>-Niveau von <span class="math inline">\(5\%\)</span> vorgeben. Wir können prüfen, ob dem so ist, indem wir den relativen Anteil bestimmen, in welchem die <span class="math inline">\(H_0\)</span> verworfen wird. Dies ist genau dann der Fall, wenn der <span class="math inline">\(p\)</span>-Wert kleiner als <span class="math inline">\(0.05\)</span> ist (siehe <a href="#Einleitung">Einleitung</a>). Die relative Häufigkeit bestimmen wir so:</p>
+<pre class="r"><code>mean(pt_H0 &lt; 0.05)</code></pre>
+<pre><code>## [1] 0.0484</code></pre>
+<p>Somit wird die Null-Hypothese hier in 4.84% der Fälle verworfen. Dies zeigt uns, dass der <span class="math inline">\(t\)</span>-Test unter <span class="math inline">\(H_0\)</span> für <span class="math inline">\(N=20\)</span> gut funktioniert, da die empirische Rate des Fehlers 1. Art bei ungefähr <span class="math inline">\(5\%\)</span> liegt. Wir könnten auch untersuchen, wie robust ein Test ist, indem wir eine Annahme verletzten (z.B. Varianzhomogenität) und untersuchen, wie sich das auf das empirische <span class="math inline">\(\alpha\)</span>-Niveau und die Verteilung der Teststatistik oder der <span class="math inline">\(p\)</span>-Werte ausübt.</p>
+<p>Im Übrigen hätten wir auch die ganze Prozedur mit Hilfe der empirischen <span class="math inline">\(t\)</span>-Werte durchführen können. Den kritischen <span class="math inline">\(t\)</span>-Wert bekommen wir mit <code>qt(p = .975, df = 38)</code>, die Dichte erhalten wir mit <code>dt(x = x, df = 38)</code>, wobei <code>x</code> die gewünschte x-Koordinate ist:</p>
+<pre class="r"><code>set.seed(1234)
+tt_H0 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
+                                      Y &lt;- rnorm(N)
+                                      ttestH0 &lt;- t.test(X, Y, var.equal = TRUE)
+                                      ttestH0$statistic})
+hist(tt_H0, breaks = 50, freq = FALSE) # freq = FALSE, damit relative Häufigkeiten eingetragen werden!
+x &lt;- seq(-4, 4, 0.01) # Sequenz von -4 bis 4 in 0.01 Schritten
+lines(x = x, y = dt(x = x, df = 38), lwd = 2) # lwd = Liniendicke</code></pre>
+<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<pre class="r"><code>mean(abs(tt_H0) &gt; qt(p = .975, df = 38)) # empirischer Alpha-Fehler</code></pre>
+<pre><code>## [1] 0.0484</code></pre>
+<p>Die Analyse kommt zum exakt gleichen Ergebnis. Das liegt daran, dass der <span class="math inline">\(p\)</span>-Wert und der <span class="math inline">\(t\)</span>-Wert in einander überführbar sind. Das Histogramm zeigt uns außerdem die <span class="math inline">\(t\)</span>-Verteilung unter der Null-Hypothese mit 38 Freiheitsgraden (<span class="math inline">\(N-2\)</span>). Die theoretische Kurve (mit <code>dt</code>) passt sehr gut zum Histogramm!</p>
+</div>
+<div id="lineare-beziehungen-zwischen-variablen-korrelationstest-unter-h_0" class="section level3">
+<h3>Lineare Beziehungen zwischen Variablen: Korrelationstest unter <span class="math inline">\(H_0\)</span></h3>
+<p>Der (klassische) Korrelationstest hat fast die identischen Voraussetzungen im Vergleich zum <span class="math inline">\(t\)</span>-Test:</p>
+<ul>
+<li>die Erhebungen sind von einander unabhängig</li>
+<li>die Varianzen in den beiden Gruppen sind gleich groß</li>
+<li>die Variablen sind normalverteilt</li>
+<li>die Variablen hängen linear zusammen</li>
+</ul>
+<p>Wir können die gleichen Variablen wie zuvor heranziehen, und damit den Korrelationstest durchführen:</p>
+<pre class="r"><code>set.seed(1234)
+X &lt;- rnorm(N)
+Y &lt;- rnorm(N)
+cor(X, Y) # empirische Korrelation</code></pre>
+<pre><code>## [1] -0.2765719</code></pre>
+<pre class="r"><code>cortestH0 &lt;- cor.test(X, Y)
+cortestH0$p.value # empirischer p-Wert</code></pre>
+<pre><code>## [1] 0.2378304</code></pre>
+<p>Die empirische Korrelation liegt bei -0.28. Die wahre Korrelation liegt bei 0, da <code>R</code> Zufallsvektoren unabhängig von einander simuliert. Der <span class="math inline">\(p\)</span>-Wert des Korrelationstests liegt bei 0.2378. Damit ist das Ergebnis nicht statistisch bedeutsam. Die Korrelation von -0.28 ist zufällig aufgetreten. Wir wiederholen nun auch dieses Experiment:</p>
+<pre class="r"><code>set.seed(1234)
+pcor_H0 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
+                                        Y &lt;- rnorm(N)
+                                        cortestH0 &lt;- cor.test(X, Y)
+                                        cortestH0$p.value})</code></pre>
+<p>Die <span class="math inline">\(p\)</span>-Werte sind wieder eingermaßen uniform auf [0,1] verteilt:</p>
+<pre class="r"><code>hist(pcor_H0, breaks = 20) </code></pre>
+<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>Das empirische <span class="math inline">\(\alpha\)</span>-Niveau liegt bei:</p>
+<pre class="r"><code>mean(pcor_H0 &lt; 0.05)</code></pre>
+<pre><code>## [1] 0.0481</code></pre>
+<p>Somit wird die Null-Hypothese hier in 4.81% der Fälle verworfen. Dies zeigt uns, dass auch der Korrelationstest unter <span class="math inline">\(H_0\)</span> für <span class="math inline">\(N=20\)</span> gut funktioniert, da die empirische Rate des Fehlers 1. Art bei ungefähr <span class="math inline">\(5\%\)</span> liegt.</p>
+</div>
+</div>
+<div id="poweranalysen" class="section level2">
+<h2>Poweranalysen</h2>
+<p>Mit einer Power-Analyse untersuchen wir im Grunde, wie sich die Wahrscheinlichkeit die Null-Hypothese zu verwerfen, verändert, je nach dem wie groß der Effekt ist. Dem wollen wir nun nachgehen und entsprechend unsere Daten unter der Alternativ-Hypothese simulieren.</p>
+<div id="mittelwertsvergleiche-t-test-unter-h_1" class="section level3">
+<h3>Mittelwertsvergleiche: <span class="math inline">\(t\)</span>-Test unter <span class="math inline">\(H_1\)</span></h3>
+<p>In der Inferenzstatistik gibt es im Grunde nicht “die” Alternativ-Hypothese, sondern eine ganze Batterie an Alternativ-Hypothesen. Beim Mittelwertsvergleich sieht die Alternativ-Hypothese so aus:</p>
+<p><span class="math display">\[H_1: \mu_1 \neq \mu_2,\]</span>
+was natürlich äquivalent zur folgenden Aussage zur Differenz der beiden Mittelwerte ist: <span class="math inline">\(d=\mu_1-\mu_2:\)</span></p>
+<p><span class="math display">\[H_1: d =  \mu_1-\mu_2 = 0.\]</span>
+Hier wird <span class="math inline">\(d\)</span> als eine feste Zahl angenommen (z.B. 0.5, <span class="math inline">\(-\sqrt{2}\)</span>, <span class="math inline">\(\pi\)</span>, 123.456). Je größer der Effekt, desto größer ist die Wahrscheinlichkeit, dass dieser auch identifiziert wird. Hierbei wird die Größe des Effekts relativ zur zufälligen Streuung genommen. Da wir standardisierte Variablen verwendet hatten (standardnormalverteilt), ist es so, dass die Mittelwertsdifferenz <span class="math inline">\(d\)</span> gerade in Vielfachen der Standardabweichung zu interpretieren ist. Bspw. wäre <span class="math inline">\(d=0.5\)</span> eine halbe Standardabweichung. Wir erhalten eine Mittelwertsdifferenz von 0.5, indem wir zu dem zuvorigen Code einfach 0.5 zur Y-Gleichung dazu addieren. “In der Population unterscheiden sich nun <code>X</code> und <code>Y</code> um 0.5 im Mittelwert, da X einen Mittelwert von 0 hat und <code>Y</code> einen Mittelwert von 0 + 0.5 = 0.5.”</p>
+<pre class="r"><code>set.seed(12345)
+X &lt;- rnorm(N)
+Y &lt;- rnorm(N) + 0.5 
+ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+ttestH1$p.value</code></pre>
+<pre><code>## [1] 0.0160865</code></pre>
+<p>Der empirische <span class="math inline">\(p\)</span>-Wert ist diesmal kleiner als <span class="math inline">\(0.05\)</span>. Die Frage ist nun, wie häufig kommt das vor für eine Stichprobengröße von <span class="math inline">\(N=20\)</span> pro Gruppe. Wir führen wieder eine Simulation dazu durch:</p>
+<pre class="r"><code>set.seed(12345)
+pt_H1 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
+                                      Y &lt;- rnorm(N) + 0.5 
+                                      ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+                                      ttestH1$p.value})
+mean(pt_H1 &lt; 0.05) # empirische Power</code></pre>
+<pre><code>## [1] 0.335</code></pre>
+<pre class="r"><code>hist(pt_H1, breaks = 20)</code></pre>
+<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-14-1.png" width="672" />
+Die empirische Power (die Wahrscheinlichkeit in unserer Simulation, dass die <span class="math inline">\(H_0\)</span> verworfen wird) liegt bei 0.335. Das Histogramm ist nun alles andere als gleichverteilt. Kleine <span class="math inline">\(p\)</span>-Werte nahe Null kommen wesentlich häufiger vor als große <span class="math inline">\(p\)</span>-Werte nahe 1. Eine Power von 0.335 ist allerdings nicht besonders hoch. Nur in etwas mehr als einem Drittel der Replikationen wurde die Mittelwertsdifferenz als statistisch bedeutsam betitelt. Wir wissen aber, weil wir das Modell vorgegeben haben, dass die <span class="math inline">\(H_0\)</span> tatsächlich nicht gilt. Mit größerer Stichprobe wird die Power steigen (siehe dazu im Kapitel <a href="#PowerPlots">Power-Plots</a> nach).</p>
+</div>
+<div id="lineare-beziehungen-zwischen-variablen-korrelationstest-unter-h_1" class="section level3">
+<h3>Lineare Beziehungen zwischen Variablen: Korrelationstest unter <span class="math inline">\(H_1\)</span></h3>
+<p>Wir wollen uns ebenfalls die Power für den Korrelationstest ansehen. Dazu müssen wir allerdings korrelierte Variablen generieren. Um das hinzubekommen, müssen wir einige Eigenschaften der Normalverteilung ausnutzen: bspw. dass die Summe zweier normalverteilter Zufallsvariablen wieder normalverteilt ist. Für zwei unabhängige (unkorrelierte) standard-normalverteilte Zufallsvariablen <span class="math inline">\(X\)</span> und <span class="math inline">\(Z\)</span>, ist die Zufallsvariable <span class="math inline">\(Y\)</span>, die folgendermaßen gebildet wird</p>
+<p><span class="math display">\[Y:= \rho X + \sqrt{1-\rho^2}Z,\]</span>
+wieder standard-normalverteilt und um den Korrelationskoeffizienten <span class="math inline">\(\rho\)</span> korreliert mit <span class="math inline">\(X\)</span>. Wir können also relativ einfach zwei korrelierte Variablen generieren:</p>
+<pre class="r"><code>set.seed(12345)
+X &lt;- rnorm(N)
+Z &lt;- rnorm(N)
+Y &lt;- 0.5*X + sqrt(1 - 0.5^2)*Z
+cor(X, Y) # empirische Korrelation</code></pre>
+<pre><code>## [1] 0.579799</code></pre>
+<pre class="r"><code>cortestH1 &lt;- cor.test(X, Y)
+cortestH1</code></pre>
+<pre><code>## 
+##  Pearson&#39;s product-moment correlation
+## 
+## data:  X and Y
+## t = 3.0191, df = 18, p-value = 0.007372
+## alternative hypothesis: true correlation is not equal to 0
+## 95 percent confidence interval:
+##  0.1846560 0.8135776
+## sample estimates:
+##      cor 
+## 0.579799</code></pre>
+<pre class="r"><code>cortestH1$p.value</code></pre>
+<pre><code>## [1] 0.0073718</code></pre>
+<p>Der Test ist signifikant. Die empirische Korrelation von 0.5798 ist statistisch bedeutsam. Wir schauen uns nun für diese <span class="math inline">\(\rho=0.5\)</span> die Power des Korrelationstests an:</p>
+<pre class="r"><code>set.seed(12345)
+pcor_H1 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
+                                        Z &lt;- rnorm(N)
+                                        Y &lt;- 0.5*X + sqrt(1 - 0.5^2)*Z
+                                        cortestH1 &lt;- cor.test(X, Y)
+                                        cortestH1$p.value})
+mean(pcor_H1 &lt; 0.05) # empirische Power</code></pre>
+<pre><code>## [1] 0.6385</code></pre>
+<pre class="r"><code>hist(pcor_H1, breaks = 20)</code></pre>
+<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p>Die empirische Power für eine Korrelation von 0.5 liegt bei 0.6385. Das Histogramm ist auch diesmal alles andere als gleichverteilt. Es sieht sogar deutlich stärker nach links gestaucht aus, als für den oben durchgeführten Mittelwertsvergleich. Das liegt an dieser Stelle daran, dass eine Korrelation von 0.5 ein größerer Effekt ist, als eine Mittelwertsdifferenz von 0.5 für Variablen mit einer Varianz von 1.</p>
+</div>
+</div>
+<div id="PowerPlots" class="section level2">
+<h2>Power-Plots</h2>
+<p>Mit einem einzelnen Power-Wert lässt sich in der Regel nicht so viel anfangen. Aus diesem Grund werden Power-Plots erstellt, welche darstellen, wie sich die Power bspw. über unterschiedliche Stichprobengrößen (um die Asymptotik des Tests zu prüfen) oder über unterschiedliche Effektgrößen verändert.</p>
+<div id="power-plots-für-mittelwertsunterschiede" class="section level3">
+<h3>Power-Plots für Mittelwertsunterschiede</h3>
+<p>Wir schauen uns die Power-Plots diesmal nur für die Mittelwertsunterschiede an. Zunächst beginnen wir mit der Asymptotik. Wir wiederholen im einfachsten Fall das Experiment von oben für 5 Stichprobengrößen: <span class="math inline">\(N=20, 40, 60, 80, 100\)</span> (wobei wir das Ergebnis für <span class="math inline">\(N=20\)</span> bereits bestimmt haben). Dazu kopieren wir jeweils den Code von oben und ändern die Stichprobengröße ab:</p>
+<pre class="r"><code>set.seed(12345)
+pt_H1_20 &lt;- pt_H1
+pt_H1_40 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(40)
+                                         Y &lt;- rnorm(40) + 0.5 
+                                         ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+                                         ttestH1$p.value})
+pt_H1_60 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(60)
+                                         Y &lt;- rnorm(60) + 0.5 
+                                         ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+                                         ttestH1$p.value})
+pt_H1_80 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(80)
+                                         Y &lt;- rnorm(80) + 0.5 
+                                         ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+                                         ttestH1$p.value})
+pt_H1_100 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(100)
+                                          Y &lt;- rnorm(100) + 0.5 
+                                          ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+                                          ttestH1$p.value})</code></pre>
+<p>Nun haben wir eine ganze Menge an <span class="math inline">\(p\)</span>-Werten abgespeichert. Jetzt müssen wir nur noch die Power für jede Bedingung bestimmen. Diese schreiben wir direkt in einen Vektor:</p>
+<pre class="r"><code>t_power &lt;- c(mean(pt_H1_20 &lt; 0.05),
+             mean(pt_H1_40 &lt; 0.05),
+             mean(pt_H1_60 &lt; 0.05),
+             mean(pt_H1_80 &lt; 0.05),
+             mean(pt_H1_100 &lt; 0.05))
+t_power</code></pre>
+<pre><code>## [1] 0.3350 0.5991 0.7700 0.8809 0.9369</code></pre>
+<p>Wir sehen sehr gut, dass die Power ansteigt. Der zugehörige Power-Plot sieht nun so aus (zunächst legen wir die Stichproben in <code>Ns</code> ab):</p>
+<pre class="r"><code>Ns &lt;- seq(20, 100, 20)
+plot(x = Ns, y = t_power, type = &quot;b&quot;, main = &quot;Power vs. N&quot;)</code></pre>
+<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-19-1.png" width="672" />
+Dem Plot entnehmen wir, dass ab etwas über <span class="math inline">\(N=60\)</span> die Power oberhalb der gewünschten <span class="math inline">\(80\%\)</span>-Marke liegt. Wir erkennen also, dass die Wahrscheinlichkeit einen Effekt zu finden, wenn dieser da ist, mit steigender Stichprobengröße wächst. Auf diesem Weg kann ein Experiment auch hinsichtlich der nötigen Stichprobengröße geplant werden. Wenn aus Voruntersuchungen oder der Literatur bekannt ist, wie groß ein Effekt zu erwarten ist, dann kann über Poweranalysen untersucht werden, wie groß eine Stichprobe sein muss, um einen Effekt mit hinreichend großer Wahrscheinlichkeit zu identifizieren.</p>
+<p>Genauso könnten wir uns fragen, wie groß ein Effekt sein muss, damit mit der vorliegenden Stichprobengröße und mit hinreichend großer Wahrscheinlichkeit ein signifikantes Ergebnis gefunden wird. Um dieser Frage nachzugehen, untersuchen wir die Power, für einige Effektgrößen für <span class="math inline">\(N=20\)</span>. Hierzu haben wir bereits zwei Analysen durchgeführt, nämlich einmal mit <span class="math inline">\(d=0.5\)</span> und einmal mit <span class="math inline">\(d=0\)</span> (als wir den <span class="math inline">\(\alpha\)</span>-Fehler unter <span class="math inline">\(H_0\)</span> untersucht haben):</p>
+<pre class="r"><code>set.seed(12345)
+pt_H1_0 &lt;- pt_H0
+pt_H1_0.5 &lt;- pt_H1
+pt_H1_0.25 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(20)
+                                           Y &lt;- rnorm(20) + 0.25 
+                                           ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+                                           ttestH1$p.value})
+pt_H1_0.75 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(20)
+                                           Y &lt;- rnorm(20) + 0.75 
+                                           ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+                                           ttestH1$p.value})
+pt_H1_1 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(20)
+                                        Y &lt;- rnorm(20) + 1 
+                                        ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+                                        ttestH1$p.value})
+pt_H1_1.25 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(20)
+                                           Y &lt;- rnorm(20) + 1.25 
+                                           ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+                                           ttestH1$p.value})
+t_power_d &lt;- c(mean(pt_H1_0 &lt; 0.05),
+               mean(pt_H1_0.25 &lt; 0.05),
+               mean(pt_H1_0.5 &lt; 0.05),
+               mean(pt_H1_0.75 &lt; 0.05),
+               mean(pt_H1_1 &lt; 0.05),
+               mean(pt_H1_1.25 &lt; 0.05))
+Ds &lt;- seq(0, 1.25, 0.25)
+plot(x = Ds, y = t_power_d, type = &quot;b&quot;, main = &quot;Power vs. d&quot;)</code></pre>
+<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p>Diesem Plot ist nun zu entnehmen, dass eine Mittelwertsdifferenz von größer 0.8 nötig ist, damit die Power hinreichend groß ist. Außerdem wird in diesem Plot auch ersichtlich, dass wenn die Mittelwertsdifferenz 0 ist, dann sind wir gerade im Fall der <span class="math inline">\(H_0\)</span> gelandet. Die Power sollte hier dann nur bei <span class="math inline">\(5\%\)</span> liegen. Falls wir negative Mittelwertsdifferenzen gewählt hätten, dann wäre der Plot identisch, nur an der x-Achse gespiegelt. Natürlich können Informationen zur Effektstärke sowie zur Stichprobengröße gemeinsam in eine Grafik eingefügt werden. Wenn man dies auf die Spitze treibt, dann landet man vielleicht bei diesem schönen Plot:</p>
+<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-21-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p>Hier wurden allerdings keine Simulationen durchgeführt (sonst wären die Linien nicht so “smooth”), denn für den <span class="math inline">\(t\)</span>-Test lässt sich die Power auch noch leicht über Formeln bestimmen. Diese Formeln sind bspw. in dem <code>R</code>-Paket <code>pwr</code> hinterlegt. Für Interessierte ist in <a href="#AppendixA">Appendix A</a> ein kleiner Exkurs in <code>pwr</code> dargestellt.</p>
+</div>
+<div id="AppendixA" class="section level3">
+<h3>Appendix A</h3>
+<details>
+<summary>
+<strong>Poweranalysen: geschlossene Formeln</strong>
+</summary>
+<p>Für den <span class="math inline">\(t\)</span>-Test lässt sich die Power auch über Formeln finden. Diese sind im <code>pwr</code>-Paket implementiert. Die Funktion <code>pwr.t.test</code> ist die Richtige. Sie nimmt zwei wichtige Argumente entgegen: <code>n</code> und <code>d</code>. Hierbei ist <span class="math inline">\(n\)</span> die Stichprobengröße und <span class="math inline">\(d\)</span> ist die Effektstärke nach Cohen:</p>
+<p><span class="math display">\[d:=\frac{|\mu_1-\mu_2|}{\sigma},\]</span>
+wobei <span class="math inline">\(\mu_1\)</span> und <span class="math inline">\(\mu_2\)</span> die beiden Mittelwerte in den Gruppen sind und <span class="math inline">\(\sigma\)</span>
+ist die wahre Standardabweichung über die beiden Gruppen hinweg. Dadurch, dass bei uns die Varianz jeweils 1 in den Gruppen war, hatten wir durch Zufall auch oben die Effektstärke nach Cohen gewählt! Die Werte sind also durchaus vergleichbar. Wir schauen uns die Power für unsere erste Effektstärke von 0.5 bei einer Stichprobengröße von 20 an:</p>
+<pre class="r"><code># falls noch nicht installiert: &quot;install.packages(&quot;pwr&quot;)&quot;
+ library(pwr)
+ pwr.t.test(n = 20, d = 0.5)</code></pre>
+<pre><code>## 
+##      Two-sample t test power calculation 
+## 
+##               n = 20
+##               d = 0.5
+##       sig.level = 0.05
+##           power = 0.337939
+##     alternative = two.sided
+## 
+## NOTE: n is number in *each* group</code></pre>
+<p>Die Power liegt bei 0.3379, also bei 33.79%. Sie ist damit also gar nicht so verschieden zu unseren 33.5%. Mehr Informationen zum <code>pwr</code>-Paket finden sie <a href="https://www.statmethods.net/stats/power.html">hier</a>.</p>
+</details>
+</div>
+</div>
