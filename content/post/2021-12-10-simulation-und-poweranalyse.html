@@ -190,7 +190,19 @@ mean(pt_H1 &lt; 0.05) # empirische Power</code></pre>
 <pre><code>## [1] 0.335</code></pre>
 <pre class="r"><code>hist(pt_H1, breaks = 20)</code></pre>
 <p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-14-1.png" width="672" />
-Die empirische Power (die Wahrscheinlichkeit in unserer Simulation, dass die <span class="math inline">\(H_0\)</span> verworfen wird) liegt bei 0.335. Das Histogramm ist nun alles andere als gleichverteilt. Kleine <span class="math inline">\(p\)</span>-Werte nahe Null kommen wesentlich häufiger vor als große <span class="math inline">\(p\)</span>-Werte nahe 1. Eine Power von 0.335 ist allerdings nicht besonders hoch. Nur in etwas mehr als einem Drittel der Replikationen wurde die Mittelwertsdifferenz als statistisch bedeutsam betitelt. Wir wissen aber, weil wir das Modell vorgegeben haben, dass die <span class="math inline">\(H_0\)</span> tatsächlich nicht gilt. Somit wird in 2/3 der Fälle fälschlicherweise die <span class="math inline">\(H_0\)</span> nicht verworfen, obwohl sie nicht gilt. Das ist der Fehler 2. Art, auch <span class="math inline">\(\beta\)</span>-Fehler genannt. Somit ist ersichtlich, dass die Power sich berechnet als <span class="math inline">\(1-\beta\)</span>.</p>
+Die empirische Power (die Wahrscheinlichkeit in unserer Simulation, dass die <span class="math inline">\(H_0\)</span> verworfen wird) liegt bei 0.335. Das Histogramm ist nun alles andere als gleichverteilt. Kleine <span class="math inline">\(p\)</span>-Werte nahe Null kommen wesentlich häufiger vor als große <span class="math inline">\(p\)</span>-Werte nahe 1.</p>
+<p>Woran liegt nun dieses schiefe Histogramm? Wir schauen uns dazu noch schnell die <span class="math inline">\(t\)</span>-Werte an:</p>
+<pre class="r"><code>set.seed(12345)
+tt_H1 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
+                                      Y &lt;- rnorm(N) + 0.5 
+                                      ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+                                      ttestH1$statistic})
+hist(tt_H1, breaks = 50, freq = FALSE) # freq = FALSE, damit relative Häufigkeiten eingetragen werden!
+x &lt;- seq(-4, 4, 0.01) # Sequenz von -4 bis 4 in 0.01 Schritten
+lines(x = x, y = dt(x = x, df = 38), lwd = 2) # lwd = Liniendicke</code></pre>
+<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p>Der Grafik entnehmen wir, dass die gesamte Verteilung der empirischen t-Werte verschoben ist im Vergleich zur theoretischen Verteilung (Linie). Somit ist klar, dass die Hypothese häufiger verworfen werden muss, da die kritischen <span class="math inline">\(t\)</span>-Werte unter der Alternativ-Hypothese nicht mehr sinnvoll sind!</p>
+<p>Nun zurück zur geschätzten Power: Eine Power von 0.335 ist allerdings nicht besonders hoch. Nur in etwas mehr als einem Drittel der Replikationen wurde die Mittelwertsdifferenz als statistisch bedeutsam betitelt. Wir wissen aber, weil wir das Modell vorgegeben haben, dass die <span class="math inline">\(H_0\)</span> tatsächlich nicht gilt. Somit wird in 2/3 der Fälle fälschlicherweise die <span class="math inline">\(H_0\)</span> nicht verworfen, obwohl sie nicht gilt. Das ist der Fehler 2. Art, auch <span class="math inline">\(\beta\)</span>-Fehler genannt. Somit ist ersichtlich, dass die Power sich berechnet als <span class="math inline">\(1-\beta\)</span>.</p>
 <p>Mit größerer Stichprobe wird die Power steigen (siehe dazu im Kapitel <a href="#PowerPlots">Power-Plots</a> nach).</p>
 </div>
 <div id="lineare-beziehungen-zwischen-variablen-korrelationstest-unter-h_1" class="section level3">
@@ -229,7 +241,7 @@ pcor_H1 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
 mean(pcor_H1 &lt; 0.05) # empirische Power</code></pre>
 <pre><code>## [1] 0.6385</code></pre>
 <pre class="r"><code>hist(pcor_H1, breaks = 20)</code></pre>
-<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
 <p>Die empirische Power für eine Korrelation von 0.5 liegt bei 0.6385. Das Histogramm ist auch diesmal alles andere als gleichverteilt. Es sieht sogar deutlich stärker nach links gestaucht aus, als für den oben durchgeführten Mittelwertsvergleich. Das liegt an dieser Stelle daran, dass eine Korrelation von 0.5 ein größerer Effekt ist, als eine Mittelwertsdifferenz von 0.5 für Variablen mit einer Varianz von 1.</p>
 </div>
 </div>
@@ -268,7 +280,7 @@ t_power</code></pre>
 <p>Wir sehen sehr gut, dass die Power ansteigt. Der zugehörige Power-Plot sieht nun so aus (zunächst legen wir die Stichproben in <code>Ns</code> ab):</p>
 <pre class="r"><code>Ns &lt;- seq(20, 100, 20)
 plot(x = Ns, y = t_power, type = &quot;b&quot;, main = &quot;Power vs. N&quot;)</code></pre>
-<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-19-1.png" width="672" />
+<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-20-1.png" width="672" />
 Dem Plot entnehmen wir, dass ab etwas über <span class="math inline">\(N=60\)</span> die Power oberhalb der gewünschten <span class="math inline">\(80\%\)</span>-Marke liegt. Wir erkennen also, dass die Wahrscheinlichkeit einen Effekt zu finden, wenn dieser da ist, mit steigender Stichprobengröße wächst. Auf diesem Weg kann ein Experiment auch hinsichtlich der nötigen Stichprobengröße geplant werden. Wenn aus Voruntersuchungen oder der Literatur bekannt ist, wie groß ein Effekt zu erwarten ist, dann kann über Poweranalysen untersucht werden, wie groß eine Stichprobe sein muss, um einen Effekt mit hinreichend großer Wahrscheinlichkeit zu identifizieren.</p>
 <p>Genauso könnten wir uns fragen, wie groß ein Effekt sein muss, damit mit der vorliegenden Stichprobengröße und mit hinreichend großer Wahrscheinlichkeit ein signifikantes Ergebnis gefunden wird. Um dieser Frage nachzugehen, untersuchen wir die Power, für einige Effektgrößen für <span class="math inline">\(N=20\)</span>. Hierzu haben wir bereits zwei Analysen durchgeführt, nämlich einmal mit <span class="math inline">\(d=0.5\)</span> und einmal mit <span class="math inline">\(d=0\)</span> (als wir den <span class="math inline">\(\alpha\)</span>-Fehler unter <span class="math inline">\(H_0\)</span> untersucht haben):</p>
 <pre class="r"><code>set.seed(12345)
@@ -298,9 +310,9 @@ t_power_d &lt;- c(mean(pt_H1_0 &lt; 0.05),
                mean(pt_H1_1.25 &lt; 0.05))
 Ds &lt;- seq(0, 1.25, 0.25)
 plot(x = Ds, y = t_power_d, type = &quot;b&quot;, main = &quot;Power vs. d&quot;)</code></pre>
-<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
 <p>Diesem Plot ist nun zu entnehmen, dass eine Mittelwertsdifferenz von größer 0.8 nötig ist, damit die Power hinreichend groß ist. Außerdem wird in diesem Plot auch ersichtlich, dass wenn die Mittelwertsdifferenz 0 ist, dann sind wir gerade im Fall der <span class="math inline">\(H_0\)</span> gelandet. Die Power sollte hier dann nur bei <span class="math inline">\(5\%\)</span> liegen. Falls wir negative Mittelwertsdifferenzen gewählt hätten, dann wäre der Plot identisch, nur an der x-Achse gespiegelt. Natürlich können Informationen zur Effektstärke sowie zur Stichprobengröße gemeinsam in eine Grafik eingefügt werden. Wenn man dies auf die Spitze treibt, dann landet man vielleicht bei diesem schönen Plot:</p>
-<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-21-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-22-1.png" width="960" style="display: block; margin: auto;" /></p>
 <p>Auf der x-Achse ist die Mittelwertsdifferenz dargestellt, <span class="math inline">\(N\)</span> ist farblich kodiert. Die gestrichelte Linien symbolisiert die gewünschten <span class="math inline">\(80\%\)</span>, die gepunktete Linie zeigt das <span class="math inline">\(\alpha\)</span>-Fehlerniveau von <span class="math inline">\(5\%\)</span>. Hier wurden allerdings keine Simulationen durchgeführt (sonst wären die Linien nicht so “smooth”), denn für den <span class="math inline">\(t\)</span>-Test lässt sich die Power auch noch leicht über Formeln bestimmen. Diese Formeln sind bspw. in dem <code>R</code>-Paket <code>pwr</code> hinterlegt. Für Interessierte ist in <a href="#AppendixA">Appendix A</a> ein kleiner Exkurs in <code>pwr</code> dargestellt.</p>
 </div>
 <div id="AppendixA" class="section level3">

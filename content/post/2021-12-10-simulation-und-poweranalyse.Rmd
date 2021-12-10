@@ -223,7 +223,24 @@ pt_H1 <- replicate(n = 10000, expr = {X <- rnorm(N)
 mean(pt_H1 < 0.05) # empirische Power
 hist(pt_H1, breaks = 20)
 ```
-Die empirische Power (die Wahrscheinlichkeit in unserer Simulation, dass die $H_0$ verworfen wird) liegt bei `r mean(pt_H1 < 0.05)`. Das Histogramm ist nun alles andere als gleichverteilt. Kleine $p$-Werte nahe Null kommen wesentlich häufiger vor als große $p$-Werte nahe 1. Eine Power von `r mean(pt_H1 < 0.05)` ist allerdings nicht besonders hoch. Nur in etwas mehr als einem Drittel der Replikationen wurde die Mittelwertsdifferenz als statistisch bedeutsam betitelt. Wir wissen aber, weil wir das Modell vorgegeben haben, dass die $H_0$ tatsächlich nicht gilt. Somit wird in 2/3 der Fälle fälschlicherweise die $H_0$ nicht verworfen, obwohl sie nicht gilt. Das ist der Fehler 2. Art, auch $\beta$-Fehler genannt. Somit ist ersichtlich, dass die Power sich berechnet als $1-\beta$.
+Die empirische Power (die Wahrscheinlichkeit in unserer Simulation, dass die $H_0$ verworfen wird) liegt bei `r mean(pt_H1 < 0.05)`. Das Histogramm ist nun alles andere als gleichverteilt. Kleine $p$-Werte nahe Null kommen wesentlich häufiger vor als große $p$-Werte nahe 1. 
+
+Woran liegt nun dieses schiefe Histogramm? Wir schauen uns dazu noch schnell die $t$-Werte an:
+
+```{r}
+set.seed(12345)
+tt_H1 <- replicate(n = 10000, expr = {X <- rnorm(N)
+                                      Y <- rnorm(N) + 0.5 
+                                      ttestH1 <- t.test(X, Y, var.equal = TRUE)
+                                      ttestH1$statistic})
+hist(tt_H1, breaks = 50, freq = FALSE) # freq = FALSE, damit relative Häufigkeiten eingetragen werden!
+x <- seq(-4, 4, 0.01) # Sequenz von -4 bis 4 in 0.01 Schritten
+lines(x = x, y = dt(x = x, df = 38), lwd = 2) # lwd = Liniendicke
+```
+
+Der Grafik entnehmen wir, dass die gesamte Verteilung der empirischen t-Werte verschoben ist im Vergleich zur theoretischen Verteilung (Linie). Somit ist klar, dass die Hypothese häufiger verworfen werden muss, da die kritischen $t$-Werte unter der Alternativ-Hypothese nicht mehr sinnvoll sind!
+
+Nun zurück zur geschätzten Power: Eine Power von `r mean(pt_H1 < 0.05)` ist allerdings nicht besonders hoch. Nur in etwas mehr als einem Drittel der Replikationen wurde die Mittelwertsdifferenz als statistisch bedeutsam betitelt. Wir wissen aber, weil wir das Modell vorgegeben haben, dass die $H_0$ tatsächlich nicht gilt. Somit wird in 2/3 der Fälle fälschlicherweise die $H_0$ nicht verworfen, obwohl sie nicht gilt. Das ist der Fehler 2. Art, auch $\beta$-Fehler genannt. Somit ist ersichtlich, dass die Power sich berechnet als $1-\beta$.
 
 Mit größerer Stichprobe wird die Power steigen (siehe dazu im Kapitel [Power-Plots](#PowerPlots) nach).
 
