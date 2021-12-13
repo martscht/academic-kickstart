@@ -81,7 +81,7 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 | 6 | **Tests für unabhängige Stichproben** | Inhalte | Aufgaben | Lösungen |
 | 7 | **Tests für abhängige Stichproben** | Inhalte | Aufgaben | Lösungen |
 | 8 | **Korrelation** | Inhalte | Aufgaben | Lösungen |
-| 9 | **Regression** | Inhalte | Aufgaben | Lösungen |
+| 9 | **Regression** | [Inhalte](/post/regression) | [Aufgaben](/post/regression-aufgaben) | [Lösungen](/post/regression-loesungen) |
 | 10 | **Simulation und Poweranalyse** | Inhalte | Aufgaben | Lösungen |
 | *Zusatz* | **Gruppenprojekt** | [Inhalte](/post/gruppenprojekt) | [Hinweise Ergebnisbericht](/post/hinweise-zum-ergebnisbericht) | -- |
 | | | | |
