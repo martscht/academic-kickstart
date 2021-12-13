@@ -1,0 +1,181 @@
+---
+title: Regression - Lösungen
+author: 
+date: '2021-01-04'
+slug: regression-loesungen
+categories:
+  - BSc2
+  - Loesungen
+tags:
+  - Regression
+subtitle: ''
+summary: ''
+authors: [winkler, neubauer]
+lastmod: '2021-01-04T13:34:32+01:00'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+expiryDate: '2022-09-15'
+publishDate: '2022-01-28'
+---
+
+## Vorbereitung
+Laden Sie die Daten aus [<i class="fas fa-download"></i> `fb21.rda`](/post/fb21.rda).
+
+<details><summary>Lösung</summary>
+```{r}
+fb21 <- read.table('https://pandar.netlify.app/post/fb21.csv', header = TRUE, sep = ",")
+```
+</details>
+***
+# Regression
+    
+## Aufgabe 1
+Welche der fünf Persönlichkeitsdimensionen Extraversion (`extra`), Verträglichkeit (`vertr`), Gewissenhaftigkeit (`gewis`), Neurotizsimus (`neuro`) und Intellekt (`intel`) zeigt den höchsten linearen Zusammenhang mit der Lebenszufriedenheit (`lz`)?
+
+  * Erstellen Sie für jeden Zusammenhang je ein Streudiagramm.
+
+<details><summary>Lösung</summary>
+**`extra`:**
+```{r}
+plot(fb21$extra, fb21$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)
+```
+
+**`vertr`:**
+```{r}
+plot(fb21$vertr, fb21$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)
+```
+
+**`gewis`:**
+```{r}
+plot(fb21$gewis, fb21$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)
+```
+
+**`neuro`:**
+```{r}
+plot(fb21$neuro, fb21$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)
+```
+
+**`intel`:**
+```{r}
+plot(fb21$intel, fb21$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)
+```
+</details>
+
+<p>
+  * Schätzen Sie für jeden Zusammenhang je ein Modell.
+
+<details><summary>Lösung</summary>
+**`extra`:**
+```{r}
+fme <- lm(lz ~ extra, fb21)
+summary(fme)
+```
+
+**`vertr`:**
+```{r}
+fmv <- lm(lz ~ vertr, fb21)
+summary(fmv)
+```
+
+**`gewis`:**
+```{r}
+fmg <- lm(lz ~ gewis, fb21)
+summary(fmg)
+```
+
+**`neuro`:**
+```{r}
+fmn <- lm(lz ~ neuro, fb21)
+summary(fmn)
+```
+
+**`intel`:**
+```{r}
+fmi <- lm(lz ~ intel, fb21)
+summary(fmi)
+```
+Wenn wir die Koeffizienten der Modelle vergleichen, sehen wir, dass `gewis` den stärksten linearen Zusammenhang mit `lz` aufweist (Hinweis: für den Vergleich der Modelle vergleichen wir den Determinationskoeffizienten der fünf Modelle! Dieser ist für das Modell mit dem Prädiktor Gewissenhaftigkeit am höchsten)
+</details>
+
+<p>
+  * Prüfen Sie die Voraussetzungen und interpretieren Sie den standardisierten Koeffizienten des linearen Zusammenhangs zwischen Gewissenhaftigkeit und Lebenszufriedenheit. Wie verändert sich `lz`, wenn sich `gewis` um eine Standardabweichung erhöht?
+ 
+<details><summary>Lösung</summary>
+### Voraussetzungen:
+
+1. Linearität: Zusammenhang muss linear sein $\rightarrow$ Grafische Überprüfung (Scatterplot)  
+2. Varianzhomogenität (Homoskedastizität) der Fehler: der Fehler jedes Wertes der UV hat annähernd die gleiche Varianz  
+3. Normalverteilung der Fehlervariablen  
+4. Unabhängigkeit der Fehler  
+
+Die Voraussetzungen 2-4 können erst geprüft werden, nachdem das Modell schon gerechnet wurde, weil sie sich auf die Fehler (Residuen: Differenz aus beobachtetem und vorhergesagtem Wert für y) beziehen!
+
+**zu 1. Linearität: Zusammenhang muss linear sein $\rightarrow$ Grafische Überprüfung (Scatterplot)**
+
+```{r}
+plot(fb21$gewis, fb21$lz, xlab = "Gewissenhaftigkeit", ylab = "Lebenszufriedenheit", 
+     main = "Zusammenhang zwischen Gewissenhaftigkeit und Lebenszufriedenheit", xlim = c(0, 6), ylim = c(0, 7), pch = 19)
+lines(loess.smooth(fb21$gewis, fb21$lz), col = 'blue')    #beobachteter, lokaler Zusammenhang
+fmg <- lm(lz ~ gewis, fb21)                              #Modell erstellen und ablegen
+abline(fmg, col = "red")                                  #Modellierter linearer Zusammenhang in zuvor erstellten Plot einzeichnen
+```
+
+**zu Voraussetzungen 2-4:**
+
+```{r}
+par(mfrow = c(2, 2)) #Vier Abbildungen gleichzeitig
+plot(fmg)
+par(mfrow = c(1, 1)) #wieder auf eine Abbildung zurücksetzen
+```
+
+
+In diesem Fall ist alles weitestgehend erfüllt.
+
+```{r}
+sfmg <- lm(scale(lz) ~ scale(gewis), fb21)
+sfmg
+
+```
+
+Wenn sich die Variable `gewis` um eine Standardabweichung verändert, verändert sich das Kriterium `lz` um 0,356 Standardabweichungen.
+</details>
+
+## Aufgabe 2
+
+Betrachten Sie nun den Zusammenhang von Neurotizismus und Lebenszufriedenheit etwas genauer:
+
+  * Erstellen Sie ein Streu-Punkt-Diagramm  mit Regressionsgerade für den linearen Zusammenhang zwischen Neurotizismus und Lebenszufriedenheit.
+
+<details><summary>Lösung</summary>
+```{r}
+plot(fb21$neuro, fb21$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)
+abline(fmn, col = "red")
+```
+</details>
+
+<p>
+  * Wie viel Prozent der Varianz werden durch das Modell erklärt?
+
+<details><summary>Lösung</summary>
+```{r}
+summary(fmn)
+
+```
+  * Das Modell erklärt 6,18% der Varianz in Lebenszufriedenehit durch Neurotizismus.
+</details>
+
+<p>
+  * Ein paar Studierende wurden nachträglich zum Studiengang Psychologie zugelassen und befinden sich daher nicht im Datensatz. Die neuen Studierenden wurden nachträglich befragt und weisen auf der Skala Neurotizismus folgende Werte auf: 1.25; 2.75; 3.5; 4.25; 3.75; 2.15. Machen Sie eine Vorhersage für die Lebenszufriedenheit für die neuen Studierenden.
+
+<details><summary>Lösung</summary>
+```{r}
+new <- data.frame(neuro = c(1.25, 2.75, 3.5, 4.25, 3.75, 2.15))
+predict(fmn, newdata = new)
+```
+</details> 
+
+***
