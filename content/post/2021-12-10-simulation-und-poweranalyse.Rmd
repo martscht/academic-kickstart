@@ -245,37 +245,7 @@ Nun zurück zur geschätzten Power: Eine Power von `r mean(pt_H1 < 0.05)` ist al
 
 Mit größerer Stichprobe wird die Power steigen (siehe dazu im Kapitel [Power-Plots](#PowerPlots) nach).
 
-
-### Lineare Beziehungen zwischen Variablen: Korrelationstest unter $H_1$
-Wir wollen uns ebenfalls die Power für den Korrelationstest ansehen. Dazu müssen wir allerdings korrelierte Variablen generieren. Um das hinzubekommen, müssen wir einige Eigenschaften der Normalverteilung ausnutzen: bspw. dass die Summe zweier normalverteilter Zufallsvariablen wieder normalverteilt ist. Für zwei unabhängige (unkorrelierte) standard-normalverteilte Zufallsvariablen $X$ und $Z$, ist die Zufallsvariable $Y$, die folgendermaßen gebildet wird
-
-$$Y:= \rho X + \sqrt{1-\rho^2}Z,$$
-wieder standard-normalverteilt und um den Korrelationskoeffizienten $\rho$ korreliert mit $X$. Wir können also relativ einfach zwei korrelierte Variablen generieren:
-
-```{r}
-set.seed(12345)
-X <- rnorm(N)
-Z <- rnorm(N)
-Y <- 0.5*X + sqrt(1 - 0.5^2)*Z
-cor(X, Y) # empirische Korrelation
-cortestH1 <- cor.test(X, Y)
-cortestH1
-cortestH1$p.value
-```
-Der Test ist signifikant. Die empirische Korrelation von `r round(cor(X, Y), 4)` ist statistisch bedeutsam. Wir schauen uns nun für diese $\rho=0.5$ die Power des Korrelationstests an:
-
-```{r}
-set.seed(12345)
-pcor_H1 <- replicate(n = 10000, expr = {X <- rnorm(N)
-                                        Z <- rnorm(N)
-                                        Y <- 0.5*X + sqrt(1 - 0.5^2)*Z
-                                        cortestH1 <- cor.test(X, Y)
-                                        cortestH1$p.value})
-mean(pcor_H1 < 0.05) # empirische Power
-hist(pcor_H1, breaks = 20)
-```
-
-Die empirische Power für eine Korrelation von 0.5 liegt bei `r mean(pcor_H1 < 0.05)`. Das Histogramm ist auch diesmal alles andere als gleichverteilt. Es sieht sogar deutlich stärker nach links gestaucht aus, als für den oben durchgeführten Mittelwertsvergleich. Das liegt an dieser Stelle daran, dass eine Korrelation von 0.5 ein größerer Effekt ist, als eine Mittelwertsdifferenz von 0.5 für Variablen mit einer Varianz von 1. 
+Die Power für den Korrelationstest zu bestimmt, ist als Übung bestimmt!
 
 ## Power-Plots {#PowerPlots}
 Mit einem einzelnen Power-Wert lässt sich in der Regel nicht so viel anfangen. Aus diesem Grund werden Power-Plots erstellt, welche darstellen, wie sich die Power bspw. über unterschiedliche Stichprobengrößen  (um die Asymptotik des Tests zu prüfen) oder über unterschiedliche Effektgrößen verändert. 
@@ -322,40 +292,9 @@ plot(x = Ns, y = t_power, type = "b", main = "Power vs. N")
 ```
 Dem Plot entnehmen wir, dass ab etwas über $N=60$ die Power oberhalb der gewünschten $80\%$-Marke liegt. Wir erkennen also, dass die Wahrscheinlichkeit einen Effekt zu finden, wenn dieser da ist, mit steigender Stichprobengröße wächst. Auf diesem Weg kann ein Experiment auch hinsichtlich der nötigen Stichprobengröße geplant werden. Wenn aus Voruntersuchungen oder der Literatur bekannt ist, wie groß ein Effekt zu erwarten ist, dann kann über Poweranalysen untersucht werden, wie groß eine Stichprobe sein muss, um einen Effekt mit hinreichend großer Wahrscheinlichkeit zu identifizieren.
 
-Genauso könnten wir uns fragen, wie groß ein Effekt sein muss, damit mit der vorliegenden Stichprobengröße und mit hinreichend großer Wahrscheinlichkeit ein signifikantes Ergebnis gefunden wird. Um dieser Frage nachzugehen, untersuchen wir die Power, für einige Effektgrößen für $N=20$. Hierzu haben wir bereits zwei Analysen durchgeführt, nämlich einmal mit $d=0.5$ und einmal mit $d=0$ (als wir den $\alpha$-Fehler unter $H_0$ untersucht haben):
+Genauso könnten wir uns fragen, wie groß ein Effekt sein muss, damit mit der vorliegenden Stichprobengröße und mit hinreichend großer Wahrscheinlichkeit ein signifikantes Ergebnis gefunden wird. Dies schauen Sie sich ebenfalls als Übung an!
 
-
-```{r}
-set.seed(12345)
-pt_H1_0 <- pt_H0
-pt_H1_0.5 <- pt_H1
-pt_H1_0.25 <- replicate(n = 10000, expr = {X <- rnorm(20)
-                                           Y <- rnorm(20) + 0.25 
-                                           ttestH1 <- t.test(X, Y, var.equal = TRUE)
-                                           ttestH1$p.value})
-pt_H1_0.75 <- replicate(n = 10000, expr = {X <- rnorm(20)
-                                           Y <- rnorm(20) + 0.75 
-                                           ttestH1 <- t.test(X, Y, var.equal = TRUE)
-                                           ttestH1$p.value})
-pt_H1_1 <- replicate(n = 10000, expr = {X <- rnorm(20)
-                                        Y <- rnorm(20) + 1 
-                                        ttestH1 <- t.test(X, Y, var.equal = TRUE)
-                                        ttestH1$p.value})
-pt_H1_1.25 <- replicate(n = 10000, expr = {X <- rnorm(20)
-                                           Y <- rnorm(20) + 1.25 
-                                           ttestH1 <- t.test(X, Y, var.equal = TRUE)
-                                           ttestH1$p.value})
-t_power_d <- c(mean(pt_H1_0 < 0.05),
-               mean(pt_H1_0.25 < 0.05),
-               mean(pt_H1_0.5 < 0.05),
-               mean(pt_H1_0.75 < 0.05),
-               mean(pt_H1_1 < 0.05),
-               mean(pt_H1_1.25 < 0.05))
-Ds <- seq(0, 1.25, 0.25)
-plot(x = Ds, y = t_power_d, type = "b", main = "Power vs. d")
-```
-
-Diesem Plot ist nun zu entnehmen, dass eine Mittelwertsdifferenz von größer 0.8 nötig ist, damit die Power hinreichend groß ist. Außerdem wird in diesem Plot auch ersichtlich, dass wenn die Mittelwertsdifferenz 0 ist, dann sind wir gerade im Fall der $H_0$ gelandet. Die Power sollte hier dann nur bei $5\%$ liegen. Falls wir negative Mittelwertsdifferenzen gewählt hätten, dann wäre der Plot identisch, nur an der x-Achse gespiegelt. Natürlich können Informationen zur Effektstärke sowie zur Stichprobengröße gemeinsam in eine Grafik eingefügt werden. Wenn man dies auf die Spitze treibt, dann landet man vielleicht bei diesem schönen Plot:
+Wenn man dies auf die Spitze treibt, dann landet man vielleicht bei diesem schönen Plot:
 
 
 ```{r, echo = F,fig.align="center", fig.height=10, fig.width=10}
@@ -381,7 +320,7 @@ ggplot(data = Erg, aes(x = d, y = Power, col = n, group = n))+
      ggtitle("Power vs. d and n", subtitle = " Using formulas instead of simulation")+ theme_apa(base_size = 20)
 ```
 
-Auf der x-Achse ist die Mittelwertsdifferenz dargestellt, $N$ ist farblich kodiert. Die gestrichelte Linien symbolisiert die gewünschten $80\%$, die gepunktete Linie zeigt das $\alpha$-Fehlerniveau von $5\%$. Hier wurden allerdings keine Simulationen durchgeführt (sonst wären die Linien nicht so "smooth"), denn für den $t$-Test lässt sich die Power auch noch leicht über Formeln bestimmen. Diese Formeln sind bspw. in dem `R`-Paket `pwr` hinterlegt. Für Interessierte ist in [Appendix A](#AppendixA) ein kleiner Exkurs in `pwr` dargestellt. 
+Auf der x-Achse ist die Mittelwertsdifferenz dargestellt, $N$ ist farblich kodiert. Dieser Plot enthält also sowohl Informationen über die Asymptotik (Verhalten mit steigender Stichprobengröße) und über die Auswirkung der Effektstärke. Die gestrichelte Linien symbolisiert die gewünschten $80\%$, die gepunktete Linie zeigt das $\alpha$-Fehlerniveau von $5\%$. Hier wurden allerdings keine Simulationen durchgeführt (sonst wären die Linien nicht so "smooth"), denn für den $t$-Test lässt sich die Power auch noch leicht über Formeln bestimmen. Diese Formeln sind bspw. in dem `R`-Paket `pwr` hinterlegt. Für Interessierte ist in [Appendix A](#AppendixA) ein kleiner Exkurs in `pwr` dargestellt. 
 
 
 
@@ -393,7 +332,7 @@ Für den $t$-Test lässt sich die Power auch über Formeln finden. Diese sind im
 
 $$d:=\frac{|\mu_1-\mu_2|}{\sigma},$$
 wobei $\mu_1$ und $\mu_2$ die beiden Mittelwerte in den Gruppen sind und $\sigma$
- ist die wahre Standardabweichung über die beiden Gruppen hinweg. Dadurch, dass bei uns die Varianz jeweils 1 in den Gruppen war, hatten wir durch Zufall auch oben die Effektstärke nach Cohen gewählt! Die Werte sind also durchaus vergleichbar. Wir schauen uns die Power für unsere erste Effektstärke von 0.5 bei einer Stichprobengröße von 20 an:
+ ist die wahre Standardabweichung über die beiden Gruppen hinweg. Dadurch, dass bei uns die Varianz jeweils 1 in den Gruppen war, hatten wir durch Zufall auch oben die Effektstärke nach Cohen gewählt! Die Werte sind also durchaus vergleichbar. Wir schauen uns die Power für unsere erste Effektstärke von 0.5 bei einer Stichprobengröße von 20 an: 
  
 ```{r}
 # falls noch nicht installiert: "install.packages("pwr")"
