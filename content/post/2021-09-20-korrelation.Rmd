@@ -12,10 +12,9 @@ summary: ''
 authors: [nehler, winkler, schroeder]
 lastmod: '2021-12-13T13:13:57+01:00'
 featured: no
-image:
-  caption: ''
-  focal_point: ''
-  preview_only: no
+header:
+  image: "/header/BSc2_Korrelation.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/de/photo/855019)"
 projects: []
 ---
 
@@ -40,7 +39,7 @@ knitr::opts_chunk$set(error = TRUE)
 Zu Beginn laden wir wie gewohnt den Datensatz und verteilen die relevanten Labels.
 
 ```{r, eval=TRUE}
-fb21 <- read.table('https://pandar.netlify.app/post/fb21.csv', header = TRUE, sep = ",")
+load(url('https://pandar.netlify.app/post/fb21.rda'))
 
 #Labels
 fb21$fach <- factor(fb21$fach, levels = 1:5, labels = c ('Allgemeine', 'Biologische', 'Entwicklung', 'Klinische', 'Diag./Meth.'))
@@ -56,13 +55,13 @@ Die Erstellung von *Häufigkeitstabellen* zur Darstellung univariater Häufigkei
 
 
 ```{r}
-tab <- table(fb21$fach)                 #Absolut
+tab <- table(fb21$fach)               #Absolut
 tab
 
 prop.table(tab)                       #Relativ
 ```
 
-Die Erweiterung für den bivariaten Fall ist dabei nicht schwierig und wird als *Kreuztabelle* bezeichnet. Sie liefert die Häufigkeit von Kombinationen von Ausprägungen in mehreren Variablen. In den Zeilen wird die erste Variable abgetragen und in den Spalten die zweite. Im Unterschied zum univariaten Fall muss im `table()` Befehl nur die zweite interessierende Variable zusätzlich genannt werden. Tabellen können beliebig viele Dimensionen haben, werden dann aber sehr unübersichtlich.
+Die Erweiterung für den bivariaten Fall ist dabei nicht schwierig und wird als *Kreuztabelle* bezeichnet. Sie liefert die Häufigkeit von Kombinationen von Ausprägungen in mehreren Variablen. In den Zeilen wird die erste Variable abgetragen und in den Spalten die zweite. Im Unterschied zum univariaten Fall muss im `table()`-Befehl nur die zweite interessierende Variable zusätzlich genannt werden. Tabellen können beliebig viele Dimensionen haben, werden dann aber sehr unübersichtlich.
 
 ```{r}
 tab<-table(fb21$fach,fb21$ziel)       #Kreuztabelle
@@ -134,10 +133,10 @@ und Kovarianz.
 $$\hat{\sigma}_{XY} = \frac{\sum_{m=1}^n (x_m - \bar{x}) \cdot (y_m - \bar{y})}{n-1}$$
 
 Die Funktionen für die Varianz ist dabei `var()`. Im Folgenden wird diese für die Variablen `vertr` (Verträglichkeit) und `gewis` (Gewissenhaftigkeit) aus dem Datensatz bestimmt. Als Argumente müssen jeweils die Variablennamen verwendet werden.
-Wie bereits in vergangenen Sitzungen gesehen führen fehlende Werte zu der Ausgabe `NA`. Um dies vorzubeugen, wird im univariaten Fall `na.rm = TRUE` zum Ausschluss verwendet. 
+Wie bereits in vergangenen Sitzungen gesehen, führen fehlende Werte zu der Ausgabe `NA`. Um dies vorzubeugen, wird im univariaten Fall `na.rm = TRUE` zum Ausschluss verwendet. 
 
 ```{r}
-var(fb21$vertr, na.rm = TRUE)               #Varianz Verträglichkeit
+var(fb21$vertr, na.rm = TRUE)            #Varianz Verträglichkeit
 
 var(fb21$gewis, na.rm = TRUE)            #Varianz Gewissenhaftigkeit
 ```
@@ -146,11 +145,11 @@ var(fb21$gewis, na.rm = TRUE)            #Varianz Gewissenhaftigkeit
 Die Funktion `cov()` wird für die Kovarianz verwendet und benötigt als Argumente die Variablen. 
 
 ```{r}
-cov(fb21$vertr, fb21$gewis)                #Kovarianz Verträglichkeit und Gewissenhaftigkeit
+cov(fb21$vertr, fb21$gewis)              #Kovarianz Verträglichkeit und Gewissenhaftigkeit
 ```
 Da Kovarianzen unstandardisierte Kennzahlen sind, können wir Kovarianzen nicht pauschal nach ihrer Höhe beurteilen. Die Höhe hängt beispielsweise von der Antwortskala ab. 
 
-Natürlich können auch bei der Kovarianzberechnung fehlende Werte einen zu einem Problem werden. Zur Bewältigung des Problems gibt es das Argument `use`. Bei Zusammenhangsmaßen gibt es in R mehrere Möglichkeiten für den Umgang mit fehlenden Werten, die sich nur unterscheiden, wenn mehr als zwei Variablen korreliert werden:
+Natürlich können auch bei der Kovarianzberechnung fehlende Werte zu einem Problem werden. Zur Bewältigung des Problems gibt es das Argument `use`. Bei Zusammenhangsmaßen gibt es in R mehrere Möglichkeiten für den Umgang mit fehlenden Werten, die sich nur unterscheiden, wenn mehr als zwei Variablen korreliert werden:
 
 * *Paarweiser Fallausschluss*: Personen, die auf (mindestens) einer von **zwei** Variablen `NA` haben, werden von der Berechnung ausgeschlossen.
 * *Listenweiser Fallausschluss*: Personen, die auf (mindestens) einer von **allen** Variablen `NA` haben, werden von der Berechnung ausgeschlossen.
@@ -172,7 +171,7 @@ cov(drei, use = 'pairwise')             #Paarweiser Fallausschluss
 cov(drei, use = 'complete')             #Listenweiser Fallausschluss
 ```
 
-Wie wir sehen unterscheiden sich die Werte voneinander, da beim listenweisen Fallausschluss noch mehr Personen von Beginn an von der Berechnung ausgeschlossen werden.
+Wie wir sehen, unterscheiden sich die Werte voneinander, da beim listenweisen Fallausschluss noch mehr Personen von Beginn an von der Berechnung ausgeschlossen werden.
 Anmerkung: Die Kovarianz einer Variablen mit sich selbst (zu finden in der Hauptdiagonalen) entspricht ihrer Varianz.
 
 
@@ -197,8 +196,8 @@ cor(drei, use = 'pairwise')
 ```
 
 
-Die Stärke des korrelativer Zusammenhangs wird mit dem Korrelationskoeffizienten ausgedrückt, der zwischen -1 und +1 liegt. 
-Die default Einstellung bei `cor()`ist die *Produkt-Moment-Korrelation*, also die Pearson-Korrelation.
+Die Stärke des korrelativen Zusammenhangs wird mit dem Korrelationskoeffizienten ausgedrückt, der zwischen -1 und +1 liegt. 
+Die default-Einstellung bei `cor()`ist die *Produkt-Moment-Korrelation*, also die Pearson-Korrelation.
 
 ```{r}
 cor(fb21$vertr, fb21$gewis, use = "pairwise", method = "pearson")
@@ -209,9 +208,9 @@ Achtung! Die inferenzstatistische Testung der Pearson-Korrelation hat gewisse Vo
 
 **Voraussetzungen Pearson-Korrelation:**  
 
-1. Skalenniveau: intervallskalierte Daten $\rightarrow$ ok (Ratingskalen werden meist als intervallskaliert aufgefasst, auch wenn das nicht 100% korrekt ist)  
-2. Linearität: Zusammenhang muss linear sein $\rightarrow$ grafische Überprüfung (siehe  Scatterplot)  
-3. Normalverteilung $\rightarrow$ QQ-Plot, Histogramm oder Shapiro-Wilk-Test  
+1. *Skalenniveau*: intervallskalierte Daten $\rightarrow$ ok (Ratingskalen werden meist als intervallskaliert aufgefasst, auch wenn das nicht 100% korrekt ist)  
+2. *Linearität*: Zusammenhang muss linear sein $\rightarrow$ grafische Überprüfung (siehe  Scatterplot)  
+3. *Normalverteilung*: Variablen müssen normalverteilt sein $\rightarrow$ QQ-Plot, Histogramm oder Shapiro-Wilk-Test  
 
 **zu 3. Normalverteilung**
 
@@ -254,7 +253,7 @@ r1^2                               #R^2, Anteil an erklärter Varianz
 
 
 **Interpretation des deskriptiven Zusammenhangs:**  
-Es handelt sich um eine positive Korrelation von _r_ = .14. Der Effekt ist nach Cohens (1988) Konvention als schwach zu bewerten. Je höher die Ausprägung in Verträglichkeit, desto höher ist die Ausprägung in der Gewissenhaftigkeit und anders herum. 
+Es handelt sich um eine positive Korrelation von _r_ = `r round(r1, digits = 2)`. Der Effekt ist nach Cohens (1988) Konvention als schwach zu bewerten. Je höher die Ausprägung in Verträglichkeit, desto höher ist die Ausprägung in der Gewissenhaftigkeit und anders herum. 
 
 **Exkurs: Cohens (1988) Konvention zur Interpretation von $|r|$:**
 
@@ -265,16 +264,15 @@ Es handelt sich um eine positive Korrelation von _r_ = .14. Der Effekt ist nach 
 Als weitere Variante der Rangkorrelation gibt es noch Kendalls $\tau$. Diese kann man mit `method = "kendall"` angesprochen werden.
 
 ```{r}
-
 cor(fb21$vertr, fb21$gewis, use = 'complete', method = 'kendall')
 ```
 Die Interpretation erfolgt wie bei Spearman's Rangkorrelation. 
 
 **Signifikanztestung des Korrelationskoeffizienten:**
-Nachdem der Korrelationskoeffizient berechnet wurde, muss dieser noch auf Signifikanz geprüft werden. Dazu verwenden wir die `cor.test()` Funktion.
+Nachdem der Korrelationskoeffizient berechnet wurde, muss dieser noch auf Signifikanz geprüft werden. Dazu verwenden wir die `cor.test()`-Funktion.
 
-* H0: $\rho = 0$ $\rightarrow$ es gibt keinen Zusammenhang zwischen Verträglichkeit und Gewissenhaftigkeit
-* H1: $\rho \neq 0$ $\rightarrow$  es gibt einen Zusammenhang zwischen Verträglichkeit und Gewissenhaftigkeit
+* *H0*: $\rho = 0$ $\rightarrow$ es gibt keinen Zusammenhang zwischen Verträglichkeit und Gewissenhaftigkeit
+* *H1*: $\rho \neq 0$ $\rightarrow$  es gibt einen Zusammenhang zwischen Verträglichkeit und Gewissenhaftigkeit
 
 ```{r}
 cor.test(fb21$vertr, fb21$gewis, 
@@ -293,8 +291,15 @@ cor.test(fb21$vertr, fb21$gewis,
          use = "complete")
 ```
 
+```{r, echo = FALSE}
+cor <- cor.test(fb21$vertr, fb21$gewis, 
+         alternative = "two.sided", 
+         method = "pearson",       
+         use = "complete")
+```
+
 **Ergebnisinterpretation:**
-Es wurde untersucht, ob Verträglichkeit und Gewissenhaftigkeit miteinander zusammenhängen. Der Pearson-Korrelationskoeffizient beträgt .20 und ist statistisch signifikant (_t_(112) = 2.16, _p_ = .033). Folglich wird die Nullhypothese hier verworfen: Verträglichkeit und Lebenszufriedenheit weisen einen signifikanten Zusammenhang auf.
+Es wurde untersucht, ob Verträglichkeit und Gewissenhaftigkeit miteinander zusammenhängen. Der Pearson-Korrelationskoeffizient beträgt `r round(cor$estimate, digits = 2)` und ist statistisch signifikant (_t_(`r cor$parameter`) = `r round(cor$statistic, digits = 2)`, _p_ = `r round(cor$p.value, digits = 3)`). Folglich wird die Nullhypothese hier verworfen: Verträglichkeit und Lebenszufriedenheit weisen einen signifikanten Zusammenhang auf.
 
 
 ## Wie können Zusammenhangsmaße für ordinalskalierte Daten berechnet werden?
@@ -311,25 +316,25 @@ library(rococo)                     #laden
 ```
 
 Wir erhalten hier als Message den Hinweis, unter welcher Version das Paket erstellt wurde.
-Übersichte über Pakete kann man mit `??`erhalten.
+Übersichten über Pakete kann man mit `??` erhalten.
 
 ```{r, eval = FALSE}
 ??rococo
 ```
 
-Die Funktion heißt hier zufälligerweise genau gleich wie das Paket. Wenn man nur Informationen über die Funktion statt das Paket sucht, geht das anhand von `?`.
+Die Funktion heißt hier zufälligerweise genau gleich wie das Paket. Wenn man nur Informationen über die Funktion statt dem Paket sucht, geht das anhand von `?`.
 
 ```{r, eval = FALSE}
 ?rococo
 ```
 
-Dank dem neuen Paket können wir nun den Koeffizienten $\hat{\gamma}$ berechnen und uns damit den Zusammenhang zwischen Items betrachten. Schauen wir uns nun mal den Zusammenhang der beiden Prokrastinationsitems `prok1` und `prok9` an, um zu überprüfen, ob die beiden Items auch (wie beabsichtigt) etwas Ähnliches messen (nähmlich Prokrastionationstendenz). Die beiden Variablen wurden ursprünglich auf einer Skala von 1 (*stimmt nicht*) bis 4 (*stimmt genau*) (also auf Ordinalskalenniveau) erfasst. 
+Dank dem neuen Paket können wir nun den Koeffizienten $\hat{\gamma}$ berechnen und damit den Zusammenhang zwischen Items betrachten. Schauen wir uns nun mal den Zusammenhang der beiden Prokrastinationsitems `prok1` und `prok9` an, um zu überprüfen, ob die beiden Items auch (wie beabsichtigt) etwas Ähnliches messen (nähmlich Prokrastionationstendenz). Die beiden Variablen wurden ursprünglich auf einer Skala von 1 (*stimmt nicht*) bis 4 (*stimmt genau*) (also auf Ordinalskalenniveau) erfasst. 
 
 ```{r}
 rococo(fb21$prok1, fb21$prok9)
 ```
 
-Um zu überprüfen, ob zwei ordinalskalierte Variablen signifikant miteinaner zusammenhängen, können wir die `rococo.test()` Funktion anwenden.
+Um zu überprüfen, ob zwei ordinalskalierte Variablen signifikant miteinander zusammenhängen, können wir die `rococo.test()`-Funktion anwenden.
 
 ```{r}
 rococo.test(fb21$prok1, fb21$prok5)
