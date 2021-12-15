@@ -12,10 +12,9 @@ summary: ''
 authors: [winkler, neubauer]
 lastmod: '2021-12-13T13:13:57+01:00'
 featured: no
-image:
-  caption: ''
-  focal_point: ''
-  preview_only: no
+header:
+  image: "/header/BSc2_Regression.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/de/photo/411588)"
 projects: []
 ---
 
@@ -41,7 +40,7 @@ Zu Beginn laden wir wie gewohnt den Datensatz (Sie können den Datensatz [hier <
 Wir laden den Datensatz hier direkt von der Website:
 
 ```{r}
-fb21 <- read.table('https://pandar.netlify.app/post/fb21.csv', header = TRUE, sep = ",")
+load(url('https://pandar.netlify.app/post/fb21.rda'))
 ```
 
 
@@ -49,24 +48,24 @@ fb21 <- read.table('https://pandar.netlify.app/post/fb21.csv', header = TRUE, se
 
 ## Lineare Regression
 
-Nachdem wir mit der Korrelation mit der gemeinsamen Betrachtung von zwei Variablen begonnen haben, werden wir jetzt lineare Modelle erstellen, Plots inklusive Regressionsgerade für Zusammenhänge anzeigen lassen und Determinationskoeffizienten berechnen.
+Nachdem wir mit der Korrelation mit der gemeinsamen Betrachtung von zwei Variablen begonnen haben, werden wir jetzt lineare Modelle erstellen, uns Plots - inklusive Regressionsgerade - für Zusammenhänge anzeigen lassen und Determinationskoeffizienten berechnen.
 Hierzu betrachten wir folgende Fragestellung:
 
 * Hat die Extraversion (*extra*) einen Einfluss auf die selbst eingeschätzte "Nerdiness" (*nerd*)?
 
 ### Voraussetzungen:
 
-1. Linearität: Zusammenhang muss linear sein $\rightarrow$ Grafische Überprüfung (Scatterplot)  
-2. Varianzhomogenität (Homoskedastizität) der Fehler: der Fehler jedes Wertes der UV hat annährend die gleiche Varianz  
-3. Normalverteilung der Fehlervariablen  
-4. Unabhängigkeit der Fehler  
+1. *Linearität*: Zusammenhang muss linear sein $\rightarrow$ Grafische Überprüfung (Scatterplot)  
+2. *Varianzhomogenität (Homoskedastizität) der Fehler*: der Fehler jedes Wertes der UV hat annährend die gleiche Varianz  
+3. *Normalverteilung der Fehlervariablen*  
+4. *Unabhängigkeit der Fehler*  
 
 Die Voraussetzungen 2-4 können erst geprüft werden, nachdem das Modell schon gerechnet wurde, weil sie sich auf die Fehler (Residuen: Differenz aus beobachtetem und vorhergesagtem Wert für y) beziehen!
 
 Deshalb erstellen wir zunächst das Regressionsmodell - wir werden weiter unten diesen Befehl - die Funktion `lm()` genauer besprechen, für's erste ist wichtig zu wissen, dass die relevanten Ergebnisse des Regressionsmodell im Objekt `fm` abgespeichert werden.
 
 ```{r}
-fm <- lm(nerd ~ extra, fb21)                              #Modell erstellen und ablegen
+fm <- lm(nerd ~ extra, fb21)                  #Modell erstellen und ablegen
 ```
 
 **zu 1. Linearität: Zusammenhang muss linear sein $\rightarrow$ Grafische Überprüfung (Scatterplot)**
@@ -83,24 +82,23 @@ lines(loess.smooth(fb21$extra, fb21$nerd), col = 'blue')    #beobachteter, lokal
 
 <b>Interpretation</b>: Eine lineare Beziehung scheint den Zusammenhang aus `extra` und `nerd` akkurat zu beschreiben. Ein bspw. u-förmiger Zusammenhang ist nicht zu erkennen.
 
+
 **zu Voraussetzungen 2-4:**
-
-
 
 Mithilfe der Ergebnisse aus dem Regressionsmodell im Objekt `fm` können wir nun überprüfen, ob die weiteren Voraussetzungen der linearen Regression erfüllt sind. 
 
 ```{r, fig = TRUE}
-par(mfrow = c(2, 2)) #Vier Abbildungen gleichzeitig
+par(mfrow = c(2, 2)) #vier Abbildungen gleichzeitig
 plot(fm)
 par(mfrow = c(1, 1)) #wieder auf eine Abbildung zurücksetzen
 ```
 
 *Interpretation der Abbildungen:*  
 
-* Residuals vs. Fitted: geeignet um Abweichungen von der Linearität und Verletzungen der Homoskedastizität aufzudecken $\rightarrow$ soll möglichst unsystematisch aussehen, rote Anpassungslinie (y-MW bedingt auf X) verläuft parallel zur x-Achse  
-* Normal Q-Q: Zeigt Annäherung der Normalverteilung durch Residuen $\rightarrow$ Punkte sollen auf die Diagonalen liegen  
-* Scale-Location: Prüfung der Homoskedastizität, zeigt Zusammenhang zwischen Streuung der Residuen und vorhergesagten Werten $\rightarrow$ rote Anpassungslinie (y-MW bedingt auf X) sollte parallel zur x-Achse verlaufen
-* Residuals vs. Leverage: Einflussreiche Datenpunkte liegen „weit draußen“, außerhalb einer der rot gestrichelten Linie.  Dies trifft auf keine Beobachtung in unserer Stichprobe zu (die rot gestrichelte Linie lässt sich hier nur ganz recht oben erahnen; kein Punkt liegt außerhalb dieses Bereichs) $\rightarrow$  Somit lassen sich hier keine potentiell problematischen einflussreichen Datenpunkte identifizieren 
+* *Residuals vs. Fitted*: geeignet um Abweichungen von der Linearität und Verletzungen der Homoskedastizität aufzudecken $\rightarrow$ soll möglichst unsystematisch aussehen, rote Anpassungslinie (y-MW bedingt auf X) verläuft parallel zur x-Achse  
+* *Normal Q-Q*: Zeigt Annäherung der Normalverteilung durch Residuen $\rightarrow$ Punkte sollen auf die Diagonalen liegen  
+* *Scale-Location*: Prüfung der Homoskedastizität, zeigt Zusammenhang zwischen Streuung der Residuen und vorhergesagten Werten $\rightarrow$ rote Anpassungslinie (y-MW bedingt auf X) sollte parallel zur x-Achse verlaufen
+* *Residuals vs. Leverage*: Einflussreiche Datenpunkte liegen „weit draußen“, außerhalb einer der rot gestrichelten Linie.  Dies trifft auf keine Beobachtung in unserer Stichprobe zu (die rot gestrichelte Linie lässt sich hier nur ganz recht oben erahnen; kein Punkt liegt außerhalb dieses Bereichs) $\rightarrow$  Somit lassen sich hier keine potentiell problematischen einflussreichen Datenpunkte identifizieren 
 
 In diesem Fall ist alles weitestgehend erfüllt.
 
@@ -153,13 +151,13 @@ Die Notation beschreibt also die Aussage "$y$ wird regrediert auf die Konstante 
 
 R geht generell davon aus, dass immer auch der Achsenabschnitt $b_0$ geschätzt werden soll, sodass `y ~ x` ausreichend ist, um eine Regression zu beschreiben. Wenn das Intercept unterdrückt werden soll, muss das mit `y ~ 0 + x` explizit gemacht werden.
 
-In unserem Beispiel ist $x$ die Extraversion (`extra`) und $y$ die Nerdiness (`nerd`). Um das Modell zu schätzen wird dann der `lm` (für "linear model") Befehl genutzt:
+In unserem Beispiel ist $x$ die Extraversion (`extra`) und $y$ die Nerdiness (`nerd`). Um das Modell zu schätzen, wird dann der `lm` (für "linear model") Befehl genutzt:
 
 ```{r}
 lm(formula = nerd ~ 1 + extra, data = fb21)
 ```
 
-So werden die Koeffizienten direkt ausgegeben. Wir haben das Modell bereits abgespeichern, da wir es für die Überprüfung der Voraussetzungen benötigt haben. Hierzu muss das Modell einem Objekt zugewiesen werden. Hier in verkürzter Schreibweise:
+So werden die Koeffizienten direkt ausgegeben. Wir haben das Modell bereits abgespeichert, da wir es für die Überprüfung der Voraussetzungen benötigt haben. Hierzu muss das Modell einem Objekt zugewiesen werden. Hier in verkürzter Schreibweise:
 
 ```{r}
 fm <- lm(nerd ~ extra, fb21)
@@ -189,17 +187,17 @@ Diese können auch als neue Variable im Datensatz angelegt werden und hätten do
 fb21$res <- residuals(fm)
 ```
 
-Die folgenden Ergebnisse aus `fm` werden wir verwenden. In  stehen die Regressionskoeffizienten $b_0$ unter `(Intercept)` zur Konstanten gehörend und $b_1$ unter dem Namen der Variable, die wir als Prädiktor nutzen. In diesem Fall also `extra`. Die Regressionsgleichung hat daher die folgende Gestalt: $y_i = `r round(coef(fm)[1],2)` + `r round(coef(fm)[2],2)` \cdot x + e_i$. 
+Die folgenden Ergebnisse aus `fm` werden wir verwenden. In `fm$coef` stehen die Regressionskoeffizienten $b_0$ unter `(Intercept)` zur Konstanten gehörend und $b_1$ unter dem Namen der Variable, die wir als Prädiktor nutzen. In diesem Fall also `extra`. Die Regressionsgleichung hat daher die folgende Gestalt: $y_i = `r round(coef(fm)[1],2)` + `r round(coef(fm)[2],2)` \cdot x + e_i$. 
 
 Regressionsgleichung (unstandardisiert): 
 
 $$\hat{y} = b_0 + b_1*x_i$$
-$$\hat{y} = 4.38 + (-0.37)*x_i$$
+$$\hat{y} = `r round(coef(fm)[1],2)` + `r round(coef(fm)[2],2)`x_i$$
 
 **Interpretation der Regressionskoeffizienten:**  
 
-* b0 (Regressionsgewicht): beträgt die Extraversion 0, wird eine Nerdiness von 4.38 vorhergesagt  
-* b1 (Regressionsgewicht): mit jeder Steigerung der Extraversion um 1 Einheit wird eine um 0.37 Einheiten niedrigere (!) Nerdiness vorhergesagt
+* *b0 (Regressionsgewicht)*: beträgt die Extraversion 0, wird eine Nerdiness von `r round(coef(fm)[1],2)` vorhergesagt  
+* *b1 (Regressionsgewicht)*: mit jeder Steigerung der Extraversion um 1 Einheit wird eine um `r abs(round(coef(fm)[2],2))` Einheiten niedrigere (!) Nerdiness vorhergesagt
 
 ### Vorhergesagte Werte
 
@@ -240,7 +238,7 @@ abline(fm, col = 'red')
 
 ### Standardisierte Regressionsgewichte
 
-Bei einer Regression (besonders wenn mehr als ein Prädiktor in das Modell aufgenommen wird) kann es sinnvoll sein, die standardisierten Regressionskoeffizienten zu betrachten, um die Erklärungs- oder Prognosebeiträge der einzelnen unabhängigen Variablen (unabhängig von den bei der Messung der Variablen gewählten Einheiten) miteinander vergleichen zu können, z. B. um zu sehen, welche Variable den größten Beitrag zur Prognose der abhängigen Variable leistet. Außerdem ist es hierdurch möglich die Ergebnisse zwischen verschiedenen Studien zu vergleichen, die `nerd` und `extra` gemessen haben, jedoch in unterschiedlichen Einheiten. Durch die Standardisierung werden die Regressionskoeffizienten vergleichbar.
+Bei einer Regression (besonders wenn mehr als ein Prädiktor in das Modell aufgenommen wird) kann es sinnvoll sein, die standardisierten Regressionskoeffizienten zu betrachten, um die Erklärungs- oder Prognosebeiträge der einzelnen unabhängigen Variablen (unabhängig von den bei der Messung der Variablen gewählten Einheiten) miteinander vergleichen zu können, z. B. um zu sehen, welche Variable den größten Beitrag zur Prognose der abhängigen Variable leistet. Außerdem ist es hierdurch möglich, die Ergebnisse zwischen verschiedenen Studien zu vergleichen, die `nerd` und `extra` gemessen haben, jedoch in unterschiedlichen Einheiten. Durch die Standardisierung werden die Regressionskoeffizienten vergleichbar.
 Die Variablen werden mit `scale` standardisiert (z-Transformation; Erwartungswert gleich Null und die Varianz gleich Eins gesetzt). Mit `lm` wird das Modell berechnet.
 
 ```{r}
@@ -286,7 +284,11 @@ Der Determinationskoeffizient $R^2$ kann auch direkt über den Befehl `summary()
 summary(fm)$r.squared
 ```
 
-15,8% der Varianz von `nerd` können durch `extra` erklärt werden. Dieser Effekt ist nach Cohens (1988) Konvention als mittelstark zu bewerten.
+```{r, echo=FALSE}
+r2 <- summary(fm)$r.squared*100
+```
+
+`r round(r2, digits = 2)`% der Varianz von `nerd` können durch `extra` erklärt werden. Dieser Effekt ist nach Cohens (1988) Konvention als mittelstark zu bewerten.
 
 **Exkurs: Cohens (1988) Konvention zur Interpretation von $R^2$:**  
 
@@ -307,7 +309,7 @@ sfm
 round(coef(sfm)["scale(extra)"],3) == round(cor(fb21$nerd, fb21$extra),3)
 ```
 
-Entsprechend ist das Quadrat der Korrelation identisch zum Determinationskoeffizienten des Modells mit standaradisierten Variablen...
+Entsprechend ist das Quadrat der Korrelation identisch zum Determinationskoeffizienten des Modells mit standardisierten Variablen...
 ```{r}
 cor(fb21$nerd, fb21$extra)^2   # Quadrierte Korrelation
 summary(sfm)$ r.squared  # Det-Koeffizient Modell mit standardisierten Variablen
@@ -335,8 +337,10 @@ Zuerst kann die Betrachtung der Konfidenzintervalle helfen. Der Befehl `confint`
 #Konfidenzintervalle der Regressionskoeffizienten
 confint(fm)
 ```
-
-Das Konfidenzintervall von -0.536 und -0.212 ist der Bereich, in dem wir den wahren Wert vermuten können. Zur Erinnerung: das 95% Konfidenzintervall  besagt, dass, wenn wir diese Studie mit der selben Stichprobengröße sehr oft wiederholen, 95% aller realisierten Konfidenzintervalle den wahren Wert für $b_1$ enthalten werden. Da die 0 nicht in diesem Intervall enthalten ist, ist 0 ein eher unwahrscheinlicher wahrer Wert für $b_1$.
+```{r, echo=FALSE}
+confint <- confint(fm)
+```
+Das Konfidenzintervall von `r round(confint[2], 3)` und `r round(confint[4], 3)` ist der Bereich, in dem wir den wahren Wert vermuten können. Zur Erinnerung: das 95% Konfidenzintervall  besagt, dass, wenn wir diese Studie mit der selben Stichprobengröße sehr oft wiederholen, 95% aller realisierten Konfidenzintervalle den wahren Wert für $b_1$ enthalten werden. Da die 0 nicht in diesem Intervall enthalten ist, ist 0 ein eher unwahrscheinlicher wahrer Wert für $b_1$.
 
 * $b_1$  
     + H0: $b_1 = 0$, das Regressionsgewicht ist nicht von Null verschieden.  
