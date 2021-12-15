@@ -14,7 +14,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [hartig, irmer]
-lastmod: '2021-04-28 12:00:12 CEST'
+lastmod: '2021-12-15 12:00:12 CEST'
 featured: no
 header:
      image: "/header/HLM_head.jpg"
@@ -195,7 +195,7 @@ Den Effekt über alle Personen hinweg können wir in einem Modell schätzen, in 
 * Gleichung auf Ebene 1: $Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}$
 * Interzept auf Ebene 2: $\beta_{0j}=\gamma_{00}+u_{0j}$
 * Slope auf Ebene 2: $\beta_{1j}=\gamma_{10}$
-* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{01}X_{ij} + u_{0j} + r_{ij}$
+* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{10}X_{ij} + u_{0j} + r_{ij}$
 * Als Formel für `lmer`: `Y ~ 1 + X + (1 | ID)`
 
 In der Anwendung auf die abhängige Variable Psychological Wellbeing (PWB) in R sehen wir, dass Zeit einen signifikanten Effekt hat. 
@@ -220,6 +220,8 @@ ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=pred, color=ID)) +
   geom_line()
 ```
 
+Der Effekt der Zeit war signifikant negativ (was wir durch Betrachten der `t`-Werte und Vergleichen mit dem kritischen Wert $|t|> 1.96$ erkennen). 
+
 ### Zufallseffekt (*random slope*)
 
 In einem nächsten Schritt untersuchen wir nun, ob sich der Effekt der Zeit auf das Wohlbefinden zwischen Personen unterscheidet. Hierzu wird der Effekt von Zeit als Zufallseffekt (*random slope*) modelliert:
@@ -227,7 +229,7 @@ In einem nächsten Schritt untersuchen wir nun, ob sich der Effekt der Zeit auf 
 * Gleichung auf Ebene 1: $Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}$
 * Interzept auf Ebene 2: $\beta_{0j}=\gamma_{00}+u_{0j}$
 * Slope auf Ebene 2: $\beta_{1j}=\gamma_{10}+u_{1j}$
-* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{01}X_{ij} + u_{0j}X_{ij} + u_{0j} + r_{ij}$
+* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{10}X_{ij} + u_{1j}X_{ij} + u_{0j} + r_{ij}$
 * Als Formel für `lmer`: `Y ~ 1 + X + (1 + X | ID)`
 
 ```{r}
@@ -276,7 +278,7 @@ Im Datensatz sind eine Reihe von Variablen enthalten, die für jede Person einma
 
 * Gleichung auf Ebene 1: $Y_{ij}=\beta_{0j}+r_{ij}$
 * Interzept auf Ebene 2: $\beta_{0j}=\gamma_{00}+\gamma_{01}Z_j+u_{0j}$
-* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{10}Z_j + u_{0j} + r_{ij}$
+* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{01}Z_j + u_{0j} + r_{ij}$
 * Als Formel für `lmer`: `Y ~ 1 + Z + (1 | ID)`
 
 Um die Modellparameter besser interpretieren zu können, zentrieren wir die Variabe zunächst um ihren Mittelwert ($M(Age)=`r round(mean(lockdown$Age),2)`$).
@@ -301,10 +303,10 @@ Schließlich schätzen wir ein gemeinsames Modell mit Zeit und Alter. In diesem 
 * Gleichung auf Ebene 1: $Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}$
 * Interzept auf Ebene 2: $\beta_{0j}=\gamma_{00}+\gamma_{01}Z_j+u_{0j}$
 * Slope auf Ebene 2: $\beta_{1j}=\gamma_{10}+\gamma_{11}Z_j+u_{1j}$
-* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{10}Z_j + \gamma_{01}X_{ij} + \gamma_{11}Z_jX_{ij} + u_{0j}X_{ij} + u_{0j} + r_{ij}$
-* Als Formel für `lmer`: `Y ~ 1 + X + (1 + X | ID)`
+* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{01}Z_j + \gamma_{10}X_{ij} + \gamma_{11}Z_jX_{ij} + u_{1j}X_{ij} + u_{0j} + r_{ij}$
+* Als Formel für `lmer`: `Y ~ 1 + Z + X + Z:X + (1 + X | ID)`
 
-Für dieses Modell zentrieren wie auch die Zeit-Variable. Deren Nullpunkt ist zwar ohne Zentrierung anschaulicher, aber für die Interpretation des Moderatoreffekts sollten die beteiligten Prädiktoren zentriert sein. In den festen Effekten sehen wir, dass
+Für dieses Modell zentrieren wie auch die Zeit-Variable. Deren Nullpunkt ist zwar ohne Zentrierung anschaulicher, aber für die Interpretation des Moderatoreffekts sollten die beteiligten Prädiktoren zentriert sein. In den festen Effekten sehen wir (durch Betrachten der `t`-Werte und Vergleichen mit dem kritischen Wert $|t|> 1.96$), dass
 
 * der signifikante Alterseffekt bestehen bleibt,
 * der negative Zeiteffekt bestehen bleibt und

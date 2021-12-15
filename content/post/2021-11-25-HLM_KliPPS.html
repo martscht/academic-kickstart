@@ -14,7 +14,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [hartig, irmer]
-lastmod: '2021-04-28 12:00:12 CEST'
+lastmod: '2021-12-15 12:00:12 CEST'
 featured: no
 header:
      image: "/header/HLM_head.jpg"
@@ -175,7 +175,7 @@ summary(m0)</code></pre>
 <li>Gleichung auf Ebene 1: <span class="math inline">\(Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}\)</span></li>
 <li>Interzept auf Ebene 2: <span class="math inline">\(\beta_{0j}=\gamma_{00}+u_{0j}\)</span></li>
 <li>Slope auf Ebene 2: <span class="math inline">\(\beta_{1j}=\gamma_{10}\)</span></li>
-<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{01}X_{ij} + u_{0j} + r_{ij}\)</span></li>
+<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{10}X_{ij} + u_{0j} + r_{ij}\)</span></li>
 <li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + X + (1 | ID)</code></li>
 </ul>
 <p>In der Anwendung auf die abhängige Variable Psychological Wellbeing (PWB) in R sehen wir, dass Zeit einen signifikanten Effekt hat.</p>
@@ -215,6 +215,7 @@ ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=pred, color=ID)) +
   theme_bw() + guides(color=&quot;none&quot;) +
   geom_line()</code></pre>
 <p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<p>Der Effekt der Zeit war signifikant negativ (was wir durch Betrachten der <code>t</code>-Werte und Vergleichen mit dem kritischen Wert <span class="math inline">\(|t|&gt; 1.96\)</span> erkennen).</p>
 </div>
 <div id="zufallseffekt-random-slope" class="section level3">
 <h3>Zufallseffekt (<em>random slope</em>)</h3>
@@ -223,7 +224,7 @@ ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=pred, color=ID)) +
 <li>Gleichung auf Ebene 1: <span class="math inline">\(Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}\)</span></li>
 <li>Interzept auf Ebene 2: <span class="math inline">\(\beta_{0j}=\gamma_{00}+u_{0j}\)</span></li>
 <li>Slope auf Ebene 2: <span class="math inline">\(\beta_{1j}=\gamma_{10}+u_{1j}\)</span></li>
-<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{01}X_{ij} + u_{0j}X_{ij} + u_{0j} + r_{ij}\)</span></li>
+<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{10}X_{ij} + u_{1j}X_{ij} + u_{0j} + r_{ij}\)</span></li>
 <li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + X + (1 + X | ID)</code></li>
 </ul>
 <pre class="r"><code>PWB.time.random &lt;- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown)
@@ -288,7 +289,7 @@ abline(v=fixef(PWB.time.random)[&quot;Time&quot;], col=&quot;blue&quot;) # Lage 
 <ul>
 <li>Gleichung auf Ebene 1: <span class="math inline">\(Y_{ij}=\beta_{0j}+r_{ij}\)</span></li>
 <li>Interzept auf Ebene 2: <span class="math inline">\(\beta_{0j}=\gamma_{00}+\gamma_{01}Z_j+u_{0j}\)</span></li>
-<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{10}Z_j + u_{0j} + r_{ij}\)</span></li>
+<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{01}Z_j + u_{0j} + r_{ij}\)</span></li>
 <li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + Z + (1 | ID)</code></li>
 </ul>
 <p>Um die Modellparameter besser interpretieren zu können, zentrieren wir die Variabe zunächst um ihren Mittelwert (<span class="math inline">\(M(Age)=43.27\)</span>).</p>
@@ -327,10 +328,10 @@ summary(PWB.Age)</code></pre>
 <li>Gleichung auf Ebene 1: <span class="math inline">\(Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}\)</span></li>
 <li>Interzept auf Ebene 2: <span class="math inline">\(\beta_{0j}=\gamma_{00}+\gamma_{01}Z_j+u_{0j}\)</span></li>
 <li>Slope auf Ebene 2: <span class="math inline">\(\beta_{1j}=\gamma_{10}+\gamma_{11}Z_j+u_{1j}\)</span></li>
-<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{10}Z_j + \gamma_{01}X_{ij} + \gamma_{11}Z_jX_{ij} + u_{0j}X_{ij} + u_{0j} + r_{ij}\)</span></li>
-<li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + X + (1 + X | ID)</code></li>
+<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{01}Z_j + \gamma_{10}X_{ij} + \gamma_{11}Z_jX_{ij} + u_{1j}X_{ij} + u_{0j} + r_{ij}\)</span></li>
+<li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + Z + X + Z:X + (1 + X | ID)</code></li>
 </ul>
-<p>Für dieses Modell zentrieren wie auch die Zeit-Variable. Deren Nullpunkt ist zwar ohne Zentrierung anschaulicher, aber für die Interpretation des Moderatoreffekts sollten die beteiligten Prädiktoren zentriert sein. In den festen Effekten sehen wir, dass</p>
+<p>Für dieses Modell zentrieren wie auch die Zeit-Variable. Deren Nullpunkt ist zwar ohne Zentrierung anschaulicher, aber für die Interpretation des Moderatoreffekts sollten die beteiligten Prädiktoren zentriert sein. In den festen Effekten sehen wir (durch Betrachten der <code>t</code>-Werte und Vergleichen mit dem kritischen Wert <span class="math inline">\(|t|&gt; 1.96\)</span>), dass</p>
 <ul>
 <li>der signifikante Alterseffekt bestehen bleibt,</li>
 <li>der negative Zeiteffekt bestehen bleibt und</li>
