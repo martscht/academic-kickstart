@@ -9,7 +9,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [koehler, buchholz]
-lastmod: '2020-12-16T17:00:20+01:00'
+lastmod: '2021-12-21T17:00:20+01:00'
 featured: no
 image:
   caption: ''
@@ -17,14 +17,13 @@ image:
   preview_only: no
 projects: []
 ---
-
 ```{r setup, cache = FALSE, echo = FALSE, warning = FALSE, message = FALSE}
 knitr::opts_chunk$set(error = TRUE,warning = FALSE, message = FALSE)
 library(knitr)
 ```
 
-<details><summary>Kernfragen dieser Lehreinheit</summary>
 
+<details><summary>Kernfragen dieser Lehreinheit</summary>
 * Wie fertige ich Deskriptivstatistiken (Grafiken, Kennwerte) zur Veranschaulichung des Unterschieds zwischen zwei Gruppen an? 
 
 **unabhängige Stichproben**
@@ -33,31 +32,38 @@ library(knitr)
 * Wie führe ich einen _t_-Test in R durch?  
 * Wie berechne ich die Effektstärke Cohen's _d_?  
 * Wie führe ich den Wilcoxon-Tests (auch "Mann-Whitney-Test", "U-Test" "Mann-Whitney-U-Test", "Wilcoxon-Rangsummentest") in R durch?  
-* Wie führe ich den Vierfelder-Chi-Quadrat-Tests in R durch?
-* Wie berichte ich die statistischen Ergebnisse formal? 
+* Wie führe ich den Vierfelder-Chi-Quadrat-Tests in R durch? 
+
+**abhängige Stichproben**
+
+* Was sind Voraussetzungen des abhängigen _t_-Tests und wie prüfe ich sie?
+* Wie führe ich einen abhängigen _t_-Test in R durch?  
+* Wie berechne ich den standardisierten Populationseffekt für abhängige Stichproben?  
+
+* Wie berichte ich statistische Ergebnisse formal? 
 </details>
 
 ***
 ## Was erwartet Sie?
   
-Nachdem wir uns die letzten Wochen mit dem Unterschied zwischen dem Mittelwert einer Stichprobe und dem Mittelwert der dazugehörigen Population, aus der die Stichprobe stammt, auseinandergesetzt haben, fokussieren wir uns nun auf Unterschiede zwischen zwei Gruppen (also zwei Stichproben).
+Nachdem wir uns die Woche vor der Weihnachtspause mit dem Unterschied zwischen dem Mittelwert einer Stichprobe und dem Mittelwert der dazugehörigen Population, aus der die Stichprobe stammt, auseinandergesetzt haben, fokussieren wir uns nun auf Unterschiede zwischen zwei Gruppen (also zwei Stichproben).
 
 ## Aufbau der Sitzung 
 
-**unabhängige Stichproben**
+1. Fragestellung A: Unterscheidet sich die Anzahl erreichter Punkte in der Statistik-Klausur zwischen Personen, die das Tutorium regelmäßig besucht haben und denen, die nur unregelmäßig da waren? (_t-Test und Cohen's d für unabhängige Stichproben_) 
+2. Fragestellung B: Sind Studentinnen verträglicher als Studenten? (_Wilcoxon-Test für unabhängige Stichproben_)
+3. Fragestellung C: Haben Studierende mit Wohnort in Uninähe (Frankfurt) mit gleicher Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt? (_Vierfelder-$\chi^2$-Test_) 
+4. Fragestellung D: Sind jüngere Geschwister kooperativer als ältere? (_t-Test und Cohen's d für abhängige Stichproben_)
 
-1. Fragestellung A: Unterscheidet sich die Anzahl erreichter Punkte in der Statistik-Klausur zwischen Personen, die das Tutorium regelmäßig besucht haben und denen, die nur unregelmäßig da waren? (_t-Test, Cohen's d_) 
-2. Fragestellung B: Sind Studentinnen verträglicher als Studenten? (_Wilcoxon-Test_)
-3. Fragestellung C: Haben Studierende mit Wohnort in Uninähe (Frankfurt) mit gleicher Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt? (_Vierfelder-$\chi^2$-Test_)
 
 ***
 ## 1. Fragestellung A: Unterscheidet sich die Anzahl erreichter Punkte in der Statistik-Klausur zwischen Personen, die das Tutorium regelmäßig besucht haben und denen, die nur unregelmäßig da waren?
 
 ### Vorbereitung: Datenerzeugung
 
-Mithilfe unseres fb20-Datensatzes lässt sich diese Frage leider nicht beantworten. Wir nutzen daher die Funktion `rnorm()` und simulieren unsere Daten selbst, d.h. wir erstellen einen neuen Datensatz mit fiktiven Werten. 
+Mithilfe unseres fb21-Datensatzes lässt sich diese Frage leider nicht beantworten. Wir nutzen daher die Funktion `rnorm()` und simulieren unsere Daten selbst, d.h. wir erstellen einen neuen Datensatz mit fiktiven Werten. 
 
-Dabei nehmen wir für unsere beiden Gruppen (regelmäßige Teilnahme: ja bzw. nein) folgendes an:
+Dabei nehmen wir für unsere beiden Gruppen (regelmäßige Teilnahme: ja bzw. nein) Folgendes an:
 
 * Stichprobengröße: 65 bzw. 53
 * Mittelwert der Punktzahl: 37.2 bzw. 33.8 
@@ -88,15 +94,8 @@ tail(dataA)
 
 #### 1.1.1. grafisch 
 
-```{r, fig.height = 10}
-# Gruppierter Boxplot:
-boxplot(dataA$Punktzahl ~ dataA$Gruppe)
-text("Achtung!", x=1, y=(median(dataA[(dataA$Gruppe=="ja"), "Punktzahl"]) + 1), col="red")
-text("Dies ist der Median.", x=1, y=(median(dataA[(dataA$Gruppe=="ja"), "Punktzahl"]) - 1), col="red")
-text("Das auch.", x=2, y=(median(dataA[(dataA$Gruppe=="nein"), "Punktzahl"]) + 1), col="red")
-text(";-)", x=2, y=(median(dataA[(dataA$Gruppe=="nein"), "Punktzahl"]) - 1), col="red")
-
-# Gruppierter Boxplot (aussagekräftiger):
+```{r}
+# Gruppierter Boxplot :
 boxplot(dataA$Punktzahl ~ dataA$Gruppe, 
         xlab="Regelmäßige Tutoriumsteilnahme", ylab="Punktzahl Statistikklausur", 
         las=1, cex.lab=1.5, 
@@ -134,13 +133,13 @@ Achtung, bei den hier berichteten `sd` handelt es sich nicht um die Stichprobenk
 punkte.regel <- dataA$Punktzahl[(dataA$Gruppe=="ja")]
 sigma.regel <- sd(punkte.regel)
 n.regel <- length(punkte.regel[!is.na(punkte.regel)])
-sd.regel <- sigma.regel * sqrt((n.regel-1) / n.regel)
+sd.regel <- sigma.regel * (n.regel-1) / n.regel
 sd.regel
 
 punkte.unreg <- dataA$Punktzahl[(dataA$Gruppe=="nein")]
 sigma.unreg <- sd(punkte.unreg)
 n.unreg <- length(punkte.unreg[!is.na(punkte.unreg)])
-sd.unreg <- sigma.unreg * sqrt((n.unreg-1) / n.unreg)
+sd.unreg <- sigma.unreg * (n.unreg-1) / n.unreg
 sd.unreg
 ```
 
@@ -161,7 +160,7 @@ Falls das Merkmal in der Population normalverteilt ist und die Stichproben (so w
 * Möglichkeit 1: die bei Normalverteilung erwartete Dichtefunktion über das Histogramm legen und so die Übereinstimmung beurteilen  
 * Möglichkeit 2: QQ-Plot (quantile-quantile): es wird die beobachtete Position eines Messwerts gegen diejenige Position, die unter Gültigkeit der Normalverteilung zu erwarten wäre, abgetragen. Bei Normalverteilung liegen die Punkte (in etwa) auf einer Geraden.  
 
-```{r, fig.height=10, fig.align="center"}
+```{r, fig.height=4, fig.align="center"}
 # Gruppe 1 (regelmäßige Teilnahme) 
 par(mfrow=c(1,2))
 punkte.regel <- dataA[(dataA$Gruppe=="ja"), "Punktzahl"]
@@ -191,7 +190,7 @@ $\rightarrow$ Normalverteilung kann auch für Gruppe 2 (unregelmäßige Teilnahm
 Das Hypothesenpaar im Levene-Test lautet:  
 
 * $H_0$: Homoskedastizität ist gegeben.  
-* $H_1$: Homoskedastizität ist nicht gegeben. 
+* $H_1$: Homoskedastizität ist nicht gegeben.  
 
 Ein nicht-signifikantes Ergebnis (_p_ > .05) zeigt also Homoskedastizität an. 
 
@@ -307,25 +306,22 @@ Zur Beantwortung der Fragestellung wurde ein _t_-Test unter Annahme von Homosked
 ### 2.1 Vorbereitung (Daten einlesen, Daten aufbereiten)
 
 ```{r echo=F}
-fb20 <- read.table('https://pandar.netlify.app/post/fb20.csv', 
-  header = TRUE,
-  sep = ',',
-  na.strings = '-99')
+load("fb21.rda")
 ```
 
 ```{r eval=FALSE}
 setwd("...")
-load("fb20.rda")
+load("fb21.rda")
 ```
 
 ```{r} 
 # Geschlecht als Faktor hinterlegen - aber nur dann, falls es noch keiner war
-if(is.factor(fb20$geschl) == FALSE){           # falls Geschlecht noch nicht als Faktor vorliegt...
-  fb20$geschl <- factor(fb20$geschl,           # ...wird ein Faktor erstellt
+if(is.factor(fb21$geschl) == FALSE){           # falls Geschlecht noch nicht als Faktor vorliegt...
+  fb21$geschl <- factor(fb21$geschl,           # ...wird ein Faktor erstellt
                         levels = c(1, 2, 3),
                         labels = c('weiblich', 'maennlich', 'anderes'))
   }
-str(fb20)
+str(fb21)
 ```
 
 Variable "geschl" liegt (nun) als Faktor vor.
@@ -336,7 +332,7 @@ Variable "geschl" liegt (nun) als Faktor vor.
 
 ```{r}
 # nur Männer und Frauen auswählen:
-dataB <- fb20[ (fb20$geschl=="maennlich"|fb20$geschl=="weiblich"), ]  
+dataB <- fb21[ (fb21$geschl=="maennlich"|fb21$geschl=="weiblich"), ]  
 dataB$geschl <- droplevels(dataB$geschl)
 
 # Gruppierter Boxplot:
@@ -346,7 +342,7 @@ boxplot(dataB$vertr ~ dataB$geschl,
         main="Verträglichkeit je nach Geschlecht")
 ```
 
-Der Unterschied besteht in der erwarteten Richtung: höhere Verträglichkeit bei Studentinnen :-)
+Graphisch ist kein Unterschied zu erkennen.
 
 #### 2.2.2. statistisch
 
@@ -358,6 +354,7 @@ summary( dataB[(dataB$geschl=="weiblich"), "vertr"])
 summary( dataB[(dataB$geschl=="maennlich"), "vertr"]) 
 ```
 
+Deskriptiv weist die Gruppe der männlichen Studierenden den gleichen Median auf wie die Gruppe der weiblichen Studierenden.
 
 ### 2.3. Voraussetzungsprüfung  
 
@@ -370,7 +367,7 @@ summary( dataB[(dataB$geschl=="maennlich"), "vertr"])
 
 **zu 3): Optische Prüfung auf Normalverteilung in den beiden Gruppen** 
 
-(Hinweis: In diesem Datenbeispiel betragen die Stichprobengrößen 73 (Gruppe "weiblich") bzw. 20 (Gruppe "männlich"). Unter der Annahme von Normalverteilung des Merkmals "Verträglichkeit" in der Population könnte man bei diesen Stichprobengrößen von Normalverteilung ausgehen, ohne dies explizit zu prüfen, und einen _t_-Test durchführen (s.o.). Aus didaktischen Gründen betrachten wir hier die Normalverteilungsannahme als verletzt und führen daher den Wilcoxon-Test durch.)
+(Hinweis: In diesem Datenbeispiel betragen die Stichprobengrößen 80 (Gruppe "weiblich") bzw. 31 (Gruppe "männlich"). Unter der Annahme von Normalverteilung des Merkmals "Verträglichkeit" in der Population könnte man bei diesen Stichprobengrößen von Normalverteilung ausgehen, ohne dies explizit zu prüfen, und einen _t_-Test durchführen (s.o.). Aus didaktischen Gründen betrachten wir hier die Normalverteilungsannahme als verletzt und führen daher den Wilcoxon-Test durch.)
 
 ```{r, fig.height=4, fig.align="center"}
 #Gruppe 1 (weiblich) 
@@ -382,19 +379,19 @@ qqnorm(vertr.w)
 qqline(vertr.w, col="red")
 ```
 
-$\rightarrow$ Entscheidung: Normalverteilung in Gruppe 1 (weiblich) ist nicht gegeben $\rightarrow$ Wilcoxon-Test
+$\rightarrow$ Entscheidung: Normalverteilung in Gruppe 1 (weiblich) ist einigermaßen gegeben $\rightarrow$ spricht für t-Test
 
 ```{r, fig.height=4, fig.align="center"}
 #Gruppe 2 (männlich)
 par(mfrow=c(1,2))
 vertr.m <- dataB[(dataB$geschl=="maennlich"), "vertr"]
-hist(vertr.m, xlim=c(1,7), ylim=c(0,.7), main="Verträglichkeit (männlich)", xlab="", ylab="", las=1, prob=T)
+hist(vertr.m, xlim=c(1,7), ylim=c(0,.8), main="Verträglichkeit (männlich)", xlab="", ylab="", las=1, prob=T)
 curve(dnorm(x, mean=mean(vertr.m, na.rm=T), sd=sd(vertr.m, na.rm=T)), col="red", lwd=2, add=T)
 qqnorm(vertr.m)
 qqline(vertr.m, col="red")
 ```
 
-$\rightarrow$ Entscheidung: Normalverteilung in Gruppe 2 (männlich) ist auch nicht gegeben $\rightarrow$ Wilcoxon-Test
+$\rightarrow$ Entscheidung: Normalverteilung in Gruppe 2 (männlich) ist nicht gegeben $\rightarrow$ spricht für Wilcoxon-Test
 
 **zu 4) Test auf Homoskedastizität (Levene-Test)**  
 
@@ -410,7 +407,7 @@ library(car)
 leveneTest(dataB$vertr ~ dataB$geschl)
 ```
 
-$F(1,91) = 0.019, p = .891 \rightarrow H_0$ wird beibehalten: Homoskedastizität wird angenommen
+$F(1,109) = 0.11, p = .740 \rightarrow H_0$ wird beibehalten: Homoskedastizität wird angenommen
 
 ### 2.4. Inferenzstatistik: Wilcoxon-Test
 
@@ -451,11 +448,11 @@ wilcox.test(dataB$vertr ~ dataB$geschl,   # abhängige Variable ~ unabhängige V
             conf.level = .95)             # alpha = .05
 
 ```
-$W = 845, p = .139 \rightarrow$ Ergebnis ist nicht signfikant, $H_0$ wird beibehalten
+$W = 1213, p = .573 \rightarrow$ Ergebnis ist nicht signfikant, $H_0$ wird beibehalten
 
 ### 2.5. Ergebnisinterpretation
 
-Es wurde untersucht, ob Studentinnen verträglicher sind als Studenten. Tatsächlich besteht deskriptiv ein Unterschied in der erwarteten Richtung: Studentinnen weisen einen Median von 4.5 (_IQB_ = [4.0; 4.75]), Studenten hingegen einen Wert von nur 4.25 (_IQB_ = [3.75; 4.562]) auf. Zur Beantwortung der Fragestellung wurde ein Wilcoxon-Test durchgeführt. Demnach ist der Gruppenunterschied allerdings nicht signifikant (_W_ = 845, _p_ = .139). Somit wird die Nullhypothese beibehalten: Studentinnen sind nicht verträglicher als Studenten. 
+Es wurde untersucht, ob Studentinnen verträglicher sind als Studenten. Deskriptiv besteht kein Unterschied in der Verträglichkeit: Beide Gruppen weisen einen Median von 4.25 auf ($IQB_w$ = [3.75; 4.5]; $IQB_m$ = [4.0; 4.5]). Zur Beantwortung der Fragestellung wurde ein Wilcoxon-Test durchgeführt. Der Gruppenunterschied ist statistisch nicht signifikant (_W_ = 1213, _p_ = .573). Somit wird die Nullhypothese beibehalten: Studentinnen sind nicht verträglicher als Studenten. 
 
 ***
 
@@ -466,11 +463,11 @@ Zusätzlich zur Gruppenvariable ist in diesem Beispiel auch die abhängige Varia
 ### 3.1. Datenaufbereitung
 
 ```{r}
-if(is.factor(fb20$ort) == FALSE){
-  fb20$ort <- factor(fb20$ort, levels=c(1,2), labels=c("FFM", "anderer"))
+if(is.factor(fb21$ort) == FALSE){
+  fb21$ort <- factor(fb21$ort, levels=c(1,2), labels=c("FFM", "anderer"))
 }
-if(is.factor(fb20$job) == FALSE){
-  fb20$job <- factor(fb20$job, levels=c(1,2), labels=c("nein", "ja"))
+if(is.factor(fb21$job) == FALSE){
+  fb21$job <- factor(fb21$job, levels=c(1,2), labels=c("nein", "ja"))
 }
 ```
 
@@ -486,7 +483,7 @@ if(is.factor(fb20$job) == FALSE){
 **zu Punkt 3) Zellbesetzung _n_ > 5**
 
 ```{r}
-tab <- table(fb20$ort, fb20$job)
+tab <- table(fb21$ort, fb21$job)
 tab
 ```
 
@@ -599,8 +596,8 @@ phi(tab, digits = 8)
 
 # Äquivalentes Ergebnis mittels Pearson-Korrelation
 # (dichotome Variablen)
-ort_num <- as.numeric(fb20$ort)
-job_num <- as.numeric(fb20$job)
+ort_num <- as.numeric(fb21$ort)
+job_num <- as.numeric(fb21$job)
 cor(ort_num, job_num, use="pairwise")
 ```
 

@@ -9,7 +9,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [koehler, buchholz]
-lastmod: '2020-12-16T17:00:20+01:00'
+lastmod: '2021-12-21T17:00:20+01:00'
 featured: no
 image:
   caption: ''
@@ -38,21 +38,28 @@ Kernfragen dieser Lehreinheit
 <li>Wie führe ich den Wilcoxon-Tests (auch “Mann-Whitney-Test”, “U-Test” “Mann-Whitney-U-Test”, “Wilcoxon-Rangsummentest”) in R durch?<br />
 </li>
 <li>Wie führe ich den Vierfelder-Chi-Quadrat-Tests in R durch?</li>
-<li>Wie berichte ich die statistischen Ergebnisse formal?</li>
+</ul>
+<p><strong>abhängige Stichproben</strong></p>
+<ul>
+<li><p>Was sind Voraussetzungen des abhängigen <em>t</em>-Tests und wie prüfe ich sie?</p></li>
+<li><p>Wie führe ich einen abhängigen <em>t</em>-Test in R durch?<br />
+</p></li>
+<li><p>Wie berechne ich den standardisierten Populationseffekt für abhängige Stichproben?</p></li>
+<li><p>Wie berichte ich statistische Ergebnisse formal?</p></li>
 </ul>
 </details>
 <hr />
 <div id="was-erwartet-sie" class="section level2">
 <h2>Was erwartet Sie?</h2>
-<p>Nachdem wir uns die letzten Wochen mit dem Unterschied zwischen dem Mittelwert einer Stichprobe und dem Mittelwert der dazugehörigen Population, aus der die Stichprobe stammt, auseinandergesetzt haben, fokussieren wir uns nun auf Unterschiede zwischen zwei Gruppen (also zwei Stichproben).</p>
+<p>Nachdem wir uns die Woche vor der Weihnachtspause mit dem Unterschied zwischen dem Mittelwert einer Stichprobe und dem Mittelwert der dazugehörigen Population, aus der die Stichprobe stammt, auseinandergesetzt haben, fokussieren wir uns nun auf Unterschiede zwischen zwei Gruppen (also zwei Stichproben).</p>
 </div>
 <div id="aufbau-der-sitzung" class="section level2">
 <h2>Aufbau der Sitzung</h2>
-<p><strong>unabhängige Stichproben</strong></p>
 <ol style="list-style-type: decimal">
-<li>Fragestellung A: Unterscheidet sich die Anzahl erreichter Punkte in der Statistik-Klausur zwischen Personen, die das Tutorium regelmäßig besucht haben und denen, die nur unregelmäßig da waren? (<em>t-Test, Cohen’s d</em>)</li>
-<li>Fragestellung B: Sind Studentinnen verträglicher als Studenten? (<em>Wilcoxon-Test</em>)</li>
+<li>Fragestellung A: Unterscheidet sich die Anzahl erreichter Punkte in der Statistik-Klausur zwischen Personen, die das Tutorium regelmäßig besucht haben und denen, die nur unregelmäßig da waren? (<em>t-Test und Cohen’s d für unabhängige Stichproben</em>)</li>
+<li>Fragestellung B: Sind Studentinnen verträglicher als Studenten? (<em>Wilcoxon-Test für unabhängige Stichproben</em>)</li>
 <li>Fragestellung C: Haben Studierende mit Wohnort in Uninähe (Frankfurt) mit gleicher Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt? (<em>Vierfelder-<span class="math inline">\(\chi^2\)</span>-Test</em>)</li>
+<li>Fragestellung D: Sind jüngere Geschwister kooperativer als ältere? (<em>t-Test und Cohen’s d für abhängige Stichproben</em>)</li>
 </ol>
 <hr />
 </div>
@@ -60,8 +67,8 @@ Kernfragen dieser Lehreinheit
 <h2>1. Fragestellung A: Unterscheidet sich die Anzahl erreichter Punkte in der Statistik-Klausur zwischen Personen, die das Tutorium regelmäßig besucht haben und denen, die nur unregelmäßig da waren?</h2>
 <div id="vorbereitung-datenerzeugung" class="section level3">
 <h3>Vorbereitung: Datenerzeugung</h3>
-<p>Mithilfe unseres fb20-Datensatzes lässt sich diese Frage leider nicht beantworten. Wir nutzen daher die Funktion <code>rnorm()</code> und simulieren unsere Daten selbst, d.h. wir erstellen einen neuen Datensatz mit fiktiven Werten.</p>
-<p>Dabei nehmen wir für unsere beiden Gruppen (regelmäßige Teilnahme: ja bzw. nein) folgendes an:</p>
+<p>Mithilfe unseres fb21-Datensatzes lässt sich diese Frage leider nicht beantworten. Wir nutzen daher die Funktion <code>rnorm()</code> und simulieren unsere Daten selbst, d.h. wir erstellen einen neuen Datensatz mit fiktiven Werten.</p>
+<p>Dabei nehmen wir für unsere beiden Gruppen (regelmäßige Teilnahme: ja bzw. nein) Folgendes an:</p>
 <ul>
 <li>Stichprobengröße: 65 bzw. 53</li>
 <li>Mittelwert der Punktzahl: 37.2 bzw. 33.8</li>
@@ -104,19 +111,12 @@ dim(dataA)</code></pre>
 <h3>1.1. Deskriptivstatistik</h3>
 <div id="grafisch" class="section level4">
 <h4>1.1.1. grafisch</h4>
-<pre class="r"><code># Gruppierter Boxplot:
-boxplot(dataA$Punktzahl ~ dataA$Gruppe)
-text(&quot;Achtung!&quot;, x=1, y=(median(dataA[(dataA$Gruppe==&quot;ja&quot;), &quot;Punktzahl&quot;]) + 1), col=&quot;red&quot;)
-text(&quot;Dies ist der Median.&quot;, x=1, y=(median(dataA[(dataA$Gruppe==&quot;ja&quot;), &quot;Punktzahl&quot;]) - 1), col=&quot;red&quot;)
-text(&quot;Das auch.&quot;, x=2, y=(median(dataA[(dataA$Gruppe==&quot;nein&quot;), &quot;Punktzahl&quot;]) + 1), col=&quot;red&quot;)
-text(&quot;;-)&quot;, x=2, y=(median(dataA[(dataA$Gruppe==&quot;nein&quot;), &quot;Punktzahl&quot;]) - 1), col=&quot;red&quot;)</code></pre>
-<p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
-<pre class="r"><code># Gruppierter Boxplot (aussagekräftiger):
+<pre class="r"><code># Gruppierter Boxplot :
 boxplot(dataA$Punktzahl ~ dataA$Gruppe, 
         xlab=&quot;Regelmäßige Tutoriumsteilnahme&quot;, ylab=&quot;Punktzahl Statistikklausur&quot;, 
         las=1, cex.lab=1.5, 
         main=&quot;Tutoriumsteilnahme und Abschneiden in der Statistikklausur&quot;)</code></pre>
-<p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
+<p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
 <pre class="r"><code># Je ein Histogramm pro Gruppe, untereinander dargestellt, vertikale Linie für den jeweiligen Mittelwert
 par(mfrow=c(2,1), mar=c(3,2,2,0))
 hist(dataA[(dataA$Gruppe==&quot;ja&quot;), &quot;Punktzahl&quot;], main=&quot;Punktzahl (regelmäßige Teilnahme)&quot;, 
@@ -125,7 +125,7 @@ abline(v=mean(dataA[(dataA$Gruppe==&quot;ja&quot;), &quot;Punktzahl&quot;], na.r
 hist(dataA[(dataA$Gruppe==&quot;nein&quot;), &quot;Punktzahl&quot;], main=&quot;Punktzahl (unregelmäßige Teilnahme)&quot;, 
      xlim=c(0,50), xlab=&quot;&quot;, ylab=&quot;&quot;, las=1)
 abline(v=mean(dataA[(dataA$Gruppe==&quot;nein&quot;), &quot;Punktzahl&quot;], na.rm=T), col=&quot;darksalmon&quot;, lwd=3)</code></pre>
-<p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-2-3.png" width="672" /></p>
+<p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-2-2.png" width="672" /></p>
 <pre class="r"><code>dev.off()</code></pre>
 </div>
 <div id="statistisch" class="section level4">
@@ -153,15 +153,15 @@ describeBy(dataA$Punktzahl, dataA$Gruppe)        # beide Gruppen im Vergleich </
 <pre class="r"><code>punkte.regel &lt;- dataA$Punktzahl[(dataA$Gruppe==&quot;ja&quot;)]
 sigma.regel &lt;- sd(punkte.regel)
 n.regel &lt;- length(punkte.regel[!is.na(punkte.regel)])
-sd.regel &lt;- sigma.regel * sqrt((n.regel-1) / n.regel)
+sd.regel &lt;- sigma.regel * (n.regel-1) / n.regel
 sd.regel</code></pre>
-<pre><code>## [1] 4.867815</code></pre>
+<pre><code>## [1] 4.830225</code></pre>
 <pre class="r"><code>punkte.unreg &lt;- dataA$Punktzahl[(dataA$Gruppe==&quot;nein&quot;)]
 sigma.unreg &lt;- sd(punkte.unreg)
 n.unreg &lt;- length(punkte.unreg[!is.na(punkte.unreg)])
-sd.unreg &lt;- sigma.unreg * sqrt((n.unreg-1) / n.unreg)
+sd.unreg &lt;- sigma.unreg * (n.unreg-1) / n.unreg
 sd.unreg</code></pre>
-<pre><code>## [1] 5.545565</code></pre>
+<pre><code>## [1] 5.492999</code></pre>
 </div>
 </div>
 <div id="voraussetzungsprüfung" class="section level3">
@@ -325,7 +325,7 @@ d2</code></pre>
 </div>
 <div id="ergebnisinterpretation" class="section level3">
 <h3>1.5. Ergebnisinterpretation</h3>
-<p>Es wurde untersucht, ob sich Studierende, die regelmäßig am Tutorium teilgenommen haben und diejenigen, die nur unregelmäßig da waren, in der von ihnen in der Statistikklausur erreichten Punktzahl unterscheiden. Tatsächlich findet sich deskriptiv ein Unterschied: regelmäßig Teilnehmende weisen einen durchschnittlichen Wert von 37.323 (<em>SD</em> = 4.868) auf, während die unregelmäßig Teilnehmenden einen Wert von 34.038 (<em>SD</em> = 5.546) aufweisen. Dies entspricht einem nach Cohens Konvention (1988) mittleren bis großen Effekt (<em>d</em> = 0.628).</p>
+<p>Es wurde untersucht, ob sich Studierende, die regelmäßig am Tutorium teilgenommen haben und diejenigen, die nur unregelmäßig da waren, in der von ihnen in der Statistikklausur erreichten Punktzahl unterscheiden. Tatsächlich findet sich deskriptiv ein Unterschied: regelmäßig Teilnehmende weisen einen durchschnittlichen Wert von 37.323 (<em>SD</em> = 4.83) auf, während die unregelmäßig Teilnehmenden einen Wert von 34.038 (<em>SD</em> = 5.493) aufweisen. Dies entspricht einem nach Cohens Konvention (1988) mittleren bis großen Effekt (<em>d</em> = 0.628).</p>
 <p>Zur Beantwortung der Fragestellung wurde ein <em>t</em>-Test unter Annahme von Homoskedastizität (<em>F</em>(1,116) = 0.499, <em>p</em> = .482) durchgeführt. Der Gruppenunterschied ist signifikant (<em>t</em>(<em>df</em> = 116, zweis.) = 3.396, <em>p</em> &lt; .001), somit wird die Nullhypothese verworfen und die Alternativhypothese angenommen. Studierende, die regelmäßig am Tutorium teilgenommen haben, unterscheiden sich im Ergebnis der Statistikklausur (erreichte Punktzahl) bedeutsam von jenen, die nur unregelmäßig da waren.</p>
 <hr />
 </div>
@@ -335,47 +335,51 @@ d2</code></pre>
 <div id="vorbereitung-daten-einlesen-daten-aufbereiten" class="section level3">
 <h3>2.1 Vorbereitung (Daten einlesen, Daten aufbereiten)</h3>
 <pre class="r"><code>setwd(&quot;...&quot;)
-load(&quot;fb20.rda&quot;)</code></pre>
+load(&quot;fb21.rda&quot;)</code></pre>
 <pre class="r"><code># Geschlecht als Faktor hinterlegen - aber nur dann, falls es noch keiner war
-if(is.factor(fb20$geschl) == FALSE){           # falls Geschlecht noch nicht als Faktor vorliegt...
-  fb20$geschl &lt;- factor(fb20$geschl,           # ...wird ein Faktor erstellt
+if(is.factor(fb21$geschl) == FALSE){           # falls Geschlecht noch nicht als Faktor vorliegt...
+  fb21$geschl &lt;- factor(fb21$geschl,           # ...wird ein Faktor erstellt
                         levels = c(1, 2, 3),
                         labels = c(&#39;weiblich&#39;, &#39;maennlich&#39;, &#39;anderes&#39;))
   }
-str(fb20)</code></pre>
-<pre><code>## &#39;data.frame&#39;:    98 obs. of  32 variables:
-##  $ mdbf1  : int  3 5 4 4 5 4 3 4 2 4 ...
-##  $ mdbf2  : int  2 3 4 2 4 4 4 2 2 2 ...
-##  $ mdbf3  : int  4 2 2 3 2 1 1 4 4 2 ...
-##  $ mdbf4  : int  3 1 1 NA 1 1 2 3 4 2 ...
-##  $ mdbf5  : int  2 3 1 4 1 1 1 3 4 4 ...
-##  $ mdbf6  : int  1 4 4 2 4 3 4 3 2 4 ...
-##  $ mdbf7  : int  2 3 1 5 2 3 1 4 4 4 ...
-##  $ mdbf8  : int  3 5 4 3 5 4 4 4 2 4 ...
-##  $ mdbf9  : int  4 1 2 4 2 1 1 4 4 2 ...
-##  $ mdbf10 : int  3 3 4 1 3 4 3 3 2 4 ...
-##  $ mdbf11 : int  2 1 1 3 2 1 1 3 5 2 ...
-##  $ mdbf12 : int  2 5 4 2 4 4 4 2 2 4 ...
-##  $ lz     : num  5.4 6.8 5 3.6 5.6 5.4 4.8 3.6 5 5.4 ...
-##  $ extra  : num  3.5 4 3.5 2.75 4.25 3 3.5 4 3.25 3.5 ...
-##  $ vertr  : num  3.5 5 5 3.75 3.5 4.5 4.5 4 4.5 5 ...
-##  $ gewis  : num  4 3.5 3.75 4.25 4.25 4.75 4.5 4.25 3 4.75 ...
-##  $ neuro  : num  4.25 3 4.5 4.75 4.25 2 4 3.5 3.25 4.25 ...
-##  $ intel  : num  3.25 3.75 4.5 2.25 4.5 4 3.25 3.5 2.75 3.5 ...
-##  $ pro    : num  1.9 2.1 2.5 2.7 2.9 2.1 2.4 2 2.5 2.2 ...
-##  $ grund  : chr  &quot;weil mich die menschliche Psyche sehr interessiert, vor allem die Ursachen fÃ¼r negative Verhaltenweisen, Chara&quot;| __truncated__ &quot;Tiefes Interesse&quot; &quot;Interessante Themen&quot; &quot;Interesse auf Menschen&quot; ...
-##  $ fach   : int  3 3 4 3 2 1 4 1 4 NA ...
-##  $ ziel   : int  2 2 2 3 3 1 2 1 2 NA ...
-##  $ lerntyp: int  1 3 1 1 3 1 1 3 3 NA ...
-##  $ geschl : Factor w/ 3 levels &quot;weiblich&quot;,&quot;maennlich&quot;,..: 1 1 2 2 1 2 1 1 NA NA ...
-##  $ job    : int  2 1 1 2 1 1 1 1 1 NA ...
-##  $ ort    : int  1 2 1 2 1 1 1 2 NA NA ...
-##  $ ort12  : int  2 2 1 2 1 1 1 3 1 NA ...
-##  $ wohnen : int  1 4 2 1 1 2 3 2 1 NA ...
-##  $ uni1   : int  1 1 1 0 1 0 0 0 0 0 ...
-##  $ uni2   : int  1 0 1 1 1 1 1 1 0 0 ...
-##  $ uni3   : int  0 0 0 0 0 1 0 0 0 0 ...
-##  $ uni4   : int  0 0 0 0 0 0 0 1 0 0 ...</code></pre>
+str(fb21)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    114 obs. of  36 variables:
+##  $ prok1  : int  3 2 2 3 1 1 3 2 4 1 ...
+##  $ prok2  : int  3 2 3 2 4 3 3 4 3 3 ...
+##  $ prok3  : int  3 3 4 3 3 4 3 3 1 3 ...
+##  $ prok4  : int  3 2 2 NA 2 3 4 1 4 1 ...
+##  $ prok5  : int  3 2 4 3 4 4 3 4 2 4 ...
+##  $ prok6  : int  3 2 3 1 2 3 3 2 4 1 ...
+##  $ prok7  : int  3 3 4 2 4 3 2 3 3 4 ...
+##  $ prok8  : int  3 3 4 3 3 2 3 3 3 4 ...
+##  $ prok9  : int  3 2 3 2 2 2 4 3 4 1 ...
+##  $ prok10 : int  3 1 1 2 2 2 3 3 4 2 ...
+##  $ nr1    : int  3 1 3 4 4 2 2 4 4 1 ...
+##  $ nr2    : int  3 1 3 4 4 4 4 4 3 3 ...
+##  $ nr3    : int  3 1 3 2 3 1 1 3 5 2 ...
+##  $ nr4    : int  3 2 5 2 5 5 3 4 5 5 ...
+##  $ nr5    : int  3 2 5 2 4 4 2 3 5 3 ...
+##  $ nr6    : int  3 1 5 2 5 3 2 4 5 3 ...
+##  $ lz     : num  3 5.2 7 4.8 6 3.6 5.6 NA 4 5.8 ...
+##  $ extra  : num  3 2.25 4.75 3.5 3.75 1.25 2.5 3 2.25 4 ...
+##  $ vertr  : num  3 4 4 4.25 4.25 3.75 3.5 4.25 4.5 4.25 ...
+##  $ gewis  : num  3 3.75 4.5 4 4.75 4.75 4.25 4 2.75 4.5 ...
+##  $ neuro  : num  3 2.5 3 2.5 2.75 2.5 3.25 1.5 5 2.25 ...
+##  $ intel  : num  3 3.5 4 3 4.75 4.25 3.75 4.25 3.75 4 ...
+##  $ nerd   : num  3 3 2.33 2.17 2.83 ...
+##  $ grund  : chr  NA NA &quot;123&quot; &quot;Arbeit mit Menschen&quot; ...
+##  $ fach   : num  2 4 5 5 NA 4 5 5 5 4 ...
+##  $ ziel   : num  4 3 1 2 NA 2 3 1 4 2 ...
+##  $ lerntyp: num  1 3 1 3 NA 1 3 1 1 3 ...
+##  $ geschl : Factor w/ 3 levels &quot;weiblich&quot;,&quot;maennlich&quot;,..: 2 1 1 1 NA 1 1 2 3 1 ...
+##  $ job    : int  2 1 1 1 NA NA 1 1 2 1 ...
+##  $ ort    : int  2 2 1 1 NA 2 2 2 2 1 ...
+##  $ ort12  : int  1 2 1 1 NA 1 1 1 1 1 ...
+##  $ wohnen : num  3 3 1 1 NA 2 2 3 1 4 ...
+##  $ uni1   : num  1 0 0 1 0 0 0 0 1 0 ...
+##  $ uni2   : num  0 0 0 1 0 1 1 0 1 1 ...
+##  $ uni3   : num  0 0 0 1 0 0 0 0 0 0 ...
+##  $ uni4   : num  0 0 0 1 0 0 0 0 1 0 ...</code></pre>
 <p>Variable “geschl” liegt (nun) als Faktor vor.</p>
 </div>
 <div id="deskriptivstatistik-1" class="section level3">
@@ -383,7 +387,7 @@ str(fb20)</code></pre>
 <div id="grafisch-1" class="section level4">
 <h4>2.2.1. grafisch</h4>
 <pre class="r"><code># nur Männer und Frauen auswählen:
-dataB &lt;- fb20[ (fb20$geschl==&quot;maennlich&quot;|fb20$geschl==&quot;weiblich&quot;), ]  
+dataB &lt;- fb21[ (fb21$geschl==&quot;maennlich&quot;|fb21$geschl==&quot;weiblich&quot;), ]  
 dataB$geschl &lt;- droplevels(dataB$geschl)
 
 # Gruppierter Boxplot:
@@ -392,7 +396,7 @@ boxplot(dataB$vertr ~ dataB$geschl,
         las=1, cex.lab=1.5, 
         main=&quot;Verträglichkeit je nach Geschlecht&quot;)</code></pre>
 <p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
-<p>Der Unterschied besteht in der erwarteten Richtung: höhere Verträglichkeit bei Studentinnen :-)</p>
+<p>Graphisch ist kein Unterschied zu erkennen.</p>
 </div>
 <div id="statistisch-1" class="section level4">
 <h4>2.2.2. statistisch</h4>
@@ -400,19 +404,20 @@ boxplot(dataB$vertr ~ dataB$geschl,
 <pre><code>## 
 ##  Descriptive statistics by group 
 ## group: weiblich
-##    vars  n mean   sd median trimmed  mad min max range  skew kurtosis   se
-## X1    1 73 4.32 0.53    4.5    4.35 0.74   3   5     2 -0.41    -0.92 0.06
+##    vars  n mean   sd median trimmed  mad  min max range  skew kurtosis   se
+## X1    1 80 4.15 0.52   4.25    4.18 0.37 2.75   5  2.25 -0.48    -0.24 0.06
 ## ------------------------------------------------------------ 
 ## group: maennlich
-##    vars  n mean   sd median trimmed  mad  min max range  skew kurtosis   se
-## X1    1 20 4.18 0.55   4.25    4.19 0.74 3.25   5  1.75 -0.17    -1.24 0.12</code></pre>
+##    vars  n mean   sd median trimmed  mad min max range skew kurtosis   se
+## X1    1 31 4.18 0.52   4.25    4.21 0.37   3   5     2 -0.5    -0.03 0.09</code></pre>
 <pre class="r"><code># Interquartilsbereich (IBQ) über summary()
 summary( dataB[(dataB$geschl==&quot;weiblich&quot;), &quot;vertr&quot;])</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA&#39;s 
-##   3.000   4.000   4.500   4.322   4.750   5.000       5</code></pre>
+##   2.750   3.750   4.250   4.153   4.500   5.000       2</code></pre>
 <pre class="r"><code>summary( dataB[(dataB$geschl==&quot;maennlich&quot;), &quot;vertr&quot;]) </code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA&#39;s 
-##   3.250   3.750   4.250   4.175   4.562   5.000       5</code></pre>
+##   3.000   4.000   4.250   4.177   4.500   5.000       2</code></pre>
+<p>Deskriptiv weist die Gruppe der männlichen Studierenden den gleichen Median auf wie die Gruppe der weiblichen Studierenden.</p>
 </div>
 </div>
 <div id="voraussetzungsprüfung-1" class="section level3">
@@ -428,7 +433,7 @@ summary( dataB[(dataB$geschl==&quot;weiblich&quot;), &quot;vertr&quot;])</code><
 <li>Homoskedastizität: Varianzen der Variablen innerhalb der Populationen sind gleich <span class="math inline">\(\rightarrow\)</span> Levene-Test</li>
 </ol>
 <p><strong>zu 3): Optische Prüfung auf Normalverteilung in den beiden Gruppen</strong></p>
-<p>(Hinweis: In diesem Datenbeispiel betragen die Stichprobengrößen 73 (Gruppe “weiblich”) bzw. 20 (Gruppe “männlich”). Unter der Annahme von Normalverteilung des Merkmals “Verträglichkeit” in der Population könnte man bei diesen Stichprobengrößen von Normalverteilung ausgehen, ohne dies explizit zu prüfen, und einen <em>t</em>-Test durchführen (s.o.). Aus didaktischen Gründen betrachten wir hier die Normalverteilungsannahme als verletzt und führen daher den Wilcoxon-Test durch.)</p>
+<p>(Hinweis: In diesem Datenbeispiel betragen die Stichprobengrößen 80 (Gruppe “weiblich”) bzw. 31 (Gruppe “männlich”). Unter der Annahme von Normalverteilung des Merkmals “Verträglichkeit” in der Population könnte man bei diesen Stichprobengrößen von Normalverteilung ausgehen, ohne dies explizit zu prüfen, und einen <em>t</em>-Test durchführen (s.o.). Aus didaktischen Gründen betrachten wir hier die Normalverteilungsannahme als verletzt und führen daher den Wilcoxon-Test durch.)</p>
 <pre class="r"><code>#Gruppe 1 (weiblich) 
 par(mfrow=c(1,2))
 vertr.w &lt;- dataB[(dataB$geschl==&quot;weiblich&quot;), &quot;vertr&quot;]
@@ -437,16 +442,16 @@ curve(dnorm(x, mean=mean(vertr.w, na.rm=T), sd=sd(vertr.w, na.rm=T)), col=&quot;
 qqnorm(vertr.w)
 qqline(vertr.w, col=&quot;red&quot;)</code></pre>
 <p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p><span class="math inline">\(\rightarrow\)</span> Entscheidung: Normalverteilung in Gruppe 1 (weiblich) ist nicht gegeben <span class="math inline">\(\rightarrow\)</span> Wilcoxon-Test</p>
+<p><span class="math inline">\(\rightarrow\)</span> Entscheidung: Normalverteilung in Gruppe 1 (weiblich) ist einigermaßen gegeben <span class="math inline">\(\rightarrow\)</span> spricht für t-Test</p>
 <pre class="r"><code>#Gruppe 2 (männlich)
 par(mfrow=c(1,2))
 vertr.m &lt;- dataB[(dataB$geschl==&quot;maennlich&quot;), &quot;vertr&quot;]
-hist(vertr.m, xlim=c(1,7), ylim=c(0,.7), main=&quot;Verträglichkeit (männlich)&quot;, xlab=&quot;&quot;, ylab=&quot;&quot;, las=1, prob=T)
+hist(vertr.m, xlim=c(1,7), ylim=c(0,.8), main=&quot;Verträglichkeit (männlich)&quot;, xlab=&quot;&quot;, ylab=&quot;&quot;, las=1, prob=T)
 curve(dnorm(x, mean=mean(vertr.m, na.rm=T), sd=sd(vertr.m, na.rm=T)), col=&quot;red&quot;, lwd=2, add=T)
 qqnorm(vertr.m)
 qqline(vertr.m, col=&quot;red&quot;)</code></pre>
 <p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p><span class="math inline">\(\rightarrow\)</span> Entscheidung: Normalverteilung in Gruppe 2 (männlich) ist auch nicht gegeben <span class="math inline">\(\rightarrow\)</span> Wilcoxon-Test</p>
+<p><span class="math inline">\(\rightarrow\)</span> Entscheidung: Normalverteilung in Gruppe 2 (männlich) ist nicht gegeben <span class="math inline">\(\rightarrow\)</span> spricht für Wilcoxon-Test</p>
 <p><strong>zu 4) Test auf Homoskedastizität (Levene-Test)</strong></p>
 <p>Das Hypothesenpaar im Levene-Test lautet:</p>
 <ul>
@@ -458,10 +463,10 @@ qqline(vertr.m, col=&quot;red&quot;)</code></pre>
 <pre class="r"><code>library(car)
 leveneTest(dataB$vertr ~ dataB$geschl)</code></pre>
 <pre><code>## Levene&#39;s Test for Homogeneity of Variance (center = median)
-##       Df F value Pr(&gt;F)
-## group  1  0.0188 0.8912
-##       91</code></pre>
-<p><span class="math inline">\(F(1,91) = 0.019, p = .891 \rightarrow H_0\)</span> wird beibehalten: Homoskedastizität wird angenommen</p>
+##        Df F value Pr(&gt;F)
+## group   1  0.1105 0.7402
+##       109</code></pre>
+<p><span class="math inline">\(F(1,109) = 0.11, p = .740 \rightarrow H_0\)</span> wird beibehalten: Homoskedastizität wird angenommen</p>
 </div>
 <div id="inferenzstatistik-wilcoxon-test" class="section level3">
 <h3>2.4. Inferenzstatistik: Wilcoxon-Test</h3>
@@ -501,13 +506,13 @@ leveneTest(dataB$vertr ~ dataB$geschl)</code></pre>
 ##  Wilcoxon rank sum test with continuity correction
 ## 
 ## data:  dataB$vertr by dataB$geschl
-## W = 845, p-value = 0.1394
+## W = 1213, p-value = 0.5726
 ## alternative hypothesis: true location shift is greater than 0</code></pre>
-<p><span class="math inline">\(W = 845, p = .139 \rightarrow\)</span> Ergebnis ist nicht signfikant, <span class="math inline">\(H_0\)</span> wird beibehalten</p>
+<p><span class="math inline">\(W = 1213, p = .573 \rightarrow\)</span> Ergebnis ist nicht signfikant, <span class="math inline">\(H_0\)</span> wird beibehalten</p>
 </div>
 <div id="ergebnisinterpretation-1" class="section level3">
 <h3>2.5. Ergebnisinterpretation</h3>
-<p>Es wurde untersucht, ob Studentinnen verträglicher sind als Studenten. Tatsächlich besteht deskriptiv ein Unterschied in der erwarteten Richtung: Studentinnen weisen einen Median von 4.5 (<em>IQB</em> = [4.0; 4.75]), Studenten hingegen einen Wert von nur 4.25 (<em>IQB</em> = [3.75; 4.562]) auf. Zur Beantwortung der Fragestellung wurde ein Wilcoxon-Test durchgeführt. Demnach ist der Gruppenunterschied allerdings nicht signifikant (<em>W</em> = 845, <em>p</em> = .139). Somit wird die Nullhypothese beibehalten: Studentinnen sind nicht verträglicher als Studenten.</p>
+<p>Es wurde untersucht, ob Studentinnen verträglicher sind als Studenten. Deskriptiv besteht kein Unterschied in der Verträglichkeit: Beide Gruppen weisen einen Median von 4.25 auf (<span class="math inline">\(IQB_w\)</span> = [3.75; 4.5]; <span class="math inline">\(IQB_m\)</span> = [4.0; 4.5]). Zur Beantwortung der Fragestellung wurde ein Wilcoxon-Test durchgeführt. Der Gruppenunterschied ist statistisch nicht signifikant (<em>W</em> = 1213, <em>p</em> = .573). Somit wird die Nullhypothese beibehalten: Studentinnen sind nicht verträglicher als Studenten.</p>
 <hr />
 </div>
 </div>
@@ -516,11 +521,11 @@ leveneTest(dataB$vertr ~ dataB$geschl)</code></pre>
 <p>Zusätzlich zur Gruppenvariable ist in diesem Beispiel auch die abhängige Variable nominalskaliert. Um Fragen wie diese zu beantworten, werden daher die Populationswahrscheinlichkeiten (job: ja vs. nein) zwischen den beiden Gruppen (ort: Frankfurt vs. außerhalb) miteinander verglichen. Diese Prüfung erfolgt mithilfe der <span class="math inline">\(\chi^2\)</span>-Verteilung <span class="math inline">\(\rightarrow \chi^2\)</span>-Test</p>
 <div id="datenaufbereitung" class="section level3">
 <h3>3.1. Datenaufbereitung</h3>
-<pre class="r"><code>if(is.factor(fb20$ort) == FALSE){
-  fb20$ort &lt;- factor(fb20$ort, levels=c(1,2), labels=c(&quot;FFM&quot;, &quot;anderer&quot;))
+<pre class="r"><code>if(is.factor(fb21$ort) == FALSE){
+  fb21$ort &lt;- factor(fb21$ort, levels=c(1,2), labels=c(&quot;FFM&quot;, &quot;anderer&quot;))
 }
-if(is.factor(fb20$job) == FALSE){
-  fb20$job &lt;- factor(fb20$job, levels=c(1,2), labels=c(&quot;nein&quot;, &quot;ja&quot;))
+if(is.factor(fb21$job) == FALSE){
+  fb21$job &lt;- factor(fb21$job, levels=c(1,2), labels=c(&quot;nein&quot;, &quot;ja&quot;))
 }</code></pre>
 </div>
 <div id="deskriptivstatistikvoraussetzungsprüfung" class="section level3">
@@ -532,12 +537,12 @@ if(is.factor(fb20$job) == FALSE){
 <li>Zellbesetzung für alle <span class="math inline">\(n_{ij}\)</span> &gt; 5 <span class="math inline">\(\rightarrow\)</span> Prüfung anhand von Häufigkeitstabelle</li>
 </ol>
 <p><strong>zu Punkt 3) Zellbesetzung <em>n</em> &gt; 5</strong></p>
-<pre class="r"><code>tab &lt;- table(fb20$ort, fb20$job)
+<pre class="r"><code>tab &lt;- table(fb21$ort, fb21$job)
 tab</code></pre>
 <pre><code>##          
 ##           nein ja
-##   FFM       26 15
-##   anderer   32 17</code></pre>
+##   FFM       29 27
+##   anderer   33 22</code></pre>
 <p><span class="math inline">\(\rightarrow n_{ij}\)</span> &gt; 5 in allen Zellen gegeben</p>
 </div>
 <div id="inferenzstatistische-beantwortung-der-fragestellung" class="section level3">
@@ -572,18 +577,18 @@ tab</code></pre>
 <pre class="r"><code>tab_mar &lt;- addmargins(tab) # Randsummen zu Tabelle hinzufügen
 tab_mar</code></pre>
 <pre><code>##          
-##           nein ja Sum
-##   FFM       26 15  41
-##   anderer   32 17  49
-##   Sum       58 32  90</code></pre>
+##           nein  ja Sum
+##   FFM       29  27  56
+##   anderer   33  22  55
+##   Sum       62  49 111</code></pre>
 <pre class="r"><code>expected &lt;- data.frame(nein=c((tab_mar[1,3]*tab_mar[3,1])/tab_mar[3,3],
                               (tab_mar[2,3]*tab_mar[3,1])/tab_mar[3,3]),
                        ja=c((tab_mar[1,3]*tab_mar[3,2])/tab_mar[3,3],
                             (tab_mar[2,3]*tab_mar[3,2])/tab_mar[3,3]))
 expected</code></pre>
 <pre><code>##       nein       ja
-## 1 26.42222 14.57778
-## 2 31.57778 17.42222</code></pre>
+## 1 31.27928 24.72072
+## 2 30.72072 24.27928</code></pre>
 <p><strong>Prüfgröße <span class="math inline">\(\chi^2\)</span> berechnen</strong></p>
 <p>Formel:
 <span class="math display">\[\chi^2 = \sum_{i=1}^{2}{ \sum_{j=1}^{2}{ \frac{(n_{ij}-e_{ij})^2} {e_{ij}}}}\]</span></p>
@@ -592,7 +597,7 @@ expected</code></pre>
                     (tab[2,1]-expected[2,1])^2/expected[2,1]+
                     (tab[2,2]-expected[2,2])^2/expected[2,2]
 chi_quadrat_Wert</code></pre>
-<pre><code>## [1] 0.03485393</code></pre>
+<pre><code>## [1] 0.7593212</code></pre>
 <p><strong>Signfikanztestung: per Vergleich von empirischem und kritischem <span class="math inline">\(\chi^2\)</span></strong></p>
 <p>Die Freiheitsgrade berechnen sich aus der Anzahl der untersuchten Kategorien: <span class="math inline">\(df = (p - 1) \cdot (k - 1)\)</span>. Hier, im Fall des Vierfelder-<span class="math inline">\(\chi^2\)</span>-Tests also mit <span class="math inline">\(df = 1\)</span>, wobei</p>
 <ul>
@@ -604,13 +609,13 @@ chi_quadrat_Wert</code></pre>
 <pre class="r"><code>qchisq(.95, 1)</code></pre>
 <pre><code>## [1] 3.841459</code></pre>
 <pre class="r"><code>pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE)</code></pre>
-<pre><code>## [1] 0.8519021</code></pre>
+<pre><code>## [1] 0.383541</code></pre>
 <ul>
 <li><em>df</em> = 1</li>
 <li><span class="math inline">\(\chi^2_{krit}\)</span> = 3.84</li>
-<li><span class="math inline">\(\chi^2_{emp}\)</span> = 0.035</li>
+<li><span class="math inline">\(\chi^2_{emp}\)</span> = 0.759</li>
 <li><span class="math inline">\(\chi^2_{emp} &lt; \chi^2_{krit}\)</span> <span class="math inline">\(\rightarrow H_0\)</span> wird beibehalten</li>
-<li><span class="math inline">\(p\)</span> = 0.852</li>
+<li><span class="math inline">\(p\)</span> = 0.384</li>
 <li><span class="math inline">\(p\)</span>-Wert &gt; <span class="math inline">\(\alpha\)</span>-Fehlerniveau <span class="math inline">\(\rightarrow H_0\)</span> wird beibehalten</li>
 </ul>
 </div>
@@ -622,7 +627,7 @@ chi_quadrat_Wert</code></pre>
 ##  Pearson&#39;s Chi-squared test
 ## 
 ## data:  tab
-## X-squared = 0.034854, df = 1, p-value = 0.8519</code></pre>
+## X-squared = 0.75932, df = 1, p-value = 0.3835</code></pre>
 </div>
 </div>
 <div id="effektstärken" class="section level3">
@@ -631,28 +636,28 @@ chi_quadrat_Wert</code></pre>
 <pre class="r"><code>effekt_YulesQ &lt;- (tab[1,1]*tab[2,2]-tab[1,2]*tab[2,1])/
                  (tab[1,1]*tab[2,2]+tab[1,2]*tab[2,1])
 effekt_YulesQ</code></pre>
-<pre><code>## [1] -0.04121475</code></pre>
+<pre><code>## [1] -0.1654676</code></pre>
 <p>Wertebereich zwischen -1 und 1; Interpretation analog zu Korrelationen</p>
 <p><strong>Phi (<span class="math inline">\(\phi\)</span>)</strong></p>
 <pre class="r"><code>effekt_phi &lt;- (tab[1,1]*tab[2,2]-tab[1,2]*tab[2,1])/
   sqrt((tab[1,1]+tab[1,2])*(tab[1,1]+tab[2,1])*(tab[1,2]+tab[2,2])*(tab[2,1]+tab[2,2]))
 effekt_phi</code></pre>
-<pre><code>## [1] -0.01967907</code></pre>
+<pre><code>## [1] -0.08270872</code></pre>
 <pre class="r"><code># alternativ mit psych Paket
 library(psych)
 phi(tab, digits = 8)</code></pre>
-<pre><code>## [1] -0.01967907</code></pre>
+<pre><code>## [1] -0.08270872</code></pre>
 <pre class="r"><code># Äquivalentes Ergebnis mittels Pearson-Korrelation
 # (dichotome Variablen)
-ort_num &lt;- as.numeric(fb20$ort)
-job_num &lt;- as.numeric(fb20$job)
+ort_num &lt;- as.numeric(fb21$ort)
+job_num &lt;- as.numeric(fb21$job)
 cor(ort_num, job_num, use=&quot;pairwise&quot;)</code></pre>
-<pre><code>## [1] -0.01967907</code></pre>
+<pre><code>## [1] -0.08270872</code></pre>
 <p>Wertebereich zwischen -1 und 1; Interpretation analog zu Korrelationen</p>
 </div>
 <div id="ergebnisinterpretation-2" class="section level3">
 <h3>3.5. Ergebnisinterpretation</h3>
-<p>Es wurde untersucht, ob Studierende mit Wohnort in Uninähe (also in Frankfurt) mit gleicher Wahrscheinlichkeit einen Nebenjob haben wie Studierende, deren Wohnort außerhalb von Frankfurt liegt. Zur Beantwortung der Fragestellung wurde ein Vierfelder-Chi-Quadrat-Test für unabhängige Stichproben berechnet. Der Zusammenhang zwischen Wohnort und Nebenjob ist nicht signifikant (<span class="math inline">\(\chi^2\)</span>(1) = 0.035, <em>p</em> = 0.852), somit wird die Nullhypothese beibehalten. Der Effekt ist von vernachlässigbarer Stärke (<span class="math inline">\(\phi\)</span> = -0.02). Studierende mit Wohnort in Uninähe haben mit gleicher Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt.</p>
+<p>Es wurde untersucht, ob Studierende mit Wohnort in Uninähe (also in Frankfurt) mit gleicher Wahrscheinlichkeit einen Nebenjob haben wie Studierende, deren Wohnort außerhalb von Frankfurt liegt. Zur Beantwortung der Fragestellung wurde ein Vierfelder-Chi-Quadrat-Test für unabhängige Stichproben berechnet. Der Zusammenhang zwischen Wohnort und Nebenjob ist nicht signifikant (<span class="math inline">\(\chi^2\)</span>(1) = 0.759, <em>p</em> = 0.384), somit wird die Nullhypothese beibehalten. Der Effekt ist von vernachlässigbarer Stärke (<span class="math inline">\(\phi\)</span> = -0.083). Studierende mit Wohnort in Uninähe haben mit gleicher Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt.</p>
 <hr />
 </div>
 </div>
