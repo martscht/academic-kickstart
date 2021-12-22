@@ -11,13 +11,12 @@ summary: ''
 authors: [koehler, buchholz]
 lastmod: '2020-12-17T13:15:14+01:00'
 featured: no
-image:
-  caption: ''
-  focal_point: ''
-  preview_only: no
+header:
+  image: "/header/BSc2_test_unabh_stpr.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/662606)"
 projects: []
 expiryDate: '2022-09-15'
-publishDate: '2021-12-10'
+publishDate: '2021-01-29'
 ---
 
 
@@ -31,41 +30,43 @@ library(effsize)
 **Daten einlesen**
 
 ```{r echo=F}
-fb20 <- read.table('https://pandar.netlify.app/post/fb20.csv', 
-  header = TRUE,
-  sep = ',',
-  na.strings = '-99')
+load("fb21.rda")
 ```
 
 ```{r, eval=F}
 setwd("...")  
-load("fb20.rda")
+load("fb21.rda")
 ```
 
 **Daten aufbereiten**
 
+Prüfe zunächst ob die Variablen Faktoren sind.
+
+```{r}
+is.factor(fb21$fach)
+is.factor(fb21$ort)
+is.factor(fb21$geschl)
+```
+
+Falls nicht:
+
 ```{r}
 # Lieblingsfach als Faktor - falls es noch keiner war
-if(is.factor(fb20$fach) == FALSE){
-  fb20$fach <- factor(fb20$fach, 
-                      levels = 1:5,
-                      labels = c('Allgemeine', 'Biologische', 'Entwicklung',
-                                 'Klinische', 'Diag./Meth.'))
-}
+fb21$fach <- factor(fb21$fach, 
+                    levels = 1:5,
+                    labels = c('Allgemeine', 'Biologische', 'Entwicklung',
+                               'Klinische', 'Diag./Meth.'))
 
 # Wohnort als Faktor - falls es noch keiner war
-if(is.factor(fb20$ort) == FALSE){
-  fb20$ort <- factor(fb20$ort, 
-                     levels = c(1, 2),
-                     labels = c('Frankfurt', 'anderer'))
-}
+fb21$ort <- factor(fb21$ort, 
+                   levels = c(1, 2),
+                   labels = c('Frankfurt', 'anderer'))
+
 
 # Geschlecht als Faktor - falls es noch keiner war
-if(is.factor(fb20$geschl)==FALSE){
-  fb20$geschl <- factor(fb20$geschl, 
-                        levels=c(1,2,3), 
-                        labels=c('weiblich', 'maennlich', 'anderes'))
-}
+fb21$geschl <- factor(fb21$geschl, 
+                      levels=c(1,2,3), 
+                      labels=c('weiblich', 'maennlich', 'anderes'))
 ```
 
 ***
@@ -75,8 +76,8 @@ Unterscheiden sich Studierende, die sich für Allgemeine Psychologie (Variable "
 
 <details><summary>Lösung</summary>
 **Deskriptivstatistische Beantwortung der Fragestellung: grafisch**
-```{r, fig.height = 10}
-data1 <- fb20[ (which(fb20$fach=="Allgemeine"|fb20$fach=="Klinische")), ]
+```{r}
+data1 <- fb21[ (which(fb21$fach=="Allgemeine"|fb21$fach=="Klinische")), ]
 data1$fach <- droplevels(data1$fach)
 boxplot(data1$intel ~ data1$fach,
         xlab="Interessenfach", ylab="Intellekt", 
@@ -132,7 +133,7 @@ qqnorm(intel.B)
 qqline(intel.B, col="blue")
 ```
 
-$\rightarrow$ Entscheidung: Normalverteilung wird für Gruppe 2 (Klinische Psycholgie) nicht angenommen 
+$\rightarrow$ Entscheidung: Normalverteilung wird für Gruppe 2 (Klinische Psycholgie) angenommen 
 
 **Hypothesen**
 
@@ -142,26 +143,37 @@ $\rightarrow$ Entscheidung: Normalverteilung wird für Gruppe 2 (Klinische Psych
 
 Hypthesenpaar (statistisch):  
 
-* $H_0$: $\mu_{Allgemeine} =   \mu_{Klinische}$
-* $H_1$: $\mu_{Allgemeine} \ne \mu_{Klinische}$
+* $H_0$: $\mu_\text{Allgemeine} =   \mu_\text{Klinische}$
+* $H_1$: $\mu_\text{Allgemeine} \ne \mu_\text{Klinische}$
 
 **Spezifikation des Signifikanzniveaus** 
 
 $\alpha = .05$
 
-**Durchführung des Wilcoxon-Tests**
+**Voraussetzungsprüfung: Varianzhomogenität**
 
 ```{r}
-wilcox.test(data1$intel ~ data1$fach,  # abhängige Variable ~ unabhängige Variable
-       paired = F,                     # Stichproben sind unabhängig 
-       alternative = "two.sided",      # zweiseitige Testung 
-       conf.level = .95)               # alpha = .05 
+library(car)
+leveneTest(data1$intel ~ data1$fach)
+```
+
+_F_(1,63) = 0.05, _p_ = .824 $\rightarrow$ Das Ergebnis ist nicht signifikant, die $H_0$ wird beibehalten und Varianzhomogenität angenommen.
+
+**Durchführung des _t_-Tests**
+
+```{r}
+t.test(data1$intel ~ data1$fach,           # abhängige Variable ~ unabhängige Variable
+       paired = F,                   # Stichproben sind unabhängig 
+       alternative = "two.sided",         # zweiseitige Testung
+       var.equal = T,                # Varianzhomogenität ist gegeben (-> Levene-Test)
+       conf.level = .95)             # alpha = .05 
 ```
 
 
 **Formales Berichten des Ergebnisses**
 
-Es wurde untersucht, ob sich Studierende, die sich für Allgemeine Psychologie interessieren, im Persönlichkeitsmerkmal Intellekt (auch: Offenheit für neue Erfahrungen) von Studierenden, die sich für Klinische Psychologie interessieren, unterscheiden. Deskriptiv liegt ein solcher Unterschied vor: Die Mittelwerte betragen 3.72 (Allgemeine, _SD_ = 0.38) und 3.60 (Klinische, _SD_ = 0.65). Der entsprechende Wilcoxon-Test zeigt jedoch ein nicht signifikantes Ergebnis (_W_ = 370, _p_ = .362).
+Es wurde untersucht, ob sich Studierende, die sich für Allgemeine Psychologie interessieren, im Persönlichkeitsmerkmal 'Intellekt' (auch: Offenheit für neue Erfahrungen) von Studierenden, die sich für Klinische Psychologie interessieren, unterscheiden. Deskriptiv liegt ein solcher Unterschied vor: Die Mittelwerte betragen 3.87 (Allgemeine, _SD_ = 0.66) und 3.56 (Klinische, _SD_ = 0.61). Der entsprechende _t_-Test zeigt jedoch ein nicht signifikantes Ergebnis (_t_(_df_ = 63, zweis.) = 1.86, _p_ = .067). Die Nullhypothese konnte nicht verworfen werden und wird beibehalten. Die Studierenden sind im Persönlichkeitsmerkmal 'Intellekt' unabhängig davon, ob sie sich für Allgemeine Psychologie oder für Klinische Psychologie interessieren.
+
 </details>
 
 ## Aufgabe 2
@@ -170,8 +182,8 @@ Sind Studierende, die außerhalb von Frankfurt wohnen ("ort"), zufriedener im Le
 <details><summary>Lösung</summary>
 **Deskriptivstatistische Beantwortung der Fragestellung: grafisch**
 
-```{r, fig.height = 10}
-boxplot(fb20$lz ~ fb20$ort,
+```{r}
+boxplot(fb21$lz ~ fb21$ort,
         xlab="Wohnort", ylab="Lebenszufriedenheit", 
         las=1, cex.lab=1.5, 
         main="Wohnort und Lebenszufriedenheit")
@@ -181,9 +193,9 @@ boxplot(fb20$lz ~ fb20$ort,
 
 ```{r}
 library(psych)
-describeBy(fb20$lz, fb20$ort)
-summary(fb20[which(fb20$ort=="Frankfurt"), "lz"])
-summary(fb20[which(fb20$ort=="anderer"), "lz"])
+describeBy(fb21$lz, fb21$ort)
+summary(fb21[which(fb21$ort=="Frankfurt"), "lz"])
+summary(fb21[which(fb21$ort=="anderer"), "lz"])
 ```
 
 Mittelwert der Nicht-Frankfurter ist deskriptiv  höher als der der Frankfurter.
@@ -192,8 +204,8 @@ Mittelwert der Nicht-Frankfurter ist deskriptiv  höher als der der Frankfurter.
 
 ```{r, fig.height=4, fig.align="center"}
 par(mfrow=c(1,2))
-lz.F <- fb20[which(fb20$ort=="Frankfurt"), "lz"]
-hist(lz.F, xlim=c(1,9), main="Lebenzufriedenheit\n(Frankfurter)", xlab="", ylab="", las=1, prob=T)
+lz.F <- fb21[which(fb21$ort=="Frankfurt"), "lz"]
+hist(lz.F, xlim=c(1,9), ylim=c(0,.35), main="Lebenzufriedenheit\n(Frankfurter)", xlab="", ylab="", las=1, prob=T)
 curve(dnorm(x, mean=mean(lz.F, na.rm=T), sd=sd(lz.F, na.rm=T)), col="red", lwd=2, add=T)
 qqnorm(lz.F)
 qqline(lz.F, col="red")
@@ -203,23 +215,15 @@ $\rightarrow$ Entscheidung: Normalverteilung wird angenommmen
 
 ```{r, fig.height=4, fig.align="center"}
 par(mfrow=c(1,2))
-lz.a <- fb20[which(fb20$ort=="anderer"), "lz"]
+lz.a <- fb21[which(fb21$ort=="anderer"), "lz"]
 hist(lz.a, xlim=c(1,9), main="Lebenszufriedenheit\n(Nicht-Frankfurter)", xlab="", ylab="", las=1, prob=T)
 curve(dnorm(x, mean=mean(lz.a, na.rm=T), sd=sd(lz.a, na.rm=T)), col="red", lwd=2, add=T)
 qqnorm(lz.a)
 qqline(lz.a, col="red")
 ```
 
-$\rightarrow$ Entscheidung: Normalverteilung wird angenommmen 
+$\rightarrow$ Entscheidung: Normalverteilung wird nicht angenommmen 
 
-**Voraussetzungsprüfung: Varianzhomogenität**
-
-```{r}
-library(car)
-leveneTest(fb20$lz ~ fb20$ort)
-```
-
-_F_(1,86) = 0.43, _p_ = .513 $\rightarrow$ Das Ergebnis ist nicht signifikant, die $H_0$ wird beibehalten und Varianzhomogenität angenommen.
 
 **Hypothesen**
 
@@ -229,27 +233,25 @@ _F_(1,86) = 0.43, _p_ = .513 $\rightarrow$ Das Ergebnis ist nicht signifikant, d
 
 Hypthesenpaar (statistisch):  
 
-* $H_0$: $\eta_{Frankfurter} \ge \eta_{nicht-Frankfurter}$  
-* $H_1$: $\eta_{Frankfurter} <   \eta_{nicht-Frankfurter}$
+* $H_0$: $\eta_\text{Frankfurter} \ge \eta_\text{nicht-Frankfurter}$  
+* $H_1$: $\eta_\text{Frankfurter} <   \eta_\text{nicht-Frankfurter}$
 
 **Spezifikation des Signifikanzniveaus**
 
 $\alpha = .05$
 
-**Durchführung des _t_-Tests**
+**Durchführung des Wilcoxon-Tests**
 
 ```{r}
-levels(fb20$ort)
-t.test(fb20$lz ~ fb20$ort,           # abhängige Variable ~ unabhängige Variable
+wilcox.test(fb21$lz ~ fb21$ort,           # abhängige Variable ~ unabhängige Variable
        paired = F,                   # Stichproben sind unabhängig 
        alternative = "less",         # einseitige Testung: Gruppe1 (Frankfurter) < Gruppe2 (Nicht-Frankfurter) 
-       var.equal = T,                # Varianzhomogenität ist gegeben (-> Levene-Test)
        conf.level = .95)             # alpha = .05 
 ```
 
 **Formales Berichten des Ergebnisses** 
 
-Es wurde untersucht, ob außerhalb von Frankfurt wohnende Studierende zufriedener im Leben sind als die in Frankfurt wohnenden. Deskriptiv  zeigt sich tatsächlich, dass die Nicht-Frankfurter zufriedener sind (_M_ = 5.17, _SD_ = 1.13) als die Frankfurter (_M_ = 5.05, _SD_ = 1.13). Der _t_-Test zeigt jedoch ein nicht signifikantes Ergebnis (_t_(_df_ = 86, eins.) = -.48, _p_ = .316). Die Nullhypothese konnte nicht verworfen werden und wird beibehalten. Die Studierenden sind gleich zufrieden, unabhängig von deren Wohnort.
+Es wurde untersucht, ob außerhalb von Frankfurt wohnende Studierende zufriedener im Leben sind als die in Frankfurt wohnenden. Deskriptiv  zeigt sich tatsächlich, dass die Nicht-Frankfurter zufriedener sind (_Mdn_ = 5.2, _IQB_ = [4.6; 5.6]) als die Frankfurter (_Mdn_ = 5, _IQB_ = [4.0; 5.8]). entsprechende Wilcoxon-Test zeigt jedoch ein nicht signifikantes Ergebnis (_W_ = 1512.5, _p_ = .501). Die Nullhypothese konnte nicht verworfen werden und wird beibehalten. Die Studierenden sind gleich zufrieden, unabhängig von deren Wohnort.
 
 
 </details>
@@ -267,9 +269,10 @@ Beide Variablen sind nominalskaliert $\rightarrow \chi^2$-Test
 3. Zellbesetzung für alle $n_{ij}$ > 5 $\rightarrow$ Prüfung anhand von Häufigkeitstabelle 
 
 ```{r}
-fb20$geschlecht <- fb20$geschl[fb20$geschl=="weiblich"|fb20$geschl=="maennlich"]
-fb20$geschlecht <- droplevels(fb20$geschlecht)
-tab <- table(fb20$geschlecht, fb20$ort)
+fb21$geschlecht <- fb21$geschl
+fb21$geschlecht[fb21$geschlecht=="anderes"] <- NA #Umkodieren von "anderes" in fehlenden Wert
+fb21$geschlecht <- droplevels(fb21$geschlecht) #Level "anderes" wird eliminiert
+tab <- table(fb21$geschlecht, fb21$ort)
 tab
 ```
 
@@ -297,7 +300,7 @@ Hypothesenpaar (statistisch):
 chisq.test(tab, correct=FALSE)
 ```
 
-$\chi^2 = 0.320, df = 1, p = .572 \rightarrow H_0$
+$\chi^2 = 0.481, df = 1, p = .488 \rightarrow H_0$
 
 **Effektstärke Phi ($\phi$)**
 
@@ -308,6 +311,7 @@ phi(tab)
 
 **Ergebnisinterpretation**
 
-Es wurde untersucht, ob sich männliche und weibliche Studierende in ihrem Wohnort (Frankfurt vs. außerhalb) unterscheiden. Zur Beantwortung der Fragestellung wurde ein Vierfelder-Chi-Quadrat-Test für unabhängige Stichproben berechnet. Der Zusammenhang zwischen Wohnort und Geschlecht ist nicht signifikant ($\chi^2(1) = 0.320, p = .572$), somit wird die Nullhypothese beibehalten. Der Effekt ist von vernachlässigbarer Stärke ($\phi = .06$). Männliche und weibliche Studierende wohnen also mit gleicher Wahrscheinlichkeit in Frankfurt bzw. außerhalb von Frankfurt.
+Es wurde untersucht, ob sich männliche und weibliche Studierende in ihrem Wohnort (Frankfurt vs. außerhalb) unterscheiden. Zur Beantwortung der Fragestellung wurde ein Vierfelder-Chi-Quadrat-Test für unabhängige Stichproben berechnet. Der Zusammenhang zwischen Wohnort und Geschlecht ist nicht signifikant ($\chi^2(1) = 0.481, p = .488$), somit wird die Nullhypothese beibehalten. Der Effekt ist von vernachlässigbarer Stärke ($\phi = .07$). Männliche und weibliche Studierende wohnen also mit gleicher Wahrscheinlichkeit in Frankfurt bzw. außerhalb von Frankfurt.
 
 </details>
+
