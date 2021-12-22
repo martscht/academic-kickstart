@@ -78,8 +78,8 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 | 4 | **Verteilungen** | [Inhalte](/post/verteilungen) | [Aufgaben](/post/verteilungen-aufgaben) | [Lösungen](/post/verteilungen-loesungen) |
 | *Zusatz* | **Übungsaufgaben** | -- | [Aufgaben](/post/zusatz-aufgaben) | [Lösungen](/post/zusatz-loesungen) |
 | 5 | **Tests und Konfidenzintervalle** | [Inhalte](/post/tests-und-konfidenzintervalle) | [Aufgaben](/post/tests-und-konfidenzintervalle-aufgaben) | [Lösungen](/post/tests-und-konfidenzintervalle-loesungen) |
-| 6 | **Tests für unabhängige Stichproben** | Inhalte | Aufgaben | Lösungen |
-| 7 | **Tests für abhängige Stichproben** | Inhalte | Aufgaben | Lösungen |
+| 6 | **Tests für unabhängige Stichproben** | [Inhalte](/post/gruppenvergleiche-unabhaengig) | [Aufgaben](/post/gruppenvergleiche-unabhaengig-aufgaben) | [Lösungen](/post/gruppenvergleiche-unabhaengig-loesungen) |
+| 7 | **Tests für abhängige Stichproben** | [Inhalte](/post/gruppenvergleiche-abhaengig) | [Aufgaben](/post/gruppenvergleiche-abhaengig-aufgaben) | [Lösungen](/post/gruppenvergleiche-abhaengig-loesungen) |
 | 8 | **Korrelation** | [Inhalte](/post/korrelation) | [Aufgaben](/post/korrelation-aufgaben) | [Lösungen](/post/korrelation-loesungen) |
 | 9 | **Regression** | [Inhalte](/post/regression) | [Aufgaben](/post/regression-aufgaben) | [Lösungen](/post/regression-loesungen) |
 | 10 | **Simulation und Poweranalyse** | Inhalte | Aufgaben | Lösungen |
