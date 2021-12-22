@@ -6,6 +6,9 @@ categories:
   - BSc2
 tags:
   - t-Test
+  - chi2-Test
+  - Wilcoxon-Test
+  - unabhängig
 subtitle: ''
 summary: ''
 authors: [koehler, buchholz, irmer]
@@ -93,6 +96,7 @@ head(dataA)
 tail(dataA)
 ```
 
+Die Daten werden erzeugt mittels `rnorm` und direkt in einen `data.frame` geschrieben. Wenn wir dann der Gruppe jeweils eine Ausprägung zuordnen (hier "ja" vs. "nein"), dann entstehen jeweils zwei kleine Datensätze, die aus normalverteilten Punktzahlen bestehen und einem Vektor, der jeweils "ja" und "nein" anzeigt (für die beiden Datensätze `gruppe.regel` und `gruppe.unreg`). Fügen wir diese beiden Gruppen zusammen, erhalten wir unseren gewünschten Datensatz. `head` zeigt die ersten 6 Zeilen und `tail` die letzten 6 Zeilen. Da wir hier eine zufällige Stichprobe (zum Seed 123) gezogen haben, sollten wir uns die Daten zunächst deskriptiv ansehen, um uns einen Überblick zu verschaffen (auch wenn wir bereits wissen, dass sich die beiden Gruppen in der Population unterscheiden).
 
 ### 1.1. Deskriptivstatistik
 
@@ -130,7 +134,7 @@ dev.off()
 
 #### 1.1.2. statistisch
 
-Wir können uns Deskriptivstatistiken ansehen. Bspw. könnten wir den Mittelwerte oder die SDs etc uns ausgeben lassen. Dazu nehmen wir entweder die `summary` und wählen die entsprechenden Fälle aus oder wir machen uns das `psych`-Paket zur nutze. Dieses muss zuvor installiert sein (`install.packages`). Falls dem so ist, dann kann das Paket mit `library` eingeladen werden. Die Funktion, die uns interessiert heißt `describeBy`, welche die Gruppenaufteilung bereits für uns übernimmt.
+Wir können uns auch Deskriptivstatistiken ansehen. Bspw. könnten wir den Mittelwerte oder die SDs etc uns ausgeben lassen. Dazu nehmen wir entweder die `summary` und wählen die entsprechenden Fälle aus oder wir machen uns das `psych`-Paket zur nutze. Dieses muss zuvor installiert sein (`install.packages`). Falls dem so ist, dann kann das Paket mit `library` eingeladen werden. Die Funktion, die uns interessiert heißt `describeBy`, welche die Gruppenaufteilung bereits für uns übernimmt.
 
 ```{r}
 # umständlich:
@@ -336,7 +340,11 @@ Zur Beantwortung der Fragestellung wurde ein _t_-Test unter Annahme von Homosked
 
 ## 2. Fragestellung B: Sind Studentinnen verträglicher als Studenten?
 
+Wir widmen uns nun der 2. Fragestellung.
+
 ### 2.1 Vorbereitung (Daten einlesen, Daten aufbereiten)
+
+Zunächst müssen wir die Daten entsprechend vorbereiten.
 
 ```{r echo=F}
 load("fb21.rda")
@@ -347,26 +355,52 @@ setwd("...")
 load("fb21.rda")
 ```
 
+
+Das Geschlecht `geschl` sollte als Faktor vorliegen. Falls Sie das Geschlecht bereits in einen Faktor mit benannten `levels` umgewandelt haben, dann können Sie dies in der Regel nicht noch einmal tun. Deswegen ist es sinnvoll, zunächst zu prüfen, ob das Geschlecht ein `factor` ist oder nicht. Das können wir mit `is.factor` machen. Diese Funktion gibt uns einen boolschen Wert (`TRUE` oder `FALSE`) wieder und beantwortet damit unsere Frage, ob das Geschlecht ein `factor` ist oder nicht.
+
 ```{r} 
-# Geschlecht als Faktor hinterlegen - aber nur dann, falls es noch keiner war
-if(is.factor(fb21$geschl) == FALSE){           # falls Geschlecht noch nicht als Faktor vorliegt...
-  fb21$geschl <- factor(fb21$geschl,           # ...wird ein Faktor erstellt
-                        levels = c(1, 2, 3),
-                        labels = c('weiblich', 'maennlich', 'anderes'))
-  }
-str(fb21)
+is.factor(fb21$geschl)
 ```
 
-Variable "geschl" liegt (nun) als Faktor vor.
+Da wir den Datensatz "ganz frisch" eingeladen haben, ist dies nicht der Fall. Demnach können wir ganz unbedacht den `factor` nach unseren Wünschen generieren:
+
+```{r}
+fb21$geschl <- factor(fb21$geschl,          
+                        levels = c(1, 2, 3),
+                        labels = c('weiblich', 'maennlich', 'anderes'))
+```
+
+Variable `geschl` liegt (nun) als Faktor vor.
+
+```{r} 
+is.factor(fb21$geschl)
+```
+
+Seine `levels` lauten
+
+```{r}
+levels(fb21$geschl)
+```
 
 ### 2.2. Deskriptivstatistik
 
+Nun folgt wieder die deskriptive Untersuchung, ob Unterschiede über das Geschlecht vorliegen.
+
 #### 2.2.1. grafisch 
+
+Wir beginnen mit einer grafischen Auseinandersetzung mit der Fragestellung. 
+
+```{r}
+table(fb21$geschl)
+```
+
+Insgesamt gibt es nur eine Person, welche die Option "anderes" ausgewählt hat. Leider lässt sich über einen Datenpunkt allein keine Varianz bestimmen und auch keine Inferenzstatistik betreiben. Aus diesem Grund müssen wir uns hier auf "maennlich" und "weiblich" beschränken und verwenden im Folgenden den gekürzten Datensatz `dataB`:
 
 ```{r}
 # nur Männer und Frauen auswählen:
 dataB <- fb21[ (fb21$geschl=="maennlich"|fb21$geschl=="weiblich"), ]  
-dataB$geschl <- droplevels(dataB$geschl)
+dataB$geschl <- droplevels(dataB$geschl) # levels aus den Datensatz entfernen, 
+# die keine Erhebungen haben
 
 # Gruppierter Boxplot:
 boxplot(dataB$vertr ~ dataB$geschl, 
@@ -379,6 +413,8 @@ Graphisch ist kein Unterschied zu erkennen.
 
 #### 2.2.2. statistisch
 
+Nun schauen wir uns das Ganze wieder deskriptivstatistisch an.
+
 ```{r}
 describeBy(dataB$vertr, dataB$geschl) # beide Gruppen im Vergleich
 
@@ -387,9 +423,11 @@ summary( dataB[(dataB$geschl=="weiblich"), "vertr"])
 summary( dataB[(dataB$geschl=="maennlich"), "vertr"]) 
 ```
 
-Deskriptiv weist die Gruppe der männlichen Studierenden den gleichen Median auf wie die Gruppe der weiblichen Studierenden.
+Deskriptiv weist die Gruppe der männlichen Studierenden den gleichen Median auf wie die Gruppe der weiblichen Studierenden. Nur die Interquartilbereiche unterscheiden sich leicht.
 
 ### 2.3. Voraussetzungsprüfung  
+
+Um diese Beobachtung inferenzstatistisch zu untermauern, müssen wir den richtigen Test durchführen. Wir beginnen damit die Voraussetzungen des _t_-Tests zu untersuchen:
 
 **Voraussetzungen für die Durchführung des _t_-Tests:**
 
@@ -444,6 +482,8 @@ $F(1,109) = 0.11, p = .740 \rightarrow H_0$ wird beibehalten: Homoskedastizität
 
 ### 2.4. Inferenzstatistik: Wilcoxon-Test
 
+Da wir die Normalverteilung hier als verletzt betrachtet haben, führen wir nun den Wilcoxon-Test (für unabhängige Stichproben) durch.
+
 Zur Erinnerung:  
 
 > Fragestellung B: "Sind Studentinnen *verträglicher* als Studenten?"   
@@ -463,8 +503,8 @@ Hypothesenpaar (inhaltlich):
 
 Hypothesenpaar (statistisch):  
 
-* $H_0$: $\eta_{weiblich} \leq \eta_{männlich}$   bzw.   $\eta_{weiblich} - \eta_{männlich} \leq 0$  
-* $H_1$: $\eta_{weiblich} \gt  \eta_{männlich}$   bzw.   $\eta_{weiblich} - \eta_{männlich} \gt 0$
+* $H_0$: $\eta_\text{weiblich} \leq \eta_\text{männlich}$   bzw.   $\eta_\text{weiblich} - \eta_\text{männlich} \leq 0$  
+* $H_1$: $\eta_\text{weiblich} \gt  \eta_\text{männlich}$   bzw.   $\eta_\text{weiblich} - \eta_\text{männlich} \gt 0$
 
 **Signifikanzniveau**   
 
@@ -472,57 +512,79 @@ Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 
 
 **Durchführung des Wilcoxon-Tests in R: Funktion `wilcox.test()`**
 
+Die Funktion `wilcox.test` nimmt im Grunde die gleichen Argumente entgegen, wie die Funktion `t.test`. Damit wir die gerichtete Hypothese in die richtige Richtung aufstellen können, müssen wir wissen, welche das erste Level des Faktors Geschlecht ist:
+
 ```{r}
 levels(dataB$geschl) # wichtig zu wissen: die erste der beiden Faktorstufen ist "weiblich" 
+```
 
+Da die erste Faktorstufe "weiblich" ist, wissen wir, dass die gerichtete Hypothese ">" lauten muss, also "greater":
+
+```{r}
 wilcox.test(dataB$vertr ~ dataB$geschl,   # abhängige Variable ~ unabhängige Variable
             paired = FALSE,               # Stichproben sind unabhängig
             alternative = "greater",      # einseitige Testung, und zwar so, dass Gruppe1(w)-Gruppe2(m) > 0
             conf.level = .95)             # alpha = .05
 
 ```
-$W = 1213, p = .573 \rightarrow$ Ergebnis ist nicht signfikant, $H_0$ wird beibehalten
+$W = 1213, p = .573 \rightarrow$ Ergebnis ist nicht signfikant, $H_0$ wird beibehalten.
 
 ### 2.5. Ergebnisinterpretation
 
-Es wurde untersucht, ob Studentinnen verträglicher sind als Studenten. Deskriptiv besteht kein Unterschied in der Verträglichkeit: Beide Gruppen weisen einen Median von 4.25 auf ($IQB_w$ = [3.75; 4.5]; $IQB_m$ = [4.0; 4.5]). Zur Beantwortung der Fragestellung wurde ein Wilcoxon-Test durchgeführt. Der Gruppenunterschied ist statistisch nicht signifikant (_W_ = 1213, _p_ = .573). Somit wird die Nullhypothese beibehalten: Studentinnen sind nicht verträglicher als Studenten. 
+Es wurde untersucht, ob Studentinnen verträglicher sind als Studenten. Deskriptiv besteht kein Unterschied in der Verträglichkeit: Beide Gruppen weisen einen Median von 4.25 auf ($IQB_w$ = [3.75; 4.5]; $IQB_m$ = [4.0; 4.5]). Zur Beantwortung der Fragestellung wurde ein Wilcoxon-Test durchgeführt. Der Gruppenunterschied über das Geschlecht ist nicht statistisch bedeutsam (_W_ = 1213, _p_ = .573). Somit wird die Nullhypothese beibehalten: Studentinnen sind nicht verträglicher als Studenten. 
 
 ***
 
 ## 3. Fragestellung C: Haben Studierende mit Wohnort in Uninähe (Frankfurt) mit gleicher Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt?
 
-Zusätzlich zur Gruppenvariable ist in diesem Beispiel auch die abhängige Variable nominalskaliert. Um Fragen wie diese zu beantworten, werden daher die Populationswahrscheinlichkeiten (job: ja vs. nein) zwischen den beiden Gruppen (ort: Frankfurt vs. außerhalb) miteinander verglichen. Diese Prüfung erfolgt mithilfe der $\chi^2$-Verteilung $\rightarrow \chi^2$-Test 
+Gehen wir nun zur 3. Fragestellung über. Wir verwenden wieder den vollen Datensatz `fb21`.
+
+Zusätzlich zur Gruppenvariable ist in diesem Beispiel auch die abhängige Variable nominalskaliert. Um Fragen wie diese zu beantworten, werden daher die Populationswahrscheinlichkeiten (`job`: ja vs. nein) zwischen den beiden Gruppen (`ort`: Frankfurt [`FFM`] vs. außerhalb [`andere`]) miteinander verglichen. Diese Prüfung erfolgt mithilfe der $\chi^2$-Verteilung $\rightarrow \chi^2$-Test.
 
 ### 3.1. Datenaufbereitung
 
+Zunächst müssen wir den `ort` und den `job` als Faktor abspeichern und entsprechende Labels vergeben. Damit wir hier keine Probleme bekommen, müssen wir zunächst prüfen, ob die Variablen ein `factor` sind:
+
 ```{r}
-if(is.factor(fb21$ort) == FALSE){
-  fb21$ort <- factor(fb21$ort, levels=c(1,2), labels=c("FFM", "anderer"))
-}
-if(is.factor(fb21$job) == FALSE){
-  fb21$job <- factor(fb21$job, levels=c(1,2), labels=c("nein", "ja"))
-}
+is.factor(fb21$ort)
+is.factor(fb21$job)
+```
+
+Dies ist bei beiden nicht der Fall, weswegen wir hier die Variable als Faktor ablegen können. Wir verwenden die Labels, die wir oben bereits in Klammern geschrieben haben!
+
+```{r}
+# Achtung nur einmal durchführen (ansonsten Datensatz neu einladen und Code erneut durchlaufen lassen!)
+fb21$ort <- factor(fb21$ort, levels=c(1,2), labels=c("FFM", "anderer"))
+
+fb21$job <- factor(fb21$job, levels=c(1,2), labels=c("nein", "ja"))
+
 ```
 
  
 ### 3.2. Deskriptivstatistik/Voraussetzungsprüfung  
 
+Wir wollen wieder Deskriptivstatistiken betrachten und die Voraussetzungen des $\chi^2$-Tests prüfen.
+
 **Voraussetzungen:** 
 
-1. Die einzelnen Beobachtungen sind voneinander unabhängig $\rightarrow$ ok
-2. Jede Person lässt sich eindeutig einer Kategorie bzw. Merkmalskombination zuordnen $\rightarrow$ ok
+1. Die einzelnen Beobachtungen sind voneinander unabhängig $\rightarrow$ ok (durch das Studiendesign anzunehmen)
+2. Jede Person lässt sich eindeutig einer Kategorie bzw. Merkmalskombination zuordnen $\rightarrow$ ok (durch das Studiendesign anzunehmen)
 3. Zellbesetzung für alle $n_{ij}$ > 5 $\rightarrow$ Prüfung anhand von Häufigkeitstabelle 
 
 **zu Punkt 3) Zellbesetzung _n_ > 5**
+
+Jede Zelle muss mindestens 5 Fälle aufzeigen, da die Ergebnisse sonst verzerrt werden.
 
 ```{r}
 tab <- table(fb21$ort, fb21$job)
 tab
 ```
 
-$\rightarrow n_{ij}$ > 5 in allen Zellen gegeben
+$\rightarrow n_{ij}$ > 5 in allen Zellen gegeben.
 
 ### 3.3. Inferenzstatistische Beantwortung der Fragestellung
+
+Kommen wir nun zur inferenzstatistischen Prüfung unserer Hypothese.
 
 **Hypothesen**
 
@@ -540,6 +602,10 @@ Hypothesenpaar (statistisch):
 * $H_0$: $\pi_{ij} =    \pi_{i\bullet} \cdot \pi_{\bullet j}$  
 * $H_1$: $\pi_{ij} \neq \pi_{i\bullet} \cdot \pi_{\bullet j}$ 
 
+wobei $\pi_{ij}$ die Wahrscheinlichkeit in Zelle $ij$ zu landen ist. Betrachten wir die Häufigkeitstabelle, dann entspricht dies der Wahrscheinlichkeit der Ausprägung der $i$-ten Zeile (Varible: Wohnortnähe) und der $j$-ten Spalte (Varible: Nebenjob). $\pi_{i\bullet}$ beschreibt die Wahrscheinlichkeit die Ausprägung der der $i$-ten Zeile (Varible: Wohnortnähe) zu haben.  $\pi_{\bullet j}$ beschreibt die Wahrscheinlichkeit die Ausprägung der der $j$-ten Spalte (Varible: Nebenjob) zu haben. Sind die beiden betrachtet Variablen von einander unabhängig, so sollte sich die Wahrscheinlichkeit einer bestimmten Kombination aus den beiden Variablen durch das Produkt der beiden Wahrscheinlichkeiten der jeweiligen Ausprägung der beiden Variablen ausdrücken. Bspw. sollte sich die Wahrscheinlichkeit in Frankfurt zu wohnen und keinen Nebenjob zu haben ausdrücken lassen (gleich sein) mit der Wahrscheinlichkeit in Frankfurt zu wohnen multipliziert mit der Wahrscheinlichkeit keinen Nebenjob zu haben: $\pi_\text{FFM,nein}=\pi_{\text{FFM},\bullet}\cdot\pi_{\bullet,\text{nein}}$ (unter $H_0$). 
+
+Da Wahrscheinlichkeiten im Grunde relative Häufigkeiten sind, betrachten wir im Folgenden die absoluten Häufigkeiten, um der Fragestellung nachzugehen. Aus den relativen Häufigkeiten (Wahrscheinlichkeiten) lassen sich erwartete absolute Häufigkeiten für die jeweiligen Kombinationen der Ausprägungen der Variablen ableiten. 
+
 **Signifikanzniveau $\alpha$**
 
 Die Irrtumswahrscheinlichkeit soll 5% betragen. $\rightarrow \alpha=.05$
@@ -549,9 +615,12 @@ Die Irrtumswahrscheinlichkeit soll 5% betragen. $\rightarrow \alpha=.05$
 
 **erwartete Häufigkeiten berechnen**
 
-Für jede Zelle lassen sich die unter Gültigkeit der Nullhypothese erwarteten Häufigkeiten $e_{ij}$ bestimmen: 
+Für jede Zelle lassen sich die unter Gültigkeit der Nullhypothese erwarteten Häufigkeiten $e_{ij}$ bestimmen (hier sind $n_{i\bullet}$ und $n_{\bullet j}$ die absoluten Häufigkeiten, die zu den Wahrscheinlichkeiten oben gehören (diese lassen sich im Übrigen leicht bestimmen: $n_{i\bullet}=n\hat{\pi}_{i\bullet}$, mit $n$ als Stichprobengröße): 
 
 $$e_{ij} = \frac{n_{i\bullet} \cdot n_{\bullet j}}{n}$$
+
+$n_{i\bullet}$ und $n_{\bullet j}$ lassen sich über die Randsummen bestimmen. Diese hängen wir unseren Daten an. Anschließend erstellen wir einen neuen Datensatz und fügen alle erwarteten Häufigkeiten dort ein.
+
 ```{r}
 tab_mar <- addmargins(tab) # Randsummen zu Tabelle hinzufügen
 tab_mar
@@ -562,6 +631,8 @@ expected <- data.frame(nein=c((tab_mar[1,3]*tab_mar[3,1])/tab_mar[3,3],
                             (tab_mar[2,3]*tab_mar[3,2])/tab_mar[3,3]))
 expected
 ```
+
+Bspw.  für die Kombination (FFM, nein) ergibt sich eine erwartete Häufigkeit von `r round(expected[1,1], 2)`, welcher eine beobachtete Häufigkeit von `r tab_mar[1,1]` gegenüber steht. Mit dem $\chi^2$-Test können wir nun bestimmen, ob diese Unterschiede statistisch bedeutsam groß sind.
 
 **Prüfgröße $\chi^2$ berechnen**
 
@@ -582,12 +653,14 @@ Die Freiheitsgrade berechnen sich aus der Anzahl der untersuchten Kategorien: $d
 * _p_: Anzahl Kategorien Variable "ort" = 2  
 * _k_: Anzahl Kategorien Variable "job" = 2
 
-Zur Bestimmung des kritischen Wertes und des $p$-Wertes:
+Zur Bestimmung des kritischen Wertes und des $p$-Wertes ziehen wir die jeweiligen Funktionen der $\chi^2$ Verteilung heran:
 
 ```{r}
-qchisq(.95, 1)
-pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE)
+qchisq(.95, 1) # kritischer Wert
+pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE) # p-Wert
 ```
+
+Insgesamt ergibt sich damit.
 
 * _df_ = 1
 * $\chi^2_{krit}$ = 3.84
@@ -596,8 +669,11 @@ pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE)
 * $p$ = `r round(pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE), 3)`
 * $p$-Wert > $\alpha$-Fehlerniveau $\rightarrow H_0$ wird beibehalten
 
+In einem Artikel würden wir schreiben: Die Nähe zur Uni hängt nicht damit zusammen, ob ein Nebenjob ausgeübt wird $\chi^2$(df=1)=`r round(chi_quadrat_Wert, 3)`,  $p$ = `r round(pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE), 3)` (bzw. p>0.05).
 
 #### 3.3.2. Vierfelder-$\chi^2$-Test in R: Funktion `chisq.test()`
+
+Die Funktion `chisq.test` übernimmt die Arbeit für uns, wenn wir Ihr einfach eine 4-Feldertabelle üebrgeben.
 
 ```{r}
 chisq.test(tab,        # Kreuztabelle
@@ -606,7 +682,17 @@ chisq.test(tab,        # Kreuztabelle
 
 ### 3.4. Effektstärken
 
+Auch für den $\chi^2$-Test gibt es ein Effektstärkenmaß.
+
 **Yules Q**
+
+Dieses berechnet sich als
+
+$$Q=\frac{n_{11}n_{22}-n_{12}n_{21}}{n_{11}n_{22}+n_{12}n_{21}},$$
+
+welches einen Wertebereich von [-1,1] aufweist und analog zur Korrelation interpretiert werden kann. 1 steht in diesem Fall für einen perfekten positiven Zusammenhang (dazu in der entsprechenden Sitzung mehr).
+
+In `R` sieht das so aus:
 
 ```{r}
 effekt_YulesQ <- (tab[1,1]*tab[2,2]-tab[1,2]*tab[2,1])/
@@ -614,27 +700,36 @@ effekt_YulesQ <- (tab[1,1]*tab[2,2]-tab[1,2]*tab[2,1])/
 effekt_YulesQ
 ```
 
-Wertebereich zwischen -1 und 1; Interpretation analog zu Korrelationen
 
 **Phi ($\phi$)**
+
+Auch kann man $\phi$ bestimmen:
+
+$$\phi = \frac{n_{11}n_{22}-n_{12}n_{21}}{\sqrt{(n_{11}+n_{12})(n_{11}+n_{21})(n_{12}+n_{22})(n_{21}+n_{22})}}$$
+welches einen Wertebereich von [-1,1] aufweist und analog zur Korrelation interpretiert werden kann. 1 steht in diesem Fall für einen perfekten positiven Zusammenhang (dazu in der entsprechenden Sitzung mehr).
+
+
+In `R` sieht das so aus:
 
 ```{r}
 effekt_phi <- (tab[1,1]*tab[2,2]-tab[1,2]*tab[2,1])/
   sqrt((tab[1,1]+tab[1,2])*(tab[1,1]+tab[2,1])*(tab[1,2]+tab[2,2])*(tab[2,1]+tab[2,2]))
 effekt_phi
+```
 
+Das ganze lässt sich auch mit dem `psych` und der darin enthaltenen Funktion `phi` umsetzen:
+```{r}
 # alternativ mit psych Paket
 library(psych)
 phi(tab, digits = 8)
 
-# Äquivalentes Ergebnis mittels Pearson-Korrelation
+# Äquivalentes Ergebnis mittels Pearson-Korrelation (kommt in den nächsten Sitzungen)
 # (dichotome Variablen)
 ort_num <- as.numeric(fb21$ort)
 job_num <- as.numeric(fb21$job)
 cor(ort_num, job_num, use="pairwise")
 ```
 
-Wertebereich zwischen -1 und 1; Interpretation analog zu Korrelationen
 
 
 ### 3.5. Ergebnisinterpretation

@@ -6,6 +6,9 @@ categories:
   - BSc2
 tags:
   - t-Test
+  - chi2-Test
+  - Wilcoxon-Test
+  - unabhängig
 subtitle: ''
 summary: ''
 authors: [koehler, buchholz, irmer]
@@ -110,6 +113,7 @@ dim(dataA)</code></pre>
 ## 116   nein        36
 ## 117   nein        34
 ## 118   nein        30</code></pre>
+<p>Die Daten werden erzeugt mittels <code>rnorm</code> und direkt in einen <code>data.frame</code> geschrieben. Wenn wir dann der Gruppe jeweils eine Ausprägung zuordnen (hier “ja” vs. “nein”), dann entstehen jeweils zwei kleine Datensätze, die aus normalverteilten Punktzahlen bestehen und einem Vektor, der jeweils “ja” und “nein” anzeigt (für die beiden Datensätze <code>gruppe.regel</code> und <code>gruppe.unreg</code>). Fügen wir diese beiden Gruppen zusammen, erhalten wir unseren gewünschten Datensatz. <code>head</code> zeigt die ersten 6 Zeilen und <code>tail</code> die letzten 6 Zeilen. Da wir hier eine zufällige Stichprobe (zum Seed 123) gezogen haben, sollten wir uns die Daten zunächst deskriptiv ansehen, um uns einen Überblick zu verschaffen (auch wenn wir bereits wissen, dass sich die beiden Gruppen in der Population unterscheiden).</p>
 </div>
 <div id="deskriptivstatistik" class="section level3">
 <h3>1.1. Deskriptivstatistik</h3>
@@ -141,7 +145,7 @@ abline(v=mean(dataA[(dataA$Gruppe==&quot;nein&quot;), &quot;Punktzahl&quot;], na
 </div>
 <div id="statistisch" class="section level4">
 <h4>1.1.2. statistisch</h4>
-<p>Wir können uns Deskriptivstatistiken ansehen. Bspw. könnten wir den Mittelwerte oder die SDs etc uns ausgeben lassen. Dazu nehmen wir entweder die <code>summary</code> und wählen die entsprechenden Fälle aus oder wir machen uns das <code>psych</code>-Paket zur nutze. Dieses muss zuvor installiert sein (<code>install.packages</code>). Falls dem so ist, dann kann das Paket mit <code>library</code> eingeladen werden. Die Funktion, die uns interessiert heißt <code>describeBy</code>, welche die Gruppenaufteilung bereits für uns übernimmt.</p>
+<p>Wir können uns auch Deskriptivstatistiken ansehen. Bspw. könnten wir den Mittelwerte oder die SDs etc uns ausgeben lassen. Dazu nehmen wir entweder die <code>summary</code> und wählen die entsprechenden Fälle aus oder wir machen uns das <code>psych</code>-Paket zur nutze. Dieses muss zuvor installiert sein (<code>install.packages</code>). Falls dem so ist, dann kann das Paket mit <code>library</code> eingeladen werden. Die Funktion, die uns interessiert heißt <code>describeBy</code>, welche die Gruppenaufteilung bereits für uns übernimmt.</p>
 <pre class="r"><code># umständlich:
 summary(dataA$Punktzahl[(dataA$Gruppe==&quot;ja&quot;)])   # Gruppe 1: regelmäßige Teilnahme</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max. 
@@ -354,74 +358,53 @@ d2</code></pre>
 </div>
 <div id="fragestellung-b-sind-studentinnen-verträglicher-als-studenten" class="section level2">
 <h2>2. Fragestellung B: Sind Studentinnen verträglicher als Studenten?</h2>
+<p>Wir widmen uns nun der 2. Fragestellung.</p>
 <div id="vorbereitung-daten-einlesen-daten-aufbereiten" class="section level3">
 <h3>2.1 Vorbereitung (Daten einlesen, Daten aufbereiten)</h3>
+<p>Zunächst müssen wir die Daten entsprechend vorbereiten.</p>
 <pre class="r"><code>setwd(&quot;...&quot;)
 load(&quot;fb21.rda&quot;)</code></pre>
-<pre class="r"><code># Geschlecht als Faktor hinterlegen - aber nur dann, falls es noch keiner war
-if(is.factor(fb21$geschl) == FALSE){           # falls Geschlecht noch nicht als Faktor vorliegt...
-  fb21$geschl &lt;- factor(fb21$geschl,           # ...wird ein Faktor erstellt
+<p>Das Geschlecht <code>geschl</code> sollte als Faktor vorliegen. Falls Sie das Geschlecht bereits in einen Faktor mit benannten <code>levels</code> umgewandelt haben, dann können Sie dies in der Regel nicht noch einmal tun. Deswegen ist es sinnvoll, zunächst zu prüfen, ob das Geschlecht ein <code>factor</code> ist oder nicht. Das können wir mit <code>is.factor</code> machen. Diese Funktion gibt uns einen boolschen Wert (<code>TRUE</code> oder <code>FALSE</code>) wieder und beantwortet damit unsere Frage, ob das Geschlecht ein <code>factor</code> ist oder nicht.</p>
+<pre class="r"><code>is.factor(fb21$geschl)</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<p>Da wir den Datensatz “ganz frisch” eingeladen haben, ist dies nicht der Fall. Demnach können wir ganz unbedacht den <code>factor</code> nach unseren Wünschen generieren:</p>
+<pre class="r"><code>fb21$geschl &lt;- factor(fb21$geschl,          
                         levels = c(1, 2, 3),
-                        labels = c(&#39;weiblich&#39;, &#39;maennlich&#39;, &#39;anderes&#39;))
-  }
-str(fb21)</code></pre>
-<pre><code>## &#39;data.frame&#39;:    114 obs. of  36 variables:
-##  $ prok1  : int  3 2 2 3 1 1 3 2 4 1 ...
-##  $ prok2  : int  3 2 3 2 4 3 3 4 3 3 ...
-##  $ prok3  : int  3 3 4 3 3 4 3 3 1 3 ...
-##  $ prok4  : int  3 2 2 NA 2 3 4 1 4 1 ...
-##  $ prok5  : int  3 2 4 3 4 4 3 4 2 4 ...
-##  $ prok6  : int  3 2 3 1 2 3 3 2 4 1 ...
-##  $ prok7  : int  3 3 4 2 4 3 2 3 3 4 ...
-##  $ prok8  : int  3 3 4 3 3 2 3 3 3 4 ...
-##  $ prok9  : int  3 2 3 2 2 2 4 3 4 1 ...
-##  $ prok10 : int  3 1 1 2 2 2 3 3 4 2 ...
-##  $ nr1    : int  3 1 3 4 4 2 2 4 4 1 ...
-##  $ nr2    : int  3 1 3 4 4 4 4 4 3 3 ...
-##  $ nr3    : int  3 1 3 2 3 1 1 3 5 2 ...
-##  $ nr4    : int  3 2 5 2 5 5 3 4 5 5 ...
-##  $ nr5    : int  3 2 5 2 4 4 2 3 5 3 ...
-##  $ nr6    : int  3 1 5 2 5 3 2 4 5 3 ...
-##  $ lz     : num  3 5.2 7 4.8 6 3.6 5.6 NA 4 5.8 ...
-##  $ extra  : num  3 2.25 4.75 3.5 3.75 1.25 2.5 3 2.25 4 ...
-##  $ vertr  : num  3 4 4 4.25 4.25 3.75 3.5 4.25 4.5 4.25 ...
-##  $ gewis  : num  3 3.75 4.5 4 4.75 4.75 4.25 4 2.75 4.5 ...
-##  $ neuro  : num  3 2.5 3 2.5 2.75 2.5 3.25 1.5 5 2.25 ...
-##  $ intel  : num  3 3.5 4 3 4.75 4.25 3.75 4.25 3.75 4 ...
-##  $ nerd   : num  3 3 2.33 2.17 2.83 ...
-##  $ grund  : chr  NA NA &quot;123&quot; &quot;Arbeit mit Menschen&quot; ...
-##  $ fach   : num  2 4 5 5 NA 4 5 5 5 4 ...
-##  $ ziel   : num  4 3 1 2 NA 2 3 1 4 2 ...
-##  $ lerntyp: num  1 3 1 3 NA 1 3 1 1 3 ...
-##  $ geschl : Factor w/ 3 levels &quot;weiblich&quot;,&quot;maennlich&quot;,..: 2 1 1 1 NA 1 1 2 3 1 ...
-##  $ job    : int  2 1 1 1 NA NA 1 1 2 1 ...
-##  $ ort    : int  2 2 1 1 NA 2 2 2 2 1 ...
-##  $ ort12  : int  1 2 1 1 NA 1 1 1 1 1 ...
-##  $ wohnen : num  3 3 1 1 NA 2 2 3 1 4 ...
-##  $ uni1   : num  1 0 0 1 0 0 0 0 1 0 ...
-##  $ uni2   : num  0 0 0 1 0 1 1 0 1 1 ...
-##  $ uni3   : num  0 0 0 1 0 0 0 0 0 0 ...
-##  $ uni4   : num  0 0 0 1 0 0 0 0 1 0 ...</code></pre>
-<p>Variable “geschl” liegt (nun) als Faktor vor.</p>
+                        labels = c(&#39;weiblich&#39;, &#39;maennlich&#39;, &#39;anderes&#39;))</code></pre>
+<p>Variable <code>geschl</code> liegt (nun) als Faktor vor.</p>
+<pre class="r"><code>is.factor(fb21$geschl)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Seine <code>levels</code> lauten</p>
+<pre class="r"><code>levels(fb21$geschl)</code></pre>
+<pre><code>## [1] &quot;weiblich&quot;  &quot;maennlich&quot; &quot;anderes&quot;</code></pre>
 </div>
 <div id="deskriptivstatistik-1" class="section level3">
 <h3>2.2. Deskriptivstatistik</h3>
+<p>Nun folgt wieder die deskriptive Untersuchung, ob Unterschiede über das Geschlecht vorliegen.</p>
 <div id="grafisch-1" class="section level4">
 <h4>2.2.1. grafisch</h4>
+<p>Wir beginnen mit einer grafischen Auseinandersetzung mit der Fragestellung.</p>
+<pre class="r"><code>table(fb21$geschl)</code></pre>
+<pre><code>## 
+##  weiblich maennlich   anderes 
+##        80        31         1</code></pre>
+<p>Insgesamt gibt es nur eine Person, welche die Option “anderes” ausgewählt hat. Leider lässt sich über einen Datenpunkt allein keine Varianz bestimmen und auch keine Inferenzstatistik betreiben. Aus diesem Grund müssen wir uns hier auf “maennlich” und “weiblich” beschränken und verwenden im Folgenden den gekürzten Datensatz <code>dataB</code>:</p>
 <pre class="r"><code># nur Männer und Frauen auswählen:
 dataB &lt;- fb21[ (fb21$geschl==&quot;maennlich&quot;|fb21$geschl==&quot;weiblich&quot;), ]  
-dataB$geschl &lt;- droplevels(dataB$geschl)
+dataB$geschl &lt;- droplevels(dataB$geschl) # levels aus den Datensatz entfernen, 
+# die keine Erhebungen haben
 
 # Gruppierter Boxplot:
 boxplot(dataB$vertr ~ dataB$geschl, 
         xlab=&quot;Geschlecht&quot;, ylab=&quot;Verträglichkeit&quot;, 
         las=1, cex.lab=1.5, 
         main=&quot;Verträglichkeit je nach Geschlecht&quot;)</code></pre>
-<p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
 <p>Graphisch ist kein Unterschied zu erkennen.</p>
 </div>
 <div id="statistisch-1" class="section level4">
 <h4>2.2.2. statistisch</h4>
+<p>Nun schauen wir uns das Ganze wieder deskriptivstatistisch an.</p>
 <pre class="r"><code>describeBy(dataB$vertr, dataB$geschl) # beide Gruppen im Vergleich</code></pre>
 <pre><code>## 
 ##  Descriptive statistics by group 
@@ -439,11 +422,12 @@ summary( dataB[(dataB$geschl==&quot;weiblich&quot;), &quot;vertr&quot;])</code><
 <pre class="r"><code>summary( dataB[(dataB$geschl==&quot;maennlich&quot;), &quot;vertr&quot;]) </code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA&#39;s 
 ##   3.000   4.000   4.250   4.177   4.500   5.000       2</code></pre>
-<p>Deskriptiv weist die Gruppe der männlichen Studierenden den gleichen Median auf wie die Gruppe der weiblichen Studierenden.</p>
+<p>Deskriptiv weist die Gruppe der männlichen Studierenden den gleichen Median auf wie die Gruppe der weiblichen Studierenden. Nur die Interquartilbereiche unterscheiden sich leicht.</p>
 </div>
 </div>
 <div id="voraussetzungsprüfung-1" class="section level3">
 <h3>2.3. Voraussetzungsprüfung</h3>
+<p>Um diese Beobachtung inferenzstatistisch zu untermauern, müssen wir den richtigen Test durchführen. Wir beginnen damit die Voraussetzungen des <em>t</em>-Tests zu untersuchen:</p>
 <p><strong>Voraussetzungen für die Durchführung des <em>t</em>-Tests:</strong></p>
 <ol style="list-style-type: decimal">
 <li>die abhängige Variable ist intervallskaliert <span class="math inline">\(\rightarrow\)</span> ok<br />
@@ -463,7 +447,7 @@ hist(vertr.w, xlim=c(1,7), ylim=c(0,1), main=&quot;Verträglichkeit (weiblich)&q
 curve(dnorm(x, mean=mean(vertr.w, na.rm=T), sd=sd(vertr.w, na.rm=T)), col=&quot;red&quot;, lwd=2, add=T)
 qqnorm(vertr.w)
 qqline(vertr.w, col=&quot;red&quot;)</code></pre>
-<p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><span class="math inline">\(\rightarrow\)</span> Entscheidung: Normalverteilung in Gruppe 1 (weiblich) ist einigermaßen gegeben <span class="math inline">\(\rightarrow\)</span> spricht für t-Test</p>
 <pre class="r"><code>#Gruppe 2 (männlich)
 par(mfrow=c(1,2))
@@ -472,7 +456,7 @@ hist(vertr.m, xlim=c(1,7), ylim=c(0,.8), main=&quot;Verträglichkeit (männlich)
 curve(dnorm(x, mean=mean(vertr.m, na.rm=T), sd=sd(vertr.m, na.rm=T)), col=&quot;red&quot;, lwd=2, add=T)
 qqnorm(vertr.m)
 qqline(vertr.m, col=&quot;red&quot;)</code></pre>
-<p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-09-20-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><span class="math inline">\(\rightarrow\)</span> Entscheidung: Normalverteilung in Gruppe 2 (männlich) ist nicht gegeben <span class="math inline">\(\rightarrow\)</span> spricht für Wilcoxon-Test</p>
 <p><strong>zu 4) Test auf Homoskedastizität (Levene-Test)</strong></p>
 <p>Das Hypothesenpaar im Levene-Test lautet:</p>
@@ -492,6 +476,7 @@ leveneTest(dataB$vertr ~ dataB$geschl)</code></pre>
 </div>
 <div id="inferenzstatistik-wilcoxon-test" class="section level3">
 <h3>2.4. Inferenzstatistik: Wilcoxon-Test</h3>
+<p>Da wir die Normalverteilung hier als verletzt betrachtet haben, führen wir nun den Wilcoxon-Test (für unabhängige Stichproben) durch.</p>
 <p>Zur Erinnerung:</p>
 <blockquote>
 <p>Fragestellung B: “Sind Studentinnen <em>verträglicher</em> als Studenten?”</p>
@@ -511,15 +496,17 @@ leveneTest(dataB$vertr ~ dataB$geschl)</code></pre>
 </ul>
 <p>Hypothesenpaar (statistisch):</p>
 <ul>
-<li><span class="math inline">\(H_0\)</span>: <span class="math inline">\(\eta_{weiblich} \leq \eta_{männlich}\)</span> bzw. <span class="math inline">\(\eta_{weiblich} - \eta_{männlich} \leq 0\)</span><br />
+<li><span class="math inline">\(H_0\)</span>: <span class="math inline">\(\eta_\text{weiblich} \leq \eta_\text{männlich}\)</span> bzw. <span class="math inline">\(\eta_\text{weiblich} - \eta_\text{männlich} \leq 0\)</span><br />
 </li>
-<li><span class="math inline">\(H_1\)</span>: <span class="math inline">\(\eta_{weiblich} \gt \eta_{männlich}\)</span> bzw. <span class="math inline">\(\eta_{weiblich} - \eta_{männlich} \gt 0\)</span></li>
+<li><span class="math inline">\(H_1\)</span>: <span class="math inline">\(\eta_\text{weiblich} \gt \eta_\text{männlich}\)</span> bzw. <span class="math inline">\(\eta_\text{weiblich} - \eta_\text{männlich} \gt 0\)</span></li>
 </ul>
 <p><strong>Signifikanzniveau</strong></p>
 <p>Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 5% betragen. <span class="math inline">\(\rightarrow \alpha = .05\)</span></p>
 <p><strong>Durchführung des Wilcoxon-Tests in R: Funktion <code>wilcox.test()</code></strong></p>
+<p>Die Funktion <code>wilcox.test</code> nimmt im Grunde die gleichen Argumente entgegen, wie die Funktion <code>t.test</code>. Damit wir die gerichtete Hypothese in die richtige Richtung aufstellen können, müssen wir wissen, welche das erste Level des Faktors Geschlecht ist:</p>
 <pre class="r"><code>levels(dataB$geschl) # wichtig zu wissen: die erste der beiden Faktorstufen ist &quot;weiblich&quot; </code></pre>
 <pre><code>## [1] &quot;weiblich&quot;  &quot;maennlich&quot;</code></pre>
+<p>Da die erste Faktorstufe “weiblich” ist, wissen wir, dass die gerichtete Hypothese “&gt;” lauten muss, also “greater”:</p>
 <pre class="r"><code>wilcox.test(dataB$vertr ~ dataB$geschl,   # abhängige Variable ~ unabhängige Variable
             paired = FALSE,               # Stichproben sind unabhängig
             alternative = &quot;greater&quot;,      # einseitige Testung, und zwar so, dass Gruppe1(w)-Gruppe2(m) &gt; 0
@@ -530,45 +517,53 @@ leveneTest(dataB$vertr ~ dataB$geschl)</code></pre>
 ## data:  dataB$vertr by dataB$geschl
 ## W = 1213, p-value = 0.5726
 ## alternative hypothesis: true location shift is greater than 0</code></pre>
-<p><span class="math inline">\(W = 1213, p = .573 \rightarrow\)</span> Ergebnis ist nicht signfikant, <span class="math inline">\(H_0\)</span> wird beibehalten</p>
+<p><span class="math inline">\(W = 1213, p = .573 \rightarrow\)</span> Ergebnis ist nicht signfikant, <span class="math inline">\(H_0\)</span> wird beibehalten.</p>
 </div>
 <div id="ergebnisinterpretation-1" class="section level3">
 <h3>2.5. Ergebnisinterpretation</h3>
-<p>Es wurde untersucht, ob Studentinnen verträglicher sind als Studenten. Deskriptiv besteht kein Unterschied in der Verträglichkeit: Beide Gruppen weisen einen Median von 4.25 auf (<span class="math inline">\(IQB_w\)</span> = [3.75; 4.5]; <span class="math inline">\(IQB_m\)</span> = [4.0; 4.5]). Zur Beantwortung der Fragestellung wurde ein Wilcoxon-Test durchgeführt. Der Gruppenunterschied ist statistisch nicht signifikant (<em>W</em> = 1213, <em>p</em> = .573). Somit wird die Nullhypothese beibehalten: Studentinnen sind nicht verträglicher als Studenten.</p>
+<p>Es wurde untersucht, ob Studentinnen verträglicher sind als Studenten. Deskriptiv besteht kein Unterschied in der Verträglichkeit: Beide Gruppen weisen einen Median von 4.25 auf (<span class="math inline">\(IQB_w\)</span> = [3.75; 4.5]; <span class="math inline">\(IQB_m\)</span> = [4.0; 4.5]). Zur Beantwortung der Fragestellung wurde ein Wilcoxon-Test durchgeführt. Der Gruppenunterschied über das Geschlecht ist nicht statistisch bedeutsam (<em>W</em> = 1213, <em>p</em> = .573). Somit wird die Nullhypothese beibehalten: Studentinnen sind nicht verträglicher als Studenten.</p>
 <hr />
 </div>
 </div>
 <div id="fragestellung-c-haben-studierende-mit-wohnort-in-uninähe-frankfurt-mit-gleicher-wahrscheinlichkeit-einen-nebenjob-wie-studierende-deren-wohnort-außerhalb-von-frankfurt-liegt" class="section level2">
 <h2>3. Fragestellung C: Haben Studierende mit Wohnort in Uninähe (Frankfurt) mit gleicher Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt?</h2>
-<p>Zusätzlich zur Gruppenvariable ist in diesem Beispiel auch die abhängige Variable nominalskaliert. Um Fragen wie diese zu beantworten, werden daher die Populationswahrscheinlichkeiten (job: ja vs. nein) zwischen den beiden Gruppen (ort: Frankfurt vs. außerhalb) miteinander verglichen. Diese Prüfung erfolgt mithilfe der <span class="math inline">\(\chi^2\)</span>-Verteilung <span class="math inline">\(\rightarrow \chi^2\)</span>-Test</p>
+<p>Gehen wir nun zur 3. Fragestellung über. Wir verwenden wieder den vollen Datensatz <code>fb21</code>.</p>
+<p>Zusätzlich zur Gruppenvariable ist in diesem Beispiel auch die abhängige Variable nominalskaliert. Um Fragen wie diese zu beantworten, werden daher die Populationswahrscheinlichkeiten (<code>job</code>: ja vs. nein) zwischen den beiden Gruppen (<code>ort</code>: Frankfurt [<code>FFM</code>] vs. außerhalb [<code>andere</code>]) miteinander verglichen. Diese Prüfung erfolgt mithilfe der <span class="math inline">\(\chi^2\)</span>-Verteilung <span class="math inline">\(\rightarrow \chi^2\)</span>-Test.</p>
 <div id="datenaufbereitung" class="section level3">
 <h3>3.1. Datenaufbereitung</h3>
-<pre class="r"><code>if(is.factor(fb21$ort) == FALSE){
-  fb21$ort &lt;- factor(fb21$ort, levels=c(1,2), labels=c(&quot;FFM&quot;, &quot;anderer&quot;))
-}
-if(is.factor(fb21$job) == FALSE){
-  fb21$job &lt;- factor(fb21$job, levels=c(1,2), labels=c(&quot;nein&quot;, &quot;ja&quot;))
-}</code></pre>
+<p>Zunächst müssen wir den <code>ort</code> und den <code>job</code> als Faktor abspeichern und entsprechende Labels vergeben. Damit wir hier keine Probleme bekommen, müssen wir zunächst prüfen, ob die Variablen ein <code>factor</code> sind:</p>
+<pre class="r"><code>is.factor(fb21$ort)</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>is.factor(fb21$job)</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<p>Dies ist bei beiden nicht der Fall, weswegen wir hier die Variable als Faktor ablegen können. Wir verwenden die Labels, die wir oben bereits in Klammern geschrieben haben!</p>
+<pre class="r"><code># Achtung nur einmal durchführen (ansonsten Datensatz neu einladen und Code erneut durchlaufen lassen!)
+fb21$ort &lt;- factor(fb21$ort, levels=c(1,2), labels=c(&quot;FFM&quot;, &quot;anderer&quot;))
+
+fb21$job &lt;- factor(fb21$job, levels=c(1,2), labels=c(&quot;nein&quot;, &quot;ja&quot;))</code></pre>
 </div>
 <div id="deskriptivstatistikvoraussetzungsprüfung" class="section level3">
 <h3>3.2. Deskriptivstatistik/Voraussetzungsprüfung</h3>
+<p>Wir wollen wieder Deskriptivstatistiken betrachten und die Voraussetzungen des <span class="math inline">\(\chi^2\)</span>-Tests prüfen.</p>
 <p><strong>Voraussetzungen:</strong></p>
 <ol style="list-style-type: decimal">
-<li>Die einzelnen Beobachtungen sind voneinander unabhängig <span class="math inline">\(\rightarrow\)</span> ok</li>
-<li>Jede Person lässt sich eindeutig einer Kategorie bzw. Merkmalskombination zuordnen <span class="math inline">\(\rightarrow\)</span> ok</li>
+<li>Die einzelnen Beobachtungen sind voneinander unabhängig <span class="math inline">\(\rightarrow\)</span> ok (durch das Studiendesign anzunehmen)</li>
+<li>Jede Person lässt sich eindeutig einer Kategorie bzw. Merkmalskombination zuordnen <span class="math inline">\(\rightarrow\)</span> ok (durch das Studiendesign anzunehmen)</li>
 <li>Zellbesetzung für alle <span class="math inline">\(n_{ij}\)</span> &gt; 5 <span class="math inline">\(\rightarrow\)</span> Prüfung anhand von Häufigkeitstabelle</li>
 </ol>
 <p><strong>zu Punkt 3) Zellbesetzung <em>n</em> &gt; 5</strong></p>
+<p>Jede Zelle muss mindestens 5 Fälle aufzeigen, da die Ergebnisse sonst verzerrt werden.</p>
 <pre class="r"><code>tab &lt;- table(fb21$ort, fb21$job)
 tab</code></pre>
 <pre><code>##          
 ##           nein ja
 ##   FFM       29 27
 ##   anderer   33 22</code></pre>
-<p><span class="math inline">\(\rightarrow n_{ij}\)</span> &gt; 5 in allen Zellen gegeben</p>
+<p><span class="math inline">\(\rightarrow n_{ij}\)</span> &gt; 5 in allen Zellen gegeben.</p>
 </div>
 <div id="inferenzstatistische-beantwortung-der-fragestellung" class="section level3">
 <h3>3.3. Inferenzstatistische Beantwortung der Fragestellung</h3>
+<p>Kommen wir nun zur inferenzstatistischen Prüfung unserer Hypothese.</p>
 <p><strong>Hypothesen</strong></p>
 <ul>
 <li>Art des Effekts: Zusammenhangshypothese<br />
@@ -589,13 +584,16 @@ tab</code></pre>
 </li>
 <li><span class="math inline">\(H_1\)</span>: <span class="math inline">\(\pi_{ij} \neq \pi_{i\bullet} \cdot \pi_{\bullet j}\)</span></li>
 </ul>
+<p>wobei <span class="math inline">\(\pi_{ij}\)</span> die Wahrscheinlichkeit in Zelle <span class="math inline">\(ij\)</span> zu landen ist. Betrachten wir die Häufigkeitstabelle, dann entspricht dies der Wahrscheinlichkeit der Ausprägung der <span class="math inline">\(i\)</span>-ten Zeile (Varible: Wohnortnähe) und der <span class="math inline">\(j\)</span>-ten Spalte (Varible: Nebenjob). <span class="math inline">\(\pi_{i\bullet}\)</span> beschreibt die Wahrscheinlichkeit die Ausprägung der der <span class="math inline">\(i\)</span>-ten Zeile (Varible: Wohnortnähe) zu haben. <span class="math inline">\(\pi_{\bullet j}\)</span> beschreibt die Wahrscheinlichkeit die Ausprägung der der <span class="math inline">\(j\)</span>-ten Spalte (Varible: Nebenjob) zu haben. Sind die beiden betrachtet Variablen von einander unabhängig, so sollte sich die Wahrscheinlichkeit einer bestimmten Kombination aus den beiden Variablen durch das Produkt der beiden Wahrscheinlichkeiten der jeweiligen Ausprägung der beiden Variablen ausdrücken. Bspw. sollte sich die Wahrscheinlichkeit in Frankfurt zu wohnen und keinen Nebenjob zu haben ausdrücken lassen (gleich sein) mit der Wahrscheinlichkeit in Frankfurt zu wohnen multipliziert mit der Wahrscheinlichkeit keinen Nebenjob zu haben: <span class="math inline">\(\pi_\text{FFM,nein}=\pi_{\text{FFM},\bullet}\cdot\pi_{\bullet,\text{nein}}\)</span> (unter <span class="math inline">\(H_0\)</span>).</p>
+<p>Da Wahrscheinlichkeiten im Grunde relative Häufigkeiten sind, betrachten wir im Folgenden die absoluten Häufigkeiten, um der Fragestellung nachzugehen. Aus den relativen Häufigkeiten (Wahrscheinlichkeiten) lassen sich erwartete absolute Häufigkeiten für die jeweiligen Kombinationen der Ausprägungen der Variablen ableiten.</p>
 <p><strong>Signifikanzniveau <span class="math inline">\(\alpha\)</span></strong></p>
 <p>Die Irrtumswahrscheinlichkeit soll 5% betragen. <span class="math inline">\(\rightarrow \alpha=.05\)</span></p>
 <div id="vierfelder-chi2-test-in-r-manuelle-berechnung-über-formel" class="section level4">
 <h4>3.3.1. Vierfelder-<span class="math inline">\(\chi^2\)</span>-Test in R: “manuelle” Berechnung über Formel</h4>
 <p><strong>erwartete Häufigkeiten berechnen</strong></p>
-<p>Für jede Zelle lassen sich die unter Gültigkeit der Nullhypothese erwarteten Häufigkeiten <span class="math inline">\(e_{ij}\)</span> bestimmen:</p>
+<p>Für jede Zelle lassen sich die unter Gültigkeit der Nullhypothese erwarteten Häufigkeiten <span class="math inline">\(e_{ij}\)</span> bestimmen (hier sind <span class="math inline">\(n_{i\bullet}\)</span> und <span class="math inline">\(n_{\bullet j}\)</span> die absoluten Häufigkeiten, die zu den Wahrscheinlichkeiten oben gehören (diese lassen sich im Übrigen leicht bestimmen: <span class="math inline">\(n_{i\bullet}=n\hat{\pi}_{i\bullet}\)</span>, mit <span class="math inline">\(n\)</span> als Stichprobengröße):</p>
 <p><span class="math display">\[e_{ij} = \frac{n_{i\bullet} \cdot n_{\bullet j}}{n}\]</span></p>
+<p><span class="math inline">\(n_{i\bullet}\)</span> und <span class="math inline">\(n_{\bullet j}\)</span> lassen sich über die Randsummen bestimmen. Diese hängen wir unseren Daten an. Anschließend erstellen wir einen neuen Datensatz und fügen alle erwarteten Häufigkeiten dort ein.</p>
 <pre class="r"><code>tab_mar &lt;- addmargins(tab) # Randsummen zu Tabelle hinzufügen
 tab_mar</code></pre>
 <pre><code>##          
@@ -611,6 +609,7 @@ expected</code></pre>
 <pre><code>##       nein       ja
 ## 1 31.27928 24.72072
 ## 2 30.72072 24.27928</code></pre>
+<p>Bspw. für die Kombination (FFM, nein) ergibt sich eine erwartete Häufigkeit von 31.28, welcher eine beobachtete Häufigkeit von 29 gegenüber steht. Mit dem <span class="math inline">\(\chi^2\)</span>-Test können wir nun bestimmen, ob diese Unterschiede statistisch bedeutsam groß sind.</p>
 <p><strong>Prüfgröße <span class="math inline">\(\chi^2\)</span> berechnen</strong></p>
 <p>Formel:
 <span class="math display">\[\chi^2 = \sum_{i=1}^{2}{ \sum_{j=1}^{2}{ \frac{(n_{ij}-e_{ij})^2} {e_{ij}}}}\]</span></p>
@@ -627,11 +626,12 @@ chi_quadrat_Wert</code></pre>
 </li>
 <li><em>k</em>: Anzahl Kategorien Variable “job” = 2</li>
 </ul>
-<p>Zur Bestimmung des kritischen Wertes und des <span class="math inline">\(p\)</span>-Wertes:</p>
-<pre class="r"><code>qchisq(.95, 1)</code></pre>
+<p>Zur Bestimmung des kritischen Wertes und des <span class="math inline">\(p\)</span>-Wertes ziehen wir die jeweiligen Funktionen der <span class="math inline">\(\chi^2\)</span> Verteilung heran:</p>
+<pre class="r"><code>qchisq(.95, 1) # kritischer Wert</code></pre>
 <pre><code>## [1] 3.841459</code></pre>
-<pre class="r"><code>pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE)</code></pre>
+<pre class="r"><code>pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE) # p-Wert</code></pre>
 <pre><code>## [1] 0.383541</code></pre>
+<p>Insgesamt ergibt sich damit.</p>
 <ul>
 <li><em>df</em> = 1</li>
 <li><span class="math inline">\(\chi^2_{krit}\)</span> = 3.84</li>
@@ -640,9 +640,11 @@ chi_quadrat_Wert</code></pre>
 <li><span class="math inline">\(p\)</span> = 0.384</li>
 <li><span class="math inline">\(p\)</span>-Wert &gt; <span class="math inline">\(\alpha\)</span>-Fehlerniveau <span class="math inline">\(\rightarrow H_0\)</span> wird beibehalten</li>
 </ul>
+<p>In einem Artikel würden wir schreiben: Die Nähe zur Uni hängt nicht damit zusammen, ob ein Nebenjob ausgeübt wird <span class="math inline">\(\chi^2\)</span>(df=1)=0.759, <span class="math inline">\(p\)</span> = 0.384 (bzw. p&gt;0.05).</p>
 </div>
 <div id="vierfelder-chi2-test-in-r-funktion-chisq.test" class="section level4">
 <h4>3.3.2. Vierfelder-<span class="math inline">\(\chi^2\)</span>-Test in R: Funktion <code>chisq.test()</code></h4>
+<p>Die Funktion <code>chisq.test</code> übernimmt die Arbeit für uns, wenn wir Ihr einfach eine 4-Feldertabelle üebrgeben.</p>
 <pre class="r"><code>chisq.test(tab,        # Kreuztabelle
            correct=F)  # keine Kontinuinitaetskorrektur nach Yates</code></pre>
 <pre><code>## 
@@ -654,28 +656,36 @@ chi_quadrat_Wert</code></pre>
 </div>
 <div id="effektstärken" class="section level3">
 <h3>3.4. Effektstärken</h3>
+<p>Auch für den <span class="math inline">\(\chi^2\)</span>-Test gibt es ein Effektstärkenmaß.</p>
 <p><strong>Yules Q</strong></p>
+<p>Dieses berechnet sich als</p>
+<p><span class="math display">\[Q=\frac{n_{11}n_{22}-n_{12}n_{21}}{n_{11}n_{22}+n_{12}n_{21}},\]</span></p>
+<p>welches einen Wertebereich von [-1,1] aufweist und analog zur Korrelation interpretiert werden kann. 1 steht in diesem Fall für einen perfekten positiven Zusammenhang (dazu in der entsprechenden Sitzung mehr).</p>
+<p>In <code>R</code> sieht das so aus:</p>
 <pre class="r"><code>effekt_YulesQ &lt;- (tab[1,1]*tab[2,2]-tab[1,2]*tab[2,1])/
                  (tab[1,1]*tab[2,2]+tab[1,2]*tab[2,1])
 effekt_YulesQ</code></pre>
 <pre><code>## [1] -0.1654676</code></pre>
-<p>Wertebereich zwischen -1 und 1; Interpretation analog zu Korrelationen</p>
 <p><strong>Phi (<span class="math inline">\(\phi\)</span>)</strong></p>
+<p>Auch kann man <span class="math inline">\(\phi\)</span> bestimmen:</p>
+<p><span class="math display">\[\phi = \frac{n_{11}n_{22}-n_{12}n_{21}}{\sqrt{(n_{11}+n_{12})(n_{11}+n_{21})(n_{12}+n_{22})(n_{21}+n_{22})}}\]</span>
+welches einen Wertebereich von [-1,1] aufweist und analog zur Korrelation interpretiert werden kann. 1 steht in diesem Fall für einen perfekten positiven Zusammenhang (dazu in der entsprechenden Sitzung mehr).</p>
+<p>In <code>R</code> sieht das so aus:</p>
 <pre class="r"><code>effekt_phi &lt;- (tab[1,1]*tab[2,2]-tab[1,2]*tab[2,1])/
   sqrt((tab[1,1]+tab[1,2])*(tab[1,1]+tab[2,1])*(tab[1,2]+tab[2,2])*(tab[2,1]+tab[2,2]))
 effekt_phi</code></pre>
 <pre><code>## [1] -0.08270872</code></pre>
+<p>Das ganze lässt sich auch mit dem <code>psych</code> und der darin enthaltenen Funktion <code>phi</code> umsetzen:</p>
 <pre class="r"><code># alternativ mit psych Paket
 library(psych)
 phi(tab, digits = 8)</code></pre>
 <pre><code>## [1] -0.08270872</code></pre>
-<pre class="r"><code># Äquivalentes Ergebnis mittels Pearson-Korrelation
+<pre class="r"><code># Äquivalentes Ergebnis mittels Pearson-Korrelation (kommt in den nächsten Sitzungen)
 # (dichotome Variablen)
 ort_num &lt;- as.numeric(fb21$ort)
 job_num &lt;- as.numeric(fb21$job)
 cor(ort_num, job_num, use=&quot;pairwise&quot;)</code></pre>
 <pre><code>## [1] -0.08270872</code></pre>
-<p>Wertebereich zwischen -1 und 1; Interpretation analog zu Korrelationen</p>
 </div>
 <div id="ergebnisinterpretation-2" class="section level3">
 <h3>3.5. Ergebnisinterpretation</h3>
