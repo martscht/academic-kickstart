@@ -8,16 +8,15 @@ tags:
   - t-Test
 subtitle: ''
 summary: ''
-authors: [koehler]
+authors: [koehler, buchholz]
 lastmod: '2020-12-17T13:15:14+01:00'
 featured: no
-image:
-  caption: ''
-  focal_point: ''
-  preview_only: no
+header:
+  image: "/header/BSc2_test_abh_stpr.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/449195)"
 projects: []
 expiryDate: '2022-09-15'
-publishDate: '2021-12-17'
+publishDate: '2022-01-29'
 ---
 
 
@@ -28,143 +27,8 @@ library(car)
 library(effsize)
 ```
 
-**Daten einlesen**
-
-```{r echo=F}
-fb20 <- read.table('https://pandar.netlify.app/post/fb20.csv', 
-  header = TRUE,
-  sep = ',',
-  na.strings = '-99')
-```
-
-```{r, eval=F}
-setwd("...")  
-load("fb20.rda")
-```
-
-**Daten aufbereiten**
-
-```{r}
-# Lieblingsfach als Faktor - falls es noch keiner war
-if(is.factor(fb20$fach) == FALSE){
-  fb20$fach <- factor(fb20$fach, 
-                      levels = 1:5,
-                      labels = c('Allgemeine', 'Biologische', 'Entwicklung',
-                                 'Klinische', 'Diag./Meth.'))
-}
-
-# Wohnort als Faktor - falls es noch keiner war
-if(is.factor(fb20$ort) == FALSE){
-  fb20$ort <- factor(fb20$ort, 
-                     levels = c(1, 2),
-                     labels = c('Frankfurt', 'anderer'))
-}
-
-# Geschlecht als Faktor - falls es noch keiner war
-if(is.factor(fb20$geschl)==FALSE){
-  fb20$geschl <- factor(fb20$geschl, 
-                        levels=c(1,2,3), 
-                        labels=c('weiblich', 'maennlich', 'anderes'))
-}
-```
-
-***
 
 ## Aufgabe 1
-Geben Studierende im gleichen Maße an, dass sie "nicht munter" bzw. "nicht ausgeruht" sind (munter: mdbf10; ausgeruht: mdbf2), wie dass sie sich "schlapp" bzw. "müde" fühlen (schlapp: mdbf5; müde: mdbf7)?   
-
-<details><summary>Lösung</summary>
-**Daten aufbereiten**
-
-Items umpolen
-```{r}
-fb20$mdbf10_r <- -1 * (fb20$mdbf10 - 6) # Item mdbf10 umpolen
-fb20$mdbf2_r <- -1 * (fb20$mdbf2 - 6) # Item mdbf2 umpolen
-```
-
-Bedeutung nach der Umpolung:
-
-Item mdbf10_r: Wie "nicht munter" fühlen Sie sich? Hohe Werte = nicht munter
-
-Item mdbf2_r: Wie "nicht ausgeruht" fühlen Sie sich? Hohe Werte = nicht ausgeruht
-
-
-Skalen mitteln über die jeweiligen Items:
-```{r}
-#umgepolte "wache" Skalen mitteln ueber beide Items
-fb20$muede_r <- rowMeans(fb20[, c('mdbf2_r', 'mdbf10_r')])
-#"muede" Skalen mitteln ueber beide Items
-fb20$muede <- rowMeans(fb20[, c('mdbf5', 'mdbf7')])
-```
-
-Unterscheiden sich die Gruppen im Mittel nicht, geben die Studierenden auf beiden Skalen im gleichen Maße an, wie wach bzw. müde sie sich fühlen.
-
-**Deskriptivstatistische Beantwortung der Fragestellung: grafisch**
-
-* Balkendiagramme (angemessen für Daten mit Rangskalenqualität)
-
-* Je ein Balkendiagramm pro Variable, untereinander dargestellt 
-```{r, fig.height = 10}
-par(mfrow=c(2,1), mar=c(3,3,3,0))
-barplot(table(fb20[, "muede_r"]), ylim = c(0,40), main="nicht müde", xlab="", ylab="", las=1)
-barplot(table(fb20[, "muede"]), ylim = c(0,40), main="müde", xlab="", ylab="", las=1)
-par(mfrow=c(1,1))
-```
-
-**Deskriptivstatistische Beantwortung der Fragestellung: statistisch**
-```{r}
-summary(fb20[, "muede_r"])
-summary(fb20[, "muede"])
-prop.table(table(fb20$muede_r))
-prop.table(table(fb20$muede))
-```
-Werte auf der umgepolten "wach" Skala leicht höher als Werte auf Skala "muede".
-
-**Voraussetzungen für t-Test für abhängige Stichproben**
-
-1. Die abhängige Variable ist intervallskaliert $\rightarrow$ nicht gegeben $\rightarrow$ Wilcoxon Test für abhängige Stichproben
-2. Die Messwerte innerhalb der Paare dürfen sich gegenseitig beeinflussen/voneinander abhängig sein; außerdem keine Abhängigkeiten zwischen den Messwertpaaren
-3. Die Differenzvariable _d_ muss in der Population normalverteilt sein
-
-(2. und 3. nicht mehr relevant, da wir Wilcoxon Test anwenden)
-
-**Hypothesen**
-
-Hypothesenpaar (inhaltlich):  
-
-H0: Studierende geben im gleichen Ausmaß an, dass sie "nicht munter" sind, wie dass sie sich "schlapp/müde" fühlen.  
-H1: Studenten geben eher an, dass sie "nicht munter" sind, als dass sie sich "schlapp/müde" fühlen bzw. umgekehrt.
-
-* Art des Effekts: Unterschiedshypothese  
-* Richtung des Effekts: Ungerichtet  
-* Größe des Effekts: Unspezifisch  
-
-Hypthesenpaar (statistisch):  
-
-* $H_0$: $\mu_{"nicht-munter"} =   \mu_{"schlapp"}$ bzw. $\mu_{d} = 0$
-* $H_1$: $\mu_{"nicht-munter"} \ne \mu_{"schlapp"}$ bzw. $\mu_{d} \ne 0$
-
-**Spezifikation des Signifikanzniveaus** 
-
-$\alpha = .05$
-
-**Durchführung des Wilcoxon-Tests für abhängige Stichproben in R**
-```{r}
-wilcox.test(x = fb20$muede_r, y = fb20$muede, # die beiden abhaengigen Items  
-            paired = T,                       # Stichproben sind abhaengig
-            alternative = "two.sided",        # zweinseitige Testung
-            conf.level = .95)                 # alpha = .05
-```
-
-**Formales Berichten des Ergebnisses**
-
-Es wurde untersucht, ob Studierende in gleichem Maße angeben, dass sie "nicht munter" bzw. "nicht ausgeruht" sind, wie dass sie sich schlapp bzw. müde fühlen.
-
-Zur Beantwortung der Fragestellung wurde ein zweinseitiger Wilcoxon-Test für abhängige Stichproben durchgeführt. Der Unterschied wurde bei einem Signifikanzniveau von alpha = .05 signifikant (V = 1709.5, _p_ = .002). Somit wird die Nullhypothese verworfen und die Alternativhypothese angenommen: Studenten geben eher an, dass sie "nicht munter" sind (d.h. niedrige Werte auf den Items "munter" und "ausgeruht"), als dass sie sich "schlapp/müde" fühlen.
-
-</details>
-
-## Aufgabe 2
 Ein Therapeut behauptet, dass eine von ihm entwickelte Meditation die Zufriedenheit von Menschen positiv beeinflusst. Er möchte dies mit wissenschaftlichen Methoden zeigen und misst die Zufriedenheit vor und nach der Meditation (Daten mit Intervallskalenqualität). Es ergeben sich folgende Werte für 18 Personen:   
 
 ```{r echo = FALSE, results='asis'}
@@ -211,7 +75,7 @@ Mittelwert vorher (_M_ = 5.1, _SD_ = 1.76) ist deskriptiv niedriger als Mittelwe
 3. Die Differenzvariable _d_ muss in der Population normalverteilt sein $\rightarrow$ ab _n_ => 30 gegeben, ansonsten grafische Prüfung oder Hintergrundwissen 
 
 **Voraussetzungsprüfung: Normalverteilung von _d_**
-```{r, fig.height = 10}
+```{r}
 par(mar=c(3,3,3,0)) #aendern der Raender (margins) des Plot-Fensters
 difference <- dataMeditation[, "Vorher"]-dataMeditation[, "Nachher"]
 hist(difference, xlim=c(-6,4), main="Verteilung der Differenzen", xlab="Differenzen", ylab="", las=1,freq=F)
@@ -237,8 +101,8 @@ H1: Die Meditation wirkt sich positiv auf die Zufriedenheit aus.
 
 Hypthesenpaar (statistisch):  
 
-* $H_0$: $\eta_{vorher} \ge \eta_{nachher}$  bzw. $\mu_{d} \ge 0$
-* $H_1$: $\eta_{vorher} <   \eta_{nachher}$  bzw. $\mu_{d} < 0$
+* $H_0$: $\eta_\text{vorher} \ge \eta_\text{nachher}$  bzw. $\mu_{d} \ge 0$
+* $H_1$: $\eta_\text{vorher} <   \eta_\text{nachher}$  bzw. $\mu_{d} < 0$
 
 **Spezifikation des Signifikanzniveaus**
 
@@ -262,6 +126,7 @@ t.test(x = dataMeditation[, "Vorher"], y  = dataMeditation[, "Nachher"], # die b
 mean_d <- mean(difference)
 sd.d.est <- sd(difference) #die geschaetzte SD der Differenzen
 d_Meditation <- mean_d/sd.d.est
+d_Meditation
 ```
 
 $\Rightarrow$ Der standardisierte Populationseffekt beträgt _d2''_ = -0.75 und ist laut Konventionen nach Cohen (1988) groß. 
