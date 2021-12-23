@@ -406,6 +406,16 @@ summary(REM)</code></pre>
 ## 
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Der Output des Random Effects Modells unterscheidet sich kaum vom Fixed Effects Modell. Gleich am Anfang der <code>summary</code> fällt uns auf, dass das Modell mit REML anstatt mit ML geschätzt wurde. Dies ist wichtig für folgende Modellvergleiche! Außerdem wird uns jetzt ein Maß für die Herterogenitätsvarianz <span class="math inline">\(\tau^2\)</span> (<code>tau^2</code>) angegeben. In Klammern dahinter steht sein Standardfehler.</p>
+<pre><code>## Random-Effects Model (k = 71; tau^2 estimator: REML)
+## 
+##    logLik   deviance        AIC        BIC       AICc 
+## -113.9313   227.8626   231.8626   236.3596   232.0417   
+## 
+## tau^2 (estimated amount of total heterogeneity): 1.4347 (SE = 0.2480)
+## tau (square root of estimated tau^2 value):      1.1978
+## I^2 (total heterogeneity / total variability):   99.93%
+## H^2 (total variability / sampling variability):  1454.46</code></pre>
 <p>Der mittlere Effekt liegt beim “Random Effects” Modell deutlich höher (-2.052) als beim “Fixed Effects” Modell (-1.113). Dem Random-Effects Modell ist hier stärker zu vertrauen, da es die systematische Variation zwischen den Studien in die Modellierung integriert.</p>
 <p>In allen drei Analysen ist die mittlere Differenz negativ und signifikant von 0 verschieden. Niedrigere Mittelwertsdifferenzen sprechen für ein höhere Reduktion der Depressionssymptomatik.</p>
 </div>
@@ -418,7 +428,7 @@ summary(REM)</code></pre>
 <p>Der Funnel-Plot wird verwendet, um auf das bekannte Problem des Publication-Bias zu untersuchen. Hier wird der gefundene Effekt (hier Effektstärken von Prä-Post Veränderungen) gegen den Standardfehler jeder Studie geplottet. Es wird die Annahme zugrunde gelegt, dass alle Studien in der Meta-Analyse eine gewisse, zufällige Schwankung um den wahren Effekt haben, und dabei diese zufällige Schwankung größer ist, je größer der Standardfehler in einer Studie ist und je kleiner die Stichprobe war. Sofern eine Studie unabhängig von der Effektgröße sowie der Streuung (und damit auch der Signifikanz) publiziert wurde, sollte so das typische symmetrische Dreieck (Funnel = Trichter) entstehen.</p>
 <pre class="r"><code># funnel plot
 funnel(REM)</code></pre>
-<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-15-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Der Grafik ist zu entnehmen, dass sich fast alle Effektstärken im negativen Bereich tummeln. Je kleiner der Effekt desto präziser die Schätzung (desto kleiner der SE - höher dargestellt im Funnel-Plot). Dies könnte Indizien auf einen Publication Bias zeigen. Außerdem gibt es wenige Studien mit sehr großen Standardfehlern (un damit geringen Stichprobengrößen). Der Funnel (Trichter) ist kaum befüllt. Dies liegt vermutlich an den wenigen extremen Ergebnissen, die links im Plot dargestellt sind. Allerdings ist die Punktewolke, auch wenn etwas schief, im oberen rechten Bereich recht gut ausgefüllt. Es gibt keine einzige Studie mit positiven Effektstärken. Insgesamt spricht dies dann doch dagegen, dass die Signifikanz des Effekts durch einen Bias in Veröffentlichungen entstanden ist. Allerdings könnte die ausgesprochen große Effektstärke verzerrt sein.</p>
 </div>
 <div id="forest-plot" class="section level4">
@@ -426,16 +436,121 @@ funnel(REM)</code></pre>
 <p>Auch Forest-Plots funktionieren auf die gleiche Weise mit der <code>forest</code> Funktion. Der Forest-Plot stellt die unterschiedlichen Studien hinsichtlich ihrer Parameterschätzung (Effektstärken) und die zugehörige Streuung grafisch dar. So können beispielsweise Studien identifiziert werden, welche besonders hohe oder niedrige Werte aufweisen oder solche, die eine besonders große oder kleine Streuung zeigen.</p>
 <pre class="r"><code># forest plot
 forest(REM)</code></pre>
-<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Wir sehen sehr deutlich, dass alle Studien Konfidenzintervalle aufweisen, die die Null nicht einschließen. Auch ein kumulativer Forest-Plot wäre möglich. Dazu müssen wir auf unser <code>REM</code>-Objekt noch die Funktion <code>cumul.rma.uni</code> anwenden:</p>
 <pre class="r"><code># kumulativer Forest Plot
 forest(cumul.rma.uni(REM))</code></pre>
-<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Die Funktion <code>cumul.rma.uni</code> führt skuzessive immer wieder eine Meta-Analyse durch, wobei nach und nach eine Studie hinzugefügt wird. Anders als beim ersten Forest-Plot wird immer das Ergebnis der jeweiligen Meta-Analyse dargestellt und nicht jede Studie einzeln. Wir sehen, dass sich sowohl mittlere Effektstärke als auch Streuung von oben nach unten einpendeln. Das finale Ergebnis ist identisch mit unsere Meta-Analyse. Die gestrichelte Linie der Forest-Plots symbolisiert die 0, da in den meisten Fällen gegen 0 getestet wird und es daher von Interesse ist, wie viele Studien sich von 0 unterscheiden und ob sich der mittlere Effekt von 0 unterscheidet. Die Achsenbeschriftung unterscheidet sich, sodass die beiden Forest-Plots nicht ideal vergleichbar sind. Mit dem Zusatzargument <code>xlim</code> können wir die x-Achse explizit einstellen:</p>
 <pre class="r"><code># kumulativer Forest Plot
 forest(cumul.rma.uni(REM), xlim = c(-10, 2))</code></pre>
-<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" />
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" />
 Nun sehen wir schöner, wie gut sich die Ergebnisse um den mittleren Wert einpendeln.</p>
+<p>Insgesamt zeigen uns die Plots, dass von einem stabilen Effekt ausgegangen werden kann.</p>
+</div>
+</div>
+<div id="moderatormodell" class="section level2">
+<h2>Moderatormodell</h2>
+<p>Im Random Effects Modell hatten wir bemerkt, dass erhebliche Heterogenität in den Daten herrscht. Diese Heterogenität zwischen den Studien lässt sich mit Moderatormodell untersuchen. Hier wird quasi eine Regressionsgleichung zwischen Studien aufgestellt, um die Heterogenitätsvarianz zu erklären.</p>
+<p>Hingegen würde es keinen Sinn machen ein Moderatormodell aufzustellen, wenn es keine von Null verschiedene Heterogenitätsvariabilität gibt!</p>
+<div id="moderatormodell-modellgleichung" class="section level3">
+<h3>Moderatormodell: Modellgleichung</h3>
+<p>Die Modellgleichung wird um die Moderatoren (Variablen die die Variation zwischen Studien erklären sollen) erweitert.</p>
+<p><span class="math display">\[Y_i = \theta + \beta_1 Z_{1i} + \beta_2 Z_{2i} + \dots + \beta_l Z_{li} + \vartheta_i + \varepsilon_i,\]</span>
+wobei <span class="math inline">\(\theta\)</span> der durchschnittliche Effekt ist, wenn alle Moderatoren den Wert 0 annehmen (also das Interzept - Zentrierung der Moderatoren sehr wichtig für die Interpretation!), <span class="math inline">\(\beta_j\)</span> ist der Moderatoreffekt des <span class="math inline">\(j\)</span>-ten Moderators <span class="math inline">\(Z_j\)</span>, <span class="math inline">\(\vartheta_i\)</span> ist wieder eine Variable die die verbleibende Heterogenitätsvarianz beschreibt und <span class="math inline">\(\varepsilon_i\)</span> ist das Residuum.</p>
+</div>
+<div id="moderatormodell-metafor" class="section level3">
+<h3>Moderatormodell: <code>metafor</code></h3>
+<p>Augenscheinlich würde die <code>intensity</code> der Therapie Sinn machen, dass sie für Heterogenität zwischen den Studien sorgt. Wir stellen ein Modell auf (hierbei müssen die Moderatoren, wie in einer normalen Regressionsanlyse mit einer Formel eingegben werden; diese Formel wird dem Argument <code>mods</code> übergeben) und lassen dieses diesmal mit “ML” schätzen, um später einen geeigneten Modellvergleich durchführen zu können:</p>
+<pre class="r"><code>MEM1 &lt;- rma(yi = diff, sei =  se, data = F2F_CBT, 
+            mods =~ intensity, 
+            method = &quot;ML&quot;)</code></pre>
+<pre><code>## Warning: Studies with NAs omitted from model fitting.</code></pre>
+<pre class="r"><code>summary(MEM1)</code></pre>
+<pre><code>## 
+## Mixed-Effects Model (k = 61; tau^2 estimator: ML)
+## 
+##   logLik  deviance       AIC       BIC      AICc 
+## -99.6787  375.9617  205.3574  211.6901  205.7785   
+## 
+## tau^2 (estimated amount of residual heterogeneity):     1.4485 (SE = 0.2686)
+## tau (square root of estimated tau^2 value):             1.2035
+## I^2 (residual heterogeneity / unaccounted variability): 99.91%
+## H^2 (unaccounted variability / sampling variability):   1135.43
+## R^2 (amount of heterogeneity accounted for):            3.05%
+## 
+## Test for Residual Heterogeneity:
+## QE(df = 59) = 10944.1843, p-val &lt; .0001
+## 
+## Test of Moderators (coefficient 2):
+## QM(df = 1) = 1.6842, p-val = 0.1944
+## 
+## Model Results:
+## 
+##            estimate      se     zval    pval    ci.lb    ci.ub 
+## intrcpt     -1.7488  0.3515  -4.9756  &lt;.0001  -2.4376  -1.0599  *** 
+## intensity   -0.0517  0.0398  -1.2978  0.1944  -0.1298   0.0264      
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Uns wird eine “Warning” ausgegeben: <code>Warning: Studies with NAs omitted from model fitting.</code> Diese bedeutet, dass nicht alle Studien zu allen Moderatoren Angaben haben. Für jetzt ignorieren wir diesen Sachverhalt gekonnt.</p>
+<p>Die <code>summary</code> wird um einen erklärten Varianzanteil</p>
+<pre class="r"><code>cat(&quot;R^2 (amount of heterogeneity accounted for):            1.25%&quot;)</code></pre>
+<pre><code>## R^2 (amount of heterogeneity accounted for):            1.25%</code></pre>
+<p>sowie um einen Omnibustest der Moderatoren erweitert (quasi F-Test des gesamten Modells aus der Regression)</p>
+<pre><code>## Test of Moderators (coefficient 2):
+## QM(df = 1) = 1.6227, p-val = 0.2027</code></pre>
+<p>Der Moderator scheint keien signifikanten Heterogenitätsvarianzanteile zu erklären. Insgesamt werden nur <span class="math inline">\(1.25\%\)</span> Heterogenitätsvariation durch die Intensität erklärt. Unter</p>
+<pre><code>## Model Results:</code></pre>
+<p>findet sich ein Output, der einem Regressionsoutput sehr ähnlich sieht. <code>intrcpt</code> ist das Interzept und damit der durchschnittliche Effekt, wenn die <code>intensity</code> den Wert 0 annimmt. Der Effekt von <code>intensity</code> ist nicht statistisch bedeutsam. Wir nehmen zusätzlich die Moderatoren Psychoedukation (<code>psed</code>, Dummy-Variable, 0 = nein, 1 = ja), soziales Kompetenztraining (<code>soc</code>, Dummy-Variable, 0 = nein, 1 = ja), Verhaltensaktivierung (<code>ba</code>, Dummy-Variable, 0 = nein, 1 = ja) und Hausaufgaben (<code>home</code>, Dummy-Variable, 0 = nein, 1 = ja) in das Modell mit auf.</p>
+<pre class="r"><code>MEM2 &lt;- rma(yi = diff, sei =  se, data = F2F_CBT, 
+            mods =~ intensity + psed + soc + ba + home, 
+            method = &quot;ML&quot;)</code></pre>
+<pre><code>## Warning: Studies with NAs omitted from model fitting.</code></pre>
+<pre class="r"><code>summary(MEM2)</code></pre>
+<pre><code>## 
+## Mixed-Effects Model (k = 61; tau^2 estimator: ML)
+## 
+##   logLik  deviance       AIC       BIC      AICc 
+## -89.7698  356.1439  193.5397  208.3158  195.6529   
+## 
+## tau^2 (estimated amount of residual heterogeneity):     1.0327 (SE = 0.1931)
+## tau (square root of estimated tau^2 value):             1.0162
+## I^2 (residual heterogeneity / unaccounted variability): 99.75%
+## H^2 (unaccounted variability / sampling variability):   407.62
+## R^2 (amount of heterogeneity accounted for):            30.88%
+## 
+## Test for Residual Heterogeneity:
+## QE(df = 55) = 7042.6184, p-val &lt; .0001
+## 
+## Test of Moderators (coefficients 2:6):
+## QM(df = 5) = 25.6159, p-val = 0.0001
+## 
+## Model Results:
+## 
+##            estimate      se     zval    pval    ci.lb    ci.ub 
+## intrcpt     -2.1514  0.3350  -6.4211  &lt;.0001  -2.8081  -1.4947  *** 
+## intensity   -0.0879  0.0352  -2.5002  0.0124  -0.1568  -0.0190    * 
+## psed         0.7806  0.2941   2.6543  0.0079   0.2042   1.3570   ** 
+## soc          0.0341  0.3883   0.0878  0.9301  -0.7270   0.7952      
+## ba           0.8994  0.3016   2.9823  0.0029   0.3083   1.4905   ** 
+## home        -0.5052  0.3124  -1.6173  0.1058  -1.1174   0.1070      
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Das Ergebnis sieht nun anders aus. Der Omnibustest zeigt an, dass die 5 Prädiktoren gemeinsam signifikante Varianzanteile erklären. Insgesamt können 30.88% der Heterogenitätsvariation durch die Prädiktoren erklärt werden. Der Effekt der Intensität ist nun bedeutsam (<span class="math inline">\(\beta_1=\)</span> -0.09, <span class="math inline">\(SE=\)</span> 0.04, <span class="math inline">\(p=\)</span> 0.0124). Auch die Psychoedukation (<span class="math inline">\(\beta_2=\)</span> 0.78, <span class="math inline">\(SE=\)</span> 0.29, <span class="math inline">\(p=\)</span> 0.0079) und Verhaltensaktivierung (<span class="math inline">\(\beta_4=\)</span> 0.9, <span class="math inline">\(SE=\)</span> 0.3, <span class="math inline">\(p=\)</span> 0.0029) trugen zu Unterschieden zwischen den Studien bei. Ob soziale Kompetenztrainings durchgeführt (<span class="math inline">\(\beta_3=\)</span> 0.03, <span class="math inline">\(SE=\)</span> 0.39, <span class="math inline">\(p=\)</span> 0.9301) oder ob Hausaufgaben aufgeben wurden (<span class="math inline">\(\beta_5=\)</span> -0.51, <span class="math inline">\(SE=\)</span> 0.31, <span class="math inline">\(p=\)</span> 0.1058), führte zu keiner Heterogenität zwischen Studien.</p>
+<p>Der Effekt der Intensität erscheint plausibel. Je intensiver die Betreuung, desto besser das Ergebnis. Erstaunlich ist, dass Verhaltensaktivierung und Psychoedukation zu einer niedrigeren Verbesserung von Prä zu Post führte. Dies könnte (<em>Achtung Interpretation!</em>) allerdings daran liegen, dass Studien, die so ins Detail gehen, vielleicht grundsätzlich “sauberer” durchgeführt wurden, was zu ggf. kleineren Effekten geführt haben können.</p>
+<p>Zwei Moderatormodelle lassen sich leicht mit der <code>anova</code>-Funktion inferenzstatistisch vergleichen: Wir führen wie folgt einen Likelihood-Ratio-Test durch</p>
+<pre class="r"><code>anova(MEM1, MEM2, test = &quot;LRT&quot;)</code></pre>
+<pre><code>## 
+##         df      AIC      BIC     AICc   logLik     LRT   pval         QE  tau^2 
+## Full     7 193.5397 208.3158 195.6529 -89.7698                 7042.6184 1.0327 
+## Reduced  3 205.3574 211.6901 205.7785 -99.6787 19.8178 0.0005 10944.1843 1.4485 
+##              R^2 
+## Full 
+## Reduced 28.7015%</code></pre>
+<p>Der Modellvergleich ist statistisch bedeutsam. Somit passt das restriktivere Modell mit nur einem Prädiktor signifikant schlechter zu den Daten. Wir entscheiden uns für das Modell mit 5 Prädiktoren, welches insgesamt <span class="math inline">\(28.7015\%\)</span> mehr Heterogenitätsvariation erklärt als das Modell mit nur der Intensität als Moderator.</p>
+<hr />
 </div>
 </div>
 <div id="literatur" class="section level2">
