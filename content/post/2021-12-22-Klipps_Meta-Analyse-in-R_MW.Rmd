@@ -1,0 +1,262 @@
+---
+title: Meta-Analysen in R
+date: '2021-12-22'
+slug: meta-analysen-MW
+categories:
+  - MSc5
+tags:
+  - Meta-Analyse
+  - Zusammenfassung
+  - Summary
+  - Mittelwerte
+  - Effektstärken
+subtitle: 'Mittelwertsunterschiede'
+summary: ''
+authors: [irmer]
+lastmod: '2021-12-22T15:21:58+02:00'
+featured: no
+header:
+  image: "/header/Klipps_Meta-Analyse_MW.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/1075945)"
+projects: []
+---
+
+
+
+```{r setup, include=FALSE}
+# Vorbereitungen
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+```
+
+
+
+## Einführung
+Meta-Analysen sind empirische Zusammenfassungen von Studien unter Verwendung mathematischer Modelle. Auf diese Weise können Ergebnisse aus jahrelanger Forschung integriert und zusammengefasst werden, was oft Aufschluss darüber liefert, ob Effekte im Mittel vorhanden sind oder nicht. Somit können Meta-Analysen lange Debatten beenden und Licht in das Dunkel von sich widersprechenden Studienergebnissen bringen.
+
+Mit Hilfe des `metafor`-Paketes (_**meta***-analysis ***fo***r ***r**_) von Viechtbauer (2010) lassen sich eindimensionale und mehrdiemensionale Meta-Analysen (in welchen ein oder mehrere Koeffizient über mehrere Studien "gemittelt" werden soll) leicht berechnen. Zunächst müssen wir dazu das `R`-Paket installieren.
+
+```{r}
+library(metafor)
+```
+
+Wie auch beim Laden des Paketes schon erwähnt wird (`For an overview and introduction to the package please type: help(metafor)`), können wir uns mit der sehr nützlichen `R`-internen Hilfe-Funktion einen Überblick über das Paket verschaffen.
+
+```{r}
+help("metafor")
+```
+
+Wenn wir diesen Befehl ausführen, so geht in `R`-Studio ein Fenster mit der Überschrift "metafor: A Meta-Analysis Package for R" auf, in welchem die grundlegenden Funktionen erklärt werden. 
+
+## Daten
+
+In dieser Sitzung wollen wir einen Datensatz von López-López et al. (2019), der mit dem `metafor`-Paket mitgeliefert wird, verwenden. Dieser heißt `dat.lopez2019`. Die Autorinnen und Autoren haben die Effektivität der CBT (cognitive behavioural therapy [kognitive Verhaltenstherapie]) bei Depression untersucht und diese mit verschiedenen Kontrollbedingungen und unterschiedlichen Arten der CBT verglichen. Weitere Informationen zum Datensatz erhalten Sie bspw. mit `?dat.lopez2019` (das `metafor`-Paket muss natürlich vorher geladen sein). 
+
+```{r, results = "hide"}
+head(dat.lopez2019)
+```
+
+```{r, echo = F}
+knitr::kable(head(dat.lopez2019))
+```
+
+In `study` steht die verwendete Studie, `treatment` zeigt an, welche Art der Therapie oder Kontrollgruppe in der jeweiligen Studie verwendet wurde ("F2F CBT" = "Angesicht zu Angesicht" CBT, "Multimedia CBT" = Online-CBT, "Placebo" = Placebo-Kontrollgruppe, "Wait list" = Wartelistenkontrollgruppe, "Hybrid CBT" = Mischung aus F2F und Multimedia, "No treatment" = klassische Kontrollgruppw, "TAU" = Treatment as Usual [Standardtherapie]), `scale` gibt an, wie die Depression erfasst wurde, `n` ist die Stichprobengröße der Studie, `diff` ist die standardisierte Differenz (Cohen's $d$) zwischen vor und nach der Intervention, `se` ist der Standardfehler von `diff`, `group` [Dummy-Variable] zeigt an, ob es sich um eine Einzel (0) oder Gruppentherapie (1) gehandelt hat, `tailored` gibt an, ob die Therapie auf den jeweiligen Patienten/die jeweilige Patientin zugeschnitten wurde, `sessions` ist die Anzahl an Therapiesitzungen, `length` ist die durchschnittliche Sitzungslänge, `intensity` ist das Produkt aus `session` und `length`. Außerdem werden noch weitere mögliche Moderatorvariablen aufgeführt, die sich jeweils auf die Therapie beziehen. Für mehr Informationen siehe bspw. `?dat.lopez2019`. Wir schauen uns die Moderatoren genauer an, wenn es um die Moderatoranalysen im Rahmen von Meta-Analysen geht.
+
+Wir wollen uns zunächst nur auf die klassische "Face-to-Face" CBT konzentrieren und kürzen daher den Datensatz. Wir kopieren den Originaldatensatz in `F2F_CBT`, damit `dat.lopez2019` erhalten bleibt.  
+
+```{r}
+F2F_CBT <- dat.lopez2019[dat.lopez2019$treatment == "F2F CBT",] # wähle nur Fälle mit F2F CBT
+```
+
+### Fragestellungen
+
+Insgesamt wollen wir nun untersuchen, ob
+
+1) die CBT zu einem Therapieerfolg bei Depression führt
+2) ob die CBT über Studien hinweg zu einer homogenen Verbesserung der Depressivität führt 
+3) ob Heterogenität durch Moderatoren (Therapiemerkmale) erklärt werden kann
+
+Um die erste Fragestellung zu beantworten müssen wir eine durchschnittliche Differenz von Prä-Post bestimmen. Ist diese bedeutsam negativ, so gibt es eine Symptomverbesserung der CBT für die Depressivität auch in der Population. 
+
+## Fixed Effects Modell
+
+Das simpelste Vorgehen wäre es, die Differenzen der Studien einfach zu mitteln. Allerdings sind die Studien unterschiedlich groß. Somit müssen wir zumindest ein gewichtetes Mittel bestimmen. Von nun an nennen wir die Effektgrößen (also die standardisierte Prä-Post-Differenz) $Y_i$.
+
+### Fixed Effects Modell: händisch
+
+Wir mitteln (gewichtet) zunächst händisch via:
+$$\sum_{i=1}^k\frac{n_iY_i}{\sum_{i=1}^kn_i}$$
+Für die $k$ Stichproben wird hier jede standardisierte Prä-Post-Differenz mit der Stichprobengröße multipliziert $n_iY_i$ und dann werden diese Werte aufsummiert (eine gewichtete Summe entsteht). Teilen wir diese Summe anschließend durch die Gesamtstichprobe $\sum_{i=1}^kn_i$ so erhalten wir einen gewichteten Mittelwert, der berücksichtigt, dass einige Stichproben größer sind und dort die geschätzte standardisierte Differenz präziser ist. Dies sieht in `R` so aus:
+
+```{r}
+sum(F2F_CBT$n*F2F_CBT$diff)/sum(F2F_CBT$n)
+```
+
+### Fixed Effects Modell: Modellgleichung
+
+Wir haben hier, ohne es zu wissen, das sogenannte "Fixed Effects"-Modell bestimmt, wobei wir die Stichprobengröße als als Gewichtung verwendet haben. Das Fixed-Effects-Modell besagt, dass 
+
+$$Y_i = \theta + \varepsilon_i$$
+
+die Effektstärken $Y_i$ zufällig um den wahren Wert $\theta$ streuen. $\varepsilon_i$ ist hierbei die zufällige Abweichung vom wahren  Effekt, quasi das Residuum, welches als Normalverteilt angenommen wird.
+
+### Fixed Effects Modell: `metafor`
+
+Ein Fixed-Effects-Modell lässt sich leicht mit dem `metafor`-Paket schätzen. Die Funktion dazu heißt `rma` (für `R` und Meta-Analyse). Da bei Meta-Analysen die Effekte in den Studien die abhängigen Variablen sind, werden sie im Paket als `yi` bezeichnet. Wir brauchen dann noch ein Streumaß `vi`, den Datensatz in `data` und wir müssen die Methode als Fixed Effects `method = "FE"` festlegen. Das Modell nennen wir `FEM_n` für Fixed-Effects Modell gewichtet mit Stichprobengrößen.
+
+```{r}
+FEM_n <- rma(yi = diff, vi =  1/n, data = F2F_CBT, method = "FE")
+summary(FEM_n)
+```
+
+Die `summary` gibt uns, wie immer, eine Übersicht über die Ergebnisse. 
+
+In der Summary sehen wir Folgendes:
+
+```{r, echo = F}
+cat('Fixed-Effects Model (k = 71)')
+```
+
+zeigt uns, dass ein Fixed Effects Modell mit $k$=71 Studien gerechnet wurde.
+
+```{r, echo = F}
+cat('    logLik    deviance         AIC         BIC        AICc 
+-1561.4161   3206.6098   3124.8321   3127.0948   3124.8901   
+')
+```
+
+sind Modell-Fit Ergebnisse. Das Modell wurde mit der Maximum-Likelihood (ML) Methode geschätzt, weswegen uns die Log-Liklihood (`logLik`), die Devianz (`deviance`), sowie weitere Informationskriterien (`AIC`, `BIC`, `AICc`) ausgegeben werden. Das zeigt uns, dass wenn Modelle mit ML geschätzt werden, auch Modellvergleiche möglich sind.
+
+```{r, echo = F}
+cat('I^2 (total heterogeneity / total variability):   97.82%
+H^2 (total variability / sampling variability):  45.81
+')
+```
+
+sind Heterogenitätsmaße. Sie beschreiben, wie viel der Variation der Studienergebnisse durch mögliche Subpopulationen zu Stande gekommen sind. $I^2$ ist ein häufig berichtetes Maß, welches den Anteil an der Gesamtvariation der Effektstärken schätzt, die durch Heterogenität zwischen den Studien resultiert.
+
+Diese Heterogenität wird hier auf Signifikanz geprüft.
+
+
+```{r, echo = F}
+cat('Test for Heterogeneity:
+Q(df = 70) = 3206.6098, p-val < .0001
+')
+```
+
+Das signifikante Ergebnis zeigt uns, dass die Heterogenität statistisch bedeutsam ist, es also Unterschiede zwischen den Stichproben gibt. Diese Heterogenitätsvarianz, die hier de facto auf Signifikanz geprüft wurde, lässt sich vergleichen mit der Between-Varianz in HLM-Modellen. Die Sampling-Varianz enstpricht der Within-Varianz.
+
+Wie immer wird unter `Model Results` eine Übersicht über die Parameterschätzung gegeben (`estimate` = Schätzung, `se` = SE, `zval` = zugehöriger $z$-Wert, `pval` = zugehöriger $p$-Wert). Da wir hier nur einen einzigen Parameter schätzen, wird hier nicht viel angezeigt. `ci.lb` und `ci.ub` ist das Konfidenzinterval der Schätzung, wobei `lb` für lower-bound (untere Grenze) und `ub` für upper-bound (obere Grenze) steht.
+
+```{r, echo = F}
+cat('Model Results:
+
+estimate      se      zval    pval    ci.lb    ci.ub 
+ -1.7441  0.0217  -80.3430  <.0001  -1.7867  -1.7016  *** 
+
+---
+Signif. codes:  0 ‘***’ 0.001 ‘**’ 0.01 ‘*’ 0.05 ‘.’ 0.1 ‘ ’ 1')
+```
+
+Wir kommen zum selben Ergebnis, wie mit unserer händischen Berechnung. Im "Fixed Effects" Modell wird $w_i:=\frac{1}{v_i}$ als Gewicht verwendet ($v_i$ ist die Varianz des Schätzer; beim Mittelwert ist dies dessen Standardfehler im Quadrat). Wenn wir der `R`-Funktion `v_i= 1/n_i` übergeben, so ist das Gewicht $w_i:=\frac{1}{\frac{1}{n_i}}=n_i$ einfach die Stichprobengröße (Studien mit größeren Stichproben erhalten mehr Gewicht). 
+
+Wir haben nun eine relativ einfache Zusammenfassung der Studienergebnisse durchgeführt. Die Stichprobengröße wird als Gewichtung verwendet, weil sie uns Informationen über die Präzision der Effektstärken gibt: je größer die Stichprobe, desto präziser der Effekt, desto mehr Gewicht sollte diese Stichprobe haben. Nun ist es so, dass wir über Mittelwertsdifferenzen noch zusätzliche Informationen haben. Der Standardfehler enthält sowohl Informationen über die Variabilität innerhalb der Stichprobe, als auch Informationen über die Stichprobengröße. Die lässt sich leicht einsehen, wenn wir uns zurückerinnern, dass der Standardfehler des Mittelwerts gerade durch $SE=\frac{SD}{\sqrt{n}}$ gegeben ist. In gleicher Weise enthält der $SE$ der Effektstärken auch Informationen über Variabilität und Stichprobengröße, also insgesamt über die Präzision der Effektstärken. Aus diesem Grund wiederholen wir das Fixed-Effects-Modell nochmals und verwenden diesmal den `se` von `diff` als Gewicht. Das nötige Argument heißt `sei`. Wir können aber auch `vi` verwenden. Dafür müssen wir den SE nur quadrieren.
+
+
+```{r}
+FEM <- rma(yi = diff, vi =  se^2, data = F2F_CBT, method = "FE")
+summary(FEM)
+
+FEM2 <- rma(yi = diff, sei =  se, data = F2F_CBT, method = "FE")
+summary(FEM2)
+```
+
+Das Ergebnis ist komplett identisch. Der mittlere Effekt unterscheidet sich deutlich vom mittleren Effekt, den wir mit Stichprobengewichten bestimmt haben. Dies liegt vermutlich an der Heterogenität, die sich vermutlich auch auf unterschiedliche Streuungen innerhalb der Studien bezieht. 
+
+Würden wir selbst eine Meta-Analyse durchführen wollen, und würden wir bspw. Mittelwerte zusammenfassen wollen, dann können wir den SE über die oben genannte Formel selbst bestimmen. _Dies ist ein guter Tipp, da in Studien sehr häufig nur Mittelwert und SD berichtet werden._
+
+## Random Effects Modell
+
+Da wir nun bereits wissen, dass es signifikante Heterogenität zwischen den Studien gibt, sollten wir diese auch in unserem Modell berücksichtigen. Dies schaffen wir mit dem Random Effects Modell.
+
+### Fixed Effects Modell: Modellgleichung
+
+Im Random Effects Modell wird, wie bei Hierarchischen Regressionsmodellen, eine zusätzliche Variable aufgenommen, die die Heterogenität abbildet:
+
+$$Y_i = \theta + \vartheta_i + \varepsilon_i,$$
+
+wobei $\theta$ und $\varepsilon_i$ die selbe Bedeutung haben, wie beim Fixed Effects Modell. $\vartheta_i$ ist die systematische Abweichung vom durchschnittlichen Effekt $\theta$, der auf Charakteristika der Studie $i$ zurückzuführen ist. Die Varianz von $\vartheta_i$ wird als Heterogenitätsvarianz bezeichnet und häufig mit $\tau^2$ bezeichnet. Die Varianz von $\varepsilon_i$ und $\vartheta_i$ lassen sich mit der Within- und der Between-Varianz von HLM Modell vergleichen. 
+
+Um nun das Modell zu schätzen, muss die Heterogenität zwischen Studien berücksichtigt werden. Im "Random Effects" Modell wird die Heterogenitätsvarianz $\tau^2$ als Gewichtung mitverwendet: $w_i:=\frac{1}{v_i+\tau^2}$. Das Mitteln funktioniert für beide Modelle gleich, nämlich genau so wie der gewichtete Mittelwert, den wir uns zuvor angesehen haben: 
+$$\sum_{i=1}^k\frac{w_iy_i}{\sum_{i=1}^kw_i}.$$ 
+Verwenden wir nun das "Random Effects" Modell, so ergibt sich ein etwas anderer Mittelwert (offensichtlich scheinen die Effektstärken heterogen zu sein, denn das Wählen des "Random Effects" Modells hat einen Einfluss auf den geschätzten Mittelwert und die Heterogenitätsvarianz $\tau^2$ ist auch statistisch signifikant). Das Modell nennen wir `REM` für Random-Effects-Modell:
+
+```{r}
+REM <- rma(yi = diff, sei =  se, data = F2F_CBT)
+summary(REM)
+```
+
+Der mittlere Effekt liegt beim "Random Effects" Modell deutlich höher (`r round(REM$b, 3)`) als beim "Fixed Effects" Modell (`r round(FEM$b, 3)`). Dem Random-Effects Modell ist hier stärker zu vertrauen, da es die systematische Variation zwischen den Studien in die Modellierung integriert.
+
+In allen drei Analysen ist die mittlere Differenz negativ und signifikant von 0 verschieden. Niedrigere Mittelwertsdifferenzen sprechen für ein höhere Reduktion der Depressionssymptomatik.
+
+
+## Analyse Plots
+Das `metafor` Paket bietet außerdem noch einige grafischen Veranschaulichungen der Daten. Beispielsweise lässt sich ganz leicht ein Funnel-Plot erstellen mit der `funnel` Funktion, welche lediglich unser Meta-Analyse Objekt `REM` entgegen nehmen muss. 
+
+#### Funnel Plot
+Der Funnel-Plot wird verwendet, um auf das bekannte Problem des Publication-Bias zu untersuchen. Hier wird der gefundene Effekt (hier Effektstärken von Prä-Post Veränderungen) gegen den Standardfehler jeder Studie geplottet. Es wird die Annahme zugrunde gelegt, dass alle Studien in der Meta-Analyse eine gewisse, zufällige Schwankung um den wahren Effekt haben, und dabei diese zufällige Schwankung größer ist, je größer der Standardfehler in einer Studie ist und je kleiner die Stichprobe war. Sofern eine Studie unabhängig von der Effektgröße sowie der Streuung (und damit auch der Signifikanz) publiziert wurde, sollte so das typische symmetrische Dreieck (Funnel = Trichter) entstehen.  
+
+```{r, fig.align="center", fig.height=6}
+# funnel plot
+funnel(REM)
+```
+
+Der Grafik ist zu entnehmen, dass sich fast alle Effektstärken im negativen Bereich tummeln. Je kleiner der Effekt desto präziser die Schätzung (desto kleiner der SE - höher dargestellt im Funnel-Plot). Dies könnte Indizien auf einen Publication Bias zeigen. Außerdem gibt es wenige Studien mit sehr großen Standardfehlern (un damit geringen Stichprobengrößen). Der Funnel (Trichter) ist kaum befüllt. Dies liegt vermutlich an den wenigen extremen Ergebnissen, die links im Plot dargestellt sind. Allerdings ist die Punktewolke, auch wenn etwas schief, im oberen rechten Bereich recht gut ausgefüllt. Es gibt keine einzige Studie mit positiven Effektstärken. Insgesamt spricht dies dann doch dagegen, dass die Signifikanz des Effekts durch einen Bias in Veröffentlichungen entstanden ist. Allerdings könnte die ausgesprochen große Effektstärke verzerrt sein.
+
+#### Forest-Plot
+
+Auch Forest-Plots funktionieren auf die gleiche Weise mit der `forest` Funktion. Der Forest-Plot stellt die unterschiedlichen Studien hinsichtlich ihrer Parameterschätzung (Effektstärken) und die zugehörige Streuung grafisch dar. So können beispielsweise Studien identifiziert werden, welche besonders hohe oder niedrige Werte aufweisen oder solche, die eine besonders große oder kleine Streuung zeigen.
+```{r, fig.align="center", fig.height=16}
+# forest plot
+forest(REM)
+```
+
+Wir sehen sehr deutlich, dass alle Studien Konfidenzintervalle aufweisen, die die Null nicht einschließen. Auch ein kumulativer Forest-Plot wäre möglich. Dazu müssen wir auf unser `REM`-Objekt noch die Funktion `cumul.rma.uni` anwenden:
+
+```{r, fig.align="center", fig.height=16}
+# kumulativer Forest Plot
+forest(cumul.rma.uni(REM))
+```
+
+Die Funktion `cumul.rma.uni` führt skuzessive immer wieder eine Meta-Analyse durch, wobei nach und nach eine Studie hinzugefügt wird. Anders als beim ersten Forest-Plot wird immer das Ergebnis der jeweiligen Meta-Analyse dargestellt und nicht jede Studie einzeln. Wir sehen, dass sich sowohl mittlere Effektstärke als auch Streuung von oben nach unten einpendeln. Das finale Ergebnis ist identisch mit unsere Meta-Analyse. Die gestrichelte Linie der Forest-Plots symbolisiert die 0, da in den meisten Fällen gegen 0 getestet wird und es daher von Interesse ist, wie viele Studien sich von 0 unterscheiden und ob sich der mittlere Effekt von 0 unterscheidet. Die Achsenbeschriftung unterscheidet sich, sodass die beiden Forest-Plots nicht ideal vergleichbar sind. Mit dem Zusatzargument `xlim` können wir die x-Achse explizit einstellen:
+
+```{r, fig.align="center", fig.height=16}
+# kumulativer Forest Plot
+forest(cumul.rma.uni(REM), xlim = c(-10, 2))
+```
+Nun sehen wir schöner, wie gut sich die Ergebnisse um den mittleren Wert einpendeln.
+
+## Literatur
+
+
+[López-López, J. A., Davies, S. R., Caldwell, D. M., Churchill, R., Peters, T. J., Tallon, D., Dawson, S., Wu, Q., Li, J., Taylor, A., Lewis, G., Kessler, D. S., Wiles, N., & Welton, N. J. (2019).](https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.37032030|edsbas) The process and delivery of CBT for depression in adults: A systematic review and network meta-analysis. _Psychological Medicine, 49_(12), 1937–1947.  [https://doi.org/10.1017/S003329171900120X](https://doi.org/10.1017/S003329171900120X)
+
+
+
+[Bangert-Drowns, R. L., Hurley, M. M., & Wilkinson, B. (2004).](https://hds.hebis.de/ubffm/EBSCO/Record?id=edsjsr.3516060|edsjsr) The effects of school-based writing-to-learn interventions on academic achievement: A meta-analysis. *Review of Educational Research, 74*, 29–58.
+
+[Irmer, J. P., Kern, M., Schermelleh-Engel, K., Semmer, N. K., &	Zapf, D. (2019).](https://hds.hebis.de/ubffm/EBSCO/Record?id=2019-62894-003%7Cpsyh) The instrument for stress oriented job analysis (ISTA) – a meta-analysis. *Zeitschrift für Arbeits- & Organisationspsychologie – German Journal of Work and Organizational Psychology, 63*(4), 217-237. 
+[https://doi.org/10.1026/0932-4089/a000312](https://doi.org/10.1026/0932-4089/a000312)
+
+[McDaniel, M. A., Whetzel, D. L., Schmidt, F. L., & Maurer, S. D. (1994).](https://hds.hebis.de/ubffm/EBSCO/Record?id=1995-03663-001|edspdh) The validity of employment interviews: A comprehensive review and meta-analysis. *Journal of Applied Psychology, 79*, 599–616.
+
+[Rothstein, H. R., Sutton, A. J., & Borenstein, M. (2005).](https://hds.hebis.de/ubffm/EBSCO/Record?id=74773873|edb) *Publication bias in meta-analysis: Prevention, assessment, and adjustments*. Chichester, England: Wiley.
+
+Semmer, N. K., Zapf, D., & Dunckel, H. (1995). Assessing stress at work: A framework and an instrument. In O. Svane, & C. Johansen (Eds.), *Work and health – scientific basis of progress in the working environment,* (pp. 105 – 113). Luxembourg, Luxembourg: Office for Official Publications of the European Communities.
+
+Semmer, N. K., Zapf, D., & Dunckel, H. (1999). Instrument zur Stressbezogenen Tätigkeitsanalyse (ISTA) [Instrument for stress-oriented task analysis (ISTA)]. In [H. Dunkel (Ed.), *Handbuch psychologischer Arbeitsanalyseverfahren*](https://hds.hebis.de/ubffm/Record/HEB060958421) (pp. 179 – 204). Zürich, Switzerland: vdf Hochschulverlag an der ETH.
+
+[Viechtbauer, W. (2010).](https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.B90C267A|edsbas) Conducting meta-analyses in R with the metafor package. *Journal of Statistical Software*, *36*(3), 1–48. https://www.jstatsoft.org/v036/i03.
+
+* <small> *Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.*
+
