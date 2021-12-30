@@ -155,8 +155,13 @@ $\alpha = .05$
 library(car)
 leveneTest(data1$intel ~ data1$fach)
 ```
+```{r}
+levene <- leveneTest(data1$intel ~ data1$fach)
+f <- round(levene$`F value`[1], 2)
+p <- round(levene$`Pr(>F)`[1], 3)
+```
 
-_F_(1,63) = 0.05, _p_ = .824 $\rightarrow$ Das Ergebnis ist nicht signifikant, die $H_0$ wird beibehalten und Varianzhomogenität angenommen.
+_F_(`r levene$Df[1]`, `r levene$Df[2]`) = `r f`, _p_ = `r p` $\rightarrow$ Das Ergebnis ist nicht signifikant, die $H_0$ wird beibehalten und Varianzhomogenität angenommen.
 
 **Durchführung des _t_-Tests**
 
@@ -168,10 +173,13 @@ t.test(data1$intel ~ data1$fach,           # abhängige Variable ~ unabhängige 
        conf.level = .95)             # alpha = .05 
 ```
 
+```{r, echo=FALSE}
+ttest <- t.test(data1$intel ~ data1$fach, paired = F, alternative = "two.sided", var.equal = T, conf.level = .95) 
+```
 
 **Formales Berichten des Ergebnisses**
 
-Es wurde untersucht, ob sich Studierende, die sich für Allgemeine Psychologie interessieren, im Persönlichkeitsmerkmal 'Intellekt' (auch: Offenheit für neue Erfahrungen) von Studierenden, die sich für Klinische Psychologie interessieren, unterscheiden. Deskriptiv liegt ein solcher Unterschied vor: Die Mittelwerte betragen 3.87 (Allgemeine, _SD_ = 0.66) und 3.56 (Klinische, _SD_ = 0.61). Der entsprechende _t_-Test zeigt jedoch ein nicht signifikantes Ergebnis (_t_(_df_ = 63, zweis.) = 1.86, _p_ = .067). Die Nullhypothese konnte nicht verworfen werden und wird beibehalten. Die Studierenden sind im Persönlichkeitsmerkmal 'Intellekt' unabhängig davon, ob sie sich für Allgemeine Psychologie oder für Klinische Psychologie interessieren.
+Es wurde untersucht, ob sich Studierende, die sich für Allgemeine Psychologie interessieren, im Persönlichkeitsmerkmal 'Intellekt' (auch: Offenheit für neue Erfahrungen) von Studierenden, die sich für Klinische Psychologie interessieren, unterscheiden. Deskriptiv liegt ein solcher Unterschied vor: Die Mittelwerte betragen `r round(mean(intel.A), 2)` (Allgemeine, _SD_ = `r round(mean(sd.A), 2)`) und `r round(mean(intel.B), 2)` (Klinische, _SD_ = `r round(mean(sd.B), 2)`). Der entsprechende _t_-Test zeigt jedoch ein nicht signifikantes Ergebnis (_t_(_df_ = `r ttest$parameter`, zweis.) = `r round(ttest$statistic, 2)`, _p_ = `r round(ttest$p.value, 3)`). Die Nullhypothese konnte nicht verworfen werden und wird beibehalten. Die Studierenden sind im Persönlichkeitsmerkmal 'Intellekt' unabhängig davon, ob sie sich für Allgemeine Psychologie oder für Klinische Psychologie interessieren.
 
 </details>
 
@@ -195,6 +203,12 @@ library(psych)
 describeBy(fb21$lz, fb21$ort)
 summary(fb21[which(fb21$ort=="Frankfurt"), "lz"])
 summary(fb21[which(fb21$ort=="anderer"), "lz"])
+```
+
+```{r, echo=FALSE}
+deskr <- describeBy(fb21$lz, fb21$ort)
+fra <- summary(fb21[which(fb21$ort=="Frankfurt"), "lz"])
+and <- summary(fb21[which(fb21$ort=="anderer"), "lz"])
 ```
 
 Mittelwert der Nicht-Frankfurter:innen ist deskriptiv höher als der der Frankfurter:innen.
@@ -244,13 +258,17 @@ $\alpha = .05$
 ```{r}
 wilcox.test(fb21$lz ~ fb21$ort,           # abhängige Variable ~ unabhängige Variable
        paired = F,                   # Stichproben sind unabhängig 
-       alternative = "less",         # einseitige Testung: Gruppe1 (Frankfurter) < Gruppe2 (Nicht-Frankfurter) 
+       alternative = "less",         # einseitige Testung: Gruppe1 (Frankfurter:innen) < Gruppe2 (Nicht-Frankfurter:innen) 
        conf.level = .95)             # alpha = .05 
+```
+
+```{r, echo=FALSE}
+wilcox <- wilcox.test(fb21$lz ~ fb21$ort, paired = F, alternative = "less",  conf.level = .95)
 ```
 
 **Formales Berichten des Ergebnisses** 
 
-Es wurde untersucht, ob außerhalb von Frankfurt wohnende Studierende zufriedener im Leben sind als die in Frankfurt wohnenden. Deskriptiv  zeigt sich tatsächlich, dass die Nicht-Frankfurter:innen zufriedener sind (_Mdn_ = 5.2, _IQB_ = [4.6; 5.6]) als die Frankfurter:innen (_Mdn_ = 5, _IQB_ = [4.0; 5.8]). entsprechende Wilcoxon-Test zeigt jedoch ein nicht signifikantes Ergebnis (_W_ = 1512.5, _p_ = .501). Die Nullhypothese konnte nicht verworfen werden und wird beibehalten. Die Studierenden sind gleich zufrieden, unabhängig von ihrem Wohnort.
+Es wurde untersucht, ob außerhalb von Frankfurt wohnende Studierende zufriedener im Leben sind als die in Frankfurt wohnenden. Deskriptiv  zeigt sich tatsächlich, dass die Nicht-Frankfurter:innen zufriedener sind (_Mdn_ = `r round(deskr$anderer$median, 1)`, _IQB_ = [`r round(and[2], 1)` ; `r round(and[5], 1)`]) als die Frankfurter:innen (_Mdn_ = `r round(deskr$Frankfurt$median, 1)`, _IQB_ = [`r round(fra[2], 1)` ; `r round(fra[5], 1)`]). entsprechende Wilcoxon-Test zeigt jedoch ein nicht signifikantes Ergebnis (_W_ = `round(wilcox$statistic, 1)`, _p_ = `r round(wilcox$p.value, 3)`). Die Nullhypothese konnte nicht verworfen werden und wird beibehalten. Die Studierenden sind gleich zufrieden, unabhängig von ihrem Wohnort.
 
 
 </details>
@@ -299,7 +317,11 @@ Hypothesenpaar (statistisch):
 chisq.test(tab, correct=FALSE)
 ```
 
-$\chi^2 = 0.481, df = 1, p = .488 \rightarrow H_0$
+```{r, echo=FALSE}
+chi2 <- chisq.test(tab, correct=FALSE)
+```
+
+$\chi^2$ = `r round(chi2$statistic, 3)`, df = `r chi2$parameter`, p = `r round(chi2$p.value, 3)` $\rightarrow H_0$
 
 **Effektstärke Phi ($\phi$)**
 
@@ -310,7 +332,7 @@ phi(tab)
 
 **Ergebnisinterpretation**
 
-Es wurde untersucht, ob sich männliche und weibliche Studierende in ihrem Wohnort (Frankfurt vs. außerhalb) unterscheiden. Zur Beantwortung der Fragestellung wurde ein Vierfelder-Chi-Quadrat-Test für unabhängige Stichproben berechnet. Der Zusammenhang zwischen Wohnort und Geschlecht ist nicht signifikant ($\chi^2(1) = 0.481, p = .488$), somit wird die Nullhypothese beibehalten. Der Effekt ist von vernachlässigbarer Stärke ($\phi = .07$). Männliche und weibliche Studierende wohnen also mit gleicher Wahrscheinlichkeit in Frankfurt bzw. außerhalb von Frankfurt.
+Es wurde untersucht, ob sich männliche und weibliche Studierende in ihrem Wohnort (Frankfurt vs. außerhalb) unterscheiden. Zur Beantwortung der Fragestellung wurde ein Vierfelder-Chi-Quadrat-Test für unabhängige Stichproben berechnet. Der Zusammenhang zwischen Wohnort und Geschlecht ist nicht signifikant ($\chi^2$(`r chi2$parameter`) = `r round(chi2$statistic, 3)`, _p_ = `r round(chi2$p.value, 3)`), somit wird die Nullhypothese beibehalten. Der Effekt ist von vernachlässigbarer Stärke ($\phi$ = `r phi(tab)`). Männliche und weibliche Studierende wohnen also mit gleicher Wahrscheinlichkeit in Frankfurt bzw. außerhalb von Frankfurt.
 
 </details>
 
