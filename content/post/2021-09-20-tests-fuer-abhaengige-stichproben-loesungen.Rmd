@@ -66,7 +66,11 @@ library(psych)
 describe(dataMeditation[, "Vorher"])
 describe(dataMeditation[, "Nachher"])
 ```
-Mittelwert vorher (_M_ = 5.1, _SD_ = 1.76) ist deskriptiv niedriger als Mittelwert nachher (_M_ = 6.4, _SD_ = 1.38).
+```{r, echo=FALSE}
+vorher <- describe(dataMeditation[, "Vorher"])
+nachher <- describe(dataMeditation[, "Nachher"])
+```
+Mittelwert vorher (_M_ = `r round(vorher$mean, 2)`, _SD_ = `r round(vorher$sd, 2)`) ist deskriptiv niedriger als Mittelwert nachher (_M_ = `r round(nachher$mean, 2)`, _SD_ = `r round(nachher$sd, 2)`).
 
 **Voraussetzungen für t-Test für abhängige Stichproben**
 
@@ -76,11 +80,11 @@ Mittelwert vorher (_M_ = 5.1, _SD_ = 1.76) ist deskriptiv niedriger als Mittelwe
 
 **Voraussetzungsprüfung: Normalverteilung von _d_**
 ```{r}
-par(mar=c(3,3,3,0)) #aendern der Raender (margins) des Plot-Fensters
+par(mar=c(3,3,3,0)) #ändern der Ränder (margins) des Plot-Fensters
 difference <- dataMeditation[, "Vorher"]-dataMeditation[, "Nachher"]
 hist(difference, xlim=c(-6,4), main="Verteilung der Differenzen", xlab="Differenzen", ylab="", las=1,freq=F)
 curve(dnorm(x, mean=mean(difference), sd=sd(difference)), col="blue", lwd=2, add=T)
-par(mfrow=c(1,1)) #Zuruecksetzens auf default
+par(mfrow=c(1,1)) #Zurücksetzen auf default
 qqnorm(difference,las=1)
 qqline(difference, col="blue")
 ```
@@ -90,8 +94,7 @@ $\Rightarrow$ Differenzen sehen einigermaßen normalverteilt aus
 **Hypothesen**
 
 * Art des Effekts: Unterschiedshypothese  
-* Richtung des Effekts: Gerichtet $\rightarrow$ gerichtete Hypothesen (Der Wissenschaftler erwartet eine positive Wirkung
-#    der Meditation auf die Zufriedenheit.) 
+* Richtung des Effekts: Gerichtet $\rightarrow$ gerichtete Hypothesen (Der Wissenschaftler erwartet eine positive Wirkung der Meditation auf die Zufriedenheit.) 
 * Größe des Effekts: Unspezifisch  
 
 
@@ -111,33 +114,36 @@ $\alpha = .05$
 **Durchführung des _t_-Tests für abhängige Stichproben in R**
 
 ```{r}
-t.test(x = dataMeditation[, "Vorher"], y  = dataMeditation[, "Nachher"], # die beiden abhaengigen Gruppen
-       paired = T,                       # Stichproben sind abhaengig
+t.test(x = dataMeditation[, "Vorher"], y  = dataMeditation[, "Nachher"], # die beiden abhängigen Gruppen
+       paired = T,                       # Stichproben sind abhängig
        alternative = "less",             # gerichtete Hypothese -> einseitige Testung
        conf.level = .95)                 # alpha = .05
 ```
 
+```{r, echo=FALSE}
+ttest <- t.test(x = dataMeditation[, "Vorher"], y  = dataMeditation[, "Nachher"], paired = T, alternative = "less", conf.level = .95)
+```
+
 * Zur Erinnerung: _df_ bei _t_-test mit abhängigen Stichproben: _n_ - 1 (wobei _n_ die Anzahl der Paare darstellt)
-* _t_(0.05;17) = -3.174, _p_ < .05 $\rightarrow$ signifikant, H0 wird verworfen, H1 wird angenommen.
+* _t_(0.05;`r ttest$parameter`) = `r round(ttest$statistic, 3)`, _p_ < .05 $\rightarrow$ signifikant, H0 wird verworfen, H1 wird angenommen.
 
 **Schätzung des standardisierten Populationseffekts**
 
 ```{r}
 mean_d <- mean(difference)
-sd.d.est <- sd(difference) #die geschaetzte SD der Differenzen
+sd.d.est <- sd(difference) #die geschätzte SD der Differenzen
 d_Meditation <- mean_d/sd.d.est
 d_Meditation
 ```
 
-$\Rightarrow$ Der standardisierte Populationseffekt beträgt _d2''_ = -0.75 und ist laut Konventionen nach Cohen (1988) groß. 
+$\Rightarrow$ Der standardisierte Populationseffekt beträgt _d2''_ = `r round(d_Meditation, 2)` und ist laut Konventionen nach Cohen (1988) groß. 
 
 **Formales Berichten des Ergebnisses**
 
-Es wurde in einer Wiederholungsmessung untersucht, ob sich Meditation auf Zufriedenheit auswirkt. Zunächst findet sich deskriptiv ein Unterschied: Vor der Meditation liegt der durchschnittliche Zufriedenheitswert bei 5.06 (_SD_ = 1.76), während er nach der Meditation bei 6.39 (_SD_ = 1.38) liegt. 
+Es wurde in einer Wiederholungsmessung untersucht, ob sich Meditation auf Zufriedenheit auswirkt. Zunächst findet sich deskriptiv ein Unterschied: Vor der Meditation liegt der durchschnittliche Zufriedenheitswert bei `r round(vorher$mean, 2)` (_SD_ = `r round(vorher$sd, 2)`), während er nach der Meditation bei `r round(nachher$mean, 2)` (_SD_ = `r round(nachher$sd, 2)`) liegt. 
 
-Zur Beantwortung der Fragestellung wurde ein gerichteter _t_-Test für abhängige Stichproben durchgeführt. Der Gruppenunterschied ist signifikant (_t_(17) = -3.17, _p_ < .05), somit wird die Nullhypothese verworfen und die Alternativhypothese angenommen. Die Meditation hat einen Einfluss auf die Zufriedenheit.
+Zur Beantwortung der Fragestellung wurde ein gerichteter _t_-Test für abhängige Stichproben durchgeführt. Der Gruppenunterschied ist signifikant (_t_(`r ttest$parameter`) = `r round(ttest$statistic, 3)`, _p_ < .05), somit wird die Nullhypothese verworfen und die Alternativhypothese angenommen. Die Meditation hat einen Einfluss auf die Zufriedenheit.
 
-Dieser Einfluss ist nach dem standardisierte Populationseffekt von _d''_ = 0.75 groß.
-
+Dieser Einfluss ist nach dem standardisierte Populationseffekt von _d''_ = `r round(d_Meditation, 2)` groß.
 
 </details>
