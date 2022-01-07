@@ -3,17 +3,18 @@ title: Meta-Analysen in R
 date: '2021-12-22'
 slug: meta-analysen-MW
 categories:
-  - MSc5
+  - MSc5a
 tags:
   - Meta-Analyse
   - Zusammenfassung
   - Summary
   - Mittelwerte
   - Effektstärken
+  - Gruppenvergleiche
 subtitle: 'Mittelwertsunterschiede'
 summary: ''
 authors: [irmer]
-lastmod: '2021-12-22T15:21:58+02:00'
+lastmod: '2022-01-07T15:21:58+02:00'
 featured: no
 header:
   image: "/header/Klipps_Meta-Analyse_MW.jpg"
@@ -31,7 +32,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 
 
 ## Einführung
-Meta-Analysen sind empirische Zusammenfassungen von Studien unter Verwendung mathematischer Modelle. Auf diese Weise können Ergebnisse aus jahrelanger Forschung integriert und zusammengefasst werden, was oft Aufschluss darüber liefert, ob Effekte im Mittel vorhanden sind oder nicht. Somit können Meta-Analysen lange Debatten beenden und Licht in das Dunkel von sich widersprechenden Studienergebnissen bringen.
+Meta-Analysen sind empirische Zusammenfassungen von Studien unter Verwendung mathematischer/statistischer Modelle. Auf diese Weise können Ergebnisse aus jahrelanger Forschung integriert und zusammengefasst werden, was oft Aufschluss darüber liefert, ob Effekte im Mittel vorhanden sind oder nicht. Somit können Meta-Analysen lange Debatten beenden und Licht in das Dunkel von sich widersprechenden Studienergebnissen bringen.
 
 Mit Hilfe des `metafor`-Paketes (_**meta***-analysis ***fo***r ***r**_) von Viechtbauer (2010) lassen sich eindimensionale und mehrdiemensionale Meta-Analysen (in welchen ein oder mehrere Koeffizient über mehrere Studien "gemittelt" werden soll) leicht berechnen. Zunächst müssen wir dazu das `R`-Paket installieren.
 
@@ -66,6 +67,25 @@ Wir wollen uns zunächst nur auf die klassische "Face-to-Face" CBT konzentrieren
 ```{r}
 F2F_CBT <- dat.lopez2019[dat.lopez2019$treatment == "F2F CBT",] # wähle nur Fälle mit F2F CBT
 ```
+
+### Effekte bestimmen
+Im betrachteten Datensatz wurden die Effektstärken (standardisierte Mittelwertsdifferenzen) bereits bestimmt. Mit Hilfe der `escalc`-Funktion hätten wir diese auch selbst erstellen können. Angenommen wir hätten einen Datensatz, welcher zwei unabhängige Gruppen in einer Variable untersucht hatte. Wir nehmen mal folgende Mittelwerte, Standardabweichungen und Stichprobengrößen an: $\bar{X}_1 = 1.5, SD_1=0.7,n_1=35$ und  $\bar{X}_2 = 2.7, SD_2=1.3,n_2=27$. Wir fügen diese Daten kurz in einen `data.frame`, um dann die `escalc`-Funktion schöner darauf anwenden zu können:
+
+```{r}
+df <- data.frame("X1" = 1.5, "SD1" = 0.7, "n1" = 35,
+                 "X2" = 2.7, "SD2" = 1.3, "n2" = 27)
+df
+```
+
+Der `escalc` Funktion müssen wir zunächst sagen, welche Transformation wir wünschen `measure = "SMD"` für **S**tandardized **M**ean **D**ifference. Anschließend brauch die Funktion alle Informationen, die wir auch selbst zum bestimmen der Effektstärke brauchen: Mittelwerte (`m1i`, `m2i`), Standardabweichungen (`sd1i`, `sd2i`) und Stichprobengrößen (`n1i`, `n2i`).
+
+```{r}
+escalc(measure = "SMD", m1i = X1, m2i = X2, sd1i = SD1, sd2i = SD2,
+       n1i = n1, n2i = n2,
+       data = df)
+```
+
+Zurückgegeben wird uns ein Datensatz, der um die beiden Variablen `yi` (Standardized Mean Difference) und `vi` (Standardfehler der SMD) erweitert wurde. Hätten wir mehrere Studien übergeben, würden hier entsprechened mehrere Zeilen stehen. Zum Glück liegen die Daten schon vor, sodass wir das nicht für unsere Meta-Analyse tun müssen!
 
 ### Fragestellungen
 
@@ -134,7 +154,7 @@ H^2 (total variability / sampling variability):  45.81
 
 sind Heterogenitätsmaße. Sie beschreiben, wie viel der Variation der Studienergebnisse durch mögliche Subpopulationen zu Stande gekommen sind. $I^2$ ist ein häufig berichtetes Maß, welches den Anteil an der Gesamtvariation der Effektstärken schätzt, die durch Heterogenität zwischen den Studien resultiert.
 
-Diese Heterogenität wird hier auf Signifikanz geprüft.
+Diese Heterogenität wird hier auf Signifikanz geprüft mit Hilfe von Cochran's $Q$.
 
 
 ```{r, echo = F}
@@ -218,7 +238,7 @@ In allen drei Analysen ist die mittlere Differenz negativ und signifikant von 0 
 ## Analyse Plots
 Das `metafor` Paket bietet außerdem noch einige grafischen Veranschaulichungen der Daten. Beispielsweise lässt sich ganz leicht ein Funnel-Plot erstellen mit der `funnel` Funktion, welche lediglich unser Meta-Analyse Objekt `REM` entgegen nehmen muss. 
 
-#### Funnel Plot
+#### Funnel Plot und Trim-and-Fill Methode
 Der Funnel-Plot wird verwendet, um auf das bekannte Problem des Publication-Bias zu untersuchen. Hier wird der gefundene Effekt (hier Effektstärken von Prä-Post Veränderungen) gegen den Standardfehler jeder Studie geplottet. Es wird die Annahme zugrunde gelegt, dass alle Studien in der Meta-Analyse eine gewisse, zufällige Schwankung um den wahren Effekt haben, und dabei diese zufällige Schwankung größer ist, je größer der Standardfehler in einer Studie ist und je kleiner die Stichprobe war. Sofern eine Studie unabhängig von der Effektgröße sowie der Streuung (und damit auch der Signifikanz) publiziert wurde, sollte so das typische symmetrische Dreieck (Funnel = Trichter) entstehen.  
 
 ```{r, fig.align="center"}
@@ -227,6 +247,26 @@ funnel(REM)
 ```
 
 Der Grafik ist zu entnehmen, dass sich fast alle Effektstärken im negativen Bereich tummeln. Je kleiner der Effekt desto präziser die Schätzung (desto kleiner der SE - höher dargestellt im Funnel-Plot). Dies könnte Indizien auf einen Publication Bias zeigen. Außerdem gibt es wenige Studien mit sehr großen Standardfehlern (un damit geringen Stichprobengrößen). Der Funnel (Trichter) ist kaum befüllt. Dies liegt vermutlich an den wenigen extremen Ergebnissen, die links im Plot dargestellt sind. Allerdings ist die Punktewolke, auch wenn etwas schief, im oberen rechten Bereich recht gut ausgefüllt. Es gibt keine einzige Studie mit positiven Effektstärken. Insgesamt spricht dies dann doch dagegen, dass die Signifikanz des Effekts durch einen Bias in Veröffentlichungen entstanden ist. Allerdings könnte die ausgesprochen große Effektstärke verzerrt sein.
+
+Die Trim-and-Fill Methode wird verwendet, um zu bestimmen, wie viel Studien hinzugenommen (fill) oder entfernt werden (Trim) müssten werden müssten, damit der Funnel-Plot symmetrisch ist. Die Methoden kann auch verwendet werden, um einen (um einen möglichen Publication-Bias) bereinigten Effekt zu schätzen.
+
+```{r}
+trimfill(REM)
+```
+
+Die Funktion bestimmt selbst, auf welche Seite mögliche fehlende (nicht publizierte) Werte ergänzt werden sollten. Der Output sieht dem `REM` sehr ähnlich. In der ersten Zeile steht, dass keine Studie auf der rechten Seite des geschätzten durchschnittlichen Effekts ergänzt wurde. Das ist etwas schade, weil wir möchten gerne sehen, was dann passieren würde. Deshalb stellen wir aus didaktischen Gründen ein, dass Effekte auch auf der linken Seite ergänzt werden sollen (auch wenn das keinen Sinn macht, da der Effekt ja negativ ist!).
+
+```{r}
+trimfill(REM, side = "left")
+```
+
+Nun sehen wir, dass insgesamt 18 Studien ersetzt wurden. Der Output hat sich deutlich verändert. Der mittlere Effekt ist deutlich stärker negativ (`r round(REM$b, 2)` vs `r round(trimfill(REM, side = "left")$b, 2)`). Wenn wir nun wieder die `funnel` Funktion darauf anwenden, sehen wir auch, welche Studien hinzugefügt wurden:
+
+```{r}
+funnel(trimfill(REM, side = "left"))
+```
+
+Wir sehen, dass die 18 Studien nicht sinnvoll hinzugefügt wurden. Wir gehen somit insgesamt davon aus, dass kein Publication Bias vorliegt und verwerfen die eben betrachteten Trim-and-Fill Ergebnisse.
 
 #### Forest-Plot
 
@@ -323,6 +363,8 @@ Der Modellvergleich ist statistisch bedeutsam ($\Delta\chi^2(df=4)=$ 19.82, $p=$
 ***
 
 ## Literatur
+
+[Döring, N., & Bortz, J. (2016)](https://hds.hebis.de/ubffm/Record/HEB36808809X). Meta-Analyse. In _Forschungsmethoden und Evaluation in den Sozial- und Humanwissenschaften_ (pp. 893-943). Springer, Berlin, Heidelberg.
 
 
 [López-López, J. A., Davies, S. R., Caldwell, D. M., Churchill, R., Peters, T. J., Tallon, D., Dawson, S., Wu, Q., Li, J., Taylor, A., Lewis, G., Kessler, D. S., Wiles, N., & Welton, N. J. (2019).](https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.37032030|edsbas) The process and delivery of CBT for depression in adults: A systematic review and network meta-analysis. _Psychological Medicine, 49_(12), 1937–1947.  [https://doi.org/10.1017/S003329171900120X](https://doi.org/10.1017/S003329171900120X)

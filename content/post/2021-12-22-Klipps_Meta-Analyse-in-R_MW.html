@@ -3,17 +3,18 @@ title: Meta-Analysen in R
 date: '2021-12-22'
 slug: meta-analysen-MW
 categories:
-  - MSc5
+  - MSc5a
 tags:
   - Meta-Analyse
   - Zusammenfassung
   - Summary
   - Mittelwerte
   - Effektstärken
+  - Gruppenvergleiche
 subtitle: 'Mittelwertsunterschiede'
 summary: ''
 authors: [irmer]
-lastmod: '2021-12-22T15:21:58+02:00'
+lastmod: '2022-01-07T15:21:58+02:00'
 featured: no
 header:
   image: "/header/Klipps_Meta-Analyse_MW.jpg"
@@ -26,7 +27,7 @@ projects: []
 
 <div id="einführung" class="section level2">
 <h2>Einführung</h2>
-<p>Meta-Analysen sind empirische Zusammenfassungen von Studien unter Verwendung mathematischer Modelle. Auf diese Weise können Ergebnisse aus jahrelanger Forschung integriert und zusammengefasst werden, was oft Aufschluss darüber liefert, ob Effekte im Mittel vorhanden sind oder nicht. Somit können Meta-Analysen lange Debatten beenden und Licht in das Dunkel von sich widersprechenden Studienergebnissen bringen.</p>
+<p>Meta-Analysen sind empirische Zusammenfassungen von Studien unter Verwendung mathematischer/statistischer Modelle. Auf diese Weise können Ergebnisse aus jahrelanger Forschung integriert und zusammengefasst werden, was oft Aufschluss darüber liefert, ob Effekte im Mittel vorhanden sind oder nicht. Somit können Meta-Analysen lange Debatten beenden und Licht in das Dunkel von sich widersprechenden Studienergebnissen bringen.</p>
 <p>Mit Hilfe des <code>metafor</code>-Paketes (<em><strong>meta</strong><em>-analysis </em><strong>fo</strong><em>r </em><strong>r</strong></em>) von Viechtbauer (2010) lassen sich eindimensionale und mehrdiemensionale Meta-Analysen (in welchen ein oder mehrere Koeffizient über mehrere Studien “gemittelt” werden soll) leicht berechnen. Zunächst müssen wir dazu das <code>R</code>-Paket installieren.</p>
 <pre class="r"><code>library(metafor)</code></pre>
 <pre><code>## Loading required package: Matrix</code></pre>
@@ -250,6 +251,22 @@ projects: []
 <p>In <code>study</code> steht die verwendete Studie, <code>treatment</code> zeigt an, welche Art der Therapie oder Kontrollgruppe in der jeweiligen Studie verwendet wurde (“F2F CBT” = “Angesicht zu Angesicht” CBT, “Multimedia CBT” = Online-CBT, “Placebo” = Placebo-Kontrollgruppe, “Wait list” = Wartelistenkontrollgruppe, “Hybrid CBT” = Mischung aus F2F und Multimedia, “No treatment” = klassische Kontrollgruppw, “TAU” = Treatment as Usual [Standardtherapie]), <code>scale</code> gibt an, wie die Depression erfasst wurde, <code>n</code> ist die Stichprobengröße der Studie, <code>diff</code> ist die standardisierte Differenz (Cohen’s <span class="math inline">\(d\)</span>) zwischen vor und nach der Intervention, <code>se</code> ist der Standardfehler von <code>diff</code>, <code>group</code> [Dummy-Variable] zeigt an, ob es sich um eine Einzel (0) oder Gruppentherapie (1) gehandelt hat, <code>tailored</code> gibt an, ob die Therapie auf den jeweiligen Patienten/die jeweilige Patientin zugeschnitten wurde, <code>sessions</code> ist die Anzahl an Therapiesitzungen, <code>length</code> ist die durchschnittliche Sitzungslänge, <code>intensity</code> ist das Produkt aus <code>session</code> und <code>length</code>. Außerdem werden noch weitere mögliche Moderatorvariablen aufgeführt, die sich jeweils auf die Therapie beziehen. Für mehr Informationen siehe bspw. <code>?dat.lopez2019</code>. Wir schauen uns die Moderatoren genauer an, wenn es um die Moderatoranalysen im Rahmen von Meta-Analysen geht.</p>
 <p>Wir wollen uns zunächst nur auf die klassische “Face-to-Face” CBT konzentrieren und kürzen daher den Datensatz. Wir kopieren den Originaldatensatz in <code>F2F_CBT</code>, damit <code>dat.lopez2019</code> erhalten bleibt.</p>
 <pre class="r"><code>F2F_CBT &lt;- dat.lopez2019[dat.lopez2019$treatment == &quot;F2F CBT&quot;,] # wähle nur Fälle mit F2F CBT</code></pre>
+<div id="effekte-bestimmen" class="section level3">
+<h3>Effekte bestimmen</h3>
+<p>Im betrachteten Datensatz wurden die Effektstärken (standardisierte Mittelwertsdifferenzen) bereits bestimmt. Mit Hilfe der <code>escalc</code>-Funktion hätten wir diese auch selbst erstellen können. Angenommen wir hätten einen Datensatz, welcher zwei unabhängige Gruppen in einer Variable untersucht hatte. Wir nehmen mal folgende Mittelwerte, Standardabweichungen und Stichprobengrößen an: <span class="math inline">\(\bar{X}_1 = 1.5, SD_1=0.7,n_1=35\)</span> und <span class="math inline">\(\bar{X}_2 = 2.7, SD_2=1.3,n_2=27\)</span>. Wir fügen diese Daten kurz in einen <code>data.frame</code>, um dann die <code>escalc</code>-Funktion schöner darauf anwenden zu können:</p>
+<pre class="r"><code>df &lt;- data.frame(&quot;X1&quot; = 1.5, &quot;SD1&quot; = 0.7, &quot;n1&quot; = 35,
+                 &quot;X2&quot; = 2.7, &quot;SD2&quot; = 1.3, &quot;n2&quot; = 27)
+df</code></pre>
+<pre><code>##    X1 SD1 n1  X2 SD2 n2
+## 1 1.5 0.7 35 2.7 1.3 27</code></pre>
+<p>Der <code>escalc</code> Funktion müssen wir zunächst sagen, welche Transformation wir wünschen <code>measure = "SMD"</code> für <strong>S</strong>tandardized <strong>M</strong>ean <strong>D</strong>ifference. Anschließend brauch die Funktion alle Informationen, die wir auch selbst zum bestimmen der Effektstärke brauchen: Mittelwerte (<code>m1i</code>, <code>m2i</code>), Standardabweichungen (<code>sd1i</code>, <code>sd2i</code>) und Stichprobengrößen (<code>n1i</code>, <code>n2i</code>).</p>
+<pre class="r"><code>escalc(measure = &quot;SMD&quot;, m1i = X1, m2i = X2, sd1i = SD1, sd2i = SD2,
+       n1i = n1, n2i = n2,
+       data = df)</code></pre>
+<pre><code>##    X1 SD1 n1  X2 SD2 n2      yi     vi 
+## 1 1.5 0.7 35 2.7 1.3 27 -1.1790 0.0768</code></pre>
+<p>Zurückgegeben wird uns ein Datensatz, der um die beiden Variablen <code>yi</code> (Standardized Mean Difference) und <code>vi</code> (Standardfehler der SMD) erweitert wurde. Hätten wir mehrere Studien übergeben, würden hier entsprechened mehrere Zeilen stehen. Zum Glück liegen die Daten schon vor, sodass wir das nicht für unsere Meta-Analyse tun müssen!</p>
+</div>
 <div id="fragestellungen" class="section level3">
 <h3>Fragestellungen</h3>
 <p>Insgesamt wollen wir nun untersuchen, ob</p>
@@ -312,7 +329,7 @@ summary(FEM_n)</code></pre>
 <pre><code>## I^2 (total heterogeneity / total variability):   97.82%
 ## H^2 (total variability / sampling variability):  45.81</code></pre>
 <p>sind Heterogenitätsmaße. Sie beschreiben, wie viel der Variation der Studienergebnisse durch mögliche Subpopulationen zu Stande gekommen sind. <span class="math inline">\(I^2\)</span> ist ein häufig berichtetes Maß, welches den Anteil an der Gesamtvariation der Effektstärken schätzt, die durch Heterogenität zwischen den Studien resultiert.</p>
-<p>Diese Heterogenität wird hier auf Signifikanz geprüft.</p>
+<p>Diese Heterogenität wird hier auf Signifikanz geprüft mit Hilfe von Cochran’s <span class="math inline">\(Q\)</span>.</p>
 <pre><code>## Test for Heterogeneity:
 ## Q(df = 70) = 3206.6098, p-val &lt; .0001</code></pre>
 <p>Das signifikante Ergebnis zeigt uns, dass die Heterogenität statistisch bedeutsam ist, es also Unterschiede zwischen den Stichproben gibt. Diese Heterogenitätsvarianz, die hier de facto auf Signifikanz geprüft wurde, lässt sich vergleichen mit der Between-Varianz in HLM-Modellen. Die Sampling-Varianz enstpricht der Within-Varianz.</p>
@@ -423,28 +440,76 @@ summary(REM)</code></pre>
 <div id="analyse-plots" class="section level2">
 <h2>Analyse Plots</h2>
 <p>Das <code>metafor</code> Paket bietet außerdem noch einige grafischen Veranschaulichungen der Daten. Beispielsweise lässt sich ganz leicht ein Funnel-Plot erstellen mit der <code>funnel</code> Funktion, welche lediglich unser Meta-Analyse Objekt <code>REM</code> entgegen nehmen muss.</p>
-<div id="funnel-plot" class="section level4">
-<h4>Funnel Plot</h4>
+<div id="funnel-plot-und-trim-and-fill-methode" class="section level4">
+<h4>Funnel Plot und Trim-and-Fill Methode</h4>
 <p>Der Funnel-Plot wird verwendet, um auf das bekannte Problem des Publication-Bias zu untersuchen. Hier wird der gefundene Effekt (hier Effektstärken von Prä-Post Veränderungen) gegen den Standardfehler jeder Studie geplottet. Es wird die Annahme zugrunde gelegt, dass alle Studien in der Meta-Analyse eine gewisse, zufällige Schwankung um den wahren Effekt haben, und dabei diese zufällige Schwankung größer ist, je größer der Standardfehler in einer Studie ist und je kleiner die Stichprobe war. Sofern eine Studie unabhängig von der Effektgröße sowie der Streuung (und damit auch der Signifikanz) publiziert wurde, sollte so das typische symmetrische Dreieck (Funnel = Trichter) entstehen.</p>
 <pre class="r"><code># funnel plot
 funnel(REM)</code></pre>
-<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-16-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Der Grafik ist zu entnehmen, dass sich fast alle Effektstärken im negativen Bereich tummeln. Je kleiner der Effekt desto präziser die Schätzung (desto kleiner der SE - höher dargestellt im Funnel-Plot). Dies könnte Indizien auf einen Publication Bias zeigen. Außerdem gibt es wenige Studien mit sehr großen Standardfehlern (un damit geringen Stichprobengrößen). Der Funnel (Trichter) ist kaum befüllt. Dies liegt vermutlich an den wenigen extremen Ergebnissen, die links im Plot dargestellt sind. Allerdings ist die Punktewolke, auch wenn etwas schief, im oberen rechten Bereich recht gut ausgefüllt. Es gibt keine einzige Studie mit positiven Effektstärken. Insgesamt spricht dies dann doch dagegen, dass die Signifikanz des Effekts durch einen Bias in Veröffentlichungen entstanden ist. Allerdings könnte die ausgesprochen große Effektstärke verzerrt sein.</p>
+<p>Die Trim-and-Fill Methode wird verwendet, um zu bestimmen, wie viel Studien hinzugenommen (fill) oder entfernt werden (Trim) müssten werden müssten, damit der Funnel-Plot symmetrisch ist. Die Methoden kann auch verwendet werden, um einen (um einen möglichen Publication-Bias) bereinigten Effekt zu schätzen.</p>
+<pre class="r"><code>trimfill(REM)</code></pre>
+<pre><code>## 
+## Estimated number of missing studies on the right side: 0 (SE = 4.0143)
+## 
+## Random-Effects Model (k = 71; tau^2 estimator: REML)
+## 
+## tau^2 (estimated amount of total heterogeneity): 1.4347 (SE = 0.2480)
+## tau (square root of estimated tau^2 value):      1.1978
+## I^2 (total heterogeneity / total variability):   99.93%
+## H^2 (total variability / sampling variability):  1454.46
+## 
+## Test for Heterogeneity:
+## Q(df = 70) = 17146.2694, p-val &lt; .0001
+## 
+## Model Results:
+## 
+## estimate      se      zval    pval    ci.lb    ci.ub 
+##  -2.0523  0.1438  -14.2714  &lt;.0001  -2.3342  -1.7705  *** 
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Die Funktion bestimmt selbst, auf welche Seite mögliche fehlende (nicht publizierte) Werte ergänzt werden sollten. Der Output sieht dem <code>REM</code> sehr ähnlich. In der ersten Zeile steht, dass keine Studie auf der rechten Seite des geschätzten durchschnittlichen Effekts ergänzt wurde. Das ist etwas schade, weil wir möchten gerne sehen, was dann passieren würde. Deshalb stellen wir aus didaktischen Gründen ein, dass Effekte auch auf der linken Seite ergänzt werden sollen (auch wenn das keinen Sinn macht, da der Effekt ja negativ ist!).</p>
+<pre class="r"><code>trimfill(REM, side = &quot;left&quot;)</code></pre>
+<pre><code>## 
+## Estimated number of missing studies on the left side: 18 (SE = 5.5063)
+## 
+## Random-Effects Model (k = 89; tau^2 estimator: REML)
+## 
+## tau^2 (estimated amount of total heterogeneity): 1.7369 (SE = 0.2660)
+## tau (square root of estimated tau^2 value):      1.3179
+## I^2 (total heterogeneity / total variability):   99.96%
+## H^2 (total variability / sampling variability):  2796.32
+## 
+## Test for Heterogeneity:
+## Q(df = 88) = 311883.7263, p-val &lt; .0001
+## 
+## Model Results:
+## 
+## estimate      se      zval    pval    ci.lb    ci.ub 
+##  -2.4362  0.1408  -17.2967  &lt;.0001  -2.7122  -2.1601  *** 
+## 
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Nun sehen wir, dass insgesamt 18 Studien ersetzt wurden. Der Output hat sich deutlich verändert. Der mittlere Effekt ist deutlich stärker negativ (-2.05 vs -2.44). Wenn wir nun wieder die <code>funnel</code> Funktion darauf anwenden, sehen wir auch, welche Studien hinzugefügt wurden:</p>
+<pre class="r"><code>funnel(trimfill(REM, side = &quot;left&quot;))</code></pre>
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Wir sehen, dass die 18 Studien nicht sinnvoll hinzugefügt wurden. Wir gehen somit insgesamt davon aus, dass kein Publication Bias vorliegt und verwerfen die eben betrachteten Trim-and-Fill Ergebnisse.</p>
 </div>
 <div id="forest-plot" class="section level4">
 <h4>Forest-Plot</h4>
 <p>Auch Forest-Plots funktionieren auf die gleiche Weise mit der <code>forest</code> Funktion. Der Forest-Plot stellt die unterschiedlichen Studien hinsichtlich ihrer Parameterschätzung (Effektstärken) und die zugehörige Streuung grafisch dar. So können beispielsweise Studien identifiziert werden, welche besonders hohe oder niedrige Werte aufweisen oder solche, die eine besonders große oder kleine Streuung zeigen.</p>
 <pre class="r"><code># forest plot
 forest(REM)</code></pre>
-<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Wir sehen sehr deutlich, dass alle Studien Konfidenzintervalle aufweisen, die die Null nicht einschließen. Auch ein kumulativer Forest-Plot wäre möglich. Dazu müssen wir auf unser <code>REM</code>-Objekt noch die Funktion <code>cumul.rma.uni</code> anwenden:</p>
 <pre class="r"><code># kumulativer Forest Plot
 forest(cumul.rma.uni(REM))</code></pre>
-<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-18-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Die Funktion <code>cumul.rma.uni</code> führt skuzessive immer wieder eine Meta-Analyse durch, wobei nach und nach eine Studie hinzugefügt wird. Anders als beim ersten Forest-Plot wird immer das Ergebnis der jeweiligen Meta-Analyse dargestellt und nicht jede Studie einzeln. Wir sehen, dass sich sowohl mittlere Effektstärke als auch Streuung von oben nach unten einpendeln. Das finale Ergebnis ist identisch mit unsere Meta-Analyse. Die gestrichelte Linie der Forest-Plots symbolisiert die 0, da in den meisten Fällen gegen 0 getestet wird und es daher von Interesse ist, wie viele Studien sich von 0 unterscheiden und ob sich der mittlere Effekt von 0 unterscheidet. Die Achsenbeschriftung unterscheidet sich, sodass die beiden Forest-Plots nicht ideal vergleichbar sind. Mit dem Zusatzargument <code>xlim</code> können wir die x-Achse explizit einstellen:</p>
 <pre class="r"><code># kumulativer Forest Plot
 forest(cumul.rma.uni(REM), xlim = c(-10, 2))</code></pre>
-<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" />
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" />
 Nun sehen wir schöner, wie gut sich die Ergebnisse um den mittleren Wert einpendeln.</p>
 <p>Insgesamt zeigen uns die Plots, dass von einem stabilen Effekt ausgegangen werden kann.</p>
 </div>
@@ -555,6 +620,7 @@ wobei <span class="math inline">\(\theta\)</span> der durchschnittliche Effekt i
 </div>
 <div id="literatur" class="section level2">
 <h2>Literatur</h2>
+<p><a href="https://hds.hebis.de/ubffm/Record/HEB36808809X">Döring, N., &amp; Bortz, J. (2016)</a>. Meta-Analyse. In <em>Forschungsmethoden und Evaluation in den Sozial- und Humanwissenschaften</em> (pp. 893-943). Springer, Berlin, Heidelberg.</p>
 <p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.37032030%7Cedsbas">López-López, J. A., Davies, S. R., Caldwell, D. M., Churchill, R., Peters, T. J., Tallon, D., Dawson, S., Wu, Q., Li, J., Taylor, A., Lewis, G., Kessler, D. S., Wiles, N., &amp; Welton, N. J. (2019).</a> The process and delivery of CBT for depression in adults: A systematic review and network meta-analysis. <em>Psychological Medicine, 49</em>(12), 1937–1947. <a href="https://doi.org/10.1017/S003329171900120X">https://doi.org/10.1017/S003329171900120X</a></p>
 <p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.B90C267A%7Cedsbas">Viechtbauer, W. (2010).</a> Conducting meta-analyses in R with the metafor package. <em>Journal of Statistical Software</em>, <em>36</em>(3), 1–48. <a href="https://www.jstatsoft.org/v036/i03" class="uri">https://www.jstatsoft.org/v036/i03</a>.</p>
 <ul>
