@@ -308,7 +308,13 @@ wobei $\theta$ der durchschnittliche Effekt ist, wenn alle Moderatoren den Wert 
 
 ### Moderatormodell: `metafor`
 
-Augenscheinlich würde die `intensity` der Therapie Sinn machen, dass sie für Heterogenität zwischen den Studien sorgt. Wir stellen ein Modell auf (hierbei müssen die Moderatoren, wie in einer normalen Regressionsanlyse mit einer Formel eingegben werden; diese Formel wird dem Argument `mods` übergeben) und lassen dieses diesmal mit "ML" schätzen, um später einen geeigneten Modellvergleich durchführen zu können:
+Augenscheinlich würde die `intensity` der Therapie Sinn machen, dass sie für Heterogenität zwischen den Studien sorgt. Zunächst muss diese Variable zentriert werden, damit der durchschnittliche bedingte Effekt sinnvoll interpretierbar bleibt. Wir überschreiben die Ursprungsvariable.
+
+```{r}
+F2F_CBT$intensity <- scale(F2F_CBT$intensity, center = T, scale = F) # nur zentrieren
+```
+
+Wir stellen ein Modell auf (hierbei müssen die Moderatoren, wie in einer normalen Regressionsanlyse mit einer Formel eingegben werden; diese Formel wird dem Argument `mods` übergeben) und lassen dieses diesmal mit "ML" schätzen, um später einen geeigneten Modellvergleich durchführen zu können:
 
 ```{r}
 MEM1 <- rma(yi = diff, sei =  se, data = F2F_CBT, 
@@ -321,7 +327,7 @@ Uns wird eine "Warning" ausgegeben: `Warning: Studies with NAs omitted from mode
 Die `summary` wird um einen erklärten Varianzanteil  
 
 ```{r}
-cat("R^2 (amount of heterogeneity accounted for):            1.25%")
+cat("R^2 (amount of heterogeneity accounted for):            3.05%")
 ```
 
 
@@ -329,10 +335,10 @@ sowie um einen Omnibustest der Moderatoren erweitert (quasi F-Test des gesamten 
 
 ```{r, echo = F}
 cat('Test of Moderators (coefficient 2):
-QM(df = 1) = 1.6227, p-val = 0.2027')
+QM(df = 1) = 1.6842, p-val = 0.1944')
 ```
 
-Der Moderator scheint keien signifikanten Heterogenitätsvarianzanteile zu erklären ($Q_M(df=1)=$ `r round(MEM1$QM, 2)`, $p=$, `r round(MEM1$QMp, 4)`). Insgesamt werden nur $1.25\%$ Heterogenitätsvariation durch die Intensität erklärt. Unter 
+Der Moderator scheint keien signifikanten Heterogenitätsvarianzanteile zu erklären ($Q_M(df=1)=$ `r round(MEM1$QM, 2)`, $p=$, `r round(MEM1$QMp, 4)`). Insgesamt werden nur $3.05\%$ Heterogenitätsvariation durch die Intensität erklärt. Unter 
 
 ```{r, echo = F}
 cat("Model Results:")
