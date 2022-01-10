@@ -1,11 +1,11 @@
 ---
-title: Meta-Analysen in R
+title: Metaanalysen in R
 date: '2021-12-23'
-slug: meta-analysen-Cor
+slug: metaanalysen-Cor
 categories:
   - MSc5a
 tags:
-  - Meta-Analyse
+  - Metaanalyse
   - Zusammenfassung
   - Summary
   - Korrelationen
@@ -31,7 +31,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 
 
 ## Einführung
-In der letzten Sitzung hatten wir uns angesehen, wie Mittelwerte, bzw. Differenzwerte meta-analytisch zusammengefasst werden können. Falls Sie sich die [vergangene Sitzung](/post/meta-analysen-MW) noch nicht angesehen haben, dann wird dies dringend empfohlen, da sie das Fundament für die jetztige Sitzung liefert. Wir beginnen wieder mit dem Laden des `metafor`-Pakets.
+In der letzten Sitzung hatten wir uns angesehen, wie Mittelwerte, bzw. Differenzwerte metaanalytisch zusammengefasst werden können. Falls Sie sich die [vergangene Sitzung](/post/metaanalysen-MW) noch nicht angesehen haben, dann wird dies dringend empfohlen, da sie das Fundament für die jetztige Sitzung liefert. Wir beginnen wieder mit dem Laden des `metafor`-Pakets.
 
 ```{r, message=F, warning=F}
 library(metafor)
@@ -50,7 +50,7 @@ head(dat.molloy2014)
 knitr::kable(head(dat.molloy2014))
 ```
 
-In `authors` steht die verwendete Studie, `year` zeigt das Jahr an, `ni` ist die Stichprobengröße, `ri` ist die Korrelation, `controls` gibt an, ob Kontrollvariablen in der Analyse verwendet wurden, `design` gibt an, welches Studiendesign verwendet wurde, `a_measure` gibt an, wie die Medikamenteneinnahme untersucht wurde, `c_measure` gibt an, wie die Gewissenhaftigkeit gemessen wurde (meisten Versionen den NEO), `meanage` ist das Durchschnittsalter der Stichprobe, `quality` ist ein Qualitätsindex der Studie (für mehr Informationen dazu siehe Molloy et al., 2014).  
+In `authors` steht die verwendete Studie, `year` zeigt das Jahr an, `ni` ist die Stichprobengröße, `ri` ist die Korrelation, `controls` gibt an, ob Kontrollvariablen in der Analyse verwendet wurden, `design` gibt an, welches Studiendesign verwendet wurde, `a_measure` gibt an, wie die Medikamenteneinnahme untersucht wurde, `c_measure` gibt an, wie die Gewissenhaftigkeit gemessen wurde (meistens Versionen des NEO), `meanage` ist das Durchschnittsalter der Stichprobe, `quality` ist ein Qualitätsindex der Studie (für mehr Informationen dazu siehe Molloy et al., 2014).  
  
 
 ### Fragestellungen
@@ -68,7 +68,7 @@ Wir schauen uns zunächst einmal die Korrelationen an:
 summary(dat.molloy2014$ri)
 ```
 
-Die Korrelationskoeffizienten liegen also zwischen `r min(dat.molloy2014$ri)` und `r max(dat.molloy2014$ri)`. Auch ein Mittelwert wird uns bereits ausgegeben: `r round(mean(dat.molloy2014$ri), 3)`. Dies gibt uns ein erstes Gefühl dafür, wo der tatsächlich gepoolte mittlere Korrelationskoeffizient, der die Beziehung zwischen der Performanz im Einstellungsinterview und Job-Performanz quantifiziert, liegen könnte. Jedoch wurden in diesem Mittelwert etwaige Unterschiede zwischen Studien (Größe, Streuung, Qualität, Kovariaten, etc.) nicht berücksichtigt.
+Die Korrelationskoeffizienten liegen also zwischen `r min(dat.molloy2014$ri)` und `r max(dat.molloy2014$ri)`. Auch ein Mittelwert wird uns bereits ausgegeben: `r round(mean(dat.molloy2014$ri), 3)`. Dies gibt uns ein erstes Gefühl dafür, wo der tatsächlich gepoolte mittlere Korrelationskoeffizient, der die Beziehung zwischen der Gewissenhaftigkeit und dem Einnehmen von Medikamenten quantifiziert, liegen könnte. Jedoch wurden in diesem Mittelwert etwaige Unterschiede zwischen Studien (Größe, Streuung, Qualität, Kovariaten, etc.) nicht berücksichtigt.
 
 ### Grafische Veranschaulichung der Beziehung zwischen der Medikamenteneinnahme und der Gewissenhaftigkeit
 
@@ -83,9 +83,16 @@ boxplot(dat.molloy2014$ri)
 boxplot_cors <- boxplot(dat.molloy2014$ri)
 ```
 
-Wir sehen, dass die meisten Korrelationen zwischen  `r boxplot_cors$stats[1]` und `r boxplot_cors$stats[5]` liegen. 50% der Korrelationen liegen allerdings zwischen `r boxplot_cors$stats[2]` und `r boxplot_cors$stats[4]`, also im positiven Bereich; der Median liegt bei `r boxplot_cors$stats[3]`.
+Wir sehen, dass die meisten Korrelationen zwischen  `r boxplot_cors$stats[1]` und `r boxplot_cors$stats[5]` liegen. 50% der Korrelationen liegen allerdings zwischen `r boxplot_cors$stats[2]` und `r boxplot_cors$stats[4]`, also im positiven Bereich; der Median liegt bei `r boxplot_cors$stats[3]`. Bei Metaanalysen wird sehr häufig das sogenannte $80\%$-Credibility-Interval ($80\%$-CRI) angegeben. Es gibt auskunft darüber, zwischen welchen Werten die mittleren $80\%$ der Daten liegen. Wir erhalten es, indem wir den Prozentrang 10 ($10\%$) und den Prozentrang 90 ($90\%$) über die `quantile`-Funktion anfordern:
 
-Wir wollen uns außerdem die Unterschiedlichkeit der Korrelationskoeffizienten als Darstellung der verschiedenen Einfach-Regressionen von Gewissenhaftigkeit und Medikamenteneinnahme. Hierzu plotten wir quasi eine standardisierte Regressionsgerade ($\beta_0=0$ und $\beta_1=r_i$, wobei $r_i:=$ Korrelationskoeffizient von Studie $i$) pro Studie. Um den zu Grunde liegenden Code anzusehen, können Sie [Appendix A](#AppendixA) nachschlagen.
+```{r}
+quantile(dat.molloy2014$ri, probs = c(0.1, 0.9))
+```
+
+Das $80\%$-CRI erstreckt sich also von `r quantile(dat.molloy2014$ri, probs = c(0.1, 0.9))[1]` bis `r quantile(dat.molloy2014$ri, probs = c(0.1, 0.9))[2]`.
+
+
+Wir wollen uns außerdem die Unterschiedlichkeit der Korrelationskoeffizienten als Darstellung der verschiedenen Einfach-Regressionen von Gewissenhaftigkeit und Medikamenteneinnahme ansehen. Hierzu plotten wir quasi eine standardisierte Regressionsgerade ($\beta_0=0$ und $\beta_1=r_i$, wobei $r_i:=$ Korrelationskoeffizient von Studie $i$) pro Studie. Um den zu Grunde liegenden Code anzusehen, können Sie [Appendix A](#AppendixA) nachschlagen.
 
 ```{r,echo=FALSE, fig.height=6, fig.align="center"}
 plot(NA, xlim = c(-1,1), ylim = c(-1,1), xlab = "Gewissenhaftigkeit", ylab = "Medikamenteneinnahme",
@@ -100,35 +107,38 @@ Die Beziehungen zwischen den beiden Variablen erscheint nicht sonderlich stark. 
 
 ## Fisher's $z$-Transformation
 
-Allerdings können wir dazu nicht einfach alle Korrelationskoeffizienten mitteln. Die Korrelation ist ein besonderer Koeffizient, da er nur Werte zwischen -1 und 1 annehmen kann. Somit ist  hier einfaches Mitteln der Korrelationskoeffizienten nicht ohne Weiteres möglich (es ist jedoch zu beachten, dass diese Meinung nicht überall verbreitet ist, weswegen dies für sich ein Thema ist, welches zur Diskussion steht!). Aus diesem Grund werden Korrelationskoeffizienten häufig mit Hilfe von Fisher's $z$-Transformation in $z$-Werte übertragen. Dies haben wir vielleicht im ersten Bachelor-Semester schon einmal kennengelernt, als wir Korrelationskoeffizienten mitteln wollten. Der zugehörige $z$-Wert zu einer Korrelation $r_i$ lässt sich wie folgt bestimmen:
+Allerdings können wir dazu nicht einfach alle Korrelationskoeffizienten mitteln. Die Korrelation ist ein besonderer Koeffizient, da er nur Werte zwischen -1 und 1 annehmen kann. Er ist dem $\Delta$-Maß gleichzusetzen (Döring & Bortz, 2016). Somit ist  hier einfaches Mitteln der Korrelationskoeffizienten nicht ohne Weiteres möglich (es ist jedoch zu beachten, dass diese Meinung nicht überall verbreitet ist, weswegen dies für sich ein Thema ist, welches zur Diskussion steht!). Aus diesem Grund werden Korrelationskoeffizienten häufig mit Hilfe von Fisher's $z$-Transformation in $z$-Werte übertragen. Dies haben Sie vielleicht im ersten Bachelor-Semester schon einmal kennengelernt, als Sie Korrelationskoeffizienten mitteln wollten. Der zugehörige $z$-Wert zu einer Korrelation $r_i$ lässt sich wie folgt bestimmen:
 
 $$Z_i:=\frac{1}{2}\log\left(\frac{1+r_i}{1-r_i}\right)$$.
 
 Das Schöne an den transformierten Daten (den $z$-Werten) ist, dass wir nun die Varianz (bzw. die Standardfehler) der Korrelationskoeffizienten kennen. Es gilt nämlich:
 
 $$\mathbb{V}ar[Z_i]:=\frac{1}{n_i-3},$$
-wobei $n_i$ die Stichprobengröße der Studie $i$ ist. Der Standardfehler wäre $\sqrt{\frac{1}{n_i-3}}=\frac{1}{\sqrt{n_i-3}}$. Wir sehen, dass die Variation der Korrelationskoeffizienten unabhängig von ihrer Höhe ist, aber wir im Idealfall die Stichprobengröße der Studie kennen sollten. Das macht es uns leicht, da wir nicht, wie beim Mittelwert bspw., noch die Standardabweichung aus den Studien kennen müssen. Wir müssen diese Transformation selbstverständlich nicht mit Hand durchführen, sondern können uns einfach der Funktion `escalc` aus dem `metafor` Paket bedienen.
+wobei $n_i$ die Stichprobengröße der Studie $i$ ist. Der Standardfehler wäre $\sqrt{\frac{1}{n_i-3}}=\frac{1}{\sqrt{n_i-3}}$. Wir sehen, dass die Variation der Korrelationskoeffizienten unabhängig von ihrer Höhe ist. Im Idealfall kennen wir die Stichprobengröße der Studie, sodass sich der SE nach Transformation leicht ermitteln lässt. Das macht es uns leicht, da wir nicht, wie beim Mittelwert bspw., noch die Standardabweichung aus den Studien kennen müssen. Wir müssen diese Transformation selbstverständlich nicht mit Hand durchführen, sondern können uns einfach der Funktion `escalc` aus dem `metafor` Paket bedienen. Diese Funktion hatten wir bereits beim bestimmen der standardisierten Mittelwertsdifferenz kennen gelernt (siehe dazu [vergangene Sitzung](/post/metaanalysen-MW)).
 
-Um diese Funktion zu verwenden, um die Daten zu $z$-transformieren, müssen wir folgende Argumente an die Funktion übergeben: `measure = "ZCOR"` bewirkt, dass auch tatsächlich die $r$-to-$z$-Transformation (Fisher's $z$-Transformation) durchgeführt wird. Das Argument `ri` nimmt die beobachteten Korrelationskoeffizienten entgegen (diese heißen hier auch `ri`), `ni` nimmt die Stichprobengröße pro Studie entgegen (diese heißen hier auch `ni`). Das Argument `data` nimmt, wie der Namen schon verrät, den Datensatz entgegen, in dem die Studien zusammengefasst sind (hier `dat.molloy2014`). Die Funktion erzeugt einen neuen Datensatz, welcher um die $z$-Werte sowie deren Varianz erweitert wurde. Diesen wollen wir unter einem neuen Namen abspeichern. Als Beweis meines Einfallsreichtums nennen wir diesen Datensatz einfach `data_transformed`. Auch die Namen, der neu zu erstellenden Variablen lassen sich in der Funktion festlegen. Dies ergibt insbesondere dann Sinn, wenn wir mehrere Analysen an einem Datensatz durchführen. Dies geht mit dem `var.names`-Argument, welchem wir einen Vektor mit zwei Einträgen übergeben müssen: dem Namen der $z$-Werte und dem Namen der Varianzen.  Wir wollen sie `z_ri` und `v_ri` nennen: `var.names = c("z_ri", "v_ri")`. Der fertige Code sieht folglich so aus (mit `head` schauen wir uns wieder die ersten 6 Zeilen an):
+Um diese Funktion zu verwenden und somit die Daten zu $z$-transformieren, müssen wir folgende Argumente an die Funktion übergeben: `measure = "ZCOR"` bewirkt, dass auch tatsächlich die $r$-to-$z$-Transformation (Fisher's $z$-Transformation) durchgeführt wird. Das Argument `ri` nimmt die beobachteten Korrelationskoeffizienten entgegen (diese heißen hier auch `ri`), `ni` nimmt die Stichprobengröße pro Studie entgegen (diese heißen hier auch `ni`). Das Argument `data` nimmt, wie der Namen schon verrät, den Datensatz entgegen, in dem die Studien zusammengefasst sind (hier `dat.molloy2014`). Die Funktion erzeugt einen neuen Datensatz, welcher um die $z$-Werte sowie deren Varianz erweitert wurde. Diesen wollen wir unter einem neuen Namen abspeichern. Als Beweis meines Einfallsreichtums nennen wir diesen Datensatz einfach `data_transformed`. Auch die Namen, der neu zu erstellenden Variablen lassen sich in der Funktion festlegen. Dies ergibt insbesondere dann Sinn, wenn wir mehrere Analysen an einem Datensatz durchführen. Dies geht mit dem `var.names`-Argument, welchem wir einen Vektor mit zwei Einträgen übergeben müssen: dem Namen der $z$-Werte und dem Namen der Varianzen.  Wir wollen sie `z_ri` und `v_ri` nennen: `var.names = c("z_ri", "v_ri")`. Der fertige Code sieht folglich so aus (mit `head` schauen wir uns wieder die ersten 6 Zeilen an):
 
 ```{r}
-data_transformed <- escalc(measure="ZCOR", ri=ri, ni=ni, data=dat.molloy2014, var.names = c("z_ri", "v_ri"))
+data_transformed <- escalc(measure="ZCOR", ri=ri, ni=ni,
+                           data=dat.molloy2014, 
+                           var.names = c("z_ri", "v_ri"))
 head(data_transformed)
 ```
 
 Wenn wir den Namen des Datensatzes nicht an die Funktion übergeben, und statt dessen nur die beobachteten Korrelationen und die Stichprobengrößen angeben, werden im erzeugten Datensatz nur die $z$-Werte und die Varianzen gespeichert; die Werte werden nicht an den bestehenden Datensatz angehängt (was für spätere Analysen weniger sinnvoll erscheint). 
 
 ```{r}
-data_transformed_2 <- escalc(measure="ZCOR", ri=dat.molloy2014$ri, ni=dat.molloy2014$ni, var.names = c("z_ri", "v_ri"))
+data_transformed_2 <- escalc(measure="ZCOR", ri=dat.molloy2014$ri,
+                             ni=dat.molloy2014$ni, 
+                             var.names = c("z_ri", "v_ri"))
 head(data_transformed_2)
 ```
 
-Wir entnehmen dem Output, dass die Benennung geklappt hat und das hier nur ein Datensatz mit den $z$-Werten und den Varianzen entstanden ist. 
+Wir entnehmen dem Output, dass die Benennung geklappt hat und das hier nur ein Datensatz mit den $z$-Werten und den Varianzen entstanden ist.
 
 Aus unserem neuen Datensatz `data_transformed` können wir nun wieder die entsprechenden Werte herausziehen. Wir können bspw. die Berechnung der Streuung der $z$-Werte überprüfen. Mit Hilfe von eckigen Klammern können die bezeichneten Einträge eines Vektors indiziert werden. Mit `data_transformed$v_ri[1:4]` werden entsprechend die ersten 4 Elemente im Vektor bezeichnet. Somit können wir uns mit `[1:4]` die ersten 4 Einträge der beiden Vektoren anschauen, um diese zu vergleichen:
 
 ```{r}
-1:4
 data_transformed$v_ri[1:4]
 1/(dat.molloy2014$ni - 3)[1:4] 
 ```
@@ -136,7 +146,8 @@ data_transformed$v_ri[1:4]
 Wir sehen, dass unsere Berechnung mit Hand $\left(\frac{1}{n_i-3}\right)$ zum gleichen Ergebnis kommt, wie die Berechnung mit `escalc`, was daran liegt, dass die Funktion `escalc` mit den oben gewählten Zusatzargument genau das gemacht hat! Was genau hat nun die Transformation bewirkt?
 
 ```{r, fig.height=6, fig.align="center"}
-plot(x = data_transformed$ri, y = data_transformed$z_ri, xlab = "r", ylab = "z",
+plot(x = data_transformed$ri, y = data_transformed$z_ri, 
+     xlab = "r", ylab = "z",
      main = "Fisher's z-Transformation")
 ```
 
@@ -149,25 +160,28 @@ $$r_i = \frac{e^{2z_i}-1}{e^{2z_i}+1}$$
 
 ## Random Effects Modell
 
-Wir beginnen mit einem Random Effects Modell, da es sinnig ist, dass es Heterogenität zwischen den Studien gibt (allein schon deswegen, weil unterschiedliche Krankheiten untersucht wurden). Das Modell sah so aus:
+Wir überspringen hier das Fixed Effect Model (siehe dazu [vergangene Sitzung](/post/metaanalysen-MW)). Wir beginnen also mit einem Random Effects Modell, da es sinnig ist, dass es Heterogenität zwischen den Studien gibt (allein schon deswegen, weil unterschiedliche Krankheiten untersucht wurden). Das Modell sah so aus:
 
 $$Y_i = \theta + \vartheta_i + \varepsilon_i,$$
 
-für eine Wiederholung siehe [hier](/post/meta-analysen-MW). Das Modell schätzen wir so:
+für eine Wiederholung siehe [hier](/post/metaanalysen-MW). Das Modell schätzen wir so:
 
 
 ```{r}
-REM <- rma(yi = z_ri, vi = v_ri, data=data_transformed) #### HIER WEITER
+REM <- rma(yi = z_ri, vi = v_ri, data=data_transformed)
 summary(REM)
 ```
 
-Diesem Output können wir nun einige wichtige Informationen entnehmen. Als Überschrift lesen wir `Random-Effects Model`, wobei `k` die Anzahl der Studien angibt (hier `k`=`r REM$k.all`). Außerdem wird uns das Schätzverfahren für die Heterogenitätsvarianz $\tau^2$ angegeben unter `tau^2 estimator:` (hier `r REM$method`). 
+Der Output ist vom Aufbau her komplett identisch zum Output bei Mittelwertsvergleichen. Der einzige Unterschied findet sich darin, dass hier alle Koeffizienten bzgl. der $z$-transformierten Werten angegeben sind. Der mittlere Wert muss also retransformiert werden. Zur Wiederholung wird der Output nochmals durchgesprochen:
 
-In den darunter liegenden Zeilen können wir die Heterogenitätsvarianz ablesen, welche bei `r round(REM$tau2, 4)` liegt. Der Standardfehler (SE = `r round(REM$se.tau2, 4)`) gibt uns an, dass diese Heterogenitätsvarianz wahrscheinlich `r ifelse(REM$tau2 - 2*REM$se.tau2 > 0, "signifikant von 0 verschieden", "nicht signifikant von 0 verschieden")` ist. In der Zeile von `I^2` wird die $I^2$-Statistik ausgegeben, welche ein Maß für die Heterogenität in den Daten sein soll. Diese liegt hier bei `r round(REM$I2, 2)`% und deutet somit auf Heterogenität der Korrelationskoeffizienten hin. Allerdings ist $I^2$ nicht so ein absolutes Maß, wie der Determinationskoeffizient $R^2$ in der linearen Regression (für lineare Regression in `R` siehe  [Regressionssitzung aus PsyMSc1](/post/regression-und-ausreisserdiagnostik)).
+Als Überschrift lesen wir `Random-Effects Model`, wobei `k` die Anzahl der Studien angibt (hier `k`=`r REM$k.all`). Außerdem wird uns das Schätzverfahren für die Heterogenitätsvarianz $\tau^2$ angegeben unter `tau^2 estimator:` (hier `r REM$method`). 
 
-Auch wird die Heterogenitätsvarianz mit einem Signifikanztest auf Verschiedenheit von 0 geprüft. Die Ergebnisse hierzu entnehmen wir `Test for Heterogeneity`. Hier zeigt der p-Wert ein `r ifelse(REM$QEp < 0.05, "signifikantes ($p<0.05$)", "nicht signifikantes")` Ergebnis an: für die Population wird folglich die Null-Hypothese, dass es im Mittel keine Beziehung zwischen Interview und Job-Performanz gibt verworfen. 
+In den darunter liegenden Zeilen können wir die Heterogenitätsvarianz ablesen, welche bei `r round(REM$tau2, 4)` liegt. Der Standardfehler (SE = `r round(REM$se.tau2, 4)`) gibt uns an, dass diese Heterogenitätsvarianz wahrscheinlich `r ifelse(REM$tau2 - 2*REM$se.tau2 > 0, "signifikant von 0 verschieden", "nicht signifikant von 0 verschieden")` ist. In der Zeile von `I^2` wird die $I^2$-Statistik ausgegeben, welche ein Maß für die Heterogenität in den Daten sein soll. Diese liegt hier bei `r round(REM$I2, 2)`% und deutet somit auf Heterogenität der Korrelationskoeffizienten hin.
+
+Auch wird die Heterogenitätsvarianz mit einem Signifikanztest auf Verschiedenheit von 0 geprüft. Die Ergebnisse hierzu entnehmen wir `Test for Heterogeneity`. Hier zeigt der p-Wert ein `r ifelse(REM$QEp < 0.05, "signifikantes ($p<0.05$)", "nicht signifikantes")` Ergebnis an: für die Population wird folglich die Null-Hypothese, dass es im Mittel keine Beziehung zwischen Gewissenhaftigkeit und Medikamenteneinnahme gibt, verworfen.
 
 Unter `Model Results` können wir nun (endlich) die Schätzergebnisse unseres REM ablesen. `estimate` steht hierbei für die gepoolte $z$-transformierte Korrelation, `se` ist der Standardfehler, `zval` der zugehörige z-Wert $\left(\frac{Est}{SE}\right)$, `pval` der p-Wert und `ci.lb` und `ci.ub` geben die untere und die obere Grenze eines 95%-igen Konfidenzintervall an. Hier ist zu erkennen, dass die mittlere Korrelation wohl von 0 verschieden ist. Den exakten vorhergesagten Wert kennen wir allerdings noch nicht; hierzu müssen wir den $z$-Wert erst wieder in einen Korrelation retransformieren. Selbstverständlich können wir auf das Objekt `REM` mit `$` zugreifen und dadurch noch zahlreiche weitere Informationen erhalten. Welche dies genau sind erfahren wir wieder mit `names`:
+
 ```{r}
 names(REM)
 ```
@@ -185,7 +199,7 @@ Diese Ergebnisse können wir mit Hilfe der `R`-internen `predict` Funktion unter
 predict(REM, transf=transf.ztor)
 ```
 
-Das Konfidenzintervall reicht von `ci.lb` (*confidence interval lower boundary*) bis `ci.ub` (*confidence interval upper boundary*). Die Aussage, die wir treffen können ist, dass, wenn wir diese Meta-Analyse an unabhängigen Stichproben unendlich häufig wiederholen könnten, so würde dieses Intervall, welches sich in dieser Meta-Analyse von `r round(predict(REM, transf=transf.ztor)$ci.lb, 4)` bis  `r round(predict(REM, transf=transf.ztor)$ci.ub, 4)` erstreckt (und welches von Meta-Analyse zu Meta-Analyse von unabhängigen Ansammlungen von Stichproben unterscheiden würde), den wahren Populationsmittelwert in 95% der Fälle enthalten. Auf Basis dieses Konfidenzintervalls würden wir die **Null-Hypothese**, dass es **keine Beziehung** zwischen Interviews und Job-Performanz gibt, auf dem 95% Signifikanzniveau verwerfen.
+Das Konfidenzintervall reicht von `ci.lb` (*confidence interval lower boundary*) bis `ci.ub` (*confidence interval upper boundary*). Die Aussage, die wir treffen können ist, dass, wenn wir diese Metaanalyse an unabhängigen Stichproben unendlich häufig wiederholen könnten, so würde dieses Intervall, welches sich in dieser Metaanalyse von `r round(predict(REM, transf=transf.ztor)$ci.lb, 4)` bis  `r round(predict(REM, transf=transf.ztor)$ci.ub, 4)` erstreckt (und welches von Metaanalyse zu Metaanalyse von unabhängigen Ansammlungen von Stichproben unterscheiden würde), den wahren Populationsmittelwert in 95% der Fälle enthalten. Auf Basis dieses Konfidenzintervalls würden wir die **Null-Hypothese**, dass es **keine Beziehung** zwischen Gewissenhaftigkeit und Medikamenteneinnahme gibt, auf dem 95% Signifikanzniveau verwerfen.
 
 Auch dieser Befehl lässt sich erneut als Objekt abspeichern und wir können dann auf diese zugreifen:
 
@@ -201,8 +215,8 @@ Wir sehen, dass der mittlere $z$-Wert sich kaum vom mittleren Korrelationskoeffi
 Schauen wir uns die Ergebnisse nun grafisch an:
 
 ```{r, fig.align="center", fig.height=6, echo = F}
-plot(NA, xlim = c(-2,2), ylim = c(-2,2), xlab = "Interview Performanz", ylab = "Job-Performanz",
-     main = "Empirische Korrelationen zwischen\n Interview Performanz und Job-Performanz")
+plot(NA, xlim = c(-1,1), ylim = c(-1,1), xlab = "Gewissenhaftigkeit", ylab = "Medikamenteneinnahme",
+     main = "Empirische Korrelationen zwischen\n Medikamenteneinnahme und Gewissenhaftigkeit")
 for(i in 1:length(dat.molloy2014$ri))
 {
      abline(a = 0, b = dat.molloy2014$ri[i], col = "grey80")
@@ -216,152 +230,89 @@ legend(x = "bottomright", col = c("black", "blue", "gold3", "grey60"), pch = NA,
        legend = c("Mittlere Korr.", "95% KI-Korr.", "Credibility Interval", "Emp. Korr."))
 ```
 
-Es scheint wohl eine Beziehung zwischen Einstellungsinterviews und Job-Performanz zu geben. Allerdings ist diese Beziehung mit einer Korrelation von `r round(pred_REM$pred, 4)` nicht sehr stark; lediglich `r round(pred_REM$pred^2*100, 2)`% der Variation an der Job-Performanz können durch die Interview-Performanz vorhergesagt werden. Das Credibility-Intervall zeigt an, in welchem Bereich ca. 80% der beobachteten Werte liegen.
+Es scheint wohl eine Beziehung zwischen Gewissenhaftigkeit und Medikamenteneinnahme zu geben. Allerdings ist diese Beziehung mit einer Korrelation von `r round(pred_REM$pred, 4)` nicht sehr stark; lediglich `r round(pred_REM$pred^2*100, 2)`% der Variation an der Medikamenteneinnahme können durch die Gewissenhaftigkeit erklärt werden. Das Credibility-Intervall zeigt an, in welchem Bereich ca. 80% der beobachteten Werte liegen.
 
 ### Analyse Plots
-Das `metafor` Paket bietet außerdem noch einige grafischen Veranschaulichungen der Daten. Beispielsweise lässt sich ganz leicht ein Funnel-Plot erstellen mit der `funnel` Funktion, welche lediglich unser Meta-Analyse Objekt `REM` entgegen nehmen muss. Der Funnel-Plot wird verwendet, um auf das bekannte Problem des Publication-Bias zu untersuchen. Hier wird der gefundene Effekt (hier die z-transformierte Korrelation) gegen den Standardfehler jeder Studie geplottet. Es wird die Annahme zugrunde gelegt, dass alle Studien in der Meta-Analyse eine gewisse, zufällige Schwankung um den wahren Effekt haben, und dabei diese zufällige Schwankung größer ist, je größer der Standardfehler in einer Studie ist und je kleiner die Stichprobe war. Sofern eine Studie unabhängig von der Effektgröße sowie der Streuung (und damit auch der Signifikanz) publiziert wurde, sollte so das typische symmetrische Dreieck (Funnel = Trichter) entstehen.  
+Das `metafor` Paket bietet außerdem noch einige grafischen Veranschaulichungen der Daten. Beispielsweise lässt sich ganz leicht ein Funnel-Plot erstellen mit der `funnel` Funktion, welche lediglich unser Metaanalyse Objekt `REM` entgegen nehmen muss. Diese Plots haben wir in der [vergangene Sitzung](/post/metaanalysen-MW) bereits kennen gelernt. Sie sind deshalb nur in [Appendix B](#Appendix B) aufgeführt.
 
-```{r, fig.align="center", fig.height=6}
-# funnel plot
-funnel(REM)
-```
+Insgesamt zeigen uns die Plots, dass von einem stabilen Effekt ausgegangen werden kann. Der Funnel-Plot ist viel regelmäßiger als der Funnel-Plot der [vergangene Sitzung](/post/metaanalysen-MW).
 
-Der Grafik ist zu entnehmen, dass im positiven Bereich mehr Studien zu finden sind. Dies könnte Indizien auf einen Publication Bias zeigen. Außerdem gibt es wenige Studien mit sehr großen Standardfehlern (un damit geringen Stichprobengrößen). Jedoch ist es wenig verwunderlich, dass es mehr Studien gibt, in welchen es eine Beziehung zwischen Interview und Job-Performanz gibt, da die Interviews zum Teil nach diesem Kriterium durchgeführt wurden und eine gewissen Augenscheinvalidität von Einstellungsinterviews (im Idealfall) besteht.
-
-Auch Forest-Plots funktionieren auf die gleiche Weise mit der `forest` Funktion. Der Forest-Plot stellt die unterschiedlichen Studien hinsichtlich ihrer Parameterschätzung (hier $z$-Wert des Korrelationskoeffizienten) und die zugehörige Streuung grafisch dar. So können beispielsweise Studien identifiziert werden, welche besonders hohe oder niedrige Werte aufweisen oder solche, die eine besonders große oder kleine Streuung zeigen.
-```{r, fig.align="center", fig.height=6}
-# forest plot
-forest(REM, xlim = c(-1, 2))
-```
-
-Die Anzahl der Studien ist hierbei so enorm, dass wir die Achsenbeschriftungen nicht mehr lesen können. Mit `xlim = c(-1, 2)` legen wir das Minimum und das Maximum auf der x-Achse fest (dies machen wir, um Forest-Plots vergleichen zu können). Auch ein kumulativer Forest-Plot wäre möglich. Dazu müssen wir auf unser `REM`-Objekt noch die Funktion `cumul.rma.uni` anwenden:
-
-```{r, fig.align="center", fig.height=6}
-# kumulativer Forest Plot
-forest(cumul.rma.uni(REM), xlim = c(-1, 2))
-```
-
-Die Funktion `cumul.rma.uni` führt skuzessive immer wieder eine Meta-Analyse durch, wobei nach und nach eine Studie hinzugefügt wird. Anders als beim ersten Forest-Plot wird immer das Ergebnis der jeweiligen Meta-Analyse dargestellt und nicht jede Studie einzeln. Wir sehen, dass sich sowohl mittlerer $z$-Wert als auch Streuung von oben nach unten einpendeln. Das finale Ergebnis ist identisch mit unsere Meta-Analyse. Die gestrichelte Linie der Forest-Plots symbolisiert die 0, da in den meisten Fällen gegen 0 getestet wird und es daher von Interesse ist, wie viele Studien sich von 0 unterscheiden und ob sich der mittlere Effekt von 0 unterscheidet. Um die Beschriftungen des Forest-Plot einmal genauer zu sehen, führen wir eine Meta-Analyse nur über die ersten 20 Studien durch:
-
-```{r, fig.align="center", fig.height=6}
-REM20 <- rma(yi = z_ri, vi = v_ri, data=data_transformed[1:20, ]) # wähle Studie 1 bis 20
-# forest plot
-forest(REM20, xlim = c(-1, 2))
-# kumulativer Forest Plot
-forest(cumul.rma.uni(REM20), xlim = c(-1, 2))
-```
-Wir sehen, dass auch hier der durchschnittliche Wert nicht weit von unserem finalen Durchschnitt entfernt liegt. Die kleine Raute in der letzten Zeile des normalen Forest-Plots symbolisiert den durchschnittlichen Wert und dessen Streuung.
-
-### Mixed Effects Modelle
+## Mixed Effects Modelle
 Da die Heterogenitätsvarianz signifikant von 0 verschieden war, wollen wir versuchen die Variation in den Korrelationskoeffizienten zwischen den Studien mit Hilfe von Moderatoren vorherzusagen. 
 
+### Studienqualität als Moderator
+Es könnte sein, dass die Qualität der Studien einen Einfluss auf die Größe der Effekte hatte. Molloy et al. (2014) nutzen eine 4-stufige Skala von 1 bis 4, um die methodische Qualität zu bewerten (siehe Artikel für Details). Wenn wir uns die Werte ansehen 
 
-#### Interviewtyp als Moderator
-Es könnte sein, dass die Art (der Typ) des Interviews eine Rolle in der Bewertung der Performanz hat und dass die verschiedenen Interviewtypen unterschiedlich stark mit der späteren Job-Performanz zusammenhängen. Insgesamt gab es drei Arten von Interviews: `j` = job-related, `s` = situational und  `p` = psychological. Diese Typen sind in der Variable `type` enthalten. Wir wollen uns die ($z$-transformierte) Korrelation pro Interviewtyp anschauen:
+```{r}
+data_transformed$quality
+```
+
+erkennen wir, dass keine der Studien alle Qualitätsstandards der Autorinnen und Autoren erfüllen. Es kann nun darüber diskutiert werden, ob die Qualität der Studien eine kontinuierliche oder eine kategoriale Variable ist. Da sie schon eine Ordnung aufweißt, ist vermutlich eine Ordinale Skala die richtige. Wir betrachten sie zunächst als kategorial, um ein Gefühl für die Unterschiede zu bekommen.
 
 ```{r,echo=T, fig.height=6, fig.align="center"}
-data_transformed$quality
 plot(z_ri ~ factor(quality), data=data_transformed, col = c("blue", "gold3", "red"), xlab = "Interviewtyp",
      ylab = "z-transformierte Korrelation", main = "z-transformierte Korrelation pro Interviewtyp")
 plot(ri ~ factor(quality), data=data_transformed, col = c("blue", "gold3", "red"), xlab = "Interviewtyp",
      ylab = "Korrelation", main = "Korrelation pro Interviewtyp")
 ```
 
-Ein Mixed Effects Model (MEM) können wir wieder mit der `rma` Funktion schätzen. Wir müssen lediglich dem Argument `mods = ~ factor(type)` die Namen der Moderatorvariablen übergeben. Die Tilde gibt an, dass es sich hier um eine regressive Beziehung handelt. `factor` gibt an, dass es sich um eine kategoriale Variable mit Abstufungen handelt und dass die Werte eine Gruppenzugehörigkeit symbolisieren sollen (auch falls `type` aus Zahlen bestehen würde). Wollen wir kontinuierliche (und nicht kategoriale) Prädiktoren als Moderatoren verwenden, so können wir `factor` weglassen (dazu müssen allerdings die Daten im richtigen Format vorliegen, also intervallskaliert sein: bspw. Alter, Zustimmung auf einer Likert-Skala mit hinreichend vielen Ausprägungen oder das Einkommen, etc.).
+Wenn wir nun die Qualität als Ordinalskala verwenden, so sieht die Grafik so aus:
 
 ```{r}
-MEM_type <- rma(yi = z_ri, vi = v_ri, mods = ~ factor(quality), data = data_transformed)
-MEM_type
+plot(ri ~ quality, data=data_transformed, col = c("blue", "gold3", "red"), xlab = "Interviewtyp",
+     ylab = "Korrelation", main = "Korrelation pro Interviewtyp")
 ```
 
-Wenn wir das Modell schätzen, bekommen wir die Warnmeldung ausgegeben, dass für einige Studien keine Angabe zu dem Moderator Interviewtyp vorliegen (bzw. diese Information nicht auffindbar war). Aus diesem Grund werden diese Studien komplett via *listwise deletion* (listenweiser Fallauschluss) aus den Analysen ausgeschlossen; es sind nur noch `r MEM_type$k` anstatt `r REM$k` Studien in der Meta-Analyse enthalten (dies können wir dem Output entnehmen, welcher genauso aufgebaut ist, wie der Output des REM Modells; es ist ja auch die gleiche Funktion, die wir angewendet haben!). Der Output hat zwei Neuheiten: 1) `Test of Moderators (coefficients 2:3):` gibt einen Omnibustest an, ob die Moderatoren das Modell verbessern, 2) in den `Model Results` sind "$\beta$"-Koeffizienten für die Moderatoren (hier als Dummy-kodierte Variablen) angegeben. Die Referenzkategorie für die Dummy-Variablen ist das "job-related" Interview. So gibt `factor(type)p` gerade den Effekt an, der durch Nutzen von psychologischen im Vergleich zu "job-related" Interviews entsteht. Hier ist die $z$-transformierte Korrelation in den Studien mit psychologischen Interviewtyp um `r round(MEM_type$b[2],4)` kleiner als in den "job-related" Interviewstudien. Entsprechend steht `factor(type)s` für den Effekt, der durch Nutzen von "situational" (also situationsbezogenen-) im Vergleich zu "job-related" Interviews entsteht. Hier ist die $z$-transformierte Korrelation in den Studien mit "situational" Interviewtyp um `r round(MEM_type$b[3],4)` größer als in den "job-related" Interviewstudien. 
+Dieser Grafik ist leider nicht so viel zu erkennen. Wir führen eine Moderatoranalyse durch. Dieses wird zu Wiederholungszwecken nochmals im Detail wiederholt.
 
-#### Modellvergleiche
-Wir können Modelle auch miteinander vergleichen, um so den inkrementellen Wert von Moderatoren zu prüfen. Dabei prüfen wir konkret, ob die Heterogenitätsvarianz zwischen den Studien bedeutsam durch die Moderatoren reduziert/aufgeklärt werden kann. So können wir bspw. das Modell mit und das ohne Moderatoren vergleichen (entspricht dann dem Omnibustest) oder wir vergleichen Modelle mit unterschiedlich vielen Moderatoren. Hierbei ist zu beachten, dass diese Modelle geschachtelt sein müssen, da sonst keine Inferenz möglich ist. Um Modelle zu vergleichen, verwenden wir den `R`-internen `anova`-Befehl.
-
-```{r, eval = F}
-anova(REM, MEM_type)
-```
-
-Wenn wir diesen Befehl einfach so durchführen, bekommen wir eine Fehlermeldung: 
-
-```{r, echo = F}
-cat("Error in anova.rma(REM, MEM_type) : Observed outcomes and/or sampling 
- variances not equal in the full and reduced model.")
-```
-
-Dies liegt daran, dass die beiden Modelle auf unterschiedlichen Datengrundlagen beruhen. Beim MEM wurde durch listwise deletion die Stichprobengröße (welche hier der Anzahl an Studien entspricht) reduziert. Um die beiden Modelle dennoch miteinander vergleichen zu können, müssen wir also jene Fälle ausschließen, in welchen keine Information über den Interviewtyp besteht. Wir haben mit `data_transformed$type` auf den Interviewtyp zugegriffen. Hier steht `NA` für not available, also fehlend. Mit der Funktion `is.na` können wir abfragen, welche der Werte fehlend sind. Mit dem `which` Befehl können wir uns außerdem die Stellen im Vektor ausgeben lassen, in welchem die Werte fehlen.
+Ein Mixed Effects Model (MEM) können wir wieder mit der `rma` Funktion schätzen. Wir müssen lediglich dem Argument `mods = ~ factor(quality)` die Namen der Moderatorvariablen übergeben. Die Tilde gibt an, dass es sich hier um eine regressive Beziehung handelt. `factor` gibt an, dass es sich um eine kategoriale Variable mit Abstufungen handelt und dass die Werte eine Gruppenzugehörigkeit symbolisieren sollen. Wollen wir kontinuierliche (und nicht kategoriale) Prädiktoren als Moderatoren verwenden, so können wir `factor` weglassen.
 
 ```{r}
-is.na(data_transformed$type)        # fehlt ein Wert = TRUE
-which(is.na(data_transformed$type)) # welche Werte fehlen?
+MEM <- rma(yi = z_ri, vi = v_ri, mods = ~ factor(quality), data = data_transformed)
+summary(MEM)
 ```
 
-Fügen wir ein `!` vor `is.na` ein, negieren wir den Befehl. `!is.na` entspricht also "nicht fehlend". Darüber wählen wir Studien aus, in denen die Bedingung zutrifft, dass der Wert für type nicht fehlt. So können wir den Datensatz "reinigen" (mit `dim` können wir uns die Dimensionen des Datensatzes ansehen), indem wir nur die Beobachtungen (Studien) behalten, in denen der Typ vorliegt. Den Datensatz können wir bspw. unter `data_transformed_clean_type` abspeichern:
+Der Output hat zwei Neuheiten: 1) `Test of Moderators (coefficients 2:3):` gibt einen Omnibustest an, ob die Moderatoren das Modell verbessern, 2) in den `Model Results` sind "$\beta$"-Koeffizienten für die Moderatoren (hier als Dummy-kodierte Variablen) angegeben. Die Referenzkategorie für die Dummy-Variablen ist die Qualitätsstufe "1" (also die Studien mit der schlechtesten methodischen Qualität). So gibt `factor(quality)2` gerade den Effekt an, der durch ein Qualitätswert von 2 im Vergleich zu einem Qualitätswert von 1 entsteht. Hier ist die $z$-transformierte Korrelation in den Studien mit Qualitätswert 2 um `r round(MEM$b[2],4)` größer als in Studien mit Qualitätswert 1. Entsprechend steht `factor(quality)3` für den Effekt, der durch Studien mit Qualitätsstufe 3 im Vergleich zu Studien mit Qualitätsstufe 1 ausgedrückt wird. Hier ist die $z$-transformierte Korrelation in Studien mit Qualitätsstufe 3 um `r round(MEM$b[3],4)` geringer als in jenen mit Stufe 1.
+
+#### Inklusion von Kovariaten als Moderator
+
+Werden anstatt von Korrelationen (Semi-)Partialkorrelationen betrachtet, so fallen die betrachteten Effekte in der Regel kleiner aus (es sei denn es handelt sich um Suppressoreffekte). Aus diesem Grund sollte diese mögliche Moderatorvariable ebenfalls in das Modell einbezogen werden.
 
 ```{r}
-dim(data_transformed)
-data_transformed_clean_type <- data_transformed[!is.na(data_transformed$quality), ]
-dim(data_transformed_clean_type)
+MEM2 <- rma(yi = z_ri, vi = v_ri, mods = ~ factor(quality) + controls, data = data_transformed)
+summary(MEM2)
 ```
 
-Nun fitten wir nochmal das REM mit den reduzierten Daten: 
+Nun ist nur noch der Effekt der Kontrollvariablen signifikant. Insgesamt scheint es unter Berücksichtigung der Kontrollvariablen (meistens Alter, siehe Molloy et al., 2014) keine Beziehung zwischen Gewissenhaftigkeit und Medikamenteneinnahme zu geben (Interzept ist nicht statistisch bedeutsam: $\beta_0=$ `r round(MEM2$b[1], 2)`, SE = `r round(MEM2$se[1], 2)`, p = `r round(MEM2$p[1], 2)`). Wenn keine Kontrollvariablen involviert sind, ist der $z$-transformierte Korrelationskoeffizient um $\beta_\text{control}$=`r round(MEM2$b[4], 2)` (SE = `r round(MEM2$se[4], 2)`, p = `r round(MEM2$p[4], 2)`) größer. Weitere Kontrastanalysen oder eine reduzierte Metaanalyse (nur mit jenen Studien ohne Kontrollvariablen) wären nötig, um zu untersuchen, ob in den Studien ohne Kontrollvariablen 
 
-```{r}
-REM_reduced_type <- rma(yi = z_ri, vi = v_ri, data = data_transformed_clean_type)
-REM_reduced_type
-```
+## Weitere Moderatoren und Psychometrische Metaanalysen
 
-Wir sehen nun, dass auch hier die Studienanzahl reduziert ist. Das Ergebnis ändert sich hingegen kaum. Nun können wir erneut versuchen einen Modellvergleich mit Hilfe des `anova`-Befehls anzufordern:
-```{r, eval = F}
-anova(REM_reduced_type, MEM_type)
-```
 
-Auch hier erkennen wir eine Warnung, weswegen wir uns die Ergebnisse noch nicht ansehen wollen:
 
-```{r, echo = F}
-cat("Warning in anova.rma(REM_reduced_type, MEM_type): Models with different fixed
- effects. REML comparisons are not meaningful.")
-```
+Die Metaanalyse von Irmer, Kern, Schermelleh-Engel, Semmer und Zapf (2019) wurde mit diesem `R`-Paket durchgeführt. Sie behandelt die Validierung des Instrument zur stressbezogenen Tätigkeitsanalyse (ISTA) von Semmer, Zapf und Dunckel (1995, 1999), indem die linearen Beziehungen der Skalen des Instrument untereinander sowie mit Kriteriumsvariablen untersucht wurden. Außerdem wurden die Mittelwerte und und Standardabweichungen (metaanalytisch) gemittelt. Alle Koeffizienten (Mittelwerte, Standardabweichungen und Korrelationen) wurden hinsichtlich systematischer Unterschiede über das Geschlecht (% Frauen), der Publikationsstatus (publiziert vs. nicht publiziert), die ISTA-Version sowie die Branche (des Arbeitsplatzes) untersucht. Das genaue metaanalytische Vorgehen ist dem Appendix des Artikels zu entnehmen.
 
-Wenn wir eine andere Schätzmethoden wählen, wird dieses Problem umgangen. Wir können bespielsweise die "ML" (Maximum Likelihood) anstatt der "REML" (Restricted ML) Schätzmethode verwenden. Dazu müssen wir allerdings die Modelle erneut schätzen und müssen dem Argument `method` die Methode `"ML"` zuweisen. Der zugehörige Test, den wir anschließend mit `anova` durchführen wollen, ist unter Verwendung der "ML"-Schätzmethode der Likelihood-Ratio-Test (LRT), welcher auch häufig $\chi^2$-Differenzen-Test genannt wird. Diesen kennen wir bereits aus einigen weiteren Statistikveranstaltungen (siehe bspw. [Multi-Level-Modeling](/post/multi-level-modeling) oder [logistische Regression](/post/logistische-regression)). Die Freiheitsgrade des $\chi^2$-Tests sind in diesem Fall die Parameter, die durch die Hinzunahme der Moderatoren zusätzlich geschätzt werden müssen. Hier sind dies also die beiden Effekte der Vergleiche zwischen `p` vs. `j` und `s` vs. `j`, also 2. 
 
-```{r}
-REM_reduced_type_ML <- rma(yi = z_ri, vi = v_ri, data = data_transformed_clean_type, method = "ML")
-MEM_type_ML <- rma(yi = z_ri, vi = v_ri, mods = ~ factor(quality), data=data_transformed_clean_type, method = "ML")
-anova(REM_reduced_type_ML, MEM_type_ML)
-```
+## Appendix A
+<details><summary> **Codes** </summary>
 
-Unter `LRT` erkennen wir die Log-Likelihood-Differenz, welche die Loglikelihoods verechnet, welche wir unter `logLik` ablesen können (es gilt: $LRT = -2*(LL_{\text{Reduced}}-LL_{\text{Full}}) = -2*(6.589-9.526)=5.873$). Der angegeben p-Wert des Modellvergleichs liegt bei `r round(anova(REM_reduced_type_ML, MEM_type_ML)$pval, 4)` und zeigt somit keine signifikante Reduktion der Heterogenitätsvarianz durch den Moderator Interviewtyp an (dies ist im Übrigen fast identisch zum p-Wert des Omnibustest, der durch das Objekt `MEM_type_ML` selbst ausgegeben würde). 
+In diesem Appendix finden Sie die Codes, die zum erstellen der Grafiken verwendet wurden.
 
-```{r}
-MEM_type_ML
-```
-
-Die Beziehung zwischen Einstellungsinterview und Job-Performanz scheint sich also über die Interviewtypen nicht zu unterscheiden. Die Interviewtypen scheinen alle gleich valide zu sein.
-
-Wie wir bspw. Mittelwerte meta-analytisch verrechnen oder wie genau sich das "Fixed Effects" und das "Random Effects" Modell unterscheiden, sehen Sie im [Appendix B](#AppendixB). 
-
-Die Meta-Analyse von Irmer, Kern, Schermelleh-Engel, Semmer und Zapf (2019) wurde mit diesem `R`-Paket durchgeführt. Sie behandelt die Validierung des Instrument zur stressbezogenen Tätigkeitsanalyse (ISTA) von Semmer, Zapf und Dunckel (1995, 1999), indem die linearen Beziehungen der Skalen des Instrument untereinander sowie mit Kriteriumsvariablen untersucht wurden. Außerdem wurden die Mittelwerte und und Standardabweichungen (meta-analytisch) gemittelt. Alle Koeffizienten (Mittelwerte, Standardabweichungen und Korrelationen) wurden hinsichtlich systematischer Unterschiede über das Geschlecht (% Frauen), der Publikationsstatus (publiziert vs. nicht publiziert), die ISTA-Version sowie die Branche (des Arbeitsplatzes) untersucht. Das genaue meta-analytische Vorgehen ist dem Appendix des Artikels zu entnehmen.
-
-## Appendix A {#AppendixA}
-### Codes
 ```{r,echo=T, fig.height=6, fig.align="center"}
-plot(NA, xlim = c(-2,2), ylim = c(-2,2), xlab = "Interview Performanz", ylab = "Job-Performanz",
-     main = "Empirische Korrelationen zwischen\n Interview Performanz und Job-Performanz") # erzeuge einen leeren Plot mit vorgegbenen Achsenabschnitten
+plot(NA, xlim = c(-1,1), ylim = c(-1,1), xlab = "Gewissenhaftigkeit", ylab = "Medikamenteneinnahme",
+     main = "Empirische Korrelationen zwischen\n Medikamenteneinnahme und Gewissenhaftigkeit")
 for(i in 1:length(dat.molloy2014$ri))
 {
-     abline(a = 0, b = dat.molloy2014$ri[i], col = "grey80") # füge Gerade pro Studie hinzu
+     abline(a = 0, b = dat.molloy2014$ri[i], col = "grey80")
 }
 ```
 
 
 ```{r, fig.align="center", fig.height=6, echo = T}
-plot(NA, xlim = c(-2,2), ylim = c(-2,2), xlab = "Interview Performanz", ylab = "Job-Performanz",
-     main = "Empirische Korrelationen zwischen\n Interview Performanz und Job-Performanz") # erzeuge einen leeren Plot mit vorgegbenen Achsenabschnitten
+plot(NA, xlim = c(-1,1), ylim = c(-1,1), xlab = "Gewissenhaftigkeit", ylab = "Medikamenteneinnahme",
+     main = "Empirische Korrelationen zwischen\n Medikamenteneinnahme und Gewissenhaftigkeit")
 for(i in 1:length(dat.molloy2014$ri))
 {
-     abline(a = 0, b = dat.molloy2014$ri[i], col = "grey80") # füge Gerade pro Studie hinzu
+     abline(a = 0, b = dat.molloy2014$ri[i], col = "grey80")
 }
 abline(a = 0, b = pred_REM$ci.lb, col = "blue", lwd = 5)
 abline(a = 0, b = pred_REM$ci.ub, col = "blue", lwd = 5)
@@ -369,9 +320,59 @@ abline(a = 0, b = pred_REM$cr.lb, col = "gold3", lwd = 5)
 abline(a = 0, b = pred_REM$cr.ub, col = "gold3", lwd = 5)
 abline(a = 0, b = pred_REM$pred, col = "black", lwd = 5)
 legend(x = "bottomright", col = c("black", "blue", "gold3", "grey60"), pch = NA, lwd = c(5,5,5,2),
-       legend = c("Mittlere Korr.", "95% KI-Korr.", "Credibility Interval", "Emp. Korr.")) # Legende für Farbzuordnung
+       legend = c("Mittlere Korr.", "95% KI-Korr.", "Credibility Interval", "Emp. Korr."))
 ```
 
+</details>
+
+## Appendix B
+<details><summary> **Analyse Plots** </summary>
+
+In diesem Appendix finden Sie Analyse-Plots, die in der vergangenen Sitzung bereits besprochen wurden.
+
+#### Funnel Plot und Trim-and-Fill Methode
+
+Der Funnel-Plot wird verwendet, um auf das bekannte Problem des Publication-Bias zu untersuchen. Hier wird der gefundene Effekt (hier $z$-transformierte Korrelation zwischen Gewissenhaftigkeit und Medikamenteneinnahme) gegen den Standardfehler jeder Studie geplottet. Es wird die Annahme zugrunde gelegt, dass alle Studien in der Metaanalyse eine gewisse, zufällige Schwankung um den wahren Effekt haben, und dabei diese zufällige Schwankung größer ist, je größer der Standardfehler in einer Studie ist und je kleiner die Stichprobe war. Sofern eine Studie unabhängig von der Effektgröße sowie der Streuung (und damit auch der Signifikanz) publiziert wurde, sollte so das typische symmetrische Dreieck (Funnel = Trichter) entstehen.  
+
+```{r, fig.align="center"}
+# funnel plot
+funnel(REM)
+```
+
+Der Grafik ist zu entnehmen, dass sich die meisten Effektstärken im positiven Bereich tummeln. Je kleiner der Effekt (je näher an der Null) desto präziser die Schätzung (desto kleiner der SE - höher dargestellt im Funnel-Plot). Der Plot erscheint insgesamt recht symmetrisch und unverzerrt. Allein vom Funnel-Plot zu urteilen scheint es keinen Publication-Bias gegeben zu haben.
+
+Die Trim-and-Fill Methode wird verwendet, um zu bestimmen, wie viele Studien hinzugenommen (fill) oder entfernt werden (Trim) müssten, damit der Funnel-Plot symmetrisch ist. Die Methoden kann auch verwendet werden, um einen (um einen möglichen Publication-Bias) bereinigten Effekt zu schätzen.
+
+```{r}
+trimfill(REM)
+```
+
+Die Funktion bestimmt selbst, auf welche Seite mögliche fehlende (nicht publizierte) Werte ergänzt werden sollten. Der Output sieht dem `REM` sehr ähnlich. In der ersten Zeile steht, dass 2 Studien auf der rechten Seite des geschätzten durchschnittlichen Effekts ergänzt wurden. Der Output hat sich kaum verändert. Der mittlere Effekt ist ein weniger kleiner geworden (`r round(REM$b, 2)` vs `r round(trimfill(REM, side = "left")$b, 2)`). Wenn wir nun wieder die `funnel` Funktion darauf anwenden, sehen wir auch, welche Studien hinzugefügt wurden:
+
+```{r}
+funnel(trimfill(REM, side = "left"))
+```
+
+Wir erkennen die 2 hinzugefügten Studien im unteren linken bereich der Grafik. Wir gehen somit insgesamt davon aus, dass kein Publication Bias vorliegt und verwerfen die eben betrachteten Trim-and-Fill Ergebnisse.
+
+#### Forest-Plot
+
+Auch Forest-Plots funktionieren auf die gleiche Weise mit der `forest` Funktion. Der Forest-Plot stellt die unterschiedlichen Studien hinsichtlich ihrer Parameterschätzung (Effektstärken) und die zugehörige Streuung grafisch dar. So können beispielsweise Studien identifiziert werden, welche besonders hohe oder niedrige Werte aufweisen oder solche, die eine besonders große oder kleine Streuung zeigen.
+```{r, fig.align="center", fig.height=10}
+# forest plot
+forest(REM)
+```
+
+Wir sehen, dass einige Studien Konfidenzintervalle aufweisen, die die Null einschließen, also nicht signifikante Ergebnisse berichtet haben. Außerdem wird im Plot selbst schon angezeigt, dass es sich um $z$-transformierte Werte handelt. Auch ein kumulativer Forest-Plot wäre möglich. Dazu müssen wir auf unser `REM`-Objekt noch die Funktion `cumul.rma.uni` anwenden:
+
+```{r, fig.align="center", fig.height=10}
+# kumulativer Forest Plot
+forest(cumul.rma.uni(REM))
+```
+
+Die Funktion `cumul.rma.uni` führt skuzessive immer wieder eine Metaanalyse durch, wobei nach und nach eine Studie hinzugefügt wird. Anders als beim ersten Forest-Plot wird immer das Ergebnis der jeweiligen Metaanalyse dargestellt und nicht jede Studie einzeln. Wir sehen, dass sich sowohl mittlere Effektstärke als auch Streuung von oben nach unten einpendeln. Das finale Ergebnis ist identisch mit unsere Metaanalyse. Die gestrichelte Linie der Forest-Plots symbolisiert die 0, da in den meisten Fällen gegen 0 getestet wird und es daher von Interesse ist, wie viele Studien sich von 0 unterscheiden und ob sich der mittlere Effekt von 0 unterscheidet. 
+
+</details>
 
 ## Literatur
 
@@ -392,5 +393,5 @@ Semmer, N. K., Zapf, D., & Dunckel, H. (1999). Instrument zur Stressbezogenen T�
 
 [Viechtbauer, W. (2010).](https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.B90C267A|edsbas) Conducting meta-analyses in R with the metafor package. *Journal of Statistical Software*, *36*(3), 1–48. https://www.jstatsoft.org/v036/i03.
 
-* <small> *Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.*
+* <small> *Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.* </small>
 
