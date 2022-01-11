@@ -1,0 +1,124 @@
+---
+title: Netzwerkanalyse im Querschnitt
+date: '2022-01-11'
+slug: cross-sectional-networks
+categories:
+  - MSc5a
+tags:
+  - Querschnitt
+  - Zusammenfassung
+  - Netzwerkanalyse
+subtitle: ''
+summary: ''
+authors: [nehler]
+lastmod: '2022-01-10T15:21:58+02:00'
+featured: no
+header:
+  image: "/header/Klipps_Meta-Analyse_MW.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/1075945)"
+projects: []
+---
+
+
+
+```{r setup, include=FALSE}
+# Vorbereitungen
+knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+```
+
+
+
+## Einführung
+
+Netzwerkanalyse kommt aus einem eher technischen Feld. Sie wurde dafür genutzt, Systeme darzustellen, bei denen verschiedene Einheiten miteinander verbunden sind. Beispielsweise wurden Computer als Knotenpunkte gesehen und dann über Kanten deren Verbindung (oder eben auch Nicht-Verbindung) dargestellt. Den ersten Einzug in die Psychologie hatten Netzwerke in Gruppenanalysen. Dabei sind nun nicht mehr Computer die Knotenpunkte, sondern eben Menschen aus einer spezifischen Gruppe. 
+
+In der neueren Literatur werden Netzwerke aber auch zur Darstellung von Psychologischen Konstrukten genutzt. Beispielsweise können die einzelne Symptome der Depression die Knotenpunkte darstellen und die Kanten deren Zusammenhang. Dies hat gegenüber einem globalen Skalenwert den Vorteil, dass die Dynamik zwischen verschiedenen Symptomen aufgezeigt werden kann. Dadurch könnten zentrale Symptome und mögliche Ansatzpunkte für die Intervision aufgefunden werden. Bevor wir diese Punkte im Netzwerk identifizieren können, müssen wir uns mit grundlegenden Begriffen und der Berechnung der Netzwerkstruktur auseinandersetzen.   
+
+## Begriffsklärung und Netzwerktypen
+
+Betrachten wir an dieser Stelle nochmal zwei grundlegende Begriffe der Netzwerkanalyse. Wie bereits angedeutet wurde, bestehen diese aus **Knoten** und **Kanten**. **Knoten** oder englisch **nodes** repräsentieren Unterschiedliche psychologische Variablen (z.B: Störungen Symptome oder Items), die über Messungen aus verschiedenen Skalen oder Subskalen werden können. **Edges** der englisch **edges** repräsentieren statistische Beziehungen zwischen den Nodes (z.B. zum Beispiel Korrelationen) die anhand der Daten geschätzt werden. Während Werte auf den Knoten also gemessen werden, muss deren Beziehung (also die Kanten) geschätzt werden.
+
+Kanten können sowohl **gerichtet** als auch **ungerichtet** sein, wobei gerichtete Edges durch einen Pfeil gekennzeichnet werden, der einen einseitigen Effekt andeutet. Ungerichtete Kanten werden durch eine einfache Linie zwischen zwei Knoten abgebildet werden. Ein Netzwerk, das nur gerichtete Kanten enthält, bezeichnet man als **gerichtetes Netzwerk**. Netzwerke aus ungerichteten Kanten nennt man hingegen **ungerichtetes Netzwerk**. Im Querschnitt sind keine zeitlichen Abfolgen bekannt, weshalb wir heute zunächst nur ungerichtete Netzwerke betrachten werden.
+
+## Daten
+
+In dieser Sitzung wollen wir einen Datensatz von López-López et al. (2019), der mit dem `metafor`-Paket mitgeliefert wird, verwenden. Dieser heißt `dat.lopez2019`. Die Autorinnen und Autoren haben die Effektivität der CBT (cognitive behavioural therapy [kognitive Verhaltenstherapie]) bei Depression untersucht und diese mit verschiedenen Kontrollbedingungen und unterschiedlichen Arten der CBT verglichen. Weitere Informationen zum Datensatz erhalten Sie bspw. mit  (das `metafor`-Paket muss natürlich vorher geladen sein). 
+
+```{r, results = "hide"}
+print("a")
+```
+
+Die Variablen *observe*, *describe*, *awareness*, *nonjudging* und *nonreactivity* bezeichnen die **fünf Facetten der Achtsamkeit** von Baer et al. (2006), über die [in diesem Paper](https://pubmed.ncbi.nlm.nih.gov/16443717/) mehr steht. Die 8 weiteren Variablen beschreiben eine dysfunktionale, meist negative Veränderung in dem bezeichneten Lebensaspekt im Zuge einer **Depression**; so steht *interest* beispielsweise für einen Interessensverlust, während *selfimage* ein negatives Selbstbild abbildet.
+
+## Netzwerkschätzung
+
+Es gibt in `R` einige Pakete, die sich mit der Netzwerkanalyse auseinandersetzen. In der Psychologie ist wohl das `bootnet`-Paket aktuell das meist verwendete. Dieses vereint einige vorher entwickelte Pakete und ist dadurch für verschiedene Fragestellungen einsetzbar. Vor der ersten Verwendung muss das Paket natürlich installiert werden - die vorher entwickelten Pakete werden als Dependencies automatisch mit installiert. 
+
+```{r, eval = FALSE}
+install.packages("bootnet")
+```
+
+Anschließend müssen wir das Paket zur Verwendung natürlich noch aktivieren.
+
+```{r}
+library(bootnet)
+```
+
+
+
+Die Koeffizienten liegen zwischen -1 und 1 und bilden die Beziehungen zwischen den Nodes ab, nachdem nach allen anderen Informationen kontrolliert wurde.
+
+
+### Regularisierung und Netzwerkauswahl
+
+Ein Problem der Netzwerkanalyse ist es, dass durch die Fehlervarianz in der Messung eigentlich alle Knoten untereinander verbunden sind. Dies führt vor allem bei komplexen Netzwerken mit vielen Knoten dazu, dass die Visualisierung des Netzwerkes unübersichtlich wird und man sich mit Kanten beschäftigt, die keine relevante Beziehung zwischen zwei Knoten darstellen. Um dies zu vermeiden, wird ein für das Netzwerk der Partialkorrelation eine Regularisierung durchgeführ.
+
+Ein regularisiertes Partialkorrelations-Netzwerk ist eine visualisierte gewichtete Netzwerkstruktur, das durch Regulations-Techniken aus dem Feld des Machine-Learnings geschätzt wird. Daraus resultiert eine sogenannte **sparse network structure** (also eine spärlich besetzte Netzwerkstruktur). Das bedeutet, dass viele der Parameter auf den Kanten exakt 0 sind. Die theoretische Reichweite der bestraften Partialkorrelationen ist dabei weiter zwischen 0 und 1.  
+
+Das aktuelle Mittel der Wahl ist die Lasso-Regulation. Diese hat wie beschrieben das Ziel, **falsche** Kanten in ihrer Anzahl zu verringern. Falsche Kanten bedeutet also, dass diese in der Population nicht existieren, aber in der Stichprobe trotzdem keine Partialkorrelationen von 0 vorliegen würden. Regularisierungsmethoden kommen zum Einsatz, da die übliche Signifikanztestung aufgrund der Vielzahl der Kanten problematisch wäre. Die Lasso-Regularisierung hat gegenüber anderen Regularisierungs-Techniken den Vorteil, dass Werte genau 0 sein können. Aufgrund der noch andauernden Entwicklung der Netzwerkanalyse für psychologische Konstrukte gibt es über die Anwendung noch Diskussionen. Jedoch ist das Verfahren mathematisch durchaus etabliert und wird großflächig eingesetzt, weshalb wir es an dieser Stelle präsentieren.
+
+
+## Zentralitätsindizes
+
+Nachdem nun ein Netzwerk für die Präsentation ausgewählt und auch gezeichnet wurde, stellt sich die Frage, welche weiteren Aussagen durch die Netzwerkanalyse durchführbar sind. In den technischen und sozialen Netzwerken wurde dafür die Zentralität der Knoten untersucht. Darin wird durch verschiedene Facetten aufgezeigt, welcher Knoten im Netzwerk am meisten Einfluss hat. Die Aktivierung dieser Knoten sollte zu einer (De-)Aktivierung anderer, verbundener Knoten im Netzwerk führen. Die Herangehensweise wurde mit kleinen Anpassungen für die Psychologischen Netzwerke übernommen. Die Anwendung steht aktuell in der Kritik aufgrund von instabiler Schätzung und der Frage der inhaltlichen Relevanz. Da diese Diskussion jedoch nicht abgeschlossen ist und die Indizes noch breitflächig zum Einsatz kommen, werden wir die wichtigen Werte auch an dieser Stelle besprechen und berechnen.
+
+Die Zentralität eines Knoten ist hoch, wenn er starke oder viele Verbindungen hat, alle anderen Knoten schnell erreichbar sind oder durch ihn viele Verbindungen zwischen anderen Knoten gehen. Im Folgenden werden die **Zentralitäts-Indices** beschrieben und berechnet, die diese Eigenschaften repräsentieren.
+
+**Grad der Zentralität** *(eng: degree)*: Die Nummer von Verbindungen der betrachteten Node
+
+**Stärke der Node** *(eng: strength)*: Die aufsummierte und gewichtete Stärke aller Verbindungen einer Node relativ der anderen im Netzwerk vorhandenen Nodes. Durch Kenntnis über die Stärke einer Node können weitere Informationen über die Zentralität der Node ausgesagt werden, zum Beispiel: Eine Node mit einem hohen Grad der Zentralität und einer niedrigen Stärke kann weniger zentral in einem Netzwerk sein als eine Node mit einem niedrigeren Grad der Zentralität und einer hohen Stärke.
+
+**Verbundenheit** *(eng: closeness)*: Die Verbundenheit einer Node quantifiziert ihre Beziehungen im Netzwerk anhand ihrer indirekten Verbindungen mit anderen Nodes. Hohe Verbundenheit, zum Beispiel, charakterisiert im Mittel eine kurze Distanz von einer Node zu anderen Nodes. Nodes mit hoher Verbundenheit sind leicht von Veränderungen in einem beliebigen Part des Netzwerks betroffen und beeinflussen im Gegenzug leicht andere Nodes
+
+**Dazwischenheit** *(eng: betweenness)*: Die Dazwischenheit einer Node gibt Informationen über die Wichtigkeit einer Node im Rahmen der durchschnittlich zurückgelegten Weges zwischen ihr und anderen Nodes im Netzwerk. Die Node mit dem kürzesten Weg zwischen zwei anderen Nodes, also einer hohen "Dazwischenheit", hat beispielsweise besonderen Einfluss auf die Verbindung jener anderen Nodes.
+
+
+### Fixed Effects Modell: händisch
+
+Wir mitteln (gewichtet) zunächst händisch via:
+$$\sum_{i=1}^k\frac{n_iY_i}{\sum_{i=1}^kn_i}$$
+Für die $k$ Stichproben wird hier jede standardisierte Prä-Post-Differenz mit der Stichprobengröße multipliziert $n_iY_i$ und dann werden diese Werte aufsummiert (eine gewichtete Summe entsteht). Teilen wir diese Summe anschließend durch die Gesamtstichprobe $\sum_{i=1}^kn_i$ so erhalten wir einen gewichteten Mittelwert, der berücksichtigt, dass einige Stichproben größer sind und dort die geschätzte standardisierte Differenz präziser ist. Dies sieht in `R` so aus:
+
+```{r}
+print("b")
+```
+
+
+## Fazit
+
+Die Netzwerkanalyse für psychologisch Konstrukte ist ein sich noch entwickelndes Gebiet. Sie wird kein Ersatz der typischen latenten Modelle sein können, für die Visualisierung und spezifischere Betrachtung der Dynamik zwischen Symptomen aber in jedem Fall hilfreich sein. Die genaue Vorgehensweise der Schätzung und Interpretation sind aktuell ein Thema der methodischen Forschung. Im Paket `bootnet` sind dabei stets aktuelle Ansätze auffindbar. Es ist dabei auch sehr verständlich geschrieben und dient einem nutzerfreundlichen Einstieg.
+
+*** 
+
+## Literatur
+
+[Döring, N., & Bortz, J. (2016)](https://hds.hebis.de/ubffm/Record/HEB36808809X). Meta-Analyse. In _Forschungsmethoden und Evaluation in den Sozial- und Humanwissenschaften_ (pp. 893-943). Springer, Berlin, Heidelberg.
+
+
+[López-López, J. A., Davies, S. R., Caldwell, D. M., Churchill, R., Peters, T. J., Tallon, D., Dawson, S., Wu, Q., Li, J., Taylor, A., Lewis, G., Kessler, D. S., Wiles, N., & Welton, N. J. (2019).](https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.37032030|edsbas) The process and delivery of CBT for depression in adults: A systematic review and network meta-analysis. _Psychological Medicine, 49_(12), 1937–1947.  [https://doi.org/10.1017/S003329171900120X](https://doi.org/10.1017/S003329171900120X)
+
+
+[Viechtbauer, W. (2010).](https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.B90C267A|edsbas) Conducting meta-analyses in R with the metafor package. *Journal of Statistical Software*, *36*(3), 1–48. https://www.jstatsoft.org/v036/i03.
+
+* <small> *Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.*
+
