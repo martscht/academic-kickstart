@@ -293,95 +293,33 @@ names(pred_REM)</code></pre>
 </div>
 <div id="mixed-effects-modelle" class="section level2">
 <h2>Mixed Effects Modelle</h2>
-<p>Da die Heterogenitätsvarianz signifikant von 0 verschieden war, wollen wir versuchen die Variation in den Korrelationskoeffizienten zwischen den Studien mit Hilfe von Moderatoren vorherzusagen.</p>
-<div id="studienqualität-als-moderator" class="section level3">
-<h3>Studienqualität als Moderator</h3>
-<p>Es könnte sein, dass die Qualität der Studien einen Einfluss auf die Größe der Effekte hatte. Molloy et al. (2014) nutzen eine 4-stufige Skala von 1 bis 4, um die methodische Qualität zu bewerten (siehe Artikel für Details). Wenn wir uns die Werte ansehen</p>
-<pre class="r"><code>data_transformed$quality</code></pre>
-<pre><code>##  [1] 1 1 2 1 2 2 1 3 2 3 2 2 1 2 3 1</code></pre>
-<p>erkennen wir, dass keine der Studien alle Qualitätsstandards der Autorinnen und Autoren erfüllen. Es kann nun darüber diskutiert werden, ob die Qualität der Studien eine kontinuierliche oder eine kategoriale Variable ist. Da sie schon eine Ordnung aufweißt, ist vermutlich eine Ordinale Skala die richtige. Wir betrachten sie zunächst als kategorial, um ein Gefühl für die Unterschiede zu bekommen.</p>
-<pre class="r"><code>plot(z_ri ~ factor(quality), data=data_transformed, col = c(&quot;blue&quot;, &quot;gold3&quot;, &quot;red&quot;), xlab = &quot;Interviewtyp&quot;,
-     ylab = &quot;z-transformierte Korrelation&quot;, main = &quot;z-transformierte Korrelation pro Interviewtyp&quot;)</code></pre>
-<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-20-1.png" width="672" style="display: block; margin: auto;" /></p>
-<pre class="r"><code>plot(ri ~ factor(quality), data=data_transformed, col = c(&quot;blue&quot;, &quot;gold3&quot;, &quot;red&quot;), xlab = &quot;Interviewtyp&quot;,
-     ylab = &quot;Korrelation&quot;, main = &quot;Korrelation pro Interviewtyp&quot;)</code></pre>
-<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-20-2.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Wenn wir nun die Qualität als Ordinalskala verwenden, so sieht die Grafik so aus:</p>
-<pre class="r"><code>plot(ri ~ quality, data=data_transformed, col = c(&quot;blue&quot;, &quot;gold3&quot;, &quot;red&quot;), xlab = &quot;Interviewtyp&quot;,
-     ylab = &quot;Korrelation&quot;, main = &quot;Korrelation pro Interviewtyp&quot;)</code></pre>
-<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p>Dieser Grafik ist leider nicht so viel zu erkennen. Wir führen eine Moderatoranalyse durch. Dieses wird zu Wiederholungszwecken nochmals im Detail wiederholt.</p>
-<p>Ein Mixed Effects Model (MEM) können wir wieder mit der <code>rma</code> Funktion schätzen. Wir müssen lediglich dem Argument <code>mods = ~ factor(quality)</code> die Namen der Moderatorvariablen übergeben. Die Tilde gibt an, dass es sich hier um eine regressive Beziehung handelt. <code>factor</code> gibt an, dass es sich um eine kategoriale Variable mit Abstufungen handelt und dass die Werte eine Gruppenzugehörigkeit symbolisieren sollen. Wollen wir kontinuierliche (und nicht kategoriale) Prädiktoren als Moderatoren verwenden, so können wir <code>factor</code> weglassen.</p>
-<pre class="r"><code>MEM &lt;- rma(yi = z_ri, vi = v_ri, mods = ~ factor(quality), data = data_transformed)
-summary(MEM)</code></pre>
-<pre><code>## 
-## Mixed-Effects Model (k = 16; tau^2 estimator: REML)
-## 
-##   logLik  deviance       AIC       BIC      AICc 
-##   7.1270  -14.2540   -6.2540   -3.9942   -1.2540   
-## 
-## tau^2 (estimated amount of residual heterogeneity):     0.0073 (SE = 0.0058)
-## tau (square root of estimated tau^2 value):             0.0855
-## I^2 (residual heterogeneity / unaccounted variability): 53.72%
-## H^2 (unaccounted variability / sampling variability):   2.16
-## R^2 (amount of heterogeneity accounted for):            9.93%
-## 
-## Test for Residual Heterogeneity:
-## QE(df = 13) = 26.8788, p-val = 0.0129
-## 
-## Test of Moderators (coefficients 2:3):
-## QM(df = 2) = 1.9276, p-val = 0.3814
-## 
-## Model Results:
-## 
-##                   estimate      se     zval    pval    ci.lb   ci.ub 
-## intrcpt             0.1565  0.0491   3.1883  0.0014   0.0603  0.2527  ** 
-## factor(quality)2    0.0355  0.0717   0.4954  0.6203  -0.1050  0.1760     
-## factor(quality)3   -0.0731  0.0769  -0.9503  0.3419  -0.2239  0.0777     
-## 
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p>Der Output hat zwei Neuheiten: 1) <code>Test of Moderators (coefficients 2:3):</code> gibt einen Omnibustest an, ob die Moderatoren das Modell verbessern, 2) in den <code>Model Results</code> sind “<span class="math inline">\(\beta\)</span>”-Koeffizienten für die Moderatoren (hier als Dummy-kodierte Variablen) angegeben. Die Referenzkategorie für die Dummy-Variablen ist die Qualitätsstufe “1” (also die Studien mit der schlechtesten methodischen Qualität). So gibt <code>factor(quality)2</code> gerade den Effekt an, der durch ein Qualitätswert von 2 im Vergleich zu einem Qualitätswert von 1 entsteht. Hier ist die <span class="math inline">\(z\)</span>-transformierte Korrelation in den Studien mit Qualitätswert 2 um 0.0355 größer als in Studien mit Qualitätswert 1. Entsprechend steht <code>factor(quality)3</code> für den Effekt, der durch Studien mit Qualitätsstufe 3 im Vergleich zu Studien mit Qualitätsstufe 1 ausgedrückt wird. Hier ist die <span class="math inline">\(z\)</span>-transformierte Korrelation in Studien mit Qualitätsstufe 3 um -0.0731 geringer als in jenen mit Stufe 1.</p>
-<div id="inklusion-von-kovariaten-als-moderator" class="section level4">
-<h4>Inklusion von Kovariaten als Moderator</h4>
-<p>Werden anstatt von Korrelationen (Semi-)Partialkorrelationen betrachtet, so fallen die betrachteten Effekte in der Regel kleiner aus (es sei denn es handelt sich um Suppressoreffekte). Aus diesem Grund sollte diese mögliche Moderatorvariable ebenfalls in das Modell einbezogen werden.</p>
-<pre class="r"><code>MEM2 &lt;- rma(yi = z_ri, vi = v_ri, mods = ~ factor(quality) + controls, data = data_transformed)
-summary(MEM2)</code></pre>
-<pre><code>## 
-## Mixed-Effects Model (k = 16; tau^2 estimator: REML)
-## 
-##   logLik  deviance       AIC       BIC      AICc 
-##   9.5321  -19.0642   -9.0642   -6.6397    0.9358   
-## 
-## tau^2 (estimated amount of residual heterogeneity):     0.0002 (SE = 0.0021)
-## tau (square root of estimated tau^2 value):             0.0144
-## I^2 (residual heterogeneity / unaccounted variability): 3.16%
-## H^2 (unaccounted variability / sampling variability):   1.03
-## R^2 (amount of heterogeneity accounted for):            97.44%
-## 
-## Test for Residual Heterogeneity:
-## QE(df = 12) = 16.2327, p-val = 0.1808
-## 
-## Test of Moderators (coefficients 2:4):
-## QM(df = 3) = 20.1536, p-val = 0.0002
-## 
-## Model Results:
-## 
-##                   estimate      se     zval    pval    ci.lb   ci.ub 
-## intrcpt            -0.0796  0.0801  -0.9927  0.3209  -0.2366  0.0775     
-## factor(quality)2    0.0333  0.0451   0.7396  0.4595  -0.0550  0.1217     
-## factor(quality)3    0.0997  0.0769   1.2964  0.1948  -0.0510  0.2505     
-## controlsnone        0.2400  0.0747   3.2121  0.0013   0.0935  0.3864  ** 
-## 
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p>Nun ist nur noch der Effekt der Kontrollvariablen signifikant. Insgesamt scheint es unter Berücksichtigung der Kontrollvariablen (meistens Alter, siehe Molloy et al., 2014) keine Beziehung zwischen Gewissenhaftigkeit und Medikamenteneinnahme zu geben (Interzept ist nicht statistisch bedeutsam: <span class="math inline">\(\beta_0=\)</span> -0.08, SE = 0.08, p = 4). Wenn keine Kontrollvariablen involviert sind, ist der <span class="math inline">\(z\)</span>-transformierte Korrelationskoeffizient um <span class="math inline">\(\beta_\text{control}\)</span>=0.24 (SE = 0.07, p = NA) größer. Weitere Kontrastanalysen oder eine reduzierte Metaanalyse (nur mit jenen Studien ohne Kontrollvariablen) wären nötig, um zu untersuchen, ob in den Studien ohne Kontrollvariablen</p>
-</div>
-</div>
+<p>Da die Heterogenitätsvarianz signifikant von 0 verschieden war, wäre es sinvoll zu versuchen diese Variation in den Korrelationskoeffizienten zwischen den Studien mit Hilfe von Moderatoren zu erklären. Dies überlassen wir Ihnen als Übung (Tipp: interessante Moderatoren sind die Studienqualität und die Involvierung von Kontrollvariablen).</p>
 </div>
 <div id="weitere-moderatoren-und-psychometrische-metaanalysen" class="section level2">
 <h2>Weitere Moderatoren und Psychometrische Metaanalysen</h2>
-<p>Die Metaanalyse von Irmer, Kern, Schermelleh-Engel, Semmer und Zapf (2019) wurde mit diesem <code>R</code>-Paket durchgeführt. Sie behandelt die Validierung des Instrument zur stressbezogenen Tätigkeitsanalyse (ISTA) von Semmer, Zapf und Dunckel (1995, 1999), indem die linearen Beziehungen der Skalen des Instrument untereinander sowie mit Kriteriumsvariablen untersucht wurden. Außerdem wurden die Mittelwerte und und Standardabweichungen (metaanalytisch) gemittelt. Alle Koeffizienten (Mittelwerte, Standardabweichungen und Korrelationen) wurden hinsichtlich systematischer Unterschiede über das Geschlecht (% Frauen), der Publikationsstatus (publiziert vs. nicht publiziert), die ISTA-Version sowie die Branche (des Arbeitsplatzes) untersucht. Das genaue metaanalytische Vorgehen ist dem Appendix des Artikels zu entnehmen.</p>
+<p>Das Ziel einer psychometrischen Metaanalyse nach Hunter und Schmidt (2004) ist es, so viele Varianzeinflüsse wie möglich zu kontrollieren/korrigeren. So ist es nach diesem Ansatz üblich, dass Korrelationen um deren Reliabilität korrigiert werden. Auch Range-Restrictions (also Einschränkungen im Wertebereich) können berücksichtigt werden. Da das Korrigieren der Korrelationen ein häufiges Vorgehen ist, schauen wir uns dieses noch genauer an. Die Korrektur wird mit Hilfe der Information über die Reliabilität der Skalen mittels der Minderungskorrektur durchgeführt:</p>
+<p><span class="math display">\[r_{xy\text{,corrected}} = \frac{r_{xy}}{\sqrt{r_{xx}r_{yy}}},\]</span>
+wobei <span class="math inline">\(r_{xy}\)</span> die Korrelation der Variablen <span class="math inline">\(X\)</span> und <span class="math inline">\(Y\)</span> (hier ist <span class="math inline">\(Y\)</span> wieder einer Variable und kein Koeffizient, wie es bei Metaanalysen üblich ist), <span class="math inline">\(r_{xx}\)</span> und <span class="math inline">\(r_{yy}\)</span> sind jeweils die Reliablitäten der Skalen, die zur Messung von <span class="math inline">\(X\)</span> und <span class="math inline">\(Y\)</span> verwendet wurden. Je geringer die Reliabilität ausfällt, desto größer ist der Korrekturterm (da durch die Reliabilität geteilt wird). Um keine verzerrten Ergebnisse zu erhalten, ist es also konservativer größere Reliabilitäten zu verwenden, wenn bspw. nur eine Range für eine Reliabilität in einem Artikel angegeben wird. Liegt keine Informationen für die Reliabilität vor oder ist eine Variable direkt beobachtbar, dann wird die Reliabilität als 1 angenommen. Angenommen wir haben einen Datensatz mit vier Studien und den folgenden Koeffizienten:</p>
+<pre class="r"><code>df &lt;- data.frame(r = c(0.3, 0.3, 0.5, 0.4), 
+                 RelX = c(0.6, 0.8, 1, 1), 
+                 RelY = c(0.5, 0.7, 0.8, 1), 
+                 n = c(65, 65, 34, 46))
+head(df)</code></pre>
+<pre><code>##     r RelX RelY  n
+## 1 0.3  0.6  0.5 65
+## 2 0.3  0.8  0.7 65
+## 3 0.5  1.0  0.8 34
+## 4 0.4  1.0  1.0 46</code></pre>
+<p>dann reichen diese Informationen aus, um die Korrelationen um deren Reliabilität zu korrigieren. Hierbei hat die Variable <span class="math inline">\(X\)</span> zwei mal eine Reliabilität von 1, was wie eben erwähnt daran liegen kann, dass keine Informationen vorlagen oder dass diese Merkmale direkt beobachtbar waren (bspw. das Gehalt oder Berufserfahrung in Jahre, etc. haben keine Unsicherheit). Nun führen wir die Minderungskorrektur durch und fügen die korrigierten Korrelationen direkt unserem Datensatz hinzu:</p>
+<pre class="r"><code>df$r_correct &lt;- df$r/sqrt(df$RelX*df$RelY)
+head(df)</code></pre>
+<pre><code>##     r RelX RelY  n r_correct
+## 1 0.3  0.6  0.5 65 0.5477226
+## 2 0.3  0.8  0.7 65 0.4008919
+## 3 0.5  1.0  0.8 34 0.5590170
+## 4 0.4  1.0  1.0 46 0.4000000</code></pre>
+<p>Wir sehen, dass in der ersten Studie die Korrelation am stärksten angestiegen ist. Das liegt daran, dass hier beide Relibilitäten am geringsten ausgefallen sind. In der zweiten Studien wurden beide Merkmale etwas reliabler erfasst, sodass hier die Korrektur wesentlich geringer ausgefallen ist. In der letzten Studie wurde nur direkt beobachtbare Variablen verwenden (manifeste Variablen) oder es lag nicht genug Informationen über die Reliablitäten vor, sodass hier keinerlei Korrektur vorgenommen wurde.</p>
+<p>Die psychometrische Metaanalyse von Irmer, Kern, Schermelleh-Engel, Semmer und Zapf (2019) wurde mit diesem <code>R</code>-Paket durchgeführt. Sie behandelt die Validierung des Instrument zur stressbezogenen Tätigkeitsanalyse (ISTA) von Semmer, Zapf und Dunckel (1995, 1999), indem die linearen Beziehungen der Skalen des Instrument untereinander sowie mit Kriteriumsvariablen untersucht wurden. Außerdem wurden die Mittelwerte und und Standardabweichungen (metaanalytisch) gemittelt. Alle Koeffizienten (Mittelwerte, Standardabweichungen und [reliabilitätskorrigierte] Korrelationen) wurden hinsichtlich systematischer Unterschiede über das Geschlecht (% Frauen), der Publikationsstatus (publiziert vs. nicht publiziert), die ISTA-Version sowie die Branche (des Arbeitsplatzes) untersucht. Das genaue metaanalytische Vorgehen ist dem Appendix des Artikels zu entnehmen.</p>
 </div>
 <div id="appendix-a" class="section level2">
 <h2>Appendix A</h2>
@@ -396,7 +334,7 @@ for(i in 1:length(dat.molloy2014$ri))
 {
      abline(a = 0, b = dat.molloy2014$ri[i], col = &quot;grey80&quot;)
 }</code></pre>
-<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
 <pre class="r"><code>plot(NA, xlim = c(-1,1), ylim = c(-1,1), xlab = &quot;Gewissenhaftigkeit&quot;, ylab = &quot;Medikamenteneinnahme&quot;,
      main = &quot;Empirische Korrelationen zwischen\n Medikamenteneinnahme und Gewissenhaftigkeit&quot;)
 for(i in 1:length(dat.molloy2014$ri))
@@ -410,7 +348,7 @@ abline(a = 0, b = pred_REM$cr.ub, col = &quot;gold3&quot;, lwd = 5)
 abline(a = 0, b = pred_REM$pred, col = &quot;black&quot;, lwd = 5)
 legend(x = &quot;bottomright&quot;, col = c(&quot;black&quot;, &quot;blue&quot;, &quot;gold3&quot;, &quot;grey60&quot;), pch = NA, lwd = c(5,5,5,2),
        legend = c(&quot;Mittlere Korr.&quot;, &quot;95% KI-Korr.&quot;, &quot;Credibility Interval&quot;, &quot;Emp. Korr.&quot;))</code></pre>
-<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
 </details>
 </div>
 <div id="appendix-b" class="section level2">
@@ -425,7 +363,7 @@ legend(x = &quot;bottomright&quot;, col = c(&quot;black&quot;, &quot;blue&quot;,
 <p>Der Funnel-Plot wird verwendet, um auf das bekannte Problem des Publication-Bias zu untersuchen. Hier wird der gefundene Effekt (hier <span class="math inline">\(z\)</span>-transformierte Korrelation zwischen Gewissenhaftigkeit und Medikamenteneinnahme) gegen den Standardfehler jeder Studie geplottet. Es wird die Annahme zugrunde gelegt, dass alle Studien in der Metaanalyse eine gewisse, zufällige Schwankung um den wahren Effekt haben, und dabei diese zufällige Schwankung größer ist, je größer der Standardfehler in einer Studie ist und je kleiner die Stichprobe war. Sofern eine Studie unabhängig von der Effektgröße sowie der Streuung (und damit auch der Signifikanz) publiziert wurde, sollte so das typische symmetrische Dreieck (Funnel = Trichter) entstehen.</p>
 <pre class="r"><code># funnel plot
 funnel(REM)</code></pre>
-<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Der Grafik ist zu entnehmen, dass sich die meisten Effektstärken im positiven Bereich tummeln. Je kleiner der Effekt (je näher an der Null) desto präziser die Schätzung (desto kleiner der SE - höher dargestellt im Funnel-Plot). Der Plot erscheint insgesamt recht symmetrisch und unverzerrt. Allein vom Funnel-Plot zu urteilen scheint es keinen Publication-Bias gegeben zu haben.</p>
 <p>Die Trim-and-Fill Methode wird verwendet, um zu bestimmen, wie viele Studien hinzugenommen (fill) oder entfernt werden (Trim) müssten, damit der Funnel-Plot symmetrisch ist. Die Methoden kann auch verwendet werden, um einen (um einen möglichen Publication-Bias) bereinigten Effekt zu schätzen.</p>
 <pre class="r"><code>trimfill(REM)</code></pre>
@@ -451,7 +389,7 @@ funnel(REM)</code></pre>
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>Die Funktion bestimmt selbst, auf welche Seite mögliche fehlende (nicht publizierte) Werte ergänzt werden sollten. Der Output sieht dem <code>REM</code> sehr ähnlich. In der ersten Zeile steht, dass 2 Studien auf der rechten Seite des geschätzten durchschnittlichen Effekts ergänzt wurden. Der Output hat sich kaum verändert. Der mittlere Effekt ist ein weniger kleiner geworden (0.15 vs 0.13). Wenn wir nun wieder die <code>funnel</code> Funktion darauf anwenden, sehen wir auch, welche Studien hinzugefügt wurden:</p>
 <pre class="r"><code>funnel(trimfill(REM, side = &quot;left&quot;))</code></pre>
-<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-28-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Wir erkennen die 2 hinzugefügten Studien im unteren linken bereich der Grafik. Wir gehen somit insgesamt davon aus, dass kein Publication Bias vorliegt und verwerfen die eben betrachteten Trim-and-Fill Ergebnisse.</p>
 </div>
 <div id="forest-plot" class="section level4">
@@ -459,11 +397,11 @@ funnel(REM)</code></pre>
 <p>Auch Forest-Plots funktionieren auf die gleiche Weise mit der <code>forest</code> Funktion. Der Forest-Plot stellt die unterschiedlichen Studien hinsichtlich ihrer Parameterschätzung (Effektstärken) und die zugehörige Streuung grafisch dar. So können beispielsweise Studien identifiziert werden, welche besonders hohe oder niedrige Werte aufweisen oder solche, die eine besonders große oder kleine Streuung zeigen.</p>
 <pre class="r"><code># forest plot
 forest(REM)</code></pre>
-<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-29-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Wir sehen, dass einige Studien Konfidenzintervalle aufweisen, die die Null einschließen, also nicht signifikante Ergebnisse berichtet haben. Außerdem wird im Plot selbst schon angezeigt, dass es sich um <span class="math inline">\(z\)</span>-transformierte Werte handelt. Auch ein kumulativer Forest-Plot wäre möglich. Dazu müssen wir auf unser <code>REM</code>-Objekt noch die Funktion <code>cumul.rma.uni</code> anwenden:</p>
 <pre class="r"><code># kumulativer Forest Plot
 forest(cumul.rma.uni(REM))</code></pre>
-<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-30-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-23-Klipps_Meta-Analyse-in-R_Cor_files/figure-html/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Die Funktion <code>cumul.rma.uni</code> führt skuzessive immer wieder eine Metaanalyse durch, wobei nach und nach eine Studie hinzugefügt wird. Anders als beim ersten Forest-Plot wird immer das Ergebnis der jeweiligen Metaanalyse dargestellt und nicht jede Studie einzeln. Wir sehen, dass sich sowohl mittlere Effektstärke als auch Streuung von oben nach unten einpendeln. Das finale Ergebnis ist identisch mit unsere Metaanalyse. Die gestrichelte Linie der Forest-Plots symbolisiert die 0, da in den meisten Fällen gegen 0 getestet wird und es daher von Interesse ist, wie viele Studien sich von 0 unterscheiden und ob sich der mittlere Effekt von 0 unterscheidet.</p>
 </details>
 </div>
@@ -475,7 +413,6 @@ forest(cumul.rma.uni(REM))</code></pre>
 <p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=2019-62894-003%7Cpsyh">Irmer, J. P., Kern, M., Schermelleh-Engel, K., Semmer, N. K., &amp; Zapf, D. (2019).</a> The instrument for stress oriented job analysis (ISTA) – a meta-analysis. <em>Zeitschrift für Arbeits- &amp; Organisationspsychologie – German Journal of Work and Organizational Psychology, 63</em>(4), 217-237.
 <a href="https://doi.org/10.1026/0932-4089/a000312">https://doi.org/10.1026/0932-4089/a000312</a></p>
 <p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=RN347807174%7Cedsbl">Molloy, G. J., O’Carroll, R. E., &amp; Ferguson, E. (2014)</a>. Conscientiousness and medication adherence: A meta-analysis. Annals of Behavioral Medicine, 47(1), 92–101. <a href="https://doi.org/10.1007/s12160-013-9524-4">https://doi.org/10.1007/s12160-013-9524-4</a></p>
-<p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=74773873%7Cedb">Rothstein, H. R., Sutton, A. J., &amp; Borenstein, M. (2005).</a> <em>Publication bias in meta-analysis: Prevention, assessment, and adjustments</em>. Chichester, England: Wiley.</p>
 <p>Semmer, N. K., Zapf, D., &amp; Dunckel, H. (1995). Assessing stress at work: A framework and an instrument. In O. Svane, &amp; C. Johansen (Eds.), <em>Work and health – scientific basis of progress in the working environment,</em> (pp. 105 – 113). Luxembourg, Luxembourg: Office for Official Publications of the European Communities.</p>
 <p>Semmer, N. K., Zapf, D., &amp; Dunckel, H. (1999). Instrument zur Stressbezogenen Tätigkeitsanalyse (ISTA) [Instrument for stress-oriented task analysis (ISTA)]. In <a href="https://hds.hebis.de/ubffm/Record/HEB060958421">H. Dunkel (Ed.), <em>Handbuch psychologischer Arbeitsanalyseverfahren</em></a> (pp. 179 – 204). Zürich, Switzerland: vdf Hochschulverlag an der ETH.</p>
 <p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.B90C267A%7Cedsbas">Viechtbauer, W. (2010).</a> Conducting meta-analyses in R with the metafor package. <em>Journal of Statistical Software</em>, <em>36</em>(3), 1–48. <a href="https://www.jstatsoft.org/v036/i03" class="uri">https://www.jstatsoft.org/v036/i03</a>.</p>

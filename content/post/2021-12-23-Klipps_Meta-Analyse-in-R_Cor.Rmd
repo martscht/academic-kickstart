@@ -238,58 +238,35 @@ Das `metafor` Paket bietet außerdem noch einige grafischen Veranschaulichungen 
 Insgesamt zeigen uns die Plots, dass von einem stabilen Effekt ausgegangen werden kann. Der Funnel-Plot ist viel regelmäßiger als der Funnel-Plot der [vergangene Sitzung](/post/metaanalysen-MW).
 
 ## Mixed Effects Modelle
-Da die Heterogenitätsvarianz signifikant von 0 verschieden war, wollen wir versuchen die Variation in den Korrelationskoeffizienten zwischen den Studien mit Hilfe von Moderatoren vorherzusagen. 
 
-### Studienqualität als Moderator
-Es könnte sein, dass die Qualität der Studien einen Einfluss auf die Größe der Effekte hatte. Molloy et al. (2014) nutzen eine 4-stufige Skala von 1 bis 4, um die methodische Qualität zu bewerten (siehe Artikel für Details). Wenn wir uns die Werte ansehen 
+Da die Heterogenitätsvarianz signifikant von 0 verschieden war, wäre es sinvoll zu versuchen diese Variation in den Korrelationskoeffizienten zwischen den Studien mit Hilfe von Moderatoren zu erklären. Dies überlassen wir Ihnen als Übung (Tipp: interessante Moderatoren sind die Studienqualität und die Involvierung von Kontrollvariablen). 
 
-```{r}
-data_transformed$quality
-```
-
-erkennen wir, dass keine der Studien alle Qualitätsstandards der Autorinnen und Autoren erfüllen. Es kann nun darüber diskutiert werden, ob die Qualität der Studien eine kontinuierliche oder eine kategoriale Variable ist. Da sie schon eine Ordnung aufweißt, ist vermutlich eine Ordinale Skala die richtige. Wir betrachten sie zunächst als kategorial, um ein Gefühl für die Unterschiede zu bekommen.
-
-```{r,echo=T, fig.height=6, fig.align="center"}
-plot(z_ri ~ factor(quality), data=data_transformed, col = c("blue", "gold3", "red"), xlab = "Interviewtyp",
-     ylab = "z-transformierte Korrelation", main = "z-transformierte Korrelation pro Interviewtyp")
-plot(ri ~ factor(quality), data=data_transformed, col = c("blue", "gold3", "red"), xlab = "Interviewtyp",
-     ylab = "Korrelation", main = "Korrelation pro Interviewtyp")
-```
-
-Wenn wir nun die Qualität als Ordinalskala verwenden, so sieht die Grafik so aus:
-
-```{r}
-plot(ri ~ quality, data=data_transformed, col = c("blue", "gold3", "red"), xlab = "Interviewtyp",
-     ylab = "Korrelation", main = "Korrelation pro Interviewtyp")
-```
-
-Dieser Grafik ist leider nicht so viel zu erkennen. Wir führen eine Moderatoranalyse durch. Dieses wird zu Wiederholungszwecken nochmals im Detail wiederholt.
-
-Ein Mixed Effects Model (MEM) können wir wieder mit der `rma` Funktion schätzen. Wir müssen lediglich dem Argument `mods = ~ factor(quality)` die Namen der Moderatorvariablen übergeben. Die Tilde gibt an, dass es sich hier um eine regressive Beziehung handelt. `factor` gibt an, dass es sich um eine kategoriale Variable mit Abstufungen handelt und dass die Werte eine Gruppenzugehörigkeit symbolisieren sollen. Wollen wir kontinuierliche (und nicht kategoriale) Prädiktoren als Moderatoren verwenden, so können wir `factor` weglassen.
-
-```{r}
-MEM <- rma(yi = z_ri, vi = v_ri, mods = ~ factor(quality), data = data_transformed)
-summary(MEM)
-```
-
-Der Output hat zwei Neuheiten: 1) `Test of Moderators (coefficients 2:3):` gibt einen Omnibustest an, ob die Moderatoren das Modell verbessern, 2) in den `Model Results` sind "$\beta$"-Koeffizienten für die Moderatoren (hier als Dummy-kodierte Variablen) angegeben. Die Referenzkategorie für die Dummy-Variablen ist die Qualitätsstufe "1" (also die Studien mit der schlechtesten methodischen Qualität). So gibt `factor(quality)2` gerade den Effekt an, der durch ein Qualitätswert von 2 im Vergleich zu einem Qualitätswert von 1 entsteht. Hier ist die $z$-transformierte Korrelation in den Studien mit Qualitätswert 2 um `r round(MEM$b[2],4)` größer als in Studien mit Qualitätswert 1. Entsprechend steht `factor(quality)3` für den Effekt, der durch Studien mit Qualitätsstufe 3 im Vergleich zu Studien mit Qualitätsstufe 1 ausgedrückt wird. Hier ist die $z$-transformierte Korrelation in Studien mit Qualitätsstufe 3 um `r round(MEM$b[3],4)` geringer als in jenen mit Stufe 1.
-
-#### Inklusion von Kovariaten als Moderator
-
-Werden anstatt von Korrelationen (Semi-)Partialkorrelationen betrachtet, so fallen die betrachteten Effekte in der Regel kleiner aus (es sei denn es handelt sich um Suppressoreffekte). Aus diesem Grund sollte diese mögliche Moderatorvariable ebenfalls in das Modell einbezogen werden.
-
-```{r}
-MEM2 <- rma(yi = z_ri, vi = v_ri, mods = ~ factor(quality) + controls, data = data_transformed)
-summary(MEM2)
-```
-
-Nun ist nur noch der Effekt der Kontrollvariablen signifikant. Insgesamt scheint es unter Berücksichtigung der Kontrollvariablen (meistens Alter, siehe Molloy et al., 2014) keine Beziehung zwischen Gewissenhaftigkeit und Medikamenteneinnahme zu geben (Interzept ist nicht statistisch bedeutsam: $\beta_0=$ `r round(MEM2$b[1], 2)`, SE = `r round(MEM2$se[1], 2)`, p = `r round(MEM2$p[1], 2)`). Wenn keine Kontrollvariablen involviert sind, ist der $z$-transformierte Korrelationskoeffizient um $\beta_\text{control}$=`r round(MEM2$b[4], 2)` (SE = `r round(MEM2$se[4], 2)`, p = `r round(MEM2$p[4], 2)`) größer. Weitere Kontrastanalysen oder eine reduzierte Metaanalyse (nur mit jenen Studien ohne Kontrollvariablen) wären nötig, um zu untersuchen, ob in den Studien ohne Kontrollvariablen 
 
 ## Weitere Moderatoren und Psychometrische Metaanalysen
 
+Das Ziel einer psychometrischen Metaanalyse nach Hunter und Schmidt (2004) ist es, so viele Varianzeinflüsse wie möglich zu kontrollieren/korrigeren. So ist es nach diesem Ansatz üblich, dass Korrelationen um deren Reliabilität korrigiert werden. Auch Range-Restrictions (also Einschränkungen im Wertebereich) können berücksichtigt werden. Da das Korrigieren der Korrelationen ein häufiges Vorgehen ist, schauen wir uns dieses noch genauer an. Die Korrektur wird mit Hilfe der Information über die Reliabilität der Skalen mittels der Minderungskorrektur durchgeführt:
 
+$$r_{xy\text{,corrected}} = \frac{r_{xy}}{\sqrt{r_{xx}r_{yy}}},$$
+wobei $r_{xy}$ die Korrelation der Variablen $X$ und $Y$ (hier ist $Y$ wieder einer Variable und kein Koeffizient, wie es bei Metaanalysen üblich ist), $r_{xx}$ und $r_{yy}$ sind jeweils die Reliablitäten der Skalen, die zur Messung von $X$ und $Y$ verwendet wurden. Je geringer die Reliabilität ausfällt, desto größer ist der Korrekturterm (da durch die Reliabilität geteilt wird). Um keine verzerrten Ergebnisse zu erhalten, ist es also konservativer größere Reliabilitäten zu verwenden, wenn bspw. nur eine Range für eine Reliabilität in einem Artikel angegeben wird. Liegt keine Informationen für die Reliabilität vor oder ist eine Variable direkt beobachtbar, dann wird die Reliabilität als 1 angenommen. Angenommen wir haben einen Datensatz mit vier Studien und den folgenden Koeffizienten:
 
-Die Metaanalyse von Irmer, Kern, Schermelleh-Engel, Semmer und Zapf (2019) wurde mit diesem `R`-Paket durchgeführt. Sie behandelt die Validierung des Instrument zur stressbezogenen Tätigkeitsanalyse (ISTA) von Semmer, Zapf und Dunckel (1995, 1999), indem die linearen Beziehungen der Skalen des Instrument untereinander sowie mit Kriteriumsvariablen untersucht wurden. Außerdem wurden die Mittelwerte und und Standardabweichungen (metaanalytisch) gemittelt. Alle Koeffizienten (Mittelwerte, Standardabweichungen und Korrelationen) wurden hinsichtlich systematischer Unterschiede über das Geschlecht (% Frauen), der Publikationsstatus (publiziert vs. nicht publiziert), die ISTA-Version sowie die Branche (des Arbeitsplatzes) untersucht. Das genaue metaanalytische Vorgehen ist dem Appendix des Artikels zu entnehmen.
+```{r}
+df <- data.frame(r = c(0.3, 0.3, 0.5, 0.4), 
+                 RelX = c(0.6, 0.8, 1, 1), 
+                 RelY = c(0.5, 0.7, 0.8, 1), 
+                 n = c(65, 65, 34, 46))
+head(df)
+```
+
+dann reichen diese Informationen aus, um die Korrelationen um deren Reliabilität zu korrigieren. Hierbei hat die Variable $X$ zwei mal eine Reliabilität von 1, was wie eben erwähnt daran liegen kann, dass keine Informationen vorlagen oder dass diese Merkmale direkt beobachtbar waren (bspw. das Gehalt oder Berufserfahrung in Jahre, etc. haben keine Unsicherheit). Nun führen wir die Minderungskorrektur durch und fügen die korrigierten Korrelationen direkt unserem Datensatz hinzu:
+
+```{r}
+df$r_correct <- df$r/sqrt(df$RelX*df$RelY)
+head(df)
+```
+
+Wir sehen, dass in der ersten Studie die Korrelation am stärksten angestiegen ist. Das liegt daran, dass hier beide Relibilitäten am geringsten ausgefallen sind. In der zweiten Studien wurden beide Merkmale etwas reliabler erfasst, sodass hier die Korrektur wesentlich geringer ausgefallen ist. In der letzten Studie wurde nur direkt beobachtbare Variablen verwenden (manifeste Variablen) oder es lag nicht genug Informationen über die Reliablitäten vor, sodass hier keinerlei Korrektur vorgenommen wurde.
+
+Die psychometrische Metaanalyse von Irmer, Kern, Schermelleh-Engel, Semmer und Zapf (2019) wurde mit diesem `R`-Paket durchgeführt. Sie behandelt die Validierung des Instrument zur stressbezogenen Tätigkeitsanalyse (ISTA) von Semmer, Zapf und Dunckel (1995, 1999), indem die linearen Beziehungen der Skalen des Instrument untereinander sowie mit Kriteriumsvariablen untersucht wurden. Außerdem wurden die Mittelwerte und und Standardabweichungen (metaanalytisch) gemittelt. Alle Koeffizienten (Mittelwerte, Standardabweichungen und [reliabilitätskorrigierte] Korrelationen) wurden hinsichtlich systematischer Unterschiede über das Geschlecht (% Frauen), der Publikationsstatus (publiziert vs. nicht publiziert), die ISTA-Version sowie die Branche (des Arbeitsplatzes) untersucht. Das genaue metaanalytische Vorgehen ist dem Appendix des Artikels zu entnehmen.
 
 
 ## Appendix A
@@ -384,8 +361,6 @@ Die Funktion `cumul.rma.uni` führt skuzessive immer wieder eine Metaanalyse dur
 [https://doi.org/10.1026/0932-4089/a000312](https://doi.org/10.1026/0932-4089/a000312)
 
 [Molloy, G. J., O'Carroll, R. E., & Ferguson, E. (2014)](https://hds.hebis.de/ubffm/EBSCO/Record?id=RN347807174|edsbl). Conscientiousness and medication adherence: A meta-analysis. Annals of Behavioral Medicine, 47(1), 92–101. [https://doi.org/10.1007/s12160-013-9524-4](https://doi.org/10.1007/s12160-013-9524-4)
-
-[Rothstein, H. R., Sutton, A. J., & Borenstein, M. (2005).](https://hds.hebis.de/ubffm/EBSCO/Record?id=74773873|edb) *Publication bias in meta-analysis: Prevention, assessment, and adjustments*. Chichester, England: Wiley.
 
 Semmer, N. K., Zapf, D., & Dunckel, H. (1995). Assessing stress at work: A framework and an instrument. In O. Svane, & C. Johansen (Eds.), *Work and health – scientific basis of progress in the working environment,* (pp. 105 – 113). Luxembourg, Luxembourg: Office for Official Publications of the European Communities.
 
