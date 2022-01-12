@@ -32,20 +32,46 @@ knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 
 Netzwerkanalyse kommt aus einem eher technischen Feld. Sie wurde dafür genutzt, Systeme darzustellen, bei denen verschiedene Einheiten miteinander verbunden sind. Beispielsweise wurden Computer als Knotenpunkte gesehen und dann über Kanten deren Verbindung (oder eben auch Nicht-Verbindung) dargestellt. Den ersten Einzug in die Psychologie hatten Netzwerke in Gruppenanalysen. Dabei sind nun nicht mehr Computer die Knotenpunkte, sondern eben Menschen aus einer spezifischen Gruppe. 
 
+soziales Netzwerk zur Veranschaulichung
+
 In der neueren Literatur werden Netzwerke aber auch zur Darstellung von Psychologischen Konstrukten genutzt. Beispielsweise können die einzelne Symptome der Depression die Knotenpunkte darstellen und die Kanten deren Zusammenhang. Dies hat gegenüber einem globalen Skalenwert den Vorteil, dass die Dynamik zwischen verschiedenen Symptomen aufgezeigt werden kann. Dadurch könnten zentrale Symptome und mögliche Ansatzpunkte für die Intervision aufgefunden werden. Bevor wir diese Punkte im Netzwerk identifizieren können, müssen wir uns mit grundlegenden Begriffen und der Berechnung der Netzwerkstruktur auseinandersetzen.   
+
+Psychologisches Netzwerk zur Veranschaulichung
 
 ## Begriffsklärung und Netzwerktypen
 
 Betrachten wir an dieser Stelle nochmal zwei grundlegende Begriffe der Netzwerkanalyse. Wie bereits angedeutet wurde, bestehen diese aus **Knoten** und **Kanten**. **Knoten** oder englisch **nodes** repräsentieren Unterschiedliche psychologische Variablen (z.B: Störungen Symptome oder Items), die über Messungen aus verschiedenen Skalen oder Subskalen werden können. **Edges** der englisch **edges** repräsentieren statistische Beziehungen zwischen den Nodes (z.B. zum Beispiel Korrelationen) die anhand der Daten geschätzt werden. Während Werte auf den Knoten also gemessen werden, muss deren Beziehung (also die Kanten) geschätzt werden.
 
-Kanten können sowohl **gerichtet** als auch **ungerichtet** sein, wobei gerichtete Edges durch einen Pfeil gekennzeichnet werden, der einen einseitigen Effekt andeutet. Ungerichtete Kanten werden durch eine einfache Linie zwischen zwei Knoten abgebildet werden. Ein Netzwerk, das nur gerichtete Kanten enthält, bezeichnet man als **gerichtetes Netzwerk**. Netzwerke aus ungerichteten Kanten nennt man hingegen **ungerichtetes Netzwerk**. Im Querschnitt sind keine zeitlichen Abfolgen bekannt, weshalb wir heute zunächst nur ungerichtete Netzwerke betrachten werden.
+
+Kanten können sowohl **gerichtet** als auch **ungerichtet** sein, wobei gerichtete Edges durch einen Pfeil gekennzeichnet werden, der einen einseitigen Effekt andeutet. 
+
+gerichetes und ungerichtetes Netzwerk nebeneinader darstellen
+
+Ungerichtete Kanten werden durch eine einfache Linie zwischen zwei Knoten abgebildet werden. Ein Netzwerk, das nur gerichtete Kanten enthält, bezeichnet man als **gerichtetes Netzwerk**. Netzwerke aus ungerichteten Kanten nennt man hingegen **ungerichtetes Netzwerk**. Im Querschnitt sind keine zeitlichen Abfolgen bekannt, weshalb wir heute zunächst nur ungerichtete Netzwerke betrachten werden.
+
+gewichtet vs. Ungewichtet beschreiben und darstellen
 
 ## Daten
 
-In dieser Sitzung wollen wir einen Datensatz von López-López et al. (2019), der mit dem `metafor`-Paket mitgeliefert wird, verwenden. Dieser heißt `dat.lopez2019`. Die Autorinnen und Autoren haben die Effektivität der CBT (cognitive behavioural therapy [kognitive Verhaltenstherapie]) bei Depression untersucht und diese mit verschiedenen Kontrollbedingungen und unterschiedlichen Arten der CBT verglichen. Weitere Informationen zum Datensatz erhalten Sie bspw. mit  (das `metafor`-Paket muss natürlich vorher geladen sein). 
+In dieser Sitzung wollen wir einen Datensatz von Rubin (2020). verwenden. Dieser steht auf [OSF zum Download](https://osf.io/awz3d/) zur Verfügung kann aber auch über den folgenden Befehl direkt ins Environment eingeladen werden. 
 
 ```{r, results = "hide"}
-print("a")
+raw_data <- readRDS(url("https://osf.io/awz3d/download"))
+```
+
+Mit `head` können wir uns wie gewohnt die ersten 6 Zeilen des Datensatzes anschauen. 
+
+```{r}
+head(raw_data)
+```
+Dabei ist auffällig, dass der Datensatz schon auf rein inhaltliche Items reduziert wurde. Allerdings ist die Benennung durch das Erhebungsinstrument für die Interpretation noch etwas unschön, weshalb wir die Bedeutung im folgenden Code als Spaltenname zuordnen.
+
+```{r}
+names(raw_data) <- c("observe", "describe", "awaren.",
+                     "nonjudg.", "nonreact.",
+                     "interest",  "emotions",  "sleep",
+                     "tired",  "appetite", "selfim.",
+                     "concentr.", "speed")
 ```
 
 Die Variablen *observe*, *describe*, *awareness*, *nonjudging* und *nonreactivity* bezeichnen die **fünf Facetten der Achtsamkeit** von Baer et al. (2006), über die [in diesem Paper](https://pubmed.ncbi.nlm.nih.gov/16443717/) mehr steht. Die 8 weiteren Variablen beschreiben eine dysfunktionale, meist negative Veränderung in dem bezeichneten Lebensaspekt im Zuge einer **Depression**; so steht *interest* beispielsweise für einen Interessensverlust, während *selfimage* ein negatives Selbstbild abbildet.
@@ -64,44 +90,97 @@ Anschließend müssen wir das Paket zur Verwendung natürlich noch aktivieren.
 library(bootnet)
 ```
 
+Die Schätzung von Netzwerken funktioniert in dem Paket fast ausschließlich durch die Sammelfunktion `estimateNetwork`. In ihr können durch Argumente verschiedene Netzwerkanalysen durchgeführt werden, wie wir im weiteren Verlauf sehen werden.
 
+Starten wir zunächst mit der einfachsten Berechnung von Zusammenhänge, die wir für intervallskalierte Variablen kennen gelernt haben - die Produkt-Moment-Korrelation. Wenn wir eine Netzwerkstruktur erstellen wollen, indem das Gewicht der Kanten der Korrelation zwischen den zugehörigen Knoten entspricht, muss das Argument `default` mit `"cor"` gefüllt werden. Weiterhin muss natürlich der Datensatz mit aufgeführt werden, für den die Schätzung durchgeführt werden soll. Wir weisen dieses Netzerk dem Objekt `cor_net` zu und betrachten das `summary`. 
 
-Die Koeffizienten liegen zwischen -1 und 1 und bilden die Beziehungen zwischen den Nodes ab, nachdem nach allen anderen Informationen kontrolliert wurde.
+```{r}
+cor_net <- estimateNetwork(raw_data, default = "cor")
+summary(cor_net)
+```
+Bei der Schätzung erhalten wir zunächst eine Warning Message, die wir aber nicht weiter betrachten müssen. Im `summary` sind einige Informationen abgetraten. Über das Netzwerk wird dabei ausgesagt, dass es `r cor_net$nNode` Knoten gibt. Weiterhin wird angezeigt, dass alle Korrelationen (also die Gewichte der Kanten) nicht gleich 0 sind. Es wird das durchschnittliche Gewicht der Gewichte bestimmt. Wir erhalten zusätzliche einige Hinweise zum weiteren Vorgehen und der Zitation. Dabei konzentrieren wir uns jetzt zunächst erst einmal darauf, das Netzwerk zu zeichnen.
 
+```{r}
+plot(cor_net)
+```
+
+Das Paket zeichnet wie wir es bereits gesehen haben positive Beziehungen als blaue Striche. Je stärker das Gewicht einer Kante ist, desto dicker ist die zugehörige Linie . Die Erstellung der Struktur in der Grafik (also an welchem Ord, welcher Knoten passiert wird), wird durch einen Algorithmus berechnet. Das Ziel dabei ist es, Knoten mit starken Verbindungen möglichst eng zu platzieren, welche mit schwächeren Verbindungen weiter entfernt. Die dahinter liegende Mathematik werden wir an dieser Stelle nicht besprechen. Neben dieser Darstellung als Matrix mit Zahlen möglich (in diesem Fall also die Korrelationsmatrix). Diese wird im Objekt abgelegt und kann daher sehr simpel ausgegeben werden.
+
+```{r}
+cor_net$graph
+```
+
+Die Koeffizienten liegen wie immer bei der Korrealtion zwischen -1 und 1. Wir können uns exemplarisch noch die Beziehung der ersten beiden Variablen in der Matrix und im Plot anschauen. Das Gewicht wird als `r cor_net$graph[1,2]` ausgegeben. Im Plot findet man beide Items am Rand rechts. Sie sind durch einen dünnen (weil kleinerer Wert), blauen (weil positiver Wert) Strich verbunden.
+
+Aus einiger Arbeit mit Korrelationen in multivariaten Settings wissen wir, dass die Einzigartigkeit einer Beziehung durch einfache Korrelationen nicht abgebildet wird. Obwohl zwei Variablen in unserem Plot also verbunden sind, könnten sie eigentlich keinen eigenen Zusammenhang haben, sondern durch eine Drittvariable gesteuert sein. Deshalb betrachtet man für solche Darstellungen üblicherweise nicht Korrelationen. Stattdessen werden die Partialkorrelationen berechnet. Die Gewichte der Kanten sollen die Beziehungen zwischen den Knoten abbilden, nachdem auf alle anderen Informationen im Datensatz kontrolliert wurde.
+
+Für das Vorgehen in `R` hat diese Verwendung eines anderen Maßes erstmal keine großen Konsequenzen. In `default` muss jetzt `"pcor"` angegeben werden. Wir nennen das resultierende Objekt `pcor_net` und lassen uns wieder das `summary` ausgeben.
+
+```{r}
+pcor_net <- estimateNetwork(raw_data, default = "pcor")
+summary(pcor_net)
+```
+Der Output verändert seine Struktur dabei nicht, nur die Werte werden für die neue Berechnung angepasst. Weiterhin sind jedoch keine Gewichte von Kanten 0, wozu wir gleich nochmal kommen werden. Zunächst wollen wir uns aber das Netzwerk nochmal zeichnen lassen.
+
+```{r}
+plot(pcor_net)
+```
+
+Zunächst sehen wir, dass sich die Struktur geändert hat. Da der Algorithmus nun andere Werte verwendet, platziert er auch die Knoten an anderen Orten. 
 
 ### Regularisierung und Netzwerkauswahl
 
-Ein Problem der Netzwerkanalyse ist es, dass durch die Fehlervarianz in der Messung eigentlich alle Knoten untereinander verbunden sind. Dies führt vor allem bei komplexen Netzwerken mit vielen Knoten dazu, dass die Visualisierung des Netzwerkes unübersichtlich wird und man sich mit Kanten beschäftigt, die keine relevante Beziehung zwischen zwei Knoten darstellen. Um dies zu vermeiden, wird ein für das Netzwerk der Partialkorrelation eine Regularisierung durchgeführ.
+Ein Problem der Netzwerkanalyse ist es, dass durch die Fehlervarianz in der Messung eigentlich immer alle Knoten untereinander verbunden sind. Dies führt vor allem bei komplexen Netzwerken mit vielen Knoten dazu, dass die Visualisierung des Netzwerkes unübersichtlich wird und man sich mit Kanten beschäftigt, die keine relevante Beziehung zwischen zwei Knoten darstellen. Um dies zu vermeiden, wird  für das Netzwerk der Partialkorrelation eine Regularisierung durchgeführ.
 
 Ein regularisiertes Partialkorrelations-Netzwerk ist eine visualisierte gewichtete Netzwerkstruktur, das durch Regulations-Techniken aus dem Feld des Machine-Learnings geschätzt wird. Daraus resultiert eine sogenannte **sparse network structure** (also eine spärlich besetzte Netzwerkstruktur). Das bedeutet, dass viele der Parameter auf den Kanten exakt 0 sind. Die theoretische Reichweite der bestraften Partialkorrelationen ist dabei weiter zwischen 0 und 1.  
 
 Das aktuelle Mittel der Wahl ist die Lasso-Regulation. Diese hat wie beschrieben das Ziel, **falsche** Kanten in ihrer Anzahl zu verringern. Falsche Kanten bedeutet also, dass diese in der Population nicht existieren, aber in der Stichprobe trotzdem keine Partialkorrelationen von 0 vorliegen würden. Regularisierungsmethoden kommen zum Einsatz, da die übliche Signifikanztestung aufgrund der Vielzahl der Kanten problematisch wäre. Die Lasso-Regularisierung hat gegenüber anderen Regularisierungs-Techniken den Vorteil, dass Werte genau 0 sein können. Aufgrund der noch andauernden Entwicklung der Netzwerkanalyse für psychologische Konstrukte gibt es über die Anwendung noch Diskussionen. Jedoch ist das Verfahren mathematisch durchaus etabliert und wird großflächig eingesetzt, weshalb wir es an dieser Stelle präsentieren.
 
 
+Abschnitt mit Formeln zu Lasso bzw. glasso und der Auswahl durch EBIC
+
+
+Die Kombination der Bestrafung anhand des grafischen lasso mit der Auswahl des besten Netzwerkes durch EBIC führt zu der Benennung als `"EBICglasso` in dem Argument `default` in der bereits bekannten Funktion. Wir legen das Objekt unter `reg_net` als Netzwerk mit regularisierten Werten ab. Die Anzahl der geschätzten Werte, die anhand ihres EBICs anschließend bewertet werden, kann mit `nlambda` festgelegt werden. Weiterhin interessant ist das Argument `tuning`, in dem $$\gamma$$ als Bestrafungsparameter für Netzwerke mit vielen Edges festgelegt werden kann. Die hier gewählten Werte sind dabei die Standardabweichungen des Paketes, aber eine Variation ist (wie zum Teil auch beschrieben) durchaus situativ nötig.
+
+```{r}
+reg_net <- estimateNetwork(raw_data, default = "EBICglasso",
+                           nlambda = 100, tuning = 0.5)
+summary(reg_net)
+```
+Der Aufbau des `summary` verändert sich auch im Fall der Regularisierung nicht. Wir sehen allerdings, dass nun nicht mehr alle Gewichte der Kanten ungleich null sind. Anscheinend wurde ein Netzwerk ausgewählt, in dem manche Kanten als falsch identifiziert wurden. 
+
+
+Nochmal rein schauen in den Unterpunkt results
+
+
+Verlgeich mit einem größeren Parameter in `tuning` 
+
+```{r}
+reg_net2 <- estimateNetwork(raw_data, default = "EBICglasso",
+                           nlambda = 100, tuning = 2)
+summary(reg_net2)
+```
+Natürlich ist `tuning = 2` ein unrealitisch hoher Wert, da dieser wie empfohlen stets zwischen 0 und 0.5 liegen wird. Mathematisch macht dies jedoch keinen Unterschied und das Beispiel demonstriert seinen Zweck sehr gut: Ein höherer  Bestrafungsparameter führt dazu, dass ein Netzwerk mit weniger Gewichten unterschiedlich von 0 ausgewählt wird. Bei anderen Netzwerkkonstellationen wird dort auch ein Unterschied zwischen der Wahl von 0 oder 0.5 vorliegen.
+
 ## Zentralitätsindizes
 
 Nachdem nun ein Netzwerk für die Präsentation ausgewählt und auch gezeichnet wurde, stellt sich die Frage, welche weiteren Aussagen durch die Netzwerkanalyse durchführbar sind. In den technischen und sozialen Netzwerken wurde dafür die Zentralität der Knoten untersucht. Darin wird durch verschiedene Facetten aufgezeigt, welcher Knoten im Netzwerk am meisten Einfluss hat. Die Aktivierung dieser Knoten sollte zu einer (De-)Aktivierung anderer, verbundener Knoten im Netzwerk führen. Die Herangehensweise wurde mit kleinen Anpassungen für die Psychologischen Netzwerke übernommen. Die Anwendung steht aktuell in der Kritik aufgrund von instabiler Schätzung und der Frage der inhaltlichen Relevanz. Da diese Diskussion jedoch nicht abgeschlossen ist und die Indizes noch breitflächig zum Einsatz kommen, werden wir die wichtigen Werte auch an dieser Stelle besprechen und berechnen.
 
-Die Zentralität eines Knoten ist hoch, wenn er starke oder viele Verbindungen hat, alle anderen Knoten schnell erreichbar sind oder durch ihn viele Verbindungen zwischen anderen Knoten gehen. Im Folgenden werden die **Zentralitäts-Indices** beschrieben und berechnet, die diese Eigenschaften repräsentieren.
+Die Zentralität eines Knoten ist hoch, wenn er starke oder viele Verbindungen hat, alle anderen Knoten schnell erreichbar sind oder durch ihn viele Verbindungen zwischen anderen Knoten gehen. Im Folgenden werden die **Zentralitäts-Indices** beschrieben und berechnet, die diese Eigenschaften repräsentieren. Während `bootnet` später wieder zum Einsatz kommt, ist es für die einfache Berechnung der Indizes nicht geeignet, weshalb wir das Paket `qgraph` aktivieren müssen. Dieses ist bei der Installation von `bootnet` mitinstalliert worden.
 
-**Grad der Zentralität** *(eng: degree)*: Die Nummer von Verbindungen der betrachteten Node
+```{r}
+library(qgraph)
+centrality(graph = reg_net$graph)
+```
 
-**Stärke der Node** *(eng: strength)*: Die aufsummierte und gewichtete Stärke aller Verbindungen einer Node relativ der anderen im Netzwerk vorhandenen Nodes. Durch Kenntnis über die Stärke einer Node können weitere Informationen über die Zentralität der Node ausgesagt werden, zum Beispiel: Eine Node mit einem hohen Grad der Zentralität und einer niedrigen Stärke kann weniger zentral in einem Netzwerk sein als eine Node mit einem niedrigeren Grad der Zentralität und einer hohen Stärke.
+**Grad der Zentralität** *(eng: degree)*: Die Anzahl von Verbindungen eines Knoten zu anderen Knoten im Netzwerk. Dieser Wert ist besonders in ungewichteten Netzwerken von Interesse. Wenn Gewichte mit im Spiel sind, wird häufig die **Stärke** des Knoten *(eng: strength)* betrachtet. Die aufsummierte und gewichteten Werte aller Kanten eines Knoten zu allen anderen im Netzwerk vorhandenen Knoten. Durch Kenntnis über die Stärke einer Node können weitere Informationen über die Zentralität der Node ausgesagt werden, zum Beispiel: Eine Node mit einem hohen Grad der Zentralität und einer niedrigen Stärke kann weniger zentral in einem Netzwerk sein als eine Node mit einem niedrigeren Grad der Zentralität und einer hohen Stärke.
+
+$$\sum_{i=1}^k\frac{n_iY_i}{\sum_{i=1}^kn_i}$$
 
 **Verbundenheit** *(eng: closeness)*: Die Verbundenheit einer Node quantifiziert ihre Beziehungen im Netzwerk anhand ihrer indirekten Verbindungen mit anderen Nodes. Hohe Verbundenheit, zum Beispiel, charakterisiert im Mittel eine kurze Distanz von einer Node zu anderen Nodes. Nodes mit hoher Verbundenheit sind leicht von Veränderungen in einem beliebigen Part des Netzwerks betroffen und beeinflussen im Gegenzug leicht andere Nodes
 
 **Dazwischenheit** *(eng: betweenness)*: Die Dazwischenheit einer Node gibt Informationen über die Wichtigkeit einer Node im Rahmen der durchschnittlich zurückgelegten Weges zwischen ihr und anderen Nodes im Netzwerk. Die Node mit dem kürzesten Weg zwischen zwei anderen Nodes, also einer hohen "Dazwischenheit", hat beispielsweise besonderen Einfluss auf die Verbindung jener anderen Nodes.
 
-
-### Fixed Effects Modell: händisch
-
-Wir mitteln (gewichtet) zunächst händisch via:
-$$\sum_{i=1}^k\frac{n_iY_i}{\sum_{i=1}^kn_i}$$
-Für die $k$ Stichproben wird hier jede standardisierte Prä-Post-Differenz mit der Stichprobengröße multipliziert $n_iY_i$ und dann werden diese Werte aufsummiert (eine gewichtete Summe entsteht). Teilen wir diese Summe anschließend durch die Gesamtstichprobe $\sum_{i=1}^kn_i$ so erhalten wir einen gewichteten Mittelwert, der berücksichtigt, dass einige Stichproben größer sind und dort die geschätzte standardisierte Differenz präziser ist. Dies sieht in `R` so aus:
-
-```{r}
-print("b")
-```
 
 
 ## Fazit
