@@ -14,7 +14,7 @@ tags:
 subtitle: 'Mittelwertsunterschiede'
 summary: ''
 authors: [irmer]
-lastmod: '2022-01-10T15:21:58+02:00'
+lastmod: '2022-01-13T15:21:58+02:00'
 featured: no
 header:
   image: "/header/Klipps_Meta-Analyse_MW.jpg"
@@ -48,6 +48,26 @@ help("metafor")
 
 Wenn wir diesen Befehl ausführen, so geht in `R`-Studio ein Fenster mit der Überschrift "metafor: A Meta-Analysis Package for R" auf, in welchem die grundlegenden Funktionen erklärt werden. 
 
+
+### Effekte bestimmen
+Im Datensatz, den wir in dieser Sitzung betrachten wollen, wurden die Effektstärken (standardisierte Mittelwertsdifferenzen) bereits bestimmt. Mit Hilfe der `escalc`-Funktion hätten wir diese auch selbst erstellen können, angenommen wir hätten einen Datensatz, welcher zwei unabhängige Gruppen in einer Variable untersucht hatte. Wir nehmen mal folgende Mittelwerte, Standardabweichungen und Stichprobengrößen an: $\bar{X}_1 = 1.5, SD_1=0.7,n_1=35$ und  $\bar{X}_2 = 2.7, SD_2=1.3,n_2=27$. Wir fügen diese Daten kurz in einen `data.frame`, um dann die `escalc`-Funktion schöner darauf anwenden zu können:
+
+```{r}
+df <- data.frame("X1" = 1.5, "SD1" = 0.7, "n1" = 35,
+                 "X2" = 2.7, "SD2" = 1.3, "n2" = 27)
+df
+```
+
+Der `escalc` Funktion müssen wir zunächst sagen, welche Transformation wir wünschen `measure = "SMD"` für **S**tandardized **M**ean **D**ifference. Anschließend brauch die Funktion alle Informationen, die wir auch selbst zum bestimmen der Effektstärke brauchen: Mittelwerte (`m1i`, `m2i`), Standardabweichungen (`sd1i`, `sd2i`) und Stichprobengrößen (`n1i`, `n2i`).
+
+```{r}
+escalc(measure = "SMD", m1i = X1, m2i = X2, sd1i = SD1, sd2i = SD2,
+       n1i = n1, n2i = n2,
+       data = df)
+```
+
+Zurückgegeben wird uns ein Datensatz, der um die beiden Variablen `yi` (Standardized Mean Difference) und `vi` (Standardfehler der SMD) erweitert wurde. Hätten wir mehrere Studien übergeben, würden hier entsprechened mehrere Zeilen stehen. Zum Glück liegen die Daten schon vor, sodass wir das nicht für unsere Metaanalyse tun müssen! 
+
 ## Daten
 
 In dieser Sitzung wollen wir einen Datensatz von López-López et al. (2019), der mit dem `metafor`-Paket mitgeliefert wird, verwenden. Dieser heißt `dat.lopez2019`. Die Autorinnen und Autoren haben die Effektivität der CBT (cognitive behavioural therapy [kognitive Verhaltenstherapie]) bei Depression untersucht und diese mit verschiedenen Kontrollbedingungen und unterschiedlichen Arten der CBT verglichen. Weitere Informationen zum Datensatz erhalten Sie bspw. mit `?dat.lopez2019` (das `metafor`-Paket muss natürlich vorher geladen sein). 
@@ -68,24 +88,6 @@ Wir wollen uns zunächst nur auf die klassische "Face-to-Face" CBT konzentrieren
 F2F_CBT <- dat.lopez2019[dat.lopez2019$treatment == "F2F CBT",] # wähle nur Fälle mit F2F CBT
 ```
 
-### Effekte bestimmen
-Im betrachteten Datensatz wurden die Effektstärken (standardisierte Mittelwertsdifferenzen) bereits bestimmt. Mit Hilfe der `escalc`-Funktion hätten wir diese auch selbst erstellen können, angenommen wir hätten einen Datensatz, welcher zwei unabhängige Gruppen in einer Variable untersucht hatte. Wir nehmen mal folgende Mittelwerte, Standardabweichungen und Stichprobengrößen an: $\bar{X}_1 = 1.5, SD_1=0.7,n_1=35$ und  $\bar{X}_2 = 2.7, SD_2=1.3,n_2=27$. Wir fügen diese Daten kurz in einen `data.frame`, um dann die `escalc`-Funktion schöner darauf anwenden zu können:
-
-```{r}
-df <- data.frame("X1" = 1.5, "SD1" = 0.7, "n1" = 35,
-                 "X2" = 2.7, "SD2" = 1.3, "n2" = 27)
-df
-```
-
-Der `escalc` Funktion müssen wir zunächst sagen, welche Transformation wir wünschen `measure = "SMD"` für **S**tandardized **M**ean **D**ifference. Anschließend brauch die Funktion alle Informationen, die wir auch selbst zum bestimmen der Effektstärke brauchen: Mittelwerte (`m1i`, `m2i`), Standardabweichungen (`sd1i`, `sd2i`) und Stichprobengrößen (`n1i`, `n2i`).
-
-```{r}
-escalc(measure = "SMD", m1i = X1, m2i = X2, sd1i = SD1, sd2i = SD2,
-       n1i = n1, n2i = n2,
-       data = df)
-```
-
-Zurückgegeben wird uns ein Datensatz, der um die beiden Variablen `yi` (Standardized Mean Difference) und `vi` (Standardfehler der SMD) erweitert wurde. Hätten wir mehrere Studien übergeben, würden hier entsprechened mehrere Zeilen stehen. Zum Glück liegen die Daten schon vor, sodass wir das nicht für unsere Metaanalyse tun müssen!
 
 ### Fragestellungen
 

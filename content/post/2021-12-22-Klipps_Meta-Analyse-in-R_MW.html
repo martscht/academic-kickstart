@@ -14,7 +14,7 @@ tags:
 subtitle: 'Mittelwertsunterschiede'
 summary: ''
 authors: [irmer]
-lastmod: '2022-01-10T15:21:58+02:00'
+lastmod: '2022-01-13T15:21:58+02:00'
 featured: no
 header:
   image: "/header/Klipps_Meta-Analyse_MW.jpg"
@@ -37,6 +37,22 @@ projects: []
 <p>Wie auch beim Laden des Paketes schon erwähnt wird (<code>For an overview and introduction to the package please type: help(metafor)</code>), können wir uns mit der sehr nützlichen <code>R</code>-internen Hilfe-Funktion einen Überblick über das Paket verschaffen.</p>
 <pre class="r"><code>help(&quot;metafor&quot;)</code></pre>
 <p>Wenn wir diesen Befehl ausführen, so geht in <code>R</code>-Studio ein Fenster mit der Überschrift “metafor: A Meta-Analysis Package for R” auf, in welchem die grundlegenden Funktionen erklärt werden.</p>
+<div id="effekte-bestimmen" class="section level3">
+<h3>Effekte bestimmen</h3>
+<p>Im Datensatz, den wir in dieser Sitzung betrachten wollen, wurden die Effektstärken (standardisierte Mittelwertsdifferenzen) bereits bestimmt. Mit Hilfe der <code>escalc</code>-Funktion hätten wir diese auch selbst erstellen können, angenommen wir hätten einen Datensatz, welcher zwei unabhängige Gruppen in einer Variable untersucht hatte. Wir nehmen mal folgende Mittelwerte, Standardabweichungen und Stichprobengrößen an: <span class="math inline">\(\bar{X}_1 = 1.5, SD_1=0.7,n_1=35\)</span> und <span class="math inline">\(\bar{X}_2 = 2.7, SD_2=1.3,n_2=27\)</span>. Wir fügen diese Daten kurz in einen <code>data.frame</code>, um dann die <code>escalc</code>-Funktion schöner darauf anwenden zu können:</p>
+<pre class="r"><code>df &lt;- data.frame(&quot;X1&quot; = 1.5, &quot;SD1&quot; = 0.7, &quot;n1&quot; = 35,
+                 &quot;X2&quot; = 2.7, &quot;SD2&quot; = 1.3, &quot;n2&quot; = 27)
+df</code></pre>
+<pre><code>##    X1 SD1 n1  X2 SD2 n2
+## 1 1.5 0.7 35 2.7 1.3 27</code></pre>
+<p>Der <code>escalc</code> Funktion müssen wir zunächst sagen, welche Transformation wir wünschen <code>measure = "SMD"</code> für <strong>S</strong>tandardized <strong>M</strong>ean <strong>D</strong>ifference. Anschließend brauch die Funktion alle Informationen, die wir auch selbst zum bestimmen der Effektstärke brauchen: Mittelwerte (<code>m1i</code>, <code>m2i</code>), Standardabweichungen (<code>sd1i</code>, <code>sd2i</code>) und Stichprobengrößen (<code>n1i</code>, <code>n2i</code>).</p>
+<pre class="r"><code>escalc(measure = &quot;SMD&quot;, m1i = X1, m2i = X2, sd1i = SD1, sd2i = SD2,
+       n1i = n1, n2i = n2,
+       data = df)</code></pre>
+<pre><code>##    X1 SD1 n1  X2 SD2 n2      yi     vi 
+## 1 1.5 0.7 35 2.7 1.3 27 -1.1790 0.0768</code></pre>
+<p>Zurückgegeben wird uns ein Datensatz, der um die beiden Variablen <code>yi</code> (Standardized Mean Difference) und <code>vi</code> (Standardfehler der SMD) erweitert wurde. Hätten wir mehrere Studien übergeben, würden hier entsprechened mehrere Zeilen stehen. Zum Glück liegen die Daten schon vor, sodass wir das nicht für unsere Metaanalyse tun müssen!</p>
+</div>
 </div>
 <div id="daten" class="section level2">
 <h2>Daten</h2>
@@ -251,22 +267,6 @@ projects: []
 <p>In <code>study</code> steht die verwendete Studie, <code>treatment</code> zeigt an, welche Art der Therapie oder Kontrollgruppe in der jeweiligen Studie verwendet wurde (“F2F CBT” = “Angesicht zu Angesicht” CBT, “Multimedia CBT” = Online-CBT, “Placebo” = Placebo-Kontrollgruppe, “Wait list” = Wartelistenkontrollgruppe, “Hybrid CBT” = Mischung aus F2F und Multimedia, “No treatment” = klassische Kontrollgruppw, “TAU” = Treatment as Usual [Standardtherapie]), <code>scale</code> gibt an, wie die Depression erfasst wurde, <code>n</code> ist die Stichprobengröße der Studie, <code>diff</code> ist die standardisierte Differenz (Cohen’s <span class="math inline">\(d\)</span>) zwischen vor und nach der Intervention, <code>se</code> ist der Standardfehler von <code>diff</code>, <code>group</code> [Dummy-Variable] zeigt an, ob es sich um eine Einzel (0) oder Gruppentherapie (1) gehandelt hat, <code>tailored</code> gibt an, ob die Therapie auf den jeweiligen Patienten/die jeweilige Patientin zugeschnitten wurde, <code>sessions</code> ist die Anzahl an Therapiesitzungen, <code>length</code> ist die durchschnittliche Sitzungslänge, <code>intensity</code> ist das Produkt aus <code>session</code> und <code>length</code>. Außerdem werden noch weitere mögliche Moderatorvariablen aufgeführt, die sich jeweils auf die Therapie beziehen. Für mehr Informationen siehe bspw. <code>?dat.lopez2019</code>. Wir schauen uns die Moderatoren genauer an, wenn es um die Moderatoranalysen im Rahmen von Metaanalysen geht.</p>
 <p>Wir wollen uns zunächst nur auf die klassische “Face-to-Face” CBT konzentrieren und kürzen daher den Datensatz. Wir kopieren den Originaldatensatz in <code>F2F_CBT</code>, damit <code>dat.lopez2019</code> erhalten bleibt.</p>
 <pre class="r"><code>F2F_CBT &lt;- dat.lopez2019[dat.lopez2019$treatment == &quot;F2F CBT&quot;,] # wähle nur Fälle mit F2F CBT</code></pre>
-<div id="effekte-bestimmen" class="section level3">
-<h3>Effekte bestimmen</h3>
-<p>Im betrachteten Datensatz wurden die Effektstärken (standardisierte Mittelwertsdifferenzen) bereits bestimmt. Mit Hilfe der <code>escalc</code>-Funktion hätten wir diese auch selbst erstellen können, angenommen wir hätten einen Datensatz, welcher zwei unabhängige Gruppen in einer Variable untersucht hatte. Wir nehmen mal folgende Mittelwerte, Standardabweichungen und Stichprobengrößen an: <span class="math inline">\(\bar{X}_1 = 1.5, SD_1=0.7,n_1=35\)</span> und <span class="math inline">\(\bar{X}_2 = 2.7, SD_2=1.3,n_2=27\)</span>. Wir fügen diese Daten kurz in einen <code>data.frame</code>, um dann die <code>escalc</code>-Funktion schöner darauf anwenden zu können:</p>
-<pre class="r"><code>df &lt;- data.frame(&quot;X1&quot; = 1.5, &quot;SD1&quot; = 0.7, &quot;n1&quot; = 35,
-                 &quot;X2&quot; = 2.7, &quot;SD2&quot; = 1.3, &quot;n2&quot; = 27)
-df</code></pre>
-<pre><code>##    X1 SD1 n1  X2 SD2 n2
-## 1 1.5 0.7 35 2.7 1.3 27</code></pre>
-<p>Der <code>escalc</code> Funktion müssen wir zunächst sagen, welche Transformation wir wünschen <code>measure = "SMD"</code> für <strong>S</strong>tandardized <strong>M</strong>ean <strong>D</strong>ifference. Anschließend brauch die Funktion alle Informationen, die wir auch selbst zum bestimmen der Effektstärke brauchen: Mittelwerte (<code>m1i</code>, <code>m2i</code>), Standardabweichungen (<code>sd1i</code>, <code>sd2i</code>) und Stichprobengrößen (<code>n1i</code>, <code>n2i</code>).</p>
-<pre class="r"><code>escalc(measure = &quot;SMD&quot;, m1i = X1, m2i = X2, sd1i = SD1, sd2i = SD2,
-       n1i = n1, n2i = n2,
-       data = df)</code></pre>
-<pre><code>##    X1 SD1 n1  X2 SD2 n2      yi     vi 
-## 1 1.5 0.7 35 2.7 1.3 27 -1.1790 0.0768</code></pre>
-<p>Zurückgegeben wird uns ein Datensatz, der um die beiden Variablen <code>yi</code> (Standardized Mean Difference) und <code>vi</code> (Standardfehler der SMD) erweitert wurde. Hätten wir mehrere Studien übergeben, würden hier entsprechened mehrere Zeilen stehen. Zum Glück liegen die Daten schon vor, sodass wir das nicht für unsere Metaanalyse tun müssen!</p>
-</div>
 <div id="fragestellungen" class="section level3">
 <h3>Fragestellungen</h3>
 <p>Insgesamt wollen wir nun untersuchen, ob</p>
