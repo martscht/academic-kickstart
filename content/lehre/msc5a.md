@@ -78,7 +78,7 @@ Das Modul KliPPsMSc5 ist in zwei Teile untergliedert. Im ersten Semester besuche
 |  II | 3 | **Logistische Regressionsanalyse** | [Inhalte](/post/logistische-regression-klipps)  | [Quizdaten](/post/msc5a-daten/#Block2) |
 | III | 1 | **Hierarchische Regression** | [Inhalte](/post/hlm)  | [Quizdaten](/post/msc5a-daten/#Block3) |
 | IV  | 1 | **Meta-Analyse: Mittelwertsdifferenzen** | [Inhalte](/post/metaanalysen-MW)  | [Quizdaten](/post/under-construction) |
-| IV  | 2 | **Meta-Analyse: Korrelationen** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
+| IV  | 2 | **Meta-Analyse: Korrelationen** | [Inhalte](/post/metaanalysen-Cor)  | [Quizdaten](/post/under-construction) |
 | Va | 1 | **Kausalschätzer** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
 | Vb | 1 | **Netzwerkanalyse** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
 | *Zusatz* | -- | -- | --- |
