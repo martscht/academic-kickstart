@@ -160,7 +160,7 @@ Ein regularisiertes Partialkorrelations-Netzwerk ist eine visualisierte gewichte
 Das aktuelle Mittel der Wahl ist die Lasso-Regulation. Diese hat wie beschrieben das Ziel, **falsche** Kanten in ihrer Anzahl zu verringern. Falsche Kanten bedeutet also, dass diese in der Population nicht existieren, aber in der Stichprobe trotzdem keine Partialkorrelationen von 0 vorliegen würden. Regularisierungsmethoden kommen zum Einsatz, da die übliche Signifikanztestung aufgrund der Vielzahl der Kanten problematisch wäre. Die Lasso-Regularisierung hat gegenüber anderen Regularisierungs-Techniken den Vorteil, dass Werte genau 0 sein können. Aufgrund der noch andauernden Entwicklung der Netzwerkanalyse für psychologische Konstrukte gibt es über die Anwendung noch Diskussionen. Jedoch ist das Verfahren mathematisch durchaus etabliert und wird großflächig eingesetzt, weshalb wir es an dieser Stelle präsentieren.
 
 
-Lasso kommt ursprünglich aus der multiplen Regression / Selektion von Prädiktoren. Überleitung in die Analyse von Grafen (Netzwerke sind eigentlich auch nur Graphen) durch Friedman et al., 2008 - graphical lasso (glasso)
+Lasso kommt ursprünglich aus der multiplen Regression / Selektion von Prädiktoren. Überleitung in die Analyse von Grafen (Netzwerke sind eigentlich auch nur Graphen) durch Friedman et al. (2008) - **graphical lasso** (glasso)
 
 $K$: geschätztes Netzwerk
 $S$: Matrixstruktur des Samples
@@ -206,7 +206,7 @@ reg_net$results$lambda
 
 Der größte Bestrafungsparameter ist der letzte Eintrag in der Matrix. Für diesen sollten alle Gewichte der Kanten auf 0 herunter regularisiert worden sein.
 
-Die Strukturen aller 100 bestraften Netzwerke sind unter `reg_net$results$results$wi`. Beispielsweise ist das komplett leere Netzwerke (also mit dem größten Bestrafungsparameter $lambda$) als 100. Objekt abgelegt.
+Die Strukturen aller 100 bestraften Netzwerke sind unter `reg_net$results$results$wi`. Beispielsweise ist das komplett leere Netzwerke (also mit dem größten Bestrafungsparameter $\lambda$) als 100. Objekt abgelegt.
 
 ```{r}
 reg_net$results$results$wi[,,100]
@@ -237,21 +237,41 @@ ZEICHNEN
 
 Nachdem durch die eben durchgeführte Analyse ein Netzwerk für die Präsentation ausgewählt und auch gezeichnet wurde, stellt sich die Frage, welche weiteren Aussagen durch die Netzwerkanalyse durchführbar sind. In den technischen und sozialen Netzwerken wurde dafür die Zentralität der Knoten untersucht. Darin wird durch verschiedene Facetten aufgezeigt, welcher Knoten im Netzwerk am meisten Einfluss hat. Die Aktivierung dieser Knoten sollte zu einer (De-)Aktivierung anderer, verbundener Knoten im Netzwerk führen. Die Herangehensweise wurde mit kleinen Anpassungen für die Psychologischen Netzwerke übernommen. Die Anwendung steht aktuell in der Kritik aufgrund von instabiler Schätzung und der Frage der inhaltlichen Relevanz. Da diese Diskussion jedoch nicht abgeschlossen ist und die Indizes noch breitflächig zum Einsatz kommen, werden wir die wichtigen Werte auch an dieser Stelle besprechen und berechnen.
 
-Die Zentralität eines Knoten ist hoch, wenn er starke oder viele Verbindungen hat, alle anderen Knoten schnell erreichbar sind oder durch ihn viele Verbindungen zwischen anderen Knoten gehen. Im Folgenden werden die **Zentralitäts-Indices** beschrieben und berechnet, die diese Eigenschaften repräsentieren. Während `bootnet` später wieder zum Einsatz kommt, ist es für die einfache Berechnung der Indizes nicht geeignet, weshalb wir das Paket `qgraph` aktivieren müssen. Dieses ist bei der Installation von `bootnet` mitinstalliert worden.
+Die Zentralität eines Knoten ist hoch, wenn er starke oder viele Verbindungen hat, alle anderen Knoten schnell erreichbar sind oder durch ihn viele Verbindungen zwischen anderen Knoten gehen. Im Folgenden werden die **Zentralitäts-Indices** beschrieben und berechnet, die diese Eigenschaften repräsentieren. Während `bootnet` später wieder zum Einsatz kommt, ist es für die einfache Berechnung der Indizes nicht geeignet, weshalb wir das Paket `qgraph` aktivieren müssen. Dieses ist bei der Installation von `bootnet` mitinstalliert worden. 
 
 ```{r}
 library(qgraph)
-centrality(graph = reg_net$graph)
 ```
 
-**Grad der Zentralität** *(eng: degree)*: Die Anzahl von Verbindungen eines Knoten zu anderen Knoten im Netzwerk. Dieser Wert ist besonders in ungewichteten Netzwerken von Interesse. Wenn Gewichte mit im Spiel sind, wird häufig die **Stärke** des Knoten *(eng: strength)* betrachtet. Die aufsummierte und gewichteten Werte aller Kanten eines Knoten zu allen anderen im Netzwerk vorhandenen Knoten. Durch Kenntnis über die Stärke einer Node können weitere Informationen über die Zentralität der Node ausgesagt werden, zum Beispiel: Eine Node mit einem hohen Grad der Zentralität und einer niedrigen Stärke kann weniger zentral in einem Netzwerk sein als eine Node mit einem niedrigeren Grad der Zentralität und einer hohen Stärke.
+Die Anzahl von Verbindungen eines Knoten zu anderen Knoten im Netzwerk wird üblicherweise als **Grad der Zentralität** *(eng: degree)* bezeichnet. Dieser Wert ist besonders in ungewichteten Netzwerken von Interesse. Wenn Gewichte mit im Spiel sind, wird häufig die **Stärke** des Knoten *(eng: strength)* betrachtet. Diese wird durch die aufsummierten und gewichteten Werte aller Kanten eines Knoten zu allen anderen im Netzwerk vorhandenen Knoten dargestellt. 
+
+Bezeichnung nicht komplett konsistent
+
+Die folgenden Zentralitäts-Indizes werden über die Funktion `centrality` gemeinsam berechnet. Als `graph` Argument braucht man die Struktur des Graphen, die wie besprochen in `reg_net$graph` vorhanden ist.  Wir legen die Resultate erstmal in ein Objekt `centrality_indices` an und konzentrieren und auf den Unterpunkt `OutDegree`. 
+
+```{r}
+centrality_indices <- centrality(graph = reg_net$graph)
+centrality_indices$OutDegree
+```
+
+Die Unterpunkte `InDegree` und `OutDegree` im Objekt `centrality_indices` sind gleich, da es sich um ein ungerichtetes Netzwerk handelt.
+
+ Durch Kenntnis über die Stärke einer Node können weitere Informationen über die Zentralität der Node ausgesagt werden, zum Beispiel: Eine Node mit einem hohen Grad der Zentralität und einer niedrigen Stärke kann weniger zentral in einem Netzwerk sein als eine Node mit einem niedrigeren Grad der Zentralität und einer hohen Stärke.
 
 
 
-**Verbundenheit** *(eng: closeness)*: Die Verbundenheit einer Node quantifiziert ihre Beziehungen im Netzwerk anhand ihrer indirekten Verbindungen mit anderen Nodes. Hohe Verbundenheit, zum Beispiel, charakterisiert im Mittel eine kurze Distanz von einer Node zu anderen Nodes. Nodes mit hoher Verbundenheit sind leicht von Veränderungen in einem beliebigen Part des Netzwerks betroffen und beeinflussen im Gegenzug leicht andere Nodes
+Die **Verbundenheit** *(eng: closeness)* eines Knote quantifiziert ihre Beziehungen im Netzwerk anhand ihrer indirekten Verbindungen mit anderen Knoten. Hohe Verbundenheit charakterisiert im Mittel eine kurze Distanz von einem Knoten zu allen anderen Knoten. Knoten mit hoher Verbundenheit sind leicht von Veränderungen in einem beliebigen Part des Netzwerks betroffen und beeinflussen im Gegenzug leicht andere Knoten.
 
-**Dazwischenheit** *(eng: betweenness)*: Die Dazwischenheit einer Node gibt Informationen über die Wichtigkeit einer Node im Rahmen der durchschnittlich zurückgelegten Weges zwischen ihr und anderen Nodes im Netzwerk. Die Node mit dem kürzesten Weg zwischen zwei anderen Nodes, also einer hohen "Dazwischenheit", hat beispielsweise besonderen Einfluss auf die Verbindung jener anderen Nodes.
+```{r}
+centrality_indices$Closeness
+```
 
+
+Die **Dazwischenheit** *(eng: betweenness)* eines Knoten gibt Informationen über die Wichtigkeit einer Node im Rahmen der durchschnittlich zurückgelegten Weges zwischen ihr und anderen Nodes im Netzwerk. Die Node mit dem kürzesten Weg zwischen zwei anderen Nodes, also einer hohen "Dazwischenheit", hat beispielsweise besonderen Einfluss auf die Verbindung jener anderen Nodes.
+
+```{r}
+centrality_indices$Betweenness
+```
 
 
 ## Fazit
