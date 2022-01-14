@@ -133,9 +133,14 @@ Das Paket zeichnet wie wir es bereits gesehen haben positive Beziehungen als bla
 cor_net$graph
 ```
 
-Die Koeffizienten liegen wie immer bei der Korrealtion zwischen -1 und 1. Wir können uns exemplarisch noch die Beziehung der ersten beiden Variablen in der Matrix und im Plot anschauen. Das Gewicht wird als `r cor_net$graph[1,2]` ausgegeben. Im Plot findet man beide Items am Rand rechts. Sie sind durch einen dünnen (weil kleinerer Wert), blauen (weil positiver Wert) Strich verbunden.
+Die Koeffizienten liegen wie immer bei der Korrelation zwischen -1 und 1. Wir können uns exemplarisch noch die Beziehung der ersten beiden Variablen in der Matrix und im Plot anschauen. Das Gewicht wird als `r cor_net$graph[1,2]` ausgegeben. Im Plot findet man beide Items am Rand rechts. Sie sind durch einen dünnen (weil kleinerer Wert), blauen (weil positiver Wert) Strich verbunden.
 
-Aus einiger Arbeit mit Korrelationen in multivariaten Settings wissen wir, dass die Einzigartigkeit einer Beziehung durch einfache Korrelationen nicht abgebildet wird. Obwohl zwei Variablen in unserem Plot also verbunden sind, könnten sie eigentlich keinen eigenen Zusammenhang haben, sondern durch eine Drittvariable gesteuert sein. Deshalb betrachtet man für solche Darstellungen üblicherweise nicht Korrelationen. Stattdessen werden die Partialkorrelationen berechnet. Die Gewichte der Kanten sollen die Beziehungen zwischen den Knoten abbilden, nachdem auf alle anderen Informationen im Datensatz kontrolliert wurde.
+Aus einiger Arbeit mit Korrelationen in multivariaten Settings wissen wir, dass die Einzigartigkeit einer Beziehung durch einfache Korrelationen nicht abgebildet wird. Obwohl zwei Variablen in unserem Plot also verbunden sind, könnten sie eigentlich keinen eigenen Zusammenhang haben, sondern durch eine Drittvariable gesteuert sein. Deshalb betrachtet man für solche Darstellungen üblicherweise nicht Korrelationen. Stattdessen werden die Partialkorrelationen berechnet. Die Gewichte der Kanten sollen die Beziehungen zwischen den Knoten abbilden, nachdem auf alle anderen Informationen im Datensatz kontrolliert wurde. Im Bachelor haben wir Formeln für das herauspartialisieren einer Variable aus der Beziehung für die Berechnung der Partialkorrelation kennen gelernt. Dies würde viel rechnerischen Aufwand bedeuten. Zum Glück können Partialkorrelationen auch aus der inversen der Kovarianzmatrix  berechnet werden. 
+
+$$ \Theta = \Sigma^{-1} $$
+$\Sigma$ bezeichnet die Kovarianzmatrix, während $\Theta$ die Inverse dieser symbolosiert. Die Berechnung der Parialkorrelation $\rho$ zweier Variablen $j$ und $p$ anhand der Einträge aus $\Theta$ folgt dann folgender Formel:
+
+$$ \rho(y_py_j) = -\frac{\Theta_{y_py_j}}{\sqrt{\Theta_{y_piy_j}}\sqrt{\Theta_{y_py_j}}}$$
 
 Für das Vorgehen in `R` hat diese Verwendung eines anderen Maßes erstmal keine großen Konsequenzen. In `default` muss jetzt `"pcor"` angegeben werden. Wir nennen das resultierende Objekt `pcor_net` und lassen uns wieder das `summary` ausgeben.
 
@@ -153,36 +158,26 @@ Zunächst sehen wir, dass sich die Struktur geändert hat. Da der Algorithmus nu
 
 ### Regularisierung und Netzwerkauswahl
 
-Ein Problem der Netzwerkanalyse ist es, dass durch die Fehlervarianz in der Messung eigentlich immer alle Knoten untereinander verbunden sind. Dies führt vor allem bei komplexen Netzwerken mit vielen Knoten dazu, dass die Visualisierung des Netzwerkes unübersichtlich wird und man sich mit Kanten beschäftigt, die keine relevante Beziehung zwischen zwei Knoten darstellen. Um dies zu vermeiden, wird  für das Netzwerk der Partialkorrelation eine Regularisierung durchgeführ.
+Ein Problem der Netzwerkanalyse ist es, dass durch die Fehlervarianz in der Messung eigentlich immer alle Knoten untereinander verbunden sind. Dies führt vor allem bei komplexen Netzwerken mit vielen Knoten dazu, dass die Visualisierung des Netzwerkes unübersichtlich wird und man sich mit Kanten beschäftigt, die keine relevante Beziehung zwischen zwei Knoten darstellen. Um dies zu vermeiden, wird  für das Netzwerk der Partialkorrelation eine Regularisierung durchgeführt.
 
 Ein regularisiertes Partialkorrelations-Netzwerk ist eine visualisierte gewichtete Netzwerkstruktur, das durch Regulations-Techniken aus dem Feld des Machine-Learnings geschätzt wird. Daraus resultiert eine sogenannte **sparse network structure** (also eine spärlich besetzte Netzwerkstruktur). Das bedeutet, dass viele der Parameter auf den Kanten exakt 0 sind. Die theoretische Reichweite der bestraften Partialkorrelationen ist dabei weiter zwischen 0 und 1.  
 
-Das aktuelle Mittel der Wahl ist die Lasso-Regulation. Diese hat wie beschrieben das Ziel, **falsche** Kanten in ihrer Anzahl zu verringern. Falsche Kanten bedeutet also, dass diese in der Population nicht existieren, aber in der Stichprobe trotzdem keine Partialkorrelationen von 0 vorliegen würden. Regularisierungsmethoden kommen zum Einsatz, da die übliche Signifikanztestung aufgrund der Vielzahl der Kanten problematisch wäre. Die Lasso-Regularisierung hat gegenüber anderen Regularisierungs-Techniken den Vorteil, dass Werte genau 0 sein können. Aufgrund der noch andauernden Entwicklung der Netzwerkanalyse für psychologische Konstrukte gibt es über die Anwendung noch Diskussionen. Jedoch ist das Verfahren mathematisch durchaus etabliert und wird großflächig eingesetzt, weshalb wir es an dieser Stelle präsentieren.
+Das aktuelle Mittel der Wahl ist die **Lasso-Regulation**. Diese hat wie beschrieben das Ziel, **falsche** Kanten in ihrer Anzahl zu verringern. Falsche Kanten bedeutet also, dass diese in der Population nicht existieren, aber in der Stichprobe trotzdem keine Partialkorrelationen von 0 vorliegen würden. Regularisierungsmethoden kommen zum Einsatz, da die übliche Signifikanztestung aufgrund der Vielzahl der Kanten problematisch wäre. Die Lasso-Regularisierung hat gegenüber anderen Regularisierungs-Techniken den Vorteil, dass Werte genau 0 sein können. Aufgrund der noch andauernden Entwicklung der Netzwerkanalyse für psychologische Konstrukte gibt es über die Anwendung noch Diskussionen. Jedoch ist das Verfahren mathematisch durchaus etabliert und wird großflächig eingesetzt, weshalb wir es an dieser Stelle präsentieren.
 
+Lasso kommt ursprünglich aus der multiplen Regression und wurde zur Selektion von Prädiktoren genutzt. Friedman et al. (2008) haben eine Überleitung in die Analyse von Grapfen (Netzwerke sind eigentlich auch nur Graphen) gespannt - daher kommt auch die Bezeichnung als **graphical lasso** (**glasso**). Obwohl es um Werte von 0 in der Partialkorrelationsmatrix geht, wird mathematisch die Bestrafung und Schätzung in der inversen Kovarianzmatrix $\Theta$. Wenn dort ein Eintrag 0 ist, folgt daraus nach der bereits dargestellten  Form der Berechnung der Partialkorrelation aber auch, dass diese den Wert 0 annimmt. Für die Schätzung der regularisierten inversen Kovarianzmatrix wird die folgende Gleichung maximiert.
 
-Lasso kommt ursprünglich aus der multiplen Regression / Selektion von Prädiktoren. Überleitung in die Analyse von Grafen (Netzwerke sind eigentlich auch nur Graphen) durch Friedman et al. (2008) - **graphical lasso** (glasso)
+$$\log \det(\Theta) - trace(S\Theta) - \lambda \|\Theta\|_1$$
+Dabei steht $S$ für die empirisch gefundene Kovarianzmatrix. $\|\Theta\|_1$ bezeichnet die absolute Summe aller Einträge in $\Theta$. Da der Maximierungsprozess unter anderem duale Räumen verwendet, werden wir uns damit nicht näher befassen. Anhand der Gleichung sehen wir aber, dass hohe Werte in der inversen Matrix einen niedrigeren Gesamtwert ergeben, weshalb diese runter regularisiert werden. Weiterhin sehen wir, dass das Ergebnis der Maximierung abhängig von der Wahl eines $\lambda$-Wertes, den man auch als Bestrafungsparameters bezeichnet. Für eine gute Auwahl wird die Schätzung standardmäßig mit verschiedenen Bestrafungsparametern durchgeführt. Üblich sind dabei 100 $\lambda$-Werte. Als obere Grenze $\lambda_{max}$ wird der Wert gewählt, der alle Einträge auf 0 regularisieren würde. Bis zu einer gewählten unteren Grenze (meist $\lambda_{max} \cdot 0.01 $) werden die andere Werte in einer logarithmischen Verteilung festgelegt.
 
-$K$: geschätztes Netzwerk
-$S$: Matrixstruktur des Samples
-
-
-$$\log det(K) - trace(SK)  -\lambda \sum_{i,j}|k_{ij}|$$
-
-Schätzung mit verschiedenen Bestrafungsparametern
-meist 100 $\lambda$ in logarithmischer Verteilung
-
-Auswahl der besten Schätzung mit Minimierung des Informationskriteriums EBIC (Foygel & Drton, 2010)
-
-Abschnitt mit Formeln zu Lasso bzw. glasso und der Auswahl durch EBIC
-
+Nachdem 100 verschiedene inverse Kovarianzmatrizen geschätzt wurden, muss noch eine Auswahl der besten Werte geschehen. Üblicherweise wird dabei die Minimierung des Informationskriteriums **EBIC** nach Foygel und Drton (2010) genutzt.
 
 $$ EBIC = -2LL + E \cdot \log(n) + 4 \cdot \gamma \cdot E \cdot \log(p) $$
-    
- 
- $E$: Anzahl der Elemente der Matrix, die nichtt null sind
+$p$ Größe des Netzwerkes - also Zeilen und auch Spaltenanzahl der Matrix
+$n$ Größe der Stichprobe   
+$E$: Anzahl der Elemente der Matrix, die nicht null sind
  $\gamma$: Hyperparameter der Auswahl - üblicherweise auf 0.5 für moderate Bestrafung größerer Modell 0 wäre explorativer
 
-Nachdem die beiden wichtigen Schritte (Regularisierung und Auswahl) nun theoretisch dargestellt wurden, können wir uns mit der praktischen Umsetzung befassen. `bootnet` bietet natürlich eine Möglichkeit, beide Schritte in einem durchzuführen. Die Kombination der Bestrafung anhand des grafischen lasso mit der Auswahl des besten Netzwerkes durch EBIC führt zu der Benennung als `"EBICglasso` in dem Argument `default` in der bereits bekannten Funktion. Wir legen das Objekt unter `reg_net` als Netzwerk mit regularisierten Werten ab. Die Anzahl der geschätzten Werte, die anhand ihres EBICs anschließend bewertet werden, kann mit `nlambda` festgelegt werden. Weiterhin interessant ist das Argument `tuning`, in dem $\gamma$ als Bestrafungsparameter für Netzwerke mit vielen Edges festgelegt werden kann. Die hier gewählten Werte sind dabei die Standardeinstellungen des Paketes, aber eine Variation ist (wie zum Teil auch beschrieben) durchaus situativ nötig.
+Nachdem die beiden wichtigen Schritte (Regularisierung und Auswahl) nun theoretisch dargestellt wurden, können wir uns mit der praktischen Umsetzung befassen. `bootnet` bietet natürlich eine Möglichkeit, beide Schritte in einem durchzuführen. Die Kombination der Bestrafung anhand des grafischen Lasso mit der Auswahl des besten Netzwerkes durch EBIC führt zu der Benennung als `"EBICglasso` in dem Argument `default` in der bereits bekannten Funktion. Wir legen das Objekt unter `reg_net` als Netzwerk mit regularisierten Werten ab. Die Anzahl der geschätzten Werte, die anhand ihres EBICs anschließend bewertet werden, kann mit `nlambda` festgelegt werden. Weiterhin interessant ist das Argument `tuning`, in dem $\gamma$ als Bestrafungsparameter für Netzwerke mit vielen Edges festgelegt werden kann. Die hier gewählten Werte sind dabei die Standardeinstellungen des Paketes, aber eine Variation ist (wie zum Teil auch beschrieben) durchaus situativ nötig.
 
 ```{r}
 reg_net <- estimateNetwork(raw_data, default = "EBICglasso",
@@ -206,7 +201,7 @@ reg_net$results$lambda
 
 Der größte Bestrafungsparameter ist der letzte Eintrag in der Matrix. Für diesen sollten alle Gewichte der Kanten auf 0 herunter regularisiert worden sein.
 
-Die Strukturen aller 100 bestraften Netzwerke sind unter `reg_net$results$results$wi`. Beispielsweise ist das komplett leere Netzwerke (also mit dem größten Bestrafungsparameter $\lambda$) als 100. Objekt abgelegt.
+Die Werte aller 100 bestraften inversen Kovarianzmatrizen sind unter `reg_net$results$results$wi`. Beispielsweise ist das komplett leere Netzwerke (also mit dem größten Bestrafungsparameter $\lambda$) als 100. Objekt abgelegt.
 
 ```{r}
 reg_net$results$results$wi[,,100]
@@ -218,7 +213,7 @@ Für jede dieser Strukturen hat die Funktion dann automatisch den EBIC mitbestim
 reg_net$results$ebic
 ```
 
-Der niedrigste dieser Werte hat für die Funktion den Ausschlag gegeben, welche Matrix als Struktur für das optimale Netzwerk ausgewählt wurde.
+Der niedrigste dieser Werte hat für die Funktion den Ausschlag gegeben, welche Matrix als Struktur für das optimale Netzwerk ausgewählt wurde. Das Paket nutzt also genau das vorgehen, dass zu Beginn dieses Abschnitts theoretisch beschrieben wurde. 
 
 Zur Veranschaulichung des Einfluss von $\gamma$ ziehen wir hier nochmal einen Verlgeich mit einem größeren Parameter in `tuning` von 2. 
 
@@ -230,7 +225,10 @@ summary(reg_net2)
 
 Das gewählte Netzwerk hätte jetzt noch 48 Kanten, die ein Gewicht ungleich 0 aufweisen würden. Natürlich ist `tuning = 2` ein unrealitisch hoher Wert, da dieser wie empfohlen stets zwischen 0 und 0.5 liegen sollte. Mathematisch macht dies jedoch keinen Unterschied und das Beispiel demonstriert seinen Zweck sehr gut: Ein höherer  Bestrafungsparameter führt dazu, dass ein Netzwerk mit weniger Gewichten unterschiedlich von 0 ausgewählt wird. Bei anderen Netzwerkkonstellationen wird dort auch ein Unterschied zwischen der Wahl von 0 oder 0.5 vorliegen.
 
-ZEICHNEN
+Zum Abschluss dieses Abschnitts wollen wir natürlich das geschätzte Netzwerk auch nochmal zeichnen
+```{r}
+plot(reg_net)
+```
 
 
 ## Zentralitätsindizes
@@ -282,13 +280,13 @@ Die Netzwerkanalyse für psychologisch Konstrukte ist ein sich noch entwickelnde
 
 ## Literatur
 
-[Döring, N., & Bortz, J. (2016)](https://hds.hebis.de/ubffm/Record/HEB36808809X). Meta-Analyse. In _Forschungsmethoden und Evaluation in den Sozial- und Humanwissenschaften_ (pp. 893-943). Springer, Berlin, Heidelberg.
+[Epskamp, S., & Fried, E. I. (2018).](https://hds.hebis.de/ubffm/EBSCO/Record?id=edsarx.1607.01367|edsarx) A tutorial on regularized partial correlation networks. _Psychological Methods, 23_(4), 617-634.  [https://doi.org/10.1037/met0000167](https://doi.org/10.1037/met0000167)
+
+[Foygel, R., & Drton, M.  (2010).](https://hds.hebis.de/ubffm/EBSCO/Record?id=edsarx.1011.6640|edsarx) Extended Bayesian information criteria for Gaussian graphical models. *Advances in Neural Information Processing Systems*, *23*, 604–612.
+
+[Friedman, J., Hastie, T., & Tibshirani, R. (2008).](https://hds.hebis.de/ubffm/EBSCO/Record?id=RN231666321|edsbl) Sparse inverse covariance estimation with the graphical lasso. _Biostatistics, 9_(3), 432-441.  [https://doi.org/10.1093/biostatistics/kxm045](https://doi.org/10.1093/biostatistics/kxm045)
 
 
-[López-López, J. A., Davies, S. R., Caldwell, D. M., Churchill, R., Peters, T. J., Tallon, D., Dawson, S., Wu, Q., Li, J., Taylor, A., Lewis, G., Kessler, D. S., Wiles, N., & Welton, N. J. (2019).](https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.37032030|edsbas) The process and delivery of CBT for depression in adults: A systematic review and network meta-analysis. _Psychological Medicine, 49_(12), 1937–1947.  [https://doi.org/10.1017/S003329171900120X](https://doi.org/10.1017/S003329171900120X)
-
-
-[Viechtbauer, W. (2010).](https://hds.hebis.de/ubffm/EBSCO/Record?id=edsbas.B90C267A|edsbas) Conducting meta-analyses in R with the metafor package. *Journal of Statistical Software*, *36*(3), 1–48. https://www.jstatsoft.org/v036/i03.
 
 * <small> *Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.*
 
