@@ -271,6 +271,29 @@ centrality_indices$Betweenness
 
 In Dazwischenheit ist es üblich, dass die Werte stärker fluktuieren. In dem hier abgebildeten Netzwerk sind wieder die Knoten für Müdigkeit und Selfimage mit den höchsten Werten zu finden.
 
+Auch eine grafische Übersicht für die Zentralitätsindizes aller Knoten ist im Paket `graph` integriert. Diese kann mit der Funktion `centralityPlot` erstellt werden. Im Argument `include` kann angegeben werden, welche Zentralitätsindizes aufgezeichnet werden sollen. Wir nehmen alle drei besprochenen Werte. 
+
+```{r}
+centralityPlot(reg_net, include = c("Closeness", "Betweenness", "Strength"))
+```
+
+Dabei wird standardmäßig statt der normalen Wert der z-score ausgegeben. Ein negativer Wert bedeutet hier demnach nicht eine negative Stärke, sondern eine kleinere Stärke im Vergleich zu den anderen Knoten. Wenn man stattdessen die Rohwerte haben möchte, müsste man das Argument `scale` mit `"raw"` füllen.
+
+```{r}
+centralityPlot(reg_net, scale = "raw", include = c("Closeness", "Betweenness", "Strength"))
+```
+
+Einer der Kritikpunkte an den Zentralitätsindizes ist mangelnde Stabilität in der Schätzung. Damit ist gemeint, dass leichte Änderungen in der Stichprobe zu starken Änderungen in den Ergebnissen führen können. In der bisher behandelten Statistik wurden diese Unsicherheit meist durch den Standardfehler angegeben, die die Berechnung von Konfidenzintervallen ermöglichten. Das kann jedoch für Zentralitätsindizes nicht so einfach bestimmt werden. Zum Beispiel folgen diese nicht einer benötigten Normalverteilung. Epskampt et al. (2017) schlagen alternativ die Idee von *Bootstrapping* vor.
+
+Beim Bootstrapping wird eine Konfidenzintervall nicht direkt berechnet, sondern ein Modell wird häufiger mit simluierten Daten oder einer Substichprobe der eigentlichen Werte bestimmt. Man erhält demnach beispielsweise 100 Wert für die Stärke des Knoten Observe (und auch für alle anderen Indizes und Knoten). Ein Konfidenzintervall kann danach recht simpel dadurch gebildet werden, dass ein bestimmtes Intervall in der Reihenfolge gesucht wird. Möchte man beispielsweise ein 90%-iges Intervall berichten, liegt dieses zwischen dem 5. und 95. Wert in einer geordneten Abfolge.
+
+In `R` ist ein solches Vorgehen anhand eines Bootstraps in `bootnet` integriert (daher auch der Name - Bootstrap in Netzworks). Der Funktionsname entspricht an dieser Stelle auch dem Paketnamen. Es gibt verschiedene Möglichkeiten, den Input zu gestalten. Wir orientieren uns hier jetzt daran, dass wir die Struktur des Netzwerks bereits durch `estimateNetzwork` geschätzt und in `reg_net` abgelegt haben. Im Argument `nBoots` kann festgelegt werden, wie oft ein Bootstrap gezogen werden soll. Der hier eingegebene Wert von 10 ist sehr niedrig (Standardeinstellung ist bspw. 1000), aber wir wollen erstmal Zeit in der Berechnung sparen. In `statistics` können die Statistiken angegeben werden, für die man Konfidenzintervalle erhalten möchte. Hier geben wir die drei Namen unserer Zentralitätsindizes ein. Wenn die Funktion ausgeführt wird, erscheint einiges in der Konsole, was aber nicht spezifisch besprochen werden muss. Um zu zeigen, dass solch eine Aktivität normal ist, lassen wir es aber auch in diesem Tutorial erscheinen. Die Ergebnisse ordnen wir zunächst dem Objekt `boot1` zu und lassen uns dessen Inhalt dann grafisch ausgeben.
+
+```{r}
+boot1 <- bootnet(reg_net,  type = "case", nBoots = 50, statistics = c("strength", "betweenness", "closeness"), caseMin = 0.05, caseMax = 0.75, caseN = 10)
+plot(boot1, c("betweenness","strength","closeness"))
+```
+
 ## Fazit
 
 Die Netzwerkanalyse für psychologisch Konstrukte ist ein sich noch entwickelndes Gebiet. Sie wird kein Ersatz der typischen latenten Modelle sein können, für die Visualisierung und spezifischere Betrachtung der Dynamik zwischen Symptomen aber in jedem Fall hilfreich sein. Die genaue Vorgehensweise der Schätzung und Interpretation sind aktuell ein Thema der methodischen Forschung. Im Paket `bootnet` sind dabei stets aktuelle Ansätze auffindbar. Es ist dabei auch sehr verständlich geschrieben und dient einem nutzerfreundlichen Einstieg.

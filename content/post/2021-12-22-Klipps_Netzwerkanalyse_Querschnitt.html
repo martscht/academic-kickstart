@@ -389,6 +389,252 @@ centrality_indices$OutDegree</code></pre>
 ##     tired  appetite   selfim. concentr.     speed 
 ##        26        12        26        14        22</code></pre>
 <p>In Dazwischenheit ist es üblich, dass die Werte stärker fluktuieren. In dem hier abgebildeten Netzwerk sind wieder die Knoten für Müdigkeit und Selfimage mit den höchsten Werten zu finden.</p>
+<p>Auch eine grafische Übersicht für die Zentralitätsindizes aller Knoten ist im Paket <code>graph</code> integriert. Diese kann mit der Funktion <code>centralityPlot</code> erstellt werden. Im Argument <code>include</code> kann angegeben werden, welche Zentralitätsindizes aufgezeichnet werden sollen. Wir nehmen alle drei besprochenen Werte.</p>
+<pre class="r"><code>centralityPlot(reg_net, include = c(&quot;Closeness&quot;, &quot;Betweenness&quot;, &quot;Strength&quot;))</code></pre>
+<pre><code>## Note: z-scores are shown on x-axis rather than raw centrality indices.</code></pre>
+<p><img src="/post/2021-12-22-Klipps_Netzwerkanalyse_Querschnitt_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Dabei wird standardmäßig statt der normalen Wert der z-score ausgegeben. Ein negativer Wert bedeutet hier demnach nicht eine negative Stärke, sondern eine kleinere Stärke im Vergleich zu den anderen Knoten. Wenn man stattdessen die Rohwerte haben möchte, müsste man das Argument <code>scale</code> mit <code>"raw"</code> füllen.</p>
+<pre class="r"><code>centralityPlot(reg_net, scale = &quot;raw&quot;, include = c(&quot;Closeness&quot;, &quot;Betweenness&quot;, &quot;Strength&quot;))</code></pre>
+<p><img src="/post/2021-12-22-Klipps_Netzwerkanalyse_Querschnitt_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Einer der Kritikpunkte an den Zentralitätsindizes ist mangelnde Stabilität in der Schätzung. Damit ist gemeint, dass leichte Änderungen in der Stichprobe zu starken Änderungen in den Ergebnissen führen können. In der bisher behandelten Statistik wurden diese Unsicherheit meist durch den Standardfehler angegeben, die die Berechnung von Konfidenzintervallen ermöglichten. Das kann jedoch für Zentralitätsindizes nicht so einfach bestimmt werden. Zum Beispiel folgen diese nicht einer benötigten Normalverteilung. Epskampt et al. (2017) schlagen alternativ die Idee von <em>Bootstrapping</em> vor.</p>
+<p>Beim Bootstrapping wird eine Konfidenzintervall nicht direkt berechnet, sondern ein Modell wird häufiger mit simluierten Daten oder einer Substichprobe der eigentlichen Werte bestimmt. Man erhält demnach beispielsweise 100 Wert für die Stärke des Knoten Observe (und auch für alle anderen Indizes und Knoten). Ein Konfidenzintervall kann danach recht simpel dadurch gebildet werden, dass ein bestimmtes Intervall in der Reihenfolge gesucht wird. Möchte man beispielsweise ein 90%-iges Intervall berichten, liegt dieses zwischen dem 5. und 95. Wert in einer geordneten Abfolge.</p>
+<p>In <code>R</code> ist ein solches Vorgehen anhand eines Bootstraps in <code>bootnet</code> integriert (daher auch der Name - Bootstrap in Netzworks). Der Funktionsname entspricht an dieser Stelle auch dem Paketnamen. Es gibt verschiedene Möglichkeiten, den Input zu gestalten. Wir orientieren uns hier jetzt daran, dass wir die Struktur des Netzwerks bereits durch <code>estimateNetzwork</code> geschätzt und in <code>reg_net</code> abgelegt haben. Im Argument <code>nBoots</code> kann festgelegt werden, wie oft ein Bootstrap gezogen werden soll. Der hier eingegebene Wert von 10 ist sehr niedrig (Standardeinstellung ist bspw. 1000), aber wir wollen erstmal Zeit in der Berechnung sparen. In <code>statistics</code> können die Statistiken angegeben werden, für die man Konfidenzintervalle erhalten möchte. Hier geben wir die drei Namen unserer Zentralitätsindizes ein. Wenn die Funktion ausgeführt wird, erscheint einiges in der Konsole, was aber nicht spezifisch besprochen werden muss. Um zu zeigen, dass solch eine Aktivität normal ist, lassen wir es aber auch in diesem Tutorial erscheinen. Die Ergebnisse ordnen wir zunächst dem Objekt <code>boot1</code> zu und lassen uns dessen Inhalt dann grafisch ausgeben.</p>
+<pre class="r"><code>boot1 &lt;- bootnet(reg_net,  type = &quot;case&quot;, nBoots = 50, statistics = c(&quot;strength&quot;, &quot;betweenness&quot;, &quot;closeness&quot;), caseMin = 0.05, caseMax = 0.75, caseN = 10)</code></pre>
+<pre><code>## Note: bootnet will store only the following statistics:  strength, betweenness, closeness</code></pre>
+<pre><code>## Estimating sample network...</code></pre>
+<pre><code>## Estimating Network. Using package::function:
+##   - qgraph::EBICglasso for EBIC model selection
+##     - using glasso::glasso</code></pre>
+<pre><code>## Warning in EBICglassoCore(S = S, n = n, gamma = gamma, penalize.diagonal =
+## penalize.diagonal, : A dense regularized network was selected (lambda &lt; 0.1 *
+## lambda.max). Recent work indicates a possible drop in specificity. Interpret the
+## presence of the smallest edges with care. Setting threshold = TRUE will enforce
+## higher specificity, at the cost of sensitivity.</code></pre>
+<pre><code>## Bootstrapping...</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |=                                                                     |   2%
+  |                                                                            
+  |===                                                                   |   4%
+  |                                                                            
+  |====                                                                  |   6%
+  |                                                                            
+  |======                                                                |   8%
+  |                                                                            
+  |=======                                                               |  10%
+  |                                                                            
+  |========                                                              |  12%
+  |                                                                            
+  |==========                                                            |  14%
+  |                                                                            
+  |===========                                                           |  16%
+  |                                                                            
+  |=============                                                         |  18%
+  |                                                                            
+  |==============                                                        |  20%
+  |                                                                            
+  |===============                                                       |  22%
+  |                                                                            
+  |=================                                                     |  24%
+  |                                                                            
+  |==================                                                    |  26%
+  |                                                                            
+  |====================                                                  |  28%
+  |                                                                            
+  |=====================                                                 |  30%
+  |                                                                            
+  |======================                                                |  32%
+  |                                                                            
+  |========================                                              |  34%
+  |                                                                            
+  |=========================                                             |  36%
+  |                                                                            
+  |===========================                                           |  38%
+  |                                                                            
+  |============================                                          |  40%
+  |                                                                            
+  |=============================                                         |  42%
+  |                                                                            
+  |===============================                                       |  44%
+  |                                                                            
+  |================================                                      |  46%
+  |                                                                            
+  |==================================                                    |  48%
+  |                                                                            
+  |===================================                                   |  50%
+  |                                                                            
+  |====================================                                  |  52%
+  |                                                                            
+  |======================================                                |  54%
+  |                                                                            
+  |=======================================                               |  56%
+  |                                                                            
+  |=========================================                             |  58%
+  |                                                                            
+  |==========================================                            |  60%
+  |                                                                            
+  |===========================================                           |  62%
+  |                                                                            
+  |=============================================                         |  64%
+  |                                                                            
+  |==============================================                        |  66%
+  |                                                                            
+  |================================================                      |  68%
+  |                                                                            
+  |=================================================                     |  70%
+  |                                                                            
+  |==================================================                    |  72%
+  |                                                                            
+  |====================================================                  |  74%
+  |                                                                            
+  |=====================================================                 |  76%
+  |                                                                            
+  |=======================================================               |  78%
+  |                                                                            
+  |========================================================              |  80%
+  |                                                                            
+  |=========================================================             |  82%
+  |                                                                            
+  |===========================================================           |  84%
+  |                                                                            
+  |============================================================          |  86%
+  |                                                                            
+  |==============================================================        |  88%
+  |                                                                            
+  |===============================================================       |  90%
+  |                                                                            
+  |================================================================      |  92%
+  |                                                                            
+  |==================================================================    |  94%
+  |                                                                            
+  |===================================================================   |  96%
+  |                                                                            
+  |===================================================================== |  98%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre><code>## Computing statistics...</code></pre>
+<pre><code>## Warning: `tbl_df()` was deprecated in dplyr 1.0.0.
+## Please use `tibble::as_tibble()` instead.</code></pre>
+<pre><code>## 
+  |                                                                            
+  |                                                                      |   0%
+  |                                                                            
+  |=                                                                     |   2%
+  |                                                                            
+  |===                                                                   |   4%
+  |                                                                            
+  |====                                                                  |   6%
+  |                                                                            
+  |======                                                                |   8%
+  |                                                                            
+  |=======                                                               |  10%
+  |                                                                            
+  |========                                                              |  12%
+  |                                                                            
+  |==========                                                            |  14%
+  |                                                                            
+  |===========                                                           |  16%
+  |                                                                            
+  |=============                                                         |  18%
+  |                                                                            
+  |==============                                                        |  20%
+  |                                                                            
+  |===============                                                       |  22%
+  |                                                                            
+  |=================                                                     |  24%
+  |                                                                            
+  |==================                                                    |  26%
+  |                                                                            
+  |====================                                                  |  28%
+  |                                                                            
+  |=====================                                                 |  30%
+  |                                                                            
+  |======================                                                |  32%
+  |                                                                            
+  |========================                                              |  34%
+  |                                                                            
+  |=========================                                             |  36%
+  |                                                                            
+  |===========================                                           |  38%
+  |                                                                            
+  |============================                                          |  40%
+  |                                                                            
+  |=============================                                         |  42%
+  |                                                                            
+  |===============================                                       |  44%
+  |                                                                            
+  |================================                                      |  46%
+  |                                                                            
+  |==================================                                    |  48%
+  |                                                                            
+  |===================================                                   |  50%
+  |                                                                            
+  |====================================                                  |  52%
+  |                                                                            
+  |======================================                                |  54%
+  |                                                                            
+  |=======================================                               |  56%
+  |                                                                            
+  |=========================================                             |  58%
+  |                                                                            
+  |==========================================                            |  60%
+  |                                                                            
+  |===========================================                           |  62%
+  |                                                                            
+  |=============================================                         |  64%
+  |                                                                            
+  |==============================================                        |  66%
+  |                                                                            
+  |================================================                      |  68%
+  |                                                                            
+  |=================================================                     |  70%
+  |                                                                            
+  |==================================================                    |  72%
+  |                                                                            
+  |====================================================                  |  74%
+  |                                                                            
+  |=====================================================                 |  76%
+  |                                                                            
+  |=======================================================               |  78%
+  |                                                                            
+  |========================================================              |  80%
+  |                                                                            
+  |=========================================================             |  82%
+  |                                                                            
+  |===========================================================           |  84%
+  |                                                                            
+  |============================================================          |  86%
+  |                                                                            
+  |==============================================================        |  88%
+  |                                                                            
+  |===============================================================       |  90%
+  |                                                                            
+  |================================================================      |  92%
+  |                                                                            
+  |==================================================================    |  94%
+  |                                                                            
+  |===================================================================   |  96%
+  |                                                                            
+  |===================================================================== |  98%
+  |                                                                            
+  |======================================================================| 100%</code></pre>
+<pre class="r"><code>plot(boot1, c(&quot;betweenness&quot;,&quot;strength&quot;,&quot;closeness&quot;))</code></pre>
+<pre><code>## Warning: `filter_()` was deprecated in dplyr 0.7.0.
+## Please use `filter()` instead.
+## See vignette(&#39;programming&#39;) for more help</code></pre>
+<pre><code>## Warning: `select_()` was deprecated in dplyr 0.7.0.
+## Please use `select()` instead.</code></pre>
+<pre><code>## Warning: `arrange_()` was deprecated in dplyr 0.7.0.
+## Please use `arrange()` instead.
+## See vignette(&#39;programming&#39;) for more help</code></pre>
+<pre><code>## Warning: `summarise_()` was deprecated in dplyr 0.7.0.
+## Please use `summarise()` instead.</code></pre>
+<pre><code>## Warning: `group_by_()` was deprecated in dplyr 0.7.0.
+## Please use `group_by()` instead.
+## See vignette(&#39;programming&#39;) for more help</code></pre>
+<p><img src="/post/2021-12-22-Klipps_Netzwerkanalyse_Querschnitt_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 <div id="fazit" class="section level2">
 <h2>Fazit</h2>
