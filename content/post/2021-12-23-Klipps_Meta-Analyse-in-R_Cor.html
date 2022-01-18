@@ -26,7 +26,7 @@ projects: []
 
 <div id="einführung" class="section level2">
 <h2>Einführung</h2>
-<p>In der letzten Sitzung hatten wir uns angesehen, wie Mittelwerte, bzw. Differenzwerte metaanalytisch zusammengefasst werden können. Falls Sie sich die <a href="/post/metaanalysen-MW">vergangene Sitzung</a> noch nicht angesehen haben, dann wird dies dringend empfohlen, da sie das Fundament für die jetztige Sitzung liefert. Wir beginnen wieder mit dem Laden des <code>metafor</code>-Pakets.</p>
+<p>In der letzten Sitzung hatten wir uns angesehen, wie Mittelwerte, bzw. Differenzwerte metaanalytisch zusammengefasst werden können. Falls Sie sich die <a href="/post/metaanalysen-mw">vergangene Sitzung</a> noch nicht angesehen haben, dann wird dies dringend empfohlen, da sie das Fundament für die jetztige Sitzung liefert. Wir beginnen wieder mit dem Laden des <code>metafor</code>-Pakets.</p>
 <pre class="r"><code>library(metafor)</code></pre>
 </div>
 <div id="daten" class="section level2">
@@ -161,7 +161,7 @@ projects: []
 <p><span class="math display">\[Z_i:=\frac{1}{2}\log\left(\frac{1+r_i}{1-r_i}\right)\]</span>.</p>
 <p>Das Schöne an den transformierten Daten (den <span class="math inline">\(z\)</span>-Werten) ist, dass wir nun die Varianz (bzw. die Standardfehler) der Korrelationskoeffizienten kennen. Es gilt nämlich:</p>
 <p><span class="math display">\[\mathbb{V}ar[Z_i]:=\frac{1}{n_i-3},\]</span>
-wobei <span class="math inline">\(n_i\)</span> die Stichprobengröße der Studie <span class="math inline">\(i\)</span> ist. Der Standardfehler wäre <span class="math inline">\(\sqrt{\frac{1}{n_i-3}}=\frac{1}{\sqrt{n_i-3}}\)</span>. Wir sehen, dass die Variation der Korrelationskoeffizienten unabhängig von ihrer Höhe ist. Im Idealfall kennen wir die Stichprobengröße der Studie, sodass sich der SE nach Transformation leicht ermitteln lässt. Das macht es uns leicht, da wir nicht, wie beim Mittelwert bspw., noch die Standardabweichung aus den Studien kennen müssen. Wir müssen diese Transformation selbstverständlich nicht mit Hand durchführen, sondern können uns einfach der Funktion <code>escalc</code> aus dem <code>metafor</code> Paket bedienen. Diese Funktion hatten wir bereits beim bestimmen der standardisierten Mittelwertsdifferenz kennen gelernt (siehe dazu <a href="/post/metaanalysen-MW">vergangene Sitzung</a>).</p>
+wobei <span class="math inline">\(n_i\)</span> die Stichprobengröße der Studie <span class="math inline">\(i\)</span> ist. Der Standardfehler wäre <span class="math inline">\(\sqrt{\frac{1}{n_i-3}}=\frac{1}{\sqrt{n_i-3}}\)</span>. Wir sehen, dass die Variation der Korrelationskoeffizienten unabhängig von ihrer Höhe ist. Im Idealfall kennen wir die Stichprobengröße der Studie, sodass sich der SE nach Transformation leicht ermitteln lässt. Das macht es uns leicht, da wir nicht, wie beim Mittelwert bspw., noch die Standardabweichung aus den Studien kennen müssen. Wir müssen diese Transformation selbstverständlich nicht mit Hand durchführen, sondern können uns einfach der Funktion <code>escalc</code> aus dem <code>metafor</code> Paket bedienen. Diese Funktion hatten wir bereits beim bestimmen der standardisierten Mittelwertsdifferenz kennen gelernt (siehe dazu <a href="/post/metaanalysen-mw">vergangene Sitzung</a>).</p>
 <p>Um diese Funktion zu verwenden und somit die Daten zu <span class="math inline">\(z\)</span>-transformieren, müssen wir folgende Argumente an die Funktion übergeben: <code>measure = "ZCOR"</code> bewirkt, dass auch tatsächlich die <span class="math inline">\(r\)</span>-to-<span class="math inline">\(z\)</span>-Transformation (Fisher’s <span class="math inline">\(z\)</span>-Transformation) durchgeführt wird. Das Argument <code>ri</code> nimmt die beobachteten Korrelationskoeffizienten entgegen (diese heißen hier auch <code>ri</code>), <code>ni</code> nimmt die Stichprobengröße pro Studie entgegen (diese heißen hier auch <code>ni</code>). Das Argument <code>data</code> nimmt, wie der Namen schon verrät, den Datensatz entgegen, in dem die Studien zusammengefasst sind (hier <code>dat.molloy2014</code>). Die Funktion erzeugt einen neuen Datensatz, welcher um die <span class="math inline">\(z\)</span>-Werte sowie deren Varianz erweitert wurde. Diesen wollen wir unter einem neuen Namen abspeichern. Als Beweis meines Einfallsreichtums nennen wir diesen Datensatz einfach <code>data_transformed</code>. Auch die Namen, der neu zu erstellenden Variablen lassen sich in der Funktion festlegen. Dies ergibt insbesondere dann Sinn, wenn wir mehrere Analysen an einem Datensatz durchführen. Dies geht mit dem <code>var.names</code>-Argument, welchem wir einen Vektor mit zwei Einträgen übergeben müssen: dem Namen der <span class="math inline">\(z\)</span>-Werte und dem Namen der Varianzen. Wir wollen sie <code>z_ri</code> und <code>v_ri</code> nennen: <code>var.names = c("z_ri", "v_ri")</code>. Der fertige Code sieht folglich so aus (mit <code>head</code> schauen wir uns wieder die ersten 6 Zeilen an):</p>
 <pre class="r"><code>data_transformed &lt;- escalc(measure=&quot;ZCOR&quot;, ri=ri, ni=ni,
                            data=dat.molloy2014, 
@@ -211,9 +211,9 @@ Vor allem, wenn wir den mittleren Korrelationskoeffizienten gegen 0 testen wolle
 </div>
 <div id="random-effects-modell" class="section level2">
 <h2>Random Effects Modell</h2>
-<p>Wir überspringen hier das Fixed Effect Model (siehe dazu <a href="/post/metaanalysen-MW">vergangene Sitzung</a>). Wir beginnen also mit einem Random Effects Modell, da es sinnig ist, dass es Heterogenität zwischen den Studien gibt (allein schon deswegen, weil unterschiedliche Krankheiten untersucht wurden). Das Modell sah so aus:</p>
+<p>Wir überspringen hier das Fixed Effect Model (siehe dazu <a href="/post/metaanalysen-mw">vergangene Sitzung</a>). Wir beginnen also mit einem Random Effects Modell, da es sinnig ist, dass es Heterogenität zwischen den Studien gibt (allein schon deswegen, weil unterschiedliche Krankheiten untersucht wurden). Das Modell sah so aus:</p>
 <p><span class="math display">\[Y_i = \theta + \vartheta_i + \varepsilon_i,\]</span></p>
-<p>für eine Wiederholung siehe <a href="/post/metaanalysen-MW">hier</a>. Das Modell schätzen wir so:</p>
+<p>für eine Wiederholung siehe <a href="/post/metaanalysen-mw">hier</a>. Das Modell schätzen wir so:</p>
 <pre class="r"><code>REM &lt;- rma(yi = z_ri, vi = v_ri, data=data_transformed)
 summary(REM)</code></pre>
 <pre><code>## 
@@ -287,8 +287,8 @@ names(pred_REM)</code></pre>
 </div>
 <div id="analyse-plots" class="section level3">
 <h3>Analyse Plots</h3>
-<p>Das <code>metafor</code> Paket bietet außerdem noch einige grafischen Veranschaulichungen der Daten. Beispielsweise lässt sich ganz leicht ein Funnel-Plot erstellen mit der <code>funnel</code> Funktion, welche lediglich unser Metaanalyse Objekt <code>REM</code> entgegen nehmen muss. Diese Plots haben wir in der <a href="/post/metaanalysen-MW">vergangene Sitzung</a> bereits kennen gelernt. Sie sind deshalb nur in <a href="#Appendix%20B">Appendix B</a> aufgeführt.</p>
-<p>Insgesamt zeigen uns die Plots, dass von einem stabilen Effekt ausgegangen werden kann. Der Funnel-Plot ist viel regelmäßiger als der Funnel-Plot der <a href="/post/metaanalysen-MW">vergangene Sitzung</a>.</p>
+<p>Das <code>metafor</code> Paket bietet außerdem noch einige grafischen Veranschaulichungen der Daten. Beispielsweise lässt sich ganz leicht ein Funnel-Plot erstellen mit der <code>funnel</code> Funktion, welche lediglich unser Metaanalyse Objekt <code>REM</code> entgegen nehmen muss. Diese Plots haben wir in der <a href="/post/metaanalysen-mw">vergangene Sitzung</a> bereits kennen gelernt. Sie sind deshalb nur in <a href="#Appendix%20B">Appendix B</a> aufgeführt.</p>
+<p>Insgesamt zeigen uns die Plots, dass von einem stabilen Effekt ausgegangen werden kann. Der Funnel-Plot ist viel regelmäßiger als der Funnel-Plot der <a href="/post/metaanalysen-mw">vergangene Sitzung</a>.</p>
 </div>
 </div>
 <div id="mixed-effects-modelle" class="section level2">

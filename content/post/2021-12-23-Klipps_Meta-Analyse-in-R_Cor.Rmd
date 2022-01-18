@@ -31,7 +31,7 @@ knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 
 
 ## Einführung
-In der letzten Sitzung hatten wir uns angesehen, wie Mittelwerte, bzw. Differenzwerte metaanalytisch zusammengefasst werden können. Falls Sie sich die [vergangene Sitzung](/post/metaanalysen-MW) noch nicht angesehen haben, dann wird dies dringend empfohlen, da sie das Fundament für die jetztige Sitzung liefert. Wir beginnen wieder mit dem Laden des `metafor`-Pakets.
+In der letzten Sitzung hatten wir uns angesehen, wie Mittelwerte, bzw. Differenzwerte metaanalytisch zusammengefasst werden können. Falls Sie sich die [vergangene Sitzung](/post/metaanalysen-mw) noch nicht angesehen haben, dann wird dies dringend empfohlen, da sie das Fundament für die jetztige Sitzung liefert. Wir beginnen wieder mit dem Laden des `metafor`-Pakets.
 
 ```{r, message=F, warning=F}
 library(metafor)
@@ -114,7 +114,7 @@ $$Z_i:=\frac{1}{2}\log\left(\frac{1+r_i}{1-r_i}\right)$$.
 Das Schöne an den transformierten Daten (den $z$-Werten) ist, dass wir nun die Varianz (bzw. die Standardfehler) der Korrelationskoeffizienten kennen. Es gilt nämlich:
 
 $$\mathbb{V}ar[Z_i]:=\frac{1}{n_i-3},$$
-wobei $n_i$ die Stichprobengröße der Studie $i$ ist. Der Standardfehler wäre $\sqrt{\frac{1}{n_i-3}}=\frac{1}{\sqrt{n_i-3}}$. Wir sehen, dass die Variation der Korrelationskoeffizienten unabhängig von ihrer Höhe ist. Im Idealfall kennen wir die Stichprobengröße der Studie, sodass sich der SE nach Transformation leicht ermitteln lässt. Das macht es uns leicht, da wir nicht, wie beim Mittelwert bspw., noch die Standardabweichung aus den Studien kennen müssen. Wir müssen diese Transformation selbstverständlich nicht mit Hand durchführen, sondern können uns einfach der Funktion `escalc` aus dem `metafor` Paket bedienen. Diese Funktion hatten wir bereits beim bestimmen der standardisierten Mittelwertsdifferenz kennen gelernt (siehe dazu [vergangene Sitzung](/post/metaanalysen-MW)).
+wobei $n_i$ die Stichprobengröße der Studie $i$ ist. Der Standardfehler wäre $\sqrt{\frac{1}{n_i-3}}=\frac{1}{\sqrt{n_i-3}}$. Wir sehen, dass die Variation der Korrelationskoeffizienten unabhängig von ihrer Höhe ist. Im Idealfall kennen wir die Stichprobengröße der Studie, sodass sich der SE nach Transformation leicht ermitteln lässt. Das macht es uns leicht, da wir nicht, wie beim Mittelwert bspw., noch die Standardabweichung aus den Studien kennen müssen. Wir müssen diese Transformation selbstverständlich nicht mit Hand durchführen, sondern können uns einfach der Funktion `escalc` aus dem `metafor` Paket bedienen. Diese Funktion hatten wir bereits beim bestimmen der standardisierten Mittelwertsdifferenz kennen gelernt (siehe dazu [vergangene Sitzung](/post/metaanalysen-mw)).
 
 Um diese Funktion zu verwenden und somit die Daten zu $z$-transformieren, müssen wir folgende Argumente an die Funktion übergeben: `measure = "ZCOR"` bewirkt, dass auch tatsächlich die $r$-to-$z$-Transformation (Fisher's $z$-Transformation) durchgeführt wird. Das Argument `ri` nimmt die beobachteten Korrelationskoeffizienten entgegen (diese heißen hier auch `ri`), `ni` nimmt die Stichprobengröße pro Studie entgegen (diese heißen hier auch `ni`). Das Argument `data` nimmt, wie der Namen schon verrät, den Datensatz entgegen, in dem die Studien zusammengefasst sind (hier `dat.molloy2014`). Die Funktion erzeugt einen neuen Datensatz, welcher um die $z$-Werte sowie deren Varianz erweitert wurde. Diesen wollen wir unter einem neuen Namen abspeichern. Als Beweis meines Einfallsreichtums nennen wir diesen Datensatz einfach `data_transformed`. Auch die Namen, der neu zu erstellenden Variablen lassen sich in der Funktion festlegen. Dies ergibt insbesondere dann Sinn, wenn wir mehrere Analysen an einem Datensatz durchführen. Dies geht mit dem `var.names`-Argument, welchem wir einen Vektor mit zwei Einträgen übergeben müssen: dem Namen der $z$-Werte und dem Namen der Varianzen.  Wir wollen sie `z_ri` und `v_ri` nennen: `var.names = c("z_ri", "v_ri")`. Der fertige Code sieht folglich so aus (mit `head` schauen wir uns wieder die ersten 6 Zeilen an):
 
@@ -160,11 +160,11 @@ $$r_i = \frac{e^{2z_i}-1}{e^{2z_i}+1}$$
 
 ## Random Effects Modell
 
-Wir überspringen hier das Fixed Effect Model (siehe dazu [vergangene Sitzung](/post/metaanalysen-MW)). Wir beginnen also mit einem Random Effects Modell, da es sinnig ist, dass es Heterogenität zwischen den Studien gibt (allein schon deswegen, weil unterschiedliche Krankheiten untersucht wurden). Das Modell sah so aus:
+Wir überspringen hier das Fixed Effect Model (siehe dazu [vergangene Sitzung](/post/metaanalysen-mw)). Wir beginnen also mit einem Random Effects Modell, da es sinnig ist, dass es Heterogenität zwischen den Studien gibt (allein schon deswegen, weil unterschiedliche Krankheiten untersucht wurden). Das Modell sah so aus:
 
 $$Y_i = \theta + \vartheta_i + \varepsilon_i,$$
 
-für eine Wiederholung siehe [hier](/post/metaanalysen-MW). Das Modell schätzen wir so:
+für eine Wiederholung siehe [hier](/post/metaanalysen-mw). Das Modell schätzen wir so:
 
 
 ```{r}
@@ -233,9 +233,9 @@ legend(x = "bottomright", col = c("black", "blue", "gold3", "grey60"), pch = NA,
 Es scheint wohl eine Beziehung zwischen Gewissenhaftigkeit und Medikamenteneinnahme zu geben. Allerdings ist diese Beziehung mit einer Korrelation von `r round(pred_REM$pred, 4)` nicht sehr stark; lediglich `r round(pred_REM$pred^2*100, 2)`% der Variation an der Medikamenteneinnahme können durch die Gewissenhaftigkeit erklärt werden. Das Credibility-Intervall zeigt an, in welchem Bereich ca. 80% der beobachteten Werte liegen.
 
 ### Analyse Plots
-Das `metafor` Paket bietet außerdem noch einige grafischen Veranschaulichungen der Daten. Beispielsweise lässt sich ganz leicht ein Funnel-Plot erstellen mit der `funnel` Funktion, welche lediglich unser Metaanalyse Objekt `REM` entgegen nehmen muss. Diese Plots haben wir in der [vergangene Sitzung](/post/metaanalysen-MW) bereits kennen gelernt. Sie sind deshalb nur in [Appendix B](#Appendix B) aufgeführt.
+Das `metafor` Paket bietet außerdem noch einige grafischen Veranschaulichungen der Daten. Beispielsweise lässt sich ganz leicht ein Funnel-Plot erstellen mit der `funnel` Funktion, welche lediglich unser Metaanalyse Objekt `REM` entgegen nehmen muss. Diese Plots haben wir in der [vergangene Sitzung](/post/metaanalysen-mw) bereits kennen gelernt. Sie sind deshalb nur in [Appendix B](#Appendix B) aufgeführt.
 
-Insgesamt zeigen uns die Plots, dass von einem stabilen Effekt ausgegangen werden kann. Der Funnel-Plot ist viel regelmäßiger als der Funnel-Plot der [vergangene Sitzung](/post/metaanalysen-MW).
+Insgesamt zeigen uns die Plots, dass von einem stabilen Effekt ausgegangen werden kann. Der Funnel-Plot ist viel regelmäßiger als der Funnel-Plot der [vergangene Sitzung](/post/metaanalysen-mw).
 
 ## Mixed Effects Modelle
 
