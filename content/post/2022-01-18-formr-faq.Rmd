@@ -1,0 +1,279 @@
+---
+title: FormR - FAQ
+author: 
+date: '2022-01-18'
+slug: formr-faq
+categories:
+  - BSc2
+tags:
+  - formr
+subtitle: ''
+summary: ''
+authors: [lawetzky, schultze]
+lastmod: '2022-01-18T13:13:57+01:00'
+featured: no
+header:
+  image: "/header/faq.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/1437981)"
+projects: []
+---
+
+```{r setup, cache = FALSE, echo = FALSE}
+knitr::opts_chunk$set(error = TRUE)
+```
+
+In diesem FAQ ("frequently asked questions") finden Sie die Antworten auf zahlreiche der wichtigsten Fragen im Umgang mit FormR. Die Fragen stammen  in dieser oder in ähnlicher Form von Studierenden und wurden im Wintersemester 2021/2022 gesammelt. Für eine globale Übersicht über die Funktionalität von FormR empfehlen wir einen Blick auf die [offizielle Dokumentation von FormR](https://formr.org/documentation). Eine Möglichkeit diese Funktionen mal an einem anderen Beispiel auszuprobieren bietet außerdem unser [FormR-Projekt](/projects/#project_06).
+
+*Dieses FAQ wird regelmäßig um neue Fragen ergänzt.*
+
+<details><summary>Ich erhalte eine unspezifische Fehlermeldung. Woran kann das liegen?</summary>
+
+Dies kann zahlreiche Gründe haben. Prüfen Sie bitte die folgenden Gegebenheiten:
+- Leerzeichen in den Variablennamen in der Spalte `name` sind unzulässig. Eine Variable "college entrance credentials" führt entsprechend zu einem Import-Fehler. Benennen Sie die Variable z. B. um zu "college_entrance_credentials". *R* erlaubt ebenfalls keine Leerzeichen in Variablennamen. 
+- Umlaute, Interpunktion und sonstige Sonderzeichen sind ebenfalls unzulässig. Der Variablenname "Einführung" führt wegen des Umlautes zu einer Fehlermeldung beim Import. 
+- Ihre Variablennamen bzw. Elementnamen in der Spalte `name` müssen eindeutig sein (im Fachjargon spricht man auch von *diskret* oder *eineindeutig*). Haben Sie bereits eine Variable "extraversion", so können Sie kein zweites Element mit diesem Namen versehen. Normalerweise werden die Variablennamen für einzelne Items zu einem Konstrukt deshalb nach dem Schema "extra1", "extra2" etc. benannt. 
+- Haben Sie in Ihrem Fragen gleich viele `choice`-Optionen vergeben, wie Sie Antwortmöglichkeiten haben. Sollten Sie bspw. eine Sieben-Punkte-Likert-Skala haben, allerdings nur `choice1` bis `choice6` als Spaltennamen in der Tabelle haben, führt dies zu einem Fehler beim Import. Umgekehrt ist es nicht schlimm, wenn die Spalte `choice6` existiert, obwohl Sie eine Fünf-Punkt-Likert-Skala verwenden.
+- Kontrollieren Sie, ob Ihre Tabelle weitere Tabs (unten links) hat. Standardmäßig sollten sich dort nur zwei Tabs `survey` und `choices` finden (siehe auch "Was ist eine `choices_list` und wofür nutze ich diese?").
+- Speichern Sie Ihre Tabelle in einem zeitgemäßen Dateiformat. Das XLS-Format ist veraltet. Ich empfehle Ihnen, die Datei als Excel-Arbeitsmappe im XLSX-Format zu speichern. Dafür gehen Sie bitte auf "Datei" und dann auf "Speichern unter". (Auf Windows ist das entsprechende Tastenkürzel F12.) Wählen Sie anschließend im Speichern-Dialog unter "Dateiformat" die Option "Excel-Arbeitsmappe (.xlsx). Geben Sie Ihrer Datei einen Namen ohne Leer- und Sonderzeichen, z. B. "survey.xlsx". Alternativ können Sie Ihre Tabelle über Google Spreadsheet erstellen und von dort über die URL in FormR importieren; dies hat zahlreiche Vorteile.
+- Für die Spalte `type` muss ein Leerzeichen zwischen dem Typ-Namen und etwaigen Argumenten, z. B. `number 1,130,1` (bedeutet: Auswahl eine ganzzahlige Nummer im Bereich zwischen 1 und 130). Die Eingabe `number1,130,1` ohne Leerzeichen kann zu einem Fehler beim Import führen.
+- Die zu importierende Datei darf in Ihrem Namen ebenfalls keine Leerzeichen haben. Ein Dateiname wie "tabelle 1.xlsx" kann zu einem Fehler beim Import führen. Verwenden Sie anstelle von Leerzeichen Unterstriche, z. B. "tabelle_1.xlsx". 
+
+</details>
+
+
+<details><summary>Was ist eine `choices_list` und wofür nutze ich diese?</summary>
+
+Das Argument `choice_list` für den Typ `mc` gibt den Namen eines weiteren Spreadsheets bzw. in den Haupt-Spreadsheet integrierten Tabs an, in dem Antwortmöglichkeiten gebündelt werden können. Auf diese Weise müssen nur einmal die Antwortmöglichkeiten definiert werden. Anschließend können Sie auf die gleiche Liste mit Antwortmöglichkeiten mehrfach zurückgreifen. 
+
+In dem Beispiel-Spreadsheet finden Sie unten links den entsprechenden Tab:
+
+![](/post/formrfaq-tabs)
+
+`choices` ist der Default-Name des Tabs, in dem sich die Antwortmöglichkeiten findet. Dieser wiederum sieht so aus:
+
+![](/post/formrfaq-choices.jpg)
+
+Bei **(1)** geben Sie den Namen Ihrer Liste an (in Ihrem Fall "many_choices" und darunter "time-periods"). Für die Spalte `name` unter Punkt **(2)** folgen die Variablen, die in den Datensatz geschrieben werden sollen. In die Spalte `label` unter Punkt **(3)** kommt die Bezeichnung, die den Proband\*innen im Fragebogen angezeigt wird. Ab Zeile 9 beginnt bei Punkt **(4)** eine zweite Liste mit Antwortmöglichkeiten, die den `list_name` "time_periods" trägt. 
+
+Im Fragebogen finden sich folglich für die Liste "many_choices" vier kategorische Antwortmöglichkeiten mit den Namen "saving the world", "career", "family" und "lots of icecream right now", die jeweils durch die Zahlen 1, 2, 3, und 4 kodiert sind. Gibt jemand bspw. im Fragebogen "family" an, wird in den Datensatz eine 3 geschrieben. In diesem Sinne ist diese Liste mit Antwortmöglichkeiten wie ein Variablenschlüssel. Für die Liste "time_periods" wiederum, werden ganze Strings wie "quaternary" in den Datensatz geschrieben. Als Strings werden in der Informatik Buchstabenabfolgen bezeichnet. So sind bspw. `a`, `b` und `c` isoliert betrachtet *Character*. Zusammengeführt als `abc` ergeben sie allerdings einen String. Etwas missverständlich ist, dass in *R* Strings häufig den Datentyp `character` annehmen. *R* unterscheidet nicht zwischen einem Character und einem String. 
+
+</details>
+
+<details><summary>Was ist der Unterschied zwischen einem *Survey* und einem *Run*?</summary>
+
+Runs sind Zusammenstellungen von mehreren Surveys. Sie können z. B. über einen Run zwei oder mehr Surveys kombinieren, die nacheinander ablaufen und deren Daten zeilenweise (also über die Versuchspersonen hinweg) kombiniert werden. Eine weitere Einsatzmöglichkeit von Runs sind wiederholte Messungen über das gleiche Survey; dies können Sie über eine sogenannte Schleife im Run einrichten.
+
+Sie benötigen Runs in jedem Fall, um Ihren Fragebogen – auch wenn dieser nur aus einem Survey besteht – zu veröffentlichen.
+
+Weitere Informationen zu Runs und den Modulen eines Runs finden Sie in der [FormR-Dokumentation](https://formr.org/documentation#more_run).
+
+---
+
+**Wichtig:** Die Daten der Versuchspersonen werden innerhalb eines Runs kombiniert. Dies ist für wiederholte Messungen zwingend erforderlich, kann allerdings zu Problemen führen, wenn in einem Survey personenbezogene Daten eingegeben werden, wodurch die Anonymität bzw. Pseudonymität ausgehebelt würde. 
+
+![](/post/formrfaq-unlink-survey)
+
+Sie können die zeilenweise Verknüpfung der Fragebögen aufheben. Gehen Sie dafür in die Einstellungen des Surveys, in dem die personenbezogenen Daten erfasst werden. Unter "Settings" finden Sie nun die Option "Survey Unlinking". Klicken Sie diese Checkbox an, um die Verknüpfung der Daten dieses Surveys innerhalb des Runs zu unterbinden. Die Daten aus dem nicht-verknüpften Survey werden dann zufällig über die Zeilen im Datensatz verteilt.
+
+---
+
+</details>
+
+<details><summary>Wie ist mit invertierten Items umzugehen?</summary>
+
+Invertierte Items haben eine andere Polung als nicht-invertierte Items. Sie können Sie sich dies dadurch verbildlichen, dass die Skala wie ein Zahlenstreifen an der y-Achse gespiegelt wird:
+
+![](/post/formrfaq-invertierte-skala)
+
+Invertierte Items müssen in der Auswertung wieder in die ursprüngliche Polung revertiert werden. Dies kann mittels linearer Transformation geschehen: 
+	
+	$$-1 \times (x_m - x_{max} - 1)$$
+Bei der Erhebung invertierter Items empfehle ich Ihnen, die Invertierung in die Anmerkungen in der Spalte `explanation` zu schreiben, damit Sie dies nicht bei der Auswertung übersehen. Alternativ können Sie die Variablennamen mit einem Suffix wie "invers" versehen; dies verlängert allerdings die Variablennamen und erhöht damit die Wahrscheinlichkeit, sich bei der Eingabe dieser zu verschreiben.
+
+</details>
+
+
+<details><summary>Wie kann ich den Consent so gestalten, dass ohne diesen der Fragebogen nicht ausgefüllt werden kann?</summary>
+
+Sie werden sicher ahnen, dass es dafür keine einfache Option in der Web-Oberfläche von FormR gibt. Allerdings verfügen Sie mit Ihren *R*-Kenntnissen über die nötigen Grundlagen, um die Idee dahinter zu verstehen.
+ 
+Das Prinzip ist einfach: Wir können in Spreadsheet, aus dem das Survey generiert wird, eine logische Bedingung angeben. Mit dieser logischen Bedingung kann bestimmt werden, wann eine Checkbox, ein Button, ein Textfeld u. a. (nicht) angezeigt werden. Dies ermöglicht bspw. die Erstellung dynamischer Fragebögen.
+ 
+**Es gibt nun drei Möglichkeiten:**
+
+1. Der "Weiter"-Button auf der ersten Seite des Fragebogens soll nur angezeigt werden, wenn die Variable "consent" (der Name des Consent-Buttons) auf `TRUE` steht, also die Checkbox angeklickt ist. Dies geht über die Spalte `showif` in der Zeile für den "Weiter"-Button (Typ: `submit`). Dort kann eine – wie von *R* gewohnte – Regel definiert werden, z. B. `consent == TRUE`. Nachteil: Leider kann der Fragebogen in manchen Browsern auch ohne den explizit vorgesehenen "Weiter"-Button fortgeführt werden. Sie müssen also trotzdem im Datensatz auf die Variable "consent" achten; wenn diese auf `FALSE` steht bzw. den Wert `0` anzeigt, müssen Sie die Daten löschen. Diese Implementierung erfordert somit gute Kenntnisse der Datenaufbereitung in *R*. Sie können den Datensatz in *R* danach filtern, dass nur die Zeilen ausgewertet werden, bei denen ein Consent erfolgt ist, also `consent == TRUE`. Auch hierfür gibt es mehrere Möglichkeiten - die Einfachste davon hatten wir bereits in der [ersten Sitzung](/post/r-crash-kurs/#datenextraktion) gesehen.
+2. Der sichere, aber etwas umständliche Weg besteht darin, für die Einverständniserklärung und den eigentlichen Fragenbogen unterschiedliche Surveys zu definieren und diese in einem Run zusammenzuführen (siehe "Was ist der Unterschied zwischen einem _Survey_ und einem _Run_?"). FormR erlaubt es dann innerhalb eines Runs mit der "Skip Forward" Funktionalität ganze Surveys zu überspringen, wenn bestimmte Bedingungen erfüllt sind. Nehmen wir an, wir haben ein Survey mit dem Namen `consent_only`, das nur den Aufklärungstext und die Abfrage nach der Teilnahmebereitschaft (als Variable `consent`) enthält. Wenn das Häkchen bei `consent_only$consent` nicht gesetzt wurde, springt die Versuchsperson in der Abbildung zum Abschnitt 40 des Runs (überspringt also alle Surveys dazwischen):
+
+![](/post/formrfaq-consentskip.png)
+
+3. Über die Spalte `optional` kann direkt definiert werden, wenn das Bearbeiten eines Elementes für alle nachfolgenden Elemente erforderlich ist. Sie können folglich auch einfach für die Variable "consent" bei `optional` ein Ausrufezeichen (`!`) einsetzen. Das Ausrufezeichen gibt die Notwendigkeit an. Umgekehrt kann mit einem Asterisk ("Sternchen") in der Spalte `optional` die Freiwilligkeit eines Elements verdeutlicht werden; das Item wird dann im Fragebogen als "optional" markiert. 
+
+
+Nach der Implementierung einer dieser Lösungen empfehle ich Ihnen dringend, deren Funktionstüchtigkeit in einem Test-Run zu überprüfen. Was passiert, wenn die Consent-Checkbox nicht angeklickt wurde? Kann der Fragebogen dennoch fortgesetzt werden? Damit dabei bei einer solchen Überprüfung des Fragebogens keine Daten gespeichert werden, nutzen Sie die "Test Survey"- bzw. "Test Run"-Funktion:
+
+![](/post/formrfaq-test-survey)
+
+</details>
+
+<details><summary>Wie lade ich meine Daten herunter und importiere sie in *R*?</summary>
+
+FormR bietet zwei Möglichkeiten Ergebnisse aus Survey herunterzuladen. 
+
+Für die Erste finden Sie in den Einstellungen zu Ihrem Survey unter dem Seitenreiter "Testing & Management" den Menüpunkt "Export Results". Dieser erlaubt Ihnen die Ergebnisse in verschiedenen Formaten herunterzuladen - unter anderem im verbreiteten `.csv` Format. Wie Daten aus diesem Format importiert werden können hatten wir bereits [in der Einführungssitzung](/post/r-crash-kurs/#daten-aus-dem-fragebogen) gesehen.
+
+Der Nachteil dieses Vorgehens ist es, dass wir uns auf eine statische Fassung der Daten einlassen müssen. Besonders wenn Sie bereits während der Erhebung damit beginnen wollen, Auswertungsskripte zu verfassen kann es aber besser sein, die Daten direkt in R von FormR herunterzuladen. Der Prozess der hier beschrieben wird, wird z.B. auch in der Statistikvorlesung für die Folien mit Beispielen genutzt, die direkt während der Sitzung erhoben werden. 
+
+FormR bietet für verschiedene Bonusfunktionalitäten das R-Paket `formr` an. Ein paar einführende Worte dazu finden Sie in der [offiziellen Dokumentation](https://formr.org/documentation#r_helpers). Leider wird das Paket derzeit (noch) nicht über CRAN vertrieben, sodass wir es nicht direkt mit `install.packages` installieren können, sondern die aktuelle [beta-Version von GitHub](https://github.com/rubenarslan/formr) nutzen müssen. Dafür sind auf Windows Rechnern einige vorbereitende Schritte nötig:
+
+```{r, eval = FALSE}
+# installr-Paket für einfaches installieren
+install.packages('installr')
+
+# Rtools installieren
+installr::install.Rtools()
+
+# devtools installieren
+install.packages('devtools')
+```
+
+Wer ein MacBook oder irgendeinen anderen Rechner mit UNIX-basiertem Betriebssystem nutzt, kann die ersten beiden Schritte umgehen und einfach direkt mit `install.packages('devtools')` beginnen.
+
+Mit dieser Voraussetzung können wir dann das `formr`-Paket installieren und laden:
+
+```{r, eval = FALSE}
+# Von GitHub installieren
+devtools::install_github('rubenarslan/formr')
+```
+```{r}
+# Paket laden
+library(formr)
+```
+Das Paket enthält die `formr_connect()` Funktion, mit der wir R mit unserem FormR Account verbinden können:
+
+```
+formr_connect()
+Enter your email: 
+Enter your password:
+```
+
+Wenn wir die Verbindung hergestellt haben, können wir `formr_raw_results()` nutzen, um Daten direkt herunterzuladen. Dafür benötigt die Funktion lediglich den Namen unseres _Surveys_ als Argument.
+
+
+</details>
+
+
+<details><summary>Mein Datensatz sieht nicht aus, wie ich es erwartet habe. Was tun?</summary>
+
+Dieses Problem hat meist damit zu tun, dass Ihr Datensatz im Long-Format vorliegt. Im Long-Format sind Ihre Variablen alle in einer Spalte gesammelt und jede Versuchsperson nimmt so viele Zeilen ein, wie der Datensatz über Variablen verfügt. 
+
+**Long-Format:**
+
+| VP    | Variable | Answer |
+| :---  |  :----:  | :----: |
+| VP1   | Extra1   | 3      |
+| VP1   | Extra2   | 4      |
+| VP1   | Extra3   | 3      |
+| VP1   | Vertr1   | 5      |
+| VP1   | Vertr2   | 4      |
+| ...   | ...      | ...    |
+
+Im Wide-Format hingegen wird jede Versuchsperson durch eine Zeile repräsentiert und die Variablen sind spaltenweise angeordnet. Dieses Format ist üblicher und vor allem übersichtlicher. Dennoch wird hin und wieder das Long-Format benötigt (z. B. für die `ezANOVA()`-Funktion, mit der Sie sich im Rahmen von Statistik II vertraut machen).
+
+**Wide-Format:**
+
+|  VP  | Extra1 | Extra2 | Extra3 | Vertr1 | Vertr2 | ... |
+| :--- | :----: | :----: | :----: | :----: | :----: | :-: |	
+| VP1  |    3   |    4   |    3   |    5   |    4   | ... |
+| ...  |   ...  |   ...  |   ...  |   ...  |   ...  | ... |
+
+Damit Sie wie gewohnt mit dem Datensatz umgehen können, müssen Sie ihn ins Wide-Format transponieren. Zur Veranschaulichung nutzen wir einen Beispieldatensatz, den R uns bereitstellt:
+
+```{r}
+data(sleep)
+sleep
+```
+
+Mit `?sleep` bekommen wir Zusatzinformationen über die Daten und sehen dort, dass es sich hier um Daten aus einem Experiment handelt, bei dem die Veränderung in den Schlafstunden (`extra`) von Personen (`ID`) mit und ohne Schlafmittel (`group`) festgehalten ist. Dieser Datensatz liegt also im Long-Format vor.
+
+Um den Datensatz aus dem Long- ins Wide-Format zu überführen können wir den Befehl `reshape` benutzen. Wie man Daten aus dem Wide- ins Long-Format umwandeln kann ist im [Beitrag zur Plot-Erstellung in BSc7](post/grafiken-mit-ggplot2/#daten-aufbereiten-reshape) dargestellt. Dort haben wir die Argumente des `reshape` Befehls näher erläutert. Hier die Zusammenfassung:
+
+  - `data`: Der Datensatz
+  - `varying`: Die Variablen die wiederholt gemessen wurden
+  - `v.names`: Der Name unter dem die Variablen zusammengefasst werden sollen
+  - `timevar`: Die Variable, die Wiederholungen kennzeichnet
+  - `idvar`: Die Variablen, die sich über Wiederholungen nicht ändern
+  - `direction`: Das Zielformat des neuen Datensatzes
+  
+Für unseren Fall benötigen wir also:
+
+```{r}
+wide <- reshape(data = sleep, 
+  v.names = 'extra',
+  timevar = 'group',
+  idvar = 'ID',
+  direction = 'wide')
+```
+
+und schon haben wir einen Datensatz im Wide-Format:
+
+```{r}
+wide
+```
+
+</details>
+
+
+<details><summary>Wie kann Text innerhalb des Fragebogens formatiert werden?</summary>
+
+Sowohl Ihren Instruktionstext auf Seite 1 als auch der Text im Fragebogen können formatiert werden. Durch die Formatierung wird Ihr Text lesbarer und die wichtigsten Informationen werden hervorgehoben. 
+
+Ich würde Ihnen dazu raten, mit den üblichen Formatierungsmöglichkeiten (**fett** / *kursiv*) zu arbeiten. Müssen Sie Befehle für die Formatierung verwenden. Glücklicherweise sind diese sehr intuitiv.
+
+So schreiben Sie Ihren Text fett, indem Sie den Befehl `<strong>` um den Text stellen. Das Ende des fett zu setzenden Textes geben Sie mit `</strong>` an. Ihr Text sieht also so aus:
+
+```
+<strong>HIER KOMMT FETTER TEXT</strong>
+```
+
+Kursivschrift erreichen Sie mit dem Befehl `<em>` (engl. *emphasis* = Betonung). Gehen Sie analog vor und beenden die Kursivschrift mit `</em>`. Hier ein Beispiel:
+
+```
+<em>HIER KOMMT KURSIVER TEXT</em>
+```
+
+Diese beiden Befehle haben jedoch auch eine semantische Bedeutung: Sie heben die Worte hervor bzw. machen Sie "stärker". Entsprechend sollten die Befehle `<strong>` und `<em>` sparsam verwendet werden. 
+
+Doch was, wenn Sie wirklich *nur formatieren* wollen – ohne jede semantische Bedeutung im Code. Dafür können sogenannte präsentationsbezogene Elemente verwendet werden. Diese wurden mit HTML5 eingeführt und können mittlerweile von allen gängigen Browsern interpretiert werden. `<b>` macht den Text fett (engl. *bold*), `<i>` kursiv (engl. *italic*) und `<u>` unterstrichen (engl. *underlined*).
+
+In [Mozzilas Entwickler\*innen-Guide](https://developer.mozilla.org/de/docs/Learn/HTML/Introduction_to_HTML/HTML_text_fundamentals) ist die Funktionsweise der Formatierungsoptionen wie folgt beschrieben:
+
+> `<i>` wird benutzt, um die traditionelle Rolle von kursivem Text anzuzeigen: Fremdwörter, Taxonomische Begriffe, Fachwörter, Gedanken[.]
+
+> `<b>` wird benutzt, um die traditionelle Rolle von fettem Text anzuzeigen: Stichwörter, Produktnamen, wichtige Sätze[.]
+
+> `<u>` wird benutzt, um die traditionelle Rolle von unterstrichenem Text anzuzeigen: richtige Namen, Rechtschreibfehler[.]
+
+---
+
+**Tipp:** Gehen Sie sparsam mit `<u>` um. Denn üblicherweise sind Hyperlinks – also verweise auf andere Websites – durch Unterstreichung hervorgehoben.
+
+---
+</details>
+
+
+<details><summary>Ich habe ein Bild in meinen Header eingefügt. Wie bekomme ich dieses kleiner?</summary>
+
+Wenn Sie im "Run" unter "Settings" im Tab "CSS" folgenden Code einfügen, wird das Logo klein in die rechte Ecke gelegt:
+
+```css
+@media {
+		img {float: right;
+	margin: 0px 0px 10px 10px;
+	height: 7%;
+	max-height: 100px
+		}
+}
+```
+
+Mit CSS können Sie das Aussehen Ihrer HTML-Elemente anpassen. Sie können gerne an den Parametern im Code ein wenig rumspielen.
+</details>
