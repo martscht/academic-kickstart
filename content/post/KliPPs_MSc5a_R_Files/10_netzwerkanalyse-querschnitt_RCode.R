@@ -37,10 +37,10 @@ reg_net <- estimateNetwork(raw_data, default = "EBICglasso", # Schätzung des Ne
                            nlambda = 100, tuning = 0.5)
 summary(reg_net) # Übersicht der Ergebnisse
 
-reg_net$results$optnet # Gewichte der Kanten
+reg_net$results$optnet # Gewichte der Kanten in bestem Netzwerk
 reg_net$results$lambda # Bestrafungsparameter
 reg_net$results$results$wi[,,100] # komplett leeres Netzwerk
-reg_net$results$ebic # EBIC
+reg_net$results$ebic # EBICs
 
 reg_net2 <- estimateNetwork(raw_data, default = "EBICglasso", # Schätzung des Netzwerks mit Lasso-Regulation und Tuning 2
                             nlambda = 100, tuning = 2)
@@ -56,7 +56,7 @@ library(qgraph) # Paket laden
 
 centrality_indices <- centrality(graph = reg_net$graph) # Zentralitätsindizes berechnen
 
-centrality_indices$OutDegree # Zentralitätsindizes
+centrality_indices$OutDegree # Degree bzw. Strength der Knoten
 centrality_indices$Closeness # Verbundenheit der Knoten
 centrality_indices$Betweenness # Dazwischenheit der Knoten
 
