@@ -14,7 +14,7 @@ tags:
 subtitle: 'Mittelwertsunterschiede'
 summary: ''
 authors: [irmer]
-lastmod: '2022-01-13T15:21:58+02:00'
+lastmod: '2022-01-26T15:21:58+02:00'
 featured: no
 header:
   image: "/header/Klipps_Meta-Analyse_MW.jpg"
@@ -30,8 +30,7 @@ projects: []
 <p>Metaanalysen sind empirische Zusammenfassungen von Studien unter Verwendung mathematischer/statistischer Modelle. Auf diese Weise können Ergebnisse aus jahrelanger Forschung integriert und zusammengefasst werden, was oft Aufschluss darüber liefert, ob Effekte im Mittel vorhanden sind oder nicht. Somit können Metaanalysen lange Debatten beenden und Licht in das Dunkel von sich widersprechenden Studienergebnissen bringen.</p>
 <p>Mit Hilfe des <code>metafor</code>-Paketes (<em><strong>meta</strong><em>-analysis </em><strong>fo</strong><em>r </em><strong>r</strong></em>) von Viechtbauer (2010) lassen sich eindimensionale und mehrdiemensionale Metaanalysen (in welchen ein oder mehrere Koeffizient über mehrere Studien “gemittelt” werden soll) leicht berechnen. Zunächst müssen wir dazu das <code>R</code>-Paket installieren.</p>
 <pre class="r"><code>library(metafor)</code></pre>
-<pre><code>## Warning: Paket &#39;metafor&#39; wurde unter R Version 4.1.2 erstellt</code></pre>
-<pre><code>## Lade nötiges Paket: Matrix</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
 <pre><code>## 
 ## Loading the &#39;metafor&#39; package (version 3.0-2). For an
 ## introduction to the package please type: help(metafor)</code></pre>
@@ -40,19 +39,88 @@ projects: []
 <p>Wenn wir diesen Befehl ausführen, so geht in <code>R</code>-Studio ein Fenster mit der Überschrift “metafor: A Meta-Analysis Package for R” auf, in welchem die grundlegenden Funktionen erklärt werden.</p>
 <div id="effekte-bestimmen" class="section level3">
 <h3>Effekte bestimmen</h3>
-<p>Im Datensatz, den wir in dieser Sitzung betrachten wollen, wurden die Effektstärken (standardisierte Mittelwertsdifferenzen) bereits bestimmt. Mit Hilfe der <code>escalc</code>-Funktion hätten wir diese auch selbst erstellen können, angenommen wir hätten einen Datensatz, welcher zwei unabhängige Gruppen in einer Variable untersucht hatte. Wir nehmen mal folgende Mittelwerte, Standardabweichungen und Stichprobengrößen an: <span class="math inline">\(\bar{X}_1 = 1.5, SD_1=0.7,n_1=35\)</span> und <span class="math inline">\(\bar{X}_2 = 2.7, SD_2=1.3,n_2=27\)</span>. Wir fügen diese Daten kurz in einen <code>data.frame</code>, um dann die <code>escalc</code>-Funktion schöner darauf anwenden zu können:</p>
-<pre class="r"><code>df &lt;- data.frame(&quot;X1&quot; = 1.5, &quot;SD1&quot; = 0.7, &quot;n1&quot; = 35,
-                 &quot;X2&quot; = 2.7, &quot;SD2&quot; = 1.3, &quot;n2&quot; = 27)
+<p>Im Datensatz, den wir in dieser Sitzung betrachten wollen, wurden die Effektstärken (standardisierte Mittelwertsdifferenzen) bereits bestimmt. Mit Hilfe der <code>escalc</code>-Funktion hätten wir diese auch selbst erstellen können, angenommen wir hätten einen Metaanalysedatensatz, der aus 2 Studien besteht, welche jeweils zwei unabhängige Gruppen in einer Variable untersucht hatten. Wir nehmen mal folgende Mittelwerte, Standardabweichungen und Stichprobengrößen an: <strong>Studie 1:</strong> <span class="math inline">\(\bar{X}_1 = 1.5, SD_1=0.7,n_1=35\)</span> und <span class="math inline">\(\bar{X}_2 = 2.7, SD_2=1.3,n_2=27\)</span>, <strong>Studie 2:</strong> <span class="math inline">\(\bar{X}_1 = 2.5, SD_1=0.9,n_1=132\)</span> und <span class="math inline">\(\bar{X}_2 = 2.8, SD_2=1.1,n_2=126\)</span>. Wir fügen diese Daten kurz in einen <code>data.frame</code>, um dann die <code>escalc</code>-Funktion schöner darauf anwenden zu können (dabei müssen wir die Daten jeweils nach Variablen sortieren):</p>
+<pre class="r"><code>df &lt;- data.frame(&quot;Studie&quot; = c(&quot;Studie 1&quot;, &quot;Studie 2&quot;), 
+                 &quot;X1&quot; = c(1.5, 2.5), &quot;SD1&quot; = c(0.7, 0.9), &quot;n1&quot; = c(35, 132),
+                 &quot;X2&quot; = c(2.7, 2.8), &quot;SD2&quot; = c(1.3, 1.1), &quot;n2&quot; = c(27, 126))
 df</code></pre>
-<pre><code>##    X1 SD1 n1  X2 SD2 n2
-## 1 1.5 0.7 35 2.7 1.3 27</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Studie</th>
+<th align="right">X1</th>
+<th align="right">SD1</th>
+<th align="right">n1</th>
+<th align="right">X2</th>
+<th align="right">SD2</th>
+<th align="right">n2</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Studie 1</td>
+<td align="right">1.5</td>
+<td align="right">0.7</td>
+<td align="right">35</td>
+<td align="right">2.7</td>
+<td align="right">1.3</td>
+<td align="right">27</td>
+</tr>
+<tr class="even">
+<td align="left">Studie 2</td>
+<td align="right">2.5</td>
+<td align="right">0.9</td>
+<td align="right">132</td>
+<td align="right">2.8</td>
+<td align="right">1.1</td>
+<td align="right">126</td>
+</tr>
+</tbody>
+</table>
 <p>Der <code>escalc</code> Funktion müssen wir zunächst sagen, welche Transformation wir wünschen <code>measure = "SMD"</code> für <strong>S</strong>tandardized <strong>M</strong>ean <strong>D</strong>ifference. Anschließend brauch die Funktion alle Informationen, die wir auch selbst zum bestimmen der Effektstärke brauchen: Mittelwerte (<code>m1i</code>, <code>m2i</code>), Standardabweichungen (<code>sd1i</code>, <code>sd2i</code>) und Stichprobengrößen (<code>n1i</code>, <code>n2i</code>).</p>
 <pre class="r"><code>escalc(measure = &quot;SMD&quot;, m1i = X1, m2i = X2, sd1i = SD1, sd2i = SD2,
        n1i = n1, n2i = n2,
        data = df)</code></pre>
-<pre><code>##    X1 SD1 n1  X2 SD2 n2      yi     vi 
-## 1 1.5 0.7 35 2.7 1.3 27 -1.1790 0.0768</code></pre>
-<p>Zurückgegeben wird uns ein Datensatz, der um die beiden Variablen <code>yi</code> (Standardized Mean Difference) und <code>vi</code> (Standardfehler der SMD) erweitert wurde. Hätten wir mehrere Studien übergeben, würden hier entsprechened mehrere Zeilen stehen. Zum Glück liegen die Daten schon vor, sodass wir das nicht für unsere Metaanalyse tun müssen!</p>
+<table>
+<thead>
+<tr class="header">
+<th align="left">Studie</th>
+<th align="right">X1</th>
+<th align="right">SD1</th>
+<th align="right">n1</th>
+<th align="right">X2</th>
+<th align="right">SD2</th>
+<th align="right">n2</th>
+<th align="right">yi</th>
+<th align="right">vi</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="left">Studie 1</td>
+<td align="right">1.5</td>
+<td align="right">0.7</td>
+<td align="right">35</td>
+<td align="right">2.7</td>
+<td align="right">1.3</td>
+<td align="right">27</td>
+<td align="right">-1.1790461</td>
+<td align="right">0.0768194</td>
+</tr>
+<tr class="even">
+<td align="left">Studie 2</td>
+<td align="right">2.5</td>
+<td align="right">0.9</td>
+<td align="right">132</td>
+<td align="right">2.8</td>
+<td align="right">1.1</td>
+<td align="right">126</td>
+<td align="right">-0.2983287</td>
+<td align="right">0.0156847</td>
+</tr>
+</tbody>
+</table>
+<p>Zurückgegeben wird uns ein Metaanalysedatensatz, der um die beiden Variablen <code>yi</code> (Standardized Mean Difference) und <code>vi</code> (Standardfehler der SMD) erweitert wurde. In den Zeilen stehen die zwei Studien. Bei der 2. Studie ist die SMD geringer, gleichzeitig ist aber die Präzision höher, was ausgedrückt wird durch die kleinere Varianz <code>vi</code> - diese Studie würde in einer Metaanalyse prinzipiell ein größeres Gewicht erhalten (sowohl mit Stichprobengewichtung als auch mit [quadrierter] Standardfehlergewichtung). Zum Glück liegen die Daten schon vor, sodass wir das nicht für unsere Metaanalyse tun müssen!</p>
 </div>
 </div>
 <div id="daten" class="section level2">
@@ -454,7 +522,7 @@ power</code></pre>
 <p>Der Funnel-Plot wird verwendet, um auf das bekannte Problem des Publication-Bias zu untersuchen. Hier wird der gefundene Effekt (hier Effektstärken von Prä-Post Veränderungen) gegen den Standardfehler jeder Studie geplottet. Es wird die Annahme zugrunde gelegt, dass alle Studien in der Metaanalyse eine gewisse, zufällige Schwankung um den wahren Effekt haben, und dabei diese zufällige Schwankung größer ist, je größer der Standardfehler in einer Studie ist und je kleiner die Stichprobe war. Sofern eine Studie unabhängig von der Effektgröße sowie der Streuung (und damit auch der Signifikanz) publiziert wurde, sollte so das typische symmetrische Dreieck (Funnel = Trichter) entstehen.</p>
 <pre class="r"><code># funnel plot
 funnel(REM)</code></pre>
-<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-19-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-21-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Der Grafik ist zu entnehmen, dass sich fast alle Effektstärken im negativen Bereich tummeln. Je kleiner der Effekt desto präziser die Schätzung (desto kleiner der SE - höher dargestellt im Funnel-Plot). Dies könnte Indizien auf einen Publication Bias zeigen. Außerdem gibt es wenige Studien mit sehr großen Standardfehlern (und damit geringen Stichprobengrößen). Der Funnel (Trichter) ist kaum befüllt. Dies liegt vermutlich an den wenigen extremen Ergebnissen, die links im Plot dargestellt sind. Allerdings ist die Punktewolke, auch wenn etwas schief, im oberen rechten Bereich recht gut ausgefüllt. Es gibt keine einzige Studie mit positiven Effektstärken. Insgesamt spricht dies dann doch dagegen, dass die Signifikanz des Effekts durch einen Bias in Veröffentlichungen entstanden ist. Allerdings könnte die ausgesprochen große Effektstärke verzerrt sein.</p>
 <p>Die Trim-and-Fill Methode wird verwendet, um zu bestimmen, wie viel Studien hinzugenommen (fill) oder entfernt werden (Trim) müssten werden müssten, damit der Funnel-Plot symmetrisch ist. Die Methoden kann auch verwendet werden, um einen (um einen möglichen Publication-Bias) bereinigten Effekt zu schätzen.</p>
 <pre class="r"><code>trimfill(REM)</code></pre>
@@ -502,7 +570,7 @@ funnel(REM)</code></pre>
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>Nun sehen wir, dass insgesamt 18 Studien ersetzt wurden. Der Output hat sich deutlich verändert. Der mittlere Effekt ist deutlich stärker negativ (-2.05 vs -2.44). Wenn wir nun wieder die <code>funnel</code> Funktion darauf anwenden, sehen wir auch, welche Studien hinzugefügt wurden:</p>
 <pre class="r"><code>funnel(trimfill(REM, side = &quot;left&quot;))</code></pre>
-<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-22-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Wir sehen, dass die 18 Studien nicht sinnvoll hinzugefügt wurden. Wir gehen somit insgesamt davon aus, dass kein Publication Bias vorliegt und verwerfen die eben betrachteten Trim-and-Fill Ergebnisse.</p>
 </div>
 <div id="forest-plot" class="section level4">
@@ -510,15 +578,15 @@ funnel(REM)</code></pre>
 <p>Auch Forest-Plots funktionieren auf die gleiche Weise mit der <code>forest</code> Funktion. Der Forest-Plot stellt die unterschiedlichen Studien hinsichtlich ihrer Parameterschätzung (Effektstärken) und die zugehörige Streuung grafisch dar. So können beispielsweise Studien identifiziert werden, welche besonders hohe oder niedrige Werte aufweisen oder solche, die eine besonders große oder kleine Streuung zeigen.</p>
 <pre class="r"><code># forest plot
 forest(REM)</code></pre>
-<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-23-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Wir sehen sehr deutlich, dass alle Studien Konfidenzintervalle aufweisen, die die Null nicht einschließen. Auch ein kumulativer Forest-Plot wäre möglich. Dazu müssen wir auf unser <code>REM</code>-Objekt noch die Funktion <code>cumul.rma.uni</code> anwenden:</p>
 <pre class="r"><code># kumulativer Forest Plot
 forest(cumul.rma.uni(REM))</code></pre>
-<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Die Funktion <code>cumul.rma.uni</code> führt skuzessive immer wieder eine Metaanalyse durch, wobei nach und nach eine Studie hinzugefügt wird. Anders als beim ersten Forest-Plot wird immer das Ergebnis der jeweiligen Metaanalyse dargestellt und nicht jede Studie einzeln. Wir sehen, dass sich sowohl mittlere Effektstärke als auch Streuung von oben nach unten einpendeln. Das finale Ergebnis ist identisch mit unsere Metaanalyse. Die gestrichelte Linie der Forest-Plots symbolisiert die 0, da in den meisten Fällen gegen 0 getestet wird und es daher von Interesse ist, wie viele Studien sich von 0 unterscheiden und ob sich der mittlere Effekt von 0 unterscheidet. Die Achsenbeschriftung unterscheidet sich, sodass die beiden Forest-Plots nicht ideal vergleichbar sind. Mit dem Zusatzargument <code>xlim</code> können wir die x-Achse explizit einstellen:</p>
 <pre class="r"><code># kumulativer Forest Plot
 forest(cumul.rma.uni(REM), xlim = c(-10, 2))</code></pre>
-<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" />
+<p><img src="/post/2021-12-22-Klipps_Meta-Analyse-in-R_MW_files/figure-html/unnamed-chunk-27-1.png" width="672" style="display: block; margin: auto;" />
 Nun sehen wir schöner, wie gut sich die Ergebnisse um den mittleren Wert einpendeln.</p>
 <p>Insgesamt zeigen uns die Plots, dass von einem stabilen Effekt ausgegangen werden kann.</p>
 </div>

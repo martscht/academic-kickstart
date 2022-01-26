@@ -14,7 +14,7 @@ tags:
 subtitle: 'Mittelwertsunterschiede'
 summary: ''
 authors: [irmer]
-lastmod: '2022-01-13T15:21:58+02:00'
+lastmod: '2022-01-26T15:21:58+02:00'
 featured: no
 header:
   image: "/header/Klipps_Meta-Analyse_MW.jpg"
@@ -50,23 +50,34 @@ Wenn wir diesen Befehl ausführen, so geht in `R`-Studio ein Fenster mit der Üb
 
 
 ### Effekte bestimmen
-Im Datensatz, den wir in dieser Sitzung betrachten wollen, wurden die Effektstärken (standardisierte Mittelwertsdifferenzen) bereits bestimmt. Mit Hilfe der `escalc`-Funktion hätten wir diese auch selbst erstellen können, angenommen wir hätten einen Datensatz, welcher zwei unabhängige Gruppen in einer Variable untersucht hatte. Wir nehmen mal folgende Mittelwerte, Standardabweichungen und Stichprobengrößen an: $\bar{X}_1 = 1.5, SD_1=0.7,n_1=35$ und  $\bar{X}_2 = 2.7, SD_2=1.3,n_2=27$. Wir fügen diese Daten kurz in einen `data.frame`, um dann die `escalc`-Funktion schöner darauf anwenden zu können:
+Im Datensatz, den wir in dieser Sitzung betrachten wollen, wurden die Effektstärken (standardisierte Mittelwertsdifferenzen) bereits bestimmt. Mit Hilfe der `escalc`-Funktion hätten wir diese auch selbst erstellen können, angenommen wir hätten einen Metaanalysedatensatz, der aus 2 Studien besteht, welche jeweils zwei unabhängige Gruppen in einer Variable untersucht hatten. Wir nehmen mal folgende Mittelwerte, Standardabweichungen und Stichprobengrößen an: **Studie 1:** $\bar{X}_1 = 1.5, SD_1=0.7,n_1=35$ und  $\bar{X}_2 = 2.7, SD_2=1.3,n_2=27$, **Studie 2:** $\bar{X}_1 = 2.5, SD_1=0.9,n_1=132$ und  $\bar{X}_2 = 2.8, SD_2=1.1,n_2=126$. Wir fügen diese Daten kurz in einen `data.frame`, um dann die `escalc`-Funktion schöner darauf anwenden zu können (dabei müssen wir die Daten jeweils nach Variablen sortieren):
 
-```{r}
-df <- data.frame("X1" = 1.5, "SD1" = 0.7, "n1" = 35,
-                 "X2" = 2.7, "SD2" = 1.3, "n2" = 27)
+```{r, results = "hide"}
+df <- data.frame("Studie" = c("Studie 1", "Studie 2"), 
+                 "X1" = c(1.5, 2.5), "SD1" = c(0.7, 0.9), "n1" = c(35, 132),
+                 "X2" = c(2.7, 2.8), "SD2" = c(1.3, 1.1), "n2" = c(27, 126))
 df
+```
+
+```{r, echo = F}
+knitr::kable(df)
 ```
 
 Der `escalc` Funktion müssen wir zunächst sagen, welche Transformation wir wünschen `measure = "SMD"` für **S**tandardized **M**ean **D**ifference. Anschließend brauch die Funktion alle Informationen, die wir auch selbst zum bestimmen der Effektstärke brauchen: Mittelwerte (`m1i`, `m2i`), Standardabweichungen (`sd1i`, `sd2i`) und Stichprobengrößen (`n1i`, `n2i`).
 
-```{r}
+```{r, results="hide"}
 escalc(measure = "SMD", m1i = X1, m2i = X2, sd1i = SD1, sd2i = SD2,
        n1i = n1, n2i = n2,
        data = df)
 ```
 
-Zurückgegeben wird uns ein Datensatz, der um die beiden Variablen `yi` (Standardized Mean Difference) und `vi` (Standardfehler der SMD) erweitert wurde. Hätten wir mehrere Studien übergeben, würden hier entsprechened mehrere Zeilen stehen. Zum Glück liegen die Daten schon vor, sodass wir das nicht für unsere Metaanalyse tun müssen! 
+```{r, echo = F}
+knitr::kable(escalc(measure = "SMD", m1i = X1, m2i = X2, sd1i = SD1, sd2i = SD2,
+       n1i = n1, n2i = n2,
+       data = df))
+```
+
+Zurückgegeben wird uns ein Metaanalysedatensatz, der um die beiden Variablen `yi` (Standardized Mean Difference) und `vi` (Standardfehler der SMD) erweitert wurde. In den Zeilen stehen die zwei Studien. Bei der 2. Studie ist die SMD geringer, gleichzeitig ist aber die Präzision höher, was ausgedrückt wird durch die kleinere Varianz `vi` - diese Studie würde in einer Metaanalyse prinzipiell ein größeres Gewicht erhalten (sowohl mit Stichprobengewichtung als auch mit [quadrierter] Standardfehlergewichtung). Zum Glück liegen die Daten schon vor, sodass wir das nicht für unsere Metaanalyse tun müssen! 
 
 ## Daten
 
@@ -252,7 +263,7 @@ Das `metafor` Paket bietet außerdem noch einige grafischen Veranschaulichungen 
 #### Funnel Plot und Trim-and-Fill Methode
 Der Funnel-Plot wird verwendet, um auf das bekannte Problem des Publication-Bias zu untersuchen. Hier wird der gefundene Effekt (hier Effektstärken von Prä-Post Veränderungen) gegen den Standardfehler jeder Studie geplottet. Es wird die Annahme zugrunde gelegt, dass alle Studien in der Metaanalyse eine gewisse, zufällige Schwankung um den wahren Effekt haben, und dabei diese zufällige Schwankung größer ist, je größer der Standardfehler in einer Studie ist und je kleiner die Stichprobe war. Sofern eine Studie unabhängig von der Effektgröße sowie der Streuung (und damit auch der Signifikanz) publiziert wurde, sollte so das typische symmetrische Dreieck (Funnel = Trichter) entstehen.  
 
-```{r, fig.align="center"}
+```{r, fig.align="center", fig = T}
 # funnel plot
 funnel(REM)
 ```
