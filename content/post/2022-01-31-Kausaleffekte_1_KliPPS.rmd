@@ -1,0 +1,155 @@
+---
+title: "Schätzung von Kausaleffekten 1"
+output:
+  html_document
+  
+date: '2022-01-31'
+slug: kausal
+categories:
+     - MSc5a
+     
+tags:
+- Kausalität
+- ANCOVA
+
+subtitle: ''
+summary: ''
+authors: [hartig]
+lastmod: '2022-01-31 12:51:12 CEST'
+featured: no
+header:
+     image: "/header/KliPsy_Kausal_Head.jpg"
+     caption: "[Courtesy of pxhere](https://pxhere.com/de/photo/1109965)"
+projects: []
+---
+
+#### Pakete laden
+```{r message=FALSE}
+# Benötigte Pakete --> Installieren, falls nicht schon vorhanden
+library(psych)        # Für Deskriptivstatistiken
+library(EffectLiteR)  # Für die Schätzung adjustierter Effekte
+```
+
+### Inhalte
+
+* [Einleitung und Datenbeispiel](#Einleitung)
+* [Prima-Facie-Effekt](#PFE)
+* [Effektschätzung mittels ANCOVA](#ANCOVA)
+* [Effektschätzung mit EffectLiteR](#EffectLite)
+
+## Einleitung und Datenbeispiel{#Einleitung}
+
+In der psychologischen Forschung ist die Bestimmung kausaler Effekte oft eine Herausforderung, dies gilt auch für die klinisch-psychologischen Forschung. Wenn ein Treatment nicht randomisiert zugeordnet werden kann, besteht die Gefahr, dass andere Einflussgrößen geschätzte Wirkungen des Treatments verzerren.
+
+In unserem fiktiven Datenbeispiel wurden Patient\*innen, die an einer Depression oder einer Angststörung leiden, entweder mit einer kognitiven Verhaltenstherapie (CBT) behandelt oder in einer Wartekontrollgruppe belassen. Eine zufällige Zuordnung war nicht vollständig möglich, da die Zuordnung von überweisenden Hausarzt-Praxen der Patient*innen mit beeinflusst werden konnte (z.B. durch Geltendmachung einer besonderen Dringlichkeit der Therapie). Zunächst laden wir diesen Datensatz und verschaffen uns einen Überblick:
+
+```{r}
+load(url("https://pandar.netlify.app/post/CBTdata.rda"))
+head(CBTdata)
+table(CBTdata$Treatment) 
+```
+
+Der Datensatz enthält Daten von `r nrow(CBTdata)` Patient*innen, davon `r table(CBTdata$Treatment)[2]` in der Therapiegruppe (CBT) und `r table(CBTdata$Treatment)[1]` in der Wartelisten-Bedingung (WL). Vor und nach dem Treatment wurde die Schwere depressiver Symptomatik mit dem Beck-Depressions-Inventar erfasst (`BDI_pre` und `BDI_post`) sowie die Lebenszufriedenheit mit dem Satisfaction With Life Screening (`SWL_pre` und `SWL_post`).
+
+Kritisch für die Evaluation von Therapie-Effekten sind insbesondere vorab bestehende Gruppenunterschiede in den AVs und anderen Variablen, diese schauen wir uns mit der Funktion `describeBy` deskriptiv an.
+
+```{r}
+# Deskriptivstatistiken der Gruppen für Alter und Prätest-Werte ('range=F' macht die Tabelle etwas übersichtlicher)
+describeBy(CBTdata[,c("Age", "BDI_pre", "SWL_pre")], group = CBTdata$Treatment, range=F)
+```
+
+```{r include=FALSE}
+t.age <- t.test(Age ~ Treatment, data = CBTdata)
+d.age <- cohen.d(Age ~ Treatment, data = CBTdata)
+t.bdi <- t.test(BDI_pre ~ Treatment, data = CBTdata)
+d.bdi <- cohen.d(BDI_pre ~ Treatment, data = CBTdata)
+t.swl <- t.test(SWL_pre ~ Treatment, data = CBTdata)
+d.swl <- cohen.d(SWL_pre ~ Treatment, data = CBTdata)
+```
+
+
+Hinsichtlich des Alters sind beide Gruppen sehr ähnlich ($t=`r round(t.age$statistic, 3)`$; $p=`r round(t.age$p.value, 3)`$, $d=`r round(-d.age$cohen.d[2],2)`$). Die Patient\*innen in der Warteliste-Gruppe haben jedoch deutlich niedrigere BDI-Werte ($t=`r round(t.bdi$statistic, 3)`$; $p=`r round(t.bdi$p.value, 3)`$, $d=`r round(-d.bdi$cohen.d[2],2)`$) und höhere SWL-Werte ($t=`r round(t.swl$statistic, 3)`$; $p=`r round(t.swl$p.value, 3)`$, $d=`r round(-d.swl$cohen.d[2],2)`$), was zeigt, das die Vergleichbarkeit der Gruppen nicht gewährleistet ist. 
+
+Zusammenhänge von Alter und Art der Störung mit dem Treatment können wir deskriptiv mit Kreuztabellen darstellen und mit einem $\chi^2$-Test testen. Wir sehen, dass die Verteilung des Geschlechts auf die Gruppen nicht systematisch ist, dass jedoch dass Patient\*innen mit Angsstörung in der Therapiegruppe überrepräsentiert sind:
+
+```{r}
+# Tabelle erzeugen
+tab.gender <- table(CBTdata$Treatment, CBTdata$Gender)
+# Kreuztabelle mit Anteilen Zeilenweise, durch Multiplikation mit 100 als Zeilenprozent zu lesen
+round(prop.table(tab.gender, 2)*100)
+# Chi2-Test
+chisq.test(tab.gender)
+
+tab.disorder <- table(CBTdata$Treatment, CBTdata$Disorder)
+round(prop.table(tab.disorder, 2)*100)
+chisq.test(tab.disorder)
+
+```
+
+## Prima-Facie-Effekt{#PFE}
+
+Ungeachtet der fraglichen Vergleichbarkeit schauen wir uns den augenscheinlichen Effekt der Therapie auf depressive Symptome an, grafisch als Boxplot und inferenzstatistisch mittels t-Test.
+
+```{r}
+boxplot(CBTdata$BDI_post ~ CBTdata$Treatment)
+
+BDI.PFE <- lm(BDI_post ~ Treatment, data = CBTdata)
+summary(BDI.PFE)
+
+```
+
+Wir sehen bereits grafisch, dass sich beide Gruppen kaum unterscheiden. Der Unterschied von `r round(coef(BDI.PFE)[2],2)` Punkten ist auch nicht signifikant. Nach diesem Ergebnis hat die Therapie keinen Effekt auf die Schwere der depressiven Symptomatik.
+
+
+## Adjustierter Effekt mittels ANCOVA{#ANCOVA}
+### Klassische ANCOVA
+In der Annahme, dass die Selektion ins Treatment durch die vorab gemessenen Eigenschaften der Patient\*innen erklärt werden kann, schätzen wir den Effekt des Treatments zunächst mit einer klassischen ANCOVA, in der die Variablen, hinsichtlich derer sich die Gruppen unterscheiden (Prätest-Werte und Art der Störung), kontrolliert werden:
+
+```{r}
+# ANCOVA mit Treatment und Kovariaten
+BDI.adj <- lm(BDI_post ~ Treatment + Disorder + BDI_pre + SWL_pre, data = CBTdata)
+summary(BDI.adj)
+```
+
+Unter Einbezug der Kovariaten findet sich ein signifikanter Therapieeffekt von `r round(coef(BDI.adj)[2],2)` Punkten. Es wird auch sichtbar, dass alle Kovariaten einen Effekt auf die AV nach dem Treatment haben.
+
+### Generalisierte ANCOVA
+
+In einer generalisierten ANCOVA nehmen wir noch die Wechselwirkungen zwischen den Kovariaten und dem Treatment hinzu:
+
+```{r}
+# Zentrierte Kovariaten bilden
+CBTdata$BDI_pre_c <- scale(CBTdata$BDI_pre, scale = F)
+CBTdata$SWL_pre_c <- scale(CBTdata$SWL_pre, scale = F)
+# Generalisierte ANCOVA mit allen Wechselwirkungen zwischen Kovariaten und Treatment
+BDI.adj2 <- lm(BDI_post ~ Treatment + Disorder + BDI_pre_c + SWL_pre_c +
+                Treatment:Disorder + Treatment:BDI_pre_c + Treatment:SWL_pre_c, data = CBTdata)
+summary(BDI.adj2)
+```
+
+
+## Adjustierter Effekt mittels EffectLiteR{#EffectLite}
+
+```{r include=FALSE}
+BDI.EL <- effectLite(y="BDI_post", x="Treatment", z=c("BDI_pre", "SWL_pre"), k=c("Disorder"), data = CBTdata, method = "lm")
+```
+
+
+Den adjustierten Effekt können wir auch mit `EffectLiteR` schätzen, hierbei wird die Gewichtung nach Kovariaten berücksichtigt. Die Funktion, die wir dazu benutzen heißt `effectLite`. Das Kriterium (AV) wird dem Argument `y` übergeben, `x` die Gruppierungsvariable (UV), `z` wird als Vektor die Kovariaten übergeben, `k` werden kategoriale Kovariaten übergeben, `data` schreiben wir die Daten zu und mit `method = "lm"` legen wir fest, dass alles auf Basis des linearen Modells geschätzt werden soll. 
+
+```{r}
+# Schätzung des Effekts des Treatments auf BDI_post mit effectLite,
+# Prätest-Werte als kontinuierliche, Störung als kategoriale Kovariate
+# 'lm' als Methode für eine Schätzung per ANCOVA
+effectLite(y="BDI_post", x="Treatment", z=c("BDI_pre", "SWL_pre"), k=c("Disorder"), data = CBTdata, method = "lm")
+
+```
+
+Folgendes können wir dem Output entnehmen: Der geschätzet Average Treatment Effect (ATE) fällt mit `r round(BDI.EL@results@Egx[1],2)` sehr ähnlich aus wie mit der ANCOVA und ist auch hier signifikant. 
+
+Zusätzlich erhalten wir noch weitere, differenziertere Schätzer, u.a.:
+
+* Den Average Effect of the Treatet (ATT) für beide Bedingungen, er beträgt `r round(BDI.EL@results@Egxgx[1,1],2)` für die Kontrollbedingung und `r round(BDI.EL@results@Egxgx[2,1],2)` für die Treatment-Bedingung.
+* Effekte bedingt auf die kategoriale Kovariate Art der Störung - der bedingte Effekt beträgt `r round(BDI.EL@results@Egxgk[1,1],2)` für Patient\*innen mit Angststörung, `r round(BDI.EL@results@Egxgk[2,1],2)` für Patient\*innen mit Depression.
+* Auch für die Kombinationen aus Treatment und Störung werden bedingte Effekte geschätzt ('Effects given X=x, K=k').
+
