@@ -14,7 +14,7 @@ tags:
 
 subtitle: ''
 summary: ''
-authors: [hartig]
+authors: [hartig, irmer]
 lastmod: '2022-01-31 12:51:12 CEST'
 featured: no
 header:
@@ -26,12 +26,6 @@ projects: []
 <script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
-<div id="pakete-laden" class="section level4">
-<h4>Pakete laden</h4>
-<pre class="r"><code># Benötigte Pakete --&gt; Installieren, falls nicht schon vorhanden
-library(psych)        # Für Deskriptivstatistiken
-library(EffectLiteR)  # Für die Schätzung adjustierter Effekte</code></pre>
-</div>
 <div id="inhalte" class="section level3">
 <h3>Inhalte</h3>
 <ul>
@@ -43,24 +37,103 @@ library(EffectLiteR)  # Für die Schätzung adjustierter Effekte</code></pre>
 </div>
 <div id="Einleitung" class="section level2">
 <h2>Einleitung und Datenbeispiel</h2>
-<p>In der psychologischen Forschung ist die Bestimmung kausaler Effekte oft eine Herausforderung, dies gilt auch für die klinisch-psychologischen Forschung. Wenn ein Treatment nicht randomisiert zugeordnet werden kann, besteht die Gefahr, dass andere Einflussgrößen geschätzte Wirkungen des Treatments verzerren.</p>
+<p>In der psychologischen Forschung ist die Bestimmung kausaler Effekte oft eine Herausforderung, dies gilt auch für die klinisch-psychologischen Forschung. Wenn ein Treatment nicht randomisiert zugeordnet werden kann, besteht die Gefahr, dass andere Einflussgrößen geschätzte Wirkungen des Treatments verzerren. Bevor wir mit dem (simulierten) Beispiel beginnen, laden wir zunächst die beiden Pakete, die wir in der Sitzung brauchen werden.</p>
+<div id="pakete-laden" class="section level3">
+<h3>Pakete laden</h3>
+<pre class="r"><code># Benötigte Pakete --&gt; Installieren, falls nicht schon vorhanden
+library(psych)        # Für Deskriptivstatistiken
+library(EffectLiteR)  # Für die Schätzung adjustierter Effekte
+library(car)          # Quadratsummen in Anova-Output</code></pre>
+</div>
+<div id="simuliertes-beispiel" class="section level3">
+<h3>Simuliertes Beispiel</h3>
 <p>In unserem fiktiven Datenbeispiel wurden Patient*innen, die an einer Depression oder einer Angststörung leiden, entweder mit einer kognitiven Verhaltenstherapie (CBT) behandelt oder in einer Wartekontrollgruppe belassen. Eine zufällige Zuordnung war nicht vollständig möglich, da die Zuordnung von überweisenden Hausarzt-Praxen der Patient*innen mit beeinflusst werden konnte (z.B. durch Geltendmachung einer besonderen Dringlichkeit der Therapie). Zunächst laden wir diesen Datensatz und verschaffen uns einen Überblick:</p>
 <pre class="r"><code>load(url(&quot;https://pandar.netlify.app/post/CBTdata.rda&quot;))
 head(CBTdata)</code></pre>
-<pre><code>##   Age Gender Treatment Disorder BDI_pre SWL_pre BDI_post SWL_post
-## 1  39 female       CBT      ANX      27      10       24       15
-## 2  36 female       CBT      ANX      22      13       13       17
-## 3  61 female       CBT      ANX      24      11       17       14
-## 4  70 female       CBT      ANX      30      15       22       19
-## 5  64 female       CBT      DEP      32      12       26       20
-## 6  50 female       CBT      ANX      24      15       23       22</code></pre>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Age</th>
+<th align="left">Gender</th>
+<th align="left">Treatment</th>
+<th align="left">Disorder</th>
+<th align="right">BDI_pre</th>
+<th align="right">SWL_pre</th>
+<th align="right">BDI_post</th>
+<th align="right">SWL_post</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">39</td>
+<td align="left">female</td>
+<td align="left">CBT</td>
+<td align="left">ANX</td>
+<td align="right">27</td>
+<td align="right">10</td>
+<td align="right">24</td>
+<td align="right">15</td>
+</tr>
+<tr class="even">
+<td align="right">36</td>
+<td align="left">female</td>
+<td align="left">CBT</td>
+<td align="left">ANX</td>
+<td align="right">22</td>
+<td align="right">13</td>
+<td align="right">13</td>
+<td align="right">17</td>
+</tr>
+<tr class="odd">
+<td align="right">61</td>
+<td align="left">female</td>
+<td align="left">CBT</td>
+<td align="left">ANX</td>
+<td align="right">24</td>
+<td align="right">11</td>
+<td align="right">17</td>
+<td align="right">14</td>
+</tr>
+<tr class="even">
+<td align="right">70</td>
+<td align="left">female</td>
+<td align="left">CBT</td>
+<td align="left">ANX</td>
+<td align="right">30</td>
+<td align="right">15</td>
+<td align="right">22</td>
+<td align="right">19</td>
+</tr>
+<tr class="odd">
+<td align="right">64</td>
+<td align="left">female</td>
+<td align="left">CBT</td>
+<td align="left">DEP</td>
+<td align="right">32</td>
+<td align="right">12</td>
+<td align="right">26</td>
+<td align="right">20</td>
+</tr>
+<tr class="even">
+<td align="right">50</td>
+<td align="left">female</td>
+<td align="left">CBT</td>
+<td align="left">ANX</td>
+<td align="right">24</td>
+<td align="right">15</td>
+<td align="right">23</td>
+<td align="right">22</td>
+</tr>
+</tbody>
+</table>
+<p>Die Variablen heißen <code>Age</code> (Alter), <code>Gender</code> (Geschlecht), <code>Treatment</code> (Behandlungsgruppenzugehörigkeit: CBT oder Wartekontrolle), <code>Disorder</code> (psychische Störung: Angststörung [<code>ANX</code>] oder Depression [<code>DEP</code>]), <code>BDI_pre</code> (Depressionswert gemessen mit Beck Depressions-Inventar vor Therapie), <code>SWL_pre</code> (Lebenszufriedenheit gemessen mit Satisfaction With Life Screening vor Therapie), <code>BDI_post</code> (Depressionswert gemessen mit Beck Depressions-Inventar nach Therapie), <code>SWL_post</code> (Lebenszufriedenheit gemessen mit Satisfaction With Life Screening vor Therapie). Wir können uns die Verteilung in die Behandlungsgruppen wie folgt ansehen:</p>
 <pre class="r"><code>table(CBTdata$Treatment) </code></pre>
 <pre><code>## 
 ##  WL CBT 
 ## 150 176</code></pre>
-<p>Der Datensatz enthält Daten von 326 Patient*innen, davon 176 in der Therapiegruppe (CBT) und 150 in der Wartelisten-Bedingung (WL). Vor und nach dem Treatment wurde die Schwere depressiver Symptomatik mit dem Beck-Depressions-Inventar erfasst (<code>BDI_pre</code> und <code>BDI_post</code>) sowie die Lebenszufriedenheit mit dem Satisfaction With Life Screening (<code>SWL_pre</code> und <code>SWL_post</code>).</p>
-<p>Kritisch für die Evaluation von Therapie-Effekten sind insbesondere vorab bestehende Gruppenunterschiede in den AVs und anderen Variablen, diese schauen wir uns mit der Funktion <code>describeBy</code> deskriptiv an.</p>
-<pre class="r"><code># Deskriptivstatistiken der Gruppen für Alter und Prätest-Werte (&#39;range=F&#39; macht die Tabelle etwas übersichtlicher)
+<p>Der Datensatz enthält Daten also 326 Patient*innen, davon 176 in der Therapiegruppe (CBT) und 150 in der Wartelisten-Bedingung (WL). Vor und nach dem Treatment wurde die Schwere depressiver Symptomatik mit dem Beck-Depressions-Inventar erfasst (<code>BDI_pre</code> und <code>BDI_post</code>) sowie die Lebenszufriedenheit mit dem Satisfaction With Life Screening (<code>SWL_pre</code> und <code>SWL_post</code>).</p>
+<p>Kritisch für die Evaluation von Therapie-Effekten sind insbesondere vorab bestehende Gruppenunterschiede in den AVs und anderen Variablen, diese schauen wir uns mit der Funktion <code>describeBy</code> deskriptiv an, wobei wir zunächst den gekürzten Datensatz übergeben und dem <code>group</code>-Argument die Gruppenvariable zuordnen. Mit <code>range=F</code> machen wir die Tabelle etwas übersichtlicher.</p>
+<pre class="r"><code># Deskriptivstatistiken der Gruppen für Alter und Prätest-Werte
 describeBy(CBTdata[,c(&quot;Age&quot;, &quot;BDI_pre&quot;, &quot;SWL_pre&quot;)], group = CBTdata$Treatment, range=F)</code></pre>
 <pre><code>## 
 ##  Descriptive statistics by group 
@@ -75,8 +148,15 @@ describeBy(CBTdata[,c(&quot;Age&quot;, &quot;BDI_pre&quot;, &quot;SWL_pre&quot;)
 ## Age        1 176 45.47 15.94  0.02    -1.36 1.20
 ## BDI_pre    2 176 23.94  3.95 -0.01    -0.25 0.30
 ## SWL_pre    3 176 14.76  4.06  0.04    -0.28 0.31</code></pre>
-<p>Hinsichtlich des Alters sind beide Gruppen sehr ähnlich (<span class="math inline">\(t=1.541\)</span>; <span class="math inline">\(p=0.124\)</span>, <span class="math inline">\(d=0.17\)</span>). Die Patient*innen in der Warteliste-Gruppe haben jedoch deutlich niedrigere BDI-Werte (<span class="math inline">\(t=-8.914\)</span>; <span class="math inline">\(p=0\)</span>, <span class="math inline">\(d=-1\)</span>) und höhere SWL-Werte (<span class="math inline">\(t=7.504\)</span>; <span class="math inline">\(p=0\)</span>, <span class="math inline">\(d=0.84\)</span>), was zeigt, das die Vergleichbarkeit der Gruppen nicht gewährleistet ist.</p>
-<p>Zusammenhänge von Alter und Art der Störung mit dem Treatment können wir deskriptiv mit Kreuztabellen darstellen und mit einem <span class="math inline">\(\chi^2\)</span>-Test testen. Wir sehen, dass die Verteilung des Geschlechts auf die Gruppen nicht systematisch ist, dass jedoch dass Patient*innen mit Angsstörung in der Therapiegruppe überrepräsentiert sind:</p>
+<p>Uns werden einige Deskriptivstatistiken ausgegeben. Einfache Mittelwertsvergleiche und Effektstärkenmaße können wir so betrachten (wir sparen uns an dieser Stelle den Output, sondern tragen die größen nur in den Text ein, um ein besseres Gefühl dafür zu bekommen, ob Unterschiede vorliegen):</p>
+<pre class="r"><code>t.age &lt;- t.test(Age ~ Treatment, data = CBTdata)
+d.age &lt;- cohen.d(Age ~ Treatment, data = CBTdata)
+t.bdi &lt;- t.test(BDI_pre ~ Treatment, data = CBTdata)
+d.bdi &lt;- cohen.d(BDI_pre ~ Treatment, data = CBTdata)
+t.swl &lt;- t.test(SWL_pre ~ Treatment, data = CBTdata)
+d.swl &lt;- cohen.d(SWL_pre ~ Treatment, data = CBTdata)</code></pre>
+<p>Hinsichtlich des Alters sind beide Gruppen sehr ähnlich (<span class="math inline">\(t=1.541\)</span>; <span class="math inline">\(p=0.124\)</span>, <span class="math inline">\(d=0.17\)</span>). Die Patient*innen in der Warteliste-Gruppe haben jedoch deutlich niedrigere BDI-Werte (<span class="math inline">\(t=-8.914\)</span>; <span class="math inline">\(p=0\)</span>, <span class="math inline">\(d=-1\)</span>) und höhere SWL-Werte (<span class="math inline">\(t=7.504\)</span>; <span class="math inline">\(p=0\)</span>, <span class="math inline">\(d=0.84\)</span>), was zeigt, das die Vergleichbarkeit der Gruppen nicht gewährleistet ist - die Gruppen unterscheiden sich bereits vor dem Treatment/vor der Behandlung.</p>
+<p>Zusammenhänge von Alter und Art der Störung mit dem Treatment können wir deskriptiv mit Kreuztabellen darstellen und mit einem <span class="math inline">\(\chi^2\)</span>-Test testen. Wir sehen, dass die Verteilung des Geschlechts auf die Gruppen nicht systematisch ist (<span class="math inline">\(\chi^2(1)=\)</span> 0.02, <span class="math inline">\(p=\)</span> 0.875):</p>
 <pre class="r"><code># Tabelle erzeugen
 tab.gender &lt;- table(CBTdata$Treatment, CBTdata$Gender)
 # Kreuztabelle mit Anteilen Zeilenweise, durch Multiplikation mit 100 als Zeilenprozent zu lesen
@@ -92,6 +172,7 @@ chisq.test(tab.gender)</code></pre>
 ## 
 ## data:  tab.gender
 ## X-squared = 0.024746, df = 1, p-value = 0.875</code></pre>
+<p>Wir sehen allerdings, dass jedoch dass Patient*innen mit Angsstörung in der Therapiegruppe überrepräsentiert sind (<span class="math inline">\(\chi^2(1)=\)</span> 40.35, <span class="math inline">\(p&lt;0.05\)</span>):</p>
 <pre class="r"><code>tab.disorder &lt;- table(CBTdata$Treatment, CBTdata$Disorder)
 round(prop.table(tab.disorder, 2)*100)</code></pre>
 <pre><code>##      
@@ -104,12 +185,14 @@ round(prop.table(tab.disorder, 2)*100)</code></pre>
 ## 
 ## data:  tab.disorder
 ## X-squared = 40.351, df = 1, p-value = 2.122e-10</code></pre>
+<p>Der <code>table</code>-Befehl erzeugt hierbei die jeweiligen 4-Feldertafeln. Mit <code>prop.table</code> werden die absoluten Häufigkeiten in relative Häufigkeiten umgerechnet. Die erstellten Tabellen können herangezogen werden, um den <span class="math inline">\(\chi^2\)</span>-Unabhängigkeitstest durchzuführen. Wiederholungen zu nominalen Variablen können Sie in den Sitzungen zu Bachelor nachlesen: <a href="/post/deskriptiv-nominal">Deskriptivstatistik für Nominal- und Ordinalskalen</a> und <a href="/post/gruppenvergleiche-unabhaengig">Tests für unabhängige Stichproben</a>.</p>
+</div>
 </div>
 <div id="PFE" class="section level2">
 <h2>Prima-Facie-Effekt</h2>
-<p>Ungeachtet der fraglichen Vergleichbarkeit schauen wir uns den augenscheinlichen Effekt der Therapie auf depressive Symptome an, grafisch als Boxplot und inferenzstatistisch mittels t-Test.</p>
+<p>Ungeachtet der fraglichen Vergleichbarkeit schauen wir uns den augenscheinlichen Effekt der Therapie auf depressive Symptome an, grafisch als Boxplot und inferenzstatistisch mittels t-Test/Regressionsanalyse (das war ja beides das Gleiche! - siehe <a href="/post/anova-vs-regression">ANOVA vs. Regression</a>).</p>
 <pre class="r"><code>boxplot(CBTdata$BDI_post ~ CBTdata$Treatment)</code></pre>
-<p><img src="/post/2022-01-31-Kausaleffekte_1_KliPPS_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="/post/2022-01-31-Kausaleffekte_1_KliPPS_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 <pre class="r"><code>BDI.PFE &lt;- lm(BDI_post ~ Treatment, data = CBTdata)
 summary(BDI.PFE)</code></pre>
 <pre><code>## 
@@ -130,7 +213,7 @@ summary(BDI.PFE)</code></pre>
 ## Residual standard error: 5.187 on 324 degrees of freedom
 ## Multiple R-squared:  0.001394,   Adjusted R-squared:  -0.001688 
 ## F-statistic: 0.4523 on 1 and 324 DF,  p-value: 0.5017</code></pre>
-<p>Wir sehen bereits grafisch, dass sich beide Gruppen kaum unterscheiden. Der Unterschied von 0.39 Punkten ist auch nicht signifikant. Nach diesem Ergebnis hat die Therapie keinen Effekt auf die Schwere der depressiven Symptomatik.</p>
+<p>Wir sehen bereits grafisch, dass sich beide Gruppen kaum unterscheiden. Der Unterschied von <span class="math inline">\(\beta=\)</span> 0.39 Punkten ist auch nicht signifikant (<span class="math inline">\(p=\)</span> 0.502). Nach diesem Ergebnis hat die Therapie keinen Effekt auf die Schwere der depressiven Symptomatik. Allerdings können wir diesen Effekt nicht kausal interpretieren, also das “Nichtvorliegen das Effekts” nicht auf ein nicht funktionierendes Treatment zurückführen, da wir bereits gesehen haben, dass sich die Gruppen auch vor der Therapie schon unterschieden haben, was die Effekte somit konfundiert haben könnte.</p>
 </div>
 <div id="ANCOVA" class="section level2">
 <h2>Adjustierter Effekt mittels ANCOVA</h2>
@@ -166,7 +249,7 @@ summary(BDI.adj)</code></pre>
 </div>
 <div id="generalisierte-ancova" class="section level3">
 <h3>Generalisierte ANCOVA</h3>
-<p>In einer generalisierten ANCOVA nehmen wir noch die Wechselwirkungen zwischen den Kovariaten und dem Treatment hinzu:</p>
+<p>In einer generalisierten ANCOVA nehmen wir noch die Wechselwirkungen zwischen den Kovariaten und dem Treatment hinzu und schauen uns auch den <code>Anova</code>-Output des <code>car</code>-Pakets an:</p>
 <pre class="r"><code># Zentrierte Kovariaten bilden
 CBTdata$BDI_pre_c &lt;- scale(CBTdata$BDI_pre, scale = F)
 CBTdata$SWL_pre_c &lt;- scale(CBTdata$SWL_pre, scale = F)
@@ -200,15 +283,86 @@ summary(BDI.adj2)</code></pre>
 ## Residual standard error: 3.062 on 318 degrees of freedom
 ## Multiple R-squared:  0.6585, Adjusted R-squared:  0.651 
 ## F-statistic:  87.6 on 7 and 318 DF,  p-value: &lt; 2.2e-16</code></pre>
+<p>Die Effekte ändern sich kaum. Die Interaktionseffekte scheinen nicht signifikant zu sein. Trotzdem schauen wir uns nochmals die Effekte innerhalb des ANOVA-Frameworks an, um Signifikanzentscheidungen für die Gruppen kombiniert zu sehen.</p>
+<pre class="r"><code>Anova(BDI.adj2, type = 2)</code></pre>
+<pre><code>## Anova Table (Type II tests)
+## 
+## Response: BDI_post
+##                     Sum Sq  Df  F value    Pr(&gt;F)    
+## Treatment            972.6   1 103.7346 &lt; 2.2e-16 ***
+## Disorder             140.4   1  14.9763 0.0001321 ***
+## BDI_pre_c           3574.6   1 381.2632 &lt; 2.2e-16 ***
+## SWL_pre_c            728.8   1  77.7304 &lt; 2.2e-16 ***
+## Treatment:Disorder     5.5   1   0.5866 0.4443003    
+## Treatment:BDI_pre_c    3.8   1   0.4087 0.5230756    
+## Treatment:SWL_pre_c    2.8   1   0.2955 0.5871085    
+## Residuals           2981.4 318                       
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Diesen Analysen zu Folge hat das Treatment einen Effekt. Außerdem unterscheidet sich die Depressivität, je nach dem welche Störung vorlag (wenig überraschend) und hängt von der Ausprägung der Depressivität und Lebenszufriedenheit vor Beginn der Therapie ab. Wechselwirkungen scheint es keine zu geben.</p>
+<p>Zu guter Letzt fügen wir auch noch die Interaktion zwischen <code>Disorder</code> und <code>Treatment</code> zu den beiden kontinuierlichen Kovariaten hinzu, da dies im nächsten Abschnitt ebenfalls gemacht wird.</p>
+<pre class="r"><code>BDI.adj3 &lt;- lm(BDI_post ~ 1 +  Treatment + Disorder + BDI_pre_c + SWL_pre_c +
+                 Treatment:Disorder + Treatment:BDI_pre_c + Treatment:SWL_pre_c + 
+                 Treatment:Disorder:BDI_pre_c +
+                 Treatment:Disorder:SWL_pre_c, data = CBTdata)
+summary(BDI.adj3)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = BDI_post ~ 1 + Treatment + Disorder + BDI_pre_c + 
+##     SWL_pre_c + Treatment:Disorder + Treatment:BDI_pre_c + Treatment:SWL_pre_c + 
+##     Treatment:Disorder:BDI_pre_c + Treatment:Disorder:SWL_pre_c, 
+##     data = CBTdata)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -9.6825 -1.8013 -0.1473  1.8545  7.5690 
+## 
+## Coefficients:
+##                                    Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)                        20.03432    0.46219  43.347  &lt; 2e-16 ***
+## TreatmentCBT                       -4.50331    0.59100  -7.620 3.03e-13 ***
+## DisorderDEP                         1.08259    0.62800   1.724   0.0857 .  
+## BDI_pre_c                           1.05500    0.12736   8.284 3.50e-15 ***
+## SWL_pre_c                          -0.35096    0.13813  -2.541   0.0115 *  
+## TreatmentCBT:DisorderDEP            0.93328    0.83444   1.118   0.2642    
+## TreatmentCBT:BDI_pre_c             -0.13981    0.14961  -0.935   0.3508    
+## TreatmentCBT:SWL_pre_c             -0.05871    0.15548  -0.378   0.7060    
+## TreatmentWL:DisorderDEP:BDI_pre_c  -0.16040    0.15292  -1.049   0.2950    
+## TreatmentCBT:DisorderDEP:BDI_pre_c -0.07900    0.13254  -0.596   0.5516    
+## TreatmentWL:DisorderDEP:SWL_pre_c  -0.07458    0.15818  -0.471   0.6376    
+## TreatmentCBT:DisorderDEP:SWL_pre_c  0.12515    0.12560   0.996   0.3198    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 3.068 on 314 degrees of freedom
+## Multiple R-squared:  0.6615, Adjusted R-squared:  0.6497 
+## F-statistic:  55.8 on 11 and 314 DF,  p-value: &lt; 2.2e-16</code></pre>
+<pre class="r"><code>Anova(BDI.adj3)</code></pre>
+<pre><code>## Anova Table (Type II tests)
+## 
+## Response: BDI_post
+##                              Sum Sq  Df  F value    Pr(&gt;F)    
+## Treatment                     972.6   1 103.3505 &lt; 2.2e-16 ***
+## Disorder                      140.4   1  14.9209 0.0001362 ***
+## BDI_pre_c                    3535.5   1 375.7025 &lt; 2.2e-16 ***
+## SWL_pre_c                     715.6   1  76.0460 &lt; 2.2e-16 ***
+## Treatment:Disorder              5.5   1   0.5844 0.4451514    
+## Treatment:BDI_pre_c             3.3   1   0.3531 0.5527911    
+## Treatment:SWL_pre_c             1.8   1   0.1863 0.6662735    
+## Treatment:Disorder:BDI_pre_c   13.7   2   0.7277 0.4838164    
+## Treatment:Disorder:SWL_pre_c   11.4   2   0.6075 0.5453251    
+## Residuals                    2954.9 314                       
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 </div>
 </div>
 <div id="EffectLite" class="section level2">
 <h2>Adjustierter Effekt mittels EffectLiteR</h2>
-<p>Den adjustierten Effekt können wir auch mit <code>EffectLiteR</code> schätzen, hierbei wird die Gewichtung nach Kovariaten berücksichtigt. Die Funktion, die wir dazu benutzen heißt <code>effectLite</code>. Das Kriterium (AV) wird dem Argument <code>y</code> übergeben, <code>x</code> die Gruppierungsvariable (UV), <code>z</code> wird als Vektor die Kovariaten übergeben, <code>k</code> werden kategoriale Kovariaten übergeben, <code>data</code> schreiben wir die Daten zu und mit <code>method = "lm"</code> legen wir fest, dass alles auf Basis des linearen Modells geschätzt werden soll.</p>
+<p>Den adjustierten Effekt können wir auch mit <code>EffectLiteR</code> schätzen, hierbei wird die Gewichtung nach Kovariaten berücksichtigt. Die Funktion, die wir dazu benutzen, heißt <code>effectLite</code>. Das Kriterium (AV) wird dem Argument <code>y</code> übergeben, <code>x</code> die Gruppierungsvariable (UV), <code>z</code> wird als Vektor die Kovariaten übergeben, <code>k</code> werden kategoriale Kovariaten übergeben, <code>data</code> schreiben wir die Daten zu und mit <code>method = "lm"</code> legen wir fest, dass alles auf Basis des linearen Modells geschätzt werden soll, was im Grunde einer Schätzung mittels ANCOVA entspricht.</p>
 <pre class="r"><code># Schätzung des Effekts des Treatments auf BDI_post mit effectLite,
 # Prätest-Werte als kontinuierliche, Störung als kategoriale Kovariate
 # &#39;lm&#39; als Methode für eine Schätzung per ANCOVA
-effectLite(y=&quot;BDI_post&quot;, x=&quot;Treatment&quot;, z=c(&quot;BDI_pre&quot;, &quot;SWL_pre&quot;), k=c(&quot;Disorder&quot;), data = CBTdata, method = &quot;lm&quot;)</code></pre>
+effectLite(y=&quot;BDI_post&quot;, x=&quot;Treatment&quot;, z=c(&quot;BDI_pre_c&quot;, &quot;SWL_pre_c&quot;), k=c(&quot;Disorder&quot;), data = CBTdata, method = &quot;lm&quot;)</code></pre>
 <pre><code>## 
 ## 
 ## --------------------- Variables  --------------------- 
@@ -216,7 +370,7 @@ effectLite(y=&quot;BDI_post&quot;, x=&quot;Treatment&quot;, z=c(&quot;BDI_pre&qu
 ## Outcome variable Y:  BDI_post 
 ## Treatment variable X:  Treatment   (Reference group:  WL)
 ## Categorical covariates K:  Disorder 
-## Continuous covariates in Z=(Z1,Z2): Z1=BDI_pre Z2=SWL_pre 
+## Continuous covariates in Z=(Z1,Z2): Z1=BDI_pre_c Z2=SWL_pre_c 
 ## 
 ## Levels of Treatment Variable X 
 ##    X   Treatment (original)   Indicator
@@ -247,20 +401,20 @@ effectLite(y=&quot;BDI_post&quot;, x=&quot;Treatment&quot;, z=c(&quot;BDI_pre&qu
 ##  Intercept Function g0(K,Z)  [Reference group: WL] 
 ## 
 ##    Coefficient   Estimate      SE   Est./SE   p-value
-##           g000      2.438   4.470     0.546     0.586
+##           g000     20.034   0.462    43.347     0.000
 ##           g001      1.055   0.127     8.284     0.000
 ##           g002     -0.351   0.138    -2.541     0.012
-##           g010      5.844   5.058     1.155     0.249
+##           g010      1.083   0.628     1.724     0.086
 ##           g011     -0.160   0.153    -1.049     0.295
 ##           g012     -0.075   0.158    -0.471     0.638
 ## 
 ##  Effect Function g1(K,Z)   [Treatment: CBT vs. WL] 
 ## 
 ##    Coefficient   Estimate      SE   Est./SE   p-value
-##           g100     -0.455   5.059    -0.090     0.928
+##           g100     -4.503   0.591    -7.620     0.000
 ##           g101     -0.140   0.150    -0.935     0.351
 ##           g102     -0.059   0.155    -0.378     0.706
-##           g110     -4.123   6.443    -0.640     0.523
+##           g110      0.933   0.834     1.118     0.264
 ##           g111      0.081   0.202     0.402     0.688
 ##           g112      0.200   0.202     0.989     0.324
 ## 
@@ -338,7 +492,31 @@ effectLite(y=&quot;BDI_post&quot;, x=&quot;Treatment&quot;, z=c(&quot;BDI_pre&qu
 ##                                F value   df1   df2    p-value
 ## No average effects given K=0      64.8     1   314   1.75e-14
 ## No average effects given K=1      31.9     1   314   3.58e-08</code></pre>
-<p>Folgendes können wir dem Output entnehmen: Der geschätzet Average Treatment Effect (ATE) fällt mit -3.99 sehr ähnlich aus wie mit der ANCOVA und ist auch hier signifikant.</p>
+<p>Unter</p>
+<pre><code>## ## --------------------- Variables  ---------------------</code></pre>
+<p>finden wir eine Zusammenfassung der Variablen, die wir als Input verwendet haben. Bspw. werden die kategorialen Variablen hinsichtlich ihrer Kodierung aufgedröselt. Bspw. bedeutet</p>
+<pre><code>## ## Levels of Treatment Variable X 
+## ##    X   Treatment (original)   Indicator
+## ##    0                     WL       I_X=0
+## ##    1                    CBT       I_X=1</code></pre>
+<p>dass die Gruppierungsvariable (of interest) mit X betitelt wird und aus den Ausprägung des Treatments besteht. Dabei ist <code>X=0</code> die Wartelistenkontrolle (WL) und <code>X=1</code> die Treatmentgruppe (CBT). Dahinter wird noch der Indikator <code>I_X</code> definiert, der entsprechend die Werte 0 und 1 annimmt. Unter <code>## Levels of Unfolded Categorical Covariate K</code> steht gleiches nochmals für die kategoriale Kovariate <code>Disorder</code>. Eine Übersicht über die Kombination der Gruppen steht in</p>
+<pre><code>## ## Cells 
+## ##     Treatment (original)   K   Cell
+## ## 1                     WL   0     00
+## ## 2                     WL   1     01
+## ## 3                    CBT   0     10
+## ## 4                    CBT   1     11</code></pre>
+<p>Es handelt sich also um ein vollgekreuztes Design (alle Zellen sind vorhanden). Unter</p>
+<pre><code>## ##  --------------------- Regression Model ---------------------</code></pre>
+<p>wird dann das Regressionsmodell definiert. Dabei wird das Modell mit Hilfe der bedingten Erwartungswert-Schreibweise dargestellt.</p>
+<pre><code>## ##  E(Y|X,K,Z) = g0(K,Z) + g1(K,Z)*I_X=1</code></pre>
+<p>bedeutet dabei nichts anderes, als dass der Mittelwert von <code>Y</code> auf <code>X</code> (UV), <code>K</code> und <code>Z</code> (kategoriale und kontinuierliche Kovariaten) bedingt wird. Bedingter Mittelwert heißt wiederum nur, dass ich eine Art Regression durchführe. Dahinter sehen wir die Schreibweise, die wir auch aus den Folien kennen. <code>g0</code> ist hierbei die Interzeptfunktion, die von <code>K</code> und <code>Z</code> abhängt. <code>g1</code> ist hierbei die Slopefunktion, die von <code>K</code> und <code>Z</code> abhängt und den Effekt des <code>Treatment</code> darstellt.</p>
+<pre><code>## ##   g0(K,Z) = g000 + g001 * Z1 + g002 * Z2 + g010 * I_K=1 + g011 * I_K=1 * Z1 + 
+## ##             + g012 * I_K=1 * Z2
+## ##   g1(K,Z) = g100 + g101 * Z1 + g102 * Z2 + g110 * I_K=1 + g111 * I_K=1 * Z1 + 
+## ##             + g112 * I_K=1 * Z2</code></pre>
+<p>beschreibt explizit die Regressionsdarstellung der Interzeptfunktion (Hautpeffekte im ANCOVA-Setting) und der Slopefunktion (Interaktionseffekte im ANCOVA-Setting).</p>
+<p>Folgendes können wir dem Output entnehmen: Der geschätzte Average Treatment Effect (ATE) fällt mit -3.99 sehr ähnlich aus wie mit der ANCOVA und ist auch hier signifikant.</p>
 <p>Zusätzlich erhalten wir noch weitere, differenziertere Schätzer, u.a.:</p>
 <ul>
 <li>Den Average Effect of the Treatet (ATT) für beide Bedingungen, er beträgt -3.49 für die Kontrollbedingung und -4.41 für die Treatment-Bedingung.</li>
