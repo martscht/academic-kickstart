@@ -1,5 +1,5 @@
 ---
-title: Netzwerkanalyse im Längsschnitt
+title: Dynamische Netzwerkanalyse 
 date: '2022-01-11'
 slug: dynamic-networks
 categories:
@@ -25,20 +25,136 @@ projects: []
 <div id="einführung" class="section level2">
 <h2>Einführung</h2>
 <p>Hier folgen Informationen zur Netzwerkanalyse im Längsschnitt.</p>
-<p><span class="math display">\[ \Theta = \Sigma^{-1} \]</span>
-<span class="math inline">\(\Sigma\)</span></p>
+<p>Nachdem wir letzte Woche in die Netzwerkanalyse eingestiegen sind und dabei querschnittliche Daten verarbeitet haben, geht es heute in das Setting einer Längsschnittuntersuchung. Übergeordnet werden Netzwerke mit Zeitverlaufsmessung als <strong>dynamische Netzwerke</strong> bezeichnet. Wir wollen uns im Rahmen dieses Tutorials mit einer Unterform davon auseinandersetzen - den idiographischen Netzwerken. Idiographische Netzwerke beziehen sich, wie der Name schon sagt, auf einzelne Personen. In der Praxis besteht dabei ein großes Bedürfnis nach Methoden, die die datengetriebene Personalisierung von Psychotherapie auf einzelne Patientinnen (personalized psychotherapy) ermöglichen, da die meisten sonst angewendeten Methoden sich auf Erkenntnisse auf dem Gruppen-Level fokussieren. Probleme auf individueller Ebene werden demnach mit Modellen analysiert, die auf Gruppenebene entworfen wurden. Allerdings müssen Ergebnisse, die über viele Personen gemittelt werden, nicht unbedingt auf ein Individuum zutreffen. Ganz grundsätzlich zeigt sich hier ein Problem dabei, Zusammenhänge von Variablen <em>zwischen</em> Personen auf den Zusammenhang <em>innerhalb</em> einer Person zu übertragen. Aus der Literatur (Hamaker, 2012) gibt es hier das prägnante Beispiel der Tippgeschwindigkeit, auch wenn das jetzt nicht direkt ein klinisches Beispiel ist: Erhebt man Daten zur Tippgeschwindigkeit und Rechtschreibfehlern über viele Personen hinweg, findet sich ein negativer Zusammenhang - wer schneller tippt, tippt auch akkurater. Würde man deswegen Einzelpersonen empfehlen, einfach schneller zu tippen, wenn sie weniger Fehler machen wollen? Nein, denn <em>innerhalb</em> einer Person ist der gleiche Zusammenhang positiv - wenn ich im Vergleich zu meiner typischen Geschwindigkeit schneller schreibe, mache ich auch mehr Fehler. Dieses Problem lässt sich auf verschiedene andere Zusammenhänge übertragen.</p>
+<p>Bei psychischen Störungen, die mit einem Cut-Off über die Anzahl bzw. Stärke von Symptomen diagnostiziert werden, kommt noch hinzu, dass im Hintergrund eine große Menge an verschiedenen Kombinationen dieser Symptome bestehen kann. Diese Problematik könnte auch teilweise erklären, warum Therapiemethoden bei unterschiedlichen Personen teils sehr unterschiedlich gut wirken oder etwa auch, warum keine eindeutigen biologischen Marker/Entsprechungen für die sehr heterogenen Störungskategorien in Gehirnregionen gefunden werden. Es sollte also bei der Erforschung eines Störungsbildes nicht nur die Intensität der Störung betrachtet werden, sondern auch die individuelle Zusammensetzung und das Zusammenspiel der Symptome.</p>
+<p>Die idiographischen Netzwerke bieten nun den Vorteil, dass sie eine individuelle Betrachtung für Einzelpersonen ermöglichen. Sie sind dabei sogar theoretisch in die Therapie einbindbar, da die einfach und sehr anschauliche Visualisierung auch für die Patient:innen verständlich sein kann. Patient:innen werden dabei aktiv integriert, da sie natürlich die zugehörigen Daten durch Beantwortung von Fragebögen erzeugen müssen. Ein erhoffter Benefit ist dabei, dass durch die gemeinsame Diskussion der Ergebnisse dabei eine Selbstwirksamkeit oder bessere Selbstwahrnehmung in den Patient:innen erzeugt werden könnte. Mögliche Verwendungszwecke bieten dabei die Erhebung zu Beginn und gegen Ende der Therapie, um den Erfolg aufzuzeigen oder auch die Inspektion der Netzwerkstruktur nach spezifischen Ansatzpunkten für die Therapie.</p>
+</div>
+<div id="daten" class="section level2">
+<h2>Daten</h2>
+<p>Da es sich bei den idiographischen Netzwerken wie beschrieben um dynamische Netzwerke (auf Basis von längsschnittlichen Daten dieser einzelnen Person) handelt, reicht ein einmaliges Ausfüllen von Fragebögen der Proband:innen nicht aus. Der Selbstbericht wird hier also häufig wiederholt, in der Regel mehrere Male pro Tag über ein bis mehrere Wochen. Die Integration solcher Methoden in die Forschung ist natürlich erst durch neuere technische Gegebenheiten wie internetfähige Handys weit verbreitet worden. Proband:innen werden dabei durch Push-Nachrichten einer App oder SMS an das Ausfüllen der Fragebögen in vorher festgelegten Timeslots erinnert, wobei oftmals eher kurze Fragebögen verwendet werden, um den Zeitaufwand pro Erhebung kurz zu halten. Der Zeitplan der Erfassung pro Tag kann aufgrund des personalisierbaren Settings auf den Alltag optimiert werden. Das Vorgehen wird allgemein auch als <strong>Experience Sampling Method</strong> bezeichnet und hat das Ziel, psychologische Variablen im Alltag und in verschiedenen Kontexten zu erheben, um ein möglichst akkurates Bild vom Innenleben der Teilnehmenden zu erhalten.</p>
+<p>Für die R-Teile der heutigen Sitzung beschäftigen wir uns mit einem Datensatz, der auch in der als Grundlage angegebenen Literatur (Epskamp et al., 2018a) zu einer Einführung in die idiografischen Netzwerke genutzt wird. Wie gewohnt kann der Datensatz direkt aus dem OSF in unser Environment eingeladen werden.</p>
+<pre class="r"><code>data &lt;- read.csv(url(&quot;https://osf.io/g6ya4/download&quot;))</code></pre>
+<p>Lassen wir uns an dieser Stelle einmal die Variablennamen im Datensatz anzeigen.</p>
+<pre class="r"><code>names(data)</code></pre>
+<pre><code>## [1] &quot;relaxed&quot;           &quot;sad&quot;               &quot;nervous&quot;          
+## [4] &quot;concentration&quot;     &quot;tired&quot;             &quot;rumination&quot;       
+## [7] &quot;bodily.discomfort&quot; &quot;time&quot;</code></pre>
+<p>Die eingeladenen Daten befassen sich mit einer einzelnen Person. Dabei handelt es sich laut der Autor:innen um eine Person, die nach einer Major Depression Diagnose sich schon in der Behandlung befand. Die Fragen wurden von der teilnehmenden Person 5 Mal am Tag über 14 Tage hinweg ausgefüllt. Dies wird uns auch angezeigt, wenn wir uns die Spalte <code>time</code> ausgeben lassen.</p>
+<pre class="r"><code>data$time</code></pre>
+<pre><code>##  [1] &quot;2014-04-25 10:15:00&quot; &quot;2014-04-25 13:15:00&quot; &quot;2014-04-25 16:15:00&quot;
+##  [4] &quot;2014-04-25 19:15:00&quot; &quot;2014-04-25 22:15:00&quot; &quot;2014-04-26 10:15:00&quot;
+##  [7] &quot;2014-04-26 13:15:00&quot; &quot;2014-04-26 16:15:00&quot; &quot;2014-04-26 19:15:00&quot;
+## [10] &quot;2014-04-26 22:15:00&quot; &quot;2014-04-27 10:15:00&quot; &quot;2014-04-27 13:15:00&quot;
+## [13] &quot;2014-04-27 16:15:00&quot; &quot;2014-04-27 19:15:00&quot; &quot;2014-04-27 22:15:00&quot;
+## [16] &quot;2014-04-28 10:15:00&quot; &quot;2014-04-28 13:15:00&quot; &quot;2014-04-28 16:15:00&quot;
+## [19] &quot;2014-04-28 19:15:00&quot; &quot;2014-04-28 22:15:00&quot; &quot;2014-04-29 10:15:00&quot;
+## [22] &quot;2014-04-29 13:15:00&quot; &quot;2014-04-29 16:15:00&quot; &quot;2014-04-29 19:15:00&quot;
+## [25] &quot;2014-04-29 22:15:00&quot; &quot;2014-04-30 10:15:00&quot; &quot;2014-04-30 13:15:00&quot;
+## [28] &quot;2014-04-30 16:15:00&quot; &quot;2014-04-30 19:15:00&quot; &quot;2014-04-30 22:15:00&quot;
+## [31] &quot;2014-05-01 10:15:00&quot; &quot;2014-05-01 13:15:00&quot; &quot;2014-05-01 16:15:00&quot;
+## [34] &quot;2014-05-01 19:15:00&quot; &quot;2014-05-01 22:15:00&quot; &quot;2014-05-02 10:15:00&quot;
+## [37] &quot;2014-05-02 13:15:00&quot; &quot;2014-05-02 16:15:00&quot; &quot;2014-05-02 19:15:00&quot;
+## [40] &quot;2014-05-02 22:15:00&quot; &quot;2014-05-03 10:15:00&quot; &quot;2014-05-03 13:15:00&quot;
+## [43] &quot;2014-05-03 16:15:00&quot; &quot;2014-05-03 19:15:00&quot; &quot;2014-05-03 22:15:00&quot;
+## [46] &quot;2014-05-04 10:15:00&quot; &quot;2014-05-04 13:15:00&quot; &quot;2014-05-04 16:15:00&quot;
+## [49] &quot;2014-05-04 19:15:00&quot; &quot;2014-05-04 22:15:00&quot; &quot;2014-05-05 10:15:00&quot;
+## [52] &quot;2014-05-05 13:15:00&quot; &quot;2014-05-05 16:15:00&quot; &quot;2014-05-05 19:15:00&quot;
+## [55] &quot;2014-05-05 22:15:00&quot; &quot;2014-05-06 10:15:00&quot; &quot;2014-05-06 13:15:00&quot;
+## [58] &quot;2014-05-06 16:15:00&quot; &quot;2014-05-06 19:15:00&quot; &quot;2014-05-06 22:15:00&quot;
+## [61] &quot;2014-05-07 10:15:00&quot; &quot;2014-05-07 13:15:00&quot; &quot;2014-05-07 16:15:00&quot;
+## [64] &quot;2014-05-07 19:15:00&quot; &quot;2014-05-07 22:15:00&quot; &quot;2014-05-08 10:15:00&quot;
+## [67] &quot;2014-05-08 13:15:00&quot; &quot;2014-05-08 16:15:00&quot; &quot;2014-05-08 19:15:00&quot;
+## [70] &quot;2014-05-08 22:15:00&quot;</code></pre>
+<p>Die Zieluhrzeiten des Ausfüllens blieben über die 14 hinweg konstant. Dabei wurde ein dreistündlicher Rhythmus vom Morgen bis zum späten Abend gewählt. Leider ist das Format für eine Datumsvariable in einer CSV-Datei und einem Datensatz in <code>R</code> verschieden. Es gibt jedoch einen einfachen Weg, die Transformation zwischen den Formate durchzuführen mittels der Funktion <code>as.POSIXct</code>. Unter dem Argument <code>tz</code> kann dabei noch die passende Zeitzone ausgewählt werden - in diesem Fall wurde die Studie in den Niederlanden durchgeführt. Wenn wir uns dann einen kleinen Ausschnitt der überschriebenen Variable anzeigen lassen, merken wir zwar, dass sich nicht viel verädert hat, jedoch ist es für <code>R</code> ein großer Unterschied.</p>
+<pre class="r"><code>data$time &lt;- as.POSIXct(data$time, tz = &quot;Europe/Amsterdam&quot;)
+data$time[1:8]</code></pre>
+<pre><code>## [1] &quot;2014-04-25 10:15:00 CEST&quot; &quot;2014-04-25 13:15:00 CEST&quot;
+## [3] &quot;2014-04-25 16:15:00 CEST&quot; &quot;2014-04-25 19:15:00 CEST&quot;
+## [5] &quot;2014-04-25 22:15:00 CEST&quot; &quot;2014-04-26 10:15:00 CEST&quot;
+## [7] &quot;2014-04-26 13:15:00 CEST&quot; &quot;2014-04-26 16:15:00 CEST&quot;</code></pre>
+</div>
+<div id="modell" class="section level2">
+<h2>Modell</h2>
+<p>Das in diesem Tutorial beschriebene Modell zur Repräsentation personenbezogener Längsschnittdaten und damit verbundener Schätzung dynamischer Netzwerke setzt sich aus zwei Bestandteilen zusammen. An dieser Stelle ist es - wie auch im Tutorial letzte Woche - wichtig zu erwähnen, dass die hier vorgestellten Modelle noch der wissenschaftlichen Diskussion in der Methodenforschung unterliegen. Wir stellen damit einen noch recht jungen Ansatz vor, der zwar bereits in verschiedenen Situationen zum Einsatz kommt, aber natürlich innerhalb der Psychologie nicht mit der langen Historie bspw. einer Hierarchischen Regression versehen ist. Später werden wir einige Kritikpunkte auch nochmal konkreter ansprechen.</p>
+<p>Den ersten Teil der Modellierung stellt ein sogenanntes Vektorautoregressives Modell dar, in welchem die Daten eines Messzeitpunkts auf die Daten eines vorherigen Messzeitpunktes regressiert werden. Dieser Teil der Modellierung wird deshalb als auch <strong>temporal</strong> bezeichnet. Die Ausprägung auf einer Variable hängt dabei von vergangenen Ausprägungen dieser Variable und aller anderen Variablen im Modell ab, wobei der sogenannte <strong>lag</strong> ausdrückt, wie viele Messzeitpunkt man in die Vergangenheit schaut. Ein Lag 1 würde also etwa bedeuten, dass man den vorherigen Messzeitpunkt zur Modellierung verwendet. Dies stellt auch das aktuelle Standardvorgehen in der Psychologie dar, wobei auch größere Lags von Interesse sein könnten. Es wird in dieser Modellierung davon ausgegangen, dass jeder Zusammenhang zwischen Variablen über mehr als einen Messzeitpunkt hinweg, von den Zusammenhängen über einen Messzeitpunkt hinweg erklärt werden kann. Der Bezug einer Variable auf sich selbst vom letzten Messzeitpunkt wird auch <strong>auto-regressiv</strong> genannt. Dadurch entstehen in der optischen Repräsentation des Netzwerks <strong>self-loops</strong>. Doch auch die anderen Variablen vom vorherigen Messzeitpunkt werden im Modell verwendet, woher auch der Name <strong>Vektor</strong>autoregressiv stammt, da statt einer Variable ein ganzer Vektor von Variablen verwendet wird, um zeitliche Zusammenhänge zu modellieren. Der Zusammenhang von einer Variablen mit einer anderen wird als <strong>cross-lagged</strong> bezeichnet. Dadurch, dass alle Variablen wie in einer normalen multiplen Regression simultan in die Schätzung aufgenommen werden, repräsentiert ein gefundenes Gewicht zwischen zwei Knoten einen Einfluss, der über den Einfluss aller anderen Knoten hinaus existiert.</p>
+<p>BILD EINFÜGEN</p>
+<p>Diese Methode, um zeitliche Zusammenhänge zwischen Variablen darzustellen, existiert schon sehr lange. Es lässt sich jedoch feststellen, dass (wie in jedem statistischen Modell) Residuen bei dieser Modellierung zurückbleiben, die noch weitere Informationen liefern können (Epskamp et al., 2018a). Eine potentiell sehr wichtige Information fehlt uns nämlich noch: Wie hängen die Variablen an einem bestimmten Messzeitpunkt gleichzeitig zusammen? Da zu jedem einzelnen Zeitpunkt Residuen auf jeder Variable existent bleiben, können diese zur Bestimmung von Partialkorrelationen verwendet werden. Diese zeigen an, wie stark die Ausprägung von zwei Knoten zu einem gleichzeitigen Messzeitpunkt zusammenhängt. Dieser Teil der Modellierung wird auch als <strong>contemporaneous</strong> (also gleichzeitiges Netzwerk) bezeichnet. Die Idee der Modellierung sollte uns durch das Tutorial zu den querschnittlichen Netzwerken sehr bekannt vorkommen. Die Logik und Berechnung ist dabei auch sehr ähnlich, jedoch wird in dem vorliegenden Fall nur auf Grundlage der Residuen die Struktur des Netzwerks bestimmt, wodurch für den Einfluss des Messzeitpunkts davor kontrolliert werden kann. Eine Trennung von Effekten über Zeitfenster hinweg und innerhalb eines Zeitfensters wird damit ermöglicht.</p>
+<p>PASSENDES BILD ZUM OBEREN EINFÜGEN</p>
+<p>Die Kombination der beiden Modelle wird von Epskamp et al. (2018a) als <strong>graphicalVAR</strong> bezeichnet und ist auch im bereits verwendeten Paket unter diesem Namen ansprechbar. Um die Schätzung mit einem Lag von 1 nochmal zusammenzufassen: Jeder Knoten wird zum Zeitpunkt <em>t`</em> mittels Maximum Likelihood Schätzung auf sich selbst und alle anderen Knoten zum Zeitpunkt <em>t-1</em> regressiert. Bei dieser Schätzung entstehen nicht nur Zusammenhangsgewichte, sondern auch Residuen, also Anteile, die nicht durch die Knoten am Zeitpunkt <em>t-1</em> erklärt werden können. Die Kovarianz dieser Residuen über alle Messungen hinweg dient dann dazu, den gleichzeitigen Zusammenhang zu <em>t</em> darzustellen. Wie auch bei den querschnittlichen Netzwerken lässt sich hier sowohl bei den temporalen, als auch bei den gleichzeitigen Netzwerken der lasso benutzen, um die Schätzungen zu regularisieren und falsch-positive Kanten zu vermeiden. Die resultierenden Zusammenhänge werden dann in der Regel in Korrelationsmatrizen umgewandelt, welche letztendlich zur Visualisierung der Netzwerke verwendet werden.</p>
+</div>
+<div id="stationarität" class="section level2">
+<h2>Stationarität</h2>
+<p>Bevor wir die bereits eingeladenen Daten aber für eine Schätzung verwenden können, müssen wir uns noch mit wichtigen Annahmen im Rahmen der Modellierung beschäftigen. Für den temporalen Aspekt sollten die Messungen in gleichmäßigen Abständen vorgenommen werden. Dafür wurde bereits beschrieben, dass ein Erhebungsplan am besten auf eine Person angepasst werden sollte, wobei Erinnerungen durch Apps das Ausfüllen zusätzlich absichern können. Da die Personen aber natürlich trotzdem normal schlafen sollen, ist der Abstand zwischen der letzten Messung an einem und der ersten Messung am nächsten Tag nicht entsprechend der Abstände zwischen den anderen Messungen. Dies kann als einer der Gründe dafür angesehen werden, dass tagesübergreifende Messungen bei der Modellierung nicht in einen Zusammenhang gestellt werden. <strong>Stationarität</strong> fordert dabei im Modell, dass die Netzwerkstruktur über die Zeit hinweg konstant ist. Anders formuliert, sollten Modellparameter (also Kovarianzen/Mittelwerte/Varianzen) von der Zeit unabhängig sein. In der psychologischen Forschung ist anzunehmen, dass diese Voraussetzung nicht unbedingt gilt. So lässt sich etwa leicht vorstellen, dass sich sowohl Mittelwerte als auch Zusammenhänge zwischen Symptomen während einer Psychotherapie verändern. Vor der Modellschätzung wird daher empfohlen, den linearen Trend aus den Daten zu bereinigen. Wir versuchen uns an dieser Stelle mal damit, solch ein Detrending selbst vorzunehmen.</p>
+<p>Im Endeffekt geht es beim Detrending um eine Überprüfung des Zeiteffekts auf die Variablen im Netzwerk. Nehmen wir mal als Beispiel <code>tired</code>. Wenn der Effekt der Zeit (Spalte <code>time</code>) erkundet werden soll, geht das im einfachsten Fall natürlich mit einer linearen Regression.</p>
+<pre class="r"><code>lm_tired &lt;- lm(tired ~ time, data = data)</code></pre>
+<p>Um zu überprüfen, ob ein Detrending nötig ist, würden wir jetzt überprüfen, ob die Zeit ein signifikanter Prädiktor ist. Das können wir uns beispielsweise mit der Funktion <code>summary</code> anzeigen lassen. Wir sehen, dass die Zeit einen deutlichen Effekt hatte.</p>
+<pre class="r"><code>summary(lm_tired)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = tired ~ time, data = data)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.36927 -0.32883 -0.01885  0.32075  2.50944 
+## 
+## Coefficients:
+##               Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) -1.741e+03  4.062e+02  -4.286 6.34e-05 ***
+## time         1.248e-06  2.904e-07   4.298 6.10e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.7846 on 63 degrees of freedom
+##   (5 Beobachtungen als fehlend gelöscht)
+## Multiple R-squared:  0.2267, Adjusted R-squared:  0.2144 
+## F-statistic: 18.47 on 1 and 63 DF,  p-value: 6.1e-05</code></pre>
+<p>Es ist ein signifikanter Effekt zu erkennen, weshalb die Variable detrendet werden sollte. Hier können wir uns der Logik der Regression bedienen. Wenn der Einfluss der Zeit raus gerechnet werden soll, können einfach die Residuen des linearen Modells mit der Zeit als Prädiktor genommen werden. Schließlich können diese nicht durch die Zeit erklärt werden. Die Variable im Datensatz wird also durch die Residuen (ansprechbar im Objekt <code>lm_tired</code> durch die Funktion <code>residuals</code>) ersetzt. Wichtig ist hier, dass die fehlenden Werte nicht in die Berechnung der Regression mit eingehen und es damit auch kein Residuum dafür gibt. Wenn wir die Daten ersetzen, müssen wir also sicher stellen, dass die Zeilen mit fehlenden Werten nicht beachtet werden. Wir wählen in unserem Datensatz also alle Zeilen, für die gilt, dass sie in <code>tired</code> nicht (<code>!</code>) fehlend (<code>is.na</code>) sind und ersetzen sie durch die Residuen.</p>
+<pre class="r"><code>data[!is.na(data[&quot;tired&quot;]),&quot;tired&quot;] &lt;- residuals(lm_tired) </code></pre>
+<p>Man will naütrlich nicht für jede Variable diese Schritte händisch durchführen. Für das vorliegende Netzwerk mit wenigen Variablen wird das noch gehen, aber 18 Mal wird es schon anstrengende, weshalb die Arbeit mit <code>for</code> empfholen wird. Der Code ist jedoch nicht sehr simpel und kann für das komplette Durchdringen eine Zeit brauchen. Er ist also besonders an die besonders Interessierten gerichtet.</p>
+<pre class="r"><code>rel_vars &lt;- c(&quot;relaxed&quot;,&quot;sad&quot;,&quot;nervous&quot;,&quot;concentration&quot;,&quot;tired&quot;,&quot;rumination&quot;,&quot;bodily.discomfort&quot;)
+
+
+for (v in seq_along(rel_vars)){
+  # Respektive Variable auf die Zeit regressieren
+  lm_form &lt;- as.formula(paste0(rel_vars[[v]], &quot;~ time&quot;))
+  # lineares Modell rechnen
+  lm_res &lt;- summary(lm(lm_form, data = data))
+  # wenn der Zeittrend signifikant ist, detrenden wir mit den Residuen
+  # [,4] greift auf die Spalte der p-Werte zu
+  # [2] auf den p-Wert des Regressionsgewichts des Datums
+  if(lm_res$coefficients[,4][2] &lt; 0.05){
+    print(paste0(&quot;Detrende Variable: &quot;, rel_vars[v]))
+    data[!is.na(data[rel_vars[v]]),rel_vars[v]] &lt;- residuals(lm_res)
+  }
+}</code></pre>
+<pre><code>## [1] &quot;Detrende Variable: rumination&quot;</code></pre>
+</div>
+<div id="modellschätzung-in-r" class="section level2">
+<h2>Modellschätzung in <code>R</code></h2>
+<p>Nachdem wir Stationarität in den Daten erstellt haben, können wir nun ein Modell schätzen lassen. Dafür brauchen wir auch wie bei den querschnittlichen Netzwerken das <code>bootnet</code>-Paket. Für den Zeitablauf haben wir ja bereits gesehen, dass es die Variable <code>time</code> gibt. Die verwendete Funktion benötigt aber eine Variable, die die Messungen nach Tagen aufteilt und dann eine, die die einzelnen Messungen innerhalb eines Tages nochmal nummeriert. So kann sicher gestellt werden, dass wie bereits beschrieben die erste Messung eines Tages nicht auf den Vortag regressiert wird. Eine Variable, in der nur der Tag erhalten ist, ist sehr schnell erstellt. Mit <code>as.Date</code> kann unsere Zeitangabe auf die Tage reduziert werden. Wir ordnen das einer neuen Variable im Datensatz <code>date</code> zu.</p>
+<pre class="r"><code>data$date &lt;- as.Date(data$time, tz = &quot;Europe/Amsterdam&quot;)</code></pre>
+<p>Aus der Struktur unserer Datenerhebung wissen wir, dass wir 14 Mal 5 Messungen durchgeführt haben. Außerdem wissen wir auch durch die erste Betrachtung, dass die Messungen in den Zeilen nach zeitlicher Abfolge aufgeführt sind. Um die Nummerierung zu erstellen, können wir daher einfach 14 Mal 1 bis 5 in die Spalte <code>beep</code> einfügen. Dies ist durch die <code>rep</code> Funktion möglich, bei der die zuerst die Angabe gebraucht wird, was wiederholt wird. Als zweites Argument wird die Häufigkeit der Wiederholung aufgeführt.</p>
+<pre class="r"><code>data$beep &lt;- rep(1:5, 14)</code></pre>
+<p>Falls eine so geordnete Datenstruktur unglücklicherweise nicht vorliegt, braucht man für die Nummerierung der einzelnen Antworten innerhalb eines Tages wieder einen etwas komplizierteren Code, um eine automatisch Durchführung zu erreichen. Deshalb wird hier wieder ein Stück Code beschrieben, der besonders für interessierte Personen gedacht ist.</p>
+<pre class="r"><code>data$beep &lt;- rep(1:5, 14)</code></pre>
+</div>
+<div id="erweiterungen-des-idiographischen-modells" class="section level2">
+<h2>Erweiterungen des idiographischen Modells</h2>
+<p>Die methodische und klinische Forschung zu Netzwerkanalysen in den letzten Jahren war äußerst produktiv und hat viele neue Analysemethoden produziert und wichtige Debatten angestoßen. Neben der hier beschriebenen Modellierung gibt es noch diverse andere Ansätze, welche die Modellierung von Netzwerken im Längsschnitt ermöglichen, wenn auch dann teilweise ohne den gleichzeitigen Anteil. Ein Vorschlag ist dabei die Integration von klinischem Vorwissen von Therapeut:innen in einem Bayesianischen Netzwerk, um die klinische Validität und Nützlichkeit zu erhöhen (bspw. Burger et al., in preperation). Eine anderer Weg (Epskamp et al., 2018b) besteht in der Integration von mehreren Personen zur Schätzung von Netzwerken, etwa mit einer Multilevel-Struktur, die wir bereits bei der Hierarchischen Regression gesehen haben. Hier wird zwar die pure Idiographie hinter sich gelassen, allerdings lassen sich so immer noch temporale Zusammenhängen innerhalb von Personen über die Zeit modellieren sowie Powerprobleme tendenziell eher umgehen, da deutlich mehr Daten vorliegen. Ebenso gibt es spannende neue Ansätze, welche die Stationaritätsannahme lockern und die explizite Untersuchung von Veränderungen über die Zeit ermöglichen (Haslbeck et al., 2021).</p>
 </div>
 <div id="fazit" class="section level2">
 <h2>Fazit</h2>
-<p>Die Netzwerkanalyse
-***</p>
+<p>Insgesamt lässt sich feststellen, dass die beschriebene Methodik noch jung ist und es viele Problematiken, aber dadurch auch Entwicklungspotentiale gibt. Die ersten Anwendungen weisen auch darauf hin, dass ein direkter Einbezug in die Therapie durch den personenbezogenen Ansatz möglich ist. Jedoch steht auch hier natürlich auch noch eine weitere Evaluation aus.</p>
+<hr />
 </div>
 <div id="literatur" class="section level2">
 <h2>Literatur</h2>
-<p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=edsarx.1604.08462%7Cedsarx">Epskamp, S., Borsboom, D., &amp; Fried, E. I. (20181).</a> Estimating psychological networks and their accuracy: A tutorial paper. <em>Behav Res, 50</em>, 195-212. <a href="https://doi.org/10.3758/s13428-017-0862-1">https://doi.org/10.3758/s13428-017-0862-1</a></p>
-<p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=edsarx.1607.01367%7Cedsarx">Epskamp, S., &amp; Fried, E. I. (2018b).</a> A tutorial on regularized partial correlation networks. <em>Psychological Methods, 23</em>(4), 617-634. <a href="https://doi.org/10.1037/met0000167">https://doi.org/10.1037/met0000167</a></p>
+<p>Burger, J., Epskamp, S,., van der Veen, D. C., Dablander, F., Schoevers, R. A., Fried, E. I., &amp; Riese, H. (in preparation). Models that matter for patients: Integrating clinical case formulation and idiographic network estimation. <a href="https://doi.org/10.31234/osf.io/bdrs7">https://doi.org/10.31234/osf.io/bdrs7</a></p>
+<p>Epskamp, S., van Borkulo, C. D., van der Veen, D. C., Servaas, M. N., Isvoranu, A. M., Riese, H., &amp; Cramer, A. O. J. (2018a). Personalized network modeling in psychopathology: The importance of contemporaneous and temporal connections. <em>Clinical Psychological Science, 6</em>(3), 416-427. <a href="https://doi.org/10.1177%2F2167702617744325">https://doi.org/10.1177%2F2167702617744325</a></p>
+<p>Epskamp, S., Waldorp, L. J., Mõttus, R., &amp; Borsboom, D. (2018b). The gaussian graphical model in cross-sectional and time-series data. <em>Multivariate Behavioral Research, 53</em>(4), 453–480. <a href="https://doi.org/10.1080/00273171.2018.1454823">https://doi.org/10.1080/00273171.2018.1454823</a></p>
 <p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=edsarx.1011.6640%7Cedsarx">Foygel, R., &amp; Drton, M. (2010).</a> Extended Bayesian information criteria for Gaussian graphical models. <em>Advances in Neural Information Processing Systems</em>, <em>23</em>, 604–612.</p>
-<p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=RN231666321%7Cedsbl">Friedman, J., Hastie, T., &amp; Tibshirani, R. (2008).</a> Sparse inverse covariance estimation with the graphical lasso. <em>Biostatistics, 9</em>(3), 432-441. <a href="https://doi.org/10.1093/biostatistics/kxm045">https://doi.org/10.1093/biostatistics/kxm045</a></p>
+<p>Hamaker, E. L. (2012). Why researchers should think “within-person” a paradigmatic rationale. In M. R. Mehl &amp; T. S. Conner (Eds.), <em>Handbook of research methods for studying daily life</em> (p. 43-61). New York, NY: Guilford Publications.</p>
+<p>Haslbeck, J. M., Bringmann, L. F., &amp; Waldorp, L. J. (2021). A tutorial on estimating time-varying vector autoregressive models. <em>Multivariate Behavioral Research, 56</em>(1), 120-149. <a href="https://doi.org/10.1080/00273171.2020.1743630">https://doi.org/10.1080/00273171.2020.1743630</a></p>
 <ul>
 <li><small> <em>Blau hinterlegte Autorenangaben führen Sie direkt zur universitätsinternen Ressource.</em></li>
 </ul>
