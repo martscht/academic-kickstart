@@ -76,10 +76,10 @@ data$time[1:8]</code></pre>
 <h2>Modell</h2>
 <p>Das in diesem Tutorial beschriebene Modell zur Repräsentation personenbezogener Längsschnittdaten und damit verbundener Schätzung dynamischer Netzwerke setzt sich aus zwei Bestandteilen zusammen. An dieser Stelle ist es - wie auch im Tutorial letzte Woche - wichtig zu erwähnen, dass die hier vorgestellten Modelle noch der wissenschaftlichen Diskussion in der Methodenforschung unterliegen. Wir stellen damit einen noch recht jungen Ansatz vor, der zwar bereits in verschiedenen Situationen zum Einsatz kommt, aber natürlich innerhalb der Psychologie nicht mit der langen Historie bspw. einer Hierarchischen Regression versehen ist. Später werden wir einige Kritikpunkte auch nochmal konkreter ansprechen.</p>
 <p>Den ersten Teil der Modellierung stellt ein sogenanntes Vektorautoregressives Modell dar, in welchem die Daten eines Messzeitpunkts auf die Daten eines vorherigen Messzeitpunktes regressiert werden. Dieser Teil der Modellierung wird deshalb als auch <strong>temporal</strong> bezeichnet. Die Ausprägung auf einer Variable hängt dabei von vergangenen Ausprägungen dieser Variable und aller anderen Variablen im Modell ab, wobei der sogenannte <strong>lag</strong> ausdrückt, wie viele Messzeitpunkt man in die Vergangenheit schaut. Ein Lag 1 würde also etwa bedeuten, dass man den vorherigen Messzeitpunkt zur Modellierung verwendet. Dies stellt auch das aktuelle Standardvorgehen in der Psychologie dar, wobei auch größere Lags modelliert werden könnten. Wenn wir lediglich einen Lag 1 modellieren, gehen wir davon aus, dass sich alle Zusammenhänge zwischen den Variablen in diesem Zeitraum abspielen, bzw. andere Zusammenhänge stets durch dieses Zusammenspiel erklärt werden können. Andere (größere) Zeiträume werden also in der Modellierung in der Psychologie meist außer Acht gelassen. Der Bezug einer Variable auf sich selbst vom letzten Messzeitpunkt wird auch <strong>auto-regressiv</strong> genannt. Dadurch entstehen in der optischen Repräsentation des Netzwerks <strong>self-loops</strong>. Doch auch die anderen Variablen vom vorherigen Messzeitpunkt werden im Modell verwendet, woher auch der Name <strong>Vektor</strong>autoregressiv stammt, da statt einer Variable ein ganzer Vektor von Variablen verwendet wird, um zeitliche Zusammenhänge zu modellieren. Der Zusammenhang von einer Variablen mit einer anderen wird als <strong>cross-lagged</strong> bezeichnet. Dadurch, dass alle Variablen wie in einer normalen multiplen Regression simultan in die Schätzung aufgenommen werden, repräsentiert ein gefundenes Gewicht zwischen zwei Knoten einen Einfluss, der über den Einfluss aller anderen Knoten hinaus existiert.</p>
-<p>BILD EINFÜGEN</p>
+<p><img src="/post/2021-12-22-Klipps_Netzwerkanalyse_Laengsschnitt_files/figure-html/unnamed-chunk-5-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Diese Methode, um zeitliche Zusammenhänge zwischen Variablen darzustellen, existiert schon sehr lange. Es lässt sich jedoch feststellen, dass (wie in jedem statistischen Modell) Residuen bei dieser Modellierung zurückbleiben, die noch weitere Informationen liefern können (Epskamp et al., 2018a). Eine potentiell sehr wichtige Information fehlt uns nämlich noch: Wie hängen die Variablen an einem bestimmten Messzeitpunkt gleichzeitig zusammen? Da zu jedem einzelnen Zeitpunkt Residuen auf jeder Variable existent bleiben, können diese zur Bestimmung von Partialkorrelationen verwendet werden. Diese zeigen an, wie stark die Ausprägung von zwei Knoten zu einem gleichzeitigen Messzeitpunkt zusammenhängt. Dieser Teil der Modellierung wird auch als <strong>contemporaneous</strong> (also gleichzeitiges Netzwerk) bezeichnet. Die Idee der Modellierung sollte uns durch das Tutorial zu den querschnittlichen Netzwerken sehr bekannt vorkommen. Die Logik und Berechnung ist dabei auch sehr ähnlich, jedoch wird in dem vorliegenden Fall nur auf Grundlage der Residuen die Struktur des Netzwerks bestimmt, wodurch für den Einfluss des Messzeitpunkts davor kontrolliert werden kann. Eine Trennung von Effekten über Zeitfenster hinweg und innerhalb eines Zeitfensters wird damit ermöglicht.</p>
-<p>PASSENDES BILD ZUM OBEREN EINFÜGEN</p>
-<p>Die Kombination der beiden Modelle wird von Epskamp et al. (2018a) als <strong>graphicalVAR</strong> bezeichnet und ist auch im bereits verwendeten Paket unter diesem Namen ansprechbar. Um die Schätzung mit einem Lag von 1 nochmal zusammenzufassen: Jeder Knoten wird zum Zeitpunkt <em>t`</em> mittels Maximum Likelihood Schätzung auf sich selbst und alle anderen Knoten zum Zeitpunkt <em>t-1</em> regressiert. Bei dieser Schätzung entstehen nicht nur Zusammenhangsgewichte, sondern auch Residuen, also Anteile, die nicht durch die Knoten am Zeitpunkt <em>t-1</em> erklärt werden können. Die Kovarianz dieser Residuen über alle Messungen hinweg dient dann dazu, den gleichzeitigen Zusammenhang zu <em>t</em> darzustellen. Wie auch bei den querschnittlichen Netzwerken lässt sich hier sowohl bei den temporalen, als auch bei den gleichzeitigen Netzwerken der lasso benutzen, um die Schätzungen zu regularisieren und falsch-positive Kanten zu vermeiden. Die resultierenden Zusammenhänge werden dann in der Regel in Korrelationsmatrizen umgewandelt, welche letztendlich zur Visualisierung der Netzwerke verwendet werden.</p>
+<p><img src="/post/2021-12-22-Klipps_Netzwerkanalyse_Laengsschnitt_files/figure-html/unnamed-chunk-6-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Die Kombination der beiden Modelle wird von Epskamp et al. (2018a) als <strong>graphicalVAR</strong> bezeichnet und ist auch im bereits verwendeten Paket unter diesem Namen ansprechbar. Um die Schätzung mit einem Lag von 1 nochmal zusammenzufassen: Jeder Knoten wird zum Zeitpunkt <em>t`</em> mittels Maximum Likelihood Schätzung auf sich selbst und alle anderen Knoten zum Zeitpunkt <em>t-1</em> regressiert. Bei dieser Schätzung entstehen nicht nur Zusammenhangsgewichte, sondern auch Residuen, also Anteile, die nicht durch die Knoten am Zeitpunkt <em>t-1</em> erklärt werden können. Die Kovarianz dieser Residuen über alle Messungen hinweg dient dann dazu, den gleichzeitigen Zusammenhang zu <em>t</em> darzustellen. Wie auch bei den querschnittlichen Netzwerken lässt sich hier sowohl bei den temporalen, als auch bei den gleichzeitigen Netzwerken der lasso benutzen, um die Schätzungen zu regularisieren und falsch-positive Kanten zu vermeiden. Die resultierenden Zusammenhänge werden dann in der Regel in Korrelationsmatrizen umgewandelt, welche letztendlich zur Visualisierung der Netzwerke verwendet werden. Es werden dabie sowohl für die temporalen als auch die gleichzeitigen Aspekte Bestrafungsparameter genutzt. Aus den vielen resultierenden Netzwerken wird wieder das Informationskriteriuem BIC bzw. EBIC (bei einem Hyperparameter größer als 0) zur Selektion der besten Modellierung verwendet.</p>
 </div>
 <div id="stationarität" class="section level2">
 <h2>Stationarität</h2>
@@ -139,6 +139,69 @@ for (v in seq_along(rel_vars)){
   set &lt;- data[data$date == i,]
   data$beep[data$date==i] &lt;- order(set$time)
 }</code></pre>
+<p>Nachdem diese Vorbereitung getroffen ist, kann nun mit der Schätzung gestartet werden. Diese wird weiterhin mit dem Paket <code>bootnet</code> und der zugehörigen Funktion durchgeführt. Vieles wird uns also bekannt vorkommen. Zunächst muss im <code>default</code> wieder passende Methode gewählt werden, was in unserem Fall nun <code>graphicalVAR</code> ist. Die Anzahl der Bestrafungsparameter <code>nlambda</code> legt für das gleichzeitige und temporale Netzwerk gemeinsam fest. Jeweils werden 25 Parameter in unserem Code verwendet. Per Voreinstellung sollten es 100 sein, aber aus Zeitgründen reduzieren wir das an dieser Stelle. Der Tuning-Parameter kann auch wieder festgelegt werden. In der idiografischen Netzwerkanalyse wird hier meist 0 gewählt, damit die Sensitivität etwas erhöht wird und die Netzwerke nicht komplett leer ausgegeben werden. Nun zu den uns unbekannten Argumenten. In <code>vars</code> kann angegeben werden, wenn nicht alle Variablen aus einem Datensatz auch als Knoten im Netzwerk auftreten sollen. Das ist bei uns der Fall. Glücklicherweise haben wir bereits ein Objekt, in dem die Namen aller relevanten Variablen enthalten sind (<code>rel_vars</code>). In <code>dayvar</code> kann festgelegt werden, welche Variable im Datensatz den Tag anzeigt. <code>beepvar</code> gibt an, der wie vielte Alarm es jeweils an einem Tag war. So kann die Funktion die Reihenfolge und auch die Tagesübergänge erkennen. Die beiden Variablen in <code>dayvar</code> und <code>beepvar</code> müssen natürlich nur im ursprünglichen Datensatz (<code>data</code>) enthalten und kein Knoten im Netzwerk (<code>rel_vars</code>) werden!</p>
+<pre class="r"><code>library(qgraph)
+library(bootnet)
+
+res &lt;- estimateNetwork(data = data,
+                                default = &quot;graphicalVAR&quot;,   # verwendetes Package
+                                vars = rel_vars,            # Variablennamen
+                                dayvar = &quot;date&quot;,            # Tagesvariable
+                                beepvar = &quot;beep&quot;,           # Notifikation
+                                tuning = 0,                 # EBIC Tuningparameter
+                                nLambda  = 25)              # Anzahl getesteter LASSO Tuningparameter </code></pre>
+<pre><code>## Estimating Network. Using package::function:
+##   - graphicalVAR::graphicalVAR for model estimation</code></pre>
+<p>Die beiden ausgewählten Teilnetzwerke sind in <code>res$graph</code> abgelegt.</p>
+<pre class="r"><code>res$graph</code></pre>
+<pre><code>## $contemporaneous
+##                       relaxed          sad     nervous concentration      tired
+## relaxed            0.00000000 -0.126105027 -0.04342341    0.13282464 -0.1277847
+## sad               -0.12610503  0.000000000  0.00000000   -0.01188015  0.3044483
+## nervous           -0.04342341  0.000000000  0.00000000    0.00000000  0.0000000
+## concentration      0.13282464 -0.011880150  0.00000000    0.00000000  0.0000000
+## tired             -0.12778465  0.304448284  0.00000000    0.00000000  0.0000000
+## rumination         0.00000000  0.005695221  0.00000000    0.00000000  0.0000000
+## bodily.discomfort -0.21395865  0.075018873  0.00000000   -0.08499385  0.0000000
+##                    rumination bodily.discomfort
+## relaxed           0.000000000       -0.21395865
+## sad               0.005695221        0.07501887
+## nervous           0.000000000        0.00000000
+## concentration     0.000000000       -0.08499385
+## tired             0.000000000        0.00000000
+## rumination        0.000000000        0.11110291
+## bodily.discomfort 0.111102907        0.00000000
+## 
+## $temporal
+##                   relaxed sad   nervous concentration     tired rumination
+## relaxed                 0   0 0.0000000             0 0.0000000 0.00000000
+## sad                     0   0 0.0000000             0 0.0000000 0.00000000
+## nervous                 0   0 0.0000000             0 0.0000000 0.00000000
+## concentration           0   0 0.0000000             0 0.0000000 0.00000000
+## tired                   0   0 0.0000000             0 0.2261836 0.00000000
+## rumination              0   0 0.0000000             0 0.0000000 0.21562737
+## bodily.discomfort       0   0 0.2541923             0 0.0000000 0.07305415
+##                   bodily.discomfort
+## relaxed                  0.00000000
+## sad                      0.00000000
+## nervous                  0.00000000
+## concentration            0.00000000
+## tired                    0.00000000
+## rumination               0.08979839
+## bodily.discomfort        0.00000000</code></pre>
+<p>Wenn man sich nur eins anzeigen lassen möchte, kann man dies mit einem weitere Dollar-Zeichen in Kombination mit dem Namen durchführen (<code>res$graph$temporal</code> oder <code>res$graph$contemporaneous</code>). Ansonsten ist die Struktur des Ergebnis-Objektes sehr ähnlich zu dem der querschnittlichen Netzwerkanalyse. Man kann wieder tiefer in einzelnen Berechnungsschritt einsteigen, sofern man das möchte. Wir gehen an dieser Stelle zum nächste Schritt.</p>
+<p>Die optische Darstellung bleibt einer der großen Vorteile der Netzwerkanalyse. An diesem Punkt haben wir zwei Strukturen, die in der Darstellung aber zusammen wahrgenommen werden sollten. Dafür wäre es zunächst wichtig, ein gemeinsames Layout zu erschaffen, da sonst die Knoten an anderen Orten aufgezeigt werden würden. Dabei wird empfohlen, zunächst ein durchschnittliches Layout mit der Funktion <code>averageLayout</code> aus dem <code>qgraph</code> Paket zu bestimmen.</p>
+<pre class="r"><code>Layout &lt;- averageLayout(res$graph$temporal, 
+                        res$graph$contemporaneous)</code></pre>
+<p>Nun kann das Zeichnen mit der <code>plot</code> Funktion beginnen. Diesmal reicht eine direkte Ansprache des Objektes nicht aus. Wir müssen weitere Argumente angeben. In <code>graph</code> wird festgehalten, welches Netzwerk wir zeichnen möchten. Das Argument <code>layout</code> ermöglicht uns eine Konstanthaltung - hier nehmen wir natürlich das von uns bestimmte durchschnittliche <code>Layout</code>. Zur Differenzierung der beiden Plots geben wir ihnen noch einen Titel (<code>title</code>).</p>
+<pre class="r"><code>plot(res, graph = &quot;temporal&quot;, layout = Layout, 
+     title = &quot;Temporal&quot;)</code></pre>
+<p><img src="/post/2021-12-22-Klipps_Netzwerkanalyse_Laengsschnitt_files/figure-html/unnamed-chunk-17-1.png" width="672" style="display: block; margin: auto;" /></p>
+<pre class="r"><code>plot(res, graph = &quot;contemporaneous&quot;, layout = Layout, 
+     title = &quot;Contemporaneous&quot;)</code></pre>
+<p><img src="/post/2021-12-22-Klipps_Netzwerkanalyse_Laengsschnitt_files/figure-html/unnamed-chunk-17-2.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Im temporalen Teil des Netzwerkes sind zwei self-loops zu verzeichnen - also Variablen, die auf sich selbst wirken. Weiterhin sieht man auch eine Wechselwirkung zwischen <code>rumination</code> und <code>bodily_discomfort</code>. Das gleichzeitige Netzwerk ist stärker verbunden. Man sieht recht deutlich, dass <code>relaxed</code> viele negative Zusammenhänge zu symptomähnlichen Knoten hat. Wenn die Person sich ausgeruht fühlte, war Sie gleichzeitig also weniger müde, traurig oder auch nervös.</p>
+<p>Die gezeichnete Übersicht kann bereits einige Eindrücke über das Zusammenspiel der Symptome bieten. Doch auch darüber hinaus gibt es Ansätze für die genauere Interpretation der Ergebnisse. Wir haben bereits die Zentralitätsindizes im letzten Tutorial kennen gelernt. Auch für graphicalVAR gibt es Ansätze, diese zu verwenden. Jedoch ist die Anwendung simultan auf das temporal und das contemporaneous Netzwerk noch nicht ausgereift. Die Analyse würde also getrennt für die beiden Unterformen angewendet werden und dann auch auf diese Weise berichtet. Eine weiterer bereits bekannter Vorgang ist das Bootstrapping, um die gefundenen Gewichte mit miteinander zu vergleichen. Aus Zeitgründen werden wir an dieser Stelle nicht genauer drauf eingehen - die Logik ähnelt sich weiterhin mit dem querschnittlichen Ansatz.</p>
 </div>
 <div id="problematiken" class="section level2">
 <h2>Problematiken</h2>
@@ -166,7 +229,6 @@ for (v in seq_along(rel_vars)){
 <p>Epskamp, S., van Borkulo, C. D., van der Veen, D. C., Servaas, M. N., Isvoranu, A. M., Riese, H., &amp; Cramer, A. O. J. (2018a). Personalized network modeling in psychopathology: The importance of contemporaneous and temporal connections. <em>Clinical Psychological Science, 6</em>(3), 416-427. <a href="https://doi.org/10.1177%2F2167702617744325">https://doi.org/10.1177%2F2167702617744325</a></p>
 <p>Epskamp, S., Waldorp, L. J., Mõttus, R., &amp; Borsboom, D. (2018b). The gaussian graphical model in cross-sectional and time-series data. <em>Multivariate Behavioral Research, 53</em>(4), 453–480. <a href="https://doi.org/10.1080/00273171.2018.1454823">https://doi.org/10.1080/00273171.2018.1454823</a></p>
 <p>Frumkin, M.R., Piccirillo, M.L., Beck, E.D., Grossman, J.T., &amp; Rodebaugh, T.L. (2021). Feasibility and utility of idiographic models in the clinic: A pilot study. <em>Psychotherapy Research, 31</em>(4), 520-534. <a href="https://doi.org/10.1080/10503307.2020.1805133">https://doi.org/10.1080/10503307.2020.1805133</a></p>
-<p><a href="https://hds.hebis.de/ubffm/EBSCO/Record?id=edsarx.1011.6640%7Cedsarx">Foygel, R., &amp; Drton, M. (2010).</a> Extended Bayesian information criteria for Gaussian graphical models. <em>Advances in Neural Information Processing Systems</em>, <em>23</em>, 604–612.</p>
 <p>Hamaker, E. L. (2012). Why researchers should think “within-person” a paradigmatic rationale. In M. R. Mehl &amp; T. S. Conner (Eds.), <em>Handbook of research methods for studying daily life</em> (p. 43-61). New York, NY: Guilford Publications.</p>
 <p>Haslbeck, J. M., Bringmann, L. F., &amp; Waldorp, L. J. (2021). A tutorial on estimating time-varying vector autoregressive models. <em>Multivariate Behavioral Research, 56</em>(1), 120-149. <a href="https://doi.org/10.1080/00273171.2020.1743630">https://doi.org/10.1080/00273171.2020.1743630</a></p>
 <ul>
