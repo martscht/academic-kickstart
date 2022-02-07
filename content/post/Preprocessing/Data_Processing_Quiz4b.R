@@ -42,3 +42,8 @@ for (v in seq_along(rel_vars)){
     data[!is.na(data[rel_vars[v]]),rel_vars[v]] <- residuals(lm_res)
   }
 }
+
+# Unaufbereiteten Datensatz entfernen
+rm(Data2)
+# Unnötige Reste des Detrendings entfernen
+rm(v, lm_res, lm_form)
