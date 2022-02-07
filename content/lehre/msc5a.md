@@ -79,7 +79,8 @@ Das Modul KliPPsMSc5 ist in zwei Teile untergliedert. Im ersten Semester besuche
 | III | 1 | **Hierarchische Regression** | [Inhalte](/post/hlm)  | [Quizdaten](/post/msc5a-daten/#Block3) |
 | IV  | 1 | **Meta-Analyse: Mittelwertsdifferenzen** | [Inhalte](/post/metaanalysen-mw)  | -- |
 | IV  | 2 | **Meta-Analyse: Korrelationen** | [Inhalte](/post/metaanalysen-cor)  | [Quizdaten](/post/msc5a-daten/#Block4) |
-| Va | 1 | **Kausalschätzer** | [Inhalte](/post/kausal)  | [Quizdaten](/post/under-construction) |
+| Va | 1 | **Kausalschätzer im ANCOVA Setting** | [Inhalte](/post/kausal)  | [Quizdaten](/post/under-construction) |
+| Va | 2 | **Kausalschätzer mit Propensity Scores** | [Inhalte](/post/kausal2)  | [Quizdaten](/post/under-construction) |
 | Vb | 1 | **Netzwerkanalyse im Querschnitt** | [Inhalte](/post/cross-sectional-networks)  | -- |
 | Vb | 2 | **Netzwerkanalyse im Längsschnitt** | [Inhalte](/post/under-construction)  | [Quizdaten](/post/under-construction) |
 | *Zusatz* | -- | -- | --- |
