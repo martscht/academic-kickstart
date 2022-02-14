@@ -1,10 +1,14 @@
 ---
 title: "Schätzung von Kausaleffekten 2"
+output:
+  html_document:
+   code_folding: show
+  
 date: '2022-02-07'
 slug: kausal2
 categories:
      - MSc5a
-     
+    
 tags:
 - Kausalität
 - Propensity Scores
@@ -15,7 +19,7 @@ tags:
 subtitle: 'Propensity Scores'
 summary: ''
 authors: [hartig]
-lastmod: '2022-02-07 17:00:00 CEST'
+lastmod: '2022-02-14 17:00:00 CEST'
 featured: no
 header:
      image: "/header/Kausal2_Head.jpg"
@@ -42,15 +46,14 @@ library(MatchIt)      # Für das Propensity Score Matching
 
 ## Datenbeispiel{#Einleitung}
 
-Wir verwenden wieder unserer fiktives Datenbeispiel, in dem Patient\*innen, die an einer Depression oder einer Angststörung leiden, entweder mit einer kognitiven Verhaltenstherapie (CBT) behandelt oder in einer Wartekontrollgruppe belassen wurden. Die Zuordnung konnte nicht randomisiert erfolgen, weshalb die Gruppen nicht vergleichbar sind. 
-
+Wir verwenden wieder unserer fiktives Datenbeispiel, in dem Patient\*innen, die an einer Depression oder einer Angststörung leiden, entweder mit einer kognitiven Verhaltenstherapie (CBT) behandelt oder in einer Wartekontrollgruppe belassen wurden. Die Zuordnung konnte nicht randomisiert erfolgen, weshalb der Effekt der Behandlung nicht ohne weiteres berechenbar ist.
 
 ```{r, results="hide"}
 load(url("https://pandar.netlify.app/post/CBTdata.rda"))
 head(CBTdata)
 ```
 
-```{r, echo = F}
+```{r,echo=FALSE}
 knitr::kable(head(CBTdata))
 ```
 
@@ -86,7 +89,7 @@ mod_ps2 <- glm(Treatment ~ Disorder + BDI_pre_c + SWL_pre_c +
 summary(mod_ps2)
 ```
 
-Da keiner der Wechselwirkungs-Terme signifikant ist, verwenden wir im nächsten Schritt das einfachere Modell `mod_ps1`. Mit der `predict`-Funktion erhalten wir Vorhergesagte Werte in Logit-Einheiten, mit der `logistic`-Funktion des `psych`-Paktets können wir diese in Wahrscheinlichkeiten transformieren: 
+Da keiner der Wechselwirkungs-Terme signifikant ist, verwenden wir im nächsten Schritt das einfachere Modell `mod_ps1`. Mit der `predict`-Funktion erhalten wir Vorhergesagte Werte in Logit-Einheiten, mit der `logistic`-Funktion des `psych`-Paktets können wir diese in Wahrscheinlichkeiten transformieren:
 
 ```{r}
 CBTdata$PS_logit <- predict(mod_ps1)
@@ -98,7 +101,7 @@ plot(CBTdata$PS_logit, CBTdata$PS_P)
 
 Die Unterschiede im resultierenden Propensity Score in Logit-Einheiten können wir uns durch eine grafische Darstellung der Verteilungen in den Gruppen veranschaulichen. Die Treatment-Wahrscheinlichkeit ist in der Treatment-Gruppe deutlich höher, was z.B. durch eine Selektion nach Dringlichkeit der Fälle zustande gekommen sein kann. Durch ein Abtragen der Treatmentwahrscheinlichkeiten können wir zusätzlich veranschaulichen, wie groß die Überschneidungen der Gruppen (*common support*) sind. In dieser Grafik sind auch das Minimum der Wahrscheinlichkeit in der Treatment-Gruppe und das Maximum in der Kontrollgruppe eingetragen - diese definieren die Grenzen der Überschneidung zwischen den Gruppen.
 
-```{r}
+```{r class.source = "fold-hide", message=FALSE, warning=FALSE}
 ## Overlap & Common Support ----
 p1 <- ggplot(CBTdata, aes(x=PS_logit, fill = Treatment)) + 
   theme_bw() + theme(legend.position="top") +
@@ -107,13 +110,13 @@ p1 <- ggplot(CBTdata, aes(x=PS_logit, fill = Treatment)) +
 
 p2 <- ggplot(CBTdata, aes(x=PS_P, fill = Treatment)) + 
   theme_bw() +
-  labs(x="P(X=1)", y="") +
+  labs(x="P(X=1)", y="") + xlim(c(0,1)) +
   scale_y_continuous(breaks=c(-1.5,1.5),     # "manuelle" Achsenbeschriftungen, um die Gruppen einzutragen
                      labels=c("CBT", "WL")) +
   geom_histogram(data = CBTdata[CBTdata$Treatment=="WL",], aes(y=..density..),   # Histogramm WL
                  alpha=0.5, fill="#E69F00") +
   geom_histogram(data = CBTdata[CBTdata$Treatment=="CBT",], aes(y=-..density..), # Histogramm CBT
-                 alpha=0.5, fill="#486ca1") +
+                 alpha=0.5, fill="#56B4E9") +
   # Minimum in CBT und maximum in WL einzeichnen
   geom_vline(xintercept = c(min(CBTdata$PS_P[CBTdata$Treatment=="CBT"]),
                             max(CBTdata$PS_P[CBTdata$Treatment=="WL"])),
@@ -139,7 +142,7 @@ CBTdata <- CBTdata[!(CBTdata$Treatment=="CBT" &
 
 Nach dieser Korrektur überlappen sich die Propensity Scores beider Gruppen vollständig:
 
-```{r}
+```{r class.source = "fold-hide", message=FALSE, warning=FALSE}
 ## Overlap & Common Support nach Fallausschluss ----
 p1 <- ggplot(CBTdata, aes(x=PS_logit, fill = Treatment)) + 
   theme_bw() + theme(legend.position="top") +
@@ -148,13 +151,13 @@ p1 <- ggplot(CBTdata, aes(x=PS_logit, fill = Treatment)) +
 
 p2 <- ggplot(CBTdata, aes(x=PS_P, fill = Treatment)) + 
   theme_bw() +
-  labs(x="P(X=1)", y="") +
+  labs(x="P(X=1)", y="") + xlim(c(0,1)) +
   scale_y_continuous(breaks=c(-1.5,1.5),     # "manuelle" Achsenbeschriftungen, um die Gruppen einzutragen
                      labels=c("CBT", "WL")) +
   geom_histogram(data = CBTdata[CBTdata$Treatment=="WL",], aes(y=..density..),   # Histogramm WL
                  alpha=0.5, fill="#E69F00") +
   geom_histogram(data = CBTdata[CBTdata$Treatment=="CBT",], aes(y=-..density..), # Histogramm CBT
-                 alpha=0.5, fill="#486ca1") +
+                 alpha=0.5, fill="#56B4E9") +
   coord_flip()
 grid.arrange(p1, p2, nrow=1) # Beide Plots nebeneinander
 ```
@@ -174,61 +177,38 @@ round(coef(BDI.PS)[2],2)
 
 ### Auswirkung der zulässigen Distanz
 
-Matching können wir komfortabel mit der Funktion `matchit` aus dem Paket `MatchIt` durchführen. Mit Standard-Einstellungen wird als Methode zur Paarbildung ein "greedy nearest neighbor matching" verwendet, bei dem jedem Fall aus der Treatment-Gruppe nacheinander der ähnlichste Fall der Kontrollgruppe zugeordnet wird. Hier ist es wichtig, die Option `caliper` zu nutzen, um den zulässigen Mindestabstand zwischen den "Zwillingen" zu definieren (ausgedrückt in SD-Einheiten). Die folgende Grafik demonstriert den Effekt des caliper auf die Balance des Propensity Scores.
-
-```{r include=FALSE, eval = F}
-i <- 1;
-for(c in c(NA, 1, 0.5, 0.3, 0.1)) {
-  if(is.na(c)) {
-    PS.match <- matchit(Treatment ~ Disorder + BDI_pre + SWL_pre, method = "nearest",
-                        data = CBTdata, link = "logit")
-  } else {
-    PS.match <- matchit(Treatment ~ Disorder + BDI_pre + SWL_pre, method = "nearest",
-                        data = CBTdata, link = "logit", caliper = c)
-  }
-  CBTdata.PSM <- match.data(PS.match)
-  CBTdata.PSM$PS_logit <- psych::logit(CBTdata.PSM$distance)
-  CBTdata.PSM$caliper <- c
-  CBTdata.PSM$frame <- i
-  if(is.na(c)) { CBTdata.PSM$caliper <- "NULL" }
-  if(i==1) {c.data <- CBTdata.PSM} 
-  else { c.data <- rbind(c.data, CBTdata.PSM) } 
-  i <- i + 1
-}
-
-c.data <- c.data[order(c.data$frame),]
-
-library(gganimate)
-anim <- ggplot(c.data, aes(x=PS_logit, fill = Treatment)) + 
-  theme_bw() +
-  scale_fill_manual(values=c("#E69F00", "#56B4E9")) +
-  geom_density(alpha=0.3) +
-  transition_states(frame, transition_length = 1, state_length = 1)
-
-c.text <- c(1, 0.5, 0.3, 0.1, "NULL (default!)")
-
-anim <- anim + labs(title = '{paste0("caliper = ", c.text[as.integer(closest_state)] )}')
-
-if(file.exists("MatchIt.Caliper.gif")) {file.remove("MatchIt.Caliper.gif")}
-anim_save(filename = "MatchIt.Caliper.gif", animation = anim)
-```
+Matching können wir komfortabel mit der Funktion `matchit` aus dem Paket `MatchIt` durchführen. Mit Standard-Einstellungen wird als Methode zur Paarbildung ein "greedy nearest neighbor matching" verwendet, bei dem jedem Fall aus der Treatment-Gruppe nacheinander der ähnlichste Fall der Kontrollgruppe zugeordnet wird. Hier ist es wichtig, die Option `caliper` zu nutzen, um den zulässigen Höchstabstand zwischen den "Zwillingen" zu definieren (ausgedrückt in SD-Einheiten). Die folgende Grafik demonstriert den Effekt des caliper auf die Balance des Propensity Scores und auf die Anzahl der Fälle, die in der Analyse verbleiben. 
 
 ![*Abbildung: PS-Score-Dichte mit unterschiedlichen Werten für den caliper*](MatchIt.Caliper.gif)
- 
-### Kontrolle der Kovariaten-Balance
 
-Mit dem kleinsten hier verwendeten Wert von 0.1 SD wird eine gute Balance des Propensity Score erreicht, diesen verwenden wir für die weiteren Analysen:
+### Kontrolle der Balance
+
+Mit einem caliper von 0.1 wird in der obigen Grafik augenscheinlich schon eine recht gute Balance erreicht, so dass wir diesen Wert für die weiteren Analysen verwenden.
 
 ```{r}
 PS.match <- matchit(Treatment ~ Disorder + BDI_pre + SWL_pre, method = "nearest",
                     data = CBTdata, link = "logit", caliper = 0.1)
 ```
 
-Die `summary` des `matchit`-Objekts liefert detailierte Informationen zur Balance der einbezogenen Kovariaten. Wir sehen, dass die Differenzen in den Kovariaten sehr gut reduziert werden konnten. In der gematchten Stichprobe sind allerdings auch nur nich `r nrow(match.data(PS.match))` Fälle verblieben. `r nrow(CBTdata) - nrow(match.data(PS.match))` wurden ausgeschlossen, da sie nicht mit einem hinreichend ähnlichen Fall "gepaart" werden konnten.
+Die Balance hinsichtlich des Propensity Scores $\pi$ und die Lage der nicht-gepaarten Fälle lässt sich auch gut mit einem Plot der `matchit`-Funktion veranschaulichen. Wir sehen, dass vor allem Fälle der Kontrollgruppe mit niedriger und Fälle der Treatment-Gruppe mit hoher Treatment-Wahrscheinlichkeit vom Matching ausgeschlossen werden:
+
+```{r}
+plot(PS.match, type = "jitter", interactive = F)
+```
+
+Die `summary` des `matchit`-Objekts liefert detailierte Informationen zur Balance der einbezogenen Kovariaten. Wir sehen, dass die Differenzen in den Kovariaten sehr gut reduziert werden konnten. In der gematchten Stichprobe sind allerdings auch nur noch `r nrow(match.data(PS.match))` (2 * `r nrow(match.data(PS.match))/2`) Fälle verblieben. `r nrow(CBTdata) - nrow(match.data(PS.match))` wurden ausgeschlossen, da sie nicht mit einem hinreichend ähnlichen Fall "gepaart" werden konnten.
 
 ```{r}
 summary(PS.match)
 ```
+
+Eine grafische Zusammenfassung der Kovariaten-Balance lässt sich durch einen `plot` der `summary` des `matchit`-Objekts erzeugen. Auch hier sehen wir, dass die Balance zufriedenstellend ist:
+
+```{r}
+plot(summary(PS.match),
+     var.order = "unmatched", abs = FALSE)
+```
+
 
 ### Effektschätzung
 
@@ -242,7 +222,7 @@ summary(BDI.match)
 
 ## Stratifizierung{#Stratifizierung}
 
-Stratifizierung ist als Methode `subclass` in der `matchit`-Funktion enthalten. Wir bilden fünf Strata und extrahieren den Datensatz, der die Zugehörigkeit zu den Strata enthält (Variable `subclass`):
+Stratifizierung ist als Methode `subclass` in der `matchit`-Funktion enthalten. Wir bilden fünf Strata und extrahieren den Datensatz, der die Zugehörigkeit zu den Strata enthält (Variable `subclass`). Die Kreuztabelle zeigt, dass die Strata so gebildet wurden, dass die Treatment-Gruppe gleichmäßig aufgeteilt wurde. Die Anzahl der jeweils "passenden" Kontrollgruppen-Fälle in den Strata unterscheidet sich stark.
 
 ```{r}
 PS.strat <- matchit(Treatment ~ Disorder + BDI_pre + SWL_pre, data = CBTdata,
@@ -251,6 +231,26 @@ CBTdata.strat <- match.data(PS.strat)
 # Zugehörigkeit der Fälle zu Treatment und Stratum
 table(CBTdata.strat$Treatment, CBTdata.strat$subclass)
 ```
+
+Die folgende Grafik veranschaulicht die gebildeten Strata, als Grenzen sind jeweils die Untergrenzen (Minima in den Gruppen) eingezeichnet:
+
+```{r class.source = "fold-hide", message=FALSE, warning=FALSE}
+ggplot(CBTdata.strat, aes(x=distance, fill = Treatment)) + 
+  theme_bw() + theme(text = element_text(size = 20)) +
+  labs(x="P(X=1)", y="") +
+  scale_y_continuous(breaks=c(-1.5,1.5),     # "manuelle" Achsenbeschriftungen, um die Gruppen einzutragen
+                     labels=c("CBT", "WL")) +
+  geom_histogram(data = CBTdata.strat[CBTdata.strat$Treatment=="WL",], aes(y=..density..),   # Histogramm WL
+                 alpha=0.5, fill="#E69F00") +
+  geom_histogram(data = CBTdata.strat[CBTdata.strat$Treatment=="CBT",], aes(y=-..density..), # Histogramm CBT
+                 alpha=0.5, fill="#56B4E9") +
+  coord_flip() +
+  geom_vline(xintercept = aggregate(CBTdata.strat$distance, by=list(CBTdata.strat$subclass), FUN=min)$x[2:5],
+             linetype=2) +
+  coord_flip()
+```
+
+
 ```{r include=FALSE}
 MWs <- tapply(CBTdata.strat$BDI_post, list(CBTdata.strat$subclass, CBTdata.strat$Treatment), mean)
 MWW <- data.frame(Y0 = MWs[, 1], Y1 = MWs[, 2], ATEq = MWs[, 2]-MWs[, 1])
@@ -259,7 +259,8 @@ ATT.strat <- sum(MWW$Wq*MWW$ATEq)
 ```
 
 
-Den Treatment-Effekt berechnen wir hier jetzt "per Hand", indem wir die Effekte innerhalb der Strata berechnen und dann über diese eine nach Größe der Strata gewichtete Summe berechnen. Hier erhalten wir mit `r round(ATT.strat,2)`einen geringfügig geringeren Effekt als bei anderen Methoden.
+Den Treatment-Effekt berechnen wir hier jetzt "per Hand". Die Funktion `tapply` wird hierbei benutzt, um die Mittelwerte von Treatment- und Kontrollgruppe in den Strata zu berechnen, diese werden dann als Schätzer für $Y^0$ und $Y^1$ verwendet, aus ihrer Differenz ergibt sich der ATT innerhalb jedes Stratum. 
+Für jedes Stratum wird anhand des Anteils der Fälle an der Gesamtstichprobe ein Gewichtungsfaktor berechtet. Der ATT ergibt sich dann als gewichtete Summe der Effekte innerhalb der Strata. Wir erhalten hier mit `r round(ATT.strat,2)` einen geringfügig geringeren Effekt als bei anderen Methoden.
 
 ```{r}
 ##ATEs in den Strata berechnen und als neuen Datensatz
@@ -280,6 +281,7 @@ Gewichte konstruieren wir auf Basis der Propensity Scores $\pi$ und der Treatmen
 $$\frac{X_i}{\pi_i}+\frac{1-X_i}{1-\pi_i}$$
 
 ```{r}
+# mit (CBTdata$Treatment=="CBT")*1 wird Treatment numerisch mit 1, Kontrollgruppe mit 0 kodiert
 CBTdata$ps_w <- (CBTdata$Treatment=="CBT")*1/CBTdata$PS_P + (1 - (CBTdata$Treatment=="CBT")*1)/(1 - CBTdata$PS_P)
 ```
 

@@ -1,10 +1,14 @@
 ---
 title: "Schätzung von Kausaleffekten 2"
+output:
+  html_document:
+   code_folding: show
+  
 date: '2022-02-07'
 slug: kausal2
 categories:
      - MSc5a
-     
+    
 tags:
 - Kausalität
 - Propensity Scores
@@ -15,7 +19,7 @@ tags:
 subtitle: 'Propensity Scores'
 summary: ''
 authors: [hartig]
-lastmod: '2022-02-07 17:00:00 CEST'
+lastmod: '2022-02-14 17:00:00 CEST'
 featured: no
 header:
      image: "/header/Kausal2_Head.jpg"
@@ -46,7 +50,7 @@ library(MatchIt)      # Für das Propensity Score Matching</code></pre>
 </div>
 <div id="Einleitung" class="section level2">
 <h2>Datenbeispiel</h2>
-<p>Wir verwenden wieder unserer fiktives Datenbeispiel, in dem Patient*innen, die an einer Depression oder einer Angststörung leiden, entweder mit einer kognitiven Verhaltenstherapie (CBT) behandelt oder in einer Wartekontrollgruppe belassen wurden. Die Zuordnung konnte nicht randomisiert erfolgen, weshalb die Gruppen nicht vergleichbar sind.</p>
+<p>Wir verwenden wieder unserer fiktives Datenbeispiel, in dem Patient*innen, die an einer Depression oder einer Angststörung leiden, entweder mit einer kognitiven Verhaltenstherapie (CBT) behandelt oder in einer Wartekontrollgruppe belassen wurden. Die Zuordnung konnte nicht randomisiert erfolgen, weshalb der Effekt der Behandlung nicht ohne weiteres berechenbar ist.</p>
 <pre class="r"><code>load(url(&quot;https://pandar.netlify.app/post/CBTdata.rda&quot;))
 head(CBTdata)</code></pre>
 <table>
@@ -207,7 +211,7 @@ plot(CBTdata$PS_logit, CBTdata$PS_P)</code></pre>
 <div id="prüfung-des-overlap" class="section level3">
 <h3>Prüfung des Overlap</h3>
 <p>Die Unterschiede im resultierenden Propensity Score in Logit-Einheiten können wir uns durch eine grafische Darstellung der Verteilungen in den Gruppen veranschaulichen. Die Treatment-Wahrscheinlichkeit ist in der Treatment-Gruppe deutlich höher, was z.B. durch eine Selektion nach Dringlichkeit der Fälle zustande gekommen sein kann. Durch ein Abtragen der Treatmentwahrscheinlichkeiten können wir zusätzlich veranschaulichen, wie groß die Überschneidungen der Gruppen (<em>common support</em>) sind. In dieser Grafik sind auch das Minimum der Wahrscheinlichkeit in der Treatment-Gruppe und das Maximum in der Kontrollgruppe eingetragen - diese definieren die Grenzen der Überschneidung zwischen den Gruppen.</p>
-<pre class="r"><code>## Overlap &amp; Common Support ----
+<pre class="r fold-hide"><code>## Overlap &amp; Common Support ----
 p1 &lt;- ggplot(CBTdata, aes(x=PS_logit, fill = Treatment)) + 
   theme_bw() + theme(legend.position=&quot;top&quot;) +
   scale_fill_manual(values=c(&quot;#E69F00&quot;, &quot;#56B4E9&quot;)) +
@@ -215,21 +219,19 @@ p1 &lt;- ggplot(CBTdata, aes(x=PS_logit, fill = Treatment)) +
 
 p2 &lt;- ggplot(CBTdata, aes(x=PS_P, fill = Treatment)) + 
   theme_bw() +
-  labs(x=&quot;P(X=1)&quot;, y=&quot;&quot;) +
+  labs(x=&quot;P(X=1)&quot;, y=&quot;&quot;) + xlim(c(0,1)) +
   scale_y_continuous(breaks=c(-1.5,1.5),     # &quot;manuelle&quot; Achsenbeschriftungen, um die Gruppen einzutragen
                      labels=c(&quot;CBT&quot;, &quot;WL&quot;)) +
   geom_histogram(data = CBTdata[CBTdata$Treatment==&quot;WL&quot;,], aes(y=..density..),   # Histogramm WL
                  alpha=0.5, fill=&quot;#E69F00&quot;) +
   geom_histogram(data = CBTdata[CBTdata$Treatment==&quot;CBT&quot;,], aes(y=-..density..), # Histogramm CBT
-                 alpha=0.5, fill=&quot;#486ca1&quot;) +
+                 alpha=0.5, fill=&quot;#56B4E9&quot;) +
   # Minimum in CBT und maximum in WL einzeichnen
   geom_vline(xintercept = c(min(CBTdata$PS_P[CBTdata$Treatment==&quot;CBT&quot;]),
                             max(CBTdata$PS_P[CBTdata$Treatment==&quot;WL&quot;])),
              linetype=2) +
   coord_flip()
 grid.arrange(p1, p2, nrow=1) # Beide Plots nebeneinander</code></pre>
-<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
-## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 <p><img src="/post/2022-02-07_Kausaleffekte_2_KliPPS_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
 <p>Für Fälle außerhalb der <em>common support region</em> können keine kausalen Effekte geschätzt werden. Wir schließen daher 16 Fälle aus, die außerhalb des Überschneidungsbereichs liegen:</p>
 <pre class="r"><code>### Fälle außerhalb der Überschneidung ausschließen ----
@@ -242,7 +244,7 @@ CBTdata &lt;- CBTdata[!(CBTdata$Treatment==&quot;WL&quot; &amp;
 CBTdata &lt;- CBTdata[!(CBTdata$Treatment==&quot;CBT&quot; &amp; 
                                CBTdata$PS_P &gt; max(subset(CBTdata, Treatment==&quot;WL&quot;)$PS_P)),]</code></pre>
 <p>Nach dieser Korrektur überlappen sich die Propensity Scores beider Gruppen vollständig:</p>
-<pre class="r"><code>## Overlap &amp; Common Support nach Fallausschluss ----
+<pre class="r fold-hide"><code>## Overlap &amp; Common Support nach Fallausschluss ----
 p1 &lt;- ggplot(CBTdata, aes(x=PS_logit, fill = Treatment)) + 
   theme_bw() + theme(legend.position=&quot;top&quot;) +
   scale_fill_manual(values=c(&quot;#E69F00&quot;, &quot;#56B4E9&quot;)) +
@@ -250,17 +252,15 @@ p1 &lt;- ggplot(CBTdata, aes(x=PS_logit, fill = Treatment)) +
 
 p2 &lt;- ggplot(CBTdata, aes(x=PS_P, fill = Treatment)) + 
   theme_bw() +
-  labs(x=&quot;P(X=1)&quot;, y=&quot;&quot;) +
+  labs(x=&quot;P(X=1)&quot;, y=&quot;&quot;) + xlim(c(0,1)) +
   scale_y_continuous(breaks=c(-1.5,1.5),     # &quot;manuelle&quot; Achsenbeschriftungen, um die Gruppen einzutragen
                      labels=c(&quot;CBT&quot;, &quot;WL&quot;)) +
   geom_histogram(data = CBTdata[CBTdata$Treatment==&quot;WL&quot;,], aes(y=..density..),   # Histogramm WL
                  alpha=0.5, fill=&quot;#E69F00&quot;) +
   geom_histogram(data = CBTdata[CBTdata$Treatment==&quot;CBT&quot;,], aes(y=-..density..), # Histogramm CBT
-                 alpha=0.5, fill=&quot;#486ca1&quot;) +
+                 alpha=0.5, fill=&quot;#56B4E9&quot;) +
   coord_flip()
 grid.arrange(p1, p2, nrow=1) # Beide Plots nebeneinander</code></pre>
-<pre><code>## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.
-## `stat_bin()` using `bins = 30`. Pick better value with `binwidth`.</code></pre>
 <p><img src="/post/2022-02-07_Kausaleffekte_2_KliPPS_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 </div>
 </div>
@@ -280,20 +280,23 @@ round(coef(BDI.PS)[2],2)</code></pre>
 <h2>Propensity Score Matching</h2>
 <div id="auswirkung-der-zulässigen-distanz" class="section level3">
 <h3>Auswirkung der zulässigen Distanz</h3>
-<p>Matching können wir komfortabel mit der Funktion <code>matchit</code> aus dem Paket <code>MatchIt</code> durchführen. Mit Standard-Einstellungen wird als Methode zur Paarbildung ein “greedy nearest neighbor matching” verwendet, bei dem jedem Fall aus der Treatment-Gruppe nacheinander der ähnlichste Fall der Kontrollgruppe zugeordnet wird. Hier ist es wichtig, die Option <code>caliper</code> zu nutzen, um den zulässigen Mindestabstand zwischen den “Zwillingen” zu definieren (ausgedrückt in SD-Einheiten). Die folgende Grafik demonstriert den Effekt des caliper auf die Balance des Propensity Scores.</p>
+<p>Matching können wir komfortabel mit der Funktion <code>matchit</code> aus dem Paket <code>MatchIt</code> durchführen. Mit Standard-Einstellungen wird als Methode zur Paarbildung ein “greedy nearest neighbor matching” verwendet, bei dem jedem Fall aus der Treatment-Gruppe nacheinander der ähnlichste Fall der Kontrollgruppe zugeordnet wird. Hier ist es wichtig, die Option <code>caliper</code> zu nutzen, um den zulässigen Höchstabstand zwischen den “Zwillingen” zu definieren (ausgedrückt in SD-Einheiten). Die folgende Grafik demonstriert den Effekt des caliper auf die Balance des Propensity Scores und auf die Anzahl der Fälle, die in der Analyse verbleiben.</p>
 <div class="figure">
 <img src="MatchIt.Caliper.gif" alt="" />
 <p class="caption"><em>Abbildung: PS-Score-Dichte mit unterschiedlichen Werten für den caliper</em></p>
 </div>
 </div>
-<div id="kontrolle-der-kovariaten-balance" class="section level3">
-<h3>Kontrolle der Kovariaten-Balance</h3>
-<p>Mit dem kleinsten hier verwendeten Wert von 0.1 SD wird eine gute Balance des Propensity Score erreicht, diesen verwenden wir für die weiteren Analysen:</p>
+<div id="kontrolle-der-balance" class="section level3">
+<h3>Kontrolle der Balance</h3>
+<p>Mit einem caliper von 0.1 wird in der obigen Grafik augenscheinlich schon eine recht gute Balance erreicht, so dass wir diesen Wert für die weiteren Analysen verwenden.</p>
 <pre class="r"><code>PS.match &lt;- matchit(Treatment ~ Disorder + BDI_pre + SWL_pre, method = &quot;nearest&quot;,
                     data = CBTdata, link = &quot;logit&quot;, caliper = 0.1)</code></pre>
 <pre><code>## Warning: Fewer control units than treated units; not all treated units will get
 ## a match.</code></pre>
-<p>Die <code>summary</code> des <code>matchit</code>-Objekts liefert detailierte Informationen zur Balance der einbezogenen Kovariaten. Wir sehen, dass die Differenzen in den Kovariaten sehr gut reduziert werden konnten. In der gematchten Stichprobe sind allerdings auch nur nich 168 Fälle verblieben. 142 wurden ausgeschlossen, da sie nicht mit einem hinreichend ähnlichen Fall “gepaart” werden konnten.</p>
+<p>Die Balance hinsichtlich des Propensity Scores <span class="math inline">\(\pi\)</span> und die Lage der nicht-gepaarten Fälle lässt sich auch gut mit einem Plot der <code>matchit</code>-Funktion veranschaulichen. Wir sehen, dass vor allem Fälle der Kontrollgruppe mit niedriger und Fälle der Treatment-Gruppe mit hoher Treatment-Wahrscheinlichkeit vom Matching ausgeschlossen werden:</p>
+<pre class="r"><code>plot(PS.match, type = &quot;jitter&quot;, interactive = F)</code></pre>
+<p><img src="/post/2022-02-07_Kausaleffekte_2_KliPPS_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p>Die <code>summary</code> des <code>matchit</code>-Objekts liefert detailierte Informationen zur Balance der einbezogenen Kovariaten. Wir sehen, dass die Differenzen in den Kovariaten sehr gut reduziert werden konnten. In der gematchten Stichprobe sind allerdings auch nur noch 168 (2 * 84) Fälle verblieben. 142 wurden ausgeschlossen, da sie nicht mit einem hinreichend ähnlichen Fall “gepaart” werden konnten.</p>
 <pre class="r"><code>summary(PS.match)</code></pre>
 <pre><code>## 
 ## Call:
@@ -343,6 +346,10 @@ round(coef(BDI.PS)[2],2)</code></pre>
 ## Matched        84      84
 ## Unmatched      57      85
 ## Discarded       0       0</code></pre>
+<p>Eine grafische Zusammenfassung der Kovariaten-Balance lässt sich durch einen <code>plot</code> der <code>summary</code> des <code>matchit</code>-Objekts erzeugen. Auch hier sehen wir, dass die Balance zufriedenstellend ist:</p>
+<pre class="r"><code>plot(summary(PS.match),
+     var.order = &quot;unmatched&quot;, abs = FALSE)</code></pre>
+<p><img src="/post/2022-02-07_Kausaleffekte_2_KliPPS_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 </div>
 <div id="effektschätzung" class="section level3">
 <h3>Effektschätzung</h3>
@@ -372,7 +379,7 @@ summary(BDI.match)</code></pre>
 </div>
 <div id="Stratifizierung" class="section level2">
 <h2>Stratifizierung</h2>
-<p>Stratifizierung ist als Methode <code>subclass</code> in der <code>matchit</code>-Funktion enthalten. Wir bilden fünf Strata und extrahieren den Datensatz, der die Zugehörigkeit zu den Strata enthält (Variable <code>subclass</code>):</p>
+<p>Stratifizierung ist als Methode <code>subclass</code> in der <code>matchit</code>-Funktion enthalten. Wir bilden fünf Strata und extrahieren den Datensatz, der die Zugehörigkeit zu den Strata enthält (Variable <code>subclass</code>). Die Kreuztabelle zeigt, dass die Strata so gebildet wurden, dass die Treatment-Gruppe gleichmäßig aufgeteilt wurde. Die Anzahl der jeweils “passenden” Kontrollgruppen-Fälle in den Strata unterscheidet sich stark.</p>
 <pre class="r"><code>PS.strat &lt;- matchit(Treatment ~ Disorder + BDI_pre + SWL_pre, data = CBTdata,
                  distance = &#39;logit&#39;, method = &#39;subclass&#39;, subclass = 5)
 CBTdata.strat &lt;- match.data(PS.strat)
@@ -382,7 +389,23 @@ table(CBTdata.strat$Treatment, CBTdata.strat$subclass)</code></pre>
 ##        1  2  3  4  5
 ##   WL  91 21 15  7  7
 ##   CBT 34 34 33 33 35</code></pre>
-<p>Den Treatment-Effekt berechnen wir hier jetzt “per Hand”, indem wir die Effekte innerhalb der Strata berechnen und dann über diese eine nach Größe der Strata gewichtete Summe berechnen. Hier erhalten wir mit -3.51einen geringfügig geringeren Effekt als bei anderen Methoden.</p>
+<p>Die folgende Grafik veranschaulicht die gebildeten Strata, als Grenzen sind jeweils die Untergrenzen (Minima in den Gruppen) eingezeichnet:</p>
+<pre class="r fold-hide"><code>ggplot(CBTdata.strat, aes(x=distance, fill = Treatment)) + 
+  theme_bw() + theme(text = element_text(size = 20)) +
+  labs(x=&quot;P(X=1)&quot;, y=&quot;&quot;) +
+  scale_y_continuous(breaks=c(-1.5,1.5),     # &quot;manuelle&quot; Achsenbeschriftungen, um die Gruppen einzutragen
+                     labels=c(&quot;CBT&quot;, &quot;WL&quot;)) +
+  geom_histogram(data = CBTdata.strat[CBTdata.strat$Treatment==&quot;WL&quot;,], aes(y=..density..),   # Histogramm WL
+                 alpha=0.5, fill=&quot;#E69F00&quot;) +
+  geom_histogram(data = CBTdata.strat[CBTdata.strat$Treatment==&quot;CBT&quot;,], aes(y=-..density..), # Histogramm CBT
+                 alpha=0.5, fill=&quot;#56B4E9&quot;) +
+  coord_flip() +
+  geom_vline(xintercept = aggregate(CBTdata.strat$distance, by=list(CBTdata.strat$subclass), FUN=min)$x[2:5],
+             linetype=2) +
+  coord_flip()</code></pre>
+<p><img src="/post/2022-02-07_Kausaleffekte_2_KliPPS_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p>Den Treatment-Effekt berechnen wir hier jetzt “per Hand”. Die Funktion <code>tapply</code> wird hierbei benutzt, um die Mittelwerte von Treatment- und Kontrollgruppe in den Strata zu berechnen, diese werden dann als Schätzer für <span class="math inline">\(Y^0\)</span> und <span class="math inline">\(Y^1\)</span> verwendet, aus ihrer Differenz ergibt sich der ATT innerhalb jedes Stratum.
+Für jedes Stratum wird anhand des Anteils der Fälle an der Gesamtstichprobe ein Gewichtungsfaktor berechtet. Der ATT ergibt sich dann als gewichtete Summe der Effekte innerhalb der Strata. Wir erhalten hier mit -3.51 einen geringfügig geringeren Effekt als bei anderen Methoden.</p>
 <pre class="r"><code>##ATEs in den Strata berechnen und als neuen Datensatz
 MWs &lt;- tapply(CBTdata.strat$BDI_post, list(CBTdata.strat$subclass, CBTdata.strat$Treatment), mean)
 MWW &lt;- data.frame(Y0 = MWs[, 1], Y1 = MWs[, 2], ATEq = MWs[, 2]-MWs[, 1])
@@ -403,7 +426,8 @@ sum(MWW$Wq*MWW$ATEq)</code></pre>
 <h2>Gewichtung mit dem Propensity Score</h2>
 <p>Gewichte konstruieren wir auf Basis der Propensity Scores <span class="math inline">\(\pi\)</span> und der Treatmentgruppen-Zugehörigkeit <span class="math inline">\(X \in \{0,1\}\)</span> nach der Formel</p>
 <p><span class="math display">\[\frac{X_i}{\pi_i}+\frac{1-X_i}{1-\pi_i}\]</span></p>
-<pre class="r"><code>CBTdata$ps_w &lt;- (CBTdata$Treatment==&quot;CBT&quot;)*1/CBTdata$PS_P + (1 - (CBTdata$Treatment==&quot;CBT&quot;)*1)/(1 - CBTdata$PS_P)</code></pre>
+<pre class="r"><code># mit (CBTdata$Treatment==&quot;CBT&quot;)*1 wird Treatment numerisch mit 1, Kontrollgruppe mit 0 kodiert
+CBTdata$ps_w &lt;- (CBTdata$Treatment==&quot;CBT&quot;)*1/CBTdata$PS_P + (1 - (CBTdata$Treatment==&quot;CBT&quot;)*1)/(1 - CBTdata$PS_P)</code></pre>
 <p>Diese Gewichte können in der <code>lm</code>-Funktion verwendet werden, um eine Schätzung mittels <em>weighted least squares</em> (WLS) vorzunehmen. Hierbei erhalten wir mit einem geschätzten Treatment-Effekt von -5.08 eine etwas “optimistischere” Schätzung als mit den anderen Methoden.</p>
 <pre class="r"><code>BDI.weighted &lt;- lm(BDI_post ~ Treatment, data = CBTdata, weights = ps_w)
 summary(BDI.weighted)</code></pre>
