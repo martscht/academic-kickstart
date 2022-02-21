@@ -68,14 +68,15 @@ centralityPlot(reg_net, scale = "raw", include = c("Closeness", "Betweenness", "
 ## Bootstrap
 
 set.seed(2022) # Seed festlegen
-boot1 <- bootnet(reg_net, nBoots = 100) # Bootstrap mit 100 Durchführungen
+boot1 <- bootnet(reg_net, nBoots = 100, nCores = 1) # Bootstrap mit 100 Durchführungen
 plot(boot1, order = "sample", labels = F) # Plot
 
 set.seed(2022)
 boot2 <- bootnet(reg_net,   nBoots = 300,
                  statistics = c("strength", "betweenness", "closeness"),
                  type = "case", caseMin = 0.05,
-                 caseMax = 0.75, caseN = 15)
+                 caseMax = 0.75, caseN = 15,
+                 nCores = 1)
 plot(boot2, c("betweenness","strength","closeness"))
 
 corStability(boot2, cor = 0.7) # CS-Werte bestimmen
