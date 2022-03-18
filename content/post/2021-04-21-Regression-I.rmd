@@ -10,7 +10,7 @@ tags:
 - Gerichtete Zusammenhänge
 subtitle: ''
 summary: ''
-authors: [schroeder, nehler, gruetzmacher]
+authors: [nehler,schroeder, gruetzmacher]
 lastmod: '2021-05-03 12:00:12 CEST'
 featured: no
 header:
@@ -91,7 +91,7 @@ load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
 names(Schulleistungen)
 ```
 
-Die Variable `math` gibt die Leistungen der Schüler:innen im Mathematik-Test wieder. Diese sollen unsere abhängige Variable darstellen, weshalb wir sie einem Objekt namens `y` zuordnen.
+Zusätzlich zu den bereits beschriebenen Variablen gibt es hier noch `female`, wobei eine `1` für eine weibliche Person steht. Diese Variable werden wir heute allerdings nicht nutzen. Die Variable `math` gibt die Leistungen der Schüler:innen im Mathematik-Test wieder. Diese sollen unsere abhängige Variable darstellen, weshalb wir sie einem Objekt namens `y` zuordnen.
 
 
 ```{r}
@@ -263,69 +263,124 @@ Wir sehen im Ergebnis, dass die Regressionskonstante 0 ist. Die lineare Regressi
 
 ### Berechnung des globalen Signifikanztest
 
+Deskriptiv haben wir nun ein Modell aufgestellt. Wie auch im letzten Semester stellt sich aber die Frage, ob wir dieses auch auf die Population übertragen können. Der Test des gesamten Modells wird auch als Omnibus-Test bezeichnet. Wir wollen im ersten Schritt betrachten, wie viel Varianz unser Modell erklären kann und es im Anschluss dann auf Signifikanz testen.
+
 #### Determinationskoeffizient $R^2$
 
-Der Determinationskoeffizient $R^2$ gibt an wieviel Varianz in der abhängigen Variable durch die unabhängigen Variablen erklärt werden kann:
+Der Determinationskoeffizient $R^2$ gibt an wieviel Varianz in der abhängigen Variable durch die unabhängigen Variablen erklärt werden kann. Dafür müssen die Quadratsummen bestimmt werden, die die Streuung der Variablen repräsentieren. Einfach gesagt, hat die abhängige Variable eine totale Quadratsumme, die in einen durch die Regression erklärten und einen nicht erklärten Teil geteilt werden kann. 
+
+$Q_{tot} = Q_d + Q_e$
+
+Die totale Quadratsumme wird bestimmt, indem die Abweichungen aller Fälle vom Mittelwert der Variablen bestimmt werden. 
+
+```{r}
+Q_t <- sum((y - mean(y))^2)          # Fehlerquadratsumme
+Q_t
+```
+
+Der erklärte Teil wird auch als Regressionsquadratsumme bezeichnet und mit $Q_d$ repräsentiert. 
+
+```{r}
+Q_d <- sum((y_hat - mean(y))^2)    # Regressionsquadratsumme
+Q_d
+```
+
+Der nicht erklärte Anteil wird als Fehlerquadratsumme $Q_e$ bezeichnet. Hierbei wird die Abweichung unserer vorhergesagt Werte $\hat{y}_{i}$ vom wahren Wert der Personen $y$ bestimmt.
+
+```{r}
+Q_e <- sum((y - y_hat)^2)          # Fehlerquadratsumme
+Q_e
+```
+
+Die Summe aus aus der Regressionsquadratsumme und der Fehlerquadratsumme ergibt die totale Quadratsumme. Wir können also überprüfen, ob unsere bisherigen Berechnungen plausibel sind. Aufgrund der großen Zahlen kann es zu kleinen Ungenauigkeiten kommen, weshalb wir hier die Nachkommastellen durch Rundung auf zwei reduzieren.
+
+```{r}
+round(Q_t,2) == round(Q_d + Q_e, 2)
+```
+
+Spannender ist jedoch, dass wir durch den Quotient aus der Regressionsquadratsumme und der totalen Quadratsumme den Anteil der erklärten Varianz simpel bestimmen können.
 
 $R^2= \dfrac{Q_d}{Q_d + Q_e}$
 
 ```{r}
-
-# Determinationskoeffizient R2
-Q_d <- sum((y_hat - mean(y))^2)    # Regressionsquadratsumme
-Q_e <- sum((y - y_hat)^2)          # Fehlerquadratsumme
 R2 <- Q_d / (Q_d + Q_e)            # Determinationskoeffizient R^2
-
+# Alternativ Q_d / Q_t
 ```
 
 $R^2= \dfrac{Q_d}{Q_d + Q_e} = \dfrac{`r round (Q_d,2)`}{`r round (Q_d,2)` + `r round (Q_e,2)`} = `r round (R2,2)`$
 
+`r round (R2,2)` der Varianz in der Mathematikliestung können demnach durch unser Modell erklärt werden.
+
 
 #### F-Wert
 
-Der F-Wert dient zur Überprüfung der Gesamtsignifikanz des Modells. Er sagt aus, ob der Determinationskoeffizient $R^2$ signifikant von 0 verschieden ist.
+Der F-Wert dient zur Überprüfung der Gesamtsignifikanz des Modells. Er sagt aus, ob der Determinationskoeffizient $R^2$ signifikant von 0 verschieden ist. Der empirische Testwert wird über die folgende Formel bestimmt.
 
+$F_{omn} = \dfrac{\dfrac{R^2}{m}}{\dfrac{1-R^2}{n-m-1}}$
+
+$R^2$ haben wir bereits im vorherigen Abschnitt bestimmt. Ergänzend müssen wir also noch $n$ und $m$ bestimmen. $n$ ist die Anzahl an Peronen oder Fällen in unserem Datensatz. Diese können wir beispielweise über die Länge `length` des Objekts mit den abhängigen Varibalen `y` bestimmen. $m$ beschreibt die Anzahl der Prädiktoren. Wenn wir dies von `R` automatisch bestimmen lassen wollen, können wir die Anzahl der Spalten `ncol` unserer Prädiktorenmatrix `X` bestimmen. Allerdings müssen wir bedenken, dass wir noch eine Spalten mit 1en hinzugefügt haben. Diese muss von der Zahl der Spalten also noch abgezogen werden. 
 
 ```{r}
-
-# F-Wert
 n <- length(y)                     # Fallzahl (n=100)
 m <- ncol(X)-1                     # Zahl der Prädiktoren (m=2)
-F_omn <- (R2/m) / ((1-R2)/(n-m-1))   # F-Wert
-F_krit <- qf(.95, df1=m, df2=n-m-1)  # kritischer F-Wert (alpha=5%)
-p <- 1-pf(F_omn, m, n-m-1)           # p-Wert
-
+F_omn <- (R2/m) / ((1-R2)/(n-m-1)) # empirischer F-Wert
+F_omn
 ```
 
 
 $F_{omn} = \dfrac{\dfrac{R^2}{m}}{\dfrac{1-R^2}{n-m-1}} = \dfrac{\dfrac{`r round(R2,2)`}{`r m`}}{\dfrac{1-`r round(R2,2)`}{`r n`-`r m`-1}} = `r round(F_omn,2)`$
 
-$df_1 = 2, df_1 = n-m-1 = `r n`-`r m`-1 =97$
+Der berechnete Wert entspricht einem empirischen Wert, der mit einem kritischen Wert verglichen werden muss, um die Signifikanz zu bewerten. Hierfür müssen wir in die F-Verteilung schauen. Die zugehörigen Freiheitsgrade können aus den bereits berechneten $m$ und $n$ bestimmt werden.
+
+$df_1 = 2, df_1 = n-m-1 = `r n`-`r m`-1 =`r n-m-1`$
+
+Zusätzlich benötigen wir natürlich noch ein $\alpha$-Fehler, der auch hier häufig auf 5% gesetzt wird. Im letzten Semester haben wir gelernt, dass wir Quantile aus Verteilungen mit dem Präfix `q` und dann dem Familiennamen (bspw. `qnorm` oder `qt`)  ausgeben können. Wenig überraschend funktioniert an dieser Stelle also der Befehl `qf`. 
+
+```{r}
+F_krit <- qf(.95, df1=m, df2=n-m-1)  # kritischer F-Wert (alpha=5%)
+```
 
 $F_{krit}(\alpha=.05, df_1=2, df_2= 97)= `r round (F_krit,2)`$
 
-$p=`r sprintf(format(1-pf(F_omn, m, n-m-1), digits = 3, trim = TRUE, scientific = FALSE))`$
-
-
-## Berechnung der Regression mit lm-Funktionen in R
-
-Für die Schätzung von Regressionsmodellen kann die Basis-Funktion `lm` verwendet werden. Um zusätzlich die standardisierten Koeffizienten zu erhalten, kann die Funktion `lm.beta` aus dem gleichnamigen Paket `lm.beta` genutzt werden.
+Für eine Signifikanzentscheidung müssen die F-Werte nun miteinander verglichen werden. 
 
 ```{r}
-
-#Paket installieren (wenn nötig)
-#install.packages("lm.beta", repos = "http://cran.us.r-project.org")
-library(lm.beta)
-
-# Regressionsanalyse mit lm
-reg <- lm(math ~ reading + IQ, data = Schulleistungen)
-
-# Ergebnisausgabe einschließlich standardisierter Koeffizienten mit lm.beta
-summary(lm.beta(reg))
-
+F_krit < F_omn  # Vergleich durch logische Überprüfung
 ```
 
-**Ergebnisinterpretation:**
+Da der kritische Wert kleiner ist, verwerfen wir die Nullhypothese. Das Gesamtmodell wird als signifikant angesehen. Man kann anstatt des kritischen Wertes auch einfach den $p$-Wert bestimmen, der zu unserem empirischen `F_omn` korrespondiert. Für die Bestimmung von Wahrscheinlichkeiten in Verteilungen haben wir den Präfix `p` kennen gelernt. Mit Angabe der zugehörigen Freiheitsgrade können wir den $p$-Wert erhalten und mit unserem $\alpha$ vergleichen. 
+
+```{r}
+p <- 1-pf(F_omn, m, n-m-1)           # p-Wert
+p < 0.05
+```
+
+$p=`r sprintf(format(1-pf(F_omn, m, n-m-1), digits = 3, trim = TRUE, scientific = FALSE))`$
+
+Das Ergebnis ist hier natürlich das gleiche - die Nullhypothese wird verworfen.
+
+## Berechnung der Regression mit `lm`-Funktionen in `R`
+
+Im ersten Semester haben wir bereits die einfache lineare Regression in `R` durchgeführt. Natürlich gibt es auch für die multiple lineare Regression eine Funktionalität. Wir werden uns zunächst den unstandardisierten und dann den standardisierten Fall anschauen und auch nochmal die Interpretation klar machen.
+
+### Unstandardisierte Regression
+
+Für die Schätzung von Regressionsmodellen kann, wie im Fall mit einem Prädiktor, die Basis-Funktion `lm` verwendet werden. Verschiedene Prädiktoren werden alle hinter der Tilde `~` aufgeführt und mit dem `+`-Zeichen getrennt. Wir wollen hier weiterhin in unserem Datensatz `Schulleistungen` die Mathematikleistung (`math`) durch die Leseleistung (`reading`) und den IQ (`IQ`) vorhersagen. Die beiden Prädiktoren werden nach der vorangegangenen Beschreibung also mit `+` getrennt.
+
+```{r}
+# Regressionsanalyse mit lm
+reg <- lm(math ~ reading + IQ, data = Schulleistungen)
+```
+
+Nun wollen wir überprüfen, ob die Ergebnisse den händisch berechneten entsprechen. Eine gute Übersicht über das Modell erhält man mit der Funktion `summary`. 
+
+```{r}
+summary(reg)
+```
+
+Die Übereinstimmung mit den händisch berechneten Regressionsgewichten wird bereits deutlich. Im nächsten Abschnitt befassen wir uns nochmal genauer mit der Interpretation.
+
+#### Ergebnisinterpretation unstandardisierte Regression
 
 * die Lesekompetenz und allgemeine Intelligenz erklären gemeinsam 48,73% der Varianz in der Mathematiktestleistung
 * Dieser Varianzanteil ist signifikant von null verschieden
@@ -333,15 +388,45 @@ summary(lm.beta(reg))
     + Regressionskonstante $b_0$:
         + Der Erwartungswert der Mathematikleistung für ein Individuum mit null Punkten im IQ und null Punkten in Lesekompetenz beträgt 58,17 Punkte.
     + Regressionsgewicht $b_1$:
-        + bei einem Punkt mehr in der Lesekompetenz und unter Kontrolle des IQ beträgt die erwartete Veränderung in der Mathematikleistung `r round(b_hat[2],2)` Punkte.
+        + bei einem Punkt mehr in der Lesekompetenz und unter Kontrolle (Konstanthaltung) des IQ beträgt die erwartete Veränderung in der Mathematikleistung `r round(b_hat[2],2)` Punkte.
         + Der Einfluss von Lesekompetenz auf Mathematikleistung ist nicht signfikant von null verschieden ($p=`r round(summary(reg)$coefficients[,4][2], 3)`$)
     + Regressionsgewicht $b_2$:
-        + unter Kontrolle der Lesekompetenz beträgt die erwartete Veränderung in der Mathematikleistung bei einem Punkt mehr im IQ `r round(b_hat[3],2)` Punkte.
-        + Der Einfluss der allgemeinen Intelligenz auf Mathematikleistung ist signfikant von null verschieden ($p=`r round(summary(reg)$coefficients[,4][3], 3)`$)    
+        + unter Kontrolle (Konstanthaltung) der Lesekompetenz beträgt die erwartete Veränderung in der Mathematikleistung bei einem Punkt mehr im IQ `r round(b_hat[3],2)` Punkte.
+        + Der Einfluss der allgemeinen Intelligenz auf Mathematikleistung ist signfikant von null verschieden ($p=`r summary(reg)$coefficients[,4][3]`$)    
+
+
+
+
+### Standardisierte Regression
+
+Zur Durchführung der standardisierten Regression könnten wir natürlich händisch alle Variablen mit `scale` standardisieren und dann in `lm` übergeben. Es gibt aber auch eine bereits geschriebene Funktion `lm.beta` aus dem gleichnamigen Paket `lm.beta`, die für uns eine zusätzliche Anzeige der standardisierten Regressionsgewichte bereit hält.. Das Paket haben wir im normalen Ablauf der Tutorials noch nicht insatlliert, weshalb wir hier nochmal darauf verweisen.
+
+```{r, eval = F}
+install.packages("lm.beta") #Paket installieren (wenn nötig)
+```
+
+Nach der (ggf. nötigen) Installation müssen wir das Paket für die Bearbeitung laden.
+
+```{r}
+library(lm.beta)
+```
+
+Die Funktion `lm.beta` muss auf ein Ergebnis der normalen `lm` Funktion angewendet werden. Wir haben dieses Ergebnis im Objekt `reg` hinterlegt. Anschließend wollen wir uns für die Interpreation wieder das `summary` ausgeben lassen. Natürlich kann man diese Schritte auch mit der Pipe lösen, was als Kommentar noch aufgeführt ist. 
+
+```{r}
+# Ergebnisausgabe einschließlich standardisierter Koeffizienten mit lm.beta
+reg_s <- lm.beta(reg)
+summary(reg_s)         # reg |> lm.beta() |> summary()
+```
+
+Wir sehen, dass die ursprüngliche Ausgabe um die Spalte `standardized` erweitert wurde. Ansonsten ändert sich an der Ausgabe nichts, weshalb wir uns im folgenden Abschnitt der Interpreation auf diese Spalte konzentrieren.
+
+#### Ergebnisinterpretation standardisierte Regression
 
 * Standardisierte Regressionsgewichte
-    + Standardisiertes Regressionsgewicht $\beta_1$: Unter Kontrolle des IQ beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr in Lesekompetenz `r round(b_hat_s[2],2)` Standardabweichungen.
-    + Standardisiertes Regressionsgewicht $\beta_2$: Unter Kontrolle der Lesekompetenz beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr im IQ `r round(b_hat_s[3],2)` Standardabweichungen.
+    + Standardisiertes Regressionsgewicht $\beta_0$: Der Achsenabschnitt ist null, da die Ebene durch den Punkt der Mittelwerte aller Variablen geht (0/0/0).
+    + Standardisiertes Regressionsgewicht $\beta_1$: Unter Kontrolle (Konstanthaltung) des IQ beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr in Lesekompetenz `r round(b_hat_s[2],2)` Standardabweichungen.
+    + Standardisiertes Regressionsgewicht $\beta_2$: Unter Kontrolle (Konstanthaltung) der Lesekompetenz beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr im IQ `r round(b_hat_s[3],2)` Standardabweichungen.
 
 Verweis zu letzter Sitzung: In solch einer multiplen Regression können Suppressoreffekte gut aufgedeckt werden. Diese zeigen sich dann, wenn die $\beta$ Gewichte in der multiplen Regression dem Betrag nach größer sind, als deren korrespondierende $\beta$ Gewichte in einer einfachen Regression. Dies ist in unserem Beispiel jedoch nicht der Fall.
     

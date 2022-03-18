@@ -10,7 +10,7 @@ tags:
 - Gerichtete Zusammenhänge
 subtitle: ''
 summary: ''
-authors: [schroeder, nehler, gruetzmacher]
+authors: [nehler,schroeder, gruetzmacher]
 lastmod: '2021-05-03 12:00:12 CEST'
 featured: no
 header:
@@ -87,7 +87,7 @@ oder in Matrixform:</p>
 load(url(&quot;https://pandar.netlify.app/post/Schulleistungen.rda&quot;))
 names(Schulleistungen)</code></pre>
 <pre><code>## [1] &quot;female&quot;  &quot;IQ&quot;      &quot;reading&quot; &quot;math&quot;</code></pre>
-<p>Die Variable <code>math</code> gibt die Leistungen der Schüler:innen im Mathematik-Test wieder. Diese sollen unsere abhängige Variable darstellen, weshalb wir sie einem Objekt namens <code>y</code> zuordnen.</p>
+<p>Zusätzlich zu den bereits beschriebenen Variablen gibt es hier noch <code>female</code>, wobei eine <code>1</code> für eine weibliche Person steht. Diese Variable werden wir heute allerdings nicht nutzen. Die Variable <code>math</code> gibt die Leistungen der Schüler:innen im Mathematik-Test wieder. Diese sollen unsere abhängige Variable darstellen, weshalb wir sie einem Objekt namens <code>y</code> zuordnen.</p>
 <pre class="r"><code># Vektor y
 y &lt;- Schulleistungen$math
 str(y)</code></pre>
@@ -286,44 +286,127 @@ round(b_hat_s, 3)</code></pre>
 </div>
 <div id="berechnung-des-globalen-signifikanztest" class="section level3">
 <h3>Berechnung des globalen Signifikanztest</h3>
+<p>Deskriptiv haben wir nun ein Modell aufgestellt. Wie auch im letzten Semester stellt sich aber die Frage, ob wir dieses auch auf die Population übertragen können. Der Test des gesamten Modells wird auch als Omnibus-Test bezeichnet. Wir wollen im ersten Schritt betrachten, wie viel Varianz unser Modell erklären kann und es im Anschluss dann auf Signifikanz testen.</p>
 <div id="determinationskoeffizient-r2" class="section level4">
 <h4>Determinationskoeffizient <span class="math inline">\(R^2\)</span></h4>
-<p>Der Determinationskoeffizient <span class="math inline">\(R^2\)</span> gibt an wieviel Varianz in der abhängigen Variable durch die unabhängigen Variablen erklärt werden kann:</p>
+<p>Der Determinationskoeffizient <span class="math inline">\(R^2\)</span> gibt an wieviel Varianz in der abhängigen Variable durch die unabhängigen Variablen erklärt werden kann. Dafür müssen die Quadratsummen bestimmt werden, die die Streuung der Variablen repräsentieren. Einfach gesagt, hat die abhängige Variable eine totale Quadratsumme, die in einen durch die Regression erklärten und einen nicht erklärten Teil geteilt werden kann.</p>
+<p><span class="math inline">\(Q_{tot} = Q_d + Q_e\)</span></p>
+<p>Die totale Quadratsumme wird bestimmt, indem die Abweichungen aller Fälle vom Mittelwert der Variablen bestimmt werden.</p>
+<pre class="r"><code>Q_t &lt;- sum((y - mean(y))^2)          # Fehlerquadratsumme
+Q_t</code></pre>
+<pre><code>## [1] 1350290</code></pre>
+<p>Der erklärte Teil wird auch als Regressionsquadratsumme bezeichnet und mit <span class="math inline">\(Q_d\)</span> repräsentiert.</p>
+<pre class="r"><code>Q_d &lt;- sum((y_hat - mean(y))^2)    # Regressionsquadratsumme
+Q_d</code></pre>
+<pre><code>## [1] 658051.7</code></pre>
+<p>Der nicht erklärte Anteil wird als Fehlerquadratsumme <span class="math inline">\(Q_e\)</span> bezeichnet. Hierbei wird die Abweichung unserer vorhergesagt Werte <span class="math inline">\(\hat{y}_{i}\)</span> vom wahren Wert der Personen <span class="math inline">\(y\)</span> bestimmt.</p>
+<pre class="r"><code>Q_e &lt;- sum((y - y_hat)^2)          # Fehlerquadratsumme
+Q_e</code></pre>
+<pre><code>## [1] 692238.6</code></pre>
+<p>Die Summe aus aus der Regressionsquadratsumme und der Fehlerquadratsumme ergibt die totale Quadratsumme. Wir können also überprüfen, ob unsere bisherigen Berechnungen plausibel sind. Aufgrund der großen Zahlen kann es zu kleinen Ungenauigkeiten kommen, weshalb wir hier die Nachkommastellen durch Rundung auf zwei reduzieren.</p>
+<pre class="r"><code>round(Q_t,2) == round(Q_d + Q_e, 2)</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Spannender ist jedoch, dass wir durch den Quotient aus der Regressionsquadratsumme und der totalen Quadratsumme den Anteil der erklärten Varianz simpel bestimmen können.</p>
 <p><span class="math inline">\(R^2= \dfrac{Q_d}{Q_d + Q_e}\)</span></p>
-<pre class="r"><code># Determinationskoeffizient R2
-Q_d &lt;- sum((y_hat - mean(y))^2)    # Regressionsquadratsumme
-Q_e &lt;- sum((y - y_hat)^2)          # Fehlerquadratsumme
-R2 &lt;- Q_d / (Q_d + Q_e)            # Determinationskoeffizient R^2</code></pre>
+<pre class="r"><code>R2 &lt;- Q_d / (Q_d + Q_e)            # Determinationskoeffizient R^2
+# Alternativ Q_d / Q_t</code></pre>
 <p><span class="math inline">\(R^2= \dfrac{Q_d}{Q_d + Q_e} = \dfrac{6.5805169\times 10^{5}}{6.5805169\times 10^{5} + 6.9223863\times 10^{5}} = 0.49\)</span></p>
+<p>0.49 der Varianz in der Mathematikliestung können demnach durch unser Modell erklärt werden.</p>
 </div>
 <div id="f-wert" class="section level4">
 <h4>F-Wert</h4>
-<p>Der F-Wert dient zur Überprüfung der Gesamtsignifikanz des Modells. Er sagt aus, ob der Determinationskoeffizient <span class="math inline">\(R^2\)</span> signifikant von 0 verschieden ist.</p>
-<pre class="r"><code># F-Wert
-n &lt;- length(y)                     # Fallzahl (n=100)
+<p>Der F-Wert dient zur Überprüfung der Gesamtsignifikanz des Modells. Er sagt aus, ob der Determinationskoeffizient <span class="math inline">\(R^2\)</span> signifikant von 0 verschieden ist. Der empirische Testwert wird über die folgende Formel bestimmt.</p>
+<p><span class="math inline">\(F_{omn} = \dfrac{\dfrac{R^2}{m}}{\dfrac{1-R^2}{n-m-1}}\)</span></p>
+<p><span class="math inline">\(R^2\)</span> haben wir bereits im vorherigen Abschnitt bestimmt. Ergänzend müssen wir also noch <span class="math inline">\(n\)</span> und <span class="math inline">\(m\)</span> bestimmen. <span class="math inline">\(n\)</span> ist die Anzahl an Peronen oder Fällen in unserem Datensatz. Diese können wir beispielweise über die Länge <code>length</code> des Objekts mit den abhängigen Varibalen <code>y</code> bestimmen. <span class="math inline">\(m\)</span> beschreibt die Anzahl der Prädiktoren. Wenn wir dies von <code>R</code> automatisch bestimmen lassen wollen, können wir die Anzahl der Spalten <code>ncol</code> unserer Prädiktorenmatrix <code>X</code> bestimmen. Allerdings müssen wir bedenken, dass wir noch eine Spalten mit 1en hinzugefügt haben. Diese muss von der Zahl der Spalten also noch abgezogen werden.</p>
+<pre class="r"><code>n &lt;- length(y)                     # Fallzahl (n=100)
 m &lt;- ncol(X)-1                     # Zahl der Prädiktoren (m=2)
-F_omn &lt;- (R2/m) / ((1-R2)/(n-m-1))   # F-Wert
-F_krit &lt;- qf(.95, df1=m, df2=n-m-1)  # kritischer F-Wert (alpha=5%)
-p &lt;- 1-pf(F_omn, m, n-m-1)           # p-Wert</code></pre>
+F_omn &lt;- (R2/m) / ((1-R2)/(n-m-1)) # empirischer F-Wert
+F_omn</code></pre>
+<pre><code>## [1] 46.10478</code></pre>
 <p><span class="math inline">\(F_{omn} = \dfrac{\dfrac{R^2}{m}}{\dfrac{1-R^2}{n-m-1}} = \dfrac{\dfrac{0.49}{2}}{\dfrac{1-0.49}{100-2-1}} = 46.1\)</span></p>
+<p>Der berechnete Wert entspricht einem empirischen Wert, der mit einem kritischen Wert verglichen werden muss, um die Signifikanz zu bewerten. Hierfür müssen wir in die F-Verteilung schauen. Die zugehörigen Freiheitsgrade können aus den bereits berechneten <span class="math inline">\(m\)</span> und <span class="math inline">\(n\)</span> bestimmt werden.</p>
 <p><span class="math inline">\(df_1 = 2, df_1 = n-m-1 = 100-2-1 =97\)</span></p>
+<p>Zusätzlich benötigen wir natürlich noch ein <span class="math inline">\(\alpha\)</span>-Fehler, der auch hier häufig auf 5% gesetzt wird. Im letzten Semester haben wir gelernt, dass wir Quantile aus Verteilungen mit dem Präfix <code>q</code> und dann dem Familiennamen (bspw. <code>qnorm</code> oder <code>qt</code>) ausgeben können. Wenig überraschend funktioniert an dieser Stelle also der Befehl <code>qf</code>.</p>
+<pre class="r"><code>F_krit &lt;- qf(.95, df1=m, df2=n-m-1)  # kritischer F-Wert (alpha=5%)</code></pre>
 <p><span class="math inline">\(F_{krit}(\alpha=.05, df_1=2, df_2= 97)= 3.09\)</span></p>
+<p>Für eine Signifikanzentscheidung müssen die F-Werte nun miteinander verglichen werden.</p>
+<pre class="r"><code>F_krit &lt; F_omn  # Vergleich durch logische Überprüfung</code></pre>
+<pre><code>## [1] TRUE</code></pre>
+<p>Da der kritische Wert kleiner ist, verwerfen wir die Nullhypothese. Das Gesamtmodell wird als signifikant angesehen. Man kann anstatt des kritischen Wertes auch einfach den <span class="math inline">\(p\)</span>-Wert bestimmen, der zu unserem empirischen <code>F_omn</code> korrespondiert. Für die Bestimmung von Wahrscheinlichkeiten in Verteilungen haben wir den Präfix <code>p</code> kennen gelernt. Mit Angabe der zugehörigen Freiheitsgrade können wir den <span class="math inline">\(p\)</span>-Wert erhalten und mit unserem <span class="math inline">\(\alpha\)</span> vergleichen.</p>
+<pre class="r"><code>p &lt;- 1-pf(F_omn, m, n-m-1)           # p-Wert
+p &lt; 0.05</code></pre>
+<pre><code>## [1] TRUE</code></pre>
 <p><span class="math inline">\(p=0.00000000000000844\)</span></p>
+<p>Das Ergebnis ist hier natürlich das gleiche - die Nullhypothese wird verworfen.</p>
 </div>
 </div>
 </div>
 <div id="berechnung-der-regression-mit-lm-funktionen-in-r" class="section level2">
-<h2>Berechnung der Regression mit lm-Funktionen in R</h2>
-<p>Für die Schätzung von Regressionsmodellen kann die Basis-Funktion <code>lm</code> verwendet werden. Um zusätzlich die standardisierten Koeffizienten zu erhalten, kann die Funktion <code>lm.beta</code> aus dem gleichnamigen Paket <code>lm.beta</code> genutzt werden.</p>
-<pre class="r"><code>#Paket installieren (wenn nötig)
-#install.packages(&quot;lm.beta&quot;, repos = &quot;http://cran.us.r-project.org&quot;)
-library(lm.beta)</code></pre>
-<pre><code>## Warning: Paket &#39;lm.beta&#39; wurde unter R Version 4.1.1 erstellt</code></pre>
+<h2>Berechnung der Regression mit <code>lm</code>-Funktionen in <code>R</code></h2>
+<p>Im ersten Semester haben wir bereits die einfache lineare Regression in <code>R</code> durchgeführt. Natürlich gibt es auch für die multiple lineare Regression eine Funktionalität. Wir werden uns zunächst den unstandardisierten und dann den standardisierten Fall anschauen und auch nochmal die Interpretation klar machen.</p>
+<div id="unstandardisierte-regression" class="section level3">
+<h3>Unstandardisierte Regression</h3>
+<p>Für die Schätzung von Regressionsmodellen kann, wie im Fall mit einem Prädiktor, die Basis-Funktion <code>lm</code> verwendet werden. Verschiedene Prädiktoren werden alle hinter der Tilde <code>~</code> aufgeführt und mit dem <code>+</code>-Zeichen getrennt. Wir wollen hier weiterhin in unserem Datensatz <code>Schulleistungen</code> die Mathematikleistung (<code>math</code>) durch die Leseleistung (<code>reading</code>) und den IQ (<code>IQ</code>) vorhersagen. Die beiden Prädiktoren werden nach der vorangegangenen Beschreibung also mit <code>+</code> getrennt.</p>
 <pre class="r"><code># Regressionsanalyse mit lm
-reg &lt;- lm(math ~ reading + IQ, data = Schulleistungen)
-
-# Ergebnisausgabe einschließlich standardisierter Koeffizienten mit lm.beta
-summary(lm.beta(reg))</code></pre>
+reg &lt;- lm(math ~ reading + IQ, data = Schulleistungen)</code></pre>
+<p>Nun wollen wir überprüfen, ob die Ergebnisse den händisch berechneten entsprechen. Eine gute Übersicht über das Modell erhält man mit der Funktion <code>summary</code>.</p>
+<pre class="r"><code>summary(reg)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = math ~ reading + IQ, data = Schulleistungen)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -86.60 -48.89 -19.10  23.59 467.25 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 58.17167   54.79738   1.062    0.291    
+## reading     -0.03585    0.09693  -0.370    0.712    
+## IQ           5.30982    0.65508   8.106  1.6e-12 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 84.48 on 97 degrees of freedom
+## Multiple R-squared:  0.4873, Adjusted R-squared:  0.4768 
+## F-statistic:  46.1 on 2 and 97 DF,  p-value: 8.447e-15</code></pre>
+<p>Die Übereinstimmung mit den händisch berechneten Regressionsgewichten wird bereits deutlich. Im nächsten Abschnitt befassen wir uns nochmal genauer mit der Interpretation.</p>
+<div id="ergebnisinterpretation-unstandardisierte-regression" class="section level4">
+<h4>Ergebnisinterpretation unstandardisierte Regression</h4>
+<ul>
+<li>die Lesekompetenz und allgemeine Intelligenz erklären gemeinsam 48,73% der Varianz in der Mathematiktestleistung</li>
+<li>Dieser Varianzanteil ist signifikant von null verschieden</li>
+<li>Regressionsgewichte:
+<ul>
+<li>Regressionskonstante <span class="math inline">\(b_0\)</span>:
+<ul>
+<li>Der Erwartungswert der Mathematikleistung für ein Individuum mit null Punkten im IQ und null Punkten in Lesekompetenz beträgt 58,17 Punkte.</li>
+</ul></li>
+<li>Regressionsgewicht <span class="math inline">\(b_1\)</span>:
+<ul>
+<li>bei einem Punkt mehr in der Lesekompetenz und unter Kontrolle (Konstanthaltung) des IQ beträgt die erwartete Veränderung in der Mathematikleistung -0.04 Punkte.</li>
+<li>Der Einfluss von Lesekompetenz auf Mathematikleistung ist nicht signfikant von null verschieden (<span class="math inline">\(p=0.712\)</span>)</li>
+</ul></li>
+<li>Regressionsgewicht <span class="math inline">\(b_2\)</span>:
+<ul>
+<li>unter Kontrolle (Konstanthaltung) der Lesekompetenz beträgt die erwartete Veränderung in der Mathematikleistung bei einem Punkt mehr im IQ 5.31 Punkte.</li>
+<li>Der Einfluss der allgemeinen Intelligenz auf Mathematikleistung ist signfikant von null verschieden (<span class="math inline">\(p=1.6001989\times 10^{-12}\)</span>)</li>
+</ul></li>
+</ul></li>
+</ul>
+</div>
+</div>
+<div id="standardisierte-regression" class="section level3">
+<h3>Standardisierte Regression</h3>
+<p>Zur Durchführung der standardisierten Regression könnten wir natürlich händisch alle Variablen mit <code>scale</code> standardisieren und dann in <code>lm</code> übergeben. Es gibt aber auch eine bereits geschriebene Funktion <code>lm.beta</code> aus dem gleichnamigen Paket <code>lm.beta</code>, die für uns eine zusätzliche Anzeige der standardisierten Regressionsgewichte bereit hält.. Das Paket haben wir im normalen Ablauf der Tutorials noch nicht insatlliert, weshalb wir hier nochmal darauf verweisen.</p>
+<pre class="r"><code>install.packages(&quot;lm.beta&quot;) #Paket installieren (wenn nötig)</code></pre>
+<p>Nach der (ggf. nötigen) Installation müssen wir das Paket für die Bearbeitung laden.</p>
+<pre class="r"><code>library(lm.beta)</code></pre>
+<pre><code>## Warning: Paket &#39;lm.beta&#39; wurde unter R Version 4.1.1 erstellt</code></pre>
+<p>Die Funktion <code>lm.beta</code> muss auf ein Ergebnis der normalen <code>lm</code> Funktion angewendet werden. Wir haben dieses Ergebnis im Objekt <code>reg</code> hinterlegt. Anschließend wollen wir uns für die Interpreation wieder das <code>summary</code> ausgeben lassen. Natürlich kann man diese Schritte auch mit der Pipe lösen, was als Kommentar noch aufgeführt ist.</p>
+<pre class="r"><code># Ergebnisausgabe einschließlich standardisierter Koeffizienten mit lm.beta
+reg_s &lt;- lm.beta(reg)
+summary(reg_s)         # reg |&gt; lm.beta() |&gt; summary()</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = math ~ reading + IQ, data = Schulleistungen)
@@ -343,35 +426,21 @@ summary(lm.beta(reg))</code></pre>
 ## Residual standard error: 84.48 on 97 degrees of freedom
 ## Multiple R-squared:  0.4873, Adjusted R-squared:  0.4768 
 ## F-statistic:  46.1 on 2 and 97 DF,  p-value: 8.447e-15</code></pre>
-<p><strong>Ergebnisinterpretation:</strong></p>
+<p>Wir sehen, dass die ursprüngliche Ausgabe um die Spalte <code>standardized</code> erweitert wurde. Ansonsten ändert sich an der Ausgabe nichts, weshalb wir uns im folgenden Abschnitt der Interpreation auf diese Spalte konzentrieren.</p>
+<div id="ergebnisinterpretation-standardisierte-regression" class="section level4">
+<h4>Ergebnisinterpretation standardisierte Regression</h4>
 <ul>
-<li>die Lesekompetenz und allgemeine Intelligenz erklären gemeinsam 48,73% der Varianz in der Mathematiktestleistung</li>
-<li>Dieser Varianzanteil ist signifikant von null verschieden</li>
-<li>Regressionsgewichte:
-<ul>
-<li>Regressionskonstante <span class="math inline">\(b_0\)</span>:
-<ul>
-<li>Der Erwartungswert der Mathematikleistung für ein Individuum mit null Punkten im IQ und null Punkten in Lesekompetenz beträgt 58,17 Punkte.</li>
-</ul></li>
-<li>Regressionsgewicht <span class="math inline">\(b_1\)</span>:
-<ul>
-<li>bei einem Punkt mehr in der Lesekompetenz und unter Kontrolle des IQ beträgt die erwartete Veränderung in der Mathematikleistung -0.04 Punkte.</li>
-<li>Der Einfluss von Lesekompetenz auf Mathematikleistung ist nicht signfikant von null verschieden (<span class="math inline">\(p=0.712\)</span>)</li>
-</ul></li>
-<li>Regressionsgewicht <span class="math inline">\(b_2\)</span>:
-<ul>
-<li>unter Kontrolle der Lesekompetenz beträgt die erwartete Veränderung in der Mathematikleistung bei einem Punkt mehr im IQ 5.31 Punkte.</li>
-<li>Der Einfluss der allgemeinen Intelligenz auf Mathematikleistung ist signfikant von null verschieden (<span class="math inline">\(p=0\)</span>)</li>
-</ul></li>
-</ul></li>
 <li>Standardisierte Regressionsgewichte
 <ul>
-<li>Standardisiertes Regressionsgewicht <span class="math inline">\(\beta_1\)</span>: Unter Kontrolle des IQ beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr in Lesekompetenz -0.03 Standardabweichungen.</li>
-<li>Standardisiertes Regressionsgewicht <span class="math inline">\(\beta_2\)</span>: Unter Kontrolle der Lesekompetenz beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr im IQ 0.72 Standardabweichungen.</li>
+<li>Standardisiertes Regressionsgewicht <span class="math inline">\(\beta_0\)</span>: Der Achsenabschnitt ist null, da die Ebene durch den Punkt der Mittelwerte aller Variablen geht (0/0/0).</li>
+<li>Standardisiertes Regressionsgewicht <span class="math inline">\(\beta_1\)</span>: Unter Kontrolle (Konstanthaltung) des IQ beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr in Lesekompetenz -0.03 Standardabweichungen.</li>
+<li>Standardisiertes Regressionsgewicht <span class="math inline">\(\beta_2\)</span>: Unter Kontrolle (Konstanthaltung) der Lesekompetenz beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr im IQ 0.72 Standardabweichungen.</li>
 </ul></li>
 </ul>
 <p>Verweis zu letzter Sitzung: In solch einer multiplen Regression können Suppressoreffekte gut aufgedeckt werden. Diese zeigen sich dann, wenn die <span class="math inline">\(\beta\)</span> Gewichte in der multiplen Regression dem Betrag nach größer sind, als deren korrespondierende <span class="math inline">\(\beta\)</span> Gewichte in einer einfachen Regression. Dies ist in unserem Beispiel jedoch nicht der Fall.</p>
 <hr />
+</div>
+</div>
 </div>
 <div id="r-skript" class="section level2">
 <h2>R-Skript</h2>
