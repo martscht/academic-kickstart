@@ -69,19 +69,19 @@ subtitle = "Statistik II"
 <a id="PsyBSc7"></a>
 Das Modul PsyBSc7 vertieft die im Modul PsyBSc2 vermittelten Grundlagen. Behandelt werden u.a. Matrixalgebra, spezielle Typen von Korrelationskoeffizienten, multiple Regression, deren Voraussetzungen und Erweiterungen, Varianzanalysen, das Testen komplexer Hypothesen, Messwiederholungsdesigns, Tests für kategoriale Variablen sowie forschungslogische Aspekte bei der Anwendung statistischer Modelle. Aufbauend auf den theoretischen Grundlagen der Regressions- und Varianzanalyse lernen Studierende, empirische Fragestellungen in die Form statistischer Modelle zu übertragen, komplexe Hypothesen zu testen und multiple Variablenzusammenhänge differenziert zu beurteilen. Einige dieser Inhalte werden hier in `R` umgesetzt und vertieft.
 
-|  |  |  |  |  |
-| --- | --- | --- | --- | --- |
-| 1 | **Wiederholung von Grundlagen in R** | [Inhalte](/post/wiederholung-grundlagen) | -- |
-| 2 | **Grafiken mit ggplot2** | [Inhalte](/post/grafiken-mit-ggplot2) | [Daten Quiz 1](/post/bsc7-daten/#Quiz1) |
-| 3 | **Partial- & Semipartialkorrelation** | [Inhalte](/post/partial) | -- |
-| 4 | **Regressionsanalyse I: multiple Regression** | [Inhalte](/post/reg1) | [Daten Quiz 2](/post/bsc7-daten/#Quiz2) |
-| 5 | **Regressionsanalyse II: Modelloptimierung** | [Inhalte](/post/reg2) | -- |
-| 6 | **Regressionanalyse III: Voraussetzungsprüfung** | [Inhalte](/post/reg3) | [Daten Quiz 3](/post/bsc7-daten/#Quiz3) |
-| 7 | **Regressionanalyse IV: quadratische und Interaktionseffekte** | [Inhalte](/post/quadratische-und-moderierte-regression)  | -- |
-| 8 | **Loops und Funktionen** | [Inhalte](/post/loops-und-funktionen) | [Daten Quiz 4](/post/bsc7-daten/#Quiz4) |
-| 9 | **ANOVA I: einfaktorielle Varianzanalyse** | [Inhalte](/post/einfaktorielle-ANOVA) | -- |
-| 10 | **ANOVA II: zweifaktorielle Varianzanalyse** | [Inhalte](/post/zweifaktorielle-ANOVA) | [Daten Quiz 5](/post/bsc7-daten/#Quiz5) |
-| 11 | **ANOVA III: Varianzanalyse mit Messwiederholung** |  [Inhalte](/post/ANOVA-Messwiederholung/#Quiz6) | [Daten Quiz 6](/post/bsc7-daten) |
-| Zusatz | **Regressionanalyse V: nichtlineare Regression** | [Inhalte](/post/nichtlineare-regression) | [Daten Zusatzquiz](/post/bsc7-daten/#QuizZusatz) |
+| |  |  |  |  |  |
+| --- | --- | --- | --- | --- | --- |
+| I | 1 | **Wiederholung von Grundlagen in R** | [Inhalte](/post/wiederholung-grundlagen) | -- |
+| I | 2 | **Grafiken mit ggplot2** | [Inhalte](/post/grafiken-mit-ggplot2) | [Daten Quiz 1](/post/bsc7-daten/#Quiz1) |
+| II | 3 | **Partial- & Semipartialkorrelation** | [Inhalte](/post/partial) | -- |
+| II | 4 | **Regressionsanalyse I: multiple Regression** | [Inhalte](/post/reg1) | [Daten Quiz 2](/post/bsc7-daten/#Quiz2) |
+| III | 5 | **Regressionsanalyse II: Modelloptimierung** | [Inhalte](/post/reg2) | -- |
+| III | 6 | **Regressionanalyse III: Voraussetzungsprüfung** | [Inhalte](/post/reg3) | [Daten Quiz 3](/post/bsc7-daten/#Quiz3) |
+| IV | 7 | **Regressionanalyse IV: quadratische und Interaktionseffekte** | [Inhalte](/post/quadratische-und-moderierte-regression)  | -- |
+| IV | 8 | **Loops und Funktionen** | [Inhalte](/post/loops-und-funktionen) | [Daten Quiz 4](/post/bsc7-daten/#Quiz4) |
+| V | 9 | **ANOVA I: einfaktorielle Varianzanalyse** | [Inhalte](/post/einfaktorielle-ANOVA) | -- |
+| V | 10 | **ANOVA II: zweifaktorielle Varianzanalyse** | [Inhalte](/post/zweifaktorielle-ANOVA) | [Daten Quiz 5](/post/bsc7-daten/#Quiz5) |
+| VI | 11 | **ANOVA III: Varianzanalyse mit Messwiederholung** |  [Inhalte](/post/ANOVA-Messwiederholung/#Quiz6) | [Daten Quiz 6](/post/bsc7-daten) |
+| | Zusatz | **Regressionanalyse V: nichtlineare Regression** | [Inhalte](/post/nichtlineare-regression) | [Daten Zusatzquiz](/post/bsc7-daten/#QuizZusatz) |
 | | |
 
