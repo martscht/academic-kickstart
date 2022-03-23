@@ -1,26 +1,32 @@
 #######################
 ### Regression I
-# von Marvin Schröder und Luisa Grützmacher
+# von Kai Nehler, Marvin Schröder und Luisa Grützmacher
 
 
-load(url("https://pandar.netlify.app/post/Schulleistungen.rda")) #Datensatz laden
+# Datensatz laden
+load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
+names(Schulleistungen)
 
 
-###Lineare Regression
 
-##Berechnung der Regressionsgewichte "per Hand"
+### Lineare Regression
+
+## Berechnung der Regressionsgewichte "per Hand"
 
 #Vektor Y
 y <- Schulleistungen$math
 head(y)
 
-#Matrix X vorbereiten (Spalten mit beiden Prädiktoren + Spalte mit Einsen anfügen)
+# Matrix X vorbereiten
 X <- as.matrix(Schulleistungen[,c("reading", "IQ")])
-X <- cbind(rep(1,nrow(X)), X)
+
+# Matrix X erweitern
+constant <- rep(1, nrow(X))
+X <- cbind(constant, X)
 head(X)
 
 
-#1. Berechnung der der Kreuzproduktsumme X’X in R
+#1. Berechnung der Kreuzproduktsumme X’X in R
 X.X <- t(X) %*% X        # X' erhalten Sie durch t(X)
 X.X
 
@@ -40,38 +46,52 @@ y.hat <- as.vector(X %*% b.hat) # Vorhersagewerte für jede einzelne Person
 head(y.hat)
 
 #Berechnung der standardisierten Regressionsgewichte
-y.s <- scale(y) # Standardisierung y
-X.s <- scale(X) # Standardisierung X
-X.s[,1] <- 1    # Einsenvektor ist nach Standardisierung zunächst NaN, muss wieder gefüllt werden
+y_s <- scale(y) # Standardisierung y
+X_s <- scale(X) # Standardisierung X
+head(X_s)
+X_s[,1] <- 1    # Einsenvektor wieder auffüllen
 
 #Kombination der Einzelschritte zur Bestimmung der Regressionsgewichte
-b.hat.s <- solve(t(X.s)%*% X.s) %*% t(X.s)%*%y.s #Regressionsgewichte aus den standardisierten Variablen
-round(b.hat.s, 3)
+b_hat_s <- solve(t(X_s)%*% X_s) %*% t(X_s)%*%y_s #Regressionsgewichte aus den standardisierten Variablen
+round(b_hat_s, 3)
+
 
 
 ##Berechnung des globalen Signifikanztests
 
 #Determinationskoeffizient R2
-Q.d <- sum((y.hat - mean(y))^2)    # Regressionsquadratsumme
-Q.e <- sum((y - y.hat)^2)          # Fehlerquadratsumme
-R2 <- Q.d / (Q.d + Q.e)            # Determinationskoeffizient R^2
+Q_t <- sum((y - mean(y))^2)          # Totale Quadratsumme
+Q_d <- sum((y_hat - mean(y))^2)    # Regressionsquadratsumme
+Q_e <- sum((y - y_hat)^2)          # Fehlerquadratsumme
+round(Q_t,2) == round(Q_d + Q_e, 2)
+
+R2 <- Q_d / (Q_d + Q_e)            # Determinationskoeffizient R^2
+# Alternativ Q_d / Q_t
+
+
 
 #F-Wert
-n <- length(y)                       # Fallzahl (n=100)
-m <- ncol(X)-1                       # Zahl der Prädiktoren (m=2)
-F.omn <- (R2/m) / ((1-R2)/(n-m-1))   # F-Wert
-F.krit <- qf(.95, df1=m, df2=n-m-1)  # kritischer F-Wert (alpha=5%)
-p <- 1-pf(F.omn, m, n-m-1)           # p-Wert
+n <- length(y)                     # Fallzahl (n=100)
+m <- ncol(X)-1                     # Zahl der Prädiktoren (m=2)
+F_omn <- (R2/m) / ((1-R2)/(n-m-1)) # empirischer F-Wert
+F_omn
+
+F_krit <- qf(.95, df1=m, df2=n-m-1)  # kritischer F-Wert (alpha=5%)
+F_krit < F_omn  # Vergleich durch logische Überprüfung
+p <- 1-pf(F_omn, m, n-m-1)           # p-Wert
+p < 0.05
 
 
 ###Berechnung der Regression mit lm-Funktionen in R
 
-#Paket installieren (wenn nötig)
-#install.packages("lm.beta", repos = "http://cran.us.r-project.org")
-library(lm.beta)
 
 #Regressionsanalyse mit lm
 reg <- lm(math ~ reading + IQ, data = Schulleistungen)
+summary(reg)
 
-#Ergebnisausgabe einschließlich standardisierter Koeffizienten mit lm.beta
-summary(lm.beta(reg))
+install.packages("lm.beta") #Paket installieren (wenn nötig)
+library(lm.beta)
+
+# Ergebnisausgabe einschließlich standardisierter Koeffizienten mit lm.beta
+reg_s <- lm.beta(reg)
+summary(reg_s)         # reg |> lm.beta() |> summary()
