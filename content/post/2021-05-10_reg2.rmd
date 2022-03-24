@@ -13,8 +13,8 @@ tags:
 - Modelloptimierung
 subtitle: 'Modelloptimierung'
 summary: ''
-authors: [hartig, schueller, irmer]
-lastmod: '2022-03-22 12:00:12 CEST'
+authors: [irmer, hartig, schueller]
+lastmod: '2022-03-24 12:00:12 CEST'
 featured: no
 header:
      image: "/header/PsyBSc7_Reg2.jpg"
@@ -219,9 +219,98 @@ library(olsrr)
 ols_step_both_p(m, pent = .05, prem = .10, details = TRUE)
 ```
 
-Der Output ist extrem detailliert, wobei allerdings nicht aufgeführt wird, wie die jeweiligen Inkremente oder Dekremente der anderen Variablen ausgefallen waren, die nicht selegiert wurden. Mit der `ols_step_both_p` wählen wir nur den IQ als Prädiktor aus! Uns wird nach jedem Step zunächst gesagt, welcher Prädiktor gewählt wurde und wie sich verschiedene Fit-Maße verhalten. Für uns ist an dieser Stelle besonder das $R^2$ (`R-Squared`) von Relevanz. Die ANOVA im Output beschreibt einfach eine ANOVA der zu vergleicheneden Modelle, wobei zunächst mit dem Null-Modell, welches nur das Interzept enthält, begonnen wird. 
+Der Output ist extrem detailliert, wobei allerdings nicht aufgeführt wird, wie die jeweiligen Inkremente oder Dekremente der anderen Variablen ausgefallen waren, die nicht selegiert wurden. Mit der `ols_step_both_p` wählen wir nur den IQ als Prädiktor aus! Uns wird nach jedem Step zunächst gesagt, welcher Prädiktor gewählt wurde und wie sich verschiedene Fit-Maße verhalten (bspw. AIC oder $R^2$). Für uns ist an dieser Stelle besonders das $R^2$ (`R-Squared`) von Relevanz. Die ANOVA im Output beschreibt einfach eine ANOVA der zu vergleichenden Modelle, wobei zunächst mit dem Null-Modell, welches nur das Interzept enthält, begonnen wird. 
 
 Unter `Parameter Estimates` finden wir das finale geschätzte Modell. `Stepwise Selection Summary` zeigt uns das Vorgehen dieses Auswahlalgorithmus.
+
+#### Unterschiede im AIC
+
+Wer nun den Output etwas genauer betrachtet, bemerkt, dass der AIC, der in der `step`-Funktion berichtet wird, nicht identisch mit demjenigen AIC ist, der in `ols_step_both_p` angezeigt wird. Zu Recht kann man sich nun fragen, ob hier ein Fehler passiert. Die Antwort ist nein (und ja). Es werden tatsächlich unterschiedliche Berechnungen für den AIC herangezogen. In `step` wird intern die `extractAIC`-Funktion verwendet, während in `ols_step_both_p` die `AIC`-Funktion verwendet wird:
+
+```{r}
+model <- lm(math ~ reading + female, data = Schulleistungen)
+AIC(model)
+extractAIC(model) # erstes Argument ist die Anzahl der Parameter (p)
+```
+
+Die `AIC`-Funktion gibt den "vollständigen" AIC an, während `extractAIC` eine korrigierte Version heranzieht, aus der sämtlichen irrelevanten Konstanten entfernt wurden. Da der AIC immer nur für Vergleiche auf dem selben Datensatz herangezogen werden sollte, können Konstanten in der Berechnung getrost ignoriert werden, da sie nicht vom betrachteten Modell abhängen. Dazu ein Gedankenexperiment: Für zwei Zahlen $a$ und $b$ (welche bspw. zwei AICs repräsentieren können) gilt: $a>b \Longrightarrow a + c > b + c$ für eine dritte Zahl $c$. Sie sehen also, dass Konstanten, die überall "draufaddiert" werden, den Modellvergleich nicht beeinflussen. 
+
+Um jetzt den Unterschied genau zu erkennen, müssen wir zunächst die Loglikelihood (den Logarithmus der Likelihood) unseres Modells bestimmen. Dies geht über den Kurs an dieser Stelle hinaus. Wer sich allerdings für die Überführung des `extractAIC` zum AIC sowie die Berechnung beider interessiert, kann gerne im [Appendix A](#AppendixA) vorbeischauen.
+
+
+
+***
+
+## Appendix A
+
+<details><summary> **Bestimmen von AIC und Verglich zwischen `AIC` und `extractAIC`** </summary>
+
+Wie bereits oben besprochen, benötigen wir für die Berechnung des AIC die Loglikelihood (Logarithmus der Likelihood) der Daten. Diese erhalten wir ganz einfach mit der `logLik` Funktion. 
+
+```{r}
+logLik(model)
+```
+
+`df` ist die Anzahl der Freiheitsgrade in der Likelihood: hier wird zu den $\beta$-Koeffizienten noch die Residualvarianz $\sigma$ hinzugezählt.
+
+Sie ergibt sich aus der Verteilungsannahme an unser Modell. Diese werden wir in der nächsten Sitzung auch noch genauer prüfen. Jedoch wissen wir aus den inhaltlichen Sitzungen, dass das Residuum der Regression oft als normalverteilt angenommen wird. Das Residuum ist ja aber gerade $\varepsilon_i = Y_i - (\beta_0 + \beta_1X_1 + \dots + \beta_mX_m)$. Außerdem nehmen wir an, dass für alle (Personen) $i$ die Varianz der Residuen gleich groß ist (Varianzhomogenität), nämlich $\sigma$ und deren Erwartung 0 ist, also $\mathbb{E}[\varepsilon_i]=0$.  Die Wahrscheinlichkeitsverteilung des normalverteilten Residuums $\varepsilon_i$ ist also über die Normalverteilung definiert. Einsetzen in die Verteilung ergibt
+
+$$\frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(Y_i - (\beta_0 + \beta_1X_1 + \dots + \beta_mX_m))^2}{2\sigma^2}} = \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{\varepsilon_i^2}{2\sigma^2}}.$$
+
+Sie sehen als Unbekannte in dieser Darstellung gibt es nur die Parameter $\beta_0, \beta_1, \dots,\beta_m,\sigma^2$. Diese gilt es zu finden. Dies geschieht meist über die Loglikelihood. Logarithmieren wir also:
+
+$$-\frac{1}{2}\log(2\pi) -\frac{1}{2}\log(\sigma^2) - \frac{\varepsilon_i^2}{2\sigma^2}$$
+
+Haben wir nun ganz viele Beobachtungen, müssen diese bzgl. der Likelihood multipliziert werden (unabhängige Ereignisse werden multipliziert - das folgt dem gleichen Konzept, wie als wenn wir zwei mal einen Würfel würfeln, dann müssen  die Wahrscheinlichkeiten bspw. die 6 zu würfeln, multipliziert werden). Wenn wir dann logarithmieren, entsteht eine Summe, mit der relativ leicht umgegangen werden kann (deswegen wird auch zumeist die Loglikelihood genutzt, da diese genau dann wenn die Likelihood maximal ist, auch maximal ist, allerdings leichter zu "handeln" ist):
+
+$$\sum_{i=1}^n-\frac{1}{2}\log(2\pi) -\frac{1}{2}\log(\sigma^2) - \frac{\varepsilon_i^2}{2\sigma^2} = \frac{n}{2}\log(2\pi) -\frac{n}{2}\log(\sigma^2) - \frac{1}{2\sigma^2} \sum_{i=1}^n \varepsilon_i^2$$
+
+den letzten Ausdruck kennen wir aber! Das ist die Fehlerquadratsumme! Es gilt $\sum_{i=1}^n \varepsilon_i^2 = n\sigma^2$. Wir können also $\frac{1}{2\sigma^2}\sum_{i=1}^n \varepsilon_i^2$ kürzen: $\frac{1}{2\sigma^2}\sum_{i=1}^n \varepsilon_i^2 = \frac{1}{2\sigma^2}n\sigma^2 = \frac{n}{2}$ ($\sigma^2$ fliegt raus). Also ist die Loglikelihood unserer Daten:
+
+$$-\frac{n}{2}\log(2\pi) -\frac{n}{2}\log(\sigma^2) - \frac{n}{2}$$
+
+An dieser Stelle muss noch einmal erwähnt werden, dass in der Likelihoodschreibweise die Schätzer der Fehlervarianz etwas anders ausfallen, da die Parameter alle simultan geschätzt werden können und nicht von den $\beta$-Gewichten abhängt. Deshalb müssen wir die Fehlervarianz anders bestimmen (die Logik ist ein wenig so, wie wenn man die Populationsschätzer und die Stichprobenschätzer der Varianz vergleicht).
+
+```{r}
+LL <- logLik(model) # Loglikelihood des Modells
+p <- length(coef(model))+1 # betas + sigma
+n <- nrow(Schulleistungen) # Stichprobengröße (nur so möglich, wenn keine Missings!)
+sigma <-summary(model)$sigma * sqrt((n-3)/n) # Korrektur um die Freiheitsgrade df_e = n - (Anzahl beta-Gewichte)
+LL
+-n/2*log(2*pi) - n*log(sigma) - n/2
+```
+
+So, jetzt haben wir die Loglikelihood bestimmt, jetzt fehlt nur noch der AIC:
+
+```{r}
+myAIC <- -2*LL[1] + 2*p
+myAIC
+AIC(model)
+```
+
+Super! Die beiden sind schon mal identisch.
+
+Wie erhalten wir nun den Unterschied zu `extractAIC`? Wir hatten gesagt, dass in `extractAIC` alle "Konstanten" herausgelassen werden, also jene Informationen, die nicht vom Modell beeinflusst werden, solange es auf die gleichen Daten angewandt wird. Die Formel für die Loglikelihood sah so aus: $-\frac{n}{2}\log(2\pi) -\frac{n}{2}\log(\sigma^2) - \frac{n}{2}$. Hier hängt nur der Term $-\frac{n}{2}\log(\sigma^2)$ vom Modell ab, da nur die Residualvarianz $\sigma^2$ von der Inklusion der Prädiktoren abhängt. Somit haben wir also unsere fehlenden Terme gefunden! Da die Loglikelihood in der Bestimmung des AICs mit -2 multipliziert wird, müssen wir also die "Konstanten" nur noch damit multiplizieren und auf `extractAIC` draufaddieren. Außerdem müssen wir die Anzahl der Parameter um die Residualvarianz vergrößern, also müssen wir zusätlich 2*1 addieren:
+
+```{r}
+extractAIC(model)[2] + n + n*log(2*pi) + 2
+myAIC
+AIC(model)
+```
+
+Nun sind alle AICs gleich! Warum ist das aber kein Problem? Vergleichen wir doch mal 2 Modelle:
+
+```{r}
+model1 <- lm(math ~ reading + female, data = Schulleistungen)
+model2 <- lm(math ~ reading , data = Schulleistungen)
+
+AIC(model1) - AIC(model2)
+extractAIC(model1) - extractAIC(model2)
+```
+
+Der Unterschied in den bestimmten AICs ist identisch. Somit sehen wir, dass die Unterschiede in den absoluten Werten keinen Einfluss auf die Auswahl der Modelle nimmt. Was ein Aufwand. Wir hoffen, dass die Herleitung beim Verstehen des Sachverhalts nutzt.
+
+</details>
 
 ***
 
