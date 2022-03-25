@@ -1,7 +1,7 @@
 ---
 title: "ANOVA I: einfaktorielle ANOVA"
 date: '2021-05-20'
-slug: einfaktorielle-ANOVA
+slug: anova1
 categories:
   - BSc7
 tags:
@@ -24,6 +24,7 @@ header:
 projects: []
 ---
 
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <p>In den letzten Sitzungen haben wir uns ausführlicher mit dem Zusammenhang zwischen Variablen in Form von Korrelation und Regression beschäftigt. Nun möchten wir untersuchen, ob es einen Unterschied zwischen mehreren Gruppen hinsichtlich der Mittelwerte in einer Variablen gibt. Im letzten Semester haben Sie schon den <strong>t-Test</strong> kennen gelernt, mit dem Mittelwertsunterschiede zwischen zwei Gruppen untersucht werden können. Wenn wir nun mehr als zwei Gruppen miteinander vergleichen möchten, müssten wir mehrere <em>t-Tests</em> mit allen Kombinationen durchführen. Bei z. B. 3 Gruppen müssten wir <span class="math inline">\(\binom{3}{2}\)</span> <em>t-Tests</em> durchführen. Wie Sie sicherlich noch wissen, führt dies aber zu einer <strong><span class="math inline">\(\alpha\)</span>-Fehler Inflation oder Kumulierung</strong>. In diesem Fall muss demnach eine <strong>ANOVA</strong> genutzt werden. Da wir den Unterschied <em>einer Gruppenvariable</em> wissen wollen, nutzen wir die <em>einfaktorielle ANOVA</em>. Wie das Verfahren für mehrere Gruppenvariablen ist, wird in der nächsten Sitzung besprochen. Mehr zur <em>einfaktoriellen ANOVA</em> finden Sie in <a href="https://hds.hebis.de/ubffm/Record/HEB366849158"><code>Eid, Gollwitzer und Schmitt (2017, Kapitel 13 und insb. 13.1 und folgend)</code></a>.</p>
@@ -135,12 +136,6 @@ pf(F_wert, nlevels(conspiracy$urban)-1, nrow(conspiracy) - nlevels(conspiracy$ur
 <p>Da das Ausrechnen per Hand nun doch etwas umständlich ist, bietet <code>R</code> uns einige andere Möglichkeiten, z. B. <code>anova</code> oder <code>aov</code> und diverse Pakete (z. B. <code>Anova</code> aus <code>car</code>). Allerdings haben die verschiedenen Ansätze jeweils ihre Vor- und Nachteile, weshalb die <code>ezANOVA</code>-Funktion aus dem <code>ez</code>-Paket erstellt wurde, um als Meta-Funktion zu dienen, die sich situationsspezifisch bei den grundlegenden Funktionen bedient.</p>
 <pre class="r"><code># Paket laden (ggf. vorher installieren mit install.packages)
 library(ez)</code></pre>
-<pre><code>## Registered S3 methods overwritten by &#39;lme4&#39;:
-##   method                          from
-##   cooks.distance.influence.merMod car 
-##   influence.merMod                car 
-##   dfbeta.influence.merMod         car 
-##   dfbetas.influence.merMod        car</code></pre>
 <p>Weil die Funktion für verschiedene Arten von <em>ANOVAs</em> geeignet ist, benötigt sie einige sehr spezifisiche Argumente. Für die <em>einfaktorielle ANOVA</em> werden vier Argumente benötigt:</p>
 <ul>
 <li><code>data =</code>: der genutzte Datensatz</li>
@@ -162,7 +157,7 @@ library(ez)</code></pre>
 ## $`Levene&#39;s Test for Homogeneity of Variance`
 ##   DFn  DFd     SSn      SSd        F         p p&lt;.05
 ## 1   2 2448 3.62836 1752.977 2.533469 0.0795913</code></pre>
-<p>Zunächst werden wir mit einer <code>## Warning</code> darauf hingewiesen, dass das Desgin <em>unbalanciert</em> ist: die Gruppen sind nicht alle gleich groß. Das kann Konsequenzen auf die Vertrauenswürdigkeit der Ergebnisse haben, wenn wir ANOVAs mit mehr als einem Faktor bestimmen (dazu mehr in der nächsten Sitzung zur <a href="/post/zweifaktorielle-ANOVA">zweifaktoriellen ANOVA</a>.</p>
+<p>Zunächst werden wir mit einer <code>## Warning</code> darauf hingewiesen, dass das Desgin <em>unbalanciert</em> ist: die Gruppen sind nicht alle gleich groß. Das kann Konsequenzen auf die Vertrauenswürdigkeit der Ergebnisse haben, wenn wir ANOVAs mit mehr als einem Faktor bestimmen (dazu mehr in der nächsten Sitzung zur <a href="/post/anova2">zweifaktoriellen ANOVA</a>.</p>
 <p>Die zweite Hälfte der Ergebnisse (<code>$Levene's Test for Homogeneity of Variance</code>) liefern die Überprüfung der Homoskedastizitätsannahme mit dem Levene Test. Dieser wird von <code>ezANOVA</code> immer automatisch mitgeliefert. Wie zu erwarten, zeigt sich das selbe Ergebnis wie mit dem <code>leveneTest</code> aus dem <code>car</code>-Paket.</p>
 <p>Der erste Abschnitt der Ausgabe der <code>ezANOVA</code>-Funktion liefert die Ergebnisse der <em>ANOVA</em> selbst. Dabei wird zunächst die unabhängige Variable aufgeführt (<code>Effect</code>), dann die Anzahl der Zählerfreiheitsgrade (<code>DFn</code> = <span class="math inline">\(df_1\)</span>), dann die Anzahl der Nennerfreiheitsgrade (<code>DFd</code> = <span class="math inline">\(df_2\)</span>). Darauf wiederum folgt der <span class="math inline">\(F\)</span>-Wert (<code>F</code> = <span class="math inline">\(F_{emp}\)</span>) und der resultierende <span class="math inline">\(p\)</span>-Wert. In diesem Fall wird die Nullhypothese bei einem <span class="math inline">\(\alpha\)</span>-Fehlerniveau von .05 verworfen: die Mittelwerte der drei Gruppen sind nicht gleich. Der <code>*</code> in der nächsten Spalte liefert uns diesbezüglich einen optischen Hinweis.</p>
 <p>Die letzte Spalte liefert das generalisierte <span class="math inline">\(\eta^2\)</span> (<code>ges</code> = <em>Generalized Eta-Squared</em>), ein Effektstärkemaß für ANOVAs. Dieses berechnet sich in diesem Fall einfach aus <span class="math inline">\(\eta^2 = \frac{QS_{zw}}{QS_{tot}}\)</span>. Um die Quadtratsummen (<code>SSn</code> = <span class="math inline">\(QS_{zw}\)</span>,<code>SSd</code> = <span class="math inline">\(QS_{inn}\)</span>) zu erhalten, kann mithilfe des Arguments <code>detailed = TRUE</code> eine detaillierte Ausgabe angefordert werden.</p>
@@ -200,7 +195,7 @@ library(ez)</code></pre>
 </div>
 <div id="tukey-test" class="section level3">
 <h3>Tukey Test</h3>
-<p>Ein präziserer Ansatz als die einfachen <span class="math inline">\(t\)</span>-Tests bietet <strong>Tukeys Honest Significant Difference</strong> (auch <em>Tukey Test</em>). Dieser kann in <code>R</code> allerdings nur auf <code>aov</code>-Objekte angewendet werden. Der <code>aov</code>-Befehl führt zum selben Ergebnis wie <code>ezANOVA</code>. Zu Unterschieden kann es erst bei der <a href="/post/zweifaktorielle-ANOVA">zweifaktoriellen ANOVA</a> kommen, da dort der Typ der Quadratsumme ein Rolle spielt, wie diese ausfällt.</p>
+<p>Ein präziserer Ansatz als die einfachen <span class="math inline">\(t\)</span>-Tests bietet <strong>Tukeys Honest Significant Difference</strong> (auch <em>Tukey Test</em>). Dieser kann in <code>R</code> allerdings nur auf <code>aov</code>-Objekte angewendet werden. Der <code>aov</code>-Befehl führt zum selben Ergebnis wie <code>ezANOVA</code>. Zu Unterschieden kann es erst bei der <a href="/post/anova2">zweifaktoriellen ANOVA</a> kommen, da dort der Typ der Quadratsumme ein Rolle spielt, wie diese ausfällt.</p>
 <div id="aov-befehl" class="section level4">
 <h4>aov-Befehl</h4>
 <p>In unserem Beispiel sieht der <code>aov</code>-Befehl so aus, wobei wir direkt die <code>summary</code>-Funktion, analog zur Regressionanalyse, darauf anwenden, um die Signifikanzentscheidungen zu sehen:</p>
@@ -252,7 +247,7 @@ plot(tuk)</code></pre>
 </div>
 <div id="r-skript" class="section level2">
 <h2>R-Skript</h2>
-<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/PsyBSc7_R_Files/ANOVA-I.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
+<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/PsyBSc7_R_Files/ANOVA-I.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
 <hr />
 </div>
 <div id="literatur" class="section level2">

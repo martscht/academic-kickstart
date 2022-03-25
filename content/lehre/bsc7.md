@@ -79,9 +79,9 @@ Das Modul PsyBSc7 vertieft die im Modul PsyBSc2 vermittelten Grundlagen. Behande
 | III | 6 | **Regressionanalyse III: Voraussetzungsprüfung** | [Inhalte](/post/reg3) | [Daten Quiz 3](/post/bsc7-daten/#Quiz3) |
 | IV | 7 | **Regressionanalyse IV: quadratische und Interaktionseffekte** | [Inhalte](/post/quadratische-und-moderierte-regression)  | -- |
 | IV | 8 | **Loops und Funktionen** | [Inhalte](/post/loops-und-funktionen) | [Daten Quiz 4](/post/bsc7-daten/#Quiz4) |
-| V | 9 | **ANOVA I: einfaktorielle Varianzanalyse** | [Inhalte](/post/einfaktorielle-ANOVA) | -- |
-| V | 10 | **ANOVA II: zweifaktorielle Varianzanalyse** | [Inhalte](/post/zweifaktorielle-ANOVA) | [Daten Quiz 5](/post/bsc7-daten/#Quiz5) |
-| VI | 11 | **ANOVA III: Varianzanalyse mit Messwiederholung** |  [Inhalte](/post/ANOVA-Messwiederholung/#Quiz6) | [Daten Quiz 6](/post/bsc7-daten) |
+| V | 9 | **ANOVA I: einfaktorielle Varianzanalyse** | [Inhalte](/post/anova1) | -- |
+| V | 10 | **ANOVA II: zweifaktorielle Varianzanalyse** | [Inhalte](/post/anova2) | [Daten Quiz 5](/post/bsc7-daten/#Quiz5) |
+| VI | 11 | **ANOVA III: Varianzanalyse mit Messwiederholung** |  [Inhalte](/post/anova3) | [Daten Quiz 6](/post/bsc7-daten/#Quiz6) |
 | | Zusatz | **Regressionanalyse V: nichtlineare Regression** | [Inhalte](/post/nichtlineare-regression) | [Daten Zusatzquiz](/post/bsc7-daten/#QuizZusatz) |
 | | |
 
