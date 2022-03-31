@@ -3,153 +3,100 @@
 # von Martin Schultze
 
 
-##Datensätze laden
-confirmed_raw <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_confirmed_global.csv')
-deaths_raw <- read.csv('https://raw.githubusercontent.com/CSSEGISandData/COVID-19/master/csse_covid_19_data/csse_covid_19_time_series/time_series_covid19_deaths_global.csv')
-
-#Daten aufbereiten: von breites (Spalte pro Tag) in langes Format (Zeile pro Tag) übertragen
-confirmed <- na.omit(confirmed_raw) #Datensatz ohne fehlende Werte anlegen
-
-confirmed_long <- reshape(confirmed,                           #Datensatz
-                          varying = names(confirmed)[-c(1:4)], #Variablen, die wiederholt gemessen wurden
-                          v.names = 'Confirmed',               #Name, unter dem die Variablen zusammengefasst werden sollen
-                          timevar = 'Day',                     #Variable, die Wiederholungen kennzeichnet
-                          idvar = names(confirmed)[1:4],       #Variablen, die sich über Wiederholungen nicht ändern
-                          direction = 'long')                  #Zielformat des neuen Datensatzes
-
-head(confirmed_long) #Überblick über neuen, "langen" Datensatz verschaffen
-rownames(confirmed_long) <- NULL #Variablennamen entfernen
-head(confirmed_long)
-
-#analog für anderen Datensatz
-deaths <- na.omit(deaths_raw) #Datensatz ohne fehlende Werte anlegen
-
-deaths_long <- reshape(deaths,                              #Datensatz
-                          varying = names(deaths)[-c(1:4)], #Variablen, die wiederholt gemessen wurden
-                          v.names = 'Deaths',               #Name, unter dem die Variablen zusammengefasst werden sollen
-                          timevar = 'Day',                  #Variable, die Wiederholungen kennzeichnet
-                          idvar = names(deaths)[1:4],       #Variablen, die sich über Wiederholungen nicht ändern
-                          direction = 'long')               #Zielformat des neuen Datensatzes
-
-rownames(deaths_long) <- NULL
-head(deaths_long)
-
-##Daten zusammenführen (merge)
-long <- merge(confirmed_long, deaths_long,                                      #Datensätze, die zusammengeführt werden sollen
-              by = c('Province.State', 'Country.Region', 'Lat', 'Long', 'Day')) #Variablen, anhand derer gleiche Fälle identifiziert werden können
-head(long)
-
-##Daten zusammenfassen (aggregate)
-covid <- aggregate(cbind(Confirmed, Deaths) ~ Country.Region + Day, #AVs ~ UV1 + UV2
-                   data = long,                                     #Datensatz
-                   FUN = 'sum')                                     #Summe bilden über verschiedene Staaten/Provinzen/Regionen eines Landes
-head(covid)
-
-tail(covid[covid$Country.Region == 'Germany', ], 10) #Daten der letzten 10 Tage für Deutschland
-
-
-
-###ggplot2-Grundprinzipien
+### Paket ggplot2 laden
 library(ggplot2)
 
-
-##Schichten
-covid_de <- covid[covid$Country.Region == 'Germany', ] #neuen Datensatz erstellen, der nur die Daten für Deutschland beinhaltet
-
-ggplot(covid_de,                       #Datensatz
-       aes(x = Day, y = Confirmed)) +  #Variablen für x- und y-Achse bestimmen
-  geom_line() +                        #geometrische Form: Linie
-  geom_point()                         #geometrische Form: Punkte
-
-basic <- ggplot(covid_de, aes(x = Day, y = Confirmed)) #Anleitung für Erstellung der Grafik erstellen
-basic + geom_point()
+### Datensatz laden
+load(url('https://pandar.netlify.com/post/edu_exp.rda'))
+head(edu_exp)
 
 
-##Farben und Ästhetik
-ggplot(covid_de, aes(x = Day, y = Confirmed)) +
-  geom_point(color = 'blue') #alle Datenpunkte werden blau
+## Schichten
+edu_2013 <- subset(edu_exp, Year == 2013) # Subset mit den Daten für 2013 erstellen
 
-ggplot(covid_de, aes(x = Day, y = Confirmed)) +
-  geom_point(aes(color = Confirmed)) #Farbe soll von der Ausprägung der Variable "Confirmed" abhängig gemacht werden
+ggplot(edu_2013) # 1.Schicht: Daten
+ggplot(edu_2013, aes(x = Primary, y = Index)) # 2.Schicht: Ästhetik
+ggplot(edu_2013, aes(x = Primary, y = Index)) + geom_point() # 3.Schicht: geometrische Form
 
-
-##Gruppierte Abbildungen
-covid_sel <- covid[covid$Country.Region %in% c('France', 'Germany', 'Italy', 'Spain', 'United Kingdom'), ] #Datensatz mit 5 Ländern
-
-ggplot(covid_sel, aes(x = Day, y = Confirmed, color = Country.Region)) + #jedem Land wird eine Farbe zugeordnet
-  geom_point() + geom_line()                                             #Ästhetik wird für alle Gruppierungen übernommen
+cor.test(edu_2013$Index, edu_2013$Primary) # Korrelation zwischen Ausgaben für die Grundschulbildung und dem erreichten Bildungsindex
 
 
-##Faceting
-#eine Abbildung wird anhand von Ausprägungen auf einer oder mehr Variablen in verschiedene Abbildungen unterteilt
-ggplot(covid_sel, aes(x = Day, y = Confirmed)) +
-  geom_point() + geom_line() +
-  facet_wrap(~ Country.Region)                   #Plot wird anhand der unabhängigen Variablen hinter der Tilde in Gruppen eingeteilt
+## Plots als Objekte
+basic <- ggplot(edu_2013, aes(x = Primary, y = Index)) # Plot als Objekt abspeichern
+basic + geom_point() # Objekt aufrufen
 
 
-##mehrere variablen
-ggplot(covid_de, aes(x = Day)) +
-  geom_line(aes(y = Confirmed), color = 'darkblue') + #erste Variable
-  geom_line(aes(y = Deaths), color = 'darkred')       #zweite Variable
+## Farben und Ästhetik
+ggplot(edu_2013, aes(x = Primary, y = Index)) + geom_point(color = 'blue') # Farbe der Punkte zu Blau ändern
+ggplot(edu_2013, aes(x = Primary, y = Index)) + geom_point(aes(color = Primary)) # Farbe der Punkte je nach Ausprägung auf Variable "Primary" bunt färben
+
+
+## Gruppierte Abbildungen
+ggplot(edu_2013, aes(x = Primary, y = Index)) + geom_point(aes(color = Region)) # Farbe der Punkte je nach Region einfärben
+ggplot(edu_2013, aes(x = Primary, y = Index, color = Region)) + geom_point() # Allgemeine Gruppierung
+
+
+## Faceting
+edu_sel <- subset(edu_exp,  Year %in% c(1998, 2003, 2008, 2013)) # Datensatz mit Informationen aus 1998, 2003, 2008 und 2013 erstellen
+edu_sel$Year <- as.factor(edu_sel$Year) # Variable in Faktor umwandeln
+
+ggplot(edu_sel, aes(x = Primary, y = Index, color = Region, pch = Year)) + geom_point() # Plot
+
+ggplot(edu_sel, aes(x = Primary, y = Index, color = Region)) + geom_point() + facet_wrap(~ Year) # Plot anhand des Jahres in Gruppen aufteilen
 
 
 
-###Abbildungen anpassen
+### Abbildungen anpassen
 
-##Themes
-ggplot(covid_sel, aes(x = Day, y = Confirmed, color = Country.Region)) +
-  geom_line() + geom_point() +
-  theme_light() #Theme hinzufügen
+## Themes
+scatter <- ggplot(edu_2013, aes(x = Primary, y = Index, color = Region)) + geom_point() # Grundanleitung der Abbildung für 2013 in Objekt ablegen
 
-##Beschriftung
-ggplot(covid_sel, aes(x = Day, y = Confirmed, color = Country.Region)) +
-  geom_line() + geom_point() +
-  theme_light() +
-  labs(x = 'Tage seit dem 22.1.', y = 'Bestätigte Fälle', color = 'Land') + #Achsenbeschriftungen
-  ggtitle('COVID-19 Infektionen',                                           #Titel
-          paste('Stand:', Sys.Date()))                                      #Untertitel: hier wird über `Sys.Date()` das aktuelle Datum abgefragt und durch `paste` mit "Stand:" zusammengeklebt
+scatter + theme_minimal() # Theme verändern
 
-##Farbpaletten
-ggplot(covid_sel, aes(x = Day, y = Confirmed, color = Country.Region)) +
-  geom_line() + geom_point() +
-  theme_light() +
-  scale_color_grey() #Grautöne festlegen
+install.packages('ggthemes') # Sammlung von Themes in ggplot
+library(ggthemes)
 
-gu_colors <- c('#00618f', '#e3ba0f', '#ad3b76', '#737c45', '#c96215') #Farben in einem Objekt festlegen
-ggplot(covid_sel, aes(x = Day, y = Confirmed, color = Country.Region)) +
-  geom_line() + geom_point() +
-  theme_light() +
-  scale_color_manual(values = gu_colors) #selbsständig Farben über Objekt zuweisen
+theme_set(theme_minimal()) # Theme als neue Voreinstellung definieren
+theme_set(theme_grey()) # ursprüngliche Voreinstellung
 
 
-
-###verschiedene Plots
-
-
-##Balkendiagramme
-covid_today <- covid_sel[covid_sel$Day == max(covid_sel$Day), ] #neuen Datensatz mit nur den heutigen Fallzahlen
-covid_today
-
-ggplot(covid_today, aes(x = Country.Region, y = Confirmed)) +
-  geom_bar(stat = 'identity') #geometrische Form: Balken #als zu berechnende Statistik Variable "identity" benutzen
-
-
-##Histogramme
-covid_global <- covid[covid$Day == max(covid$Day), ] #Datensatz mit Anzahl der bestätigten Fälle bisher über die Länder hinweg
-ggplot(covid_global, aes(x = Confirmed)) +
-  geom_histogram() #geometrische Form: Histogramm
-
-
-##Boxplots
-ggplot(covid_global, aes(y = Confirmed)) +
-  geom_boxplot() #geometrische Form: Boxplot
-
-
-##Plots mit Trendlinien
-ggplot(covid_sel, aes(x = Day, y = Confirmed)) +
-  geom_point() + #geometrische Form: Scatterplot
-  geom_smooth()  #geometrische Form: globale Trendlinie
-
-ggplot(covid_sel, aes(x = Day, y = Confirmed, color = Country.Region)) + #Trends sollen länderspezifisch eingezeichnet werden
+## Beschriftung
+ggplot(edu_2013, aes(x = Primary, y = Index, color = Region)) +
   geom_point() +
-  geom_smooth() #länderspezifische Trends
+  labs(x = 'Spending on Primary Eduction', # x-Achse beschriften
+       y = 'UNDP Education Index', # y-Achse beschriften
+       color = 'World Region') +
+  ggtitle('Impact of Primary Education Investments', '(Data for 2013)') # Abbildungstitel und -untertitel
+
+
+edu_2013$Region <- factor(edu_2013$Region, levels = c('africa', 'americas', 'asia', 'europe'), labels = c('Africa', 'Americas', 'Asia', 'Europe')) # Variable "Region" in Faktor umwandeln
+
+scatter <- ggplot(edu_2013, aes(x = Primary, y = Index, color = Region)) +
+  geom_point() +
+  labs(x = 'Spending on Primary Eduction',
+       y = 'UNDP Education Index',
+       color = 'World Region') +
+  ggtitle('Impact of Primary Education Investments', '(Data for 2013)')
+
+scatter
+
+## Farbpaletten
+scatter + scale_color_grey() # Grautöne
+
+gu_colors <- c('#00618f', '#e3ba0f', '#ad3b76', '#737c45', '#c96215') # Farben der Goethe Universität
+scatter + scale_color_manual(values = gu_colors) # Farbpalette auf Objekt anwenden
+
+
+
+### Verschiedene Plots
+scatter + geom_smooth() # LOESS-Glättung auf scatter-Objekt anwenden
+
+ggplot(edu_2013, aes(x = Primary, y = Index)) +
+  geom_point(aes(color = Region)) +
+  geom_smooth() +
+  labs(x = 'Spending on Primary Eduction',
+       y = 'UNDP Education Index',
+       color = 'World Region') +
+  ggtitle('Impact of Primary Education Investments', '(Data for 2013)')
+
+scatter + geom_smooth(method = 'lm', se = FALSE) # Regressionen einfügen und Standardfehler unterdrücken
