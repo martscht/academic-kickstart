@@ -15,7 +15,7 @@ tags:
   - Tukey
 subtitle: '1-fakt. ANOVA'
 summary: ''
-authors: [scheppa-lahyani,irmer,wallot]
+authors: [scheppa-lahyani,irmer,wallot, nehler]
 lastmod: '2021-06-14T08:32:21+02:00'
 featured: no
 header:
@@ -28,14 +28,17 @@ projects: []
 
 
 <p>In den letzten Sitzungen haben wir uns ausführlicher mit dem Zusammenhang zwischen Variablen in Form von Korrelation und Regression beschäftigt. Nun möchten wir untersuchen, ob es einen Unterschied zwischen mehreren Gruppen hinsichtlich der Mittelwerte in einer Variablen gibt. Im letzten Semester haben Sie schon den <strong>t-Test</strong> kennen gelernt, mit dem Mittelwertsunterschiede zwischen zwei Gruppen untersucht werden können. Wenn wir nun mehr als zwei Gruppen miteinander vergleichen möchten, müssten wir mehrere <em>t-Tests</em> mit allen Kombinationen durchführen. Bei z. B. 3 Gruppen müssten wir <span class="math inline">\(\binom{3}{2}\)</span> <em>t-Tests</em> durchführen. Wie Sie sicherlich noch wissen, führt dies aber zu einer <strong><span class="math inline">\(\alpha\)</span>-Fehler Inflation oder Kumulierung</strong>. In diesem Fall muss demnach eine <strong>ANOVA</strong> genutzt werden. Da wir den Unterschied <em>einer Gruppenvariable</em> wissen wollen, nutzen wir die <em>einfaktorielle ANOVA</em>. Wie das Verfahren für mehrere Gruppenvariablen ist, wird in der nächsten Sitzung besprochen. Mehr zur <em>einfaktoriellen ANOVA</em> finden Sie in <a href="https://hds.hebis.de/ubffm/Record/HEB366849158"><code>Eid, Gollwitzer und Schmitt (2017, Kapitel 13 und insb. 13.1 und folgend)</code></a>.</p>
-<p>Wir arbeiten mit dem Datensatz “<strong>conspiracy</strong>”.</p>
+<p>Die praktische Arbeit soll anhand des Datensatzes <code>conspiracy</code> demonstriert werden, den wir also zunächst in unserem Environment haben müssen.</p>
 <div id="daten-laden" class="section level3">
 <h3>Daten laden</h3>
-<p>Wir laden zunächst die Daten: entweder lokal von Ihrem Rechner:</p>
+<p>Wenn Sie den Datensatz lokal auf ihrem Rechner haben möchten, können Sie ihn <a href="https://pandar.netlify.app/post/conspiracy.rda"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> Datensatz “conspiracy.rda” hier herunterladen</a>. Anschließend muss er eingeladen werden - natürlich mit Ihrem Dateipfad.</p>
 <pre class="r"><code>load(&quot;C:/Users/Musterfrau/Desktop/conspiracy.rda&quot;)</code></pre>
-<p>oder wir laden sie direkt über die Website:</p>
+<p>Alternativ kann der Datensatz durch die Nutzung von <code>url</code> auch direkt über die Website eingeladen werden.</p>
 <pre class="r"><code>load(url(&quot;https://pandar.netlify.app/post/conspiracy.rda&quot;))</code></pre>
-<p>Der Datensatz enthält die Werte von 2451 Personen auf 9 Variablen und stammt aus einer Untersuchung zum Thema <em>verschwörungstheoretische Überzegungen</em>.</p>
+<p>Der Datensatz stammt aus einer Untersuchung zum Thema <em>verschwörungstheoretische Überzegungen</em>. Beginnen wir mit einer kurzen Inspektion.</p>
+<pre class="r"><code>dim(conspiracy)</code></pre>
+<pre><code>## [1] 2451    9</code></pre>
+<p>Der Datensatz enthält die Werte von 2451 Personen auf 9 Variablen und</p>
 <pre class="r"><code>head(conspiracy)</code></pre>
 <pre><code>##              edu    urban gender age       GM       MG       ET       PW
 ## 2     highschool suburban female  14 4.000000 5.000000 4.666667 3.333333
@@ -55,9 +58,10 @@ projects: []
 </div>
 <div id="aufgestellte-hypothesen" class="section level3">
 <h3>Aufgestellte Hypothesen</h3>
-<p>Es soll untersucht werden, ob sich Personen je nach Ländlichkeit ihres Wohnortes (<em>rural</em>, <em>suburban</em>, <em>urban</em>) in der Überzeugung unterscheiden, inwiefern die Existenz von Außerirdischen geheimgehalten wird (Beispielitem: Evidence of alien contact is being concealed from the public).</p>
-<p>In der <em>einfaktoriellen ANOVA</em> wird die <strong>Gleichheit aller Gruppenmittelwerte als Nullhypothese</strong> posutliert - also das sich Bewohner des ländlichen Raums (rural), des vorstädtischen Raums (suburban) und der Stadt (urban) nicht hinsichtlicher ihrer Zustimmung zur Verschwörungstheorie <em>Extraterrestrial Cover-Up</em> unterscheiden:</p>
+<p>Die Durchführung der ANOVA benötigt natürlich Hypothesen, die uns in der Auswertung interessieren. In unserem Beispiel soll untersucht werden, ob sich Personen je nach Ländlichkeit ihres Wohnortes (<em>rural</em>, <em>suburban</em>, <em>urban</em>) in der Überzeugung unterscheiden, inwiefern die Existenz von Außerirdischen geheimgehalten wird (Beispielitem: Evidence of alien contact is being concealed from the public).</p>
+<p>In der <em>einfaktoriellen ANOVA</em> wird die <strong>Gleichheit aller Gruppenmittelwerte als Nullhypothese</strong> posutliert - also dass sich Bewohner:innen des ländlichen Raums (<code>rural</code>), des vorstädtischen Raums (<code>suburban</code>) und der Stadt (<code>urban</code>) nicht hinsichtlicher ihrer Zustimmung zur Verschwörungstheorie <em>Extraterrestrial Cover-Up</em> (<code>ET</code>) unterscheiden:</p>
 <p><span class="math inline">\(H_0: \mu_{\text{rural}} = \mu_{\text{suburban}} = \mu_{\text{urban}}\)</span></p>
+<p>Im Rahmen der vorliegenden Daten müssen wir beachten, dass die der Variablenname <code>urban</code> genauso gewählt wurde, wie eine seiner Ausprägungen (für den städtischen Raum). Für bestimmte Code-Abschnitte ist es wichtig, das im Hinterkopf zu behalten, um nicht verwirrt zu werden.</p>
 <p>Bei der Alternativhypothese wird angenommen, dass sich <strong>mindestens zwei dieser Subgruppen</strong> im Mittel voneinander unterscheiden:</p>
 <p><span class="math inline">\(H_1: \mu_j \neq \mu_k\)</span> für mindestens ein Paar <span class="math inline">\((j, k)\)</span> mit <span class="math inline">\(j \neq k\)</span></p>
 <p>Wir benutzen hier die Indizes <span class="math inline">\(j\)</span> und <span class="math inline">\(k\)</span>, um den Vergleich der Mittelwerte von zwei unterschiedlichen Subgruppen darzustellen. Für <span class="math inline">\(j = 1\)</span> und <span class="math inline">\(k = 2\)</span> könnte dies z. B. den Vergleich der Subgruppen “rural” und “suborban” anzeigen. Die Ungleichung <span class="math inline">\(j \neq k\)</span> bedeutet in diesem Zusammenhang, dass wir in der Formulierung der Alternativhypothese immer nur unterschiedliche Gruppen miteinander vergleichen, nie aber eine Subgruppe mit sich selbst, was im Übrigen auch ein aussageloser Vergleich wäre, da wir — dies wäre nur sinnvoll, wenn wir die gleiche Stichprobe mehrfach gemessen hätten. Wie dies dann mitmodelliert wird, erfahren wir im Rahmen der ANOVA mit Messwiederholung.</p>
@@ -76,9 +80,10 @@ projects: []
 </div>
 <div id="homoskedastizität" class="section level3">
 <h3>2) Homoskedastizität</h3>
-<p>Die Homoskedastizitätsannahme besagt, dass die Varianzen jeder Gruppe über die Gruppen hinweg gleich sind. Deshalb wird diese Annahme auch häufig Varianzhomogenitätsannahme genannt. Zur Überprüfung der Homoskedatizität kann der <strong>Levene Test</strong> herangezogen werden. Dieser kann mithilfe des <code>car</code> Pakets angefordert werden. Dazu laden wir zunächst das Paket und führen anschließend die Funnktion <code>leveneTest</code> aus:</p>
+<p>Die Homoskedastizitätsannahme besagt, dass die Varianzen jeder Gruppe über die Gruppen hinweg gleich sind. Deshalb wird diese Annahme auch häufig Varianzhomogenitätsannahme genannt. Zur Überprüfung der Homoskedatizität kann der <strong>Levene Test</strong> herangezogen werden. Dieser kann mithilfe des <code>car</code> Pakets angefordert werden. Dazu laden wir zunächst das Paket und führen anschließend die Funktion <code>leveneTest</code> aus. Installiert haben wir das Paket bereits in vorherigen Tutorials und dort auch bereits angewendet.</p>
 <pre class="r"><code>library(car)</code></pre>
-<pre><code>## Loading required package: carData</code></pre>
+<pre><code>## Warning: Paket &#39;car&#39; wurde unter R Version 4.1.1 erstellt</code></pre>
+<pre><code>## Lade nötiges Paket: carData</code></pre>
 <pre class="r"><code>leveneTest(conspiracy$ET ~ conspiracy$urban)</code></pre>
 <pre><code>## Levene&#39;s Test for Homogeneity of Variance (center = median)
 ##         Df F value  Pr(&gt;F)  
@@ -90,7 +95,7 @@ projects: []
 </div>
 <div id="normalverteilung" class="section level3">
 <h3>3) Normalverteilung</h3>
-<p>Innerhalb jeder Gruppe sollte eine Normalverteilung vorliegen. Diese Annahme bezieht sich, entgegen häufiger Vermutung, auf die Residuen der ANOVA. Wir erkennen diese Annahme aus der Regressionsanalyse wieder, wo wir ebenfalls die <a href="/post/reg3">Normalverteilung der Residuen, behandelt in Regression III,</a> annahmen, um Inferenzstatistik zu betreiben. Um auf die Residuen einer ANOVA zuzugreifen, kann der Befehl <code>residuals</code> oder <code>resid</code> auf ein <code>aov</code> Objekt angewendet werden. Mehr zum <code>aov</code>-Befehl folgt beim Tukey Test.</p>
+<p>Innerhalb jeder Gruppe sollte eine Normalverteilung vorliegen. Diese Annahme bezieht sich, entgegen häufiger Vermutung, auf die Residuen der ANOVA. Wir erkennen diese Annahme aus der Regressionsanalyse wieder, wo wir ebenfalls die <a href="/post/reg3">Normalverteilung der Residuen, behandelt in Regression III,</a> annahmen, um Inferenzstatistik zu betreiben. Um auf die Residuen einer ANOVA zuzugreifen, kann der Befehl <code>residuals</code> oder <code>resid</code> auf ein <code>aov</code> Objekt angewendet werden. Das Modell muss also zunächst aufgestellt werden. Mehr zum <code>aov</code>-Befehl folgt beim Tukey Test.</p>
 </div>
 </div>
 <div id="einfaktorielle-anova-per-hand" class="section level2">
@@ -105,37 +110,55 @@ projects: []
 <p>Die Quadratsummen der ANOVA können per Hand bestimmt werden. Hierzu nutzen wir den <code>aggregate()</code>-Befehl, der es erlaubt, eine zusammenfassende Statistik (wie Mittelwert oder Standardabweichung) für eine Variable getrennt nach verschiedenen Subgruppen zu berechnen. Dabei übergeben wir <code>aggregate</code> die Variable selbst sowie die Gruppierungsvariable als Liste (deshalb steht im Befehl auch <code>list(conspiracy$urban)</code>), als drittes Argument wird die Funktion übergeben, die durchgeführt werden soll:</p>
 <pre class="r"><code># Gruppenmittelwerte ermitteln
 mu_k &lt;- aggregate(conspiracy$ET, list(conspiracy$urban), mean)
-names(mu_k) &lt;- c(&#39;urban&#39;, &#39;ET_mu_k&#39;)
-temp &lt;- merge(conspiracy, mu_k, by = &#39;urban&#39;)
-
-# Gesamtmittelwert ermitteln
+mu_k</code></pre>
+<pre><code>##    Group.1        x
+## 1    rural 2.194386
+## 2 suburban 2.150963
+## 3    urban 2.307286</code></pre>
+<p>Unser erstelltes Objekt <code>mu_k</code> enthält also die Mittelwerte der drei Gruppen. Da die Variablennamen nicht sehr aussagekräftig sind, überschreiben wir diese.</p>
+<pre class="r"><code>names(mu_k) &lt;- c(&#39;urban&#39;, &#39;ET_mu_k&#39;)</code></pre>
+<p>Wir wollen nun die Mittelwerte der Gruppen zu unserem ursprünglichen Datensatz hinzufügen. Es soll eine neue Spalte entstehen, die jeder Person den Mittelwert der Gruppe zuweist, in der sie wohnhaft ist. Ein solches Zusammenführen ist mit der Funktion <code>merge</code> möglich. Dafür müssen wir zunächst die beiden Datensätze angeben, die zusammengefügt werden sollen (<code>conspiracy</code> und <code>mu_k</code>). Natürlich müssen wir <code>R</code> auch noch mitteilen, welche Variable das Zusammenfügen ermöglicht. Diese (in beiden Datensätzen gleiche) Variable heißt <code>urban</code> und wird dem Argument <code>by</code> übergeben. Wir nennen das neue Objekt <code>temp</code> für seine temporäre Nutzung.</p>
+<pre class="r"><code>temp &lt;- merge(conspiracy, mu_k, by = &#39;urban&#39;)
+dim(temp)</code></pre>
+<pre><code>## [1] 2451   10</code></pre>
+<pre class="r"><code>names(temp)</code></pre>
+<pre><code>##  [1] &quot;urban&quot;   &quot;edu&quot;     &quot;gender&quot;  &quot;age&quot;     &quot;GM&quot;      &quot;MG&quot;      &quot;ET&quot;     
+##  [8] &quot;PW&quot;      &quot;CI&quot;      &quot;ET_mu_k&quot;</code></pre>
+<p>Anhand der Dimensionen können wir sehen, dass unser neuer Datensatz nun eine Variable mehr hat als <code>conspiracy</code>. Diese zusätzliche Spalte ist genau die, die die Mittelwerte pro Gruppe enthält (<code>ET_mu_k</code>).</p>
+<p>Weitere nötige Informationen für die händische Berechnung der Quadratsummen sind der Gesamtmittelwert und auch die Gruppengröße. Diese können mit uns bekannten Funktion einfach bestimmt werden.</p>
+<pre class="r"><code># Gesamtmittelwert ermitteln
 mu &lt;- mean(conspiracy$ET)
 
 # Gruppengrößen ermitteln
 n_k &lt;- table(conspiracy$urban)</code></pre>
-<p><code>temp &lt;- merge(conspiracy, mu_k, by = 'urban')</code> erzeugt einen neuen Datensatz <code>temp</code>, der zusätzlich zu <code>conspiracy</code> auch noch die Mittelwerte pro Gruppe enthält. Das brauchen wir für später!</p>
-<p>Somit können wir die Quadratsummen <span class="math inline">\(QS_{inn}\)</span> und <span class="math inline">\(QS_{zw}\)</span> berechnen (vgl. Gleichungen von oben)</p>
-<pre class="r"><code>QS_inn &lt;- sum((temp$ET - temp$ET_mu_k)^2)
-QS_zw &lt;- sum(n_k * (mu_k[, 2] - mu)^2)</code></pre>
-<p><code>mu_k[, 2]</code> wird hier so verwendet, da in <code>mu_k</code> in der ersten Spalte die Gruppenzugehörigkeiten stehen und in der 2. Spalte die Mittelwerte selbst.</p>
-<p>Zur inferenzstatistischen Prüfung wird der <span class="math inline">\(F\)</span>-Test herangezogen. Um diesen verwenden zu können, brauchen wir die mittleren Quadratsummen <span class="math inline">\(MQS_{zw} = \frac{QS_{zw}}{K-1}\)</span> und <span class="math inline">\(MQS_{inn} = \frac{QS_{inn}}{N-K}\)</span>. Diese können wir auch per Hand bestimmen:</p>
+<p>Nach diesen Vorbereitungen können wir die Quadratsummen <span class="math inline">\(QS_{inn}\)</span> und <span class="math inline">\(QS_{zw}\)</span> berechnen. <span class="math inline">\(QS_{inn}\)</span> beschreibt die quadratischen Abweichungen aller Gruppenmitglieder von ihrem Gruppenmittelwert. Diese beiden Informationen sind in unserem temporären Datensatz <code>temp</code> in den Variablen <code>temp$ET</code> und <code>temp$ET_mu_k</code> festgehalten.</p>
+<pre class="r"><code>QS_inn &lt;- sum((temp$ET - temp$ET_mu_k)^2)</code></pre>
+<p>Die Berechnung von <span class="math inline">\(QS_{zw}\)</span> benötigt die einzelnen Gruppengrößen, die wir unter <code>n_k</code> abgelegt haben.. Diese werden jeweils mit dem quadrierten Unterschied ihres Gruppenmittelwertes vom Gesamtmittelwert multipliziert. Die einzelnen Gruppenmittelwerte sind in <code>mu_k</code> abgelgt. <code>mu_k[, 2]</code> wird hier so verwendet, da in <code>mu_k</code> in der ersten Spalte die Gruppenzugehörigkeiten stehen und in der 2. Spalte die Mittelwerte selbst. Der Gesamtmittelwert liegt in <code>mu</code>.</p>
+<pre class="r"><code>QS_zw &lt;- sum(n_k * (mu_k[, 2] - mu)^2)</code></pre>
+<p>Zur inferenzstatistischen Prüfung wird der <span class="math inline">\(F\)</span>-Test herangezogen. Um diesen verwenden zu können, brauchen wir die mittleren Quadratsummen <span class="math inline">\(MQS_{zw} = \frac{QS_{zw}}{K-1}\)</span> und <span class="math inline">\(MQS_{inn} = \frac{QS_{inn}}{N-K}\)</span>. Dabei steht <span class="math inline">\(N\)</span> für die Anzahl aller Personen in der Stichprobe und <span class="math inline">\(K\)</span> für die Anzahl an Gruppen. Folglich können die beiden Werten mit diesem Code per Hand bestimmt werden:</p>
 <pre class="r"><code>MQS_inn &lt;- QS_inn / (nrow(conspiracy) - nlevels(conspiracy$urban))
 MQS_zw &lt;- QS_zw / (nlevels(conspiracy$urban)-1)</code></pre>
 <p>Nun können wir den <span class="math inline">\(F\)</span>-Wert bestimmen. Dieser ergibt sich als</p>
 <p><span class="math display">\[F_{emp} = \frac{MQS{zw}}{MQS{inn}}\]</span>
 Wir erkennen, dass hier einfach die Variation zwischen den Gruppen (Variation der Mittelwerte) relativ zur (zufälligen) Variation innerhalb der Gruppen betrachtet wird. Ist die Variation zwischen den Gruppen relativ zur zufälligen Variation groß, so kann dies nicht durch Zufall passiert sein: die Mittelwerte müssen sich also bei einem großen <span class="math inline">\(F\)</span>-Wert unterscheiden.</p>
-<p>Das Verhältnis der Quadratsummen ist mit <span class="math inline">\(df_1 = K - 1\)</span> und <span class="math inline">\(df_2 = N - K\)</span> <span class="math inline">\(F\)</span>-verteilt. Daher wird der <span class="math inline">\(F_{emp}\)</span> mit dem <span class="math inline">\(F_{krit}\)</span> mit <span class="math inline">\(df_1 = K - 1\)</span> (Zählerfreiheitsgraden) und <span class="math inline">\(df_2 = N - K\)</span> (Nennerfreiheitsgraden) verglichen. In <code>R</code> geht das automatisch mit <code>pf</code> (die Verteilungsfunktion/ kumulative Dichtefunktion der <span class="math inline">\(F\)</span>-Verteilung) — sie gibt uns den <span class="math inline">\(p\)</span>-Wert wieder. Hierbei muss zunächst der <span class="math inline">\(F_{emp}\)</span> angegeben werden, danach <span class="math inline">\(df_1\)</span> und als letztes <span class="math inline">\(df_2\)</span>.</p>
-<pre class="r"><code>F_wert &lt;- MQS_zw/MQS_inn
-pf(F_wert, nlevels(conspiracy$urban)-1, nrow(conspiracy) - nlevels(conspiracy$urban), lower.tail = FALSE)</code></pre>
+<pre class="r"><code>F_wert &lt;- MQS_zw/MQS_inn</code></pre>
+<p>Das Verhältnis der Quadratsummen ist mit <span class="math inline">\(df_1 = K - 1\)</span> und <span class="math inline">\(df_2 = N - K\)</span> <span class="math inline">\(F\)</span>-verteilt. Daher wird der <span class="math inline">\(F_{emp}\)</span> mit dem <span class="math inline">\(F_{krit}\)</span> mit <span class="math inline">\(df_1 = K - 1\)</span> (Zählerfreiheitsgraden) und <span class="math inline">\(df_2 = N - K\)</span> (Nennerfreiheitsgraden) verglichen. In <code>R</code> geht das automatisch mit <code>pf</code> (die Verteilungsfunktion/ kumulative Dichtefunktion der <span class="math inline">\(F\)</span>-Verteilung). Diese gibt uns den <span class="math inline">\(p\)</span>-Wert wieder. Hierbei muss zunächst der <span class="math inline">\(F_{emp}\)</span> angegeben werden, danach <span class="math inline">\(df_1\)</span> und als letztes <span class="math inline">\(df_2\)</span>. <code>lower.tail = FALSE</code> zeigt uns, dass wir gerne die Wahrscheinlichkeit (Fläche unter der Kurve) für extremere Werte als unseren beobachtenen <span class="math inline">\(F_{emp}\)</span> angezeigt bekommen:</p>
+<pre class="r"><code>pf(F_wert, nlevels(conspiracy$urban)-1, nrow(conspiracy) - nlevels(conspiracy$urban), lower.tail = FALSE)</code></pre>
 <pre><code>## [1] 0.03240931</code></pre>
-<p><code>lower.tail = FALSE</code> zeigt uns, dass wir gerne die Wahrscheinlichkeit (Fläche unter der Kurve) für extremere Werte als unseren beobachtenen <span class="math inline">\(F_{emp}\)</span> angezeigt bekommen:</p>
-<p><img src="/post/2021-05-20_ANOVA-I_files/figure-html/unnamed-chunk-4-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Grafisch gesehen lassen wir uns also die Fläche für den folgenden Bereich der F-Verteilung anzeigen.</p>
+<pre><code>## Warning: Paket &#39;ggplot2&#39; wurde unter R Version 4.1.1 erstellt</code></pre>
+<p><img src="/post/2021-05-20_ANOVA-I_files/figure-html/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p>Zur Beurteilung der Signifikanz muss der errechnete p-Wert mit dem vorher festgelegten <span class="math inline">\(\alpha\)</span>-Niveau verglichen werden. Nehmen wir die üblichen 5% an, zeigt sich hier ein signifikanter Effekt.</p>
 </div>
 <div id="die-ezanova" class="section level2">
 <h2>Die <code>ezANOVA</code></h2>
-<p>Da das Ausrechnen per Hand nun doch etwas umständlich ist, bietet <code>R</code> uns einige andere Möglichkeiten, z. B. <code>anova</code> oder <code>aov</code> und diverse Pakete (z. B. <code>Anova</code> aus <code>car</code>). Allerdings haben die verschiedenen Ansätze jeweils ihre Vor- und Nachteile, weshalb die <code>ezANOVA</code>-Funktion aus dem <code>ez</code>-Paket erstellt wurde, um als Meta-Funktion zu dienen, die sich situationsspezifisch bei den grundlegenden Funktionen bedient.</p>
-<pre class="r"><code># Paket laden (ggf. vorher installieren mit install.packages)
+<p>Da das Ausrechnen per Hand nun doch etwas umständlich ist, bietet <code>R</code> uns einige andere Möglichkeiten, z. B. <code>anova</code> oder <code>aov</code> und diverse Pakete (z. B. <code>Anova</code> aus <code>car</code>). Allerdings haben die verschiedenen Ansätze jeweils ihre Vor- und Nachteile, weshalb die <code>ezANOVA</code>-Funktion aus dem <code>ez</code>-Paket erstellt wurde, um als Meta-Funktion zu dienen, die sich situationsspezifisch bei den grundlegenden Funktionen bedient. Da wir das Paket bisher nicht genutzt haben, müssen wir es zunächst installieren.</p>
+<pre class="r"><code># Paket installieren
+install.packages(&quot;ez&quot;)</code></pre>
+<p>Anschließend kann es geladen werden.</p>
+<pre class="r"><code># Paket laden 
 library(ez)</code></pre>
+<pre><code>## Warning: Paket &#39;ez&#39; wurde unter R Version 4.1.1 erstellt</code></pre>
 <p>Weil die Funktion für verschiedene Arten von <em>ANOVAs</em> geeignet ist, benötigt sie einige sehr spezifisiche Argumente. Für die <em>einfaktorielle ANOVA</em> werden vier Argumente benötigt:</p>
 <ul>
 <li><code>data =</code>: der genutzte Datensatz</li>
@@ -143,8 +166,10 @@ library(ez)</code></pre>
 <li><code>dv =</code>: die abhängige Variable (dependent variable)</li>
 <li><code>between =</code>: eine Gruppierungsvariable (die <em>zwischen</em> Personen unterscheidet)</li>
 </ul>
-<p>In unserem Datensatz liegt leider noch keine ID-Variable vor, diese muss also zunächst erstellt werden. Der Einfachheit halber nummerieren wir die Personen von 1 bis 2451 durch. Damit festgehalten wird, dass es sich bei der ID um eine nominalskalierte Variable handelt, wandeln wir diese direkt in einen <code>factor</code> um.</p>
-<pre class="r"><code>conspiracy$id &lt;- as.factor(1:nrow(conspiracy))</code></pre>
+<p>In unserem Datensatz liegt leider noch keine ID-Variable vor, diese muss also zunächst erstellt werden. Der Einfachheit halber nummerieren wir die Personen von 1 bis 2451 durch.</p>
+<pre class="r"><code>conspiracy$id &lt;- 1:nrow(conspiracy)</code></pre>
+<p>Damit festgehalten wird, dass es sich bei der ID um eine nominalskalierte Variable und nicht um Zahlen handelt, wandeln wir diese direkt in einen <code>factor</code> um.</p>
+<pre class="r"><code>conspiracy$id &lt;- as.factor(conspiracy$id)</code></pre>
 <p>Jetzt kann die ANOVA mit dem <code>ezANOVA</code>-Befehl durchgeführt werden, indem wir einfach den oben stehenden Argumenten unsere Variablen übergeben:</p>
 <pre class="r"><code>ezANOVA(conspiracy, wid = id, dv = ET, between = urban)</code></pre>
 <pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
@@ -179,7 +204,7 @@ library(ez)</code></pre>
 <p>Die <strong>ANOVA</strong> ist ein <strong>Omnibustest</strong> - es wird lediglich die Gleichheit aller Gruppen geprüft. Wenn die Nullhypothese verworfen wird, geben die Ergebnisse zunächst keine Auskunft darüber, <em>welche</em> Gruppen sich unterscheiden. Die detaillierte Untersuchung der Gruppenunterschiede wird in der <strong>Post-Hoc-Analyse</strong> unternommen.</p>
 <div id="t-tests" class="section level3">
 <h3>t-Tests</h3>
-<p>Die naheliegende Untersuchung wäre hier, alle drei Gruppen mithilfe einfacher <span class="math inline">\(t\)</span>-Tests zu vergleichen:</p>
+<p>Die naheliegende Untersuchung wäre hier, alle drei Gruppen mithilfe einfacher <span class="math inline">\(t\)</span>-Tests zu vergleichen. Da wir hier nicht nur zwei Ausprägungen in unserer Gruppierungsvariable haben, nutzen wir den Befehl <code>pairwise.t.test</code>. Aufgrund der <span class="math inline">\(\alpha\)</span>-Fehler Kumulierung müssen die <span class="math inline">\(p\)</span>-Werte adjustiert werden (<code>p.adjust = 'bonferroni'</code>). Dabei ist die Bonferroni-Korrektur einer der einfachsten (und gleichzeitig konservatisten) Ansätze: <span class="math inline">\(\alpha_{\text{kor}} = \frac{\alpha}{m}\)</span>, wobei <span class="math inline">\(m = \binom{K}{2}\)</span> die Anzahl der durchgeführten Tests ist.</p>
 <pre class="r"><code>pairwise.t.test(conspiracy$ET, conspiracy$urban, p.adjust = &#39;bonferroni&#39;)</code></pre>
 <pre><code>## 
 ##  Pairwise comparisons using t tests with pooled SD 
@@ -191,22 +216,25 @@ library(ez)</code></pre>
 ## urban    0.411 0.028   
 ## 
 ## P value adjustment method: bonferroni</code></pre>
-<p>Aufgrund der <span class="math inline">\(\alpha\)</span>-Fehler Kumulierung müssen die <span class="math inline">\(p\)</span>-Werte adjustiert werden (<code>p.adjust = 'bonferroni'</code>). Dabei ist die Bonferroni-Korrektur einer der einfachsten (und gleichzeitig konservatisten) Ansätze: <span class="math inline">\(\alpha_{\text{kor}} = \frac{\alpha}{m}\)</span>, wobei <span class="math inline">\(m = \binom{K}{2}\)</span> die Anzahl der durchgeführten Tests ist. Hier zeigt sich, dass sich ausschließlich Personen aus <code>urban</code> und <code>suburban</code> Umgegbungen in ihrer Überzeugung bezüglich des <em>Extraterrestrial Cover-Ups</em> unterscheiden (<span class="math inline">\(p\)</span> &lt; .05).</p>
+<p>Hier zeigt sich, dass sich ausschließlich Personen aus <code>urban</code> und <code>suburban</code> Umgegbungen in ihrer Überzeugung bezüglich des <em>Extraterrestrial Cover-Ups</em> unterscheiden (<span class="math inline">\(p\)</span> &lt; .05).</p>
 </div>
 <div id="tukey-test" class="section level3">
 <h3>Tukey Test</h3>
 <p>Ein präziserer Ansatz als die einfachen <span class="math inline">\(t\)</span>-Tests bietet <strong>Tukeys Honest Significant Difference</strong> (auch <em>Tukey Test</em>). Dieser kann in <code>R</code> allerdings nur auf <code>aov</code>-Objekte angewendet werden. Der <code>aov</code>-Befehl führt zum selben Ergebnis wie <code>ezANOVA</code>. Zu Unterschieden kann es erst bei der <a href="/post/anova2">zweifaktoriellen ANOVA</a> kommen, da dort der Typ der Quadratsumme ein Rolle spielt, wie diese ausfällt.</p>
 <div id="aov-befehl" class="section level4">
 <h4>aov-Befehl</h4>
-<p>In unserem Beispiel sieht der <code>aov</code>-Befehl so aus, wobei wir direkt die <code>summary</code>-Funktion, analog zur Regressionanalyse, darauf anwenden, um die Signifikanzentscheidungen zu sehen:</p>
-<pre class="r"><code>summary(aov(ET ~ urban, data = conspiracy))</code></pre>
+<p>Der benötigte Code in der Funktion <code>aov</code> ähnelt dem der Regressionsanalyse und im Übrigen auch der Gleichung in <code>leveneTest</code> aus dem <code>car</code>-Paket. In unserem Beispiel sieht der <code>aov</code>-Befehl so aus.</p>
+<pre class="r"><code>alternative&lt;- aov(ET ~ urban, data = conspiracy)</code></pre>
+<p>Wir können die <code>summary</code>-Funktion, analog zur Regressionanalyse, darauf anwenden, um die Signifikanzentscheidungen zu sehen</p>
+<pre class="r"><code>summary(alternative)</code></pre>
 <pre><code>##               Df Sum Sq Mean Sq F value Pr(&gt;F)  
 ## urban          2     12   6.029   3.434 0.0324 *
 ## Residuals   2448   4298   1.756                 
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p>Der Befehl sieht dabei so aus, wie der einer Regressionsanalyse und im Übrigen auch so wie die Gleichung aussah im <code>leveneTest</code> aus dem <code>car</code>-Paket. Schauen wir uns nun Tukey’s Test an:</p>
-<pre class="r"><code>TukeyHSD(aov(ET ~ urban, data = conspiracy), conf.level = 0.95)</code></pre>
+<p>Diese entsprechen also wie erwartet unserem vorherigen Ergebnis.</p>
+<p>Schauen wir uns nun Tukey’s Test an. Die Funktion <code>TukeyHSD</code> benötigt das durch <code>aov</code> erstellte Objekt und die erwünschte Sicherheit.</p>
+<pre class="r"><code>TukeyHSD(alternative, conf.level = 0.95)</code></pre>
 <pre><code>##   Tukey multiple comparisons of means
 ##     95% family-wise confidence level
 ## 
@@ -220,17 +248,25 @@ library(ez)</code></pre>
 <p>Das Ergebnis bietet neben den einfachen <span class="math inline">\(p\)</span>-Werten auch korrigierte Konfidenzintervalle für die Mittelwertsdifferenzen. Darüber hinaus können die Ergebnisse auch in einem Plot dargestellt werden:</p>
 <pre class="r"><code>tuk &lt;- TukeyHSD(aov(ET ~ urban, data = conspiracy))
 plot(tuk)</code></pre>
-<p><img src="/post/2021-05-20_ANOVA-I_files/figure-html/posthoc_III-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-05-20_ANOVA-I_files/figure-html/unnamed-chunk-25-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Schließt das Konfidenzintervall für die Mittelwertsdifferenz die Null (gestrichelte Linie) ein, so ist diese Mittelwertsdifferenz statistisch <strong>nicht</strong> signifikant! In unserer Stichprobe kam es zu Mittelwertsunterschieden auf <code>ET</code>, da sich die Gruppen <code>urban</code> (städtisch) und <code>suburban</code> (vorstädtisch) hinsichtlich der Zustimmung zur Überzeugung, dass die Existenz von Außerirdischen geheimgehalten wird, unterscheiden.</p>
 </div>
 <div id="ezanova-befehl" class="section level4">
 <h4>ezANOVA-Befehl</h4>
-<p>Es ist auch möglich das <code>aov</code>-Objekt gleichzeitig mit der ezANOVA ausgeben zu lassen. Dies ist möglich, indem man im <code>ezANOVA</code>-Befehl die Bedingung <code>return_aov = TRUE</code> hinzufügt und dann mit <code>$aov</code> auf das <code>aov</code>-Objekt zugreift. Dies kann dann im Environment abspeichert und weiterverwendet werden.</p>
-<pre class="r"><code>aov_t &lt;- ezANOVA(conspiracy, wid = id, dv = ET, between = urban, return_aov = T)$aov</code></pre>
+<p>Es ist auch möglich das <code>aov</code>-Objekt gleichzeitig mit der ezANOVA ausgeben zu lassen. Dies ist möglich, indem man im <code>ezANOVA</code>-Befehl die Bedingung <code>return_aov = TRUE</code> hinzufügt und dann mit <code>$aov</code> auf das <code>aov</code>-Objekt zugreift. Dies kann dann im Environment abspeichert und weiterverwendet werden. Durch den Zugriff auf <code>names</code> können wir uns alle Einträge in unserer neu erstellten Liste anzeigen lassen und sehen dabei, dass ein Eintrag <code>aov</code> heißt.</p>
+<pre class="r"><code>aov_t &lt;- ezANOVA(conspiracy, wid = id, dv = ET, between = urban, return_aov = T)</code></pre>
 <pre><code>## Warning: Data is unbalanced (unequal N per group). Make sure you specified a
 ## well-considered value for the type argument to ezANOVA().</code></pre>
 <pre><code>## Coefficient covariances computed by hccm()</code></pre>
-<pre class="r"><code>TukeyHSD(aov_t, conf.level = 0.95)</code></pre>
+<pre class="r"><code>names(aov_t)</code></pre>
+<pre><code>## [1] &quot;ANOVA&quot;                                    
+## [2] &quot;Levene&#39;s Test for Homogeneity of Variance&quot;
+## [3] &quot;aov&quot;</code></pre>
+<p>Durch die Funktion <code>class</code> können wir uns die Klasse dieses Objektes aus der Liste anzeigen lassen und erhalten als Output, dass die Klasse wie erhofft auch <code>aov</code> ist.</p>
+<pre class="r"><code>class(aov_t$aov)</code></pre>
+<pre><code>## [1] &quot;aov&quot; &quot;lm&quot;</code></pre>
+<p>Die Funktion <code>TukeyHSD</code> kann nun also auf den spezifischen Part des Outputs von <code>ezANOVA</code> angewendet werden (und kommt natürlich zum selben Ergebnis wie zuvor).</p>
+<pre class="r"><code>TukeyHSD(aov_t$aov, conf.level = 0.95)</code></pre>
 <pre><code>##   Tukey multiple comparisons of means
 ##     95% family-wise confidence level
 ## 
