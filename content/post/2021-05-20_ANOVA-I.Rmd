@@ -15,7 +15,7 @@ tags:
   - Tukey
 subtitle: '1-fakt. ANOVA'
 summary: ''
-authors: [scheppa-lahyani,irmer,wallot, nehler]
+authors: [scheppa-lahyani, irmer, wallot, nehler]
 lastmod: '2021-06-14T08:32:21+02:00'
 featured: no
 header:
@@ -31,9 +31,9 @@ knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
 ```
 
 
-In den letzten Sitzungen haben wir uns ausführlicher mit dem Zusammenhang zwischen Variablen in Form von Korrelation und Regression beschäftigt. Nun möchten wir untersuchen, ob es einen Unterschied zwischen mehreren Gruppen hinsichtlich der Mittelwerte in einer Variablen gibt. Im letzten Semester haben Sie schon den **t-Test** kennen gelernt, mit dem Mittelwertsunterschiede zwischen zwei Gruppen untersucht werden können. Wenn wir nun mehr als zwei Gruppen miteinander vergleichen möchten, müssten wir mehrere *t-Tests* mit allen Kombinationen durchführen. Bei z. B. 3 Gruppen müssten wir $\binom{3}{2}$ *t-Tests* durchführen. Wie Sie sicherlich noch wissen, führt dies aber zu einer **$\alpha$-Fehler Inflation oder Kumulierung**. In diesem Fall muss demnach eine **ANOVA** genutzt werden. Da wir den Unterschied *einer Gruppenvariable* wissen wollen, nutzen wir die *einfaktorielle ANOVA*. Wie das Verfahren für mehrere Gruppenvariablen ist, wird in der nächsten Sitzung besprochen. Mehr zur *einfaktoriellen ANOVA* finden Sie in [`Eid, Gollwitzer und Schmitt (2017, Kapitel 13 und insb. 13.1 und folgend)`](https://hds.hebis.de/ubffm/Record/HEB366849158). 
+In den letzten Sitzungen haben wir uns ausführlicher mit dem Zusammenhang zwischen Variablen in Form von Korrelation und Regression beschäftigt. Nun möchten wir untersuchen, ob es einen Unterschied zwischen mehreren Gruppen hinsichtlich der Mittelwerte in einer Variablen gibt. Im letzten Semester haben Sie schon den **t-Test** kennen gelernt, mit dem Mittelwertsunterschiede zwischen zwei Gruppen untersucht werden können. Wenn wir nun mehr als zwei Gruppen miteinander vergleichen möchten, müssten wir mehrere **t-Tests** mit allen Kombinationen durchführen. Bei z. B. 3 Gruppen müssten wir $\binom{3}{2}$ *t-Tests* durchführen. Wie Sie sicherlich noch wissen, führt dies aber zu einer $\alpha$**-Fehler-Inflation oder -Kumulierung**. In diesem Fall muss demnach eine **ANOVA** genutzt werden. Da wir den Unterschied auf *einer Gruppenvariable* wissen wollen, nutzen wir die *einfaktorielle ANOVA*. Wie das Verfahren für mehrere Gruppenvariablen ist, wird in der nächsten Sitzung besprochen. Mehr zur *einfaktoriellen ANOVA* finden Sie in [`Eid, Gollwitzer und Schmitt (2017, Kapitel 13 und insb. 13.1 und folgend)`](https://hds.hebis.de/ubffm/Record/HEB366849158). 
 
-Die praktische Arbeit soll anhand des Datensatzes `conspiracy` demonstriert werden, den wir also zunächst in unserem Environment haben müssen.
+Die praktische Arbeit soll anhand des Datensatzes `conspiracy` demonstriert werden, den wir also zunächst in unser Environment laden müssen.
 
 ### Daten laden
 Wenn Sie den Datensatz lokal auf ihrem Rechner haben möchten, können Sie ihn  [`r fontawesome::fa("download")` Datensatz "conspiracy.rda" hier herunterladen](https://pandar.netlify.app/post/conspiracy.rda). Anschließend muss er eingeladen werden - natürlich mit Ihrem Dateipfad.
@@ -54,19 +54,19 @@ Der Datensatz stammt aus einer Untersuchung zum Thema *verschwörungstheoretisch
 dim(conspiracy)
 ```
 
-Der Datensatz enthält die Werte von 2451 Personen auf 9 Variablen und 
+Der Datensatz enthält die Werte von `r dim(conspiracy)[1]` Personen auf `r dim(conspiracy)[2]` Variablen. 
 
 ```{r}
 head(conspiracy)
 ```
 
-Die **ersten vier Variablen** enthalten Informationen über den demographischen Hintergrund der Personen: höchster Bildungsabschluss (`edu`), Typ des Wohnortes (`urban`), Geschlecht (`gender`) und Alter (`age`). Die **fünf restlichen Variablen** sind Skalenwerte bezüglich verschiedener subdimensionen verschwörungstheoretischer Überzeugungen: `GM` (goverment malfeasance), `MG` (malevolent global conspiracies), `ET` (extraterrestrial cover-up), `PW` (personal well-being) und `CI` (control of information).
+Die **ersten vier Variablen** enthalten Informationen über den demographischen Hintergrund der Personen: höchster Bildungsabschluss (`edu`), Typ des Wohnortes (`urban`), Geschlecht (`gender`) und Alter (`age`). Die **fünf restlichen Variablen** sind Skalenwerte bezüglich verschiedener Subdimensionen verschwörungstheoretischer Überzeugungen: `GM` (goverment malfeasance), `MG` (malevolent global conspiracies), `ET` (extraterrestrial cover-up), `PW` (personal well-being) und `CI` (control of information).
 
 ### Aufgestellte Hypothesen
 
-Die Durchführung der ANOVA benötigt natürlich Hypothesen, die uns in der Auswertung interessieren. In unserem Beispiel soll untersucht werden, ob sich Personen je nach Ländlichkeit ihres Wohnortes (*rural*, *suburban*, *urban*) in der Überzeugung unterscheiden, inwiefern die Existenz von Außerirdischen geheimgehalten wird (Beispielitem: Evidence of alien contact is being concealed from the public).
+Die Durchführung der ANOVA benötigt natürlich Hypothesen, die uns bei der Auswertung interessieren. In unserem Beispiel soll untersucht werden, ob sich Personen je nach Ländlichkeit ihres Wohnortes (*rural*, *suburban*, *urban*) in der Überzeugung unterscheiden, inwiefern die Existenz von Außerirdischen geheimgehalten wird (Beispielitem: Evidence of alien contact is being concealed from the public).
 
-In der *einfaktoriellen ANOVA* wird die **Gleichheit aller Gruppenmittelwerte als Nullhypothese** posutliert - also dass sich Bewohner:innen des ländlichen Raums (`rural`), des vorstädtischen Raums (`suburban`) und der Stadt (`urban`) nicht hinsichtlicher ihrer Zustimmung zur Verschwörungstheorie *Extraterrestrial Cover-Up* (`ET`) unterscheiden:
+In der *einfaktoriellen ANOVA* wird die **Gleichheit aller Gruppenmittelwerte als Nullhypothese** postuliert - also dass sich Bewohner:innen des ländlichen Raums (`rural`), des vorstädtischen Raums (`suburban`) und der Stadt (`urban`) nicht hinsichtlicher ihrer Zustimmung zur Verschwörungstheorie *Extraterrestrial Cover-Up* (`ET`) unterscheiden:
 
 $H_0: \mu_{\text{rural}} = \mu_{\text{suburban}} = \mu_{\text{urban}}$
 
@@ -76,7 +76,7 @@ Bei der Alternativhypothese wird angenommen, dass sich **mindestens zwei dieser 
 
 $H_1: \mu_j \neq \mu_k$ für mindestens ein Paar $(j, k)$ mit $j \neq k$
 
-Wir benutzen hier die Indizes $j$ und $k$, um den Vergleich der Mittelwerte von zwei unterschiedlichen Subgruppen darzustellen. Für $j = 1$ und $k = 2$ könnte dies z. B. den Vergleich der Subgruppen "rural" und "suborban" anzeigen. Die Ungleichung $j \neq k$ bedeutet in diesem Zusammenhang, dass wir in der Formulierung der Alternativhypothese immer nur unterschiedliche Gruppen miteinander vergleichen, nie aber eine Subgruppe mit sich selbst, was im Übrigen auch ein aussageloser Vergleich wäre, da wir --- dies wäre nur sinnvoll, wenn wir die gleiche Stichprobe mehrfach gemessen hätten. Wie dies dann mitmodelliert wird, erfahren wir im Rahmen der ANOVA mit Messwiederholung.
+Wir benutzen hier die Indizes $j$ und $k$, um den Vergleich der Mittelwerte von zwei unterschiedlichen Subgruppen darzustellen. Für $j = 1$ und $k = 2$ könnte dies z. B. den Vergleich der Subgruppen "rural" und "suburban" anzeigen. Die Ungleichung $j \neq k$ bedeutet in diesem Zusammenhang, dass wir in der Formulierung der Alternativhypothese immer nur unterschiedliche Gruppen miteinander vergleichen, nie aber eine Subgruppe mit sich selbst, was im Übrigen auch ein aussageloser Vergleich wäre, da wir nur einen Datenpunkt für jede Person haben. Dies wäre nur sinnvoll, wenn wir die gleiche Stichprobe mehrfach gemessen hätten. Wie dies dann mitmodelliert wird, erfahren wir im Rahmen der ANOVA mit Messwiederholung.
 
 
 ## Voraussetzungsprüfung
@@ -89,11 +89,11 @@ Es werden drei Voraussetzungen für die Anwendung einer ANOVA vorgegeben:
 
 ### 1) Unabhängigkeit der Residuen
 
-Die Unabhängigkeit der Residuen wäre dann verletzt, wenn abhängige Stichproben vorliegen oder die Stichproben in den Gruppen nicht zufällig zustande gekommen sind (keine Randomisierung). Dies muss also beachtet werden. In unserem Beispiel sind die Stichproben über die Wohnorte hinweg wahrscheinlich nicht abhängig voneinander. Es kann zwar familiäre Bezüge geben, jedoch sollten deren Effekte eher gering ausfallen. Auch die Residuen innerhalb der Gruppen sollten unabhängig sein, da die Personen nicht bewusst einem bestimmten Wohnort zugeordnet wurden, sondern sich dies durch viele Faktoren ergibt. Daher sollte in unserem Beispiel die Unabhängigkeit der Residuen gegeben sein. Wie Sie merken ist die Unabhängigkeitsannahme schwer zu prüfen und wird daher so gut wie immer durch das Design der Studie "gewährleistet" --- bspw. durch Randomisierung. 
+Die Unabhängigkeit der Residuen wäre dann verletzt, wenn abhängige Stichproben vorliegen oder die Stichproben in den Gruppen nicht zufällig zustandegekommen sind (keine Randomisierung). Dies muss also beachtet werden. In unserem Beispiel sind die Stichproben über die Wohnorte hinweg wahrscheinlich nicht abhängig voneinander. Es kann zwar familiäre Bezüge geben, jedoch sollten deren Effekte eher gering ausfallen. Auch die Residuen innerhalb der Gruppen sollten unabhängig sein, da die Personen nicht bewusst einem bestimmten Wohnort zugeordnet wurden, sondern sich dies durch viele Faktoren ergibt. Daher sollte in unserem Beispiel die Unabhängigkeit der Residuen gegeben sein. Wie Sie merken, ist die Unabhängigkeitsannahme schwer zu prüfen und wird daher so gut wie immer durch das Design der Studie "gewährleistet" - bspw. durch Randomisierung. 
 
 ### 2) Homoskedastizität
 
-Die Homoskedastizitätsannahme besagt, dass die Varianzen jeder Gruppe über die Gruppen hinweg gleich sind. Deshalb wird diese Annahme auch häufig Varianzhomogenitätsannahme genannt. Zur Überprüfung der Homoskedatizität kann der **Levene Test** herangezogen werden. Dieser kann mithilfe des `car` Pakets angefordert werden. Dazu laden wir zunächst das Paket und führen anschließend die Funktion `leveneTest` aus. Installiert haben wir das Paket bereits in vorherigen Tutorials und dort auch bereits angewendet.
+Die Homoskedastizitätsannahme besagt, dass die Varianzen jeder Gruppe über die Gruppen hinweg gleich sind. Deshalb wird diese Annahme auch häufig "Varianzhomogenitätsannahme" genannt. Zur Überprüfung der Homoskedatizität kann der **Levene-Test** herangezogen werden. Dieser kann mithilfe des `car`-Pakets angefordert werden. Dazu laden wir zunächst das Paket und führen anschließend die Funktion `leveneTest` aus. Installiert haben wir das Paket bereits in vorherigen Tutorials und dort auch bereits angewendet.
 
 ```{r ANOVA_II, exercise=TRUE, exercise.lines = 2}
 library(car)
@@ -104,7 +104,7 @@ Die Funktion nimmt die Variable selbst entgegen sowie die Gruppierungsvariable. 
 
 ### 3) Normalverteilung
 
-Innerhalb jeder Gruppe sollte eine Normalverteilung vorliegen. Diese Annahme bezieht sich, entgegen häufiger Vermutung, auf die Residuen der ANOVA. Wir erkennen diese Annahme aus der Regressionsanalyse wieder, wo wir ebenfalls die [Normalverteilung der Residuen, behandelt in Regression III,](/post/reg3) annahmen, um Inferenzstatistik zu betreiben. Um auf die Residuen einer ANOVA zuzugreifen, kann der Befehl `residuals` oder `resid` auf ein `aov` Objekt angewendet werden. Das Modell muss also zunächst aufgestellt werden. Mehr zum `aov`-Befehl folgt beim Tukey Test.
+Innerhalb jeder Gruppe sollte eine Normalverteilung vorliegen. Diese Annahme bezieht sich, entgegen häufiger Vermutung, auf die Residuen der ANOVA. Wir erkennen diese Annahme aus der Regressionsanalyse wieder, wo wir ebenfalls die [Normalverteilung der Residuen, behandelt in Regression III,](/post/reg3) annahmen, um Inferenzstatistik zu betreiben. Um auf die Residuen einer ANOVA zuzugreifen, kann der Befehl `residuals` oder `resid` auf ein `aov`-Objekt angewendet werden. Das Modell muss also zunächst aufgestellt werden. Mehr zum `aov`-Befehl folgt beim Tukey-Test.
 
 ## Einfaktorielle ANOVA per Hand
 
@@ -162,7 +162,7 @@ Nach diesen Vorbereitungen können wir die Quadratsummen $QS_{inn}$ und $QS_{zw}
 QS_inn <- sum((temp$ET - temp$ET_mu_k)^2)
 ```
 
-Die Berechnung von $QS_{zw}$ benötigt die einzelnen Gruppengrößen, die wir unter `n_k` abgelegt haben.. Diese werden jeweils mit dem quadrierten Unterschied ihres Gruppenmittelwertes vom Gesamtmittelwert multipliziert. Die einzelnen Gruppenmittelwerte sind in `mu_k` abgelgt. `mu_k[, 2]` wird hier so verwendet, da in `mu_k` in der ersten Spalte die Gruppenzugehörigkeiten stehen und in der 2. Spalte die Mittelwerte selbst. Der Gesamtmittelwert liegt in `mu`.
+Die Berechnung von $QS_{zw}$ benötigt die einzelnen Gruppengrößen, die wir unter `n_k` abgelegt haben. Diese werden jeweils mit dem quadrierten Unterschied ihres Gruppenmittelwertes vom Gesamtmittelwert multipliziert. Die einzelnen Gruppenmittelwerte sind in `mu_k` abgelgt. `mu_k[, 2]` wird hier so verwendet, da in `mu_k` in der ersten Spalte die Gruppenzugehörigkeiten stehen und in der 2. Spalte die Mittelwerte selbst. Der Gesamtmittelwert liegt in `mu`.
 
 
 ```{r}
@@ -209,7 +209,7 @@ Zur Beurteilung der Signifikanz muss der errechnete p-Wert mit dem vorher festge
 
 ## Die `ezANOVA`
 
-Da das Ausrechnen per Hand nun doch etwas umständlich ist, bietet `R` uns einige andere Möglichkeiten, z. B. `anova` oder `aov` und diverse Pakete (z. B. `Anova` aus `car`). Allerdings haben die verschiedenen Ansätze jeweils ihre Vor- und Nachteile, weshalb die `ezANOVA`-Funktion aus dem `ez`-Paket erstellt wurde, um als Meta-Funktion zu dienen, die sich situationsspezifisch bei den grundlegenden Funktionen bedient. Da wir das Paket bisher nicht genutzt haben, müssen wir es zunächst installieren.
+Da das Ausrechnen per Hand nun doch etwas umständlich ist, bietet `R` uns einige andere Möglichkeiten, z. B. `anova` oder `aov` und diverse weitere Pakete (z. B. `Anova` aus `car`). Allerdings haben die verschiedenen Ansätze jeweils ihre Vor- und Nachteile, weshalb die `ezANOVA`-Funktion aus dem `ez`-Paket erstellt wurde, um als Meta-Funktion zu dienen, die sich situationsspezifisch bei den grundlegenden Funktionen bedient. Da wir das Paket bisher nicht genutzt haben, müssen wir es zunächst installieren.
 
 ```{r, eval = F}
 # Paket installieren
@@ -268,7 +268,7 @@ Die **ANOVA** ist ein **Omnibustest** - es wird lediglich die Gleichheit aller G
 
 ### t-Tests
 
-Die naheliegende Untersuchung wäre hier, alle drei Gruppen mithilfe einfacher $t$-Tests zu vergleichen. Da wir hier nicht nur zwei Ausprägungen in unserer Gruppierungsvariable haben, nutzen wir den Befehl `pairwise.t.test`. Aufgrund der $\alpha$-Fehler Kumulierung müssen die $p$-Werte adjustiert werden (`p.adjust = 'bonferroni'`). Dabei ist die Bonferroni-Korrektur einer der einfachsten (und gleichzeitig konservatisten) Ansätze: $\alpha_{\text{kor}} = \frac{\alpha}{m}$, wobei $m = \binom{K}{2}$ die Anzahl der durchgeführten Tests ist. 
+Die naheliegende Untersuchung wäre hier, alle drei Gruppen mithilfe einfacher $t$-Tests zu vergleichen. Da wir hier nicht nur zwei Ausprägungen in unserer Gruppierungsvariable haben, nutzen wir den Befehl `pairwise.t.test`. Aufgrund der $\alpha$-Fehler Kumulierung müssen die $p$-Werte adjustiert werden (`p.adjust = 'bonferroni'`). Dabei ist die Bonferroni-Korrektur einer der einfachsten (und gleichzeitig konservativsten) Ansätze: $\alpha_{\text{kor}} = \frac{\alpha}{m}$, wobei $m = \binom{K}{2}$ die Anzahl der durchgeführten Tests ist. 
 
 ```{r}
 pairwise.t.test(conspiracy$ET, conspiracy$urban, p.adjust = 'bonferroni')
@@ -278,7 +278,7 @@ Hier zeigt sich, dass sich ausschließlich Personen aus `urban` und `suburban` U
 
 ### Tukey Test
 
-Ein präziserer Ansatz als die einfachen $t$-Tests bietet **Tukeys Honest Significant Difference** (auch *Tukey Test*). Dieser kann in `R` allerdings nur auf `aov`-Objekte angewendet werden. Der `aov`-Befehl führt zum selben Ergebnis wie `ezANOVA`. Zu Unterschieden kann es erst bei der [zweifaktoriellen ANOVA](/post/anova2) kommen, da dort der Typ der Quadratsumme ein Rolle spielt, wie diese ausfällt. 
+Ein präziserer Ansatz als die einfachen $t$-Tests bietet **Tukeys Honest Significant Difference** (auch *Tukey-Test* genannt). Dieser kann in `R` allerdings nur auf `aov`-Objekte angewendet werden. Der `aov`-Befehl führt zum selben Ergebnis wie `ezANOVA`. Zu Unterschieden kann es erst bei der [zweifaktoriellen ANOVA](/post/anova2) kommen, da dort der Typ der Quadratsumme ein Rolle spielt, wie diese ausfällt. 
 
 #### aov-Befehl
 
