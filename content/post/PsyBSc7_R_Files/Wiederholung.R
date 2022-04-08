@@ -65,7 +65,7 @@ dim(mach) # Anzahl der Zeilen und Spalten
 
 mean(mach$cvhn)    # Mittelwert
 var(mach$cvhn)     # geschätzte Populationsvarianz
-mean(mach[,1]) # Alle Zeilen, Spalte 25
+mach[,25]          # Alle Zeilen, Spalte 25
 
 table(mach$engnat) # Häufigkeitstabelle
 str(mach$engnat)
