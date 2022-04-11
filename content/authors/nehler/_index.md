@@ -1,6 +1,6 @@
 ---
 # Display name
-name: Kai Jannik Nehler
+name: Kai J. Nehler
 weight: 60
 # Username (this should match the folder name)
 authors:
@@ -68,5 +68,5 @@ Kai Jannik Nehler ist wissenschaftlicher Mitarbeiter der Abteilung _Psychologisc
 
 **Biografie**
 
-- Studium der Psychologie (Bachelor und Master) an der Johann Wolfgang Goethe-Universität in Frankfurt mit den psychologischen Schwerpunkten Statistik, Arbeits- und Organisationspsychologie (Major) und Klinische Psychologie (Minor) von 2013-2019 
+- Studium der Psychologie (Bachelor und Master) an der Johann Wolfgang Goethe-Universität in Frankfurt mit den psychologischen Schwerpunkten Statistik, Arbeits- und Organisationspsychologie (Major) und Klinische Psychologie (Minor) von 2013-2019
 - Tutor für Statistik für Psychologen (Bachelor), sowie Forschungsmethoden & Evaluation (Master) für das Institut für Psychologie an der Goethe-Universität Frankfurt (2014-2018)

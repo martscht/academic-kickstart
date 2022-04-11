@@ -52,15 +52,15 @@ email: ""
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
-user_groups: ["Contributors"]
+user_groups: ["Teaching"]
 ---
 
-Johannes Hartig ist Professor für Educational Measurement am Leibniz-Institut für Bildungsforschung und Bildungsinformation DIPF. 
+Johannes Hartig ist Professor für Educational Measurement am Leibniz-Institut für Bildungsforschung und Bildungsinformation DIPF.
 
 **Biografie**
 
-- Studium der Psychologie an der Goethe-Universität Frankfurt samt Promotion in 2003 
-- wissenschaftlicher Mitarbeiter im Bereich Psychologische Methodenlehre, Evaluation und Forschungsmethodik an der Goethe-Universität Frankfurt von 1998 bis 2003 
-- wissenschaftlicher Mitarbeiter in der Arbeitseinheit Bildungsqualität und Evaluation des DIPF von 2003 bis 2008 
+- Studium der Psychologie an der Goethe-Universität Frankfurt samt Promotion in 2003
+- wissenschaftlicher Mitarbeiter im Bereich Psychologische Methodenlehre, Evaluation und Forschungsmethodik an der Goethe-Universität Frankfurt von 1998 bis 2003
+- wissenschaftlicher Mitarbeiter in der Arbeitseinheit Bildungsqualität und Evaluation des DIPF von 2003 bis 2008
 - Professor für Methoden der empirischen Pädagogischen Forschung an der Universität Erfurt von 2008 bis 2010
 - Leitung des Arbeitsbereiches Educational Measurement in der Arbeitseinheit Bildungsqualität und Evaluation am DIPF seit 2010

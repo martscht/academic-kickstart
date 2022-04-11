@@ -59,7 +59,7 @@ email: ""
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
-user_groups: ["Teaching"]
+user_groups: ["Former"]
 ---
 
 Nicola Müller ist studentische Hilfskraft in der Abteilung _Psychologische Methoden mit interdisziplinärer Ausrichtung_ an der Goethe Universität Frankfurt.
@@ -68,4 +68,3 @@ Nicola Müller ist studentische Hilfskraft in der Abteilung _Psychologische Meth
 
 - seit 2018: Bachelorstudium der Psychologie an der Johann Wolfgang Goethe-Universität in Frankfurt
 - seit 2020: stud. Hilfskraft in der Abteilung _Psychologische Methoden mit interdisziplinärer Ausrichtung_
-

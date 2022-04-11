@@ -62,7 +62,7 @@ email: ""
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
-user_groups: ["Team"]
+user_groups: ["Team", "Teaching"]
 ---
 
 Martin Schultze ist Qualifikationsprofessor an der Goethe Universität Frankfurt

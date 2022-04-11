@@ -14,8 +14,8 @@ role: Lehre
 
 # Organizations/Affiliations
 organizations:
-- name: DIPF | Leibniz-Institut für Bildungsforschung und Bildungsinformation
-  url: ""
+- name: Programme for International Student Assessemt (PISA)
+  url: "https://www.oecd.org/pisa/contacts/whoswhoinpisa.htm"
 
 # Short bio (displayed in user profile at end of posts)
 bio:
@@ -44,12 +44,12 @@ social:
 # - icon: bitbucket
 #   icon_pack: fab
 #   link:
-# - icon: link
-#   icon_pack: fa
-#   link:
-# - icon: researchgate
-#   icon_pack: fab
-#   link:
+- icon: link
+  icon_pack: fa
+  link: https://www.oecd.org/pisa/contacts/whoswhoinpisa.htm
+- icon: researchgate
+  icon_pack: fab
+  link: https://www.researchgate.net/profile/Janine-Buchholz
 # Link to a PDF of your resume/CV from the About widget.
 # To enable, copy your resume/CV to `static/files/cv.pdf` and uncomment the lines below.
 # - icon: cv
@@ -64,13 +64,13 @@ email: ""
 user_groups: ["Teaching"]
 ---
 
-Janine Buchholz ist Habilitandin im Arbeitsbereich der Educational Measurements in der Abteilung Lehr- und Lernqualität in Bildungseinrichtungen (LLiB) des Leibniz-Instituts für Bildungsforschung und Bildungsinformation DIPF. 
+Janine Buchholz ist Mitarbeiterin des Programme for International Student Assessemt (PISA) der OECD.
 
-**Biografie** 
+**Biografie**
 
 -	Studium der Psychologie an der Universität Erfurt bis 2010
 -	Wissenschaftliche Mitarbeiterin zur Promotion im Arbeitsbereich Educational Measurement bei Prof. Dr. Johannes Hartig (2010-2016)
 - Promotion an der Goethe-Universität Frankfurt im Jahr 2016
 -	Wissenschaftliche Mitarbeiterin im Projekt PISA 2015 (2015-2016)
--	Wissenschaftliche Leiterin im Projekt PISA (2018)
-
+-	Wissenschaftliche Leiterin im Projekt PISA (2018-2021)
+- Mitarbeiterin der OECD, Projekt PISA (2022)

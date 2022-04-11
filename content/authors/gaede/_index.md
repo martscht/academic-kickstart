@@ -10,7 +10,7 @@ authors:
 superuser: false
 
 # Role/position
-role: Koordination
+role:
 
 # Organizations/Affiliations
 organizations:
@@ -59,7 +59,7 @@ email: ""
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
-user_groups: ["Team"]
+user_groups: ["Former"]
 ---
 
 Jana Gäde bietet im Methodenzentrum Sozialwissenschaften die Methodenberatung für Bachelorstudierende der Psychologie an und ist für die Organisation der jährlich stattfindenden Methodenwoche zuständig, in der auch regelmäßig einführende und weiterführende R-Workshops angeboten werden.
