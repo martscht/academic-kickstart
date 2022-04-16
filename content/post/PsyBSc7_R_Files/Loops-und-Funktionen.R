@@ -1,6 +1,6 @@
 #######################
 ### Loops und Funktionen
-# von Johanna Schüller und Sebastian Wallot
+# von Julien Irmer, Johanna Schüller und Sebastian Wallot
 
 
 ###Logische Abfragen und Bedingungen "if" und "else"
@@ -9,15 +9,15 @@
 ##if-Abfragen
 
 #Einfache if-Abfrage
-a = 3 #Zunächst definieren wir eine Variable
-if (a == 3) { #Bedingung, die entweder TRUE oder FALSE sein kann
-  print("Ja, die Variable a enthält den Wert 3") #Konsequenz, falls Bedingung wahr ist
-}
+a <- 3 #Zunächst definieren wir eine Variable
 
-a = 5
+# mehrere Zeilen
 if (a == 3) {
   print("Ja, die Variable a enthält den Wert 3")
 }
+# eine Zeile
+if (a == 3) print("Ja, die Variable a enthält den Wert 3")
+
 
 #if-Abfrage mit mehreren Möglichkeiten
 person = "Monica"
@@ -26,38 +26,53 @@ if (person %in%  c("Monica", "Rachel", "Chandler",  "Phoebe", "Ross", "Joey")) {
 }
 #"%in%" = ist Element der folgenden Auswahl
 
+
 #Abgleich mit einem Datum
-if (weekdays(Sys.Date()) == 'Thursday') {
-  'R Kurs um 8!'
+if (weekdays(Sys.Date()) == "Friday") {
+  print("Fast Wochenende!")
 }
 
+
 #Verknüpfung logischer Abfragen
-if (weekdays(Sys.Date()) == 'Saturday' | weekdays(Sys.Date()) == 'Sunday') { #| steht für "oder"
+if (weekdays(Sys.Date()) == "Saturday" | weekdays(Sys.Date()) == "Sunday") {
   print("Hoch die Hände, Wochenende!")
 }
 
 
 ##Abgleich mit mehreren Alternativen: if-else-Abfragen
-if (weekdays(Sys.Date()) == 'Thursday') {
-  'R Kurs um 8!'
-} else { #Konsequenz, die ausgeführt wird, wenn Bedingung = FALSE ist
-  'Ausschlafen'
+# mehrere Zeilen
+if (weekdays(Sys.Date()) == "Saturday" | weekdays(Sys.Date()) == "Sunday") {
+  print("Hoch die Hände, Wochenende!")
+}else{
+  print("Nur noch wenige Tage bis zum ersehnten Wochenende!")
+}
+
+# eine enorm lange Zeile
+if (weekdays(Sys.Date()) == "Saturday" | weekdays(Sys.Date()) == "Sunday") print("Hoch die Hände, Wochenende!") else print("Nur noch wenige Tage bis zum ersehnten Wochenende!")
+
+# geschweifte Klammern
+if (weekdays(Sys.Date()) == "Saturday" | weekdays(Sys.Date()) == "Sunday")
+{
+  print("Hoch die Hände, Wochenende!")
+}else
+{
+  print("Nur noch wenige Tage bis zum ersehnten Wochenende!")
 }
 
 
 #else-if-Bedingungen
 if (weekdays(Sys.Date()) %in% c('Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday')) {
   if (weekdays(Sys.time()) == 'Monday') {
-    'Go back to bed...'
+    print('Zurück ins Bett...')
   } else if (weekdays(Sys.time()) == 'Wednesday') {
-    'Wuhu, it`s Hump-Day!'
+    print('Wuhu, es ist Mitte der Woche!')
   } else if (weekdays(Sys.time()) == 'Friday') {
-    'Yeah, it`s TGIF-Day!'
+    print('Yeah, das Wochenende steht bevor!')
   } else {
-    'It`s some other day!'
+    print('Es ist irgendein anderer Tag.')
   }
 } else {
-  "It`s the weekend!"
+  print("Hoch die Hände, Wochenende!")
 }
 
 x <- sample(1:10, 1) #zufällig gezogene Zahl generieren
@@ -70,10 +85,9 @@ x
 y
 
 #Funktion "if else"
-ifelse(test = weekdays(Sys.Date()) == 'Friday',  #die Bedingung
-       yes = 'Yeah, it`s TGIF-Day!',             #was getan werden soll, wenn die Bedingung zutrifft
-       no = 'It some other boring day...')       #was getan werden soll, wenn die Bedingung nicht zutrifft
-
+ifelse(test = weekdays(Sys.Date()) == 'Friday', # die Bedingung
+       yes = 'Yeah, das Wochenende steht bevor!', # was getan werden soll, wenn die Bedingung zutrifft
+       no = 'Es ist irgendein anderer Tag...') # was getan werden soll, wenn die Bedingung nicht zutrifft
 
 
 ###Loops
@@ -100,44 +114,22 @@ mdbf$stim4_r <- -1 * (mdbf$stim4 - 5) #Alternative
 
 #schnellerer Weg über Loop:
 mdbf_r <- mdbf #Kopie des Datensatzes erstellen, um Datenverlust vorzubeugen
-neg <- c(3, 4, 5, 7, 9, 11) #Vektor der negativen Items erstellen
+neg <- c("stim3", "stim4", "stim5", "stim7", "stim9", "stim11") #Vektor der negativen Items erstellen
+
 for (i in neg) {                        #i wird als Vektor der negativen Items definiert
   mdbf_r[, i] <- -1 * (mdbf_r[, i] - 5) #jedes Item aus dem Datensatz mit der Spalte i wird umgepolt
 }
 cor(mdbf[, 3], mdbf_r[, 3]) #erfolgreiches Umpolen überprüfen
 
 #ineinandergeschachtelte Loops mit zwei Iterationen
-buchst <- c("A", "B", "C")
-zahl <- c(1,2)
-for (i in buchst) {
-  for (ii in zahl) {
+Buchstaben <- c("A", "B", "C")
+Zahlen <- c(1,2)
+for (i in Buchstaben) {
+  for (ii in Zahlen) {
     print(i)
     print(ii)
   }
 }
-
-
-##while-Loops
-#der Code wird so lange ausgeführt, wie eine vorab definierte Bedingung erfüllt ist
-coin <- c('Kopf', 'Zahl') #Münze erstellen
-toss <- NULL              #leeres Objekt für die Aufzeichnung erstellen
-
-while (sum(toss == 'Kopf')<10) {   #sind Kopf-Würfe < 10 ?
-  toss <- c(toss, sample(coin, 1))
-}
-toss #Würfe ansehen
-
-
-##repeat-Loops
-#häufig genutzt, wenn es verschiedene oder veränderliche Abbruchkriterien für den Loop gibt
-fibo <- c(1, 1) #Fibonacci-Sequenz bilden (eine Sequenz in der eine Zahl immer die Summe der vorherigen beiden Zahlen ist)
-
-repeat {
-  n <- length(fibo)
-  fibo <- c(fibo, fibo[n] + fibo[n - 1])
-  if (fibo[n+1] > 1000) break            #Sequenz abbrechen, wenn die letzte Zahl z.B. größer als 1000 ist
-}
-fibo
 
 
 
@@ -196,3 +188,82 @@ Vari <- function(x, empirical = TRUE) {  #empirical = TRUE als default festlegen
 }
 
 Vari(mdbf[, 2])
+
+
+
+##Anwendung: Simulationsstudien & Poweranalysen
+
+#Code aus letztem Semester
+N <- 20
+set.seed(1234)
+replicate(n = 10, expr = {X <- rnorm(N)
+Y <- rnorm(N)
+ttestH0 <- t.test(X, Y, var.equal = TRUE)
+ttestH0$p.value})
+
+#Funktion als for-Schleife
+mySim <- function(N)
+{
+  X <- rnorm(N)
+  Y <- rnorm(N)
+  ttestH0 <- t.test(X, Y, var.equal = TRUE)
+  return(ttestH0$p.value)
+}
+set.seed(1234)
+replicate(n = 10, expr = mySim(N = 20))
+
+#empirischen t-Wert mit aufnehmen
+mySim2 <- function(N)
+{
+  X <- rnorm(N)
+  Y <- rnorm(N)
+  ttestH0 <- t.test(X, Y, var.equal = TRUE)
+  return(c("p" = ttestH0$p.value, "t" = ttestH0$statistic))
+}
+set.seed(1234)
+replicate(n = 10, expr = mySim2(N = 20))
+
+
+#Simulationsstudie
+
+S <- matrix(c(1, .7, .7, 2), 2, 2) # Populationskovarianzmatrix
+S
+# install.packages("mvtnorm")
+library(mvtnorm)
+set.seed(1234)
+X <- rmvnorm(n = 10^3, mean = c(2, 3), sigma = S)
+colMeans(X)
+cov(X)
+
+#Residuum
+eps <- rnorm(10^3, sd = 1.3)
+X1 <- X[,1]
+X2 <- X[,2]
+Y <- 0.3 + 0.5*X1 + 0.3*X2 + eps
+df <- data.frame("X1" = X1, "X2" = X2, "Y" = Y)
+
+#Regressionsanalyse
+reg <- lm(Y ~ 1 + X1 + X2, data = df)
+coef(reg) # Koeffizienten abgreifen
+
+#als Funktion
+myRegSim <- function(N)
+{
+  S <- matrix(c(1, .7, .7, 2), 2, 2) # Populationskovarianzmatrix
+  X <- rmvnorm(n = N, mean = c(2, 3), sigma = S)
+  eps <- rnorm(N, sd = 1.3)
+  X1 <- X[,1]
+  X2 <- X[,2]
+  Y <- 0.3 + 0.5*X1 + 0.3*X2 + eps
+  df <- data.frame("X1" = X1, "X2" = X2, "Y" = Y)
+  reg <- lm(Y ~ 1 + X1 + X2, data = df)
+  coef(reg) # Koeffizienten abgreifen
+  return(coef(reg))
+}
+set.seed(1234)
+replicate(n = 10, expr = myRegSim(N = 10^3))
+
+#Abspeichern, Transponieren & Schätzen
+set.seed(1234)
+mySimErg <- t(replicate(n = 10, expr = myRegSim(N = 10^3)))
+colMeans(mySimErg)
