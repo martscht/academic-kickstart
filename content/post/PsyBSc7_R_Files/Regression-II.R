@@ -1,6 +1,6 @@
 ########################
 ### Regression II: Modelloptimierung
-# von Johannes Hartig und Johanna Schüller
+# von Johannes Hartig, Johanna Schüller & Julien Irmer
 
 
 load(url("https://pandar.netlify.app/post/Schulleistungen.rda")) #Datensatz von pandaR laden
@@ -9,8 +9,8 @@ load(url("https://pandar.netlify.app/post/Schulleistungen.rda")) #Datensatz von 
 
 ##Testen eines Inkrements
 #Vergleich eines eingeschränkten Modells mit weniger Prädiktoren gegen ein uneingeschränktes Modell mit zusätzlichen Prädiktoren
-m.c <- lm(math ~ reading + female, data = Schulleistungen)      #eingeschränktes Modell
-m.u <- lm(math ~ reading + female + IQ, data = Schulleistungen) #uneingeschränktes Modell
+m.c <- lm(math ~ reading + female, data = Schulleistungen)      # constrained
+m.u <- lm(math ~ reading + female + IQ, data = Schulleistungen) # unconstrained
 summary(m.c)
 summary(m.u)
 
@@ -23,13 +23,13 @@ anova(m.c, m.u)
 #Verglich: F-Test
 R2.u <- summary(m.u)$r.squared
 R2.c <- summary(m.c)$r.squared
-df.diff <- summary(m.u)$df[1] - summary(m.c)$df[1]
-df.u <- summary(m.u)$df[2]
+df.diff <- summary(m.u)$df[1] - summary(m.c)$df[1] # Änderung in den df
+df.u <- summary(m.u)$df[2] # Freiheitsgrade des uneingeschränkten Modells
 F.diff <- ((R2.u - R2.c) / df.diff) /
   ((1 - R2.u) / df.u)
 p.diff <- 1-pf(F.diff, df.diff, df.u)
-F.diff
-p.diff
+F.diff # F-Wert der Differenz in R^2
+p.diff # zugehöriger p-Wert
 
 
 ##Testen eines Dekrements
@@ -60,3 +60,8 @@ library(olsrr)
 # pent = p enter, p-Wert zur Aufnahme ins Modell
 # prem = p remove, p-Wert zum Ausschluss aus dem Modell
 ols_step_both_p(m, pent = .05, prem = .10, details = TRUE)
+
+##Unterschiede im AIC
+model <- lm(math ~ reading + female, data = Schulleistungen)
+AIC(model) # vollständiger AIC
+extractAIC(model) # erstes Argument ist die Anzahl der Parameter (p)
