@@ -15,7 +15,7 @@ tags:
 subtitle: 'EFA'
 summary: ''
 authors: [irmer, schultze]
-lastmod: '2021-04-22T08:32:21+02:00'
+lastmod: '2022-04-21T08:32:21+02:00'
 featured: no
 header:
   image: "/header/FEII_Sitzung_2.png"
@@ -23,9 +23,10 @@ header:
 projects: []
 ---
 
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
-<p>Forscher der Psychologie oder anderer Natur-, Sozial- und Geisteswissenschaften interessieren sich häufig dafür, wie sich Daten auf einige wenige entscheidende Faktoren herunterbrechen lassen, welche ein theoretisches Erklärungsmodell für die Variation in einem Datensatz liefern. Die Annahme ist hierbei, dass die beobachtbaren Messungen eine Linearkombination (also eine Summe) aus einem systematischen (wahren) und einem unsystematischen (Fehler-) Anteil bilden. Die dahinterliegenden Faktoren sind nicht messbare (latente) Variablen, auf welche, unter gewissen Annahmen, nur anhand der Kovariation zwischen den beobachtbaren Items geschlossen werden kann. Durch diese Zusammenhänge zwischen den Messungen können schließlich Hypothesen für die latenten Variablen untersucht werden. Ein theoriegenerierendes Verfahren, das hierzu häufig verwendet wird, ist die <strong>exploratorische Faktorenanalyse</strong> (im Folgenden EFA, engl. <strong>E</strong>xploratory <strong>F</strong>actor <strong>A</strong>nalysis, vgl. <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, Gollwitzer &amp; Schmitt, 2017</a>, Kapitel 25; außerdem können Sie sich <a href="https://hds.hebis.de/ubffm/Record/HEB468515836">Brandt, 2020</a>, Kapitel 23 genauer ansehen, wenn Sie weitere Informationen, bzw. eine zusätzliche Erklärung wünschen).</p>
+<p>Forscherinnen und Forscher der Psychologie oder anderer Natur-, Sozial- und Geisteswissenschaften interessieren sich häufig dafür, wie sich Daten auf einige wenige entscheidende Faktoren herunterbrechen lassen, welche ein theoretisches Erklärungsmodell für die Variation in einem Datensatz liefern. Die Annahme ist hierbei, dass die beobachtbaren Messungen eine Linearkombination (also eine Summe) aus einem systematischen (wahren) und einem unsystematischen (Fehler-) Anteil bilden. Die dahinterliegenden Faktoren sind nicht messbare (latente) Variablen, auf welche, unter gewissen Annahmen, nur anhand der Kovariation zwischen den beobachtbaren Items geschlossen werden kann. Durch diese Zusammenhänge zwischen den Messungen können schließlich Hypothesen für die latenten Variablen untersucht werden. Ein theoriegenerierendes Verfahren, das hierzu häufig verwendet wird, ist die <strong>exploratorische Faktorenanalyse</strong> (im Folgenden EFA, engl. <strong>E</strong>xploratory <strong>F</strong>actor <strong>A</strong>nalysis, vgl. <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, Gollwitzer &amp; Schmitt, 2017</a>, Kapitel 25; außerdem können Sie sich <a href="https://hds.hebis.de/ubffm/Record/HEB468515836">Brandt, 2020</a>, Kapitel 23 genauer ansehen, wenn Sie weitere Informationen, bzw. eine zusätzliche Erklärung wünschen).</p>
 <p>Wir wollen die <strong>EFA</strong> zur Auswertung von Beziehungen zwischen Variablen in <code>R</code> näher kennenlernen. Die EFA ist manchen Gesichtspunkten, sowie im Output in <code>R</code>, recht verwandt mit der <a href="/post/PCA">Hauptkomponentenanalyse (PCA)</a> aus dem vergangenen Semester. Allerdings konnten wir bei der PCA kein Erklärungsmodell aufstellen (“wir konnten den Hauptkomponenten nicht so einfach eine inhaltliche Bedeutung zuschreiben”) und auch keine Messfehler (unsystematische Fehleranteile) mitmodellieren. Zudem waren die Hauptkomponenten der PCA Linearkombinationen (also Zusammensetzungen) aus den beobachteten Variablen, bei der EFA hingegen sind die Messungen (beobachteten Variablen) Linearkombinationen aus systematischen (latenten) Variablen sowie Messfehlern.</p>
 <p>Bevor wir mit den Analysen beginnen können, laden wir zunächst alle Pakete, welche wir im Folgenden benötigen werden.</p>
 <pre class="r"><code>library(corrplot) # Korrelationsmatrix grafisch darstellen
@@ -33,7 +34,7 @@ library(psych) # EFA durchführen
 library(GPArotation) # EFA Lösung rotieren</code></pre>
 <div id="datensatz" class="section level2">
 <h2>Datensatz</h2>
-<p>Wir wollen uns die Faktorenstruktur der <em>Big-5</em> eines entsprechenden Fragebogens ansehen. Der Originaldatensatz ist ein Onlinedatensatz, wird seit 2012 erfasst und ist auf <a href="https://openpsychometrics.org/_rawdata/"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> openpsychometrics.org</a> als <em>.zip</em> downloadbar. Bisher haben über <strong>19700</strong> Probanden aus der ganzen Welt teilgenommen. Zu jeder der fünf Facetten gibt es 10 Fragen. Der Fragebogen ist auf <a href="http://personality-testing.info/tests/BIG5.php">personality-testing.info</a> einzusehen.
+<p>Wir wollen uns die Faktorenstruktur der <em>Big-5</em> eines entsprechenden Fragebogens ansehen. Der Originaldatensatz ist ein Onlinedatensatz, wird seit 2012 erfasst und ist auf <a href="https://openpsychometrics.org/_rawdata/"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> openpsychometrics.org</a> als <em>.zip</em> downloadbar. Bisher haben über <strong>19700</strong> Probandinnen und Probanden aus der ganzen Welt teilgenommen. Zu jeder der fünf Facetten gibt es 10 Fragen. Der Fragebogen ist auf <a href="http://personality-testing.info/tests/BIG5.php">personality-testing.info</a> einzusehen.
 Um das Ganze etwas übersichtlicher zu gestalten, betrachten wir einen gekürzten Datensatz. Im Datensatz <em>Big5_EFA.rda</em> (wir kennen diesen Datensatz, allerdings in anderer Zusammensetzung, bereits aus den <a href="/post/MSc1-Daten">Übungen zum vergangenen Semester</a> zum Themenblock <a href="/post/manova">MANOVA</a>, weswegen wir hier das Kürzel “EFA” angehängt haben) befinden sich 15 Items aus dem Big-5 Persönlichkeitsfragebogen. Hier werden von diesen 10 Items jeweils die ersten drei verwendet. Der Itemwortlaut der verwendeten Items ist</p>
 <table class="gmisc_table" style="border-collapse: collapse; margin-top: 1em; margin-bottom: 1em;">
 <thead>
@@ -46,7 +47,7 @@ Itemwortlaut
 <th style="font-weight: 900; border-bottom: 1px solid grey; border-top: 2px solid grey; text-align: center;">
 Item Nr.
 </th>
-<th style="font-weight: 900; border-bottom: 1px solid grey; border-top: 2px solid grey; text-align: left;">
+<th style="font-weight: 900; border-bottom: 1px solid grey; border-top: 2px solid grey; text-align: center;">
 Item
 </th>
 </tr>
@@ -321,7 +322,7 @@ Die Parallelanalyse hatten wir im Zusammenhang mit der <a href="/post/PCA">Haupt
 ## Correlation of (regression) scores with factors   0.89 0.88
 ## Multiple R square of scores with factors          0.79 0.77
 ## Minimum correlation of possible factor scores     0.58 0.55</code></pre>
-<p>Im Output ganz oben erkennen wir die Schätzmethode (hier: <code>minres</code>, also Minimierung der Residuen). Aus diesem Grund heißen die Faktoren in diesem Output auch <em>MR1</em> und <em>MR2</em>; für <em>Minimale-Residuen-Faktor 1</em> und <em>2</em> (diese Benennung war uns auch bereits bei der PCA aufgefallen, wo diese je nach Rotation entweder PC1 oder RC1, etc., hießen). Die Faktorladungen zu den zugehörigen Faktoren sind unter <code>Standardized loadings (pattern matrix) based upon correlation matrix</code> zu sehen. <code>h2</code> steht für die Kommunalität (<span class="math inline">\(h^2\)</span>), also den Anteil an systematischer Variation, die auf die 2 Faktoren zurückzuführen ist (diese kann ähnlich der Reliabilität interpretiert werden). <code>u2</code> ist die “uniqueness” (<span class="math inline">\(u^2\)</span>), also der unerklärte Anteil. Offensichtlich gilt <span class="math inline">\(u^2 = 1-h^2\)</span> oder <span class="math inline">\(h^2 + u^2 = 1\)</span>. Unter den Faktorladungen erhalten wir Informationen über die Faktoren. <code>SS loadings</code> steht für “Sum of Squares loadings”, also die Quadratsumme der Faktorladungen. Diese ist gleich dem Eigenwert: <span class="math inline">\(\theta_j = \Sigma_{i=1}^p\lambda_{ij}^2 = \lambda_{1j}^2+\dots+\lambda_{pj}^2\)</span> (Spaltenquadratsumme der Faktorladungen), mit <span class="math inline">\(p=\)</span> Anzahl an Variablen (hier <span class="math inline">\(p=6\)</span>). Allerdings gilt dies nur für den orthogonalen Fall. Sind die Faktoren korreliert, muss diese Korrelation berücksichtigt werden. Dazu später mehr! <code>Proportion Var</code> betitelt den Anteil der Variation, der durch die jeweiligen Faktoren erklärt werden kann. <code>Cumulative Var</code> kumuliert, also summiert, diese Anteile bis zum jeweiligen Faktor auf (<span class="math inline">\(\text{CumVar}_j = \sum_{k=1}^j\theta_k = \theta_1+\dots+\theta_j\)</span>, also <span class="math inline">\(\text{CumVar}_1=\theta_1\)</span> und <span class="math inline">\(\text{CumVar}_2=\theta_1+\theta_2\)</span>). <code>Proportion Explained</code> setzt die Variation, die durch die Faktoren erklärt wird, in Relation zur gesamten erklärten Varianz (d.h. hier summiert sich die erklärte Varianz immer zu 1, während sich die proportionale Varianz nur zu 1 aufsummiert, wenn die gesamte Variation im Datensatz auf die beiden Variablen zurückzuführen ist). <code>Cumulative Proportion</code> beschreibt das gleiche wie <code>Cumulative Var</code>, nur bezieht sie sich hier auf die <code>Proportion Explained</code>. Bei der Interpretation dieser Kennwerte ist zu bedenken, dass bei der EFA angenommen wird, dass die beobachteten Variablen Messfehler enthalten (also die Reliabilität nicht als 1 angenommen werden kann). Folglich ist die Kommunalität <span class="math inline">\(h^2\)</span> nicht 1 und wir können nicht unbedingt davon ausgehen, dass die Faktoren die gesamte Variation der Daten erklären. All diese Koeffizienten kennen wir bereits aus der Sitzung zur <a href="/post/PCA">PCA</a>, wo wir diese im Hinblick auf eine PCA interpretierten. Dabei fiel uns auch auf, dass einige Koeffizienten in dieser Übersicht nicht mit allen Dezimalstellen angezeigt werden und es ggf. zu seltsamen Rundungsverfälschungen kommen kann. Aus diesem Grund hatten wir uns entschieden, die jeweiligen Koeffizienten und Informationen dem Objekt selbst zu entlocken, um diese Rundungsverfälschungen zu umgehen.</p>
+<p>Im Output ganz oben erkennen wir die Schätzmethode (hier: <code>minres</code>, also Minimierung der Residuen). Aus diesem Grund heißen die Faktoren in diesem Output auch <em>MR1</em> und <em>MR2</em>; für <em>Minimale-Residuen-Faktor 1</em> und <em>2</em> (diese Benennung war uns auch bereits bei der PCA aufgefallen, wo diese je nach Rotation entweder PC1 oder RC1, etc., hießen). Die Faktorladungen zu den zugehörigen Faktoren sind unter <code>Standardized loadings (pattern matrix) based upon correlation matrix</code> zu sehen. <code>h2</code> steht für die Kommunalität (<span class="math inline">\(h^2\)</span>), also den Anteil an systematischer Variation, die auf die 2 Faktoren zurückzuführen ist (diese kann ähnlich der Reliabilität interpretiert werden). <code>u2</code> ist die “uniqueness” (<span class="math inline">\(u^2\)</span>), also der unerklärte Anteil. Diese wird auch oft <em>Spezifität</em> genannt, da sie den für dieses Item spezifischen Varianzanteil beschreibt. Offensichtlich gilt <span class="math inline">\(u^2 = 1-h^2\)</span> oder <span class="math inline">\(h^2 + u^2 = 1\)</span>. Unter den Faktorladungen erhalten wir Informationen über die Faktoren. <code>SS loadings</code> steht für “Sum of Squares loadings”, also die Quadratsumme der Faktorladungen. Diese ist gleich dem Eigenwert: <span class="math inline">\(\theta_j = \Sigma_{i=1}^p\lambda_{ij}^2 = \lambda_{1j}^2+\dots+\lambda_{pj}^2\)</span> (Spaltenquadratsumme der Faktorladungen), mit <span class="math inline">\(p=\)</span> Anzahl an Variablen (hier <span class="math inline">\(p=6\)</span>). Allerdings gilt dies nur für den orthogonalen Fall. Sind die Faktoren korreliert, muss diese Korrelation berücksichtigt werden. Dazu später mehr! <code>Proportion Var</code> betitelt den Anteil der Variation, der durch die jeweiligen Faktoren erklärt werden kann. <code>Cumulative Var</code> kumuliert, also summiert, diese Anteile bis zum jeweiligen Faktor auf (<span class="math inline">\(\text{CumVar}_j = \sum_{k=1}^j\theta_k = \theta_1+\dots+\theta_j\)</span>, also <span class="math inline">\(\text{CumVar}_1=\theta_1\)</span> und <span class="math inline">\(\text{CumVar}_2=\theta_1+\theta_2\)</span>). <code>Proportion Explained</code> setzt die Variation, die durch die Faktoren erklärt wird, in Relation zur gesamten erklärten Varianz (d.h. hier summiert sich die erklärte Varianz immer zu 1, während sich die proportionale Varianz nur zu 1 aufsummiert, wenn die gesamte Variation im Datensatz auf die beiden Variablen zurückzuführen ist). <code>Cumulative Proportion</code> beschreibt das gleiche wie <code>Cumulative Var</code>, nur bezieht sie sich hier auf die <code>Proportion Explained</code>. Bei der Interpretation dieser Kennwerte ist zu bedenken, dass bei der EFA angenommen wird, dass die beobachteten Variablen Messfehler enthalten (also die Reliabilität nicht als 1 angenommen werden kann). Folglich ist die Kommunalität <span class="math inline">\(h^2\)</span> nicht 1 und wir können nicht unbedingt davon ausgehen, dass die Faktoren die gesamte Variation der Daten erklären. All diese Koeffizienten kennen wir bereits aus der Sitzung zur <a href="/post/PCA">PCA</a>, wo wir diese im Hinblick auf eine PCA interpretierten. Dabei fiel uns auch auf, dass einige Koeffizienten in dieser Übersicht nicht mit allen Dezimalstellen angezeigt werden und es ggf. zu seltsamen Rundungsverfälschungen kommen kann. Aus diesem Grund hatten wir uns entschieden, die jeweiligen Koeffizienten und Informationen dem Objekt selbst zu entlocken, um diese Rundungsverfälschungen zu umgehen.</p>
 <p>Außerdem werden durch diesen Befehl sehr viele Informationen ausgegeben. Aus diesen Gründen speichern wir uns diese Analyse als ein Objekt ab, welchem wir dann gezielt Informationen mit Hilfe von <code>...$...</code> entlocken können. Welche Argumente entlockt werden können, kann beispielsweise mit <code>names</code> herausgefunden werden. Wir speichern das Objekt unter dem Namen <em>two_factor</em> ab.</p>
 <pre class="r"><code>two_factor &lt;- fa(dataFR2, nfactors = 2, rotate = &quot;varimax&quot;)
 names(two_factor) # mögliche Informationen</code></pre>
@@ -333,11 +334,11 @@ names(two_factor) # mögliche Informationen</code></pre>
 ## [21] &quot;null.model&quot;    &quot;null.dof&quot;      &quot;null.chisq&quot;    &quot;TLI&quot;          
 ## [25] &quot;RMSEA&quot;         &quot;BIC&quot;           &quot;SABIC&quot;         &quot;r.scores&quot;     
 ## [29] &quot;R2&quot;            &quot;valid&quot;         &quot;score.cor&quot;     &quot;weights&quot;      
-## [33] &quot;rotation&quot;      &quot;communality&quot;   &quot;communalities&quot; &quot;uniquenesses&quot; 
-## [37] &quot;values&quot;        &quot;e.values&quot;      &quot;loadings&quot;      &quot;model&quot;        
-## [41] &quot;fm&quot;            &quot;rot.mat&quot;       &quot;Structure&quot;     &quot;method&quot;       
-## [45] &quot;scores&quot;        &quot;R2.scores&quot;     &quot;r&quot;             &quot;np.obs&quot;       
-## [49] &quot;fn&quot;            &quot;Vaccounted&quot;</code></pre>
+## [33] &quot;rotation&quot;      &quot;hyperplane&quot;    &quot;communality&quot;   &quot;communalities&quot;
+## [37] &quot;uniquenesses&quot;  &quot;values&quot;        &quot;e.values&quot;      &quot;loadings&quot;     
+## [41] &quot;model&quot;         &quot;fm&quot;            &quot;rot.mat&quot;       &quot;Structure&quot;    
+## [45] &quot;method&quot;        &quot;scores&quot;        &quot;R2.scores&quot;     &quot;r&quot;            
+## [49] &quot;np.obs&quot;        &quot;fn&quot;            &quot;Vaccounted&quot;</code></pre>
 <p>Beispielsweise erhalten wir mit <code>$loadings</code> die Faktorladungsmatrix sowie Informationen über die Eigenwerte. (<em>Wichtig für später</em>: Die richtigen Kommunalitäten werden mit <code>$communality</code> angefordert.)</p>
 <pre class="r"><code>two_factor$loadings</code></pre>
 <pre><code>## 
@@ -500,6 +501,20 @@ one_factor_ML$STATISTIC # Chi-Quadratwert</code></pre>
 <pre><code>## Model 1 = fa(r = dataFR2, nfactors = 1, rotate = &quot;oblimin&quot;, fm = &quot;ml&quot;)
 ## Model 2 = fa(r = dataFR2, nfactors = 2, rotate = &quot;oblimin&quot;, fm = &quot;ml&quot;)</code></pre>
 <table>
+<colgroup>
+<col width="3%" />
+<col width="3%" />
+<col width="6%" />
+<col width="7%" />
+<col width="10%" />
+<col width="3%" />
+<col width="6%" />
+<col width="12%" />
+<col width="15%" />
+<col width="12%" />
+<col width="8%" />
+<col width="8%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th align="left"></th>
@@ -547,7 +562,7 @@ one_factor_ML$STATISTIC # Chi-Quadratwert</code></pre>
 </tr>
 </tbody>
 </table>
-<p>Zunächst bekommen wir in angezeigt, welche Modelle unter welchem Kürzel gegeneinander getestet werden. Die Modellnummer steht im ANOVA-Output entsprechend für das jeweilige Modell. In der Zeile <code>2</code> steht also der Output für das 2-faktorielle Modelle und am Ende dieser Zeile steht auch der Modellvergleich.</p>
+<p>Zunächst bekommen wir angezeigt, welche Modelle unter welchem Kürzel gegeneinander getestet werden. Die Modellnummer steht im ANOVA-Output entsprechend für das jeweilige Modell. In der Zeile <code>2</code> steht also der Output für das 2-faktorielle Modelle und am Ende dieser Zeile steht auch der Modellvergleich.</p>
 <p>In der ersten Spalte stehen beispielsweise die Freiheitsgrade der Modelle (<code>df</code>). Daneben steht die Differenz der Freiheitsgrade (<code>d.df</code>) und dahinter stehen verschiedene Fit-Maße, bzw. Modellvergleiche. Wir müssen im Bereich des <em>chiSq</em> und nicht bei <em>empirical</em> (eine Näherung des <span class="math inline">\(\chi^2\)</span> Wertes, wenn Annahmen verletzt sind) nachsehen. Der Output ist immer so aufgebaut, dass zunächst der Wert pro Modell angezeigt (<code>chiSq</code> oder <code>empirical</code>) wird und anschließend die Differenz (<code>d.chiSq</code> oder <code>d.empirical</code>) sowie die Signifikanzentscheidung berichtet wird (<code>PR test</code>, welche allerdings nicht bei der Näherung angezeigt wird). Außerdem wird noch eine Rubrik <code>test</code>, bzw. <code>test.echi</code> angezeigt, welche noch einmal die <span class="math inline">\(\chi^2\)</span>-Differenz geteilt durch die Freiheitsgrade repräsentiert. Der <span class="math inline">\(\chi^2\)</span>-Differenzwert liegt bei 68.02 mit einem zugehörigen p-Wert von de facto 0. <code>d.df</code> (häufig <span class="math inline">\(\Delta df\)</span>) gibt die Anzahl an Freiheitsgraden der <span class="math inline">\(\chi^2\)</span>-Differenz (hier: df = 5) des Differenzentests an (hier wurden die Freiheitsgrade der beiden Modelle voneinander abgezogen). Ganz hinten wird noch das Bayes Information Criterion <code>BIC</code>, sowie dessen Differenz <code>d.BIC</code> aufgeführt. Dieses Informationskriterium werden wir bei der <a href="/post/cfa">CFA</a> und deren Modellpassung noch einmal genauer betrachten.</p>
 <p>Insgesamt wird die Null-Hypothese, dass beide Modell die Daten gleich gut beschreiben, verworfen. Wir entscheiden uns — Ockhams Rasiermesser folgend (siehe <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid et al., 2017, p. 787</a>) — somit für das Modell mit mehr Parametern, das weniger restriktive Modell, welches die Daten besser beschreibt: hier das zweifaktorielle Modell. Nun ist die Frage, ob wir das Modell noch weiter verbessern können, indem wir drei anstatt zwei Faktoren verwenden, um die Kovariation zwischen den Variablen zu beschreiben.</p>
 <pre class="r"><code># Passt auch eines mit 3 Faktor?
@@ -561,6 +576,20 @@ three_factor_ML$STATISTIC # Chi-Quadratwert</code></pre>
 <pre><code>## Model 1 = fa(r = dataFR2, nfactors = 2, rotate = &quot;oblimin&quot;, fm = &quot;ml&quot;)
 ## Model 2 = fa(r = dataFR2, nfactors = 3, rotate = &quot;oblimin&quot;, fm = &quot;ml&quot;)</code></pre>
 <table>
+<colgroup>
+<col width="3%" />
+<col width="3%" />
+<col width="6%" />
+<col width="7%" />
+<col width="10%" />
+<col width="6%" />
+<col width="6%" />
+<col width="12%" />
+<col width="15%" />
+<col width="12%" />
+<col width="8%" />
+<col width="7%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th align="left"></th>
@@ -611,15 +640,17 @@ three_factor_ML$STATISTIC # Chi-Quadratwert</code></pre>
 <p>Der <span class="math inline">\(\chi^2\)</span>-Differenzwert liegt hier bei 8.72 mit einen zugehörigen p-Wert von 0.07. <code>d.df</code> liegt bei 4 (<span class="math inline">\(\Delta df\)</span> = 4). Somit wird die Null-Hypothese, dass beide Modell die Daten gleich gut beschreiben, bzw. dass das sparsamere Modell die Daten genauso gut beschreiben kann, wie das komplexere Modell (<span class="math inline">\(H_0:\Sigma_{3-Fakt.} = \Sigma_{2-Fakt.}\)</span>; im Gegensatz zum <code>anova</code>-Befehl, steht hier das komplexere Modell links), nicht verworfen. Aus diesem Grund entscheiden wir uns - Ockhams Rasiermesser folgend (siehe <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid et al., 2017, p. 787</a>) - für das sparsamere Modell, also jenes, welches weniger Parameter enthält und somit restriktiver ist, hier: das <em>zweifaktorielle</em> Modell. Denn in der Wissenschaft streben wir danach, Modelle möglichst einfach zu halten!</p>
 <p>Wenn Sie davon noch nicht genug haben, so können Sie in <a href="#fivefactorML">Appendix B</a> nachlesen, wie eine EFA am gesamten (gekürzten) Datensatz durchgeführt wird. Dort stehen keine neuen Informationen zur Durchführung, Sie sollten es folglich eher als Übung ansehen, falls Sie sich entschließen, <a href="#fivefactorML">Appendix B</a> durchzuarbeiten!</p>
 <p>Die Zuordnung, die wir hier gefunden haben, entspringt der spezifischen Stichprobe, die wir untersucht haben. Wenn wir a priori aufgestellte Theorien über die Faktorstruktur prüfen wollen, können wir uns der <a href="/post/cfa"><strong>konfirmatorischen Faktorenanalyse</strong></a> bedienen, die wir in der nächsten Sitzung betrachten.</p>
-<p>Den gesamten R-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/FEII_efa.R"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
+<p>Den gesamten R-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/FEII_efa.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
 <hr />
 </div>
 </div>
 <div id="AppendixA" class="section level2">
 <h2>Appendix A</h2>
 <details>
-<p><summary> <strong>Kürzen des Datensatzes</strong> </summary>
-Falls Sie die Originaldaten auf <a href="https://openpsychometrics.org/_rawdata/"><svg style="height:0.8em;top:.04em;position:relative;" viewBox="0 0 512 512"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> openpsychometrics.org</a> als <em>.zip</em> herunterladen wollen, so können Sie diesen auf die hier verwendeten Daten wie folgt kürzen:</p>
+<summary>
+<strong>Kürzen des Datensatzes</strong>
+</summary>
+<p>Falls Sie die Originaldaten auf <a href="https://openpsychometrics.org/_rawdata/"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> openpsychometrics.org</a> als <em>.zip</em> herunterladen wollen, so können Sie diesen auf die hier verwendeten Daten wie folgt kürzen:</p>
 <pre class="r"><code>data_full &lt;- read.table(&quot;BIG5/data.csv&quot;, header = T, sep = &quot;\t&quot;) # nach entpacken des .zip liegen die Daten in einem Ordner namens Big5
 
 ### Entferne leere Zeilen und Zeilen mit Missings aus dem Datensatz
@@ -639,7 +670,9 @@ save(list = c(&quot;Big5&quot;), file = &quot;Big5.rda&quot;)
 <div id="fivefactorML" class="section level2">
 <h2>Appendix B</h2>
 <details>
-<p><summary> <strong>ML-EFA für den gesamten (gekürzten) Datensatz</strong> </summary></p>
+<summary>
+<strong>ML-EFA für den gesamten (gekürzten) Datensatz</strong>
+</summary>
 <p>Für den vollen Datensatz mit jeweils drei Items pro Persönlichkeitsfacette, nehmen wir zunächst an, dass es 5 Faktoren gibt. Dies wird hier allerdings nicht durch die Parallelanalyse gestützt. Wir müssen die Funktion <code>fa.parallel</code> diesmal auf den vollen (gekürzten) Datensatz anwenden; nämlich auf <code>dataFR</code>.</p>
 <pre class="r"><code>fa.parallel(x = dataFR,fa = &quot;fa&quot;)</code></pre>
 <p><img src="/post/2021-03-25_MSc1_FEII_Sitzung2_EFA_files/figure-html/unnamed-chunk-30-1.png" width="672" style="display: block; margin: auto;" /></p>
@@ -746,6 +779,20 @@ four_factor_ML$STATISTIC</code></pre>
 <pre><code>## Model 1 = fa(r = dataFR, nfactors = 4, rotate = &quot;oblimin&quot;, fm = &quot;ml&quot;)
 ## Model 2 = fa(r = dataFR, nfactors = 5, rotate = &quot;oblimin&quot;, fm = &quot;ml&quot;)</code></pre>
 <table>
+<colgroup>
+<col width="3%" />
+<col width="3%" />
+<col width="6%" />
+<col width="7%" />
+<col width="10%" />
+<col width="3%" />
+<col width="6%" />
+<col width="12%" />
+<col width="15%" />
+<col width="12%" />
+<col width="10%" />
+<col width="7%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th align="left"></th>
@@ -804,6 +851,20 @@ six_factor_ML$STATISTIC</code></pre>
 <pre><code>## Model 1 = fa(r = dataFR, nfactors = 5, rotate = &quot;oblimin&quot;, fm = &quot;ml&quot;)
 ## Model 2 = fa(r = dataFR, nfactors = 6, rotate = &quot;oblimin&quot;, fm = &quot;ml&quot;)</code></pre>
 <table>
+<colgroup>
+<col width="3%" />
+<col width="3%" />
+<col width="6%" />
+<col width="7%" />
+<col width="9%" />
+<col width="6%" />
+<col width="6%" />
+<col width="12%" />
+<col width="14%" />
+<col width="12%" />
+<col width="9%" />
+<col width="7%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th align="left"></th>
@@ -858,6 +919,20 @@ six_factor_ML$STATISTIC</code></pre>
 ## Model 2 = fa(r = dataFR, nfactors = 5, rotate = &quot;oblimin&quot;, fm = &quot;ml&quot;)
 ## Model 3 = fa(r = dataFR, nfactors = 6, rotate = &quot;oblimin&quot;, fm = &quot;ml&quot;)</code></pre>
 <table>
+<colgroup>
+<col width="3%" />
+<col width="3%" />
+<col width="6%" />
+<col width="7%" />
+<col width="9%" />
+<col width="6%" />
+<col width="6%" />
+<col width="12%" />
+<col width="14%" />
+<col width="12%" />
+<col width="9%" />
+<col width="7%" />
+</colgroup>
 <thead>
 <tr class="header">
 <th align="left"></th>
@@ -925,7 +1000,9 @@ six_factor_ML$STATISTIC</code></pre>
 <div id="AppendixC" class="section level2">
 <h2>Appendix C</h2>
 <details>
-<p><summary> <strong>Faktorladungsmatrix vs. Strukturmatrix</strong> </summary></p>
+<summary>
+<strong>Faktorladungsmatrix vs. Strukturmatrix</strong>
+</summary>
 <p>Um die Beziehung zwischen der Faktorladungsmatrix und der Strukturmatrix genauer zu verstehen, schauen wir uns das zweifaktorielle Modell für den (<em>standardisierten</em>) Datensatz <code>dataFR2</code> genauer an (<em>standardisiert</em> ist hier wichtig, da dies bedeutet, dass die Mittelwerte alle <span class="math inline">\(0\)</span> sind und wir somit diese ignorieren können):
 <span class="math display">\[\begin{pmatrix}E_1\\E_2\\E_3\\N_1\\N_2\\N_3 \end{pmatrix} = \begin{pmatrix}
 \lambda_{11} &amp; \lambda_{12}\\
@@ -1030,7 +1107,9 @@ Dies können wir in <code>R</code> leicht empirisch überprüfen. Einen Überbli
 <div id="AppendixD" class="section level2">
 <h2>Appendix D</h2>
 <details>
-<p><summary> <strong>Berechnen von Eigenwerten und Kommunalitäten mit Hilfe von <span class="math inline">\(\Lambda\)</span> und <span class="math inline">\(\Phi\)</span></strong> </summary></p>
+<summary>
+<strong>Berechnen von Eigenwerten und Kommunalitäten mit Hilfe von <span class="math inline">\(\Lambda\)</span> und <span class="math inline">\(\Phi\)</span></strong>
+</summary>
 <p>Im vorigen Abschnitt hatten wir bemerkt, wie leicht die Strukturmatrix aus der Faktorladungsmatrix <span class="math inline">\(\Lambda\)</span> hervorgeht, indem einfach nur die Beziehung der latenten Variablen untereinander berücksichtigt wird. Es ist folglich nur logisch, dass bei der Bestimmung der Eigenwerte und der Kommunalitäten diese Beziehung ebenfalls eine Rolle spielt. Im Rahmen der <a href="/post/PCA">PCA</a> hatten wir uns bereits die Beziehungen dieser Größen untereinander angesehen. Dort war es so, dass die Diagonalelemente von <span class="math inline">\(\Lambda\Lambda&#39;\)</span> gerade die Kommunalitäten waren und die Diagonalelemente von <span class="math inline">\(\Lambda&#39;\Lambda\)</span> gerade die Eigenwerte der rotierten Lösung. Es kam also lediglich darauf an, in welcher Reihenfolge <span class="math inline">\(\Lambda\)</span> und transponiertes <span class="math inline">\(\Lambda\)</span> miteinander verrechnet werden! Für oblique rotierte EFAs müssen wir nun noch die Korrelation der Faktoren untereinander berücksichtigen. Die implizierte Korrelationsmatrix war einfach
 <span class="math display">\[\Lambda\Phi\Lambda&#39; + \Theta,\]</span>
 wobei die Elemente von <span class="math inline">\(\Theta\)</span> im Grunde nur dafür sorgen, dass die Hauptdiagonale wieder bei 1 landet. Lassen wir <span class="math inline">\(\Theta\)</span> weg, erhalten wir die Korrelationsmatrix mit den Kommunalitäten auf der Hauptdiagonale. Damit ist klar, dass
@@ -1067,8 +1146,10 @@ Wer genau aufpasst, fragt sich jetzt vielleicht, wieso <span class="math inline"
 <div id="AppendixE" class="section level2">
 <h2>Appendix E</h2>
 <details>
-<p><summary> <strong>Prüfen der Voraussetzungen mit der Mahalanobisdistanz und Mardia’s Test</strong> </summary>
-Auf multivariate Normalverteilung können wir beispeilsweise <strong>deskriptiv</strong> prüfen, indem wir die Mahalanobisdistanz (die Distanz vom gemeinsame Zentroiden; dem Mittelwert über alle Variablen; unter Berücksichtigung der Kovariation im Datensatz) plotten und sie mit einer <span class="math inline">\(\chi^2\)</span>-Verteilung vergleichen; wobei <span class="math inline">\(df=p\)</span> und <span class="math inline">\(p=\)</span> Anzahl an Variablen (hier <span class="math inline">\(df=p=15\)</span>).</p>
+<summary>
+<strong>Prüfen der Voraussetzungen mit der Mahalanobisdistanz und Mardia’s Test</strong>
+</summary>
+<p>Auf multivariate Normalverteilung können wir beispeilsweise <strong>deskriptiv</strong> prüfen, indem wir die Mahalanobisdistanz (die Distanz vom gemeinsame Zentroiden; dem Mittelwert über alle Variablen; unter Berücksichtigung der Kovariation im Datensatz) plotten und sie mit einer <span class="math inline">\(\chi^2\)</span>-Verteilung vergleichen; wobei <span class="math inline">\(df=p\)</span> und <span class="math inline">\(p=\)</span> Anzahl an Variablen (hier <span class="math inline">\(df=p=15\)</span>).</p>
 <pre class="r"><code>Mahalanobis_Distanz &lt;- mahalanobis(x = dataFR, cov = cov(dataFR), center = colMeans(dataFR)) # Berechnen der Mahalanobisdistanz
 hist(Mahalanobis_Distanz, col = &quot;skyblue&quot;, border = &quot;blue&quot;, freq = F, breaks = 15) # Histogramm
 lines(x = seq(0, max(Mahalanobis_Distanz), 0.01), y = dchisq(x = seq(0, max(Mahalanobis_Distanz), 0.01), df = 15), col = &quot;darkblue&quot;, lwd = 4) # Einzeichnen der Dichte</code></pre>
@@ -1093,22 +1174,22 @@ mvn(data = dataFR, mvnTest = &quot;mardia&quot;)</code></pre>
 ## 3             MVN             &lt;NA&gt;                 &lt;NA&gt;     NO
 ## 
 ## $univariateNormality
-##            Test  Variable Statistic   p value Normality
-## 1  Shapiro-Wilk    E1        0.8846  &lt;0.001      NO    
-## 2  Shapiro-Wilk    E2        0.9099  &lt;0.001      NO    
-## 3  Shapiro-Wilk    E3        0.9062  &lt;0.001      NO    
-## 4  Shapiro-Wilk    N1        0.8844  &lt;0.001      NO    
-## 5  Shapiro-Wilk    N2        0.9109  &lt;0.001      NO    
-## 6  Shapiro-Wilk    N3        0.8291  &lt;0.001      NO    
-## 7  Shapiro-Wilk    A1        0.8772  &lt;0.001      NO    
-## 8  Shapiro-Wilk    A2        0.8785  &lt;0.001      NO    
-## 9  Shapiro-Wilk    A3        0.8083  &lt;0.001      NO    
-## 10 Shapiro-Wilk    C1        0.9097  &lt;0.001      NO    
-## 11 Shapiro-Wilk    C2        0.9067  &lt;0.001      NO    
-## 12 Shapiro-Wilk    C3        0.8288  &lt;0.001      NO    
-## 13 Shapiro-Wilk    O1        0.8395  &lt;0.001      NO    
-## 14 Shapiro-Wilk    O2        0.8386  &lt;0.001      NO    
-## 15 Shapiro-Wilk    O3        0.7745  &lt;0.001      NO    
+##                Test  Variable Statistic   p value Normality
+## 1  Anderson-Darling    E1        4.9942  &lt;0.001      NO    
+## 2  Anderson-Darling    E2        4.0628  &lt;0.001      NO    
+## 3  Anderson-Darling    E3        4.0445  &lt;0.001      NO    
+## 4  Anderson-Darling    N1        5.1846  &lt;0.001      NO    
+## 5  Anderson-Darling    N2        4.5090  &lt;0.001      NO    
+## 6  Anderson-Darling    N3        8.7268  &lt;0.001      NO    
+## 7  Anderson-Darling    A1        5.2696  &lt;0.001      NO    
+## 8  Anderson-Darling    A2        5.8351  &lt;0.001      NO    
+## 9  Anderson-Darling    A3        9.9801  &lt;0.001      NO    
+## 10 Anderson-Darling    C1        4.7848  &lt;0.001      NO    
+## 11 Anderson-Darling    C2        4.0206  &lt;0.001      NO    
+## 12 Anderson-Darling    C3        8.3567  &lt;0.001      NO    
+## 13 Anderson-Darling    O1        7.4239  &lt;0.001      NO    
+## 14 Anderson-Darling    O2        7.7934  &lt;0.001      NO    
+## 15 Anderson-Darling    O3       11.2213  &lt;0.001      NO    
 ## 
 ## $Descriptives
 ##      n     Mean   Std.Dev Median Min Max 25th 75th        Skew    Kurtosis
