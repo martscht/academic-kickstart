@@ -12,14 +12,13 @@ load(url('https://pandar.netlify.com/post/fairplayer.rda'))
 names(fairplayer)
 
 # Anzahl der Zeilen und Spalten
-nrow(fairplayer)
-ncol(fairplayer)
+dim(fairplayer)
 
 # Struktur des Datensatz - Informationen zur Variablentypen
 str(fairplayer)
 
-# Datensatz ansehen
-fairplayer
+# Die ersten Zeilen des Datensatzes ansehen
+head(fairplayer)
 
 # Skalenwerte erstellen
 fairplayer$rat1 <- rowMeans(fairplayer[, c('ra1t1', 'ra2t1', 'ra3t1')],
@@ -34,9 +33,6 @@ summary(fairplayer$rat1)
 
 # Deskriptivstatistik nominalskalierte Variable
 summary(fairplayer$grp)
-
-# Standardabweichung bestimmen
-sd(fairplayer$rat1, na.rm = TRUE)
 
 # Kovarianzen und Korrelationen
 cov(fairplayer$rat1, fairplayer$sit1, use = 'complete')
@@ -108,9 +104,3 @@ summary(fit)
 
 # R-Quadrat extrahieren
 inspect(fit, 'rsquare')
-
-# Anzahl der Beobachtungen
-inspect(fit, 'nobs')
-
-# Anzahl der Parameter
-inspect(fit, 'npar')
