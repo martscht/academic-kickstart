@@ -7,7 +7,7 @@ categories:
 tags: []
 subtitle: ''
 summary: ''
-authors: [mehler]
+authors: [mehler, rouchi]
 lastmod: '2020-05-05T18:18:00+02:00'
 featured: no
 image:
@@ -20,26 +20,38 @@ header:
   caption: "[Courtesy of pxhere](https://pxhere.com/de/photo/1190564)"
 ---
 
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <div id="vorwarnung" class="section level2">
 <h2>Vorwarnung</h2>
 <p>Achtung! Im Folgenden werden die Lösungen für das fünfte Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die <a href="/post/tipps5">Tipps</a>. Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, einen Schritt weiterzukommen und beim nächsten Abschnitt weiterzumachen.</p>
 </div>
-<div id="lösungsfunktion" class="section level2">
-<h2>Lösungsfunktion</h2>
-<p>Im Folgenden erhältst du eine Erklärung für den Aufbau einer möglichen Lösungsfunktion. Dabei haben wir uns in unserer Lösung allein auf eine einfache Lösungsstrategie beschränkt. Und zwar soll diese Lösungsfunktion immer dann eine bestimmte Zahl in ein freies Feld setzen, wenn alle anderen Zahlen für dieses Feld nicht mehr in Frage kommen. Ein Beispiel dafür ist hier abgebildet: <img src="/post/2020-05-05-tipps5_files/Lösungsstrategie1.png" style="width:50.0%" /></p>
+<div id="lösung-zu-aufgabe-1-lösungsfunktion" class="section level2">
+<h2>Lösung zu Aufgabe 1: Lösungsfunktion</h2>
+<p>Im Folgenden erhältst du eine Erklärung für den Aufbau einer möglichen Lösungsfunktion. Dabei haben wir uns in unserer Lösung allein auf eine einfache Lösungsstrategie beschränkt. Und zwar soll diese Lösungsfunktion immer dann eine bestimmte Zahl in ein freies Feld setzen, wenn alle anderen Zahlen für dieses Feld nicht mehr in Frage kommen. Ein Beispiel dafür ist hier abgebildet:
+<img src="/post/2020-05-05-tipps5_files/Lösungsstrategie1.png" style="width:50.0%" /></p>
 <p>Da alle Zahlen bis auf die 3 für das Feld in Zeile 9 und Spalte 2 ausgeschlossen werden können, muss dort die 3 eingesetzt werden.</p>
-<p>Hier kannst du dir anschauen, wie du mit der Lösung umgehen solltest: <details><summary>Vorbereitungen</summary></p>
-<p>Bevor wir mit irgendwas anfangen, legen wir erst einmal unseren Grundstein fest - das Sudoku. Das Sudoku ist eine Matrix mit 9 Zeilen und 9 Spalten. Eine solche Matrix erstellt man folgendermaßen in R:</p>
+<p>Hier kannst du dir anschauen, wie du mit der Lösung umgehen solltest:</p>
+<details>
+<summary>
+Vorbereitungen
+</summary>
+<p>Bevor wir anfangen, legen wir erst einmal unseren Grundstein fest - das Sudoku. Das Sudoku ist eine Matrix mit 9 Zeilen und 9 Spalten. Eine solche Matrix erstellt man folgendermaßen in <code>R</code>:</p>
 <pre class="r"><code>Sudoku &lt;- matrix(nrow = 9, ncol = 9)</code></pre>
-<p>Das solltest du dir für später im Kopf behalten. Fürs Erste solltest du dir eines der Beispielsudokus <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/BeispielSudokuLeicht.rda">hier</a> oder <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/BeispielSudokuSchwer.rda">hier</a> herunterladen, damit du dir die folgenden Befehle auch selbst einmal anschauen kannst. Dabei ist es ratsam die Variablen (f und g) zuvor manuell zu definieren.</p>
-<p>Wenn du dir dann alle Schritte anschaust, gleiche dabei immer die Ausgabe der Operationen mit dem Sudoku ab, um zu verstehen, was eine bestimmte Funktion genau macht. </details></p>
-<p>Wir werden die Lösungsfunktion nun äquivalent zu der Reihenfolge in den Tipps nach und nach aufbauen. <details><summary>Abschnitt 1 anzeigen</summary></p>
+<p>Das solltest du dir für später im Kopf behalten. Fürs Erste solltest du dir eines der Beispielsudokus <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/BeispielSudokuLeicht.rda">hier</a> oder <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/BeispielSudokuSchwer.rda">hier</a> herunterladen, damit du dir die folgenden Befehle auch selbst einmal anschauen kannst. Dabei ist es ratsam die Variablen (<code>f</code> und <code>g</code>) zuvor manuell zu definieren.</p>
+<p>Wenn du dir dann alle Schritte anschaust, gleiche dabei immer die Ausgabe der Operationen mit dem Sudoku ab, um zu verstehen, was eine bestimmte Funktion genau macht.</p>
+</details>
+<p>Wir werden die Lösungsfunktion nun äquivalent zu der Reihenfolge in den Tipps nach und nach aufbauen.</p>
+<details>
+<summary>
+Überprüfen, welche Zahlen bereits vorhanden sind
+</summary>
 <p>Zuerst geht es darum, wie du überprüfen kannst, welche Zahlen in einer gewissen Zeilen-Spalten-Kombination bereits vorhanden sind. Diese rufst du folgendermaßen ab:</p>
 <pre class="r"><code>Sudoku[f, ] -&gt; Zeile_f
 Sudoku[, g] -&gt; Spalte_g</code></pre>
-<p>Die kompliziertere Frage ist: Wie rufe ich die Zahlen eines bestimmten 3x3-Quadrates ab? Die perfekte Antwort darauf haben wir vielleicht nicht gefunden, aber hier siehst du eine Möglichkeit:</p>
+<p>Die kompliziertere Frage ist: Wie rufe ich die Zahlen eines bestimmten 3x3-Quadrates ab?
+Die perfekte Antwort darauf haben wir vielleicht nicht gefunden, aber hier siehst du eine Möglichkeit:</p>
 <p>Zuerst definieren wir die einzelnen 3x3-Quadrate.</p>
 <pre class="r"><code>Qua1 &lt;- Sudoku[1:3, 1:3]
 Qua2 &lt;- Sudoku[1:3, 4:6]
@@ -60,15 +72,18 @@ if (is.element(f, 4:6) &amp; is.element(g, 7:9)) {z &lt;- Qua6}
 if (is.element(f, 7:9) &amp; is.element(g, 1:3)) {z &lt;- Qua7}
 if (is.element(f, 7:9) &amp; is.element(g, 4:6)) {z &lt;- Qua8}
 if (is.element(f, 7:9) &amp; is.element(g, 7:9)) {z &lt;- Qua9}</code></pre>
-<p>Auch das haben wir hier nicht sehr filigran gelöst, aber es funktioniert. Gehen wir davon aus, dass f die Zeilenangabe und g die Spaltenangabe ist und spielen das für das 3x3-Quadrat oben links durch: Wenn f einen Wert zwischen 1 und 3 annimmt (also Zeile 1-3) UND g auch einen Wert zwischen 1 und 3 (also Spalte 1-3), dann liegt das Feld im 3x3-Quadrat oben links (Qua1). Um mit diesem Quadrat weiter arbeiten zu können, speichern wir es in der Variable z ab. Dadurch können wir mithilfe der Variable z auf das zu jedem Zeitpunkt richtig ausgewählte Quadrat zugreifen.</p>
-<p>Wählen wir nun aus dem Sudoku das Feld in Zeile f und Spalte g aus, so können wir eine zusammenfassende Aussage über das Vorkommen von Zahlen treffen, indem wir die Informationen aus Zeile f, Spalte g und 3x3-Quadrat z folgendermaßen zusammenfassen:</p>
+<p>Auch das haben wir hier nicht sehr filigran gelöst, aber es funktioniert. Gehen wir davon aus, dass <code>f</code> die Zeilenangabe und <code>g</code> die Spaltenangabe ist und spielen das für das 3x3-Quadrat oben links durch: Wenn <code>f</code> einen Wert zwischen 1 und 3 annimmt (also Zeile 1-3) UND <code>g</code> auch einen Wert zwischen 1 und 3 (also Spalte 1-3), dann liegt das Feld im 3x3-Quadrat oben links (<code>Qua1</code>). Um mit diesem Quadrat weiterarbeiten zu können, speichern wir es in der Variable <code>z</code> ab. Dadurch können wir mithilfe der Variable <code>z</code> auf das zu jedem Zeitpunkt richtig ausgewählte Quadrat zugreifen.</p>
+<p>Wählen wir nun aus dem Sudoku das Feld in Zeile <code>f</code> und Spalte <code>g</code> aus, so können wir eine zusammenfassende Aussage über das Vorkommen von Zahlen treffen, indem wir die Informationen aus Zeile <code>f</code>, Spalte <code>g</code> und 3x3-Quadrat <code>z</code> folgendermaßen zusammenfassen:</p>
 <pre class="r"><code>c(Zeile_f, Zeile_g, as.vector(z)) -&gt; vorkommendeZahlen</code></pre>
-<p></details></p>
-<p><details><summary>Abschnitt 2 anzeigen</summary></p>
-<p>Zu diesem Zeitpunkt können wir für jedes beliebige Feld überprüfen, welche Zahlen sich in der jeweiligen Zeile, der Spalte und im dazugehörigen 3x3-Quadrat befinden. In ein Feld wollen wir dann eine Zahl einsetzen, wenn alle anderen 8 Zahlen durch <code>vorkommendeZahlen</code> ausgeschlossen werden. In anderen Worten: Wenn die Länge eines Vektors aller möglichen Zahlen minus <code>vorkommendeZahlen</code> eins ergibt, dann soll diese eine übrig gebliebene Zahl in das betrachtete Feld eingesetzt werden. Das sieht in R so aus:</p>
+</details>
+<details>
+<summary>
+Zahl in ein Feld einsetzen
+</summary>
+<p>Zu diesem Zeitpunkt können wir für jedes beliebige Feld überprüfen, welche Zahlen sich in der jeweiligen Zeile, der Spalte und im dazugehörigen 3x3-Quadrat befinden. In ein Feld wollen wir dann eine Zahl einsetzen, wenn alle anderen 8 Zahlen durch <code>vorkommendeZahlen</code> ausgeschlossen werden. In anderen Worten: Wenn die Länge eines Vektors aller möglichen Zahlen minus <code>vorkommendeZahlen</code> eins ergibt, dann soll diese eine übrig gebliebene Zahl in das betrachtete Feld eingesetzt werden. Das sieht in <code>R</code> so aus:</p>
 <pre class="r"><code>fehlendeZahlen &lt;- subset(1:9, !is.element(1:9, vorkommendeZahlen))</code></pre>
 <p>Damit haben wir jetzt erreicht, dass im Objekt <code>fehlendeZahlen</code> alle Zahlen zwischen 1 und 9 abgespeichert sind, die kein Element der vorkommenden Zahlen (<code>vorkommendeZahlen</code>) sind.</p>
-<p>Wenn in diesem Objekt (<code>fehlendeZahlen</code>) nur eine Zahl vorhanden ist, die Länge des Objekts/Vektors also eins beträgt, dann soll die enthaltene Zahl an der Stelle [f, g] im Sudoku eingesetzt werden:</p>
+<p>Wenn in diesem Objekt (<code>fehlendeZahlen</code>) nur eine Zahl vorhanden ist, die Länge des Objekts/Vektors also 1 beträgt, soll die enthaltene Zahl an der Stelle [<code>f</code>, <code>g</code>] im Sudoku eingesetzt werden:</p>
 <pre class="r"><code>if(length(fehlendeZahlen) == 1) {
   Sudoku[f, g] &lt;- fehlendeZahlen
 }</code></pre>
@@ -104,9 +119,9 @@ if (is.element(f, 7:9) &amp; is.element(g, 7:9)) {z &lt;- Qua9}</code></pre>
     }
   }
 }</code></pre>
-<p>Diese Funktion geht jetzt von oben links nach unten rechts alle Felder des Sudokus durch, überprüft die jeweils fehlenden Zahlen und setzt wenn möglich Zahlen ein.</p>
-<p>Aus diesem Grund wird auch der ‘Inhalt’ der einzelnen Quadrate in jedem Durchgang aktualisiert: Wenn eine Zahl eingesetzt wurde, dann ändert sich der Inhalt eines Quadrats. Natürlich sind neun Zeilen Code dafür etwas umständlich, aber auf jeden Fall macht man damit nichts falsch. Fällt dir dafür eine Verbesserung ein?</p>
-<p>Das Problem der Funktion liegt darin, dass sie alle Felder nur ein Mal durchgeht. Derart einfach und schnell lässt sich jedoch so gut wie kein Sudoku lösen. Deshalb müssen wir den gesamten Vorgang mehrfach wiederholen. Das machen wir mit einer <code>repeat</code>-Funktion. Diese Funktion beenden wir mit einem <code>break</code>-Befehl, der die Funktion dann stoppen soll, wenn das Sudoku komplett ausgefüllt wurde. Mit anderen Worten: Wenn das Sudoku-Gitter vollständig mit 81 Zahlen befüllt wurde.</p>
+<p>Diese Funktion geht jetzt von oben links nach unten rechts alle Felder des Sudokus durch, überprüft die jeweils fehlenden Zahlen und setzt, wenn möglich, Zahlen ein.</p>
+<p>Aus diesem Grund wird auch der “Inhalt” der einzelnen Quadrate in jedem Durchgang aktualisiert: Wenn eine Zahl eingesetzt wurde, ändert sich der Inhalt eines Quadrats. Natürlich sind neun Zeilen Code dafür etwas umständlich, aber auf jeden Fall macht man damit nichts falsch. Fällt dir dafür eine Verbesserung ein?</p>
+<p>Das Problem der Funktion liegt darin, dass sie alle Felder nur einmal durchgeht. Derart einfach und schnell lässt sich jedoch so gut wie kein Sudoku lösen. Deshalb müssen wir den gesamten Vorgang mehrfach wiederholen. Das machen wir mit einer <code>repeat</code>-Funktion. Diese Funktion beenden wir mit einem <code>break</code>-Befehl, der die Funktion dann stoppen soll, wenn das Sudoku-Gitter vollständig mit 81 Zahlen befüllt wurde.</p>
 <pre class="r"><code>repeat {
   for (f in 1:9) {
     for (g in 1:9) {
@@ -177,7 +192,7 @@ if (is.element(f, 7:9) &amp; is.element(g, 7:9)) {z &lt;- Qua9}</code></pre>
   }
   if(length(subset(as.vector(Sudoku), is.element(Sudoku, 1:9))) == 81) break
 }</code></pre>
-<p>Unter bestimmten Umständen kann es sein, dass unsere Funktion ein Sudoku nicht lösen kann. Das könnte entweder daran liegen, dass das Sudoku nicht lösbar ist oder aber daran, dass wir nur eine von vielen Lösungsstrategien impliziert haben. Um dadurch nicht auf Probleme zu stoßen, falls die Funktion mal ein solches Sudoku lösen soll und deshalb nicht zum Ende kommt, werden wir eine weitere <code>break</code>-Bedingung implizieren. Die Überlegung dahinter ist folgende: Gehen wir davon aus, dass ein Sudoku elf vorgegebene Zahlen beinhaltet (Das ist sehr unwahrscheinlich und wäre ein sehr schweres Sudoku.) - und gehen wir zusätzlich davon aus, dass dieses mit unserer Funktion lösbar wäre. In diesem Fall würde unsere Funktion jedes Mal, wenn sie alle Felder durchgeht, mindest eine neue Zahl einsetzen, denn sonst würde sie sich aufhängen. Das heißt, dass die Funktion für das Fertigstellen des Sudokus höchsten 81 - 11 = 70 Runden brauchen würde.</p>
+<p>Unter bestimmten Umständen kann es sein, dass unsere Funktion ein Sudoku nicht lösen kann. Das könnte entweder daran liegen, dass das Sudoku nicht lösbar ist oder aber daran, dass wir nur eine von vielen Lösungsstrategien impliziert haben. Um dadurch nicht auf Probleme zu stoßen, falls die Funktion mal ein solches Sudoku lösen soll und deshalb nicht zum Ende kommt, werden wir eine weitere <code>break</code>-Bedingung definieren. Die Überlegung dahinter ist die Folgende: Gehen wir davon aus, dass ein Sudoku 11 vorgegebene Zahlen beinhaltet (Das ist sehr unwahrscheinlich und wäre ein sehr schweres Sudoku.) und gehen wir zusätzlich davon aus, dass dieses mit unserer Funktion lösbar wäre. In diesem Fall würde unsere Funktion jedes Mal, wenn sie alle Felder durchgeht, mindest eine neue Zahl einsetzen, denn sonst würde sie sich aufhängen. Das heißt, dass die Funktion für das Fertigstellen des Sudokus höchsten 81 - 11 = 70 Runden brauchen würde.</p>
 <p>Aus diesem Grund werden wir im Folgenden die Lösungsfunktion zur Sicherheit nach höchstens 70 Durchgängen abbrechen. Um das nachvollziehbar machen zu können, lassen wir außerdem eine Nachricht ausgeben, sofern das Sudoku nicht lösbar ist.</p>
 <pre class="r"><code>Durchgaenge &lt;- 0
 repeat {
@@ -220,15 +235,19 @@ repeat {
   }
   if(length(subset(as.vector(Sudoku), is.element(Sudoku, 1:9))) == 81) break
 }</code></pre>
-<p>Damit sind wir am Ende angekommen. Die Lösungsfunktion funktioniert und du kannst sie anhand der Beispielsudokus <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/BeispielSudokuLeicht.rda">A</a> und <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/BeispielSudokuSchwer.rda">B</a> ausprobieren. </details></p>
+Damit sind wir am Ende angekommen. Die Lösungsfunktion funktioniert und du kannst sie anhand der Beispielsudokus <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/BeispielSudokuLeicht.rda">A</a> und <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/BeispielSudokuSchwer.rda">B</a> ausprobieren.
+</details>
 </div>
-<div id="ausgefülltes-9x9-gitter-erstellen" class="section level2">
-<h2>Ausgefülltes 9x9-Gitter erstellen</h2>
+<div id="lösung-zu-aufgabe-2-ausgefülltes-9x9-gitter-erstellen" class="section level2">
+<h2>Lösung zu Aufgabe 2: Ausgefülltes 9x9-Gitter erstellen</h2>
 <p>Der nächste Schritt zum eigenen Sudoku ist es, ein 9x9-Gitter nach den geltenden Regeln vollständig mit Zahlen zu befüllen. Eine schrittweise Erklärung zur Erstellung einer solchen Funktion gibt es im Folgenden.</p>
-<p><details><summary>Abschnitt anzeigen</summary></p>
-<p>Mit dem <code>matrix( )</code> Befehl erstellen wir unser Sudoku-Gitter mit neun Zeilen (<code>nrow</code>) und neun Spalten (<code>ncol</code>):</p>
+<details>
+<summary>
+Abschnitt anzeigen
+</summary>
+<p>Mit dem <code>matrix( )</code> Befehl erstellen wir unser Sudoku-Gitter mit 9 Zeilen (<code>nrow</code>) und 9 Spalten (<code>ncol</code>):</p>
 <pre class="r"><code>Sudoku &lt;- matrix(nrow = 9, ncol = 9)</code></pre>
-<p>Um die neun Boxen zu erstellen weisen wir jeweils die richtigen Zeilen und Spalten einer neuen Variablen zu.</p>
+<p>Um die neun Boxen zu erstellen, weisen wir jeweils die richtigen Zeilen und Spalten einer neuen Variablen zu.</p>
 <pre class="r"><code>Qua1 &lt;- Sudoku[1:3, 1:3]
 Qua2 &lt;- Sudoku[1:3, 4:6]
 Qua3 &lt;- Sudoku[1:3, 7:9]
@@ -238,7 +257,7 @@ Qua6 &lt;- Sudoku[4:6, 7:9]
 Qua7 &lt;- Sudoku[7:9, 1:3]
 Qua8 &lt;- Sudoku[7:9, 4:6]
 Qua9 &lt;- Sudoku[7:9, 7:9]</code></pre>
-<p>Bei uns steht f für die Zeile und g für die Spalte. Deshalb geht die Funktion hier von links nach rechts und von oben nach unten jedes Feld ab, bis sie unten rechts angekommen ist.</p>
+<p>Bei uns steht <code>f</code> für die Zeile und <code>g</code> für die Spalte. Deshalb geht die Funktion hier von links nach rechts und von oben nach unten jedes Feld ab, bis sie unten rechts angekommen ist.</p>
 <pre class="r"><code>for (f in 1:9){
   for (g in 1:9){
   }
@@ -246,7 +265,7 @@ Qua9 &lt;- Sudoku[7:9, 7:9]</code></pre>
 <p>Für unsere Zufallszahl brauchen wir zwei verschiedene Variablen. Eine davon definiert, aus welchen Zahlen wir eine Zufallsziehung vornehmen (<code>b</code>) und in der anderen (<code>a</code>) wird die eigentliche Zufallszahl gespeichert.</p>
 <pre class="r"><code>b &lt;- 1:9
 a &lt;- sample(b, 1)</code></pre>
-<p>Um herauszufinden, ob die Zahl in dem 3x3-Quadrat bereits vorhanden ist, müssen wir zunächst wissen in welchem 3x3-Quadrat das betrachtete Feld liegt. Dafür müssen wir verknüpfte <code>if</code> Bedingungen benutzten. Für jede 3x3-Box testen wir, ob das betrachtete Feld darin liegt. Wenn es das tut, dann speichern wir diese Information im Objekt <code>z</code>.</p>
+<p>Um herauszufinden, ob die Zahl in dem 3x3-Quadrat bereits vorhanden ist, müssen wir zunächst wissen in welchem 3x3-Quadrat das betrachtete Feld liegt. Dafür müssen wir verknüpfte <code>if</code>-Bedingungen benutzten. Für jede 3x3-Box testen wir, ob das betrachtete Feld darin liegt. Wenn es das tut, dann speichern wir diese Information im Objekt <code>z</code>.</p>
 <pre class="r"><code>if (is.element(f, 1:3) &amp; is.element(g, 1:3)) {z &lt;- Qua1}
 if (is.element(f, 1:3) &amp; is.element(g, 4:6)) {z &lt;- Qua2}
 if (is.element(f, 1:3) &amp; is.element(g, 7:9)) {z &lt;- Qua3}
@@ -256,7 +275,7 @@ if (is.element(f, 4:6) &amp; is.element(g, 7:9)) {z &lt;- Qua6}
 if (is.element(f, 7:9) &amp; is.element(g, 1:3)) {z &lt;- Qua7}
 if (is.element(f, 7:9) &amp; is.element(g, 4:6)) {z &lt;- Qua8}
 if (is.element(f, 7:9) &amp; is.element(g, 7:9)) {z &lt;- Qua9}</code></pre>
-<p>Nun müssen wir überprüfen, ob die Zahl in der Zeile <code>f</code>, in der Spalte <code>g</code> oder im 3x3-Quadrat <code>z</code> bereits vorhanden ist. Diese drei Bedingungen können wir mit <code>is.element</code> erstellen und durch logische Und’s (<code>&amp;</code>) verknüpfen. Das <code>!</code> davor kehrt die Bedeutung um. Daher fragen wir hier, ob diese Zahl <em>kein</em> Element der Zeile, der Spalte und der Box ist. Wenn dies der Fall ist, weisen wir die Zufallszahl dem betrachteten Feld zu.</p>
+<p>Nun müssen wir überprüfen, ob die Zahl in der Zeile <code>f</code>, in der Spalte <code>g</code> oder im 3x3-Quadrat <code>z</code> bereits vorhanden ist. Diese drei Bedingungen können wir mit <code>is.element</code> erstellen und durch logische <em>und</em>s (<code>&amp;</code>) verknüpfen. Das <code>!</code> davor kehrt die Bedeutung um. Daher fragen wir hier, ob diese Zahl <em>kein</em> Element der Zeile, der Spalte und der Box ist. Wenn dies der Fall ist, weisen wir die Zufallszahl dem betrachteten Feld zu.</p>
 <pre class="r"><code>if(!is.element(a, Sudoku[, g]) &amp; !is.element(a, Sudoku[f, ]) &amp; !is.element(a, z)) {
   a -&gt; Sudoku[f, g]
 }</code></pre>
@@ -395,19 +414,26 @@ if(!is.element(a, Sudoku[, g]) &amp; !is.element(a, Sudoku[f, ]) &amp; !is.eleme
 ##  [7,]    2    7    6    3    4    8    5    9    1
 ##  [8,]    8    5    9    2    1    6    7    3    4
 ##  [9,]    4    3    1    7    5    9    6    8    2</code></pre>
-<p></details></p>
+</details>
 </div>
-<div id="letzte-schritte-zum-eigenen-sudoku" class="section level2">
-<h2>Letzte Schritte zum eigenen Sudoku</h2>
-<p>In diesem Teil der Lösung werden wir dir erklären, wie wir anhand unserer Lösungsfunktion und einem vollständig gefüllten Sudoku-Gitter ein eigenes lösbares Sudoku erstellen.</p>
-<p><details><summary>Vorbereitungen</summary></p>
-<p>Bevor du mit diesem Abschnitt anfängst und ihn selbst durchführst, solltest du mithilfe der Funktion in Teilaufgabe 2 ein vollständig gefülltes Sudoku erstellt haben und in zwei Objekten, beispielsweise <code>Sudoku</code> und <code>Gitter</code> hinterlegt haben. Das eine Objekt (z.B. <code>Sudoku</code>) wird im folgenden zur Bearbeitung genutzt, während das zweite Objekt (z.B. <code>Gitter</code>) als Reset fungiert, um zum Ausgangszustand zurückgelangen zu können. </details></p>
+<div id="lösung-zu-aufgabe-3-letzte-schritte-zum-eigenen-sudoku" class="section level2">
+<h2>Lösung zu Aufgabe 3: Letzte Schritte zum eigenen Sudoku</h2>
+<p>In diesem Teil der Lösung werden wir erklären, wie wir anhand unserer Lösungsfunktion und einem vollständig gefüllten Sudoku-Gitter ein eigenes lösbares Sudoku erstellen.</p>
+<details>
+<summary>
+Vorbereitungen
+</summary>
+<p>Bevor du mit diesem Abschnitt anfängst und ihn selbst durchführst, solltest du mithilfe der Funktion in Teilaufgabe 2 ein vollständig gefülltes Sudoku erstellt haben und in zwei Objekten, beispielsweise <code>Sudoku</code> und <code>Gitter</code> hinterlegt haben. Das eine Objekt (z.B. <code>Sudoku</code>) wird im folgenden zur Bearbeitung genutzt, während das zweite Objekt (z.B. <code>Gitter</code>) als Reset fungiert, um zum Ausgangszustand zurückgelangen zu können.</p>
+</details>
 <p>Die dafür zuständige Funktion werden wir nun äquivalent zu der Reihenfolge in den Tipps nach und nach aufbauen.</p>
-<p><details><summary>Abschnitt 1 anzeigen</summary></p>
+<details>
+<summary>
+Zahlen aus dem Sudoku entfernen
+</summary>
 <p>Der Ausgangspunkt ist ein vollständig gefülltes Gitter. Um daraus ein lösbares Sudoku zu erstellen, müssen wir Zahlen entfernen; und damit fangen wir an.</p>
-<p>Zum Löschen können wir folgenden Befehl verwenden, der in ein Feld [f, g] im Sudoku ein <code>NA</code> einfügt:</p>
+<p>Zum Löschen können wir folgenden Befehl verwenden, der in ein Feld [<code>f</code>, <code>g</code>] im Sudoku ein <code>NA</code> einfügt:</p>
 <pre class="r"><code>Sudoku[f, g] &lt;- NA</code></pre>
-<p>Die Frage ist, welche Zahlen wir überhaupt löschen wollen. Im Vorhinein spezifische Felder auszuwählen wäre sehr aufwendig und könnte auch in einem unlösbaren Sudoku enden. Die Feld-Koordinate aus Zeile und Spalte sollte also zufällig gewählt sein. Dadurch wird die Funktion auch in der Lage sein, völlig verschiedene Sudokus aus dem selben vollständig gefüllten Sudoku-Gitter zu erstellen.</p>
+<p>Die Frage ist, welche Zahlen wir überhaupt löschen wollen. Im Vorhinein spezifische Felder auszuwählen, wäre sehr aufwendig und könnte in einem unlösbaren Sudoku enden. Die Feld-Koordinate aus Zeile und Spalte sollte also zufällig gewählt sein. Dadurch wird die Funktion auch in der Lage sein, völlig verschiedene Sudokus aus dem selben vollständig gefüllten Sudoku-Gitter zu erstellen.</p>
 <pre class="r"><code>f &lt;- sample(1:9, 1)
 g &lt;- sample(1:9, 1)</code></pre>
 <p>Im letzten Schritt wollen wir bestimmen, wann die Funktion aufhören soll, Zahlen aus dem Sudoku zu löschen. Es könnte problematisch sein, die Anzahl der Wiederholungen der Funktion einfach zu begrenzen, da zufällig mehrfach das selbe Feld ausgewählt werden könnte (Das ist bei 50 zu löschenden Zahlen sogar sehr wahrscheinlich!). Aus diesem Grund wollen wir hier mit der Anzahl der Zahlen arbeiten, die jeweils nach dem Löschen im Sudoku übrig geblieben sind. Das Ziel sollte also sein, die Funktion dann zu beenden, wenn nur noch <code>XX</code> Zahlen im Gitter übrig sind.</p>
@@ -419,8 +445,12 @@ g &lt;- sample(1:9, 1)</code></pre>
   Sudoku[f, g] &lt;- NA
   if(length(subset(as.vector(Sudoku), is.element(Sudoku, 1:9))) == XX) break
 }</code></pre>
-<p>Es entsteht ein Sudoku mit XX vorgegebenen Zahlen. Speichere auch dieses an diesem Punkt in einem weiteren neuen Objekt ab, damit wir mit dem <code>Sudoku</code>-Objekt weiterarbeiten können. </details></p>
-<p><details><summary>Abschnitt 2 anzeigen</summary></p>
+<p>Es entsteht ein Sudoku mit <code>XX</code> vorgegebenen Zahlen. Speichere auch dieses an diesem Punkt in einem weiteren neuen Objekt ab, damit wir mit dem <code>Sudoku</code>-Objekt weiterarbeiten können.</p>
+</details>
+<details>
+<summary>
+Lösungsfunktion das Sudoku lösen lassen
+</summary>
 <p>Zu diesem Zeitpunkt haben wir ein eigens erstelltes Sudoku mit <code>XX</code> Zahlen, das in diesem Schritt auf seine Lösbarkeit überprüft werden soll.</p>
 <p>Dafür übernehmen wir also die Lösungsfunktion aus Teilaufgabe 1 und lassen sie das Sudoku lösen. Jetzt kann es zu zwei Ausgängen kommen:</p>
 <ol style="list-style-type: decimal">
@@ -429,8 +459,8 @@ g &lt;- sample(1:9, 1)</code></pre>
 </ol>
 <p>Für uns gilt es jetzt, alle erarbeiteten Schritte in eine einzige Funktion zu verpacken, die erst dann stoppt, wenn ein lösbares Sudoku mit <code>XX</code> vorgegebenen Zahlen erstellt wurde. Dabei müssen die zwei Ausgänge beachtet werden:</p>
 <ul>
-<li>Wenn 1. eintrifft, dann muss die Funktion gestoppt werden. Zu diesem Zeitpunkt enthält das <code>Sudoku</code>-Objekt ein vollständig gelöstes Sudoku. Deshalb sollte man das Sudoku zuvor in einem neuen Objekt (z.B. <code>meinSudoku</code>) abspeichern, um es jetzt wieder abrufen zu können.</li>
-<li>Wenn 2. eintrifft, dann muss die Funktion von vorne anfangen. Das heißt, dass ausgehend von demselben vollständig gefüllten Gitter (<code>Gitter</code>) erneut ein Sudoku erstellt und danach wiederum durch die Lösungsfunktion überprüft werden soll. Diese Schleife sollte erst dann enden, wenn ein lösbares Sudoku erstellt wurde.</li>
+<li>Wenn 1. eintrifft, muss die Funktion gestoppt werden. Zu diesem Zeitpunkt enthält das <code>Sudoku</code>-Objekt ein vollständig gelöstes Sudoku. Deshalb sollte man das Sudoku zuvor in einem neuen Objekt (z.B. <code>meinSudoku</code>) abspeichern, um es jetzt wieder abrufen zu können.</li>
+<li>Wenn 2. eintrifft, muss die Funktion von vorne anfangen. Das heißt, dass ausgehend von demselben vollständig gefüllten Gitter (<code>Gitter</code>) erneut ein Sudoku erstellt und danach wiederum durch die Lösungsfunktion überprüft werden soll. Diese Schleife sollte erst dann enden, wenn ein lösbares Sudoku erstellt wurde.</li>
 </ul>
 <p>Übernehmen wir erst einmal alles, was wir bereits haben:</p>
 <pre class="r"><code>#Lösch-Funktion
@@ -536,7 +566,7 @@ repeat {
     if(length(subset(as.vector(Sudoku), is.element(Sudoku, 1:9))) == 81) break
   }
 }</code></pre>
-<p>Jetzt brauchen wir nur noch die Bedingung, mit der die große Schleife beendet wird. Diese ist bereits in der Lösungsfunktion vorhanden. Denn wenn wir ein selbst erstelltes Sudoku vollständig gelöst haben, dann braucht die Funktion nicht weiter nach einem lösbaren Sudoku suchen. Also fügen wir diesen <code>break</code>-Befehl nochmals ganz am Ende der Funktion ein.</p>
+<p>Jetzt brauchen wir nur noch die Bedingung, mit der die große Schleife beendet wird. Diese ist bereits in der Lösungsfunktion vorhanden. Denn wenn wir ein selbst erstelltes Sudoku vollständig gelöst haben, braucht die Funktion nicht weiter nach einem lösbaren Sudoku suchen. Also fügen wir diesen <code>break</code>-Befehl nochmals ganz am Ende der Funktion ein.</p>
 <pre class="r"><code>repeat {
   Sudoku &lt;- Gitter
   repeat {
@@ -591,22 +621,29 @@ repeat {
 }</code></pre>
 <p>Bis hierhin haben wir eine Funktion erstellt, die anhand eines vollständigen Gitters (<code>Gitter</code>) ein eigenes lösbares Sudoku erstellt (<code>meinSudoku</code>). Jetzt kannst du dir dein erstes eigenes Sudoku abspeichern. Du wirst es noch brauchen.</p>
 <pre class="r"><code>save(meinSudoku, file = &quot;meinSudoku.rda&quot;)</code></pre>
-<p><b>Anmerkung:</b> Bevor du jetzt vielleicht einen Lösungsversuch deines eigenen Sudoku beginnst, widme dich doch auch noch dem letzten Aufgabenteil zum Thema Sudoku. Da wirst du deinem Sudoku den letzten äußerlichen Schliff verpassen.<br />
-</details></p>
+<p><strong>Anmerkung</strong>: Bevor du jetzt vielleicht einen Lösungsversuch deines eigenen Sudoku beginnst, widme dich doch auch noch dem letzten Aufgabenteil zum Thema Sudoku. Da wirst du deinem Sudoku den letzten äußerlichen Schliff verpassen.</p>
+</details>
 </div>
-<div id="sudokuausgabe-in-r-verschönern" class="section level2">
-<h2>Sudokuausgabe in R verschönern</h2>
-<p>Für eine verschönerte Darstellung des Sudokus werden wir dieses jetzt als Plot darstellen. Dafür kann man zum Beispiel das <code>plot.matrix</code>-Paket benutzen, das einem das Plotten von Matrizen ermöglicht.</p>
-<p><details><summary>Vorbereitung</summary></p>
+<div id="lösung-zu-aufgabe-4-sudokuausgabe-in-r-verschönern" class="section level2">
+<h2>Lösung zu Aufgabe 4: Sudokuausgabe in <code>R</code> verschönern</h2>
+<p>Für eine verschönerte Darstellung des Sudokus werden wir dieses jetzt als Plot darstellen. Dafür kann man zum Beispiel das <code>plot.matrix</code>-Paket benutzen, das das Plotten von Matrizen ermöglicht.</p>
+<details>
+<summary>
+Vorbereitung
+</summary>
 <p>Damit du diesen Teil der Lösungen dürchführen kannst, solltest du sichergehen, dass die Pakete <code>plot.matrix</code> und <code>graphics</code> geladen sind.</p>
 <pre class="r"><code>install.packages(&quot;plot.matrix&quot;)
 library(plot.matrix)
 library(graphics)</code></pre>
-<p></details></p>
-<p><details><summary>Abschnitt anzeigen</summary></p>
+</details>
+<details>
+<summary>
+Verschönern des Sudokus
+</summary>
 <p>Am besten schauen wir uns jetzt erst einmal an, wie unsere Matrix nun durch die <code>plot</code>-Funktion dargestellt wird. Deshalb plotten wir das Sudoku erst einmal ohne weitere Argumente.</p>
 <pre class="r"><code>plot(Sudoku)</code></pre>
-<p>Das kann dann z.B. so aussehen: <img src="/post/2020-05-05-tipps5_files/Sudoku%20vor%20der%20Bearbeitung.png" style="width:80.0%" /></p>
+<p>Das kann dann z.B. so aussehen:</p>
+<p><img src="/post/2020-05-05-tipps5_files/Sudoku%20vor%20der%20Bearbeitung.png" style="width:80.0%" /></p>
 <p>Diesen Plot müssen wir jetzt so bearbeiten, dass er einem echten Sudoku ähnlicher wird. Dafür müssen wir folgendes tun:</p>
 <ol style="list-style-type: decimal">
 <li>eine neue Überschrift erstellen</li>
@@ -625,7 +662,7 @@ library(graphics)</code></pre>
 <li>Eine neue Überschrift erstellt man mithilfe des <code>main</code>-Arguments. Die <code>plot</code>-Funktion benennt das Sudoku automatisch nach seinem Objektnamen (<code>meinSudoku</code>). Das können wir umändern, z.B. in <code>main = 'Sudoku'</code>.</li>
 <li>Die Beschriftung von den Achsen nimmt die <code>plot</code>-Funktion auch automatisch vor. Mit <code>xlab</code> und <code>ylab</code> kann man diese manuell bestimmen. Wir brauchen keine, deshalb bestimmen wir diese beiden einfach so: <code>ylab = ''</code> und <code>xlab = ''</code>.</li>
 <li>Die Achsen entfernt man mithilfe des <code>par()</code>-Arguments, das auch außerhalb der <code>plot</code>-Funktion stehen kann. Hierin müssen wir nun x- und y-Achsen löschen. Das geht folgendermaßen: <code>par(xaxt = 'n', yaxt = 'n')</code>.</li>
-<li>Die Farbenzuweisung ist etwas komplizierter. Die <code>plot</code>-Funktion geht automatisch von intervallskalierten Werten aus, obwohl im Falle eines Sudokus Absolutskalierung mit den Werten 1 bis 9 vorliegt. Das ist ungünstig, aber sorgen wir einfach dafür, dass trotzdem jede Zahl eine eigene Farbe hat. Dafür legen zuerst manuell die Abschnitte fest: <code>breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)</code>. Jetzt gibt es also Abschnitte von 1 bis 2, von 2 bis 3, … und von 9 bis 10, die jeweils mit einer unterschiedlichen Farbe kodiert werden. Diese Farben können wir nun auch noch manuell bestimmen: <code>col = c(&quot;yellow&quot; , &quot;orange&quot;, &quot;red&quot;, &quot;violet&quot;, &quot;lightblue&quot;, &quot;cornflowerblue&quot;, &quot;lightgreen&quot;, &quot;chartreuse3&quot;, &quot;lightsalmon4&quot;)</code>. Damit bleibt zwar die Skalierung falsch, aber das Ziel wurde trotzdem erreicht.</li>
+<li>Die Farbenzuweisung ist etwas komplizierter. Die <code>plot</code>-Funktion geht automatisch von intervallskalierten Werten aus, obwohl im Falle eines Sudokus Absolutskalierung mit den Werten 1 bis 9 vorliegt. Das ist ungünstig, aber wir sorgen einfach dafür, dass trotzdem jede Zahl eine eigene Farbe hat. Dafür legen zuerst manuell die Abschnitte fest: <code>breaks = c(1, 2, 3, 4, 5, 6, 7, 8, 9, 10)</code>. Jetzt gibt es also Abschnitte von 1 bis 2, von 2 bis 3, … und von 9 bis 10, die jeweils mit einer unterschiedlichen Farbe kodiert werden. Diese Farben können wir nun auch noch manuell bestimmen: <code>col = c("yellow" , "orange", "red", "violet", "lightblue", "cornflowerblue", "lightgreen", "chartreuse3", "lightsalmon4")</code>. Damit bleibt zwar die Skalierung falsch, aber das Ziel wurde trotzdem erreicht.</li>
 <li>Das Gitter entfernen wir, da in einem Sudoku typischerweise unterschiedlich starke Gitternetzlinien verwendet werden, um die Umrandung der 3x3-Quadrate zu verdeutlichen. Wie wir das machen, erklären wir in Schritt 10. Erst einmal entfernen wir die Gitterlinien mit <code>border = F</code>.</li>
 <li>Die Zahlen lässt man in den einzelnen Feldern folgendermaßen anzeigen: <code>text.cell = list(cex = 1)</code>. Innerhalb des <code>list</code>-Arguments kann man dabei die Schrift formatieren. <code>cex</code> bestimmt beispielsweise die Schriftgröße, <code>col</code> die Schriftfarbe.</li>
 <li>Das Problem ist, dass die Zahlen mit einem <code>+</code> davor angezeigt werden. Das beseitigen wir durch dieses Argument: <code>fmt.cell='%.0f'</code>.</li>
@@ -646,7 +683,8 @@ plot(meinSudoku,
      fmt.cell=&#39;%.0f&#39;,
      na.print = &#39;&#39;, na.col = &quot;white&quot;,
      xlim = c(0.5, 9.5), ylim = c(0.5, 9.5))</code></pre>
-<p>Das Ergebnis sollte dann ein Sudoku ohne Gitterlinien sein. <img src="/post/2020-05-05-loesungen5_files/SudokuOhneGitterlinien.jpg" style="width:80.0%" /></p>
+<p>Das Ergebnis sollte dann ein Sudoku ohne Gitterlinien sein.</p>
+<p><img src="/post/2020-05-05-loesungen5_files/SudokuOhneGitterlinien.jpg" style="width:80.0%" /></p>
 <ol start="10" style="list-style-type: decimal">
 <li>Im letzten Schritt fügen wir die Gitterlinien hinzu. Da quasi jede Gitterlinie individuell angepasst werden muss, haben wir auch jede Linie einzeln mit der <code>abline</code>-Funktion erstellt. Mit den Argumenten <code>h = XX</code> und <code>v = XX</code> kann man die Position der Linien auf der Horizontalen (<code>h</code>) oder Vertikalen (<code>v</code>) festlegen. Mit <code>lwd = X.xx</code> legt man die Dicke der Linien fest. Wir haben folgende Linien eingesetzt:</li>
 </ol>
@@ -671,8 +709,9 @@ abline(v = 6.5, lwd = 2)
 abline(v = 7.5, lwd = 0.5)
 abline(v = 8.5, lwd = 0.5)
 abline(v = 9.5, lwd = 5)</code></pre>
-<p>Daraus ergibt sich folgendes Endergebnis: <img src="/post/2020-05-05-loesungen5_files/Sudoku%20in%20schön.png" style="width:80.0%" /></p>
-<p>Falls du nun noch darauf verzichten möchtest, alle 20 Gitterlienen einzeln einzufügen, kannst du mit dem <code>dplyr</code>-Paket die Pipe-Funktion (<code>%&gt;%</code>) benutzen. Dadurch werden die <code>abline</code>-Befehle aneinandergehängt und R kann alle Gitterlinien in einem Rutsch einfügen.</p>
+<p>Daraus ergibt sich folgendes Endergebnis:</p>
+<p><img src="/post/2020-05-05-loesungen5_files/Sudoku%20in%20schön.png" style="width:80.0%" /></p>
+<p>Falls du nun noch darauf verzichten möchtest, alle 20 Gitterlienen einzeln einzufügen, kannst du mit dem <code>dplyr</code>-Paket die Pipe-Funktion (<code>%&gt;%</code>) benutzen. Dadurch werden die <code>abline</code>-Befehle aneinandergehängt und <code>R</code> kann alle Gitterlinien in einem Rutsch einfügen.</p>
 <pre class="r"><code>install.packages(&quot;dplyr&quot;)
 library(dplyr)
 abline(h = 0.5, lwd = 5) %&gt;%
@@ -695,5 +734,5 @@ abline(v = 6.5, lwd = 2) %&gt;%
 abline(v = 7.5, lwd = 0.5) %&gt;%
 abline(v = 8.5, lwd = 0.5) %&gt;%
 abline(v = 9.5, lwd = 5)</code></pre>
-<p></details></p>
+</details>
 </div>
