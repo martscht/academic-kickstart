@@ -7,8 +7,8 @@ categories:
 tags: []
 subtitle: ''
 summary: ''
-authors: [mehler]
-lastmod: '2020-06-28T17:35:09+02:00'
+authors: [mehler, rouchi]
+lastmod: '2022-05-04T17:35:09+02:00'
 featured: no
 header:
   image: "/header/shiny_post.jpg"
@@ -20,13 +20,14 @@ projects: []
 
 Achtung! Im Folgenden werden die Lösungen für das siebte Projekt präsentiert. Falls du das Projekt noch nicht vollständig bearbeitet hast, nutze zunächst die [Tipps](/post/tipps7). Sofern dir die Tipps für einen Teil nicht geholfen haben, kannst du die Lösungen dafür benutzen, um einen Schritt weiterzukommen und beim nächsten Abschnitt weiterzumachen.
 
-## Darstellung der Suchanfragen verschiedener Parteien
-Hier sind die Lösungen zum ersten Abschnitt des Projekts "Darstellung der Suchanfragen". Die Lösungen decken mitunter alle Vorgaben aus der Problemstellung ab, gehen aber vor allem mit dem Style deutlich darüber hinaus. Das heißt, hier in den Lösungen werden dir nicht nur die relevanten Schritte zum Endprodukt gezeigt, sondern auch einige Möglichkeiten, dein Endprodukt besonders gut aussehen zu lassen. Da sich die Lösung auf eine unübersichtliche Anzahl an Code-Zeilen beläuft, wird die Erklärung im Folgenden auf vier Abschnitte aufgeteilt, die du bereits aus den Tipps kennen solltest.
+## Lösungen zu Teil 1: Darstellung der Suchanfragen verschiedener Parteien
 
-#### Aufbereitung der Daten
-<details><summary>Abschnitt anzeigen</summary>
+Hier sind die Lösungen zum ersten Abschnitt des Projekts "Darstellung der Suchanfragen". Die Lösungen decken mitunter alle Vorgaben aus der Problemstellung ab, wobei die Style-Aspekte der App deutlich vertieft werden. Das heißt, hier in den Lösungen werden dir nicht nur die relevanten Schritte zum Endprodukt gezeigt, sondern auch einige Möglichkeiten, dein Endprodukt besonders gut aussehen zu lassen. Da sich die Lösung auf eine unübersichtliche Anzahl an Code-Zeilen beläuft, wird die Erklärung im Folgenden auf 4 Abschnitte aufgeteilt, die du bereits aus den Tipps kennen solltest.
 
-Zuallererst müssen die Datensätze zur Benutzung in den Diagrammen aufbereitet werden. Dafür werden die beiden Datensätze `p1_long` und `p1_wide` aus dem ersten Projekt auf dieser Website verwendet. Damit du die nächsten Schritte nachvollziehen kannst, solltest du am selben Punkt starten und die beiden Datensätze [hier](https://raw.githubusercontent.com/martscht/projekte/master/content/post/p1_long.rds) und [hier](https://raw.githubusercontent.com/martscht/projekte/master/content/post/p1_wide.rds) herunterladen und in den Ordner einfügen, in dem du bei diesem Projekt arbeiten willst (deine Working Directory).
+
+<details><summary>Lösung 1 - Aufbereitung der Daten</summary>
+
+Zuallererst müssen die Datensätze zur Benutzung in den Diagrammen aufbereitet werden. Dafür werden die beiden Datensätze `p1_long` und `p1_wide` aus dem ersten Projekt auf dieser Website verwendet. Damit du die nächsten Schritte nachvollziehen kannst, solltest du am selben Punkt starten und die beiden Datensätze [hier](https://raw.githubusercontent.com/martscht/projekte/master/content/post/p1_long.rds) und [hier](https://raw.githubusercontent.com/martscht/projekte/master/content/post/p1_wide.rds) herunterladen und in den Ordner einfügen, in dem du bei diesem Projekt arbeiten willst (dein Working Directory).
 
 Jetzt kannst du die beiden Datensätze mit dem Befehl `readRDS` laden:
 
@@ -35,7 +36,7 @@ p1_wide <- readRDS('p1_wide.rds')
 p1_long <- readRDS('p1_long.rds')
 ```
 
-Falls du bereits Projekt 1 gemacht hast, dann sollte dir der nächste Schritt bereits bekannt sein. Im ersten Projekt hat sich ein Problem mit dem Datum ergeben, das eine ordnungsgemäße Beschriftung eines Diagramms mit Datum unmöglich gemacht hat. Das liegt daran, dass die Variable `Monat` in den Datensätzen als `factor` vorliegt und von R deshalb nicht als Datum erkannt werden kann. Damit das der Fall ist, müssen die Zeitangaben als `POSIXct` vorliegen. Nutze dafür einfach dein R-Script aus dem ersten Projekt. Falls du das erste Projekt noch nicht bearbeitet hast, kannst du die nötigen Schritte mit Erklärung im Folgenden nachlesen.
+Falls du bereits Projekt 1 gemacht hast, sollte dir der nächste Schritt bereits bekannt sein. Im ersten Projekt hat sich ein Problem mit dem Datum ergeben, das eine ordnungsgemäße Beschriftung eines Diagramms mit Datum unmöglich gemacht hat. Das liegt daran, dass die Variable `Monat` in den Datensätzen als `factor` vorliegt und von `R` deshalb nicht als Datum erkannt werden kann. Damit das der Fall ist, müssen die Zeitangaben als `POSIXct` vorliegen. Nutze dafür einfach dein `R`-Script aus dem ersten Projekt. Falls du das erste Projekt noch nicht bearbeitet hast, kannst du die nötigen Schritte mit Erklärung im Folgenden nachlesen.
 
 <details><summary>Umwandlung der Zeitangaben in `POSIXct`</summary>
 
@@ -43,35 +44,41 @@ Schau dir zunächst einmal die Struktur der Datumsvariable an.
 ```{r}
 str(p1_long$Monat)
 ```
-Wie bereits erwähnt, liegt das Datum als `factor` vor und kann deshalb von R nicht als Datum behandelt werden. R erkennt bei einem `factor` nur, dass es sich um eine Kette von Symbolen handelt, die ohne jeglichen Sinn existiert und als Kategoriename betrachtet werden kann. In anderenen Worten: die Kategorie `factor` beschreibt Variablen mit vorgegebenen möglichen, unsortierten Ausprägungen. 
+Wie bereits erwähnt, liegt das Datum als `factor` vor und kann deshalb von `R` nicht als Datum behandelt werden. `R` erkennt bei einem `factor` nur, dass es sich um eine Kette von Symbolen handelt, der ohne jeglichen Sinn existiert und als Kategoriename betrachtet werden kann. In anderen Worten: die Kategorie `factor` beschreibt Variablen mit vorgegebenen möglichen unsortierten Ausprägungen. 
 
-Der erste Schritt, um das zu verändern, ist die Umwandlung von `factor` in `character`. Dies sind Variablen, die aus freiem Text bestehen und dadurch unendlich viele mögliche Ausprägungen zulassen, was  einer Datumsvariable zumindest schon einmal näher kommt.
+Der erste Schritt, um das zu verändern, ist die Umwandlung von `factor` in `character`. Dies sind Variablen, die aus freiem Text bestehen und dadurch unendlich viele mögliche Ausprägungen zulassen, was  einer Datumsvariable zumindest näher kommt.
 
 ```{r}
 p1_long$nMonat <- as.character(p1_long$Monat)
 ```
+
 Um Fehler zu vermeiden, wird ab diesem Schritt eine neue Datums-Variable erstellt und im Folgenden für die Umwandlung in `POSIXct` verwendet.
 
 Im nächsten Schritt muss die neu erstellte Variable nun um mehrere Zeichen erweitert werden. Dafür wählen wir die drei Zeichen `-01`, die mit dem `paste0`-Befehl an alle Daten angehängt werden kann, um einen Tag zu symbolisieren (Für uns ist irrelevant, welche Zahl verwendet wird, da der Datensatz sowieso nur aus monatlichen Daten besteht.).
+
 ```{r}
 p1_long$nMonat <- paste0(p1_long$nMonat, '-01')
 head(p1_long$nMonat)
 ```
+
 Warum muss man das zu diesem Zeitpunkt machen? Warum braucht man die Datumsvariable in diesem Format: JJJJ-MM-TT?
 Der Grund dafür liegt im folgenden Befehl, der die Variable von einem `charcter` in eine Datumsvariable umwandeln soll. Dieser Befehl besitzt nur eingeschränkte, vorgegebene Formate für Daten, die er als solche erkennen und dementsprechend umwandeln kann. Das Format JJJJ-MM ist keines dieser Formate, weshalb die Datumsvariable `nMonat` um einen zufälligen Tag (ich habe den den ersten Tag des Monats genommen) erweitert werden muss.
 
 Der Befehl, um den es geht, heißt `strptime` und arbeitet mit dem `format`-Argument, wobei das vorliegende Format der Daten für die Umwandlung spezifiziert werden muss.
+
 ```{r}
 p1_long$nMonat <- strptime(p1_long$nMonat, format="%Y-%m-%d")
 str(p1_long$nMonat)
 ```
-Das Datum liegt nun in der `POSIXlt`-Form vor. Damit erkennt R die Variable `nMonat` bereits als Datum, doch wir brauchen die Variable als `POSIXct`. Dafür kann man einfach den Befehl `as.POSIXct` benutzen.
+
+Das Datum liegt nun in der `POSIXlt`-Form vor. Damit erkennt `R` die Variable `nMonat` bereits als Datum, doch wir brauchen die Variable als `POSIXct`. Dafür kann man einfach den Befehl `as.POSIXct` benutzen.
 
 ```{r}
 p1_long$nMonat <- as.POSIXct(p1_long$nMonat)
 str(p1_long$nMonat)
 ```
-Damit wurde die Datumsvariable erfolgreich von einem `factor` in ein `POSIXct` umgewandelt. Genau das Gleiche machst du jetzt noch mit dem zweiten Datensatz (`p1_wide`) und das Problem mit den Zeitangaben ist vollständig gelöst.
+
+Damit wurde die Datumsvariable erfolgreich von einem `factor` in ein `POSIXct` umgewandelt. Genau das Gleiche man mit dem zweiten Datensatz (`p1_wide`) und das Problem mit den Zeitangaben ist vollständig gelöst.
 
 ```{r}
 p1_wide$nMonat <- as.character(p1_wide$Monat)
@@ -84,7 +91,7 @@ p1_wide$nMonat <- as.POSIXct(p1_wide$nMonat)
 
 Wenn du die Datumsvariable erfolgreich umgewandelt hast, müssen nur noch zwei Sachen für eine vollständige Vorbereitung durchgeführt werden.
 
-Zum Einen wird im Folgenden die Abbildung aus Projekt 1 benutzt. Diese Abbildung benutzt zur Zuweisung von Farben zu den politischen Parteien einen Vektor `farben`. Diesen kann man einfach aus Projekt 1 übernehmen; ich habe hier aber ein paar farbliche Veränderungen vorgenommen, da mir einige Farben etwas zu grell waren.
+Zum Einen wird im Folgenden die Abbildung aus Projekt 1 benutzt. Diese Abbildung benutzt zur Zuweisung von Farben zu den politischen Parteien einen Vektor `farben`. Diesen kann man einfach aus Projekt 1 übernehmen.
 
 ```{r}
 farben <- c('AfD' = 'deepskyblue', 'CDU' = 'black', 'DieGrüne' = 'green3',
@@ -92,7 +99,7 @@ farben <- c('AfD' = 'deepskyblue', 'CDU' = 'black', 'DieGrüne' = 'green3',
             'NPD' = 'brown', 'SPD' = 'red', 'Tierschutzpartei' = 'darkblue')
 ```
 
-Zum Anderen ist in der Aufgabenstellung ein Liniendiagramm zur Darstellung der kumulativen Suchhäufigkeiten im zeitlichen Verlauf gefordert. An sich ist diese Grafik identisch zum Liniendiagramm aus Projekt 1 mit dem Unterschied, dass hier eine andere Variable auf der y-Achse abgebildet werden soll. Deshalb werden neue y-Werte benötigt, die man am besten im `p1_long`-Datensatz hinzufügt.
+Außerdem ist in der Aufgabenstellung ein *Liniendiagramm zur Darstellung der kumulativen Suchhäufigkeiten im zeitlichen Verlauf gefordert*. An sich ist diese Grafik identisch zum Liniendiagramm aus Projekt 1 mit dem Unterschied, dass hier eine andere Variable auf der y-Achse abgebildet werden soll. Deshalb werden neue y-Werte benötigt, die man am besten im `p1_long`-Datensatz hinzufügt.
 
 Für die Umsetzung dieser Anforderung muss man sich der Struktur des Datensatzes bewusst sein. Zu jeder Partei gibt es Daten für 190 Monate, die alle in der selben Spalte dargestellt werden (Variable `Prozent`). Eine solche Variable wird nun für die kumulierten Prozente benötigt. Dafür kann man jedoch nicht für jeden Eintrag einfach die Summe von Zeile 1 bis Zeile X bilden, da sich so die Prozente der verschiedenen Parteien vermischen würden.
 
@@ -114,7 +121,7 @@ Damit hat man nun erfolgreich eine Variable mit den kumulierten Prozentangaben f
 
 <details><summary> Weitere Möglichkeit</summary>
 
-Eine andere richtige, aber umständlichere Methode siehst du im folgenden R-Code:
+Eine andere richtige, aber umständlichere Methode siehst du im folgenden `R`-Code:
 
 ```{r}
 for (i in 1:190) {p1_long$Prozent_kumuliert[i] <- sum(p1_long$Prozent[1:i])}
@@ -134,10 +141,13 @@ Hierbei wurde 'einfach' für jede Partei ein einzelner Befehl erstellt, der die 
 Zu diesem Zeitpunkt sollten die gröbsten Vorbereitungen abgeschlossen sein und man kann mit dem Erstellen der Diagramme beginnen.
 </details>
 
-#### Erstellung der Diagramme
-<details><summary>Abschnitt anzeigen</summary>
+
+<details><summary>Lösung 2 - Erstellen der Diagramme</summary>
 
 Wie in der Problemstellung deutlich wurde, soll es in diesem Projekt darum gehen, mindestens 4 Diagramme in eine App einzubeziehen. Damit Probleme mit der Erstellung dieser Diagramme von vorn herein ausgeschlossen werden können, werden diese hier vor der Erstellung der Bestandteile der App besprochen.
+
+
+#### Liniendiagramm
 
 Diagramm 1 soll ein Liniendiagramm der prozentualen Häufigkeit im Zeitverlauf sein. Dieses wurde bereits in Projekt 1 mit dem Paket `ggplot2` erstellt und kann hier deshalb einfach übernommen werden:
 
@@ -153,6 +163,8 @@ ggplot(data = p1_long, aes(x = nMonat, y = Prozent, group = Partei)) +
       theme_bw()         # Formatierung des Achsensystems (bw für black and white)
 ```
 
+#### Liniendiagramm mit kumulierten Häufigkeiten
+
 Diagramm 2 soll auch ein Liniendiagramm sein, nur dieses mal mit den kumulierten Häufigkeiten im Zeitverlauf. Im Prinzip ist das also genau das gleiche Diagramm mit Änderungen in Zeile 1 (bei `aes` muss ein anderes `y` angegeben werden) und in Zeile 4 (Bezeichnung der y-Achse sollte verändert werden). Dieses andere `y` wurde bereits in den Vorbereitungen erstellt und kann hier deshalb einfach verwendet werden.
 
 ```{r, warning = FALSE}
@@ -165,9 +177,11 @@ ggplot(data = p1_long, aes(x = nMonat, y = Prozent_kumuliert, group = Partei)) +
       theme_bw()       # Formatierung des Achsensystems (bw für black and white)
 ```
 
+#### Balkendiagramm mit kumulierten Häufigkeiten
+
 Diagramm 3 soll ein Balkendiagramm mit den kumulierten Häufigkeiten der Parteien sein. Dafür verwenden wir nun den `p1_wide`-Datensatz, da wir hier keine Zwischenwerte mehr brauchen: Die Balken sollen in diesem Fall lediglich die kumulierte Häufigkeit für einen bestimmten Zeitraum angeben. Das könnte man natürlich auch mit `p1_long` umsetzen, mit `p1_wide` ist es jedoch deutlich einfacher.
 
-Für die Erstellung von Balkendiagrammen bietet R mehrere Möglichkeiten. Zum Einen kann man jenes mit der `barplot`-Funktion erstellen und zum Anderen kann man abermals `ggplot2` verwenden. Aufgrund der vielfältigeren Möglichkeiten von `ggplot2` ist diese Variante jedoch dem `barplot`-Befehl vorzuziehen. Im Folgenden werden dir beide Möglichkeiten präsentiert, doch im späteren Verlauf verwende ich die praktischere (aber kompliziertere) `ggplot2`-Version.
+Für die Erstellung von Balkendiagrammen bietet `R` mehrere Möglichkeiten. Zum Einen kann man jenes mit der `barplot`-Funktion erstellen und zum Anderen kann man `ggplot2` verwenden. Aufgrund der vielfältigeren Möglichkeiten von `ggplot2` ist diese Variante jedoch dem `barplot`-Befehl vorzuziehen. Im Folgenden werden dir beide Möglichkeiten präsentiert, doch im späteren Verlauf verwenden wir die praktischere (aber kompliziertere) `ggplot2`-Version.
 
 Damit man mit `ggplot2` ein Balkendiagramm erstellen kann, muss man zunächst einen neuen Datensatz aus `p1_wide` erstellen. Das macht hier Sinn, da `ggplot2` für ein Balkendiagramm nur einen Datensatz als Input annimmt, der in einer Zeile die "Benennung" der Balken und in einer anderen die Höhe der Balken beinhaltet. Einen solchen Datensatz erhält man, indem man die Namen der Spalten 2 bis 10 von `p1_wide` und die Summen der Prozentangaben der Spalten 2 bis 10 zu einem Datensatz zusammenfügt (Spalte 2 bis 10, da man die Datumsvariablen nicht für das Diagramm benötigt). Um in jenem Datensatz die Variablen besser auswählen zu können, sollte man dann noch die Variablennamen ändern.
 
@@ -193,7 +207,7 @@ Falls du mit `ggplot2` nicht zurechtkommst, kannst du das Balkendiagramm auch mi
 
 <details><summary> Balkendiagramm mit `barplot`</summary>
 
-Bei dem Befehl `barplot` fordert R als erstes Argument einen Vektor mit den Höhen der Balken (`height`). Mithilfe von `p1_wide` erhält man diese Höhen, indem man die Summen der Spalten mit colSums bilden lässt. Mit weiteren Argumenten zur Formatierung sieht das Balkendiagramm dann folgendermaßen aus:
+Bei dem Befehl `barplot` fordert `R` als erstes Argument einen Vektor mit den Höhen der Balken (`height`). Mithilfe von `p1_wide` erhält man diese Höhen, indem man die Summen der Spalten mit `colSums` bilden lässt. Mit weiteren Argumenten zur Formatierung sieht das Balkendiagramm dann folgendermaßen aus:
 
 ```{r}
 barplot(height = colSums(p1_wide[,2:10]),
@@ -205,7 +219,7 @@ barplot(height = colSums(p1_wide[,2:10]),
 
 Wie bereits erwähnt, funktioniert das Diagramm auch mithilfe von `p1_long`. Falls du sehen willst, wie das Diagramm mit diesem Datensatz erstellt werden kann, schau dir den folgenden kleinen Abschnitt an. Für die nächsten Schritte zur Erstellung der App bietet sich der Gebrauch von `p1_long` jedoch nicht so sehr an, weshalb für dieses Diagramm die Variante mit `p1_wide` benutzt werden sollte.
 
-Mit `p1_long` gestaltet sich die Auswahl der korrekten Werte für die Höhen aus der Variable `Prozent_kumuliert` etwas komplizierter, da die Werte aller Parteien in einer Spalte liegen. Aus diesem Grund muss man hier bestimmte Zeilen dieser Variable für die Höhen auswählen. Bei dem vollständigen Datensatz mit 1710 Zeilen wissen wir, dass es zu jeder Partei 190 Daten gibt. Die relevanten Höhen liegen also in den Zeilen 190, 380, 570, ... Damit wir da heran kommen, benutzen wir vereinfacht den `seq`-Befehl. Dieser ermöglicht es, aus einer Zahlenspanne von A bis B jede X-te Zahl auszuwählen (genereller Aufbau: `seq(A, B, X)`). Das sieht dann für den gesamten Datensatz folgendermaßen aus:
+Mit `p1_long` gestaltet sich die Auswahl der korrekten Werte für die Höhen aus der Variable `Prozent_kumuliert` etwas komplizierter, da die Werte aller Parteien in einer Spalte liegen. Aus diesem Grund muss man hier bestimmte Zeilen dieser Variable für die Höhen auswählen. Bei dem vollständigen Datensatz mit 1710 Zeilen wissen wir, dass es zu jeder Partei 190 Daten gibt. Die relevanten Höhen liegen also in den Zeilen 190, 380, 570, ... Damit wir dort heran kommen, benutzen wir vereinfacht den `seq`-Befehl. Dieser ermöglicht es, aus einer Zahlenspanne von A bis B jede X-te Zahl auszuwählen (genereller Aufbau: `seq(A, B, X)`). Das sieht dann für den gesamten Datensatz folgendermaßen aus:
 
 ```{r}
 barplot(height = p1_long$Prozent_kumuliert[seq(0, 1710, 190)],
@@ -234,9 +248,11 @@ barplot(height = p1_long$Prozent_kumuliert[
 Damit ist die Funktion nicht nur für den vollständigen Datensatz anwendbar, sondern für jegliche Beschränkungen der Zeitspanne (sofern man alle anderen Daten aus dem Datensatz entfernt). Denn so ist die Auswahl der Höhen nur noch von der Länge des Datensatzes abhängig und diese wird bei jeder Ausführung des `barplot`-Befehls aufs Neue bestimmt. Im späteren Verlauf dieses Abschnitts des Projekts wird deutlich, warum gerade das von großer Wichtigkeit ist. Jedoch ist darauf hinzuweisen, dass die Variante mit `p1_wide` deutlich einfacher ist.
 </details>
 
+#### Kuchendiagramm mit kumulierten Häufigkeiten
+
 Diagramm 4 soll ein Kuchendiagramm mit der kumulierten Häufigkeit der Parteien sein. Hierfür werden die gleichen Daten wie in Diagramm 3 benötigt. Es gibt also wiederum die Möglichkeit, das Diagramm mit `p1_long` oder `p1_wide` zu erstellen. Doch mit `p1_wide` ist es vermutlich einfacher, weshalb im Folgenden auch nur dieser Weg betrachtet wird (für Erklärung der Erstellung der Grafik mit `p1_long` siehe oben).
 
-Für die Erstellung von Kuchendiagrammen bietet R mehrere Möglichkeiten. Zum Einen kann jenes mit der `pie`-Funktion erstellt werden und zum Anderen kann abermals `ggplot2` verwendet werden. Aufgrund der vielfältigeren Möglichkeiten von `ggplot2` ist diese Variante jedoch dem `pie`-Befehl vorzuziehen. Im Folgenden werden dir beide Möglichkeiten präsentiert, doch im späteren Verlauf verwende ich die praktischere (aber kompliziertere) `ggplot2`-Version.
+Auch für die Erstellung von Kuchendiagrammen können in `R` entweder die `pie`-Funktion oder `ggplot2` verwendet werden.
 
 Ebenso wie bei dem zuvor erstellten Balkendiagramm muss man zur Erstellung eines Kuchendiagramms mit `ggplot2` aus `p1_wide` einen neuen Datensatz erstellen (auch hier sollte man wiederum der Einfachheit halber die Variablen manuell benennen). 
 
@@ -306,8 +322,8 @@ Damit wurden alle Vorbereitung getroffen und nötige Inhalte für die App erstel
 
 </details>
 
-#### User Interface
-<details><summary>Abschnitt anzeigen</summary>
+
+<details><summary>Lösung 3 - User Interface</summary>
 
 An diesem Punkt beginnen wir, mit dem `shiny`-Paket zu arbeiten. Aus diesem Grund sollte dieses spätestens jetzt heruntergeladen werden und dann in die aktuelle Sitzung geladen werden.
 
@@ -319,9 +335,9 @@ library(shiny)
 Die Problemstellung gibt für die Gestaltung des User Interfaces fünf Bestandteile vor:
 
 1. [Die Daten sollen in einem Diagramm dargestellt werden. Die Darstellungsform soll wählbar sein.](#Erstens)
-2. [Der Titel des Diagramms soll durch den Anwender definierbar sein.](#Zweitens)
+2. [Der Titel des Diagramms soll durch die Anwender:innen definierbar sein.](#Zweitens)
 3. [Die angezeigten Parteien sollen manuell wählbar sein.](#Drittens)
-4. [Der dargestellte Zeitraum soll durch den Anwender bestimmbar sein.](#Viertens)
+4. [Der dargestellte Zeitraum soll durch die Anwender:innen bestimmbar sein.](#Viertens)
 5. [Zusatz: Verwendung eines Action Buttons](#Fünftens)
 
 WICHTIG!: Alle reaktiven Inhalte, die durch die Inputs beeinflusst werden, können nicht im User Interface ausgeführt und erstellt werden. Aus diesem Grund wird hier mit InputId's gearbeitet, deren Inhalt erst im Server spezfiziert wird. 
@@ -344,7 +360,7 @@ navbarPage(strong("Darstellungsart"), # Titel der Navigationsleiste (steht ganz 
 Wie hier zu sehen ist, können die Diagramme noch nicht im User Interface erstellt werden. Dafür werden sogenannte Platzhalter/Bezeichnungen eingeführt, die dann später mit Inhalt gefüllt werden. So wird zum Beispiel die erste Unterseite der Navigationsleiste mit `plotOutput("Liniendiagramm")` gefüllt. Das bedeutet, dass an diesem Punkt der Output mit der Bezeichnung `Liniendiagramm` dargestellt werden soll. Was dieser Output ist und wie er erstellt wird, ist hier noch nicht spezifiziert, da das Liniendiagramm (wie auch die anderen Diagramme) von den folgenden drei Inputs abhängig sein wird. Und wie bereits erwähnt: Im User Interface können nur statische Bestandteile der App erstellt werden.
 
 <a id="Zweitens"></a>
-2.) Die zweite Vorgabe aus der Problemstellung ist, dass der Titel der Diagramme durch den Anwender der App definierbar sein soll. Das bedeutet, dass zusätzlich ein Eingabefeld für normalen Text benötigt wird. Dafür gibt es einen relativ simplen Befehl: `textInput()`. `textInput()` erstellt ein Input-Feld für normalen Text und benötigt dafür die Argumente `inputId` für die Bezeichnung des Inputs für die Wiederverwendung im Server und (falls erwünscht) `label` für die Beschriftung dieses Input-Feldes (Dort kann man für den Anwender erklären, was im Input-Feld gefordert ist bzw. was die Funktion des Input-Feldes ist.).
+2.) Die zweite Vorgabe aus der Problemstellung ist, dass der Titel der Diagramme durch die Anwender:innen der App definierbar sein soll. Das bedeutet, dass zusätzlich ein Eingabefeld für normalen Text benötigt wird. Dafür gibt es einen relativ simplen Befehl: `textInput()`. `textInput()` erstellt ein Input-Feld für normalen Text und benötigt dafür die Argumente `inputId` für die Bezeichnung des Inputs für die Wiederverwendung im Server und (falls erwünscht) `label` für die Beschriftung dieses Input-Feldes (Dort kann man für die Anwender:innen erklären, was im Input-Feld gefordert ist bzw. was die Funktion des Input-Feldes ist.).
 
 ```{r, eval = FALSE}
 textInput(inputId = "Titel", label = "Titel der Grafik")
@@ -362,7 +378,7 @@ checkboxGroupInput(inputId = "Parteien",
 ```
 
 <a id="Viertens"></a>
-4.) Die letzte Anforderung ist die Möglichkeit zur Eingrenzung des betrachteten Zeitintervalls. Für solche Funktionen hält `shiny` bereits ein spezialisiertes Input-Fenster parat: `dateRangeInput()`. Neben den Argumenten `inputId` und `label` kann man hier zusätzlich die Argumente `start` und `format` angeben. Mit `format` legt man das Format der Datumsangabe fest. Da diese Datumsangabe mit den Daten in den Datensätzen `p1_long` und `p1_wide` übereinstimmen sollten, sollte man sich hier ebenso für das Format `"yyyy-mm-dd"` entscheiden. Mit `start` kann man darüber hinaus die default-Einstellung des Startdatums in der App spezifizieren (`end` liegt standardmäßig auf dem aktuellen Datum; kann man auch festlegen, für diesen Fall aber nicht zwingend notwendig). Der R-Code dazu sieht dann folgendermaßen aus: 
+4.) Die letzte Anforderung ist die Möglichkeit zur Eingrenzung des betrachteten Zeitintervalls. Für solche Funktionen hält `shiny` bereits ein spezialisiertes Input-Fenster parat: `dateRangeInput()`. Neben den Argumenten `inputId` und `label` kann man hier zusätzlich die Argumente `start` und `format` angeben. Mit `format` legt man das Format der Datumsangabe fest. Da diese Datumsangabe mit den Daten in den Datensätzen `p1_long` und `p1_wide` übereinstimmen sollten, sollte man sich hier ebenso für das Format `"yyyy-mm-dd"` entscheiden. Mit `start` kann man darüber hinaus die default-Einstellung des Startdatums in der App spezifizieren (`end` liegt standardmäßig auf dem aktuellen Datum; kann man auch festlegen, für diesen Fall aber nicht zwingend notwendig). Der `R`-Code dazu sieht dann folgendermaßen aus: 
 
 ```{r, eval = FALSE}
 dateRangeInput(inputId = "Datum",
@@ -477,14 +493,14 @@ Mit `column` legt man dann nämlich fest, in welcher/n Spalte/n dieser Reihe ein
 Hat man zum Beispiel zwei Objekte, nehmen wir zwei `numericInputs`, dann kann man mit der Spaltenaufteilung "6|6" beiden Inputs eine Hälfte (6 Spalten) des Bildschirms zuweisen. Belegt das Fenster der App jedoch nicht die gesamte Breite des Bildschirms, dann stehen der App weniger als 12 Spalten zur Verfügung. Das heißt, dass die beiden `numericInputs` nun nicht mehr vollständig in einer Reihe angezeigt werden können, da es sich bei der Spaltenzuweisung um eine absolute (nicht veränderbare/nicht "fluide") Angabe handelt. Theoretisch müsste diese App nun zu groß für das Fenster sein, sodass man mit Schiebereglern agieren müsste. Doch an diesem Punkt greifen die Vorteile des `fluidRow`-Befehls, denn durch diesen werden die beiden Inputs nun untereinander dargestellt. Probiere das gerne einmal aus, indem du die Fenstergröße der App etwas verändert.
 </details>
 
-Das Endergebnis ist bereits etwas hübscher und deutet an, was mit dem Design alles möglich ist. Falls du dich fragst, was es mit den Farbcodes auf sich hat und woher diese kommen: HTML (worauf shiny basiert) hat ein Farbsystem, das mit diesen 6-stelligen Codes arbeitet; diese sind im Internet relativ einfach auffindbar und verfolgen eine relativ einfache Logik. Für mehr Infos dazu schau dir einfach mal die Website [html-color-codes.info](https://html-color-codes.info/webfarben_hexcodes/) an, wenn du dich für die Logik hinter der Farbkodierung interessierst und vielleicht deine eigene Farb-Kombination zusammenstellen willst. Eine weitere Möglichkeit ist die Website [farbtabelle.at](http://www.farbtabelle.at/grosse-farbtabelle/), die dir eine Farbtabelle mit über 4000 Farben und zugehörigen Farbcodes bereitstellt.
+Das Endergebnis ist bereits etwas hübscher und deutet an, was mit dem Design alles möglich ist. Falls du dich fragst, was es mit den Farbcodes auf sich hat und woher diese kommen: HTML (worauf `shiny` basiert) hat ein Farbsystem, das mit diesen 6-stelligen Codes arbeitet; diese sind im Internet relativ einfach auffindbar und verfolgen eine relativ einfache Logik. Für mehr Infos dazu schau dir einfach mal die Website [html-color-codes.info](https://html-color-codes.info/webfarben_hexcodes/) an, wenn du dich für die Logik hinter der Farbkodierung interessierst und vielleicht deine eigene Farb-Kombination zusammenstellen willst. Eine weitere Möglichkeit ist die Website [farbtabelle.at](http://www.farbtabelle.at/grosse-farbtabelle/), die dir eine Farbtabelle mit über 4000 Farben und zugehörigen Farbcodes bereitstellt.
 
 An diesem Punkt kannst du das User Interface als abgeschlossen betrachten. Nur die Outputs der verschiedenen Navigationstabs müssen noch in Abhängigkeit der Inputs (inklusive des Action Buttons) erstellt und eingefügt werden. Die Umsetzung dieser letzten Anforderung wird im letzten Teilabschnitt "Server" besprochen.
 
 </details>
 
-#### Server
-<details><summary>Abschnitt anzeigen</summary>
+
+<details><summary>Lösung 4 - Server</summary>
 
 Zunächst kann man alle Diagramme in diese Funktion übernehmen. Diese Diagramme muss man nun nur noch in eine reaktive Funktion packen (`renderPlot`) und dann durch einen Zuweisungspfeil spezifizieren, welchen Output das jeweilige Diagramm darstellt. Dabei sind die Bezeichnungen aus den `tabPanels` von besonderer Bedeutung, da diese hier für die Zuordnung von Diagramm zu `tabPanel` ausschlaggebend sind.
 
@@ -614,8 +630,8 @@ server <- function(input, output, session) {
 }
 ```
 
-Im zweiten Schritt geht es darum, ein variables Zeitintervall miteinzubeziehen. Dafür muss man den Datensatz vor der Verwendung in den Diagrammen manipulieren. Diese Manipulation soll jedoch nicht bei jeder kleinsten Veränderung vonstatten gehen, sondern erst dann, wenn der `Action-Button` betätigt wurde. Um das zu verwirklichen, werden die Funktionen `reactiveValues` und `observeEvent` benötigt. Mit `reactiveValues` erstellt man ein reaktives Objekt, in unserem Fall der Datensatz `p1_long`, der durch die Inputs verändert werden kann. Man schreibt also:
-`rv <- reactiveValues(data = p1_long)`. Der Datensatz ist nun ein reaktives Objekt, das über `rv$data` abrufbar ist, und außerdem stellt `p1_long`, also der gesamte Datensatz, den Ausgangsdatensatz für die Erstellung der Diagramme beim Öffnen der App dar. Jetzt benutzt man den Befehl `observeEvent`, um `rv$data` dann zu aktualisieren, wenn der Action-Button betätigt wird. Wie lässt sich diese Aktualisierung jedoch bewerkstelligen? Die genaue Erklärung dazu erhältst du (wenn du möchtest) im folgenden kleinen Unterabschnitt.
+Im zweiten Schritt geht es darum, ein variables Zeitintervall miteinzubeziehen. Dafür muss man den Datensatz vor der Verwendung in den Diagrammen manipulieren. Diese Manipulation soll jedoch nicht bei jeder kleinsten Veränderung auftreten, sondern erst dann, wenn der Action Button betätigt wurde. Um das zu verwirklichen, werden die Funktionen `reactiveValues` und `observeEvent` benötigt. Mit `reactiveValues` erstellt man ein reaktives Objekt, in unserem Fall der Datensatz `p1_long`, der durch die Inputs verändert werden kann. Man schreibt also:
+`rv <- reactiveValues(data = p1_long)`. Der Datensatz ist nun ein reaktives Objekt, das über `rv$data` abrufbar ist, und außerdem stellt `p1_long`, also der gesamte Datensatz, den Ausgangsdatensatz für die Erstellung der Diagramme beim Öffnen der App dar. Jetzt benutzt man den Befehl `observeEvent`, um `rv$data` dann zu aktualisieren, wenn der Action Button betätigt wird. Wie lässt sich diese Aktualisierung jedoch bewerkstelligen? Die genaue Erklärung dazu erhältst du (wenn du möchtest) im folgenden kleinen Unterabschnitt.
 
 <details><summary>Aktualisierung der betrachteten Zeitspanne</summary>
 
@@ -633,8 +649,8 @@ observeEvent(input$Update, {
 
 Das Ganze muss dann auch noch für `p1_wide` umgesetzt werden, da auch dieser Datensatz in der Erstellung der Diagramme benötigt wird.
 
-WICHTIG - Danach befinden sich die relevanten Datensätze zur Erstellung der Diagramme in `rv$data` für die ersten beiden Diagramme und in `rv2$data` für die Diagramme drei und vier! Das muss also in den Befehlen der Diagramme auch noch verändert werden!
-Der R-Code dazu sieht dann folgendermaßen aus:
+**Wichtig**: Danach befinden sich die relevanten Datensätze zur Erstellung der Diagramme in `rv$data` für die ersten beiden Diagramme und in `rv2$data` für die Diagramme drei und vier! Das muss also in den Befehlen der Diagramme auch noch verändert werden!
+Der `R`-Code dazu sieht dann folgendermaßen aus:
 
 ```{r, eval = FALSE}
 server <- function(input, output, session) {
@@ -712,7 +728,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Führt man den Server nun aus und schaut sich die vorläufige App an, dann stößt man nach dem Ausprobieren der bisher implizierten Funktionen auf eine Problematik: Das kumulierte Liniendiagramm reagiert nicht korrekt auf die Begrenzungen der Zeitspanne. Anstatt dass sich immer wieder ein neuer Plot bildet, bei dem die einzelnen Linien immer bei Null beginnen, wird bei einer Begrenzung der Zeitspanne lediglich der ausgewählte Abschnitt des Ausgangsplots abgebildet. Aus diesem Grund sollten die kumulierten Werte bei jeder Veränderung von `rv$data` erneut berechnet werden.
+Führt man den Server nun aus und schaut sich die vorläufige App an, stößt man nach dem Ausprobieren der bisher implizierten Funktionen auf eine Problematik: Das kumulierte Liniendiagramm reagiert nicht korrekt auf die Begrenzungen der Zeitspanne. Anstatt dass sich immer wieder ein neuer Plot bildet, bei dem die einzelnen Linien immer bei Null beginnen, wird bei einer Begrenzung der Zeitspanne lediglich der ausgewählte Abschnitt des Ausgangsplots abgebildet. Aus diesem Grund sollten die kumulierten Werte bei jeder Veränderung von `rv$data` erneut berechnet werden.
 
 ```{r, eval = FALSE}
 output$Liniendiagramm_kumuliert <- renderPlot({
@@ -729,11 +745,11 @@ output$Liniendiagramm_kumuliert <- renderPlot({
 })
 ```
 
-Im letzten Schritt muss man noch die Auswahl der Parteien mit in die Erstellung der Diagramme einbeziehen. Auch hier setzt man vor der Erstellung der Diagramme an den Datensätzen selbst an. Der Input aus der `checkbockGroupInput`-Funktion kommt in `input$Partei` als einfacher Text an. Ist zum Beispiel `CDU` angekreuzt, dann befindet sich im Objekt `input$Partei` ein Objekt `CDU`. Aufgrund dessen lässt sich eine Bedingung mit dem `is.element`-Befehl erstellen, der jene Reaktivität der Diagramme umsetzt. 
+Im letzten Schritt muss man noch die Auswahl der Parteien mit in die Erstellung der Diagramme einbeziehen. Auch hier setzt man vor der Erstellung der Diagramme an den Datensätzen selbst an. Der Input aus der `checkbockGroupInput`-Funktion kommt in `input$Partei` als einfacher Text an. Ist zum Beispiel `CDU` angekreuzt, befindet sich im Objekt `input$Partei` ein Objekt `CDU`. Aufgrunddessen lässt sich eine Bedingung mit dem `is.element`-Befehl erstellen, der jene Reaktivität der Diagramme umsetzt. 
 Im Datensatz `p1_long` findet man eine Variable `Partei`, in der die jeweilige Partei angegeben ist. Hier muss man also einfach jene Zeilen des Datensatzes auswählen, in denen die Partei aus der Variable `Partei` ein Objekt von `input$Partei` ist.
 Für den Datensatz `p1_wide` findet sich keine solche Variable. Hier hat jede Partei eine eigene Spalte, weshalb die Partei-Bedingung hier die relevanten Spalten auswählt.
 
-Im R-Code umgesetzt sieht das dann folgendermaßen aus und bildet mitunter das Endprodukt des Servers:
+Im `R`-Code umgesetzt sieht das dann folgendermaßen aus und bildet mitunter das Endprodukt des Servers:
 
 ```{r, eval = FALSE}
 server <- function(input, output, session) {
@@ -815,7 +831,7 @@ server <- function(input, output, session) {
 }
 ```
 
-<details><summary><i>Zusatz:</i> Formelle Fertigstellung</summary>
+<details><summary>*Zusatz*: Formelle Fertigstellung</summary>
 
 Wie bereits in den Tipps erwähnt, sollte man eine App ohne vorhergehenden Code ausführen können. Dafür bedarf es der Aufnahme der Vorbereitungen in die `server`-Funktion. Zusammengenommen beläuft sich das auf die folgenden Code-Zeilen (inklusive des Ladens weiterer Pakete):
 
@@ -1000,6 +1016,7 @@ shinyApp(ui, server)
 
 </details>
 
+
 Wenn man nun `ui` und `server` erstellt hat, kann man die vollständige App folgendermaßen abrufen:
 
 ```{r, eval = FALSE}
@@ -1012,13 +1029,13 @@ So könnte die App dann letztlich bei dir aussehen:
 
 Es ergibt sich also eine App, die mehrere Diagrammen mit mehr oder weniger dem gleichen Datensatz erstellen kann. Diese Diagramme reagieren direkt auf Veränderungen des Titels im dazugehörigen Input-Fenster. Auf die ausgewählte Zeitspanne und die ausgewählten Parteien reagieren die Diagramme nicht direkt, sondern erst dann, wenn die Veränderungen durch das Drücken des "Diagramm erzeugen"-Buttons auf die Diagramme angewendet werden. Da sich die App hier nun wieder an die Breite des Textfensters angepasst hat, kannst du dir die App [hier](https://martscht.shinyapps.io/Projekt7_App1/) nochmals in voller Breite (und damit in der Basis-Formatierung) anschauen.
 
-## Sudokus lösen
+## Lösungen zu Teil 2: Sudokus lösen
 Hier sind die Lösungen zum zweiten Abschnitt des Projekts "Sudokus lösen". Wie bereits erwähnt, handelt es sich hier nur um eine Möglichkeit, die angesprochenen Ziele umzusetzen. Die Lösungen sind also vor allem als Vorschlag zu betrachten; andere Wege sind logischerweise auch denkbar, möglicherweise sogar besser. Damit die Lösung für dich etwas übersichtlicher ist, ist der gesamte Prozess in drei Abschnitte aufgeteilt, die du bereits aus den Tipps kennen solltest.
 
-#### Vorbereitungen/Sudoku-Ausgabe
-<details><summary>Abschnitt anzeigen</summary>
 
-Bevor du mit diesem Projekt anfangen kannst, brauchst du ungelöste Sudokus als `.rds`-Dateien. Sofern du Projekt 5 noch nicht bearbeitet hast und du dir keine eigenen Sudokus erstellen kannst, kannst du dir [hier](https://raw.githubusercontent.com/martscht/projekte/master/content/post/BeispielSudokuLeicht.rds) und [hier](https://raw.githubusercontent.com/martscht/projekte/master/content/post/meinSudoku.rds) zwei Sudokus herunterladen. Diese kannst du im Folgenden in die aktuelle R-Sitzung laden und zum Ausprobieren der vorgeschlagenen App verwenden.
+<details><summary>Teil 1 - Vorbereitungen/Sudoku-Ausgabe</summary>
+
+Bevor du mit diesem Projekt anfangen kannst, brauchst du ungelöste Sudokus als `.rds`-Dateien. Sofern du Projekt 5 noch nicht bearbeitet hast und du dir keine eigenen Sudokus erstellen kannst, kannst du dir [hier](https://raw.githubusercontent.com/martscht/projekte/master/content/post/BeispielSudokuLeicht.rds) und [hier](https://raw.githubusercontent.com/martscht/projekte/master/content/post/meinSudoku.rds) zwei Sudokus herunterladen. Diese kannst du im Folgenden in die aktuelle `R`-Sitzung laden und zum Ausprobieren der vorgeschlagenen App verwenden.
 
 ```{r}
 BeispielSudoku <- readRDS("BeispielSudokuLeicht.rds")
@@ -1065,13 +1082,14 @@ abline(v = 8.5, lwd = 0.5)
 abline(v = 9.5, lwd = 5)
 ```
 
-Für die App muss diese Abbildung noch etwas angepasst werden. Zum Einen wurden in der ursprünglichen Abbildung die Achsenbeschriftungen durch den `par`-Befehl entfernt. Da wir diese im Folgenden jedoch benötigen, muss das gelöscht werden. Hier habe ich mich jedoch dazu entschieden, den `par`-Befehl beizubehalten, um beispielsweise die Schriftgröße der Achsenbeschriftung durch `cex.axis` und dessen Schriftfarbe durch `col.axis` anzupassen.  
+Für die App muss diese Abbildung noch etwas angepasst werden. Zum Einen wurden in der ursprünglichen Abbildung die Achsenbeschriftungen durch den `par`-Befehl entfernt. Da wir diese im Folgenden jedoch benötigen, muss das gelöscht werden. Hier haben wir uns jedoch dazu entschieden, den `par`-Befehl beizubehalten, um beispielsweise die Schriftgröße der Achsenbeschriftung durch `cex.axis` und dessen Schriftfarbe durch `col.axis` anzupassen.  
 
 ```{r}
 par(cex.axis = 1.5, col.axis = 'darkblue')
 ```
 
 Die Abbildung sieht nun folgendermaßen aus:
+
 ```{r, echo = FALSE}
 plot(BeispielSudoku,
      main = "Sudoku", xlab = "", ylab = "",
@@ -1140,8 +1158,8 @@ abline(v = 9.5, lwd = 5)
 Diese Abbildung wird im Folgenden genau in dieser Formatierung verwendet. Die Formatierungen sind nicht unbedingt erforderlich für die erfolgreiche Erstellung der App, doch sie erhöhen den ästhetischen Wert der Abbildung ungemein. Dementsprechend musst du die Abbildung so nicht 1:1 übernehmen, sondern kannst auch eigene Ideen mit einfließen lassen.
 </details>
 
-#### User Interface
-<details><summary>Abschnitt anzeigen</summary>
+
+<details><summary>Teil 2 - User Interface</summary>
 
 An diesem Punkt beginnen wir, mit dem `shiny`-Paket zu arbeiten. Aus diesem Grund sollte dieses spätestens jetzt heruntergeladen werden und dann in die aktuelle Sitzung geladen werden.
 
@@ -1155,7 +1173,7 @@ Wie bereits in der Problemstellung erwähnt, kann man für die Umsetzung einer A
 1. Die App sollte ein "Default-Sudoku" beinhalten, das beim Öffnen der App angezeigt wird.
 2. Das Sudoku sollte mithilfe von Inputs vollständig befüllbar sein.
 3. Es sollten nur jene Zahlen veränderbar sein, die nicht zuvor durch das Sudoku gegeben waren.
-4. Alle durch den Anwender eingesetzten Zahlen sollten ständig veränderbar sein.
+4. Alle durch die Anwender:innen eingesetzten Zahlen sollten ständig veränderbar sein.
 5. Man sollte sein eigenes Sudoku in die App laden können (im .rds-Format) und es dort lösen können. Die Punkte 1-4 sollten also derart umgesetzt werden, dass sie für jedes geladene Sudoku Gültigkeit besitzen.
 
 Die Punkte 1, 3 und 4 beziehen sich auf Inhalte, die nicht im User Interface bewerkstelltigt werden können (sondern im Server). Für diesen Abschnitt bleiben also nur die Punkte 2 und 5, die eingearbeitet werden müssen.
@@ -1163,7 +1181,7 @@ Die Punkte 1, 3 und 4 beziehen sich auf Inhalte, die nicht im User Interface bew
 2.) Das Einsetzen von Zahlen ist auf dem Papier eine leichte Aufgabe: Die gefundenen Zahlen werden einfach in die leeren Kästchen geschrieben. Doch hier gestaltet sich dieser Prozess etwas komplizierter. Der Sudoku-Abbildung liegt eine 9x9-Matrix zugrunde, die an bestimmten Stellen mit Zahlen gefüllt ist. Damit man Zahlen einsetzen kann, muss eben diese 9x9-Matrix verändert werden. Dafür wird jedoch nicht nur die Information benötigt, welche Zahl eingesetzt werden soll, sondern auch eine Koordinate aus Zeile und Spalte, die besagt, wo diese Zahl eingesetzt werden soll. Aus diesem Grund braucht es in diesem Fall drei Zahlen-Inputs, die jeweils mit Werten von 1 bis 9 befüllt werden können. Dafür hält `shiny` die Funktion `numericInput` mit den Argumenten `inputId`, `label`, `value`, `min` und `max` bereit.
 
 - `inputId` speichert die Bezeichnung für diesen Input, mit der im Server gearbeitet werden kann (im Server verwendbar als Variable mit `input$inputId`).
-- `label` gibt an, welche Benennung das Input-Fenster für den Anwender der App haben soll.
+- `label` gibt an, welche Benennung das Input-Fenster für die Anwender:innen der App haben soll.
 - `value` stellt den Ausgangswert dar, der beim Start der App ausgewählt ist.
 - `min` und `max` ermöglichen es, den Wertebereich einzugrenzen, der durch das Input-Fenster angenommen wird.
 
@@ -1270,7 +1288,7 @@ ui <- pageWithSidebar(
 )
 ```
 
-WICHTIG: Damit das User Interface funktioniert, braucht man einen Titel, den man entweder mit den Standardbefehlen `h1`, `h2`, `h3`, ... oder einem `titlePanel` erstellen kann. Dazu lässt sich jeglich Formatierung der Schrift kombinieren (z.B. `strong()` = fett, `em()` = kursiv, etc.).
+**Wichtig**: Damit das User Interface funktioniert, braucht man einen Titel, den man entweder mit den Standardbefehlen `h1`, `h2`, `h3`, ... oder einem `titlePanel` erstellen kann. Dazu lässt sich jeglich Formatierung der Schrift kombinieren (z.B. `strong()` = fett, `em()` = kursiv, etc.).
 
 Zu diesem Zeitpunkt hat man bereits eine angemessene Struktur in die einzelnen Elemente gebracht, doch es lassen sich noch einige weitere Verbesserungen vornehmen.
 
@@ -1311,19 +1329,19 @@ ui <- pageWithSidebar(
 shinyApp(ui, server)
 ```
 
-Damit kann man das User Interface als fertig betrachten. Natürlich ist es möglich die Hintergrundfarbe, die Schriftfarbe, die Schriftart, die Schriftgröße, die Rahmenfarbe, die Rahmenart, und vieles mehr individuell für jedes einzelne Element zu bestimmen, doch so weit wollen wir hier nicht unbedingt gehen. Zum Einen ginge das möglicherweise zu weit und hätte mehr mit CSS als mit `shiny` zu tun. Zum Anderen beinhaltet die Sudoku-Abbildung bereits einige Farben, weshalb ein farbenfrohes User Interface möglicherweise kontraproduktiv wäre. Letztlich ist das Ganze dir selbst überlassen und du kannst jegliche Formatierung vornehmen, die du möchtest. Falls du daran größeres Interesse hast, kannst du dir auch einfach eine kleine [Einführung zu CSS](https://www.google.com/search?q=CSS+einf%C3%BChrung&rlz=1C1NDCM_deDE810DE810&oq=CSS+einf%C3%BChrung&aqs=chrome..69i57j0l6.3316j0j7&sourceid=chrome&ie=UTF-8) anschauen.
+Damit kann man das User Interface als fertig betrachten. Natürlich ist es möglich die Hintergrundfarbe, die Schriftfarbe, die Schriftart, die Schriftgröße, die Rahmenfarbe, die Rahmenart, und vieles mehr individuell für jedes einzelne Element zu bestimmen, doch so weit wollen wir hier nicht unbedingt gehen. Zum Einen ginge das möglicherweise zu weit und hätte mehr mit CSS als mit `shiny` zu tun und zum Anderen beinhaltet die Sudoku-Abbildung bereits einige Farben, weshalb ein farbenfrohes User Interface möglicherweise kontraproduktiv wäre. Letztlich ist das Ganze dir selbst überlassen und du kannst jede Formatierung vornehmen, die du möchtest. Falls du daran größeres Interesse haben solltest, kannst du dir auch einfach eine kleine [Einführung zu CSS](https://www.google.com/search?q=CSS+einf%C3%BChrung&rlz=1C1NDCM_deDE810DE810&oq=CSS+einf%C3%BChrung&aqs=chrome..69i57j0l6.3316j0j7&sourceid=chrome&ie=UTF-8) anschauen.
 
 </details>
 
-#### Server
-<details><summary>Abschnitt anzeigen</summary>
+
+<details><summary>Teil 3 - Server</summary>
 
 Mit ausgearbeitetem User Interface und erstellter Sudoku-Abbildung gilt es nun nur noch, die geforderten Funktionen im Server technisch umzusetzen. Schauen wir uns dafür nochmals die Anforderungen aus der Problemstellung an:
 
 1. Die App sollte ein "Default-Sudoku" beinhalten, das beim Öffnen der App angezeigt wird.
 2. Das Sudoku sollte mithilfe von Inputs vollständig befüllbar sein.
 3. Es sollten nur jene Zahlen veränderbar sein, die nicht zuvor durch das Sudoku gegeben waren.
-4. Alle durch den Anwender eingesetzten Zahlen sollten ständig veränderbar sein.
+4. Alle durch die Anwender:innen eingesetzten Zahlen sollten ständig veränderbar sein.
 5. Man sollte sein eigenes Sudoku in die App laden können (im .rds-Format) und es dort lösen können. Die Punkte 1-4 sollten also derart umgesetzt werden, dass sie für jedes geladene Sudoku Gültigkeit besitzen.
 
 Diese können wir in zwei Schritte aufteilen:
@@ -1341,7 +1359,7 @@ server <- function(input, output, session) {
 }
 ```
 
-Wenn jetzt eine Zahl eingesetzt wird; der Anwender also den `actionButton` mit der Aufschrift "Zahl einsetzen" betätigt hat, dann soll im reaktiven Datensatz an der ausgewählten Koordinate aus Zeile und Spalte die besagte Zahl eingesetzt werden. Dieses Einsetzen soll jedoch an die Bedingung geknüpft sein, dass es sich um ein von Anfang an freies Feld handelt; ansonsten könnte man auch durch das Sudoku gegebene Zahlen verändern (was man logischerweise nicht möchte). Aus diesem Grund benutzt man hier das Objekt `BeispielSudoku`, das im gesamten Verlauf nicht verändert wird und damit den Ausgangszustand des Sudokus perfekt widerspiegelt.
+Wenn jetzt eine Zahl eingesetzt wird - die Anwender:innen also den `actionButton` mit der Aufschrift "Zahl einsetzen" betätigt hat - dann soll im reaktiven Datensatz an der ausgewählten Koordinate aus Zeile und Spalte die besagte Zahl eingesetzt werden. Dieses Einsetzen soll jedoch an die Bedingung geknüpft sein, dass es sich um ein von Anfang an freies Feld handelt; ansonsten könnte man auch durch das Sudoku gegebene Zahlen verändern (was man logischerweise nicht möchte). Aus diesem Grund benutzt man hier das Objekt `BeispielSudoku`, das im gesamten Verlauf nicht verändert wird und damit den Ausgangszustand des Sudokus perfekt widerspiegelt.
 
 ```{r, eval = FALSE}
 server <- function(input, output, session) {
@@ -1361,7 +1379,7 @@ Der Action-Button spielt in diesem Teil der Funktion in Verbindung mit der `obse
 
 Der Action-Button funktioniert wie eine typische Input-Funktion und lässt sich durch einfaches Klicken betätigen. Doch was passiert mit einem Klick im Hintergrund? Das wird deutlich, wenn man sich anschaut, welche Ausgabe in der Input-Variable ankommt. Hier kann man sich vorstellen, dass der Button zwei Stadien einnehmen kann: Stadium A ("0") und Stadium B ("1"). Zunächst liegt der Button in Stadium A ("0") vor. Betätigt man jedoch diesen Button ein Mal, dann springt der Button in Stadium B ("1"). Wird der Button nun ein zweites Mal betätigt, dann springt der Button zurück in Stadium ("0"). Das heißt, dass der Button bei jedem Klick von einem Stadium in das andere wechselt.
 
-Die `observeEvent`-Funktion reagiert immer dann, wenn sich das Objekt in Argument 1 verändert. Aufgrund der Systematik des Action-Buttons reagiert die Funktion in diesem Fall also auf jeden Klick. 
+Die `observeEvent`-Funktion reagiert immer dann, wenn sich das Objekt in Argument 1 verändert. Aufgrund der Systematik des Action Buttons reagiert die Funktion in diesem Fall also auf jeden Klick. 
 </details>
 
 Anhand dieser Befehle kann man den Server nun vorläufig abschließen, indem man die Sudoku-Abbildung in eine reaktive Funktion (`renderPlot`) steckst, einem Output zuweist (`Output$OutputId`; `OutputId` aus dem User Interface) und die Quelle der Abbildung zu `rv$data` veränderst. Damit ist es dir möglich, das Default-Sudoku problemlos zu lösen (mit den Funktionen, die durch die Anforderungen 1-4 impliziert sind).
@@ -1408,7 +1426,7 @@ server <- function(input, output, session) {
 ```
 
 <a id="Zwei"></a>
-2.) Nun besteht die Aufgabe nur noch darin, ein die Hochlade-Funktion in die gesamte Funktion zu implizieren. Zunächst einmal müssen wir uns dafür anschauen, was in dem zugehörigen Input (`input$Matrix`) ankommt. Schau dir dafür einfach mal [diese Übersicht](https://shiny.rstudio.com/reference/shiny/latest/fileInput.html) an. Es wird deutlich, dass beim Einlesen von eigenen Daten in unserem Fall unter `input$Matrix$datapath` der Dateipfad abgespeichert wird. Das heißt, dass wir zu diesem Zeitpunkt noch nicht den Datensatz mit der 9x9-Matrix zur Hand haben. Dieser muss dann eingelesen werden, wenn der dazugehörige Action-Button mit der Aufschrift "Sudoku benutzen" betätigt wurde. Dazu verwenden wir abermals die `observeEvent`-Funktion mit `input$use` als Auslöse-Objekt und speichern den Datensatz als reaktives Objekt ab.
+2.) Nun besteht die Aufgabe nur noch darin, ein die Hochlade-Funktion in die gesamte Funktion zu implizieren. Zunächst einmal müssen wir uns dafür anschauen, was in dem zugehörigen Input (`input$Matrix`) ankommt. Schau dir dafür einfach mal [diese Übersicht](https://shiny.rstudio.com/reference/shiny/latest/fileInput.html) an. Es wird deutlich, dass beim Einlesen von eigenen Daten in unserem Fall unter `input$Matrix$datapath` der Dateipfad abgespeichert wird. Das heißt, dass wir zu diesem Zeitpunkt noch nicht den Datensatz mit der 9x9-Matrix zur Hand haben. Dieser muss dann eingelesen werden, wenn der dazugehörige Action Button mit der Aufschrift "Sudoku benutzen" betätigt wurde. Dazu verwenden wir abermals die `observeEvent`-Funktion mit `input$use` als Auslöse-Objekt und speichern den Datensatz als reaktives Objekt ab.
 
 ```{r, eval = FALSE}
 observeEvent(input$use, {
@@ -1626,6 +1644,7 @@ shinyApp(ui, server)
 </details>
 
 </details>
+
 
 Führt man nun die Endprodukte aus den Abschnitten User Interface (`ui`) und Server (`server`) aus, kann man mit dieser Funktion die Applikation starten.
 
