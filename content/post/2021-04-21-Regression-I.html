@@ -287,8 +287,8 @@ round(b_hat_s, 3)</code></pre>
 <div id="berechnung-des-globalen-signifikanztest" class="section level3">
 <h3>Berechnung des globalen Signifikanztest</h3>
 <p>Deskriptiv haben wir nun ein Modell aufgestellt. Wie auch im letzten Semester stellt sich aber die Frage, ob wir dieses auch auf die Population übertragen können. Der Test des gesamten Modells wird auch als Omnibus-Test bezeichnet. Wir wollen im ersten Schritt betrachten, wie viel Varianz unser Modell erklären kann und es im Anschluss auf Signifikanz testen.</p>
-<div id="determinationskoeffizient-r2" class="section level4">
-<h4>Determinationskoeffizient <span class="math inline">\(R^2\)</span></h4>
+<div id="determinationskoeffizient-r2-per-quadratsummen" class="section level4">
+<h4>Determinationskoeffizient <span class="math inline">\(R^2\)</span> per Quadratsummen</h4>
 <p>Der Determinationskoeffizient <span class="math inline">\(R^2\)</span> gibt an, wieviel Varianz in der abhängigen Variable durch die unabhängigen Variablen erklärt werden kann. Dafür müssen die Quadratsummen bestimmt werden, die die Streuung der Variablen repräsentieren. Einfach gesagt, hat die abhängige Variable eine totale Quadratsumme, die in einen durch die Regression erklärten und einen nicht erklärten Teil geteilt werden kann.</p>
 <p><span class="math display">\[Q_{t} = Q_d + Q_e\]</span></p>
 <p>Die totale Quadratsumme wird bestimmt, indem die Abweichungen aller Fälle vom Mittelwert der Variablen bestimmt werden.</p>
@@ -313,8 +313,33 @@ Q_e</code></pre>
 <p><span class="math display">\[R^2= \dfrac{Q_d}{Q_d + Q_e}\]</span></p>
 <pre class="r"><code>R2 &lt;- Q_d / (Q_d + Q_e)            # Determinationskoeffizient R^2
 # Alternativ Q_d / Q_t</code></pre>
-<p><span class="math inline">\(R^2= \dfrac{Q_d}{Q_d + Q_e} = \dfrac{6.5805169\times 10^{5}}{6.5805169\times 10^{5} + 6.9223863\times 10^{5}} = 0.49\)</span></p>
+<p><span class="math inline">\(R^2= \dfrac{Q_d}{Q_d + Q_e} = \dfrac{658051.69}{658051.69 + 1350290.32} = 0.49\)</span></p>
 <p>0.49 der Varianz in der Mathematikleistung können demnach durch unser Modell erklärt werden.</p>
+</div>
+<div id="determinationskoeffizient-r2-per-semipartialkorrelation" class="section level4">
+<h4>Determinationskoeffizient <span class="math inline">\(R^2\)</span> per Semipartialkorrelation</h4>
+<p>An dieser Stelle können wir anstatt der Quadratsummen auch unser Wissen aus dem letzten Tutorial nutzen und die Semipartialkorrelation zur Hilfe ziehen.</p>
+<p>In der einfachen Regression haben wir gelernt, dass sich der Determinationskoeffizient als Quadrat der Korrelation bestimmen lässt. Wenn wir nun also die Mathematikleistung zunächst nur durch Lesefähigkeit vorhersagen wollen, können wir die Funktion <code>cor</code> nutzen und das Ergebnis quadrieren. Beachtet, dass wir die Mathematikleistung unter <code>y</code> abgelegt haben. Die Lesefähigkeit, als ersten Prädiktor, finden wir in der zweiten Spalte der Matrix <code>X</code>. Die erste Spalte haben wir mit einem Einsenvektor belegt (also obwohl wir in der zweiten Spalte schauen, nennen wir den Prädiktor in der Notation <span class="math inline">\(x_1\)</span>).</p>
+<pre class="r"><code>corx1y &lt;- cor(y, X[,2])
+corx1y^2 </code></pre>
+<pre><code>## [1] 0.1401049</code></pre>
+<p>Bei multipler Regression ist der Determinationskoeffizient neben der Berechnung der Quadratsummen auch so definiert, dass für jeden weiteren Prädiktor das Quadrat einer Semipartialkorrelatin aufaddiert wird, um den multiplen Determinationskoeffizienten zu bestimmen. Dabei wird der schon aufgenommene Prädiktor aus dem neuen herauspartialisiert und der Rest dann mit dem Kriterium korreliert (also die Semipartialkorrelation bestimmt).</p>
+<p><span class="math inline">\(R^2 = r^2_{yx_1} + r^2_{y(x_2.x_1)} + r^2_{y(x_3.x_2x_1)}\)</span></p>
+<p>Wie man in der Gleichung sieht, kann man diese Logik natürtlich auch auf mehr als einen Prädiktor erweitern. Die schon vorhanden Prädiktoren werden dabei stets aus dem neu aufgenommenen herauspartialisiert. In unserem Beispiel ist das nicht notwendig, da wir insgesamt nur zwei Prädiktoren haben. Wir müssen nun also eine Semipartialkorrelation bestimmen, wofür wir das Paket <code>ppcor</code> kennen gelernt haben. Darin gibt es die Funktion <code>spcor.test</code>. Als Argument benötigen wir hier in <code>y</code> die Werte, aus denen herauspartialisiert werden sollen. Hier müssen wir also unserer neuen Prädiktor <span class="math inline">\(x_2\)</span> allgemeine Intelligenz eintragen, der in der dritten Spalte der Matrix <code>X</code> zu finden ist. Im Argument <code>z</code> werden die Variable eingetragen, die herauspartialisert wird - also die Lesefähigkeit. Für das Kriterium Mathematikfähigkeit bleibt also nur noch das Argument <code>x</code>.</p>
+<pre class="r"><code>library(ppcor)</code></pre>
+<pre><code>## Warning: Paket &#39;ppcor&#39; wurde unter R Version 4.1.1 erstellt</code></pre>
+<pre><code>## Lade nötiges Paket: MASS</code></pre>
+<pre class="r"><code>spcor.test(x = y, y = X[,3], z = X[,2])</code></pre>
+<pre><code>##    estimate      p.value statistic   n gp  Method
+## 1 0.5892674 1.396055e-10  7.183236 100  1 pearson</code></pre>
+<p>Wie besprochen, kann man die Ergebnisse von Analysen auch in ein Objekt ablegen. Dies hat den Vorteil, dass man dann auf verschiedene Informationen zugreifen kann. Mit <code>$estimate</code> können wir uns ausschließlich den Wert der Semipartialkorrelation anzeigen lassen.</p>
+<pre class="r"><code>semipartial &lt;- spcor.test(x = y, y = X[,3], z = X[,2])
+semipartial$estimate</code></pre>
+<pre><code>## [1] 0.5892674</code></pre>
+<p>Zur Bestimmung des multiplen Determinationskoeffizienten, müssen wir nun nur noch der Formel folgend aufaddieren. Zuerst nehmen wir die einfache Korrelation von Lesefähigkeit und Mathematikfähigkeit zum Quadrat. Anschließend wird noch die Semipartialkorrelation zum Quadrat hinzu addiert.</p>
+<pre class="r"><code>corx1y^2 + semipartial$estimate^2</code></pre>
+<pre><code>## [1] 0.4873409</code></pre>
+<p>Wir erhalten auf diese Weise natürlich dasselbe Ergebnis, das wir auch mit den Quadratsummen bestimmen konnten. Wer mit den ganzen Buchstaben ein bisschen verwirrt wurde, kann sich dasselbe Vorgehen nochmal mit den Variablennamen in <a href="#AppendixA">Appendix A</a> anschauen.</p>
 </div>
 <div id="f-wert" class="section level4">
 <h4>F-Wert</h4>
@@ -339,7 +364,7 @@ F_omn</code></pre>
 <pre class="r"><code>p &lt;- 1-pf(F_omn, m, n-m-1)           # p-Wert
 p &lt; 0.05</code></pre>
 <pre><code>## [1] TRUE</code></pre>
-<p><span class="math inline">\(p=0.00000000000000844\)</span></p>
+<p><span class="math inline">\(p=8.44e-15\)</span></p>
 <p>Das Ergebnis ist hier natürlich das gleiche - die Nullhypothese wird verworfen.</p>
 </div>
 </div>
@@ -388,12 +413,12 @@ reg &lt;- lm(math ~ reading + IQ, data = Schulleistungen)</code></pre>
 <li>Regressionsgewicht <span class="math inline">\(b_1\)</span>:
 <ul>
 <li>bei einem Punkt mehr in der Lesekompetenz und unter Kontrolle (Konstanthaltung) des IQ beträgt die erwartete Veränderung in der Mathematikleistung -0.04 Punkte.</li>
-<li>Der Einfluss von Lesekompetenz auf Mathematikleistung ist nicht signfikant von null verschieden (<span class="math inline">\(p\)</span>=0.712)</li>
+<li>Der Einfluss von Lesekompetenz auf Mathematikleistung ist nicht signfikant von null verschieden (<span class="math inline">\(p\)</span>=0.71)</li>
 </ul></li>
 <li>Regressionsgewicht <span class="math inline">\(b_2\)</span>:
 <ul>
 <li>unter Kontrolle (Konstanthaltung) der Lesekompetenz beträgt die erwartete Veränderung in der Mathematikleistung bei einem Punkt mehr im IQ 5.31 Punkte.</li>
-<li>Der Einfluss der allgemeinen Intelligenz auf Mathematikleistung ist signfikant von null verschieden (<span class="math inline">\(p\)</span>=1.6001989^{-12})</li>
+<li>Der Einfluss der allgemeinen Intelligenz auf Mathematikleistung ist signfikant von null verschieden (<span class="math inline">\(p\)</span>=1.6e-12)</li>
 </ul></li>
 </ul></li>
 </ul>
@@ -449,4 +474,37 @@ summary(reg_s)         # reg |&gt; lm.beta() |&gt; summary()</code></pre>
 <h2>R-Skript</h2>
 <p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/PsyBSc7_R_Files/Regression-I.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
 <hr />
+</div>
+<div id="appendix" class="section level2">
+<h2>Appendix</h2>
+<div id="AppendixA" class="section level3">
+<h3>Appendix A</h3>
+<details>
+<summary>
+<strong>Multipler Determinationskoeffizient mit Variablennamen</strong>
+</summary>
+<p>Durch die Benennung der Objekte mit Buchstaben, der schriftlichen Notation mit Buchstabend und der Argumente von <code>spcor.test</code>, die auch Buchstaben entsprechen, könnte es zu kleinen Verwirrungen kommen. Trotzdem war die allgemeine Darstellung als Zeichen einer breiten Gültigkeit wichtig. Hier wird das ganze nochmal spezifischer an den Daten orientiert, wobei der beschreibende Text natürlich recht ähnlich bleibt.</p>
+<p>In der einfachen Regression haben wir gelernt, dass sich der Determinationskoeffizient als Quadrat der Korrelation bestimmen lässt. Wenn wir nun also die Mathematikleistung zunächst nur durch Lesefähigkeit vorhersagen wollen, können wir die Funktion <code>cor</code> nutzen und das Ergebnis quadrieren. Beide Variablen sind im Datensatz <code>Schulleistungen</code> enthalten.</p>
+<pre class="r"><code>cor.mathreading &lt;- cor(Schulleistungen$math, Schulleistungen$reading)
+cor.mathreading</code></pre>
+<pre><code>## [1] 0.3743059</code></pre>
+<p>Bei multipler Regression ist der Determinationskoeffizient neben der Berechnung der Quadratsummen auch so definiert, dass für jeden weiteren Prädiktor das Quadrat einer Semipartialkorrelatin aufaddiert wird, um den multiplen Determinationskoeffizienten zu bestimmen. Dabei wird der schon aufgenommene Prädiktor aus dem neuen herauspartialisiert und der Rest dann mit dem Kriterium korreliert (also die Semipartialkorrelation bestimmt). Bezogen auf unser Beispiel gibt es zwei Prädiktoren. Zunächst hatten wir die Mathe- und Lesefähigkeit korreliert.</p>
+<p>$R^2 = r^2_{MathReading} + r^2_{Math(IQ.Reading)} $</p>
+<p>Wir müssen nun also eine Semipartialkorrelation bestimmen, wofür wir das Paket <code>ppcor</code> kennen gelernt haben. Darin gibt es die Funktion <code>spcor.test</code>. Als Argument benötigen wir hier in <code>y</code> die Werte, aus denen herauspartialisiert werden sollen. Hier müssen wir also unserer neuen Prädiktor allgemeine Intelligenz <code>IQ</code> eintragen. Im Argument <code>z</code> werden die Variable eingetragen, die herauspartialisert wird - also die Lesefähigkeit <code>reading</code>. Für das Kriterium Mathematikfähigkeit <code>math</code> bleibt also nur noch das Argument <code>x</code>. Alle Variablen befinden sich im Datensatz `Schulleistungen</p>
+<pre class="r"><code>library(ppcor)
+spcor.test(x = Schulleistungen$math, 
+           y = Schulleistungen$IQ, 
+           z = Schulleistungen$reading)</code></pre>
+<pre><code>##    estimate      p.value statistic   n gp  Method
+## 1 0.5892674 1.396055e-10  7.183236 100  1 pearson</code></pre>
+<p>Wie besprochen, kann man die Ergebnisse von Analysen auch in ein Objekt ablegen. Dies hat den Vorteil, dass man dann auf verschiedene Informationen zugreifen kann. Mit <code>$estimate</code> können wir uns ausschließlich den Wert der Semipartialkorrelation anzeigen lassen.</p>
+<pre class="r"><code>semipartial &lt;- spcor.test(x = y, y = X[,3], z = X[,2])
+semipartial$estimate</code></pre>
+<pre><code>## [1] 0.5892674</code></pre>
+<p>Zur Bestimmung des multiplen Determinationskoeffizienten, müssen wir nun nur noch der Formel folgend aufaddieren. Zuerst nehmen wir die einfache Korrelation von Lesefähigkeit und Mathematikfähigkeit zum Quadrat. Anschließend wird noch die Semipartialkorrelation zum Quadrat hinzu addiert.</p>
+<pre class="r"><code>cor.mathreading^2 + semipartial$esimate^2</code></pre>
+<pre><code>## numeric(0)</code></pre>
+Wir erhalten auf diese Weise natürlich dasselbe Ergebnis, das wir auch mit den Quadratsummen und unter Verwendung der Objekte als Buchstaben bestimmen konnten.
+</details>
+</div>
 </div>
