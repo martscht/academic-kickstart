@@ -13,8 +13,8 @@ tags:
 - Modelloptimierung
 subtitle: 'Modelloptimierung'
 summary: ''
-authors: [hartig, schueller, irmer]
-lastmod: '2022-03-24 12:00:12 CEST'
+authors: [irmer, hartig, schueller]
+lastmod: '2022-05-13 12:00:12 CEST'
 featured: no
 header:
      image: "/header/PsyBSc7_Reg2.jpg"
@@ -148,7 +148,7 @@ Der AIC ist hier eine Funktion der Stichprobengröße $n$, der Residualvarianz $
 Der AIC ist ein sogenanntes inverses Maß, das bedeutet, dass Modelle mit einem kleineren AIC besser sind als Modelle mit einem größeren AIC. Man kann sich den AIC also als eine Art Distanzmaß vorstellen (Achtung, das ist nur eine Anschauung) zwischen Daten und Modell. Der AIC wird durch den Term $n \cdot log(\sigma_e^2)$ kleiner, wenn die Residualvarianz kleiner wird, also mehr Varianz erklärt wird. Durch den "Strafterm" $2p$ wird der AIC größer, wenn das Modell mehr Prädiktoren enthält. 
 Es soll also ein Modell gefunden werden, das mit möglichst wenigen Prädiktoren möglichst viel Varianz erklärt (*Sparsamkeitsprinzip*).
 
-Die s Selektion kann "vorwärts", "rückwärts", oder in beide Richtungen erfolgen. Die Standardeinstellung der `step`-Funktion ist die, dass ein Modell mit allen möglichen Prädiktoren als Ausgangspunkt genommen wird. Es wird dann der Prädiktor ausgeschlossen, der die größte Reduktion des AIC erlaubt, dann der nächste, usw. In jedem Schritt wird auch wieder geprüft, ob Prädiktoren, die *nicht* im Modell sind, bei Aufnahme wieder zu einer Reduktion des AIC führen würden. Das Verfahren stoppt, wenn: 
+Die Selektion kann "vorwärts", "rückwärts", oder in beide Richtungen erfolgen. Die Standardeinstellung der `step`-Funktion ist die, dass ein Modell mit allen möglichen Prädiktoren als Ausgangspunkt genommen wird. Es wird dann der Prädiktor ausgeschlossen, der die größte Reduktion des AIC erlaubt, dann der nächste, usw. In jedem Schritt wird auch wieder geprüft, ob Prädiktoren, die *nicht* im Modell sind, bei Aufnahme wieder zu einer Reduktion des AIC führen würden. Das Verfahren stoppt, wenn: 
 
 1. nur noch Prädiktoren im Modell sind, deren Ausschluss zu einer Erhöhung des AIC führen würden und
 2. nur Prädiktoren "übrig" sind, deren Einschluss den AIC nicht verbessern würde.
@@ -211,7 +211,7 @@ Wie immer gibt es in `R` viele weitere Wege, zum selben Ziel zu kommen. Eine Vie
 
 Das Paket `olsrr` beinhaltet verschiedene Funktionen, die für die Regressionsanalyse nützlich sind, u.a. auch Funktionen, die die schrittweise Auswahl von Prädiktoren auf Basis verschiedener Kriterien und nach verschiedenen Methoden (vorwärts, rückwärts, etc.) ermöglichen. Finden Sie [hier](https://olsrr.rsquaredacademy.com/articles/variable_selection.html#best-subset-regression) mehr Informationen dazu. Die Funktion `ols_step_both_p` beinhaltet die Auswahl auf Basis der Signifikanz des Inkrements oder Dekrements und führt in jedem Schritt Tests für Einschluss und Ausschluss durch. Das ist sehr ähnlich zum AIC von zuvor, außer, dass jeder Schritt eben mit einer Signifikanzentscheidung untermauert wird. Dieses Vorgehen ist nicht der Default, da durch das sehr häufige Testen das $\alpha$-Fehlerniveau nicht eingehalten werden kann. Eigentlich müsste dann nämlich bspw. Bonferroni korrigiert werden, was wiederum schwierig ist, wenn wir die Anzahl der Tests im Vorhinein kennen. Sie erkennen, das ganze Thema ist eine Wissenschaft für sich!
 
-Nun zurück zur `ols_step_both_p`-Funktion: Der Input  ist ein Regressionsmodell, das mit der bekannten Funktion `lm` erstellt wurde. Über die zusätzlichen Argumente kann gesteuert werden, wie streng bei Aufnahme und Ausschluss getestet wird. Über das Argument `details` können Sie den gesamten Verlauf der schrittweisen Selektion (nicht nur das finale Ergebnis) anzeigen lassen. `pent` ist der p-Wert, der für das "entering" in das Modell zuständig ist. Also muss das Inkrement einen p-Wert von $p<.05$ haben, wenn wir `pent = .05` wählen.`prem` ist der p-Wert, der für das "removing" aus dem Modell zuständig ist. Also muss das Dekremnt einen p-Wert von $p>.11$ haben, wenn wir `pent = .10` wählen. `details = TRUE` fordert weitere Informationen an.
+Nun zurück zur `ols_step_both_p`-Funktion: Der Input  ist ein Regressionsmodell, das mit der bekannten Funktion `lm` erstellt wurde. Über die zusätzlichen Argumente kann gesteuert werden, wie streng bei Aufnahme und Ausschluss getestet wird. Über das Argument `details` können Sie den gesamten Verlauf der schrittweisen Selektion (nicht nur das finale Ergebnis) anzeigen lassen. `pent` ist der p-Wert, der für das "entering" in das Modell zuständig ist. Also muss das Inkrement einen p-Wert von $p<.05$ haben, wenn wir `pent = .05` wählen.`prem` ist der p-Wert, der für das "removing" aus dem Modell zuständig ist. Also muss das Dekremnt einen p-Wert von $p>.10$ haben, wenn wir `pent = .10` wählen. `details = TRUE` fordert weitere Informationen an.
 
 ```{r}
 # install.packages("olsrr")
@@ -253,7 +253,7 @@ logLik(model)
 
 `df` ist die Anzahl der Freiheitsgrade in der Likelihood: hier wird zu den $\beta$-Koeffizienten noch die Residualvarianz $\sigma$ hinzugezählt.
 
-Sie ergibt sich aus der Verteilungsannahme an unserem Modell. Diese werden wir in der nächsten Sitzung auch noch genauer prüfen. Jedoch wissen wir aus den inhaltlichen Sitzungen, dass das Residuum der Regression oft als normalverteilt angenommen wird. Das Residuum ist ja aber gerade $\varepsilon_i = Y_i - (\beta_0 + \beta_1X_1 + \dots + \beta_mX_m)$. Außerdem nehmen wir an, dass für alle (Personen) $i$ die Varianz der Residuen gleich groß ist (Varianzhomogenität), nämlich $\sigma$ und deren Erwartung 0 ist, also $\mathbb{E}[\varepsilon_i]=0$.  Die Wahrscheinlichkeitsverteilung des normalverteilten Residuums $\varepsilon_i$ ist also über die Normalverteilung definiert. Einsetzen in die Verteilung ergibt
+Sie ergibt sich aus der Verteilungsannahme an unserem Modell. Diese werden wir in der nächsten Sitzung auch noch genauer prüfen. Jedoch wissen wir aus den inhaltlichen Sitzungen, dass das Residuum der Regression oft als normalverteilt angenommen wird. Das Residuum ist ja aber gerade $\varepsilon_i = Y_i - (\beta_0 + \beta_1X_1 + \dots + \beta_mX_m)$. Außerdem nehmen wir an, dass für alle (Personen) $i$ die Varianz der Residuen gleich groß ist (Varianzhomogenität), nämlich $\sigma^2$ und deren Erwartung 0 ist, also $\mathbb{E}[\varepsilon_i]=0$.  Die Wahrscheinlichkeitsverteilung des normalverteilten Residuums $\varepsilon_i$ ist also über die Normalverteilung definiert. Einsetzen in die Verteilung ergibt
 
 $$\frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{(Y_i - (\beta_0 + \beta_1X_1 + \dots + \beta_mX_m))^2}{2\sigma^2}} = \frac{1}{\sqrt{2\pi\sigma^2}}e^{-\frac{\varepsilon_i^2}{2\sigma^2}}.$$
 
