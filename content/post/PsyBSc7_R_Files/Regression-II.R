@@ -31,6 +31,11 @@ p.diff <- 1-pf(F.diff, df.diff, df.u)
 F.diff # F-Wert der Differenz in R^2
 p.diff # zugehöriger p-Wert
 
+# Vergleich des Inkrements mit Semipartialkorrelationen
+R2.u - R2.c
+library(ppcor)
+spcor.test(x = Schulleistungen$math, y = Schulleistungen$IQ, z = Schulleistungen[, c("reading", "female")])$estimate^2
+
 
 ##Testen eines Dekrements
 #das eingeschränkte Modell mit weniger Prädiktoren wird mit dem uneingeschränkten Modell mit mehr Prädiktoren verglichen
