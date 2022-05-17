@@ -166,7 +166,7 @@ Der AIC ist hier eine Funktion der Stichprobengröße $n$, der Residualvarianz $
 Der AIC ist ein sogenanntes inverses Maß, das bedeutet, dass Modelle mit einem kleineren AIC besser sind als Modelle mit einem größeren AIC. Man kann sich den AIC also als eine Art Distanzmaß vorstellen (Achtung, das ist nur eine Anschauung) zwischen Daten und Modell. Der AIC wird durch den Term $n \cdot log(\sigma_e^2)$ kleiner, wenn die Residualvarianz kleiner wird, also mehr Varianz erklärt wird. Durch den "Strafterm" $2p$ wird der AIC größer, wenn das Modell mehr Prädiktoren enthält. 
 Es soll also ein Modell gefunden werden, das mit möglichst wenigen Prädiktoren möglichst viel Varianz erklärt (*Sparsamkeitsprinzip*).
 
-Die Selektion kann "vorwärts", "rückwärts", oder in beide Richtungen erfolgen. Die Standardeinstellung der `step`-Funktion ist die, dass ein Modell mit allen möglichen Prädiktoren als Ausgangspunkt genommen wird. Es wird dann der Prädiktor ausgeschlossen, der die größte Reduktion des AIC erlaubt, dann der nächste, usw. In jedem Schritt wird auch wieder geprüft, ob Prädiktoren, die *nicht* im Modell sind, bei Aufnahme wieder zu einer Reduktion des AIC führen würden. Das Verfahren stoppt, wenn: 
+Die Selektion kann "vorwärts", "rückwärts", oder in beide Richtungen erfolgen. Wir wollen eine Foward-Backward (also vor und rückwärts) Selektion durchführen und wählen daher `direction = "both"`. Die Standardeinstellung der `step`-Funktion ist die, dass ein Modell mit allen möglichen Prädiktoren als Ausgangspunkt genommen wird. Es wird dann der Prädiktor ausgeschlossen, der die größte Reduktion des AIC erlaubt, dann der nächste, usw. In jedem Schritt wird auch wieder geprüft, ob Prädiktoren, die *nicht* im Modell sind, bei Aufnahme wieder zu einer Reduktion des AIC führen würden. Das Verfahren stoppt, wenn: 
 
 1. nur noch Prädiktoren im Modell sind, deren Ausschluss zu einer Erhöhung des AIC führen würden und
 2. nur Prädiktoren "übrig" sind, deren Einschluss den AIC nicht verbessern würde.
@@ -177,7 +177,7 @@ Einfaches Beispiel: Optimierung des Modells für Mathematikleistung, Start mit a
 # Modell mit allen Prädiktoren
 m <- lm(math ~ reading + female + IQ, data = Schulleistungen)
 # Optimierung
-summary(step(m))
+summary(step(m, direction = "both"))
 ```
 
 Der Output enthält folgende Inhalte:
@@ -195,7 +195,7 @@ begin <- "Df"; end <- "Step"
 out[grep(pattern = begin, out):(grep(pattern = end, out)-1)] |> paste(collapse = "\n") |> cat()
 ```
 
-ist der Output des ersten Schrittes. `<none>` beschreibt unser Modell (ohne Veränderung). Jede Zeile steht für ein Modell, in welchem jeweils maximal ein Prädiktor aus dem Modell ausgeschlossen wird oder maximal ein Prädiktor in das Modell aufgenommen wird. Das "Minus" am Anfang der Zeile zeigt an, dass hier ein Prädiktor ausgeschlossen wird. Eine "Plus" würde anzeigen, dass der jeweilige Prädiktor hinzukam (das ist hier ausgeschlossen, da lediglich eine "backward"-Selection gewählt wurde). Die `Df` zeigen wieder an, wie sich die Freiheitsgrade verändern. Würden wir eine Variable verwenden, die aus mehr als 2 Faktorstufen besteht, würden hier auch `Df` größer 1 stehen. `Sum of Sq` zeigt an, wie sich die Sum of Squares verändern. `RSS` ist wieder die Residual Sum of Squares, wie oben.
+ist der Output des ersten Schrittes. `<none>` beschreibt unser Modell (ohne Veränderung). Jede Zeile steht für ein Modell, in welchem jeweils maximal ein Prädiktor aus dem Modell ausgeschlossen wird oder maximal ein Prädiktor in das Modell aufgenommen wird. Das "Minus" (`-`) am Anfang der Zeile zeigt an, dass hier ein Prädiktor ausgeschlossen wird. Eine "Plus" (`+`) zeigt an, dass der jeweilige Prädiktor hinzukam. Die `Df` zeigen wieder an, wie sich die Freiheitsgrade verändern. Würden wir eine Variable verwenden, die aus mehr als 2 Faktorstufen besteht, würden hier auch `Df` größer 1 stehen. `Sum of Sq` zeigt an, wie sich die Sum of Squares verändern. `RSS` ist wieder die Residual Sum of Squares, wie oben.
 
 ```{r, warning=FALSE, echo = F}
 begin <- "Step"; end <- "Call"
@@ -206,7 +206,7 @@ Der nächste Step beginnt nun mit dem verbesserten AIC, der erlangt wurde, indem
 
 **Zusammenfassung:**
 
-Es ist zu sehen dass es im Ausgangsmodell nur eine Möglichkeit gibt, das Modell zu verbessern, nämlich den Ausschluss von Lesekompetenz (`reading`) (AIC von 889.88 auf 887.88). Danach gibt es keine Möglichkeit zur Verbesserung mehr, beide verbleibenden Prädiktoren würden bei einem Ausschluss zu einer Verschlechterung des AIC führen (`female` auf 888.39 und `IQ` auf 952.08). Damit sind Geschlecht und IQ die Prädiktoren für das optimierte Modell. An der Ausgabe für das "finale"  Modell am Schluss ist zu sehen, dass der Effekt von Geschlecht im finalen Modell hier *nicht* signifikant ist. Auch oben haben wir gesehen, dass unter Betrachtung des Dekrements dieser Prädiktor wegfallen würde. Wir sehen also, dass eine Auswahl mittels des AICs nicht notwendigerweise nur signifikante Prädiktoren auswählt!
+Es ist zu sehen dass es im Ausgangsmodell nur eine Möglichkeit gibt, das Modell zu verbessern, nämlich den Ausschluss von Lesekompetenz (`reading`) (AIC von 889.88 auf 887.88). Danach gibt es keine Möglichkeit zur Verbesserung mehr, beide verbleibenden Prädiktoren würden bei einem Ausschluss zu einer Verschlechterung des AIC führen (`female` auf 888.39 und `IQ` auf 952.08) und eine Wiederaufnahme von `reading` ist auch nciht sinnvoll, da wir dann das Modell wieder verschlechtern würden (zurück auf 889.88). Damit sind Geschlecht und IQ die Prädiktoren für das optimierte Modell. An der Ausgabe für das "finale"  Modell am Schluss ist zu sehen, dass der Effekt von Geschlecht im finalen Modell hier *nicht* signifikant ist. Auch oben haben wir gesehen, dass unter Betrachtung des Dekrements dieser Prädiktor wegfallen würde. Wir sehen also, dass eine Auswahl mittels des AICs nicht notwendigerweise nur signifikante Prädiktoren auswählt!
 
 Sparsamkeit wird beim AIC im "Strafterm" $2p$ nicht so hoch gewichtet wie bei anderen Informationskriterien. In der Funktion `step` kann man über die Veränderung des Parameters `k` steuern, wie streng die Prädiktorauswahl vorgenommen wird. Wenn man hier $k = log(n)$ angibt, wird statt des AIC das sogenannte Bayes'sche Informationskriterium BIC (*Bayesian Information Criterion*) verwendet.
 
@@ -216,12 +216,12 @@ Vorsicht, in der Ausgabe der `step`-Funktion steht immer AIC, auch wenn dies nur
 
 ```{r}
 # Optimierung mit BIC
-summary(step(m, k=log(nrow(Schulleistungen))))
+summary(step(m, direction = "both", k=log(nrow(Schulleistungen))))
 ```
 
 Bei der Verwendung des stengeren Kriteriums wird auch Geschlecht aus dem Modell entfernt, es verbleibt nur der IQ im finalen Modell. Dies entspricht nun eher der Modellmodifikation inklusive finalem Modelltest, den wir beim ersten Modell durchgeführt haben. Der nicht signifikante Geschlechtseffekt wurde ebenfalls aus dem Modell entfernt. 
 
-Eine Forwärts-Rückwärtsselektion (forward-backward-selection) erhalten wir, indem `direction = "both"` wir als Argument in `step` reinschreiben. 
+Eine reine Forward oder reine Backward Selektion können wir auch über `direction` einstellen. Lesen Sie dazu `?step`.
 
 ### Weitere Möglichkeiten
 

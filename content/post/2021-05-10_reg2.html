@@ -187,7 +187,7 @@ Dieses basiert auf der <strong>Likelihood</strong> eines geschätzten Modells <s
 <p>Der AIC ist hier eine Funktion der Stichprobengröße <span class="math inline">\(n\)</span>, der Residualvarianz <span class="math inline">\(\sigma_e^2\)</span> und der Anzahl der Parameter (= Regressionskoeffizienten) <span class="math inline">\(p=m+1\)</span>. Es wird ersichtlich, dass der AIC von der Varianz der abhängigen Variablen abhängt, da diese wiederum die Residualvarianz beeinflusst.</p>
 <p>Der AIC ist ein sogenanntes inverses Maß, das bedeutet, dass Modelle mit einem kleineren AIC besser sind als Modelle mit einem größeren AIC. Man kann sich den AIC also als eine Art Distanzmaß vorstellen (Achtung, das ist nur eine Anschauung) zwischen Daten und Modell. Der AIC wird durch den Term <span class="math inline">\(n \cdot log(\sigma_e^2)\)</span> kleiner, wenn die Residualvarianz kleiner wird, also mehr Varianz erklärt wird. Durch den “Strafterm” <span class="math inline">\(2p\)</span> wird der AIC größer, wenn das Modell mehr Prädiktoren enthält.
 Es soll also ein Modell gefunden werden, das mit möglichst wenigen Prädiktoren möglichst viel Varianz erklärt (<em>Sparsamkeitsprinzip</em>).</p>
-<p>Die Selektion kann “vorwärts”, “rückwärts”, oder in beide Richtungen erfolgen. Die Standardeinstellung der <code>step</code>-Funktion ist die, dass ein Modell mit allen möglichen Prädiktoren als Ausgangspunkt genommen wird. Es wird dann der Prädiktor ausgeschlossen, der die größte Reduktion des AIC erlaubt, dann der nächste, usw. In jedem Schritt wird auch wieder geprüft, ob Prädiktoren, die <em>nicht</em> im Modell sind, bei Aufnahme wieder zu einer Reduktion des AIC führen würden. Das Verfahren stoppt, wenn:</p>
+<p>Die Selektion kann “vorwärts”, “rückwärts”, oder in beide Richtungen erfolgen. Wir wollen eine Foward-Backward (also vor und rückwärts) Selektion durchführen und wählen daher <code>direction = "both"</code>. Die Standardeinstellung der <code>step</code>-Funktion ist die, dass ein Modell mit allen möglichen Prädiktoren als Ausgangspunkt genommen wird. Es wird dann der Prädiktor ausgeschlossen, der die größte Reduktion des AIC erlaubt, dann der nächste, usw. In jedem Schritt wird auch wieder geprüft, ob Prädiktoren, die <em>nicht</em> im Modell sind, bei Aufnahme wieder zu einer Reduktion des AIC führen würden. Das Verfahren stoppt, wenn:</p>
 <ol style="list-style-type: decimal">
 <li>nur noch Prädiktoren im Modell sind, deren Ausschluss zu einer Erhöhung des AIC führen würden und</li>
 <li>nur Prädiktoren “übrig” sind, deren Einschluss den AIC nicht verbessern würde.</li>
@@ -196,7 +196,7 @@ Es soll also ein Modell gefunden werden, das mit möglichst wenigen Prädiktoren
 <pre class="r"><code># Modell mit allen Prädiktoren
 m &lt;- lm(math ~ reading + female + IQ, data = Schulleistungen)
 # Optimierung
-summary(step(m))</code></pre>
+summary(step(m, direction = &quot;both&quot;))</code></pre>
 <pre><code>## Start:  AIC=889.88
 ## math ~ reading + female + IQ
 ## 
@@ -209,10 +209,11 @@ summary(step(m))</code></pre>
 ## Step:  AIC=887.88
 ## math ~ female + IQ
 ## 
-##          Df Sum of Sq     RSS    AIC
-## &lt;none&gt;                 675993 887.88
-## - female  1     17222  693215 888.39
-## - IQ      1    634538 1310531 952.08</code></pre>
+##           Df Sum of Sq     RSS    AIC
+## &lt;none&gt;                  675993 887.88
+## - female   1     17222  693215 888.39
+## + reading  1         6  675987 889.88
+## - IQ       1    634538 1310531 952.08</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = math ~ female + IQ, data = Schulleistungen)
@@ -241,7 +242,7 @@ summary(step(m))</code></pre>
 ## &lt;none&gt;                  675987 889.88
 ## - female   1     16252  692239 890.25
 ## - IQ       1    418099 1094086 936.03</code></pre>
-<p>ist der Output des ersten Schrittes. <code>&lt;none&gt;</code> beschreibt unser Modell (ohne Veränderung). Jede Zeile steht für ein Modell, in welchem jeweils maximal ein Prädiktor aus dem Modell ausgeschlossen wird oder maximal ein Prädiktor in das Modell aufgenommen wird. Das “Minus” am Anfang der Zeile zeigt an, dass hier ein Prädiktor ausgeschlossen wird. Eine “Plus” würde anzeigen, dass der jeweilige Prädiktor hinzukam (das ist hier ausgeschlossen, da lediglich eine “backward”-Selection gewählt wurde). Die <code>Df</code> zeigen wieder an, wie sich die Freiheitsgrade verändern. Würden wir eine Variable verwenden, die aus mehr als 2 Faktorstufen besteht, würden hier auch <code>Df</code> größer 1 stehen. <code>Sum of Sq</code> zeigt an, wie sich die Sum of Squares verändern. <code>RSS</code> ist wieder die Residual Sum of Squares, wie oben.</p>
+<p>ist der Output des ersten Schrittes. <code>&lt;none&gt;</code> beschreibt unser Modell (ohne Veränderung). Jede Zeile steht für ein Modell, in welchem jeweils maximal ein Prädiktor aus dem Modell ausgeschlossen wird oder maximal ein Prädiktor in das Modell aufgenommen wird. Das “Minus” (<code>-</code>) am Anfang der Zeile zeigt an, dass hier ein Prädiktor ausgeschlossen wird. Eine “Plus” (<code>+</code>) zeigt an, dass der jeweilige Prädiktor hinzukam. Die <code>Df</code> zeigen wieder an, wie sich die Freiheitsgrade verändern. Würden wir eine Variable verwenden, die aus mehr als 2 Faktorstufen besteht, würden hier auch <code>Df</code> größer 1 stehen. <code>Sum of Sq</code> zeigt an, wie sich die Sum of Squares verändern. <code>RSS</code> ist wieder die Residual Sum of Squares, wie oben.</p>
 <pre><code>## Step:  AIC=887.88
 ## math ~ female + IQ
 ## 
@@ -251,12 +252,12 @@ summary(step(m))</code></pre>
 ## - IQ      1    634538 1310531 952.08</code></pre>
 <p>Der nächste Step beginnt nun mit dem verbesserten AIC, der erlangt wurde, indem die Leseleistung aus dem Modell gestrichen wurde. Da nun alle weiteren Modifikationen zu einer Verschlechterung des Modells führen, sind wir nach einer Modifikation bereits am Ende angelangt.</p>
 <p><strong>Zusammenfassung:</strong></p>
-<p>Es ist zu sehen dass es im Ausgangsmodell nur eine Möglichkeit gibt, das Modell zu verbessern, nämlich den Ausschluss von Lesekompetenz (<code>reading</code>) (AIC von 889.88 auf 887.88). Danach gibt es keine Möglichkeit zur Verbesserung mehr, beide verbleibenden Prädiktoren würden bei einem Ausschluss zu einer Verschlechterung des AIC führen (<code>female</code> auf 888.39 und <code>IQ</code> auf 952.08). Damit sind Geschlecht und IQ die Prädiktoren für das optimierte Modell. An der Ausgabe für das “finale” Modell am Schluss ist zu sehen, dass der Effekt von Geschlecht im finalen Modell hier <em>nicht</em> signifikant ist. Auch oben haben wir gesehen, dass unter Betrachtung des Dekrements dieser Prädiktor wegfallen würde. Wir sehen also, dass eine Auswahl mittels des AICs nicht notwendigerweise nur signifikante Prädiktoren auswählt!</p>
+<p>Es ist zu sehen dass es im Ausgangsmodell nur eine Möglichkeit gibt, das Modell zu verbessern, nämlich den Ausschluss von Lesekompetenz (<code>reading</code>) (AIC von 889.88 auf 887.88). Danach gibt es keine Möglichkeit zur Verbesserung mehr, beide verbleibenden Prädiktoren würden bei einem Ausschluss zu einer Verschlechterung des AIC führen (<code>female</code> auf 888.39 und <code>IQ</code> auf 952.08) und eine Wiederaufnahme von <code>reading</code> ist auch nciht sinnvoll, da wir dann das Modell wieder verschlechtern würden (zurück auf 889.88). Damit sind Geschlecht und IQ die Prädiktoren für das optimierte Modell. An der Ausgabe für das “finale” Modell am Schluss ist zu sehen, dass der Effekt von Geschlecht im finalen Modell hier <em>nicht</em> signifikant ist. Auch oben haben wir gesehen, dass unter Betrachtung des Dekrements dieser Prädiktor wegfallen würde. Wir sehen also, dass eine Auswahl mittels des AICs nicht notwendigerweise nur signifikante Prädiktoren auswählt!</p>
 <p>Sparsamkeit wird beim AIC im “Strafterm” <span class="math inline">\(2p\)</span> nicht so hoch gewichtet wie bei anderen Informationskriterien. In der Funktion <code>step</code> kann man über die Veränderung des Parameters <code>k</code> steuern, wie streng die Prädiktorauswahl vorgenommen wird. Wenn man hier <span class="math inline">\(k = log(n)\)</span> angibt, wird statt des AIC das sogenannte Bayes’sche Informationskriterium BIC (<em>Bayesian Information Criterion</em>) verwendet.</p>
 <p><span class="math inline">\(BIC=-2L(\hat{\theta}) + log(n)\cdot p\)</span></p>
 <p>Vorsicht, in der Ausgabe der <code>step</code>-Funktion steht immer AIC, auch wenn dies nur mit der Standardeinstellung von <span class="math inline">\(k=2\)</span> tatsächlich dem AIC entspricht!</p>
 <pre class="r"><code># Optimierung mit BIC
-summary(step(m, k=log(nrow(Schulleistungen))))</code></pre>
+summary(step(m, direction = &quot;both&quot;, k=log(nrow(Schulleistungen))))</code></pre>
 <pre><code>## Start:  AIC=900.3
 ## math ~ reading + female + IQ
 ## 
@@ -269,17 +270,20 @@ summary(step(m, k=log(nrow(Schulleistungen))))</code></pre>
 ## Step:  AIC=895.69
 ## math ~ female + IQ
 ## 
-##          Df Sum of Sq     RSS    AIC
-## - female  1     17222  693215 893.60
-## &lt;none&gt;                 675993 895.69
-## - IQ      1    634538 1310531 957.29
+##           Df Sum of Sq     RSS    AIC
+## - female   1     17222  693215 893.60
+## &lt;none&gt;                  675993 895.69
+## + reading  1         6  675987 900.30
+## - IQ       1    634538 1310531 957.29
 ## 
 ## Step:  AIC=893.6
 ## math ~ IQ
 ## 
-##        Df Sum of Sq     RSS    AIC
-## &lt;none&gt;               693215 893.60
-## - IQ    1    657076 1350290 955.67</code></pre>
+##           Df Sum of Sq     RSS    AIC
+## &lt;none&gt;                  693215 893.60
+## + female   1     17222  675993 895.69
+## + reading  1       976  692239 898.07
+## - IQ       1    657076 1350290 955.67</code></pre>
 <pre><code>## 
 ## Call:
 ## lm(formula = math ~ IQ, data = Schulleistungen)
@@ -299,7 +303,7 @@ summary(step(m, k=log(nrow(Schulleistungen))))</code></pre>
 ## Multiple R-squared:  0.4866, Adjusted R-squared:  0.4814 
 ## F-statistic: 92.89 on 1 and 98 DF,  p-value: 7.392e-16</code></pre>
 <p>Bei der Verwendung des stengeren Kriteriums wird auch Geschlecht aus dem Modell entfernt, es verbleibt nur der IQ im finalen Modell. Dies entspricht nun eher der Modellmodifikation inklusive finalem Modelltest, den wir beim ersten Modell durchgeführt haben. Der nicht signifikante Geschlechtseffekt wurde ebenfalls aus dem Modell entfernt.</p>
-<p>Eine Forwärts-Rückwärtsselektion (forward-backward-selection) erhalten wir, indem <code>direction = "both"</code> wir als Argument in <code>step</code> reinschreiben.</p>
+<p>Eine reine Forward oder reine Backward Selektion können wir auch über <code>direction</code> einstellen. Lesen Sie dazu <code>?step</code>.</p>
 <div id="weitere-möglichkeiten" class="section level3">
 <h3>Weitere Möglichkeiten</h3>
 <p>Wie immer gibt es in <code>R</code> viele weitere Wege, zum selben Ziel zu kommen. Eine Vielzahl von Funktionen für die schrittweise Regression bietet z.B. das Paket <code>olsrr</code>.</p>
