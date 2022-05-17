@@ -14,7 +14,7 @@ tags:
 subtitle: 'Modelloptimierung'
 summary: ''
 authors: [irmer, hartig, schueller]
-lastmod: '2022-05-13 12:00:12 CEST'
+lastmod: '2022-05-17 12:00:12 CEST'
 featured: no
 header:
      image: "/header/PsyBSc7_Reg2.jpg"
@@ -127,14 +127,17 @@ anova(m.c, m.u)</code></pre>
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
 <p>Im Output sehen wir zunächst eine Übersicht über die beiden Modelle (auch mehr als 2 Modelle sind möglich, die Modelle müssen nur geschachtelt sein, also auseinander hervorgehen, damit sie sinnvoll miteinander verglichen werden können). Model 1 ist das Modell ohne IQ, während Model 2 das Modell mit IQ beschreibt. Die Zahlen 1 und 2 beschreiben dann die Zeilen der Modelle. <code>Res.Df</code> sind die Residualfreiheitsgrade (diese lassen sich bestimmen, indem von der Stichprobengröße <span class="math inline">\(N\)</span> die Anzahl der zu schätzenden Koeffizienten inklusive Interzept abgezogen werden). <code>RSS</code> ist die Residual Sum of Squares, also die Residualquadratsumme. <code>Df</code> sind die Freiheitsgrade (Degrees of Freedom). <code>Sum of Sq</code> ist die durch die hinzukommenden Prädiktoren erklärte Quadratsumme, welche sich einfach durch die Differenz der beiden <code>RSS</code> bestimmen lässt. <code>F</code> beschreibt den <span class="math inline">\(F\)</span>-Wert, der die Änderung in den <code>Sum of Sq</code> an der zufälligen Streuung relativiert. <code>Pr(&gt;F)</code> ist die Spalte mit den zu dem <span class="math inline">\(F\)</span>-Werten gehörigen <span class="math inline">\(p\)</span>-Werte, also die Spalte, die uns besonders interessiert!</p>
 <p>Das Inkrement des IQs ist auf einem Alpha-Fehlerniveau von 0.05 signifikant von null verschieden (<span class="math inline">\(p&lt;.001\)</span>). Somit wird der Anteil erklärter Varianz statistisch bedeutsam vergrößert.</p>
-<p>Zum Vergleich finden Sie hier die Berechnung des F-Tests aus den Vorlesungs-Folien zur Regression:</p>
+<p>Zum Vergleich finden Sie hier die Berechnung des F-Tests zu Fuß zur Regression:</p>
+<p><span class="math display">\[F = \frac{\frac{R^2_u-R_c^2}{df_{u}-df_c}}{\frac{1-R_u^2}{df_{e}}}.\]</span></p>
+<p>Dabei bezeichnen: <span class="math inline">\(R^2_u\)</span> den Determinationskoeffizient des uneingeschränkten (unconstrained) Modells, <span class="math inline">\(R^2_c\)</span> den Determinationskoeffizient des eingeschränkten (constrained) Modells, <span class="math inline">\(df_u\)</span> die Anzahl an Freiheitsgraden des uneingeschränkten (unconstrained) Modells [entspricht Anzahl der <span class="math inline">\(b/\beta\)</span>-Gewichte inklusive Interzept], <span class="math inline">\(df_u\)</span> die Anzahl an Freiheitsgraden des eingeschränkten (constrained) Modells [entspricht Anzahl der <span class="math inline">\(b/\beta\)</span>-Gewichte inklusive Interzept] und <span class="math inline">\(df_e\)</span> die Residualfreiheitsgrade des uneingeschränkten Modells.</p>
+<p>In <code>R</code>:</p>
 <pre class="r"><code>R2.u &lt;- summary(m.u)$r.squared
 R2.c &lt;- summary(m.c)$r.squared
 df.diff &lt;- summary(m.u)$df[1] - summary(m.c)$df[1] # Änderung in den df
-df.u &lt;- summary(m.u)$df[2] # Freiheitsgrade des uneingeschränkten Modells
+df.e &lt;- summary(m.u)$df[2] # Fehlerfreiheitsgrade des uneingeschränkten Modells
 F.diff &lt;- ((R2.u - R2.c) / df.diff) /
-  ((1 - R2.u) / df.u)
-p.diff &lt;- 1-pf(F.diff, df.diff, df.u)
+  ((1 - R2.u) / df.e)
+p.diff &lt;- 1-pf(F.diff, df.diff, df.e)
 F.diff # F-Wert der Differenz in R^2</code></pre>
 <pre><code>## [1] 59.37622</code></pre>
 <pre class="r"><code>p.diff # zugehöriger p-Wert  </code></pre>
@@ -299,7 +302,7 @@ summary(step(m, k=log(nrow(Schulleistungen))))</code></pre>
 <p>Eine Forwärts-Rückwärtsselektion (forward-backward-selection) erhalten wir, indem <code>direction = "both"</code> wir als Argument in <code>step</code> reinschreiben.</p>
 <div id="weitere-möglichkeiten" class="section level3">
 <h3>Weitere Möglichkeiten</h3>
-<p>Wie immer gibt es in <code>R</code> viele weitere Wege, zum selben Ziel zu kommen. Eine Vielzahl von Funktionen für die schrittweise Regression bietet z.B. das Paket <code>olsrr</code>, Im Rahmen des Praktikums verwenden wir soweit möglich die Basis-Funktionen von <code>R</code> und beschränken uns daher bei den Aufgaben für schrittweise Analysen auf die <code>step</code>-Funktion.</p>
+<p>Wie immer gibt es in <code>R</code> viele weitere Wege, zum selben Ziel zu kommen. Eine Vielzahl von Funktionen für die schrittweise Regression bietet z.B. das Paket <code>olsrr</code>.</p>
 <p>Das Paket <code>olsrr</code> beinhaltet verschiedene Funktionen, die für die Regressionsanalyse nützlich sind, u.a. auch Funktionen, die die schrittweise Auswahl von Prädiktoren auf Basis verschiedener Kriterien und nach verschiedenen Methoden (vorwärts, rückwärts, etc.) ermöglichen. Finden Sie <a href="https://olsrr.rsquaredacademy.com/articles/variable_selection.html#best-subset-regression">hier</a> mehr Informationen dazu. Die Funktion <code>ols_step_both_p</code> beinhaltet die Auswahl auf Basis der Signifikanz des Inkrements oder Dekrements und führt in jedem Schritt Tests für Einschluss und Ausschluss durch. Das ist sehr ähnlich zum AIC von zuvor, außer, dass jeder Schritt eben mit einer Signifikanzentscheidung untermauert wird. Dieses Vorgehen ist nicht der Default, da durch das sehr häufige Testen das <span class="math inline">\(\alpha\)</span>-Fehlerniveau nicht eingehalten werden kann. Eigentlich müsste dann nämlich bspw. Bonferroni korrigiert werden, was wiederum schwierig ist, wenn wir die Anzahl der Tests im Vorhinein kennen. Sie erkennen, das ganze Thema ist eine Wissenschaft für sich!</p>
 <p>Nun zurück zur <code>ols_step_both_p</code>-Funktion: Der Input ist ein Regressionsmodell, das mit der bekannten Funktion <code>lm</code> erstellt wurde. Über die zusätzlichen Argumente kann gesteuert werden, wie streng bei Aufnahme und Ausschluss getestet wird. Über das Argument <code>details</code> können Sie den gesamten Verlauf der schrittweisen Selektion (nicht nur das finale Ergebnis) anzeigen lassen. <code>pent</code> ist der p-Wert, der für das “entering” in das Modell zuständig ist. Also muss das Inkrement einen p-Wert von <span class="math inline">\(p&lt;.05\)</span> haben, wenn wir <code>pent = .05</code> wählen.<code>prem</code> ist der p-Wert, der für das “removing” aus dem Modell zuständig ist. Also muss das Dekremnt einen p-Wert von <span class="math inline">\(p&gt;.10\)</span> haben, wenn wir <code>pent = .10</code> wählen. <code>details = TRUE</code> fordert weitere Informationen an.</p>
 <pre class="r"><code># install.packages(&quot;olsrr&quot;)
@@ -404,6 +407,7 @@ library(olsrr)</code></pre>
 ## --------------------------------------------------------------------------------------</code></pre>
 <p>Der Output ist extrem detailliert, wobei allerdings nicht aufgeführt wird, wie die jeweiligen Inkremente oder Dekremente der anderen Variablen ausgefallen waren, die nicht selektiert wurden. Mit der <code>ols_step_both_p</code> wählen wir nur den IQ als Prädiktor aus! Uns wird nach jedem Step zunächst gesagt, welcher Prädiktor gewählt wurde und wie sich verschiedene Fit-Maße verhalten (bspw. AIC oder <span class="math inline">\(R^2\)</span>). Für uns ist an dieser Stelle besonders das <span class="math inline">\(R^2\)</span> (<code>R-Squared</code>) von Relevanz. Die ANOVA im Output beschreibt einfach eine ANOVA der zu vergleichenden Modelle, wobei zunächst mit dem Null-Modell, welches nur das Interzept enthält, begonnen wird.</p>
 <p>Unter <code>Parameter Estimates</code> finden wir das finale geschätzte Modell. <code>Stepwise Selection Summary</code> zeigt uns das Vorgehen dieses Auswahlalgorithmus.</p>
+<p>Wenn Sie die AIC Auswahl mit dem <code>olsrr</code> Paket verwenden wollen, dann schauen Sie sich doch mal die Funktion <code>ols_step_both_aic</code> an, welche eine Forward-Backward-Selektion mittels des AIC durchführt.</p>
 <div id="unterschiede-im-aic" class="section level4">
 <h4>Unterschiede im AIC</h4>
 <p>Wer nun den Output etwas genauer betrachtet, bemerkt, dass der AIC, der in der <code>step</code>-Funktion berichtet wird, nicht identisch mit demjenigen AIC ist, der in <code>ols_step_both_p</code> angezeigt wird. Zu Recht kann man sich nun fragen, ob hier ein Fehler passiert. Die Antwort ist nein (und ja). Es werden tatsächlich unterschiedliche Berechnungen für den AIC herangezogen. In <code>step</code> wird intern die <code>extractAIC</code>-Funktion verwendet, während in <code>ols_step_both_p</code> die <code>AIC</code>-Funktion verwendet wird:</p>

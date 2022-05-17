@@ -14,7 +14,7 @@ tags:
 subtitle: 'Modelloptimierung'
 summary: ''
 authors: [irmer, hartig, schueller]
-lastmod: '2022-05-13 12:00:12 CEST'
+lastmod: '2022-05-17 12:00:12 CEST'
 featured: no
 header:
      image: "/header/PsyBSc7_Reg2.jpg"
@@ -99,16 +99,22 @@ Im Output sehen wir zunächst eine Übersicht über die beiden Modelle (auch meh
 
 Das Inkrement des IQs ist auf einem Alpha-Fehlerniveau von 0.05 signifikant von null verschieden ($p`r ifelse(anova(m.c, m.u)[[6]][2]<0.001, "<.001", paste0("=", round(anova(m.c, m.u)[[6]][2], 3)))`$). Somit wird der Anteil erklärter Varianz statistisch bedeutsam vergrößert.
 
-Zum Vergleich finden Sie hier die Berechnung des F-Tests aus den Vorlesungs-Folien zur Regression:
+Zum Vergleich finden Sie hier die Berechnung des F-Tests zu Fuß zur Regression:
+
+$$F = \frac{\frac{R^2_u-R_c^2}{df_{u}-df_c}}{\frac{1-R_u^2}{df_{e}}}.$$
+
+Dabei bezeichnen: $R^2_u$ den Determinationskoeffizient des uneingeschränkten (unconstrained) Modells, $R^2_c$ den Determinationskoeffizient des eingeschränkten (constrained) Modells, $df_u$ die Anzahl an Freiheitsgraden des uneingeschränkten (unconstrained) Modells [entspricht Anzahl der $b/\beta$-Gewichte inklusive Interzept], $df_u$ die Anzahl an Freiheitsgraden des eingeschränkten (constrained) Modells [entspricht Anzahl der $b/\beta$-Gewichte inklusive Interzept] und $df_e$ die Residualfreiheitsgrade des uneingeschränkten Modells.
+
+In `R`:
 
 ```{r}
 R2.u <- summary(m.u)$r.squared
 R2.c <- summary(m.c)$r.squared
 df.diff <- summary(m.u)$df[1] - summary(m.c)$df[1] # Änderung in den df
-df.u <- summary(m.u)$df[2] # Freiheitsgrade des uneingeschränkten Modells
+df.e <- summary(m.u)$df[2] # Fehlerfreiheitsgrade des uneingeschränkten Modells
 F.diff <- ((R2.u - R2.c) / df.diff) /
-  ((1 - R2.u) / df.u)
-p.diff <- 1-pf(F.diff, df.diff, df.u)
+  ((1 - R2.u) / df.e)
+p.diff <- 1-pf(F.diff, df.diff, df.e)
 F.diff # F-Wert der Differenz in R^2
 p.diff # zugehöriger p-Wert  
 ```
@@ -219,7 +225,7 @@ Eine Forwärts-Rückwärtsselektion (forward-backward-selection) erhalten wir, i
 
 ### Weitere Möglichkeiten
 
-Wie immer gibt es in `R` viele weitere Wege, zum selben Ziel zu kommen. Eine Vielzahl von Funktionen für die schrittweise Regression bietet z.B. das Paket `olsrr`,  Im Rahmen des Praktikums verwenden wir soweit möglich die Basis-Funktionen von `R` und beschränken uns daher bei den Aufgaben für schrittweise Analysen auf die `step`-Funktion.
+Wie immer gibt es in `R` viele weitere Wege, zum selben Ziel zu kommen. Eine Vielzahl von Funktionen für die schrittweise Regression bietet z.B. das Paket `olsrr`. 
 
 Das Paket `olsrr` beinhaltet verschiedene Funktionen, die für die Regressionsanalyse nützlich sind, u.a. auch Funktionen, die die schrittweise Auswahl von Prädiktoren auf Basis verschiedener Kriterien und nach verschiedenen Methoden (vorwärts, rückwärts, etc.) ermöglichen. Finden Sie [hier](https://olsrr.rsquaredacademy.com/articles/variable_selection.html#best-subset-regression) mehr Informationen dazu. Die Funktion `ols_step_both_p` beinhaltet die Auswahl auf Basis der Signifikanz des Inkrements oder Dekrements und führt in jedem Schritt Tests für Einschluss und Ausschluss durch. Das ist sehr ähnlich zum AIC von zuvor, außer, dass jeder Schritt eben mit einer Signifikanzentscheidung untermauert wird. Dieses Vorgehen ist nicht der Default, da durch das sehr häufige Testen das $\alpha$-Fehlerniveau nicht eingehalten werden kann. Eigentlich müsste dann nämlich bspw. Bonferroni korrigiert werden, was wiederum schwierig ist, wenn wir die Anzahl der Tests im Vorhinein kennen. Sie erkennen, das ganze Thema ist eine Wissenschaft für sich!
 
@@ -234,6 +240,8 @@ ols_step_both_p(m, pent = .05, prem = .10, details = TRUE)
 Der Output ist extrem detailliert, wobei allerdings nicht aufgeführt wird, wie die jeweiligen Inkremente oder Dekremente der anderen Variablen ausgefallen waren, die nicht selektiert wurden. Mit der `ols_step_both_p` wählen wir nur den IQ als Prädiktor aus! Uns wird nach jedem Step zunächst gesagt, welcher Prädiktor gewählt wurde und wie sich verschiedene Fit-Maße verhalten (bspw. AIC oder $R^2$). Für uns ist an dieser Stelle besonders das $R^2$ (`R-Squared`) von Relevanz. Die ANOVA im Output beschreibt einfach eine ANOVA der zu vergleichenden Modelle, wobei zunächst mit dem Null-Modell, welches nur das Interzept enthält, begonnen wird. 
 
 Unter `Parameter Estimates` finden wir das finale geschätzte Modell. `Stepwise Selection Summary` zeigt uns das Vorgehen dieses Auswahlalgorithmus.
+
+Wenn Sie die AIC Auswahl mit dem `olsrr` Paket verwenden wollen, dann schauen Sie sich doch mal die Funktion `ols_step_both_aic` an, welche eine Forward-Backward-Selektion mittels des AIC durchführt.
 
 #### Unterschiede im AIC
 
