@@ -57,6 +57,7 @@ Auf der folgenden Seite werden alle Datensätze aufgeführt, mit denen in den ve
 | [Parental Burnout](#parental-burnout-burnout) | [`r fontawesome::fa('download')` OSF ](https://osf.io/qev5n/download) |
 | [Hauptkomponentenanalyse](#hauptkomponentenanalyse-pca) | [`r fontawesome::fa('download')` `PCA` ](/post/PCA.RData) |
 | [Psychisches Wohlbefinden von Individuen während des Lockdowns in Frankreich](#psychisches-wohlbefinden-von-individuen-während-des-lockdowns-in-frankreich-lockdown) | [`r fontawesome::fa('download')` OSF ](https://osf.io/dc6me/download)
+| [Kulturelle Unterschiede in Korruptionsbestrafung](#kulturelle-unterschiede-in-korruptionsbestrafung-punish) | [`r fontawesome::fa('download')` OSF ](https://osf.io/4wypx/download)
 | [Schulleistungen](#schulleistungen) | [`r fontawesome::fa('download')` `Schulleistungen` ](/post/Schulleistungen.rda) |
 | [Therapieerfolg](#therapieerfolg-therapy) | [`r fontawesome::fa('download')` `Therapy` ](/post/Therapy.rda) |
 | [Titanic](#titanic) |  [`r fontawesome::fa('download')` `Titanic` ](/post/Titanic.rda) |
@@ -274,6 +275,8 @@ Im Datensatz liegen keine fehlenden Werte vor.
 
 <!-- </details> -->
 
+---
+
 ## Interozeptive Aufmerksamkeit und Genauigkeit `body`
 
 ### Beschreibung
@@ -337,6 +340,7 @@ In der folgenden Tabelle erfolgt eine Übersicht der erhobenen Variablen und ihr
 
 In dem Datensatz liegen `r sum(is.na(body))` fehlende Werte vor. Diese sind allesamt auf der fehlerhaft kodierten Variablen `UniversityStudent` zu finden.
 
+---
 
 ## Bildungsinvestitionen auf der Welt (`edu_exp`)
 
@@ -1355,6 +1359,68 @@ In diesem Datensatz stehen die Daten eines Messzeitpunktes in je einer Zeile, d.
 Im Datensatz liegen keine fehlenden Werte vor.
 
 <!-- </details> -->
+
+---
+
+## Kulturelle Unterschiede in Korruptionsbestrafung `punish`
+
+### Beschreibung
+Die Daten stammen aus einer [kuturellen Unterschieden in der Einschätzung von verschiedenen Aspekten der Bestechung](https://onlinelibrary.wiley.com/doi/10.1111/ajsp.12509){target="_blank"}. Die hier genutzten Daten sind ein Auszug aus den im [Artikel von Hong-Zhi et al., 2021](https://onlinelibrary.wiley.com/doi/10.1111/ajsp.12509) für Studie 1 genutzten Daten.
+
+Auf `pandaR` wird der Datensatz in dem Tutorial [Regression mit nominalskalierten Prädiktoren](/post/nominalskalierte-praediktoren) für PsyBSc7 verwendet.
+
+
+### Datensatz laden
+
+Die Daten können direkt vom [`r fontawesome::fa('download')` OSF heruntergeladen ](https://osf.io/4wypx/download) werden. Allerdings werden einige Schritte durchlaufe, um die Daten auf die nötigen Variablen zu reduzieren, welche mit 
+
+```{r}
+source(url("https://pandar.netlify.app/post/Preprocessing/Data_Processing_punish.R"))
+```
+
+direkt durchgeführt werden können. Zur Nachvollziehbarkeit, hier noch einmal der Inhalt dieses Skripts:
+
+```{r}
+#### Data preparation file for punishment severity evaluation ----
+# for the paper see: https://onlinelibrary.wiley.com/doi/10.1111/ajsp.12509
+
+punish <- foreign::read.spss('https://osf.io/4wypx/download', use.value.labels = TRUE,
+  to.data.frame = TRUE)
+
+punish <- punish[, c('culture_group', 'bribery_type', 'age', 'gender',
+  'gains_everage', 'difficulties_everage', 'noticed_probability_everage',
+  'punishment_probability_everage', 'punishment_severity_everage')]
+names(punish) <- c('country', 'bribe', 'age', 'gender', 'gains', 'difficult', 
+  'notice', 'probable', 'severe')
+
+levels(punish$age) <- c(levels(punish$age), 'over 50')
+punish$age[punish$age %in% c('51-60', '61-70', 'over 70')] <- 'over 50'
+punish$age <- droplevels(punish$age)
+```
+
+### Größe
+Der Datensatz besteht aus `r dim(punish)[1]` Beobachtungen auf `r dim(punish)[2]` Variablen.
+
+### Variablen
+
+Der Datensatz enthält (in reduzierter Fassung) folgende Variablen:
+
+| Variable | Inhalt | Kodierung |
+| --- | ---- | ---- |
+| `country` | Land  | 1 = China, 2 = U.S |
+| `bribe` | Ebene der beurteilten Bestechungssituation (experimentelle Kondition)
+| `age` | Alter in vier Kategorien | 1 = 21 - 30, 2 = 31 - 40, 3 = 41 - 50, 4 = over 50 |
+| `gender` | Geschlecht | 1 = female, 2 = male |
+| `gains` | Gewinn durch Bestechung | _Mittelwert über fünf Situationen_ (1 bis 10) |
+| `difficult` | Schwierigkeit in der Umsetzung der Handlung, die durch Bestechung erwirkt werden soll | _Mittelwert über fünf Situationen_ (1 bis 10) |
+| `notice` | Wahrscheinlichkeit mit der Bestechung entdeckt wird | _Mittelwert über fünf Situationen_ (1 bis 10) |
+| `probable` | Wahrscheinlichkeit mit der es zur Bestrafung kommt | _Mittelwert über fünf Situationen_ (1 bis 10) |
+| `severe` | Schweregrad der erwarteten Bestrafung | _Mittelwert über fünf Situationen_ (1 bis 10) |
+
+Bei den Variablen `gains` bis `severe` handelt es sich um individuelle Einschätzungen, die für fünf verschiedene schriftlich dargestellte Situationen eingeschätzt werden sollten. Hier werden die Mittelwerte über die fünf Situationen genutzt.
+
+### Fehlende Werte
+Im Datensatz liegen keine fehlenden Werte vor.
 
 ---
 
