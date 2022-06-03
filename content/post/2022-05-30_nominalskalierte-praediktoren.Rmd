@@ -119,6 +119,9 @@ Weil in $b_1$ der _Mittelwertsunterschied_ dargestellt wird, entspricht auch das
 ```{r}
 t.test(punish$severe ~ punish$country, var.equal = TRUE)
 ```
+
+Die Äquivalenz der Ergebnisse erkennen wir bspw. an der Gleichheit der $p$-Werte in der Signifikanzentscheidung und der betraglichen Gleichheit der zugehörigen $t$-Werte. 
+
 ## Effektkodierung
 
 In der Dummy-Kodierung, die in R voreinstellung ist, wird die zweite Gruppe mit der ersten Gruppe verglichen. Das Intercept stellt dabei den Mittelwert der ersten Gruppe dar und das Regressionsgewicht ist die Abweichung der zweiten Gruppe von der ersten Gruppe. In Fällen mit nur zwei Gruppen, ist die logische Frage "na und?", aber für Fälle, in denen wir mehr als nur zwei Gruppen untersuchen, könnte das ein Problem darstellen (auf das wir [später](#mehrere-gruppen) noch eingehen werden).
@@ -173,7 +176,7 @@ tab$mod1 <- predict(mod1, tab)
 tab
 ```
 
-Fur beide Einträge aus den USA wird `round(tab[1, 3], 2)` - also $b_0$ - vorhergesagt. Im Modell haben wir nicht zwischen Bestechungsarten unterschieden, also ist das zunächst relativ naheliegend. Für Fans der bunten Bilder, können wir das auch in einen `ggplot` überführen:
+Für beide Einträge aus den USA wird `r round(tab[1, 3], 2)` - also $b_0$ - vorhergesagt. Im Modell haben wir nicht zwischen Bestechungsarten unterschieden, also ist das zunächst relativ naheliegend. Für Fans der bunten Bilder, können wir das auch in einen `ggplot` überführen:
 
 ```{r mod1-plot, fig=TRUE}
 library(ggplot2)
@@ -204,13 +207,13 @@ pred_plot <- pred_plot +
   geom_point(aes(y = tab$mod2)) + geom_line(aes(y = tab$mod2), lty = 2)
 pred_plot
 ```
-Die beiden Linien haben jetzt einen Anstieg - dieser Anstieg entspricht dem Regressionsgewicht von `bribe`: $b_2 =$ `r round(coef(mod2)[3], 2)` und somit dem Unterschied zwischen den Vorhersagen für Gruppenbestechung und individuelle Bestechung:
+Hierzu haben wir der Grafik die Datenpunkte des neuen Modells hinzugefügt und können diese gut mit der Vorhersage des alten Modells vergleichen (*wir mussten hier mit `tab$mod2` arbeiten und nicht einfach nur mit `mod2` in `geom_point` und `geom_line`, da sich die Daten geändert hatten und wir den Plot ansonsten nochmals hätten aufrufen müssen, was wir uns hier ersparen wollten*): Die beiden Linien haben jetzt einen Anstieg - dieser Anstieg entspricht dem Regressionsgewicht von `bribe`: $b_2 =$ `r round(coef(mod2)[3], 2)` und somit dem Unterschied zwischen den Vorhersagen für Gruppenbestechung und individuelle Bestechung:
 
 ```{r}
 # Übersicht über die Vorhersagten Werte
 tab
 
-# Unterschied der Bestechungstypen
+# Unterschied der Bestechungstypen in den beiden Ländern
 tab$mod2[2] - tab$mod2[1]
 tab$mod2[4] - tab$mod2[3] # identisch
 
@@ -234,18 +237,18 @@ pred_plot <- pred_plot +
   geom_point(aes(y = tab$mod3)) + geom_line(aes(y = tab$mod3), lty = 3)
 pred_plot
 ```
-Die Regression mit Interaktion (gepunktete Linie) erlaubt jetzt, dass der Einfluss der Bestechungsart sich über die Länder hinweg unterscheiden kann (bzw. dass der Einfluss des Landes sich über die Bestechungsarten hinweg unterscheidet - weil es sich um Multiplikation handelt, ist dieser Effekt symmetrisch bzw. ungerichtet). Hier lohnt es sich noch einmal einen genaueren Blick in die Regressionsgleichung zu werfen:
+Die Regression mit Interaktion (gepunktete Linie, eingestellt via `lty = 3`) erlaubt jetzt, dass der Einfluss der Bestechungsart sich über die Länder hinweg unterscheiden kann (bzw. dass der Einfluss des Landes sich über die Bestechungsarten hinweg unterscheidet - weil es sich um Multiplikation handelt, ist dieser Effekt symmetrisch bzw. ungerichtet). Hier lohnt es sich noch einmal einen genaueren Blick in die Regressionsgleichung zu werfen:
 
 $$
     \hat{y}_{m} = b_0 + b_1 \cdot x_{1m} + b_2 \cdot x_{2m} + b_3 \cdot (x_{1m} \cdot x_{2m}) \\
 $$
-Und die vier Vorhersagen, die durch dieses Modell getätigt werden:
+Und auf die vier Vorhersagen, die durch dieses Modell getätigt werden:
 
 ```{r}
 tab
 ```
 
-Wir sollten uns wieder vor Augen führen, dass die unabhängigen Variablen mit 0 und 1 kodiert sind. Für Personen aus den USA (`country = 0`), die kollektive Bestechung (`bribe = 0`) gesehen haben vereinfacht sich die Regressionsgleichung also zu:
+Wir sollten uns wieder vor Augen führen, dass die unabhängigen Variablen mit 0 und 1 kodiert sind, da es sich um *dummy*-Variablen handelt. Für Personen aus den USA (`country = 0`), die kollektive Bestechung (`bribe = 0`) gesehen haben vereinfacht sich die Regressionsgleichung also zu:
 
 $$
   \hat{y}_{m} = b_0 + b_1 \cdot 0 + b_2 \cdot 0 + b_3 \cdot (0 \cdot 0) \\
@@ -277,9 +280,11 @@ Weil für diese Gruppe der Mittelwert nicht mehr aus dem Intercept und einem ein
 summary(mod3)$coefficients
 ```
 
+Dies bedeutet auch, dass es auf die spezifische Kombination aus Land und Art der Bestechung ankommt, für die Vorhersage der eingeschätzten Schwere der Bestrafung. Für die Grafik bedeutet die Signifikanz des Interaktionseffektes, dass die Geraden sich signifikant von der Parallelität unterscheiden.
+
 ### Modellvergleiche
 
-Wie wir in der [Sitzung zur Modelloptimierung](/post/reg2) gesehen haben, können wir die drei Modelle über `anova()` vergleichen, um zu prüfen. Die Modelle sind ineinander geschachtelt, weil wir in jedem Schritt lediglich einen weiteren Prädiktor aufgenommen haben. 
+Wie wir in der [Sitzung zur Modelloptimierung](/post/reg2) gesehen haben, können wir die drei Modelle über `anova()` vergleichen, um zu prüfen, ob sie sich hinsichtlich der Vorhersagekraft der eingeschätzten Schwere der Bestrafung unterscheiden. Die Modelle sind ineinander geschachtelt, weil wir in jedem Schritt lediglich einen weiteren Prädiktor aufgenommen haben. 
 
 ```{r}
 anova(mod1, mod2, mod3)
@@ -312,7 +317,7 @@ Wie wir schon bei den beiden dichotomen Prädiktoren gesehen hatten, übernimmt 
 ```{r}
 contrasts(punish$age)
 ```
-Unsere vier Kategorien (Zeilen) werden also in drei Prädiktoren (Spalten) umgewandelt. Diese Tabelle sagt uns also, dass Personen die z.B. zwischen 41 und 50 Jahre alt sind (dritte Zeile) auf der ersten Dummyvariable (erste Spalte) eine 0 erhalten, auf der zweiten Dummyvariable eine 1 und auf der dritten Dummyvariablen eine 0. Generell ist das System der Dummykodierung immer so angelegt, dass wir $k-1$ Prädiktoren erhalten, die den Unterschied eine spezifischen Gruppen gegenüber der _Referenzkategorie_ darstellen. Als Referenzkategorie gilt immer die Kategorie, deren Mitglieder auf allen Prädiktoren den Werte 0 haben, weil das genau die Personen sind, für die das Intercept Vorhergesagt wird und gegen deren Ausprägung die anderen Gruppen kontrastiert werden. Wieder etwas formeliger ausgedrückt:
+Unsere vier Kategorien (Zeilen) werden also in drei Prädiktoren (Spalten) umgewandelt. Diese Tabelle sagt uns also, dass Personen die z.B. zwischen 41 und 50 Jahre alt sind (dritte Zeile) auf der ersten Dummyvariable (erste Spalte) eine 0 erhalten, auf der zweiten Dummyvariable eine 1 und auf der dritten Dummyvariablen eine 0. Generell ist das System der Dummykodierung immer so angelegt, dass wir $k-1$ Prädiktoren erhalten, die den Unterschied eine spezifischen Gruppen gegenüber der _Referenzkategorie_ darstellen. Als Referenzkategorie gilt immer die Kategorie, deren Mitglieder auf allen Prädiktoren den Werte 0 haben, weil das genau die Personen sind, für die das Intercept vorhergesagt wird und gegen deren Ausprägung die anderen Gruppen kontrastiert werden. Wieder etwas formeliger ausgedrückt:
 
 $$
   \hat{y}_m = b_0 + b_1 \cdot x_{1m} + b_2 \cdot x_{2m} + b_3 \cdot x_{3m}
@@ -400,7 +405,11 @@ $$
   \hat{y}_m = b_0 + b_1 \cdot x_{1m} + b_2 \cdot 1 + b_3 \cdot (x_{1m} \cdot 1) \\
   \hat{y}_m = (b_0 + b_2) + (b_1 + b_3) \cdot x_{1m} 
 $$
-$b_2$ ist also der Unterschied zwischen den Intercepts, also der Unterschied zwischen zwei Personen, die beide den Wert 0 bei der Gewinneinschätzung angeben, aber unterschiedliche Formen der Bestechung (Gruppe vs. individuell) gesehen haben. $b_3$ ist der Unterschied in den Regressionsgewichten der intervallskalierten Variable zwischen den beiden Gruppen, also das Ausmaß an Unterschied im Zusammenhang zwischen $x_1$ und unserer AVm das durch die gesehene Art von Bestechung erklärt wird. Wir erhalten nun also zwei voneinander unterschiedliche Regressionsgerade - für jeder der beiden Gruppen eine. Für die grafische Darstellung können wir die Regressionsgewichte genauso in `geom_abline` einsetzen, wie wir es gerade in der Gleichung gemacht haben:
+$b_2$ ist also der Unterschied zwischen den Intercepts, also der Unterschied zwischen zwei Personen, die beide den Wert 0 bei der Gewinneinschätzung angeben, aber unterschiedliche Formen der Bestechung (Gruppe vs. individuell) gesehen haben. $b_3$ ist der Unterschied in den Regressionsgewichten der intervallskalierten Variable zwischen den beiden Gruppen, also das Ausmaß an Unterschied im Zusammenhang zwischen $x_1$ und unserer AV, der durch die gesehene Art von Bestechung erklärt wird. Wir erhalten nun also zwei voneinander unterschiedliche Regressionsgerade - für jede der beiden Gruppen eine. Wir sehen, dass die Regressionsgleichung quasi identisch ist zu der einer moderierten Regression, mit dem einzigen Unterschied, dass $x_{2}$ ein nominaler Prädiktor ist:
+
+$$  \hat{y}_m = (b_0 + b_2x_{2m}) + (b_1 + b_3x_{2m}) \cdot x_{1m} $$
+
+Für die grafische Darstellung können wir die Regressionsgewichte genauso in `geom_abline` einsetzen, wie wir es gerade in der Gleichung gemacht haben:
 
 ```{r gen-ancova-plot, fig = TRUE}
 scatter + 
@@ -413,13 +422,14 @@ scatter +
 ```
 Die Abbildung zeigt den Unterschied im Zusammenhang zwischen erwartetem Profit von Bestechung und der Schwere der Bestrafung zwischen individueller und kollektiver Bestechung in den USA. Personen, die eine Gruppenbestechung als besonders profitabel einschätzen, schätzen das erwartete Ausmaß an Bestrafung als geringer ein, als Personen die die Bestechung als weniger profitabel ansehen. Anders ist es, wenn es um individuelle Bestechung geht: hier scheint dieser Zusammehang genau umgekehrt zu sein. Auch wenn diese Sätze sehr umständlich klingen, ist es wichtig an dieser Stelle darauf zu achten, dass wir _nicht verschiedene Bestechungssituationen_ sondern verschiedene _Personen und deren Einschätzungen_ vergleichen. 
 
-Im [Beitrag zu Interaktionen zwischen intervallskalierten Variablen](/post/quadratische-und-moderierte-regression) hatten wir schon das Paket `reghelper` kennengelernt, mit dem wir die simple slopes - also bestimmte einzelne Regressionsgeraden - in moderierter Regression genauer inspizieren können. Die `summary` unseres Modell hat uns zwar gezeigt, dass der negative Zusammenhang bei Gruppenbestechung bedeutsam ist (die Testung von $b_1$) und dass der Unterschied im Regressionsgewicht zwischen den beiden Gruppen bedeutsam ist (die Testung von $b_3$), aber nicht ob der positive Zusammenhang für individuelle Bestechung positiv ist. Dafür können wir uns die Simple Slopes näher angucken:
+Im [Beitrag zu Interaktionen zwischen intervallskalierten Variablen](/post/quadratische-und-moderierte-regression) hatten wir Simple Slopes - also bestimmte einzelne Regressionsgeraden - kennengelernt, die wir mit dem Paket `interactions` grafisch veranschaulichen konnten und mit Hilfe welcher wir die Effekte in der moderierter Regression genauer inspizieren können. Wie so oft gibt es in `R` Pakete, die sehr ähnliches tun. So enthält das Paket `reghelper` auch Funktionen, mit welcher wir Simple Slopes betrachten können. Die `summary` unseres Modell hat uns zwar gezeigt, dass der negative Zusammenhang bei Gruppenbestechung bedeutsam ist (die Testung von $b_1$) und dass der Unterschied im Regressionsgewicht zwischen den beiden Gruppen bedeutsam ist (die Testung von $b_3$), aber nicht ob der positive Zusammenhang für individuelle Bestechung positiv ist. Dafür können wir uns die Simple Slopes näher angucken:
 
-```{r}
-reghelper::simple_slopes(mod7)
+```{r, message=FALSE}
+library(reghelper)
+simple_slopes(mod7)
 ```
 
-Die ersten drei Zeilen zeigen uns Gruppenunterschiede zwischen individueller und kollektiver Bestechung bei verschiedenen Ausprägungen von `gains` - per Voreinstellung eine Standardabweichung unter dem Mittelwert, dem Mittelwert und eine Standardabweichung darüber. Die letzten beiden Zeilen zeigen uns die gruppenspezifischen Regressionsgewichte. Für `bribe = 'group'` entspricht dies genau der Testung, die wir schon in der normalen `summary` gesehen haben. Nun erhalten wir auch das Gegenstück und sehen, dass der positive Effekt in der Gruppe, die individuelle Bestechung gesehen hat nicht statistisch bedeutsam von 0 abweicht.
+Die ersten drei Zeilen zeigen uns Gruppenunterschiede zwischen individueller und kollektiver Bestechung bei verschiedenen Ausprägungen von `gains` - per Voreinstellung eine Standardabweichung unter dem Mittelwert, dem Mittelwert und eine Standardabweichung darüber. Die letzten beiden Zeilen zeigen uns die gruppenspezifischen Regressionsgewichte. Für `bribe = 'group'` entspricht dies genau der Testung, die wir schon in der normalen `summary` gesehen haben. Nun erhalten wir auch das Gegenstück und sehen, dass der positive Effekt in der Gruppe, die individuelle Bestechung gesehen hat, nicht statistisch bedeutsam von 0 abweicht.
 
 Erkenntnisse wie diese sind für die Überprüfung von Interventionsmaßnahmen von zentraler Bedeutung, daher werden wir sie in den [Sitzungen für den Master klinische Psychologie und Psychotherapie](/lehre/#msc5a) wiedersehen. 
 
