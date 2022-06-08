@@ -522,7 +522,107 @@ simple_slopes(mod7)</code></pre>
 <summary>
 Vollständiges Modell zur Kombination von <code>country</code>, <code>bribe</code> und <code>gains</code>
 </summary>
-<p><em>Platzhalter</em></p>
+<p>Um vollständig untersuchen zu können, wie die Effekte des Landes, der Bestechungsart und des Ausmaß an erwartetem Profit mit einander interagieren, können wir ein Modell aufstellen, welches alle drei Variablen gleichzeitig als Prädiktoren enthält. Das additive Modell ist zunächst relativ simpel:</p>
+<pre class="r"><code>mod8 &lt;- lm(severe ~ country + bribe + gains, punish)
+summary(mod8)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = severe ~ country + bribe + gains, data = punish)
+## 
+## Residuals:
+##    Min     1Q Median     3Q    Max 
+## -3.883 -1.878 -0.125  1.577  5.406 
+## 
+## Coefficients:
+##                 Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)      4.54433    0.59165   7.681 1.19e-12 ***
+## countryChina     0.47596    0.38691   1.230    0.220    
+## bribeindividual  0.19243    0.35402   0.544    0.587    
+## gains           -0.01663    0.09786  -0.170    0.865    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 2.292 on 170 degrees of freedom
+## Multiple R-squared:  0.01133,    Adjusted R-squared:  -0.006118 
+## F-statistic: 0.6493 on 3 and 170 DF,  p-value: 0.5844</code></pre>
+<p>Dieses Modell impliziert wieder, dass die Effekte der einzelnen Variablen über die Ausprägungen der anderen Variablen hinweg gleich sind (also z.B. dass der Zusammenhang zwischen Profit und Ausmaß der Bestrafung in China und den USA der Gleiche ist). Wie wir bereits in den anderen Abschnitten gesehen hatten, ist diese Annahme nicht haltbar, aber als Ausgangspunkt für die Interpretation ist es dennoch nützlich, sich das einfache Modell vor Augen zu führen:</p>
+<p><span class="math display">\[
+  \hat{y}_{m} = b_0 + b_1 \cdot x_{1m} + b_2 \cdot x_{2m} + b_3 \cdot x_{3m}
+\]</span>
+Hier sind <span class="math inline">\(x_{1m}\)</span> und <span class="math inline">\(x_{2m}\)</span> unsere dummykodierten Indikatoren für <code>country</code> und <code>bribe</code> und <span class="math inline">\(x_{3m}\)</span> ist die intervallskalierte Variable <code>gains</code>. Wieder macht es Sinn, die behaupteten Effekte in einer Abbildung zu inspizieren.</p>
+<pre class="r"><code>scatter &lt;- ggplot(punish, aes(x = gains, y = severe, color = country:bribe)) +
+  geom_point()</code></pre>
+<p>Mit <code>country:bribe</code> wird - wie wir es schon in den Regressionen gesehen haben - die <em>Kreuzung</em> von zwei Variablen erstellt. In unserem Fall erhalten wir im Scatterplot also vier Gruppen, die zur Färbung der Punkte genutzt werden. Weil wir wieder vier Linien anlegen müssen und diese nicht komplett händisch eintragen und idealerweise in der entsprechenden Farbe halten wollen, legen wir einen <code>data.frame</code> an, in dem wir die Intercepts und Slopes für <code>abline</code> hinterlegen:</p>
+<pre class="r"><code>tmp &lt;- coef(mod8)
+tab &lt;- data.frame(country = as.factor(c(&#39;U.S&#39;, &#39;U.S&#39;, &#39;China&#39;, &#39;China&#39;)),
+  bribe = as.factor(c(&#39;group&#39;, &#39;individual&#39;, &#39;group&#39;, &#39;individual&#39;)),
+  intercept = NA,
+  slope = NA)
+tab$intercept &lt;- c(tmp[1], sum(tmp[c(1, 3)]), sum(tmp[1:2]), sum(tmp[1:3]))
+tab$slope &lt;- tmp[4]</code></pre>
+<p>Intercepts und Slopes ergeben sich nach dem gleichen Prinzip, das wir in den vorherigen Abschnitten für die kleineren Modelle gesehen hatten.</p>
+<pre class="r"><code>scatter + 
+  geom_abline(data = tab, aes(intercept = intercept, slope = slope,
+    color = country:bribe))</code></pre>
+<p><img src="/post/2022-05-30_nominalskalierte-praediktoren_files/figure-html/complex_plot_additive-1.png" width="672" style="display: block; margin: auto;" />
+Wie wir zuvor gesehen hatten, sind die Effekte der Bestechungsart in den beiden Ländern aber genau gegenläufig, sodass wir hier einen Interaktionsterm aufnehmen sollten:</p>
+<pre class="r"><code># Modell
+mod9 &lt;- lm(severe ~ country + bribe + gains + country:bribe, punish)
+
+# Plot vorbereitung
+tmp &lt;- coef(mod9)
+tab$intercept &lt;- c(tmp[1], sum(tmp[c(1, 3)]), sum(tmp[1:2]), sum(tmp[c(1:3, 5)]))
+tab$slope &lt;- tmp[4]
+
+# Plot
+scatter +
+  geom_abline(data = tab, aes(intercept = intercept, slope = slope,
+    color = country:bribe))</code></pre>
+<p><img src="/post/2022-05-30_nominalskalierte-praediktoren_files/figure-html/complex_plot_1interact-1.png" width="672" style="display: block; margin: auto;" />
+In diesem Modell sind jetzt die spezifischen Effekte der Gruppen-Bestechungskonstellation <em>im Mittel</em> aufgenommen. Es wird aber nachwievor angenommen, dass der Zusammenhang zwischen <code>gains</code> und <code>severe</code> in allen Bedingungen der Gleiche ist. Es handelt sich also auch hier um eine <em>klassische ANCOVA</em>.</p>
+<p>Es ist möglich, für jeden der dummykodierten Prädiktoren einzeln den Interaktionseffekt mit der intervallskalierten Variable in das Modell aufzunehmen. Hier die Schritte im Schnelldurchlauf mit anschließender Modellauswahl über das Informationskriterium <span class="math inline">\(AIC\)</span>:</p>
+<pre class="r"><code># Schrittweise Modelle mit Interaktionen
+mod10 &lt;- lm(severe ~ country + bribe + gains + country:bribe + country:gains, punish)
+mod11 &lt;- lm(severe ~ country + bribe + gains + country:bribe + bribe:gains, punish)
+mod12 &lt;- lm(severe ~ country + bribe + gains + country:bribe + country:gains + bribe:gains, punish)
+mod13 &lt;- lm(severe ~ country + bribe + gains + country:bribe + country:gains + bribe:gains + country:bribe:gains, punish)
+
+# AIC Tabelle
+aics &lt;- rbind(extractAIC(mod8),
+  extractAIC(mod9),
+  extractAIC(mod10),
+  extractAIC(mod11),
+  extractAIC(mod12),
+  extractAIC(mod13)) |&gt; data.frame()
+names(aics) &lt;- c(&#39;df&#39;, &#39;AIC&#39;)
+aics$model &lt;- 8:13
+aics</code></pre>
+<pre><code>##   df      AIC model
+## 1  4 292.5670     8
+## 2  5 286.2715     9
+## 3  6 288.2659    10
+## 4  6 286.3236    11
+## 5  7 288.2826    12
+## 6  8 285.7176    13</code></pre>
+<p>Wie wir sehen, bevorzugt der AIC das Modell 13 - ein Modell mit beiden paarweisen Interaktionen und der <em>dreifach Interaktion</em>. Diese Interaktion gibt in dieser Konstellation an, dass das Regressionsgewicht wieder für jede der vier Gruppen individuell sein darf. Es folgt dem gleichen Prinzip, wie wir es schon für die Interaktionen der nominalskalierten Variablen <a href="#kombination-mehrerer-dichotomer-pradiktoren">in der Vorhersage des Schweregrads</a> gesehen hatten. Nur dass sich der Effekt diesmal nicht auf Mittelwerte, sondern auf Regressionsgewichte bezieht. In der Abbildung:</p>
+<pre class="r"><code># Plot vorbereitung
+tmp &lt;- coef(mod13)
+tab$intercept &lt;- c(tmp[1], sum(tmp[c(1, 3)]), sum(tmp[1:2]), sum(tmp[c(1:3, 5)]))
+tab$slope &lt;- c(tmp[4], sum(tmp[c(4, 7)]), sum(tmp[c(4, 6)]), sum(tmp[c(4, 6:8)]))
+
+# Plot
+scatter +
+  geom_abline(data = tab, aes(intercept = intercept, slope = slope,
+    color = country:bribe))</code></pre>
+<p><img src="/post/2022-05-30_nominalskalierte-praediktoren_files/figure-html/complex_plot_fullinteract-1.png" width="672" style="display: block; margin: auto;" />
+Wir sehen also, dass die entgegengesetzten Effekte, die wir für Mittelwerte gesehen hatten auch für die Zusammenhänge zwischen <code>gains</code> und <code>severe</code> bestehen: in den USA geht mit größerem Gewinn bei Gruppenbestechung (rote Linie) eine <em>geringere</em> Erwartung der Schwere der Bestrafung einher; in China hingegen eine <em>höhere</em> (türkise Linie). Wir können wieder über <code>simple_slopes</code> die gruppenspezifischen Regressionsgewichte prüfen:</p>
+<pre class="r"><code>simple_slopes(mod13, levels = list(gains = &#39;sstest&#39;))</code></pre>
+<pre><code>##   country      bribe  gains Test Estimate Std. Error t value  df Pr(&gt;|t|) Sig.
+## 1     U.S      group sstest       -0.3177     0.1676 -1.8950 166  0.05983    .
+## 2   China      group sstest        0.1126     0.2177  0.5172 166  0.60573     
+## 3     U.S individual sstest        0.2279     0.1610  1.4151 166  0.15890     
+## 4   China individual sstest       -0.1968     0.2534 -0.7767 166  0.43844</code></pre>
+<p>Wir sehen also, dass trotz der großen optischen Unterschiede in den Regressionsgewichten, keins der gruppenspezifischen Regressionsgewichte statistisch bedeutsam von 0 abweicht.</p>
 </details>
 <hr />
 </div>
