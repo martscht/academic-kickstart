@@ -4,6 +4,7 @@ zika_full <- read.csv('https://osf.io/fn9aq/download') |> subset(finished == 1)
 zika <- with(data = zika_full,
     data.frame(wave,
       age, gender,
+      preg = NA,
       race = NA,
       educ,
       polparty,
@@ -18,6 +19,13 @@ zika_races[rowSums(zika_races) != 1, ] <- data.frame(0, 0, 0, 0, 0, 1)
 
 zika$race <- as.matrix(zika_races) %*% c(4, 1, 2, 4, 3, 4) |> as.vector() |>
   factor(labels = c('Asian', 'African', 'Caucasian', 'Other'))
+
+# Pregnancy
+zika$preg <- ifelse(is.na(zika_full$youpreg), 
+  zika_full$getpreg,
+  ifelse(zika_full$youpreg == 1, 
+    zika_full$getpreg,
+    2)) |> factor(labels = c('No', 'Yes'))
 
 # Conspiracy scale value
 zika$consp <- rowMeans(zika_full[, c('gmomosq', 'bioweap', 'popcntrl', 'badvax', 'pest')], na.rm = TRUE)
