@@ -68,8 +68,6 @@ subtitle = "Statistik I"
 
 In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestudium. Dafür betrachten wir die Grundstruktur von R, Datenimport, einfache Grafiken, Deskriptivstatistiken, Verteilungsfunktionen und einige Tests. Das dazugehörige Material taucht im Verlauf des Semesters hier auf.
 
-**Hinweis**: Aufgrund der Lehrumstellung zum Wintersemester 2021/2022 ändert sich auch die Struktur dieses Abschnitts. Wir arbeiten daran, die Inhalte so schnell wie möglich wieder öffentlich verfügbar zu machen.
-
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
 | 1 | **R-Intro** | [Inhalte](/post/r-crash-kurs) | [Aufgaben](/post/r-crash-kurs-aufgaben) | [Lösungen](/post/r-crash-kurs-loesungen)
