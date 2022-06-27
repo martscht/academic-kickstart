@@ -21,11 +21,11 @@ zika$race <- as.matrix(zika_races) %*% c(4, 1, 2, 4, 3, 4) |> as.vector() |>
   factor(labels = c('Asian', 'African', 'Caucasian', 'Other'))
 
 # Pregnancy
-zika$preg <- ifelse(is.na(zika_full$youpreg), 
+zika$preg <- ifelse(is.na(zika_full$youpreg),
   zika_full$getpreg,
-  ifelse(zika_full$youpreg == 1, 
+  ifelse(zika_full$youpreg == 1,
     zika_full$getpreg,
-    2)) |> factor(labels = c('No', 'Yes'))
+    3)) |> factor(labels = c('Not planned', 'Planned', 'Currently pregnant'))
 
 # Conspiracy scale value
 zika$consp <- rowMeans(zika_full[, c('gmomosq', 'bioweap', 'popcntrl', 'badvax', 'pest')], na.rm = TRUE)
@@ -34,7 +34,7 @@ zika$gender <- factor(zika$gender, labels = c('male', 'female', 'other'))
 zika$gender[zika$gender == 'other'] <- NA
 # Education
 zika$educ <- factor(zika$educ, labels = c('< High School', '< High School', '< High School',
-  'High School', 'Some College', 'Some College', 'Some College', 
+  'High School', 'Some College', 'Some College', 'Some College',
   'College +', 'College +', 'College +'))
 # Pol Party
 zika$polparty <- factor(zika$polparty, labels = c('Democrat', 'Republican',
