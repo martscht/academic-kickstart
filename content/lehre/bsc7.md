@@ -82,6 +82,6 @@ Das Modul PsyBSc7 vertieft die im Modul PsyBSc2 vermittelten Grundlagen. Behande
 | V | 9 | **ANOVA I: einfaktorielle Varianzanalyse** | [Inhalte](/post/anova1) | -- |
 | V | 10 | **ANOVA II: zweifaktorielle Varianzanalyse** | [Inhalte](/post/anova2) | [Daten Quiz 5](/post/bsc7-daten/#Quiz5) |
 | VI | 11 | **ANOVA III: Varianzanalyse mit Messwiederholung** |  [Inhalte](/post/anova3) | [Daten Quiz 6](/post/bsc7-daten/#Quiz6) |
-| | Zusatz | **Regressionanalyse V: nichtlineare Regression** | [Inhalte](/post/nichtlineare-regression) | [Daten Zusatzquiz](/post/bsc7-daten/#QuizZusatz) |
+| | Zusatz | **Regressionanalyse V: nichtlineare Regression** | [Inhalte](/post/nichtlineare-regression) |  |
 | | Zusatz | **Regressionanalyse VI: Nominalskalierte Prädiktoren** | [Inhalte](/post/nominalskalierte-praediktoren) | -- |
 | | |
