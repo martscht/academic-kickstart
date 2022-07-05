@@ -1,6 +1,6 @@
 #######################
 ### ANOVA III: ANOVA mit Messwiederholung
-# von Miriam Scheppa-Lahyani und Martin Schultze
+# von Miriam Scheppa-Lahyani, Julien P. Irmer und Martin Schultze
 
 ###Datensatz laden
 load(url("https://pandar.netlify.app/post/alc.rda")) #direkt von pandaR laden
@@ -61,7 +61,7 @@ ezANOVA(alc_long, alcuse, id, within = age)
 
 ###Effektgröße & Intraklassenkorrelation
 psych::ICC(alc[, c('alcuse.14', 'alcuse.15', 'alcuse.16')]) #Intraklassenkorrelationskoeffizient ICC
-#Der in diesem Fall relevante ICC-Typ (`type`) ist als `ICC1` gelistet. In diesem Fall (ICC = .51) bedeutet es also, dass ca. 50% der Unterschiede zwischen Messungen auf stabile Personeneigenschaften zurückgehen.
+#Der in diesem Fall relevante ICC-Typ (`type`) ist als `ICC1` gelistet. In diesem Fall (ICC = .51) bedeutet es also, dass ca. 51% der Unterschiede zwischen Messungen auf stabile Personeneigenschaften zurückgehen.
 #Das Alter hat einen kleinen Effekt auf das Ausmaß des Alkoholkonsums bei Jugendlichen
 
 
@@ -113,8 +113,9 @@ em <- emmeans(wdh_aov, ~ age)
 
 contrast(em, list(lin_cont, qua_cont),
          adjust = 'bonferroni')
-#linearer Kontrast ist signfikant -> wird verworfen
-#Wir nehmen an, dass es einen quadratischen Trend in den Daten gibt
+#linearer Kontrast ist signfikant -> damit wird quasi der Kontrast auf horizontalen Verlauf verworfen
+# der Kontrast für quadratsichen Verlauf ist nicht signifikant
+#Wir nehmen an, dass es einen linearen Trend in den Daten gibt
 
 #Abkürzung für typische Kontraste
 contrast(em, interaction = 'poly', adjust = 'bonferroni')
@@ -147,3 +148,113 @@ ezPlot(alc_long,
 #Unterscheidet sich die Veränderung mit der Zeit im Alkoholkonsum zwischen den beiden Gruppen von Jugendlichen? (Interaktionseffekt)
 ezANOVA(alc_long, dv = alcuse, wid = id, within = age, between = coa)
 heplots::boxM(alc[, c('alcuse.14', 'alcuse.15', 'alcuse.16')], group = alc$coa) #Gleichheit der Varianz-Kovarianz-Matrizen der messwiederholten Variablen über alle Gruppen hinweg prüfen
+
+
+
+### Appendix A -----
+### Trendanalysen
+
+
+# Horizontaler Verlauf
+set.seed(123) # für Vergleichbarkeit
+Means <- c(0, 0, 0) # wahren Mittelwerte pro Zeitpunkt
+Y <- Means[1] + rnorm(30)
+Y <- c(Y, Means[2] + rnorm(30))
+Y <- c(Y, Means[3] + rnorm(30))
+
+times <- c(rep("1", 30), rep("2", 30), rep("3", 30))
+id <- c(1:30, 1:30, 1:30)
+df <- data.frame(Y, times, id)
+df$times <- as.factor(times)
+df$id <- as.factor(df$id)
+head(df)
+ezPlot(df, Y, id, within = times,
+       x = times) +
+     geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
+                 formula = y ~ 1, color = "gold3") +
+     geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
+                 formula = y ~ x) +
+     geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
+                 formula = y ~ x + I(x^2), color = 'red')
+whd_aov <- aov(Y ~ times + Error(id/times), data = data.frame(df))
+em <- emmeans(whd_aov, ~ times)
+contrast(em, interaction = 'poly')
+
+
+# Linearer Verlauf
+set.seed(123) # für Vergleichbarkeit
+Means <- c(1, 2, 3) # wahren Mittelwerte pro Zeitpunkt
+Y <- Means[1] + rnorm(30)
+Y <- c(Y, Means[2] + rnorm(30))
+Y <- c(Y, Means[3] + rnorm(30))
+
+times <- c(rep("1", 30), rep("2", 30), rep("3", 30))
+id <- c(1:30, 1:30, 1:30)
+df <- data.frame(Y, times, id)
+df$times <- as.factor(times)
+df$id <- as.factor(df$id)
+head(df)
+ezPlot(df, Y, id, within = times,
+       x = times) +
+     geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
+                 formula = y ~ 1, color = "gold3") +
+     geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
+                 formula = y ~ x) +
+     geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
+                 formula = y ~ x + I(x^2), color = 'red')
+whd_aov <- aov(Y ~ times + Error(id/times), data = data.frame(df))
+em <- emmeans(whd_aov, ~ times)
+contrast(em, interaction = 'poly')
+
+
+
+# rein quadratischer (invers U-förmiger) Verlauf
+set.seed(123) # für Vergleichbarkeit
+Means <- c(0, 1, 0) # wahren Mittelwerte pro Zeitpunkt
+Y <- Means[1] + rnorm(30)
+Y <- c(Y, Means[2] + rnorm(30))
+Y <- c(Y, Means[3] + rnorm(30))
+
+times <- c(rep("1", 30), rep("2", 30), rep("3", 30))
+id <- c(1:30, 1:30, 1:30)
+df <- data.frame(Y, times, id)
+df$times <- as.factor(times)
+df$id <- as.factor(df$id)
+head(df)
+ezPlot(df, Y, id, within = times,
+       x = times) +
+     geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
+                 formula = y ~ 1, color = "gold3") +
+     geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
+                 formula = y ~ x) +
+     geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
+                 formula = y ~ x + I(x^2), color = 'red')
+whd_aov <- aov(Y ~ times + Error(id/times), data = data.frame(df))
+em <- emmeans(whd_aov, ~ times)
+contrast(em, interaction = 'poly')
+
+
+# quadratischer Verlauf
+set.seed(123) # für Vergleichbarkeit
+Means <- c(1^2, 2^2, 3^2) # wahren Mittelwerte pro Zeitpunkt
+Y <- Means[1] + rnorm(30)
+Y <- c(Y, Means[2] + rnorm(30))
+Y <- c(Y, Means[3] + rnorm(30))
+
+times <- c(rep("1", 30), rep("2", 30), rep("3", 30))
+id <- c(1:30, 1:30, 1:30)
+df <- data.frame(Y, times, id)
+df$times <- as.factor(times)
+df$id <- as.factor(df$id)
+head(df)
+ezPlot(df, Y, id, within = times,
+       x = times) +
+     geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
+                 formula = y ~ 1, color = "gold3") +
+     geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
+                 formula = y ~ x) +
+     geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
+                 formula = y ~ x + I(x^2), color = 'red')
+whd_aov <- aov(Y ~ times + Error(id/times), data = data.frame(df))
+em <- emmeans(whd_aov, ~ times)
+contrast(em, interaction = 'poly')
