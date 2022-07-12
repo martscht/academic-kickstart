@@ -15,7 +15,7 @@ tags:
   - Kontraste
 subtitle: 'ANOVA mit Messwiederholung'
 summary: ''
-authors: [scheppa-lahyani,irmer,schultze]
+authors: [scheppa-lahyani,irmer,nehler,schultze]
 lastmod: '2022-07-05T08:32:21+02:00'
 featured: no
 header:
@@ -55,61 +55,36 @@ Der Datensatz stammt aus einer Erhebung von Curran, Stice und Chassin (1997) in 
 
 ### Datenformat und `reshape`
 
-Die Unterscheidung zwischen Long- und Wide-Format hatten wir schon in der [2. Sitzung](/post/grafiken-mit-ggplot2/) (`ggplot2`) gesehen. Als kurze Erinnerung: Bei der Formatierung von sozialwissenschaftlichen Datensätzen können zwei generelle Typen unterschieden werden: das *Long-Format* und das *Wide-Format*. Die Bezeichnung bezieht sich dabei (meistens) auf die Anordnung von Messwiederholungen der gleichen Personen. Im geladenen Datensatz stellt eine Zeile jeweils eine Person zu einem Zeitpunkt dar. Jede Personen-ID kommt also genau ein mal vor:
+Bei der Formatierung von sozialwissenschaftlichen Datensätzen können zwei generelle Typen unterschieden werden: das *Long-Format* und das *Wide-Format* (bzw. *lang* und *breit*). Die Bezeichnung bezieht sich dabei (meistens) auf die Anordnung von Messwiederholungen der gleichen Personen.  Manche Analyseverfahren benötigen Datensätze im langen Format (wie z.B. die Messwiederholte ANOVA mit `ez`), andere benötigen Datensätze im breiten Format (wie z.B. multivariate Regression). Im breiten Format ist wird jedem Objekt bzw. jeder Versuchsperson eine Zeile zugeordnet. Verschiedene Messzeitpunkte derselben Variable werden also in verschiedenen Spalten abgebildet. Beispielsweise könnte das so aussehen:
+
+| ID| alc14 | alc15 | alc16 | male |
+| --- | --- | --- | --- | --- | 
+| 1 | 0 | 1 | 1 | 1 | 
+| 2 | 1 | 1 |  1 | 1 | 
+| 3 | 1 | 2 |  3 | 0 | 
+
+
+Im langen Format hingegen bekommt jede Versuchsperson für jeden Messzeitpunkt eine Spalte. Variablen, die häufiger gemessen wurden, ändern sich dann je nach Zeile für eine Person, während einmal gemessene Variablen gleich bleiben. Als Indikator für den Messzeitpunkt wird eine neue Spalte eingeführt. Die gerade aufgeführte Tabelle würde dann so aussehen:
+
+| ID| age | alc | male |
+| --- | ---  | --- | --- | 
+| 1 | 14 | 0 | 1 | 
+| 1 | 15 | 1 | 1 | 
+| 1 | 16 | 1 | 1 | 
+| 2 | 14 | 1 |  1 |
+| 2 | 15 | 1 |  1 |
+| 2 | 16 | 1 |  1 |
+| 3 | 14 | 1 | 0 |
+| 3 | 15 | 2 | 0 |
+| 3 | 16 | 3 | 0 |
+
+Wenn wir uns den Datensatz `alc` anschauen sehen wir, dass er erstmal im breiten Format vorliegt. Eine weitere Bestätigung dafür ist, dass jede `ID` auch nur einmal vorkommt.
 
 ```{r}
 table(alc$id)
 ```
 
-Manche Analyseverfahren benötigen Datensätze im langen Format (wie z.B. die Messwiederholte ANOVA mit `ez`), andere benötigen Datensätze im breiten Format (wie z.B. multivariate Regression). Die Umwandlung zwischen den beiden Formaten hatten wir in der [2. Sitzung](/post/grafiken-mit-ggplot2/) mit `reshape` durchgeführt.
-
-Probieren Sie kurz aus, ob Sie sich noch daran erinnern (oder rekonstruieren können), wie Sie den Datensatz ins lange Format übertragen! Nennen Sie den neuen Datensatz am besten `alc_long` und lassen Sie sich am Ende der Umstellung die ersten 6 Zeilen mit `head` ausgeben (*der letzte Schritt ist nötig, damit geprüft werden kann, ob Sie die Umstellung richtig gemacht haben*). Beachten Sie, dass die Variablen `male`, `peer` und `coa` jeweils nur einmal (zu Beginn der Studie) gemessen wurden und dass für die Zeiten das Alter (14, 15 und 16) statt 1, 2 und 3 vergeben werden sollten.
-
-<details><summary>**Tipp 1**</summary>
-
-
-```{r reshape, exercise = TRUE, exercise.eval = FALSE, eval = FALSE}
-# Umwandeln des Datensatzes
-alc_long <- ...
-
-# Kopfzeilen ausgeben
-head(alc_long)
-```
-
-</details>
-
-<details><summary>**Tipp 2**</summary>
-
-
-```{r reshape-hint-1, eval = FALSE}
-# Notwendige Argumente
-alc_long <- reshape(data = ...,
-  varying = list(...),
-  direction = ...)
-```
-
-
-</details>
-
-<details><summary>**Tipp 3**</summary>
-
-
-```{r reshape-hint-2, eval = FALSE}
-# Zusatz für bessere Aufbereitung
-alc_long <- reshape(data = ...,
-  varying = list(...),
-  direction = ...,
-  timevar = 'age',
-  v.names = 'alcuse',
-  times = c(14, 15, 16))
-```
-
-</details>
-
-
-#### Wiederholung: `reshape`
-
-Für die Transformation der Daten aus einem in das andere Format gibt es die `reshape`-Funktion, welche unterschiedliche Argumente benötigt, je nachdem, in welche Richtung die Daten transformiert werden sollen. Hier wollen wir aus dem breiten Format ins lange Format transformieren, um die Daten hinterher für die Varianzanalyse mit Messwiederholung nutzen zu können.
+Wie bereits geschildert benötigt das `ez`-Paket für die ANOVA mit Messwiederholung allerdings einen Datensatz im langen Format. Für die Transformation der Daten aus einem in das andere Format gibt es die `reshape`-Funktion, welche unterschiedliche Argumente benötigt, je nachdem, in welche Richtung die Daten transformiert werden sollen. Hier wollen wir aus dem breiten Format ins lange Format transformieren, um die Daten hinterher für die Varianzanalyse mit Messwiederholung nutzen zu können.
 
 Weil die Benennung und Handhabung von Argumenten in `reshape` mitunter etwas unübersichtlich ist, empfiehlt es sich mit `?reshape` (in einem neuen R-Fenster) die Hilfe aufzurufen. Für die Umwandlung von breit nach lang sind drei Argumente zwingend erforderlich:
 
@@ -117,7 +92,7 @@ Weil die Benennung und Handhabung von Argumenten in `reshape` mitunter etwas un�
   - `varying`: eine Liste der Variablen, die wiederholt gemessen wurden
   - `direction`: die Richtung, in die der Datensatz transformiert werden soll (hier `'long'`)
 
-Im Minimalfall sieht die Umwandlung also so aus:
+Den umgewndelten Datensatz wollen wir direkt ablegen. Allerdings wollen wir den Datensatz im breiten Format nicht überschreiben, weshalb wir den Namen `alc_long` verwenden. Im Minimalfall sieht die Umwandlung also so aus:
 
 ```{r}
 alc_long <- reshape(data = alc,
@@ -203,7 +178,9 @@ Wenn ein Datensatz durch `reshape` umgewandelt wurde - z.B. dann, wenn man einen
 
 ## Einfaktorielle ANOVA (mit Messwiederholung)
 
-Zur Untersuchung von Veränderung können wir die - in den letzten Sitzungen behandelten - Funktionen aus dem `ez`-Paket wieder benutzen. Dafür gucken wir uns zuerst die Deskriptivstatistik an und führen dann die ANOVA durch.
+Nun haben wir den Datensatz umgebaut und unsere Analyse soll sich logischerweise auch auf die 3 Messungen von Alkohol fokussieren. Doch warum brauchen wir jetzt überhaupt ein anderes Verfahren als die einfaktorielle Varianzanalyse? Können wir nicht jede Altersgruppe als eigene Gruppe betrachten und dann unser schon gelerntes Vorgehen anwenden? Die Begründung, warum das nicht so einfach möglich ist, ähnelt natürlich der Unterscheidung zwischen unabhängigem und abhängigem t-Test. Wenn wir den Messwert einer Person in verschiedene Einflüsse zerlegen, gibt es neben dem Effekt des Messzeitpunktes also auch einen Effekt der Person. Daher müssen wir eine andere mathematische Formulierung nutzen.
+
+Die Umsetzung in `R` funktioniert aber ähnlich mit den in den letzten Sitzungen behandelten Funktionen aus dem `ez`-Paket. Im Folgenden betrachten wir zunächst die Deskriptivstatistik und führen dann die ANOVA durch.
 
 ### Deskriptivstatistik
 
@@ -499,9 +476,18 @@ Obwohl `ez` den *Mauchly Test* für Sphärizität mitliefert, ist im Fall des Sp
 heplots::boxM(alc[, c('alcuse.14', 'alcuse.15', 'alcuse.16')], group = alc$coa)
 ```
 
-Nach [Eid et al. (2017](https://ubffm.hds.hebis.de/Record/HEB366849158), S. 494) ist die ANOVA gegenüber der Verletzung der Homgenitätsannahme bezüglich der Kovarianzmatrizen dann robust, wenn die Sphärizitätsannahme nicht verworfen werden muss. Sollte diese ebenfalls verworfen werden müssen, können entweder die zuvor dargestellten Korrekturen genutzt werden oder eine "echte" robuste Variante (z.B. im `WRS2`-Paket) genutzt werden.
+Auch in unserem Fall wird eine signifikante Verletzung der Annahme angezeigt. Nach [Eid et al. (2017](https://ubffm.hds.hebis.de/Record/HEB366849158), S. 494) ist die ANOVA gegenüber der Verletzung der Homgenitätsannahme bezüglich der Kovarianzmatrizen dann robust, wenn die Sphärizitätsannahme nicht verworfen werden muss. In dem Output von der ANOVA haben wir aber gesehen, dass auch hier eine signifikante Verletzung vorliegt. Für die Interpretaion können nun die zuvor dargestellten Korrekturen oder eine "echte" robuste Variante (z.B. im `WRS2`-Paket) genutzt werden. Betrachten wir nun nochmal genauer den oben schon gezeigten Output.
 
-Bezüglich der Ergebnisse der ANOVA zeigt sich, dass das Alter und ob ein Elternteil Alkoholiker ist einen bedeutsamen Einfluss auf das Trinkverhalten von Jugendlichen haben. Dass die Interaktion nicht statistisch bedeutsam ist, deutet darauf hin, dass die Entwicklung über die Zeit zwischen beiden Gruppen von Jugendlichen parallel verläuft.
+
+```{r, echo = FALSE, warning=FALSE}
+ezANOVA(alc_long, 
+  dv = alcuse, 
+  wid = id, 
+  within = age, 
+  between = coa)
+```
+
+Bezüglich der Ergebnisse der ANOVA zeigt sich, dass das Alter (korrigierte Effekte nach HF) und ob ein Elternteil Alkoholiker (`coa`) ist einen bedeutsamen Einfluss auf das Trinkverhalten von Jugendlichen haben. Da `coa` nur einmal gemessen wurde, wird für den Effekt keine Korrektur verwendet. Dass die Interaktion nicht statistisch bedeutsam ist, deutet darauf hin, dass die Entwicklung über die Zeit zwischen beiden Gruppen von Jugendlichen parallel verläuft.
 
 
 ***
