@@ -1,16 +1,16 @@
 ---
 # Display name
-name: Hasti Rouchi
+name: Maria Schloter
 
 # Username (this should match the folder name)
 authors:
-- rouchi
+- schloter
 
 # Is this the primary user of the site?
 superuser: false
 
 # Role/position
-role: Lehre
+role: Projekte
 
 # Organizations/Affiliations
 organizations:
@@ -38,16 +38,16 @@ social:
 #   link: https://scholar.google.co.uk/citations?hl=en&user=368OoWYAAAAJ&view_op=list_works&gmla=AJsN-F5_hYcoHq-aPPcKI9tGNawbc1-TYnfo0LzT8NvaBsMd37l-LSNKeRM0XUqGXORfXDtfooR9QfgGVRkw_XaunV49qxH3dFhQaPLeCtQ3i9mRArB1AKw
  - icon: github
    icon_pack: fab
-   link: https://github.com/HastiRouchi
+   link: https://github.com/mschloter
 # - icon: bitbucket
 #   icon_pack: fab
 #   link: https://bitbucket.com/martscht
 # - icon: link
 #   icon_pack: fa
 #   link: https://www.psychologie.uni-frankfurt.de/54448027/Julien_Irmer
- - icon: researchgate
-   icon_pack: fab
-   link: https://www.researchgate.net/profile/Hasti-Mohammadi-Rouchi
+# - icon: researchgate
+#   icon_pack: fab
+#   link: https://www.researchgate.net/profile/Hasti-Mohammadi-Rouchi
 # Link to a PDF of your resume/CV from the About widget.
 # To enable, copy your resume/CV to `static/files/cv.pdf` and uncomment the lines below.
 # - icon: cv
@@ -62,9 +62,9 @@ email: ""
 user_groups: ["Team"]
 ---
 
-Hasti Rouchi ist Hilfswissenschaflterin in den Abteilungen _Psychologische Methoden mit interdisziplinärer Ausrichtung_ und _Psychologische Methodenlehre, Evaluation und Forschungsmethodik_ an der Goethe-Universität Frankfurt.
+Maria Schloter ist Hilfswissenschaflterin in den Abteilungen _Psychologische Methoden mit interdisziplinärer Ausrichtung_ an der Goethe-Universität Frankfurt.
 
 **Biographie**
 
-- Bachelor- und Masterstudium der Psychologie an der Johann Wolfgang Goethe-Universität in Frankfurt seit 2017 mit dem Schwerpunkt Klinische Psychologie (Major)
-- Studentische Hilfskraft in der Methodenabteilung der Goethe-Universität Frankfurt (seit 2018)
+- Bachelorstudium der Psychologie und an der Johann Wolfgang Goethe-Universität in Frankfurt seit 2021
+- Studentische Hilfskraft im Projekt Lokale Infrastruktur für Open Science der Abteilung _Psychologische Methoden mit interdisziplinärer Ausrichtung_ (seit 2022)
