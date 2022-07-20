@@ -76,7 +76,7 @@ Ein Bild sagt mehr als tausend Zahlen! Mit einer guten Grafik lassen sich viele 
 | 2 | **ggplot2 Intro** | [Inhalte](/post/ggplotting-intro) | [R-Skript](/post/ggplotting-intro.R) |
 | 3 | **Hübsche Grafiken: Theorie** | -- | -- |
 | 4 | **Hübsche Grafiken: Praxis** | [Inhalte](/post/ggplotting-themes) | [R-Skript](/post/ggplotting-themes.R) |
-| 5 | **Übung 1** | -- | R-Skript |
+| 5 | **Übung 1** | -- | -- |
 | 6 | **ggplotpourri** | [Inhalte](/post/ggplotting-ggplotpourri) | -- |
 | 7 | **gganimate** | [Inhalte](/post/ggplotting-gganimate) | [R-Skript](/post/ggplotting-gganimate.R) |
 | 8 | **plotly** | [Inhalte](/post/ggplotting-plotly) | [R-Skript](/post/ggplotting-plotly.R) |

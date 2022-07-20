@@ -57,4 +57,13 @@ email: ""
 #   Set this to `[]` or comment out if you are not using People widget.
 user_groups: ["Former"]
 ---
-Ich bin ein Psychologiestudent an der Goethe Universität und arbeite nebenbei als HiWi in der Methodenabteilung. In meiner Freizeit mache ich gerne Sport und bin ein großer Fußball-Fan. Außerdem beschäftige ich mich viel mit Musik, auch wenn ich selbst noch kein Instrument spielen kann. Was ich nach meinem Studium machen möchte, weiß ich noch nicht genau. Mein größtes Interesse liegt im Bereich der Arbeits- und Organisationspsychologie, aber da möchte ich mich noch nicht festlegen.
+
+Robin Mehler war studentischer Hilfswissenschaftler in den Abteilungen _Psychologische Methodenlehre, Evaluation und Forschungsmethodik_ und _Psychologische Methoden mit interdisziplinärer Ausrichtung_ an der Goethe-Universität Frankfurt. Er war Mitglied des Projektteams für die Erstellung der Projekte und damit die Entstehung von PandaR.
+
+**Biographie**
+
+- Bachelorstudium der Psychologie und an der Johann Wolfgang Goethe-Universität in Frankfurt 
+- Masterstudium Klinische Psychologie und Psychotherapie
+- Hilfswissenschaftler in der Abteilung _Psychologische Methoden mit interdisziplinärer Ausrichtung_ 
+
+

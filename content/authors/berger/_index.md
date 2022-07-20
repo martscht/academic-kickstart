@@ -61,7 +61,7 @@ email: ""
 user_groups: ["Former"]
 ---
 
-Christina Berger war eine Psychologiestudentin und Hilfswissenschaftlerin in der Abteilung _Psychologische Methoden mit interdisziplinärer Ausrichtung_ an der Goethe-Universität Frankfurt.
+Christina Berger war studentische Hilfswissenschaftlerin in der Abteilung _Psychologische Methoden mit interdisziplinärer Ausrichtung_ an der Goethe-Universität Frankfurt. Sie war Mitglied des Projektteams für die Erstellung der Projekte und damit die Entstehung von PandaR.
 
 **Biographie**
 
