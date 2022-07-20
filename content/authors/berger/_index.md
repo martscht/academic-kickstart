@@ -19,6 +19,10 @@ organizations:
 
 # Short bio (displayed in user profile at end of posts)
 bio:
+interests: 
+- Arbeits- und Organisationspsychologie
+- Personalauswahl
+- Personalentwicklung
 education:
 # Social/Academic Networking
 # For available icons, see: https://sourcethemes.com/academic/docs/widgets/#icons
@@ -57,4 +61,11 @@ email: ""
 user_groups: ["Former"]
 ---
 
-Ich bin Psychologiestudentin an der Goethe Universität und habe diese Seite als HiWi in der interdisziplinären Abteilung erstellt. Mein Schwerpunkt des Studiums liegt in der Arbeits- und Organisationspsychologie, da ich später in der Personalentwicklung bzw. Personalauswahl arbeiten möchte. Ich finde es jedoch wichtig einen breiten Horizont zu behalten und alle Möglichkeiten, die das Leben einem gibt, zu nutzen.
+Christina Berger war eine Psychologiestudentin und Hilfswissenschaftlerin in der Abteilung _Psychologische Methoden mit interdisziplinärer Ausrichtung_ an der Goethe-Universität Frankfurt.
+
+**Biographie**
+
+- Bachelorstudium der Psychologie und an der Johann Wolfgang Goethe-Universität in Frankfurt mit Schwerpunkt auf Arbeits- und Organisationspsychologie. 
+- Hilfswissenschaftlerin in der Abteilung _Psychologische Methoden mit interdisziplinärer Ausrichtung_ 
+
+
