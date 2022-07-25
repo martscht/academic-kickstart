@@ -33,9 +33,9 @@ social:
 # - icon: twitter
 #   icon_pack: fab
 #   link: https://twitter.com/GeorgeCushen
-# - icon: google-scholar
-#   icon_pack: ai
-#   link: https://scholar.google.co.uk/citations?hl=en&user=368OoWYAAAAJ&view_op=list_works&gmla=AJsN-F5_hYcoHq-aPPcKI9tGNawbc1-TYnfo0LzT8NvaBsMd37l-LSNKeRM0XUqGXORfXDtfooR9QfgGVRkw_XaunV49qxH3dFhQaPLeCtQ3i9mRArB1AKw
+ - icon: google-scholar
+   icon_pack: ai
+   link: https://scholar.google.co.uk/citations?hl=en&user=368OoWYAAAAJ&view_op=list_works&gmla=AJsN-F64RpJyPmUHhBuIu1cmq1RztcFPdH51ANkMIZYELz9JCdSuPhkuxc3ZPORyrR_meOqPctx4zKIwpMnILGJdPZw-ltYbOcZx359E8MpUYBbpqyFdvVBNu8mJ9KLgPLF0G191Q1g_TckSaUAR1xUimwo7O5m05w
  - icon: github
    icon_pack: fab
    link: https://github.com/HastiRouchi

@@ -36,9 +36,9 @@ social:
 # - icon: google-scholar
 #   icon_pack: ai
 #   link: https://scholar.google.co.uk/citations?user=sIwtMXoAAAAJ
-#  - icon: github
-#    icon_pack: fab
-#    link: https://github.com/jpirmer
+  - icon: github
+    icon_pack: fab
+    link: https://github.com/dominiklawetzky
 # - icon: bitbucket
 #   icon_pack: fab
 #   link: https://bitbucket.com/martscht
@@ -61,3 +61,11 @@ email: ""
 #   Set this to `[]` or comment out if you are not using People widget.
 user_groups: ["Teaching"]
 ---
+
+Dominik Lawetzky ist seit 2021 studentische Hilfskraft in den Abteilungen *Psychologische Methoden mit interdisziplinärer Ausrichtung* und *Psychologische Methodenlehre, Evaluation und Forschungsmethodik*. Dabei unterstützt er vor allem die Praktika zu `R`.
+
+
+**Biographie**
+
+- Frühstudium der Politikwissenschaft an der Johannes Gutenberg-Universität Mainz von 2019 bis 2020
+- Bachelor-Studium der Psychologie an der Johann Wolfgang Goethe-Universität in Frankfurt seit 2020
