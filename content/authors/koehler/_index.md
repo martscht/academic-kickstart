@@ -45,9 +45,9 @@ social:
 #  - icon: link
 #    icon_pack: fa
 #    link: https://www.psychologie.uni-frankfurt.de/54448027/Julien_Irmer
-#  - icon: researchgate
-#    icon_pack: fab
-#    link: https://www.researchgate.net/profile/Julien_P_Irmer
+  - icon: researchgate
+    icon_pack: fab
+    link: https://www.researchgate.net/profile/Carmen-Koehler-3
 # Link to a PDF of your resume/CV from the About widget.
 # To enable, copy your resume/CV to `static/files/cv.pdf` and uncomment the lines below.
 # - icon: cv
@@ -63,7 +63,7 @@ user_groups: ["Teaching"]
 ---
 
 
-Carmen Köhler ist Habilitantin im Arbeitsbereich der Educational Measurements in der Abteilung der Lehr- und Lernqualität in Bildungseinrichtungen (LLiB) des Leibniz-Instituts für Bildungsforschung und Bildungsinformation DIPF.
+Carmen Köhler ist habilitierte Postdoktorandin im Arbeitsbereich der Educational Measurements in der Abteilung der Lehr- und Lernqualität in Bildungseinrichtungen (LLiB) des Leibniz-Instituts für Bildungsforschung und Bildungsinformation DIPF.
 
 **Biografie**
 
