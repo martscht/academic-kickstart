@@ -1,7 +1,7 @@
 ---
 # Display name
 name: Julien P. Irmer
-weight: 50
+weight: 20
 # Username (this should match the folder name)
 authors:
 - irmer

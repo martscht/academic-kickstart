@@ -1,7 +1,7 @@
 ---
 # Display name
 name: Zarah Schreiner
-
+weight: 50
 # Username (this should match the folder name)
 authors:
 - schreiner

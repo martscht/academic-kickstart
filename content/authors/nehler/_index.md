@@ -1,7 +1,7 @@
 ---
 # Display name
 name: Kai J. Nehler
-weight: 60
+weight: 30
 # Username (this should match the folder name)
 authors:
 - nehler
