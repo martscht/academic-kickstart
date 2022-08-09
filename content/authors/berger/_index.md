@@ -1,7 +1,7 @@
 ---
 # Display name
 name: Christina Berger
-weight: 60
+
 # Username (this should match the folder name)
 authors:
 - berger
