@@ -209,9 +209,9 @@ Insgesamt bieten <span style="color: darkred;">**Git**</span> und <span style="c
 
 Über `discard`, können wir Änderungen, die wir an den Dateien vorgenommen haben, verwerfen. Wir würden dadurch wieder zu der Version der Datei zurückkehren, die im letzten `commit` enthalten ist. Wichtig ist, dass es somit hier um Änderungen an der Datei geht, die noch nicht in einem `commit` verarbeitet wurden. 
 
-Um das Ganze zu testen, müssen wir zunächst eine Änderung an einer lokalen Datei vornehmen. Beispielsweise fügen wir in unsere Auswertungsdatei eine neue Zeile Code ein. 
+Um das Ganze zu testen, müssen wir zunächst eine Änderung an einer lokalen Datei vornehmen. Beispielsweise fügen wir in unsere Auswertungsdatei eine neue Zeile Code ein.
 
-![](/post/smartgit_discard_filechange.png)
+![](/post/smartgit_discard_filechange2.png)
 
 Die Änderung wird nun in <span style="color: darkred;">**SmartGit**</span> angezeigt, indem die Datei als "Modified" bezeichnet wird. 
 
@@ -242,7 +242,24 @@ Hier wird nochmal darin unterschieden, ob der `stash` nach dem Wiedereinfügen b
 
 Wir sehen nun, dass die Datei zur Datenauswertung wieder als "Modified" angezeigt wird. Weiterhin ist der `stash` aus der Anzeige der `Branches` verschwunden (dies wäre bei nur **Apply** nicht passiert). Da die Änderung an unserer Auswertungsdatei aber nicht wichtig ist, wollen wir sie jetzt endgültig rückgäng machen. Wir wählen also wieder *Discard* und als Option diesmal das reine `discard`. Damit ist die Datei wieder auf dem Stand des letzten `commit` und wir können einen weiteren interessanten Befehl betrachten.
 
+##### `git revert`
 
+Mit dem Befehl `git revert HEAD` wird ein neuer `Commit` erstellt, der den vorherigen reverted. Wenn ihr `git log` ausführt, werdet ihr eueren ungewollten `Commit` zwar noch sehen, aber rein technisch ist dieser rückgängig gemacht worden. In unserer Datenauswertung haben wir jetzt etwas Falsches reingeschrieben. 
+
+![](/post/smartgit_revert.png)
+Gehen wir nun über das Terminal in unser Repository und führen den obigen Befehl aus. Wenn wir jetzt unser Log checken, sollte da sowas stehen: 
+
+![](/post/smartgit_DoRevert.png)
+Das ist der ideale Befehl für öffentliche Repositorys. Wenn man allerdings einen geordnetes Log haben will, sollte man etwas anderes versuchen. 
+
+##### `git reset`
+Mit `$git reset --hard [Commit]` wird der Verlauf auf diesen ausgewählten `Commit` zurückgesetzt. Die ungewollten `Commits` kann man im Log nicht mehr sehen (wie es oben der Fall ist). In die Klammer setzt ihr die "Nummer" des vorherigen `Commits` ein. Diese erfahrt ihr über das Log und sieht so aus: 3fb082aec25dacb664762cec505aba79528b55cf. Wenn ihr nach dem Ausführen des Befehls nun wieder in euer Log schaut, ist euer neuer `Commit` nicht mehr da.
+
+Dieses Zurücksetzen eignet sich gut für lokale Repositorys, nicht so gut für remote Repositorys. 
+
+Das Alles waren nun Befehle für die Konsole oder das Terminal. Wie kann man den letzten `Commit` auf <span style="color: darkred;">**SmartGit**</span> rückgängig machen?
+
+Indem ihr in <span style="color: darkred;">**SmartGit**</span> auf *Local*, oben in der Leiste geht und dann nur noch auf `Undo last Commit` klickt. Damit kehrt ihr wieder auf den Stand vor diesem `Commit` zurück. 
 
 ##### `Fetch`
 
@@ -312,11 +329,11 @@ Das verwirrt <span style="color: darkred;">**Git**</span>, da es nicht weiß, we
 Um einen Konflikt lösen zu können, muss man natürlich erstmal einen erstellen. Alleine geht das wie folgt: 
 
 1. Erstellt eine neue Datei in R, die ihr dann committed und auf <span style="color: darkred;">**GitHub**</span> pusht, sodass ihr lokal und remote denselben Stand habt. 
-2. Jetzt ändert ihr lokal etwas in der Datei (hier in Zeile 2).
+2. Jetzt ändert ihr lokal etwas in der Datei (hier in Zeile 20).
 
-![](/post/smartgit_KonfliktLokal.png)
+![](/post/smartgit_KonfliktLokal2.png)
 3. Öffnet <span style="color: darkred;">**SmartGit**</span> und führt nur einen `Commit` durch, danach nicht wie normalerweise noch einen `Push`.  
-4. Wechselt nun zu <span style="color: darkred;">**GitHub**</span>  und ändert dort etwas in derselben Zeile, in der ihr auch lokal etwas verändert habt (hier also Zeile 2). Jetzt speichert ihr diese Änderungen.  
+4. Wechselt nun zu <span style="color: darkred;">**GitHub**</span>  und ändert dort etwas in derselben Zeile, in der ihr auch lokal etwas verändert habt (hier also Zeile 20). Jetzt speichert ihr diese Änderungen.  
 5. Wechselt wieder zu <span style="color: darkred;">**SmartGit**</span> und führt einen `Pull` durch. 
 
 Wenn ihr alle diese Schritte durchgeführt habt, ist ein Konflikt entstanden. 
@@ -332,13 +349,12 @@ Das ist natürlich problematisch, wenn man sowohl die Eigenen als auch die des A
 ![](/post/smartgit_ConflictSolver.png)
 Nachdem ihr den `Conflict Solver` gestartet habt, öffnet sich ein weiteres Fenster. Links sieht man unsere eigenen Veränderungen, rechts die der anderen Person und in der Mitte eine mögliche Lösung des Konflikts. 
 
-![](/post/smartgit_ConflictSolver2.png)
+![](/post/smartgit_ConflictSolver3.png)
 Hier werden beide Veränderungen zusammen in der Datei angezeigt. Falls noch nicht genau ersichtlich ist, wer welche Veränderungen getätigt hat, geht man links oben auf *Base Changes*. Damit erhält man bei großen Veränderungen einen besseren Überblick. Bei unserem Beispiel ist das nicht nötig. 
 
-Wir wollen jetzt die 2. Zeile der rechten Seite ("Hier Konflikt") und die 4. Zeile der linken Seite ("Oder doch?") behalten.
-Das heißt wir nehmen die linke Seite (*Take Left*) mit einer kleinen Modifikation. Um jetzt die 2. Zeile der rechten Seite einzufügen, geht man mit Rechtsklick auf diese Zeile und klickt dann auf *Apply Inner line Difference to Middle*. 
+Wir wollen jetzt die Version mit dem `shapiro.test()` nehmen. Dafür klicken wir auf den Pfeil neben der Zeile und "ziehen" sie in die Mitte. 
 
-![](/post/smartgit_KonfliktLösung.png)
+![](/post/smartgit_KonfliktLösung2.png)
 Die Datei in der Mitte sieht jetzt so aus wie wir sie haben wollten. Also gehen wir auf *Save* und schließen dann den `Conflict Solver`. Dabei taucht folgende Meldung auf: 
 
 ![](/post/smartgit_StageCommit.png)
