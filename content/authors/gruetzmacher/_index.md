@@ -62,4 +62,13 @@ social:
 user_groups: ["Teaching"]
 ---
 
-Luisa Grützmacher ist assoziierte Wissenschaftlerin im Arbeitsbereich der Educational Measurements in der Abteilung Lehr- und Lernqualität in Bildungseinrichtungen (LLiB) des Leibniz-Instituts für Bildungsforschung und Bildungsinformation DIPF. 
+Luisa Grützmacher ist wissenschaftliche Mitarbeiterin (Post-Doc) im Projekt „100 Schulen – 1000 Chancen“ am Zentrum für Lehrer*innenbildung an der Universität Wien.
+
+**Biografie:**
+
+- Studium der Erziehungswissenschaft an der Universität Potsdam (bis 2016)
+- studentische Hilfskraft im Arbeitsbereich empirische Erziehungswissenschaft bei Prof. Dr. Merkens, Freie Universität Berlin (2014 bis 2016)
+- von 2017 bis 2021 wissenschaftliche Mitarbeiterin (zur Promotion) im DFG Projekt Modellierung von Ergebnisqualität und Chancengleichheit auf Schulebene von Prof. Dr. Johannes Hartig, Prof. Dr. Eckhard Klieme, Prof. Dr. Kai Maaz und Prof. Dr. Svenja Vieluf
+- im Jahr 2021 Promotion an der Goethe-Universität Frankfurt
+- seit 2021 wissenschaftliche Mitarbeiterin (Post-Doc) im Projekt 100 Schulen – 1000 Chancen von Prof. Dr. Barbara Schober, Prof. Dr. Manfred Prenzel und Prof. Dr. Marko Lüftenegger
+

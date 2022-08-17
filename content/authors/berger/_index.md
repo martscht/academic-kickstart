@@ -40,10 +40,10 @@ social:
 #   link: https://scholar.google.co.uk/citations?user=sIwtMXoAAAAJ
 # - icon: github
 #   icon_pack: fab
-#   link:
-# - icon: link
-#   icon_pack: fa
-#   link:
+#   link: 
+ - icon: link
+   icon_pack: fa
+   link: https://www.linkedin.com/in/christina-berger-62b19b156
 # - icon: researchgate
 #   icon_pack: fab
 #   link:
@@ -65,7 +65,7 @@ Christina Berger war studentische Hilfswissenschaftlerin in der Abteilung _Psych
 
 **Biographie**
 
-- Bachelorstudium der Psychologie und an der Johann Wolfgang Goethe-Universität in Frankfurt mit Schwerpunkt auf Arbeits- und Organisationspsychologie. 
-- Hilfswissenschaftlerin in der Abteilung _Psychologische Methoden mit interdisziplinärer Ausrichtung_ 
-
+- Bachelorstudium der Psychologie und an der Johann Wolfgang Goethe-Universität in Frankfurt mit Schwerpunkt auf Arbeits- und Organisationspsychologie.
+- Von Oktober 2019 bis September 2020 Hilfswissenschaftlerin in der Abteilung _Psychologische Methoden mit interdisziplinärer Ausrichtung_
+- Masterstudium der Psychologie an der Johann Wolfgang Goethe-Universität in Frankfurt mit Schwerpunkt auf Arbeits- und Organisationspsychologie
 
