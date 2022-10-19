@@ -81,7 +81,7 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 | 8 | **Korrelation** | [Inhalte](/post/korrelation) | [Aufgaben](/post/korrelation-aufgaben) | [Lösungen](/post/korrelation-loesungen) |
 | 9 | **Regression** | [Inhalte](/post/regression) | [Aufgaben](/post/regression-aufgaben) | [Lösungen](/post/regression-loesungen) |
 | 10 | **Simulation und Poweranalyse** | [Inhalte](/post/simulation) | [Aufgaben](/post/simulation-aufgaben) | [Lösungen](/post/simulation-loesungen) |
-| *Zusatz* | **Gruppenprojekt** | [Inhalte](/post/gruppenprojekt) | [Hinweise Ergebnisbericht](/post/hinweise-zum-ergebnisbericht) | [FormR FAQ](/post/formr-faq) |
+| *Zusatz* | **Gruppenprojekt** | [Inhalte](/post/gruppenprojekt) | [Ergebnisbericht](/post/hinweise-zum-ergebnisbericht) | [FormR](/post/under-construction) |
 | | | | |
 
 
