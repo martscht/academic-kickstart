@@ -97,19 +97,19 @@ sum(pos$sum) / nrow(pos)</code></pre>
 <pre><code>## [1] 7</code></pre>
 <p>Wie aus der Vorlesung und der eigenen Brettspielerfahrung bekannt, ist der Erwartungswert für ein einzelnes Ereignis nicht aussagekräftig - man würfelt nicht mit jedem Wurf 7. Doch gibt es eine Beziehung zwischen beobachteter und erwarteter Häufigkeit, die man durch häufiges Wiederholen abbilden kann. Dafür könnte man 1000 Mal per Hand die Würfel werfen und das Ergebnis jeweils in <code>R</code> notieren, doch natürlich bietet das Programm auch einen Shortcut. Mit der Funktion <code>sample()</code> kann zufällig aus einer definierten Menge gezogen werden. Ein einmaliges Werfen eines Würfels würde dabei so aussehen.</p>
 <pre class="r"><code>sample(x = wuerfel, size = 1)</code></pre>
-<pre><code>## [1] 5</code></pre>
+<pre><code>## [1] 2</code></pre>
 <p>Unter dem Argument <code>x</code> kann definiert werden, aus welcher Menge an Objekten zufällig gezogen wird - in diesem Fall die Ziffern zwischen 1 und 6, die im Objekt <code>wuerfel</code> hinterlegt sind. <code>size</code> definiert die Anzahl an Wiederholungen. Wenn wir nun also zwei Würfel werfen wollen, können wir die <code>size</code> einfach erhöhen. Dabei ist es außerdem wichtig, ob das Experiment mit oder ohne Zurücklegen durchgeführt wird. Dafür ist das Argument <code>replace</code> verantwortlich, das standardmäßig auf <code>FALSE</code> steht. Da die Würfel jedoch auch die selbe Zahl anzeigen können, agieren wir mit Zurücklegen und müssen das Argument auf <code>TRUE</code> setzen.</p>
 <pre class="r"><code>sample(x = wuerfel, size = 2, replace = TRUE)</code></pre>
-<pre><code>## [1] 1 3</code></pre>
+<pre><code>## [1] 4 2</code></pre>
 <p>Für die Verteilung der Ergebnisse ist es vor allem wichtig, wie die Summe aus den beiden Ziffern aussieht. Die Funktionen kann man in einer Zeile kombinieren.</p>
 <pre class="r"><code>sample(x = wuerfel, size = 2, replace = TRUE) |&gt; sum()</code></pre>
 <pre><code>## [1] 2</code></pre>
 <p>Des Weiteren soll der Wurf nicht nur einmal mit den beiden Würfeln durchgeführt werden, sondern häufiger wiederholt werden. Hier hilft Ihnen <code>replicate()</code>, wobei die Anzahl an wiederholten Durchführungen einer Funktion im Argument <code>n</code> festgelegt werden kann. Weiterhin muss im Argument <code>expr</code> die Funktion genannt werden, die wiederholt werden soll.</p>
 <pre class="r"><code>replicate(n = 10, expr = sum(sample(x = wuerfel, size = 2, replace = TRUE)))</code></pre>
-<pre><code>##  [1]  6 11 10  6  5  5  7  9  4  7</code></pre>
+<pre><code>##  [1]  7  9  7 10 10  2  9  9  5  7</code></pre>
 <p>Beachten Sie jedoch, dass Sie bei zweimaliger Durchführung desselben Befehls nicht zwei Mal dasselbe Ergebnis bekommen werden, da <code>R</code> den Zufall jeweils neu simuliert.</p>
 <pre class="r"><code>replicate(n = 10, expr = sum(sample(x = wuerfel, size = 2, replace = TRUE)))</code></pre>
-<pre><code>##  [1] 5 5 9 6 8 5 5 4 5 9</code></pre>
+<pre><code>##  [1]  6  6  8  9 12 11  8  6  6  9</code></pre>
 <p>Zur Konstanthaltung der Ergebnisse eines Zufallsvorgangs kann <code>set.seed()</code> genutzt werden, durch das der <code>R</code> interne Zufallsgenerator stets an der selben Stelle gestartet wird. Dies ermöglicht die Reproduzierbarkeit des Ergebnisses (Anmerkung: bei verschiedenen Versionen von <code>R</code> könnte der Befehl auch andere Resultate produzieren).</p>
 <pre class="r"><code>set.seed(500)
 replicate(n = 10, expr = sum(sample(x = wuerfel, size = 2, replace = TRUE)))</code></pre>
@@ -160,33 +160,35 @@ hist(results_10000, xlim = c(1.5,12.5), breaks = c(1.5:12.5))</code></pre>
 <li><span class="math inline">\((1-\pi)^{n-x}\)</span> Wahrscheinlichkeit von <span class="math inline">\(n-x\)</span> Nieten</li>
 <li><span class="math inline">\({n \choose x}\)</span> Anzahl der Möglichkeiten / Binomialkoeffizient</li>
 </ol>
-<p>Für den Binomialkoeffizienten hat R einen eigenen Eingabebefehl <code>choose()</code> mit den Argumenten <code>n</code> und <code>k</code>. Wenn wir nun also berechnen wollen wie wahrscheinlich es ist, dass bei 100-maligem Drehen 30 mal grün erscheint, kann man dies folgendermaßen machen.</p>
-<pre class="r"><code>choose(n = 100, k = 30) * 0.2^30 * 0.8^70</code></pre>
-<pre><code>## [1] 0.005189643</code></pre>
+<p>Für den Binomialkoeffizienten hat R einen eigenen Eingabebefehl <code>choose()</code> mit den Argumenten <code>n</code> und <code>k</code>. Wenn wir nun also berechnen wollen wie wahrscheinlich es ist, dass bei 100-maligem Drehen 20 mal grün erscheint, kann man dies folgendermaßen machen.</p>
+<pre class="r"><code>choose(n = 100, k = 20) * 0.2^20 * 0.8^80</code></pre>
+<pre><code>## [1] 0.09930021</code></pre>
 <p>Noch simpler geht es mit der Funktion <code>dbinom()</code>. Diese hat als Argumente <code>x</code> statt <code>k</code>, <code>size</code> statt <code>n</code> und <code>prob</code> für die Wahrscheinlichkeit des interessierenden Ereignisses.</p>
-<pre class="r"><code>dbinom(x = 30, size = 100, prob = 0.2) </code></pre>
-<pre><code>## [1] 0.005189643</code></pre>
-<p>Die berechnete Lösung ist ein Wert aus der <em>Wahrscheinlichkeitsverteilung</em> unseres Beispiels. Es ist also die Wahrscheinlichkeit, dass genau 30 von 100 Versuchen auf grün landen. Für jede mögliche Anzahl <code>k</code> bzw. <code>x</code> gibt es einen zugeordneten Wert. Um sich die gesamte Wahrscheinlichkeitsverteilung anzusehen, gibt es folgende Eingabemöglichkeit:</p>
+<pre class="r"><code>dbinom(x = 20, size = 100, prob = 0.2) </code></pre>
+<pre><code>## [1] 0.09930021</code></pre>
+<p>Die berechnete Lösung ist ein Wert aus der <em>Wahrscheinlichkeitsverteilung</em> unseres Beispiels. Es ist also die Wahrscheinlichkeit, dass genau 20 von 100 Versuchen auf grün landen. Für jede mögliche Anzahl <code>k</code> bzw. <code>x</code> gibt es einen zugeordneten Wert. Um sich die gesamte Wahrscheinlichkeitsverteilung anzusehen, gibt es folgende Eingabemöglichkeit:</p>
 <pre class="r"><code>x &lt;- c(0:100)   # alle möglichen Werte für x in unserem Beispiel
 probs &lt;- dbinom(x, size = 100, prob = 0.2) #Wahrscheinlichkeiten für alle möglichen Werte
 plot(x = x, y = probs, type = &quot;h&quot;, xlab = &quot;Häufigkeiten des Ereignis Grün&quot;, ylab = &quot;Wahrscheinlichkeit bei 100 Drehungen&quot;)</code></pre>
 <p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
 <p>Die Funktion <code>plot()</code> gibt uns die Möglichkeit, eigene <code>x</code> und <code>y</code> Werte zu definieren. Es werden alle Zahlen zwischen 0 und 100 mit der dazugehörigen Wahrscheinlichkeit abgebildet. <code>type</code> gibt uns die Möglichkeit, verschiedene Darstellungsarten zu wählen (<code>h</code> steht in dem Fall für histogrammähnliche Striche). <code>xlab</code> und <code>ylab</code> ermöglichen die Achsenbeschriftung.</p>
-<p>Im folgenden Plot ist nochmal abgebildet, was wir mit der Funktion <code>dbinom</code> für den Wert 30 erreicht haben: Wir konnten die “Höhe” seines Balkens bestimmen - also die Wahrscheinlichkeit für genau 30 Erfolge.</p>
+<p>Im folgenden Plot ist nochmal abgebildet, was wir mit der Funktion <code>dbinom</code> für den Wert 20 erreicht haben: Wir konnten die “Höhe” seines Balkens bestimmen - also die Wahrscheinlichkeit für genau 20 Erfolge.</p>
 <p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
 <p>Anmerkung: Grafiken mit gefärbten Bestandteilen werden hier zu didaktischen Zwecken dargestellt. Es wird nicht erwartet, dass dies selber beherrscht wird und aus Gründen des Umfangs auch nicht beschrieben.</p>
-<p>Neben der genauen Erfolgszahl gibt es auch häufig Fragestellungen, die sich mit Bereichen befassen: Wie wahrscheinlich ist es, dass höchstens 30 Mal grün gedreht wird bei 100 Versuchen? In unserem Plot der Wahrscheinlichkeitsverteilung würde der erfragte Wert die der Werte vieler Balken sein.</p>
+<p>Neben der genauen Erfolgszahl gibt es auch häufig Fragestellungen, die sich mit Bereichen befassen: Wie wahrscheinlich ist es, dass höchstens 20 Mal grün gedreht wird bei 100 Versuchen? In unserem Plot der Wahrscheinlichkeitsverteilung würde der erfragte Wert die Summe der Werte vieler Balken sein.</p>
 <p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
 <p>Eine solche Frage kann mit Hilfe der <em>Verteilungsfunktion</em> der Binomialverteilung beantwortet werden. Hier werden die Werte der niedrigeren Zahlen <em>kumuliert</em> - das bedeutet aufaddiert.</p>
-<p>Auch hierfür ist in R eine Funktion definiert mit dem Namen <code>pbinom()</code>. <code>q</code> gibt nun die Zahl an, bis zu der alle Wahrscheinlichkeiten aufaddiert werden. <code>size</code> und <code>prob</code> erhalten ihre Bedeutung. <code>lower.tail = TRUE</code> (Standardeinstellung) sorgt für eine Aufaddierung der Werte startend bei 0 (also 0 bis 30 Mal grün). Bei <code>lower.tail = FALSE</code> würde von der anderen Seite, also der <code>size</code> zugeordneten Zahl, begonnen werden. Die Aufaddierung der Werte geht dann von dem maximalen Wert (also <span class="math inline">\(n\)</span> und in diesem Fall 100) bis zu dem Wert <code>1 + q</code> (31 bis 100 Mal grün). Höchstens 30 mal bedeutet dabei, dass die 30 im Intervall mit einbezogen wird. Bei weniger als 30 mal könnte man <code>q = 29</code> verwenden, da die Binomialverteilung stets diskrete Variablen abbildet.</p>
-<pre class="r"><code>pbinom(q = 30, size = 100, prob = 0.2, lower.tail = TRUE)</code></pre>
-<pre><code>## [1] 0.9939407</code></pre>
-<p>Um die Wahrscheinlichkeit innerhalb eines Intervalls zu berechnen, kann die Funktion einfach zwei mal genutzt und die Werte voneinander subtrahiert werden. Für die Fragestellung, wie wahrscheinlich Werte im Intervall von 25 und 30 sind, würde die Funktion folgendermaßen aussehen:</p>
-<pre class="r"><code>pbinom(q = 30, size = 100, prob = 0.2, lower.tail = TRUE) - pbinom(q = 24, size = 100, prob = 0.2, lower.tail = TRUE)</code></pre>
-<pre><code>## [1] 0.1252939</code></pre>
+<p>Auch hierfür ist in R eine Funktion definiert mit dem Namen <code>pbinom()</code>. <code>q</code> gibt nun die Zahl an, bis zu der alle Wahrscheinlichkeiten aufaddiert werden. <code>size</code> und <code>prob</code> erhalten ihre Bedeutung. <code>lower.tail = TRUE</code> (Standardeinstellung) sorgt für eine Aufaddierung der Werte startend bei 0 (also 0 bis 20 Mal grün). Bei <code>lower.tail = FALSE</code> würde von der anderen Seite, also der <code>size</code> zugeordneten Zahl, begonnen werden. Die Aufaddierung der Werte geht dann von dem maximalen Wert (also <span class="math inline">\(n\)</span> und in diesem Fall 100) bis zu dem Wert <code>1 + q</code> (21 bis 100 Mal grün).</p>
+<p>Höchstens 20 mal bedeutet dabei, dass die 20 im Intervall mit einbezogen wird (also <code>lower.tail = TRUE</code>).</p>
+<pre class="r"><code>pbinom(q = 20, size = 100, prob = 0.2, lower.tail = TRUE)</code></pre>
+<pre><code>## [1] 0.5594616</code></pre>
+<p>Bei weniger als 20 mal könnte man <code>q = 19</code> verwenden, da die Binomialverteilung stets diskrete Variablen abbildet.</p>
+<p>Um die Wahrscheinlichkeit innerhalb eines Intervalls zu berechnen, kann die Funktion einfach zwei mal genutzt und die Werte voneinander subtrahiert werden. Für die Fragestellung, wie wahrscheinlich Werte im Intervall von 15 und 20 sind, würde die Funktion folgendermaßen aussehen:</p>
+<pre class="r"><code>pbinom(q = 20, size = 100, prob = 0.2, lower.tail = TRUE) - pbinom(q = 14, size = 100, prob = 0.2, lower.tail = TRUE)</code></pre>
+<pre><code>## [1] 0.4790179</code></pre>
 <p>Wie die Wahrscheinlichkeitsverteilung kann die Verteilungsfunktion natürlich auch abgebildet werden. Im Code der Grafikerstellung muss nur die Funktion <code>dbinom()</code> durch <code>pbinom()</code> ersetzt werden.</p>
 <pre class="r"><code>x &lt;- c(0:100)   # alle möglichen Werte für x in unserem Beispiel
-probs &lt;- pbinom(x, size = 100, prob = 0.2) #Wahrscheinlichkeiten für alle möglichen Werte
+probs &lt;- pbinom(x, size = 100, prob = 0.2, lower.tail = TRUE) #Wahrscheinlichkeiten für alle möglichen Werte
 plot(x = x, y = probs, type = &quot;h&quot;, 
      xlab = &quot;Häufigkeiten für Ereignis Grün&quot;, 
      ylab = &quot;kumulierte Wahrscheinlichkeit&quot;)</code></pre>
@@ -194,12 +196,12 @@ plot(x = x, y = probs, type = &quot;h&quot;,
 <p>Im Endeffekt haben wir mit <code>pbinom</code> also wieder einen Wert aus dieser Verteilung ablesen können.</p>
 <p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
 <p>Es ist bereits ein Muster zu erkennen: Der Buchstabe vor dem Funktionsname <code>"binom()"</code> (<code>"d"</code> als Punktwahrscheinlichkeit für ein bestimmtes <code>x</code> bzw. <code>"p"</code> als kumulierte Wahrscheinlichkeit für ein bestimmtes <code>x</code>) verändert die Funktion. Des Weiteren bietet R noch die zufällige Simulation des Experimentes mit <code>"r"</code> und den Präfix <code>"q"</code> für die Quantilfunktion.</p>
-<p>Gehen wir nun einmal umgekehrt an unser Ecperiment heran. Wir wollen hier herausfinden, welche Anzahl an Treffern in den unteren 10 Prozent der Verteilung liegen. Auch hier werden die einzelnen Wahrscheinlichkeiten wieder aufaddiert / kumuliert. Optisch gesehen suchen wir also nach dem Ort in unserer Verteilungsfunktion, wo die 10 Prozent liegen.</p>
+<p>Gehen wir nun einmal umgekehrt an unser Experiment heran. Wir wollen hier herausfinden, welche Anzahl an Treffern in den unteren 10 Prozent der Verteilung liegen. Auch hier werden die einzelnen Wahrscheinlichkeiten wieder aufaddiert / kumuliert. Optisch gesehen suchen wir also nach dem Ort in unserer Verteilungsfunktion, wo die 10 Prozent liegen.</p>
 <p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
 <p>Die Funktion <code>qbinom()</code> beantwortet uns diese entgegengesetzte Fragestellung von <code>pbinom()</code>.</p>
 <pre class="r"><code>qbinom(p = 0.1, size = 100, prob = 0.2, lower.tail = TRUE)</code></pre>
 <pre><code>## [1] 15</code></pre>
-<p><code>p</code> gibt die Anzahl an Prozent an, die die kumulierten Wahrscheinlichkeiten höchstens erreichen dürfen - also 10 Prozent. <code>lower.tail = TRUE</code> steht auch hier dafür, dass wir bei 0 mit der Betrachtung anfangen. Das Ergebnis der Funktion nennt den Wert, der die Grenze überschreitet (in diesem Fall 15). Die kumulierten Wahrscheinlichkeiten von 0 bis 14 Mal grün drehen übersteigen also nicht unsere Grenze von <code>p = 0.1</code>.</p>
+<p><code>p</code> gibt die Anzahl an Prozent an, die die kumulierten Wahrscheinlichkeiten höchstens erreichen dürfen - also 10 Prozent. <code>lower.tail = TRUE</code> steht auch hier dafür, dass wir bei 0 mit der Betrachtung anfangen. Das Ergebnis der Funktion nennt den Wert, der die Grenze überschreitet (in diesem Fall 15). Die kumulierten Wahrscheinlichkeiten von 0 bis 14 Mal grün Drehen übersteigen also nicht unsere Grenze von <code>p = 0.1</code>.</p>
 <p>Zum Abschluss noch die Simulation dieses Zufallsexperimentes. Bei <code>rbinom()</code> geben wir in <code>n</code> an, wie oft R unsere 100 Drehungen (<code>size</code>) mit der Wahrscheinlichkeit 0.2 (<code>prob</code>) durchführen soll. Im Bezug auf unser Beispiel wird hier also die Anzahl ausgegeben, wie häufig grün gedreht wird. Beachten Sie, dass bei diesem Befehl ohne <code>set.seed()</code> andere Ergebnisse bei mehrmaliger Durchführung auftreten, da das Experiment ja zufällig durchgeführt wird.</p>
 <pre class="r"><code>rbinom(n = 1, size = 100, prob = 0.2)</code></pre>
 <pre><code>## [1] 17</code></pre>
@@ -246,25 +248,26 @@ plot(x = x, y = probs, type = &quot;h&quot;,
 <li>Erwartungswert = Median = Maximum bei <span class="math inline">\(\mu\)</span></li>
 <li>68.27% der Verteilung liegen zwischen <span class="math inline">\(\mu\)</span> <span class="math inline">\(\pm\)</span> <span class="math inline">\(\sigma\)</span></li>
 </ul>
-<p>Für die IQ-Verteilung der Population wird angenommen, dass diese den Mittelwert von 100 hat und eine Standardabweichung von 15. Die bewährten Tests werden dahingehend genormt. Wenn wir nun den Wert aus der Dichtefunktion eines Probanden erfahren wollen (IQ = 114.3), können wir diesen mit der <code>dnorm()</code> Funktion berechnen. Benötigt werden neben dem x-Wert (in diesem Fall der IQ-Wert) noch der Mittelwert <code>mean</code> und die Standardabweichung <code>sd</code> der zugrundeliegenden Verteilung.</p>
+<p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-26-1.png" width="672" /></p>
+<p>Für die IQ-Verteilung der Population wird angenommen, dass diese den Mittelwert von 100 hat und eine Standardabweichung von 15. Die bewährten Tests werden dahingehend genormt. Wenn wir nun den Wert auf der a-Achse aus der Dichtefunktion eines Probanden erfahren wollen (IQ = 114.3), können wir diesen mit der <code>dnorm()</code> Funktion berechnen. Benötigt werden neben dem x-Wert (in diesem Fall der IQ-Wert) noch der Mittelwert <code>mean</code> und die Standardabweichung <code>sd</code> der zugrundeliegenden Verteilung.</p>
 <pre class="r"><code>dnorm(x = 114.3, mean = 100, sd = 15) </code></pre>
 <pre><code>## [1] 0.01688363</code></pre>
-<p>Alleine ist der Wert aus der Dichtefunktion noch nicht sehr aussgekräftig. Zum Zeichnen stetiger Funktionen, wie es die Dichtefunktion eine ist, gibt es <code>curve()</code>. Dafür muss im Argument <code>expr</code> eine Funktion in Abhängigkeit von x genannt werden. Mit <code>from</code> und <code>to</code> legt man die Grenzen der Bereiche fest. Auf der x-Achse (<code>xlab</code>) sollen die möglichen IQ-Werte, auf der y-Achse (<code>ylab</code>) die zugehörigen Werte der Dichtefunktion f(x) abgebidet werden. Mit <code>main</code> wird ein Titel für die Grafik vergeben.</p>
+<p>Alleine ist der Wert aus der Dichtefunktion noch nicht aussgekräftig für die Anwendung. Trotzdem betrachten wir zunächst den grafischen Aspekt. Wenn wir nun den eben gesehenen Plot zeichnen wollen, verwenden wir bei stetigen Funktionen, wie es die Dichtefunktion eine ist, den Befehl <code>curve()</code>. Dafür muss im Argument <code>expr</code> eine Funktion in Abhängigkeit von x genannt werden. Mit <code>from</code> und <code>to</code> legt man die Grenzen der Bereiche fest. Auf der x-Achse (<code>xlab</code>) sollen die möglichen IQ-Werte, auf der y-Achse (<code>ylab</code>) die zugehörigen Werte der Dichtefunktion f(x) abgebidet werden. Mit <code>main</code> wird ein Titel für die Grafik vergeben.</p>
 <pre class="r"><code>curve(expr = dnorm(x, mean = 100, sd = 15), 
       from = 70, 
       to = 130, 
       main = &quot;Normalverteilung&quot;, 
       xlab = &quot;IQ-Werte&quot;,
       ylab = &quot;Dichte f(x)&quot;)</code></pre>
-<p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
-<p>Mit <code>dnorm</code> konnten wir also einen bestimmten y-Wert aus dieser Verteilung ablesen.</p>
 <p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
-<p>Um für einen bestimmten Wert eine hilfreiche Aussage treffen zu können, wird die Fläche unter der Kurve betrachtet - also die Verteilungsfunktion. Diese ist das Integral (Integrale fungieren zur Flächenbestimmung) der Dichtefunktion. Wie bereits erwähnt ist die Fläche unter der Kurve 1. Nun kann man betrachten, wie groß die Fläche zwischen -<span class="math inline">\(\infty\)</span> und dem Wert einer Person ist, um die Leistung einordnen zu können.</p>
+<p>Mit <code>dnorm</code> konnten wir also einen bestimmten y-Wert aus dieser Verteilung ablesen.</p>
 <p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>
+<p>Um für einen bestimmten Wert eine hilfreiche Aussage treffen zu können, wird die Fläche unter der Kurve betrachtet - also die Verteilungsfunktion. Diese ist das Integral (Integrale fungieren zur Flächenbestimmung) der Dichtefunktion. Wie bereits erwähnt ist die Fläche unter der Kurve 1. Nun kann man betrachten, wie groß die Fläche zwischen -<span class="math inline">\(\infty\)</span> und dem Wert einer Person ist, um die Leistung einordnen zu können.</p>
+<p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-30-1.png" width="672" /></p>
 <p>Dafür können auch bei stetigen Variablen die anderen Präfixe wie bei <code>"binom()"</code> genutzt werden. Zur Angabe der Fläche ist der Befehl folglich <code>pnorm</code>. Das Argument <code>lower.tail</code> steht bei <code>TRUE</code> dafür, dass die Fläche ab -<span class="math inline">\(\infty\)</span> bis zu unserem Wert berechnet wird (<code>FALSE</code> hingegen wäre von unserem Wert bis +<span class="math inline">\(\infty\)</span>).</p>
 <pre class="r"><code>pnorm(114.3, mean = 100, sd = 15, lower.tail = TRUE)</code></pre>
 <pre><code>## [1] 0.8297894</code></pre>
-<p>82.98 % der Fläche liegen also unterhalb unseres IQ-Wertes von 114.3.</p>
+<p>82.98 % der Fläche liegen also unterhalb unseres IQ-Wertes von 114.3. 17.02 % der Fläche liegen hingegen oberhalb unseres IQ-Wertes von 114.3.</p>
 <p>Auch hier können wir uns zur Veranschaulichung einmal die Verteilungsfunktion ausgeben lassen. Dafür zeichnen wir die Funktion <code>pnorm()</code>. Die restliche Grafikerstellung funktioniert analog zu dem, was wir bereits gesehen haben, mit der <code>curve()</code> Funktion.</p>
 <pre class="r"><code>curve(expr = pnorm(x, mean = 100, sd = 15, lower.tail = TRUE),
      from = 70,
@@ -272,14 +275,14 @@ plot(x = x, y = probs, type = &quot;h&quot;,
      main = &quot;Verteilungsfunktion&quot;, 
      xlab = &quot;IQ-Werte&quot;,
      ylab = &quot;F(x)&quot;)</code></pre>
-<p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
-<p>Hier ist schön zu sehen, dass sich die Verteilungsfunktion mit steigendem IQ-Wert der 1 annähert, da dies die Fläche unter der Dichtefunktion ist. Aus der Verteilung haben wir mit <code>pnorm</code> den y-Wert bei 114.3 ablesen können.</p>
 <p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+<p>Hier ist schön zu sehen, dass sich die Verteilungsfunktion mit steigendem IQ-Wert der 1 annähert, da dies die Fläche unter der Dichtefunktion ist. Aus der Verteilung haben wir mit <code>pnorm</code> den y-Wert bei 114.3 ablesen können.</p>
+<p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
 <p>Auch der Präfix <code>"q"</code> funktioniert äquivalent. Durch <code>qnorm()</code> erhalten wir unter Angabe einer Wahrscheinlichkeit den zugehörigen Wert aus der Verteilungsfunktion der Dichte. Wir wollen hier betrachten, welcher Wert die unteren 50% der Verteilung abtrennt.</p>
 <pre class="r"><code>qnorm(p = 0.5, mean = 100, sd = 15, lower.tail = TRUE)</code></pre>
 <pre><code>## [1] 100</code></pre>
-<p>Aufgrund der Symmetrie der Normalverteilung und des Mittelwerts von 100 wird hier wie erwartet die Verteilung durch genau diesen Mittelwert in 2 Hälften geteilt.</p>
-<p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-34-1.png" width="672" /></p>
+<p>Aufgrund der Symmetrie der Normalverteilung wird hier wie erwartet die Verteilung durch genau ihren Mittelwert (in diesem Fall 100) in 2 Hälften geteilt.</p>
+<p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
 <p>Um die Ziehung aus einer Normalverteilung zu simulieren, können wir mit dem Präfix <code>"r"</code> wieder Daten zufällig auswählen. Anstatt <code>"binom()"</code> folgt nun aber <code>"norm()"</code>. Als Argumente werden die Anzahl der Werte, der Mittelwert <code>mean</code> und die Standardabweichung <code>sd</code> der gewünschten Verteilung benötigt. Es werden zufällig 10 Elemente aus einer Normalverteilung gezogen, die den vorgegebenen Parametern entspricht.</p>
 <pre class="r"><code>set.seed(500)                   #zur Konstanthaltung der zufälligen Ergebnisse
 rnorm(10,mean = 100,sd = 15)</code></pre>
@@ -292,18 +295,18 @@ rnorm(10,mean = 100,sd = 15)</code></pre>
 <p>Kommen wir zum Abschluss des Tutorials nochmal zu einer praktischeren Anwendung. Dafür brauchen wir natürlich erstmal unseren Datensatz.</p>
 <pre class="r"><code>load(url(&#39;https://pandar.netlify.app/post/fb22.rda&#39;))   # Daten laden</code></pre>
 <p>Einige Verfahren, die wir im weiteren Verlauf des Semesters kennenlernen werden, setzen für ihre fehlerfreie Durchführung voraus, dass die untersuchte Variable einer Normalverteilung folgt. Besonders für kleinere Stichproben empfiehlt sich dabei eine optische Prüfung, die wir hier nun vorstellen wollen.</p>
-<p>Die erste Möglichkeit besteht darin, dass wir die der Normalverteilung nach erwartete Dichtefunktion über das Histogramm der interessierenden Variable legen und so die Übereinstimmung beurteilen. Wir haben bereits, dass die Funktion <code>hist</code> ein solches Histogramm zeichnet. Unter <code>xlim</code> legen wir fest, dass das Diagramm nur zwischen 0 und 6 gezeichnet wird, da die Fragebogenscores nur zwischen 1 und 5 sein konnten. Damit stellen wir ein schöneres Aussehen des Plots sicher. Genauso wählen wir eine Überschrift, während wir die Achsenbezeichungen weglassen. Mit dem Argument <code>prob</code> können wir dafür sorgen, dass nicht absolute Häufigkeiten abgetragen werden. Die Summe der Fläche der Balken im Plot wird damit auf 1 gesetzt - diesen Wert kennen wir auch von der Dichtefunktion der Normalverteilung. Auch unter dieser Funktion ist die Fläche gleich 1.</p>
+<p>Die erste Möglichkeit besteht darin, dass wir die der Normalverteilung nach erwartete Dichtefunktion über das Histogramm der interessierenden Variable legen und so die Übereinstimmung beurteilen. Wir haben bereits, dass die Funktion <code>hist</code> ein solches Histogramm zeichnet. Unter <code>xlim</code> legen wir fest, dass das Diagramm nur zwischen 0 und 6 gezeichnet wird, da die Fragebogenscores nur zwischen 1 und 5 sein konnten. Damit stellen wir ein schöneres Aussehen des Plots sicher. Genauso wählen wir eine Überschrift, während wir die Achsenbezeichungen weglassen. Mit dem Argument <code>prob</code> können wir dafür sorgen, dass nicht absolute Häufigkeiten abgetragen werden (sondern wieder Dichte). Die Summe der Fläche der Balken im Plot wird damit auf 1 gesetzt - diesen Wert kennen wir auch von der Dichtefunktion der Normalverteilung. Auch unter dieser Funktion ist die Fläche gleich 1.</p>
 <pre class="r"><code>hist(fb22$nerd, xlim=c(0,6), main=&quot;Score&quot;, xlab=&quot;&quot;, ylab=&quot;&quot;, prob=T)</code></pre>
-<p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
-<p>Jetzt müssen wir die Normalverteilung noch dazu zechnen. hiefür nutzen wir wieder die <code>curve</code> Funktion. Da wir bereits einen Plot (das Histogramm) gezeichnet haben, können wir mit dem Argument <code>add</code> dafür sorgen, dass die Kurve in das Bestehende Bild integriert wird. Daher müssen wir keine Angaben für <code>from</code>, <code>to</code> und Ähnliches machen. Lediglich die Form der Verteilung als Dichtefunktion der Normalverteilung <code>dnorm</code> und die dazu gehörigen beschreibende Maße Mittelwert und Standardabweichung (hervorgehend aus unserer Nerdiness Variable), werden benötigt.</p>
+<p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-38-1.png" width="672" /></p>
+<p>Jetzt müssen wir die Normalverteilung noch dazu zeichnen. Hiefür nutzen wir wieder die <code>curve</code> Funktion. Da wir bereits einen Plot (das Histogramm) gezeichnet haben, können wir mit dem Argument <code>add</code> dafür sorgen, dass die Kurve in das bestehende Bild integriert wird. Daher müssen wir keine Angaben für <code>from</code>, <code>to</code> und Ähnliches machen. Lediglich die Form der Verteilung als Dichtefunktion der Normalverteilung <code>dnorm</code> und die dazu gehörigen beschreibenden Maße Mittelwert und Standardabweichung (hervorgehend aus unserer Nerdiness Variable) werden benötigt.</p>
 <pre class="r"><code>curve(dnorm(x, mean=mean(fb22$nerd), sd=sd(fb22$nerd)), add=T)</code></pre>
-<p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
-<p>Im Plot sieht man recht gut, dass es kleine Abweichungen der wirklichen empirischen Verteilung von der perfekten Form der Normalverteilung gibt. Kleinere Abweichungen sind jedoch zu erwarten und sollten nicht zu hoch eingestuft werden. Leider wird es bei der optischen Prüfung keine perfekt objektive Lösung geben, doch umso mehr Plots man sich im Laufe der Forschungskarriere betrachtet, umso besser kann man auch diese Verläufe einordnen.</p>
+<p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
+<p>Im Plot sieht man recht gut, dass es kleine Abweichungen der wirklichen empirischen Verteilung von der perfekten Form der Normalverteilung gibt. Kleinere Abweichungen sind jedoch zu erwarten und sollten nicht zu hoch eingestuft werden. Leider wird es bei der optischen Prüfung keine perfekt objektive Lösung geben, doch je mehr Plots man im Laufe der Forschungskarriere betrachtet, umso besser kann man auch diese Verläufe einordnen.</p>
 <p>Eine zweite Möglichkeit ist das Erstellen eines sogenannten QQ-Plots (steht für quantile-quantile). Auf der x-Achse wird die beobachtete Position eines Messwerts abgetragen. Auf der y-Achse sind diejenige Positionen notiert, die unter Gültigkeit der theoretischen Form der Normalverteilung zu erwarten wären. Entspricht nun unsere empirische Datenmenge der angenommenen Normalverteilung perfekt, würden alle Punkte auf der Geraden in der Mitte liegen. Codetechnisch ist ein solcher Plot schnell erstellt. Mit <code>qqnorm</code> zeichnet man die Punkte, während <code>qqline</code> als Unterstützung nochmal die Linien durch die Mitte zeichnet.</p>
 <pre class="r"><code>qqnorm(fb22$nerd)
 qqline(fb22$nerd)</code></pre>
-<p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
-<p>Auch hier gilt natürlich, dass die Bewertung letztlich eine gewisse Subjektivität hat. Die Punkte sollte nicht zu weit von der Gerade entfernt liegen. Für unsere Nerdiness Variable können nur leichte Abweichungen festgestellt werden, weshalb wir die Normalverteilung annehmen können.</p>
+<p><img src="/post/2020-11-07-verteilungen_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
+<p>Auch hier gilt natürlich, dass die Bewertung letztlich eine gewisse Subjektivität hat. Die Punkte sollten nicht zu weit von der Geraden entfernt liegen. Für unsere Nerdiness Variable können nur leichte Abweichungen festgestellt werden, weshalb wir die Normalverteilung annehmen können.</p>
 <p>Die beschriebenen optischen Überprüfungen waren nur eine kleine Einführung zur Normalverteilung in der Empirie. Wir werden in den nächsten Wochen noch andere Aspekte und Überprüfungen kennenlernen.</p>
 <hr />
 </div>
