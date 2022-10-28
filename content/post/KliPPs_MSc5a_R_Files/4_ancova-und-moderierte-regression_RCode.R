@@ -8,8 +8,7 @@ osf <- read.csv(file = url("https://osf.io/zc8ut/download"))
 osf <- osf[, c("ID", "group", "stratum", "bsi_post", "swls_post", "pas_post")]
 
 # Missings ausschließen
-missings_ind <- which(is.na(osf$pas_post))
-osf <- osf[-missings_ind, ]
+osf <- na.omit(osf)
 head(osf) # finaler Datensatz
 
 
