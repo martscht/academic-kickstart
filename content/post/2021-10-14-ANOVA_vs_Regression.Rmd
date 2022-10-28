@@ -15,7 +15,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer]
-lastmod: '2021-10-25T16:40:21+02:00'
+lastmod: '2022-10-28T16:40:21+02:00'
 featured: no
 header:
   image: "/header/KliPsy_Sitzung_3.jpg"
@@ -35,7 +35,7 @@ Diese Sitzung basiert auf Literatur aus [Eid et al. (2017)](https://ubffm.hds.he
 
 
 ## Daten laden
-Im Gegensatz zu den vorherigen Sitzungen wollen wir einen Datensatz direkt aus dem [Open Science Framwork (OSF)](https://osf.io) laden. Dort werden Unterlagen im Sinne der Open-Sience-Initiative abgelegt. In diesem Fall nutzen wir einen Datensatz von [Schaeuffele et al. (2020)](https://psyarxiv.com/528tw/), die den Effekt des Unified Protocol (UP) als Internetintervention für bestimmte psychische Störungen durchgeführt haben. Die OSF-Daten finden sie [hier](https://osf.io/fyhn5/). Wenn wir dort zum Datensatz navigieren, können wir das "csv"-File direkt in `R` einbinden, ohne es auf unserem Rechner ablegen zu müssen --- wie als würde der Datensatz auf `PandaR` liegen. Der nötige Befehl lautet `read.csv`, mit welchem wir auch ein lokales "csv"-File einlesen können. Wir müssen  der Funktion lediglich den Link zum downloadbaren "csv"-File übergeben. Der Vollständigkeit halber sagen wir `R` dann noch, dass es sich um einen Dateipfad ins Internet handelt, indem wir die die `url`-Funktion darauf anwenden. Wir nennen die eingelesenen Daten unglaublich einfallsreich einfach mal `osf` und schauen uns die Variablen des Datensatzes einmal an mit `names`.
+Im Gegensatz zu den vorherigen Sitzungen wollen wir einen Datensatz direkt aus dem [Open Science Framwork (OSF)](https://osf.io) laden. Dort werden Unterlagen im Sinne der Open-Sience-Initiative abgelegt. In diesem Fall nutzen wir einen Datensatz von [Schaeuffele et al. (2020)](https://psyarxiv.com/528tw/), die den Effekt des Unified Protocol (UP) als Internetintervention für bestimmte psychische Störungen durchgeführt haben. Die OSF-Daten finden wir [hier](https://osf.io/fyhn5/). Wenn wir dort zum Datensatz navigieren, können wir das "csv"-File direkt in `R` einbinden, ohne es auf unserem Rechner ablegen zu müssen --- wie als würde der Datensatz auf `PandaR` liegen. Der nötige Befehl lautet `read.csv`, mit welchem wir auch ein lokales "csv"-File einlesen können. Wir müssen  der Funktion lediglich den Link zum downloadbaren "csv"-File übergeben. Der Vollständigkeit halber sagen wir `R` dann noch, dass es sich um einen Dateipfad ins Internet handelt, indem wir die die `url`-Funktion darauf anwenden. Wir nennen die eingelesenen Daten unglaublich einfallsreich einfach mal `osf` und schauen uns die Variablen des Datensatzes an mit `names`.
 
 ```{r}
 osf <- read.csv(file = url("https://osf.io/zc8ut/download"))
@@ -50,14 +50,12 @@ head(osf)
 Wir erkennen direkt, dass es einige fehlende Werte auf den Variablen gibt. Der Einfachheit halber entfernen wir diese Missings. Wir führen also den listenweisen Fallausschluss (engl. list-wise deletion) durch. Dieser darf allerdings nur gemacht werden, wenn die fehlenden Werte rein zufällig passiert sind (missing completely at random!). Allerdings sei erwähnt, dass der listenweise Fallausschluss natürlich die Stichprobengröße verringert und dadurch die Power der Analysen reduziert. Aus Illustrationszwecken wollen wir uns damit nicht weiter aufhalten.
 
 ```{r}
-missings_ind <- which(is.na(osf$pas_post))
-missings_ind
 dim(osf) # vorher
-osf <- osf[-missings_ind, ]
+osf <- na.omit(osf)
 dim(osf) # nach Fallauschluss
 ```
 
-Die Variable `pas_post` hat die meisten Missings. Wenn auf irgendeiner weiteren Variable Daten fehlen, dann fehlen diese auch auf `pas_post`. Indem wir `which(is.na())` auf `pas_post` anwenden, erhalten wir einen Vektor, der die Stellen der Missings enthält. Diesen Vektor können wir anschließend nutzen, um diese Fälle auszuschließen, indem wir die entsprechenden Zeilen ansprechen und ein Minus davor setzen.
+Der Befehl `na.omit` führt den listenweisen Fallausschluss für uns durch. *Achtung:* das sollte nicht als Standardvorgehen gemacht werden, wir sollten uns bei einer "echten" Analysen genau Gedanken machen, wie die Missings aufgetreten sein können und überlegen, ob es nicht Möglichkeiten alle verfügbaren Informationen zu nutzen.
 
 
 ## Regression: Modellvergleiche
@@ -96,7 +94,9 @@ F_emp # empirischer F-Bruch mit Hand
 anova0$F[2] # empirischer F-Bruch aus anova-Objekt
 ```
 
-Der $F$-Wert ist genau dann groß, wenn das Varianzinkrement im Vergleich zur Fehlervarianz groß ist. Der Vergleich gegen das Null-Modell wird in jeder `summary` mit ausgegeben. Dies ist der $F$-Test, der im Output ganz am Ende ausgegeben wird. Dieser testet das multiple $R^2$ gegen 0 und ist damit ein Omnibustest für alle Prädiktoren gemeinsam im Modell.
+Der $F$-Wert ist genau dann groß, wenn das Varianzinkrement im Vergleich zur Fehlervarianz groß ist, also wenn der Effekt relativ zur zufälligen Streuung in den Daten groß ist. 
+
+Der Vergleich gegen das Null-Modell wird in jeder `summary` mit ausgegeben. Dies ist der $F$-Test, der im Output ganz am Ende ausgegeben wird. Dieser testet das multiple $R^2$ gegen 0 und ist damit ein Omnibustest für alle Prädiktoren gemeinsam im Modell.
 
 ## Regression: Kategoriale Prädiktoren
 Wir können in ein Regressionsmodell auch kategoriale Prädiktoren aufnehmen. Das haben wir bereits in der vergangenen Sitzung gemacht, indem wir das Geschlecht mit in die Gleichung aufgenommen haben. Der Default in `R` ist, dass Dummyvariablen verwendet werden, um Gruppenzugehörigkeiten auszudrücken. So kann erreicht werden, dass Abweichungen zu einer Referenzkategorie kodiert werden können. Wir sagen die Symptomschwere durch die Gruppenvariable, die die Zuweisung zum Treatment enthält, vorher. Zunächst müssen wir sichergehen, dass es sich bei dieser Variable um eine Gruppierungsvariable handelt, indem wir sie in einen `factor` umwandeln. 
@@ -107,7 +107,7 @@ reg_dummy1 <- lm(bsi_post  ~ 1 + group, data = osf)
 summary(reg_dummy1)
 ```
 
-Wir erkennen im Output, dass im Modell ein Interzept sowie ein Steigungskoeffizient für `groupWaitlist` geschätzt wurde. Hier ist es nun so, dass `groupWaitlist` uns verrät, dass es sich hier um die Variable `group` handelt und dass die Ausprägung `Waitlist` im Vergleich zur Referenzkategorie betrachtet Wird. Das können wir auch herausfinden, indem wir `levels` auf die Variable `group` anwenden:
+Wir erkennen im Output, dass im Modell ein Interzept sowie ein Steigungskoeffizient für `groupWaitlist` geschätzt wurde. Hier ist es nun so, dass `groupWaitlist` uns verrät, dass es sich hier um die Variable `group` handelt und dass die Ausprägung `Waitlist` im Vergleich zur Referenzkategorie betrachtet wird. Das können wir auch herausfinden, indem wir `levels` auf die Variable `group` anwenden:
 
 ```{r}
 levels(osf$group)
@@ -132,7 +132,7 @@ summary(reg_dummy1)$r.squared
 Somit gehen `r round(summary(reg_dummy1)$r.squared*100,2)`% der Variation auf die Gruppenzugehörigkeit zurück.
 
 ## Einfaktorielle ANOVA und $t$-Test
-Mithilfe der ANOVA können wir unsere Daten auf Mittelwertsunterschiede über Gruppen hinweg untersuchen. Im Bachelorstudium hatten wir hier die `ezANOVA` Funktion kennengelernt. Diese kommt aus dem `ez`-Paket, welches zunächst geladen werden muss (das Folgende ist zum Teil auch in der [Sitzung ANOVA I](/post/einfaktorielle-ANOVA) aus dem Bachelor zu finden). 
+Mithilfe der ANOVA können wir unsere Daten auf Mittelwertsunterschiede über Gruppen hinweg untersuchen. Im Bachelorstudium hatten wir hier die `ezANOVA` Funktion kennengelernt. Diese kommt aus dem `ez`-Paket, welches zunächst geladen werden muss (das Folgende ist zum Teil auch in der [Sitzung ANOVA I](/post/einfaktorielle-ANOVA) aus dem Bachelor zu finden, *natürlich mit einem anderen Datensatz*). 
 
 ```{r loadlib, exercise=FALSE, exercise.lines = 3}
 # Paket laden (ggf. vorher installieren mit install.packages)
@@ -190,10 +190,10 @@ Das liegt ganz einfach daran, dass die $F$-Brüche die gleichen Ergebnisse verre
 $$SS_{tot} = SS_\text{between} + SS_\text{within},$$
 
 wobei $SS_\text{within}$ der Quadratsumme innerhalb der Gruppen entspricht. Dies ist gerade die Residualquadratsumme, da die Variation innerhalb der Gruppen in der ANOVA als Fehlervariation angesehen wird. Um die Quadratsummen für den $F$-Wert zu erhalten, brauchen wir die mittleren Quadratsummen $MS_\text{between} = \frac{SS_\text{between}}{df_\text{between}}$ und $MS_\text{within} = \frac{SS_\text{within}}{df_\text{within}}$. Hierbei sind $df_\text{between}=K-1$ die zwischen-Freiheitsgrade und $df_\text{within}=n-K$ die innerhalb-Freiheitsgrade, wobei $K$ = Anzahl Gruppen. Wir erkennen, dass für unser Beispiel $df_\text{between}=df_h$ und $df_\text{within}=df_{e}$ gilt. Nun können wir den $F$-Wert bestimmen. Dieser ergibt sich als
-$$F_{emp} = \frac{MS\text{between}}{MS\text{within}}=\frac{SS_\text{between}/df_\text{between}}{SS_\text{within}/df_\text{within}}$$ 
+$$F_{emp} = \frac{MS\text{between}}{MS\text{within}}=\frac{SS_\text{between}/df_\text{between}}{SS_\text{within}/df_\text{within}}.$$ 
 Wir erkennen, dass hier einfach die Variation zwischen den Gruppen (Variation der Mittelwerte) relativ zur (zufälligen) Variation innerhalb der Gruppen betrachtet wird. Ist die Variation zwischen den Gruppen relativ zur zufälligen Variation groß, so gehen wir davon aus, dass dies ein nicht zufälliger Unterschied ist: die Mittelwerte müssen sich also bei einem großen $F$-Wert unterscheiden. Das Verhältnis der Quadratsummen ist mit $df_\text{between} = K - 1$ und $df_\text{within} = N - K$ $F$-verteilt. Daher wird der $F_{emp}$ mit dem $F_{krit}$ mit $df_1 = K - 1$ (Zählerfreiheitsgraden) und $df_2 = N - K$ (Nennerfreiheitsgraden) verglichen. Die Gleichheit kann nachvollzogen werden, indem wir dem $F$-Bruch mit der totalen Quadratsumme erweitern und einsehen, dass $\eta^2=R^2=\frac{SS_\text{between}}{SS_{tot}}$ und $1-\eta^2=1-R^2=\frac{SS_\text{within}}{SS_{tot}}$ in diesem Beispiel gilt und damit:
 
-$$F_{emp} = \frac{SS_\text{between}/df_\text{between}}{SS_\text{within}/df_\text{within}}\frac{SS_{tot}}{SS_{tot}}=\frac{\frac{SS_\text{between}}{SS_{tot}}/df_\text{between}}{\frac{SS_\text{within}}{SS_{tot}}/df_\text{within}}=\frac{\eta^2/df_\text{between}}{(1-\eta^2)/df_\text{within}}$$
+$$F_{emp} = \frac{SS_\text{between}/df_\text{between}}{SS_\text{within}/df_\text{within}}\frac{SS_{tot}}{SS_{tot}}=\frac{\frac{SS_\text{between}}{SS_{tot}}/df_\text{between}}{\frac{SS_\text{within}}{SS_{tot}}/df_\text{within}}=\frac{\eta^2/df_\text{between}}{(1-\eta^2)/df_\text{within}}.$$
 
 Auch der $t$-Test kommt zum selben Ergebnis. Hier müssen wir der zugehörigen Funktion `t.test` allerdings noch sagen, dass wir Student's $t$-Test (der $t$-Test, den Sie vermutlich im 1. Semester kennengelernt haben) wünschen, da nur dieser die Äquivalenz aufweist. Die Defaultvariante in `R` ist die robuste Variante nach Welch (Welch's $t$-Test).  Allerdings sollten Sie für den "Heimgebrauch" immer Welch's Variante verwenden, da diese der anderen in den meisten Fällen überlegen ist und zu weniger falsch-positiven Ergebnissen führt, wenn Voraussetzungen nicht erfüllt sind (Interessierte finden eine über diesen Kurs hinausgehende Quelle die dies untersucht und diskutiert [hier](https://www.rips-irsp.com/articles/10.5334/irsp.82/)). Wir verwenden Student's $t$-Test hier rein aus Demonstrationszwecken. Das machen wir mit der Zusatzeinstellung `var.equal = T` in der Funktion `t.test`.
 
@@ -218,7 +218,7 @@ ttest1$statistic^2
 ```
 
 ## Mehrfaktorielle ANOVA
-Die Mehrfaktorielle ANOVA ist nun etwas kniffliger. Hier hängt bei der ANOVA die Signifikanzentscheidung der Gruppenkombination nämlich von der Quadratsummenwahl ab. Diese kann nämlich unterschiedlich gewählt werden, weswegen es verschiedene `R`-Pakete gibt, die dies für uns übernehmen. 
+Die Mehrfaktorielle ANOVA ist nun etwas kniffliger. Hier hängt bei der ANOVA die Signifikanzentscheidung der Gruppenkombination nämlich von der Quadratsummenwahl ab. Diese kann unterschiedlich gewählt werden. Es gibt verschiedene `R`-Pakete, die dies für uns übernehmen. 
 
 In einer zweifaktoriellen ANOVA sind drei verschiedene Arten von Effekten möglich: Haupteffekt des Faktors A (erster Faktor), Haupteffekt des Faktors B (zweiter Faktor) und Interaktionseffekt (AxB). Die Wahl der Quadratsumme entscheidet nun, in welcher Reihenfolge die Prädiktoren in das Modell aufgenommen werden. In der `ezANOVA`-Funktion können wir die Quadratsumme ganz einfach mit dem Argument `type` einstellen. Es gibt drei Typen der Quadratsummen.
 
@@ -326,12 +326,11 @@ Für `Anova` müssen wir für Quadratsummen vom Typ III die Art der Kontrastbild
 options("contrasts")
 ```
 
-Hier sehen wir , dass es immer Treatment-Kontraste sind (`contr.treatment`), also dass  immer eine Referenzkategorie gebildet wird. Wir brauchen hier Summen-Kontraste (`contr.sum`). Damit diese auch auf alle Objekte angewendet werden können, müssen wir den zugehörige `lm`-Befehl nochmals ausführen. Wir nennen das Objekt auch nochmal um, um den Unterschied der Kodierung klar zu machen:
+Hier sehen wir , dass es immer Treatment-Kontraste sind (`contr.treatment`), also dass  immer eine Referenzkategorie gebildet wird. Wir brauchen hier Summen-Kontraste (`contr.sum`). Die Umstellung kann entweder innerhalb `options` geschehen, allerdings ändert sich dann die Einstellung für die gesamte `R`-Sitzung, oder wir ergänzen den `lm`-Befehl um das Argument `contrasts`. Wir entscheiden uns hier für die 2. Variante. Damit wird auch ersichtlich, dass die Modelle nochmals geschätzt werden müssen! Wir nennen das Objekt auch nochmal um, um den Unterschied der Kodierung klar zu machen:
 
 ```{r}
-# verstelle die Art, wie Kontraste bestimmt werden --- Achtung! Immer wieder zurückstellen
-options(contrasts=c(unordered="contr.sum", ordered="contr.poly")) 
-reg_gsi_contr.sum <- lm(bsi_post ~ group + stratum + group:stratum, data = osf) # contr.sum-Kodierung
+reg_gsi_contr.sum <- lm(bsi_post ~ group + stratum + group:stratum, data = osf, 
+                        contrasts = list("group" = contr.sum, "stratum" = contr.sum))  # contr.sum-Kodierung
 Anova(reg_gsi_contr.sum, type = 3)
 ``` 
 
@@ -339,14 +338,6 @@ Die beiden Analysen kommen zum selben Ergebnis. Der Intercept-Output fehlt hier 
 
 Bei Quadratsummen vom Typ III werden die Haupteffekte nicht nur gegeben der anderen Haupteffekte bestimmt, sondern es wird auch der Interaktionseffekt herausgerechnet. Da der Interaktionseffekt nicht signifikant ist, sollten wir allerdings besser das Ergebnis aus den Analysen mit Quadratsummen vom Typ II interpretieren.
 
-Zum Schluss am Besten wieder alles zurückstellen:
-
-```{r}
-# Einstellungen zurücksetzen zum Default:
-options(contrasts=c(unordered="contr.treatment", ordered="contr.poly"))
-```
-
-Dies ist wichtig, da es sonst zu verschätzen Effekten kommen kann, wenn bspw. Quadratsummen vom Typ I oder Typ II verwendet werden.
 
 ## Fazit aus allen Analysen
 

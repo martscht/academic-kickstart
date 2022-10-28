@@ -11,10 +11,8 @@ osf <- osf[, c("ID", "group", "stratum", "bsi_post", "swls_post", "pas_post")] #
 head(osf)
 
 ### Listenweiser Fallausschluss
-missings_ind <- which(is.na(osf$pas_post))
-missings_ind
 dim(osf) # vorher
-osf <- osf[-missings_ind, ]
+osf <- na.omit(osf)
 dim(osf) # nach Fallauschluss
 
 
@@ -119,8 +117,8 @@ ezANOVA(data = osf, dv = bsi_post, between = c(group, stratum), wid = ID, type =
 options("contrasts") # Einstellungen Kontrastbildung
 
 # verstelle die Art, wie Kontraste bestimmt werden --- Achtung! Immer wieder zurückstellen
-options(contrasts=c(unordered="contr.sum", ordered="contr.poly"))
-reg_gsi_contr.sum <- lm(bsi_post ~ group + stratum + group:stratum, data = osf) # contr.sum-Kodierung
+reg_gsi_contr.sum <- lm(bsi_post ~ group + stratum + group:stratum, data = osf,
+                        contrasts = list("group" = contr.sum, "stratum" = contr.sum))  # contr.sum-Kodierung
 Anova(reg_gsi_contr.sum, type = 3)
 
 # Einstellungen zurücksetzen zum Default:
