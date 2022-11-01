@@ -20,8 +20,10 @@ organizations:
 # Short bio (displayed in user profile at end of posts)
 bio:
 interests:
-- Kognitive Neurowissenschaften
 - Open Science
+- Meta-Wissenschaft
+- Visuelle Suche und Wahrnehmung
+
 education:
 # Social/Academic Networking
 # For available icons, see: https://sourcethemes.com/academic/docs/widgets/#icons
@@ -31,12 +33,12 @@ social:
 # - icon: envelope
 #   icon_pack: fas
 #   link: '#contact'  # For a direct email link, use "mailto:test@example.org".
-# - icon: twitter
-#   icon_pack: fab
-#   link: https://twitter.com/GeorgeCushen
-# - icon: google-scholar
-#   icon_pack: ai
-#   link: https://scholar.google.co.uk/citations?user=sIwtMXoAAAAJ
+- icon: twitter
+  icon_pack: fab
+  link: https://twitter.com/JuliaBeitner
+- icon: google-scholar
+  icon_pack: ai
+  link: https://scholar.google.de/citations?user=9b55074AAAAJ&hl=de
 - icon: github
   icon_pack: fab
   link: https://github.com/JuliaBeitner
@@ -67,5 +69,6 @@ Julia Beitner ist wissenschaftliche Mitarbeiterin in den Abteilungen _Psychologi
 
 **Biografie**
 
-- Studium der Psychologie, Bachelor an der Hochschule Fresenius Frankfurt und Research Master an der Universität von Amsterdam mit den psychologischen Schwerpunkten Brain & Cognition (Major) und Psychological Research Methods (Minor) von 2012-2018
-# - Tutor für Statistik für Psychologen (Bachelor), sowie Forschungsmethoden & Evaluation (Master) für das Institut für Psychologie an der Goethe-Universität Frankfurt (2014-2018)
+- Studium der Psychologie, Bachelor an der Hochschule Fresenius Frankfurt und Research Master an der Universität von Amsterdam mit den Schwerpunkten Brain & Cognition (Major) und Psychological Research Methods (Minor) von 2012-2018
+- Tutorin für Statistik im Bachelor (2014 - 2016), Mitarbeiterin im Methodenshop (2018), Dozentin im Seminar Allgemeine Psychologie I, ExPra (seit 2018) und Statistik Praktikum (seit 2022)
+- Leitung der [Frankfurt Open Science Initiative](https://frankfurt-osi.netlify.app/) seit 2019
