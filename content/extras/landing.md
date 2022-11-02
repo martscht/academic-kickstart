@@ -5,7 +5,8 @@ date = "2021-05-28"
 widget = "blank"
 weight = 10
 [design.background]
-  color = "#00618f"
+  image = "/lights.jpg"
+  caption = "[Courtesy of pxhere](https://pxhere.com/en/photo/43)"
   text_color_light = true
 +++
 
