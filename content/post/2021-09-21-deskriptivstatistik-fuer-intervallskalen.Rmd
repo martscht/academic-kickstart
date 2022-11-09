@@ -175,7 +175,7 @@ Wollen wir diese nun per Hand bestimmen, könnte folgender Code das für uns erl
 sum((fb22$lz - mean(fb22$lz, na.rm = TRUE))^2, na.rm = TRUE) / (nrow(fb22)-2)
 ```
 
-Achtung! Wir benötigen für die Varianzberechnung `n` (s. Formel)! Wir nutzen hier `nrow(fb22)-2`, weil `nrow(fb22)` nicht das richtige n anzeigt (zwei Personen haben einen fehlenden Wert, daher die Anzahl an Zeilen minus der zwei fehlenden Werte = n)
+Achtung! Wir benötigen für die Varianzberechnung `n` (s. Formel)! Wir nutzen hier `nrow(fb22)-`r sum(is.na(fb22$lz))` `, weil `nrow(fb22)` nicht das richtige n anzeigt (`r sum(is.na(fb22$lz))` Personen haben einen fehlenden Wert, daher die Anzahl an Zeilen minus der `r sum(is.na(fb22$lz))` fehlenden Werte = n).
 
 
 **Kleiner Diskurs zu fehlenden Werten:**
@@ -245,7 +245,7 @@ var(fb22$lz, na.rm = TRUE) * (length(na.omit(fb22$lz)) - 1) / (length(na.omit(fb
 Alternativ, wenn man die fehlenden Werte händisch abzieht:
 ```{r}
 # Umrechnung der Varianzen
-var(fb22$lz, na.rm = TRUE) * (112 - 1) / 112
+var(fb22$lz, na.rm = TRUE) * (157 - 1) / 157
 ```
 
 
@@ -270,7 +270,7 @@ Wir müssten das Ergebnis also wieder mit einem Faktor ($\sqrt{\frac{n - 1}{n}}$
 
 ```{r}
 # Umrechnung der Standardabweichung
-sd(fb22$lz, na.rm = TRUE) * sqrt((112 - 1) / 112)
+sd(fb22$lz, na.rm = TRUE) * sqrt((157 - 1) / 157)
 ```
 
 Alternativ kann diese natürlich auch komplett händisch berechnet werden. Dafür können wir einfach den bereits geschriebenen Code für die empirische Varianz nehmen und aus dem Ergebnis die Wurzel ziehen.
@@ -285,7 +285,7 @@ Alternativ kann diese natürlich auch komplett händisch berechnet werden. Dafü
 
 ## Zentrierung und Standardisierung
 
-In der Vorlesung haben Sie gelernt, dass eine Variable zentriert oder standardisiert werden kann. Die Zentrierung sorgt für einen Mittelwert von 0, während die Standardisierung zusätzlich die Varianz auf 1 setzt. Die Variablenzentrierung und -standardisierung lässt sich in R per Hand berechnen...
+In der Vorlesung haben Sie gelernt, dass eine Variable zentriert oder standardisiert werden kann. Die Zentrierung sorgt für einen Mittelwert von 0, während die Standardisierung zusätzlich die Varianz auf 1 setzt. Die Variablenzentrierung und -standardisierung lässt sich in R per Hand berechnen.
 
 ```{r}
 # Zentrierung
@@ -351,6 +351,16 @@ head(fb22$prok2_r)   # erste 6 Werte mit Transformation
 *Antwort*: Ja, denn die Ordnungsrelation bleibt hierbei erhalten!  
 
 **Variante 2: Logische Filter**
+
+Mit Hilfe von logischen Filtern, die wir auch schon im [R-Intro](https://pandar.netlify.app/post/r-crash-kurs/) kennen gelernt haben, können wir uns auch alle Antworten einer Ausprägung (z.B. 1) anzeigen lassen und diesen dann den transformierten Wert zuweisen. Durch die Invertierung wissen wir, dass dem Wert 1 der Wert 4 zugeordnet werden muss. Also können wir eine Abfrage nach allen Teilnehmenden machen, die die Antwort 1 gegeben haben.
+
+```{r}
+fb22$prok3 == 1
+```
+
+Wir erhalten einen booleschen Vektor, der uns sagt, wo der Wert 1 auftaucht (`TRUE`) und wo nicht (`FALSE`).
+Mit Hilfe dieses booleschen Vektors können wir die Stellen ansteuern bzw. indizieren, in denen im transformierten Vektor dann eine 4 statt einer 1 stehen soll. Dies passiert für all die Stellen, an denen `TRUE` steht.
+
 ```{r}
 fb22$prok3_r[fb22$prok3 == 1] <- 4
 fb22$prok3_r[fb22$prok3 == 2] <- 3
