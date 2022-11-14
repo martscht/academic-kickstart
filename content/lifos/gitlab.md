@@ -67,9 +67,12 @@ subtitle = ""
 +++
 
 <a id="Test1"></a>
-Diese Seite wird noch gebaut
+
  
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 1 | **GitLab** | [Inhalte](/post/under-construction) |
+| 1 | [Orientierung in der Instanz](/post/under-construction) |
+| 2 | [Einführung in R-Markdown und Subgruppen](/post/under-construction) |
+| Zusatz: | [Verbindung zu SmartGit](/post/under-construction) |
+| Zusatz: | [Tieferer Einblick in die GitLab Oberfläche](/post/under-construction) |
 |  |  |    
