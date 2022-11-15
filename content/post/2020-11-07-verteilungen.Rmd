@@ -39,6 +39,52 @@ library(knitr)
 * Wie kann eine empirisch erhobene Variable gegen die Normalverteilung abgetragen werden?
 </details>
 
+***
+
+## Vorbereitende Schritte
+
+Der Datensatz ist in diesem Tutorial nicht zentral und kommt erst im letzten Abschnitt zum Tragen. Trotzdem beschäftigen wir uns zum Start mit dem Einladen, um die Struktur der Tutorials gleich zu lassen. Den Datensatz hhaben wir bereits unter diesem [<i class="fas fa-download"></i> Link heruntergeladen](/post/fb22.rda) und können ihn über den lokalen Speicherort einladen oder Sie können Ihn direkt mittels des folgenden Befehls aus dem Internet in das Environment bekommen. In den vorherigen Tutorials und den dazugehörigen Aufgaben haben wir bereits Änderungen am Datensatz durchgeführt, die hier nochmal aufgeführt sind, um den Datensatz auf dem aktuellen Stand zu haben: 
+
+```{r}
+#### Was bisher geschah: ----
+
+# Daten laden
+load(url('https://pandar.netlify.app/post/fb22.rda'))  
+
+# Nominalskalierte Variablen in Faktoren verwandeln
+fb22$geschl_faktor <- factor(fb22$geschl,
+                             levels = 1:3,
+                             labels = c("weiblich", "männlich", "anderes"))
+fb22$fach <- factor(fb22$fach,
+                    levels = 1:5,
+                    labels = c('Allgemeine', 'Biologische', 'Entwicklung', 'Klinische', 'Diag./Meth.'))
+fb22$ziel <- factor(fb22$ziel,
+                        levels = 1:4,
+                        labels = c("Wirtschaft", "Therapie", "Forschung", "Andere"))
+fb22$wohnen <- factor(fb22$wohnen, 
+                      levels = 1:4, 
+                      labels = c("WG", "bei Eltern", "alleine", "sonstiges"))
+
+# Skalenbildung
+
+fb22$prok2_r <- -1 * (fb22$prok2 - 5)
+fb22$prok3_r <- -1 * (fb22$prok3 - 5)
+fb22$prok5_r <- -1 * (fb22$prok5 - 5)
+fb22$prok7_r <- -1 * (fb22$prok7 - 5)
+fb22$prok8_r <- -1 * (fb22$prok8 - 5)
+
+#Prokrastination
+fb22$prok_ges <- fb22[, c('prok1', 'prok2_r', 'prok3_r',
+                          'prok4', 'prok5_r', 'prok6',
+                          'prok7_r', 'prok8_r', 'prok9', 
+                          'prok10')] |> rowMeans()
+#Naturverbundenheit
+fb22$nr_ges <-  fb22[, c('nr1', 'nr2', 'nr3', 'nr4', 'nr5',  'nr6')] |> rowMeans()
+fb22$nr_ges_z <- scale(fb22$nr_ges) # Standardisiert
+
+```
+***
+
 ## Warum Wahrscheinlichkeit?
 
 In der psychologischen Forschung werden nur Stichproben gezogen. Für die Übertragung der Ergebnisse auf die Grundgesamtheit (Population), aus der die Stichprobe stammt, ist eine Betrachtung der Wahrscheinlichkeitstheorie essentiell. Die Grundlagen der Wahrscheinlichkeitstheorie haben Sie in der Vorlesung vermittelt bekommen. Hier geht es nun um die praktische Anwendung in `R`. Im weiteren Verlauf werden zuerst Zufallsexperimente und empirische Häufigkeitsverteilungen betrachtet. Anschließend werden verschiedene Verteilungen dargestellt.
@@ -385,11 +431,7 @@ rnorm(10,mean = 100,sd = 15)
 
 ## Normalverteilungsüberprüfung in der Empirie
 
-Kommen wir zum Abschluss des Tutorials nochmal zu einer praktischeren Anwendung. Dafür brauchen wir natürlich erstmal unseren Datensatz.
-
-```{r}
-load(url('https://pandar.netlify.app/post/fb22.rda'))   # Daten laden
-```
+Kommen wir zum Abschluss des Tutorials nochmal zu einer praktischeren Anwendung. Dafür brauchen wir natürlich den Datensatz, den wir bereits eingeladen haben.
 
 Einige Verfahren, die wir im weiteren Verlauf des Semesters kennenlernen werden, setzen für ihre fehlerfreie Durchführung voraus, dass die untersuchte Variable einer Normalverteilung folgt. Besonders für kleinere Stichproben empfiehlt sich dabei eine optische Prüfung, die wir hier nun vorstellen wollen. 
 
