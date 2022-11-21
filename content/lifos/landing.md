@@ -10,5 +10,4 @@ weight = 10
   text_color_light = true
 +++
 
-Hier findest du alles, was mit LIFOS zu tun hat. Seien es
-Tutorials für GitLab oder für Templates.
+Auf dieser finden sich alle unterstützenden Infos zur Nutzung der Plattform LIFOS, die im Rahmen des Projekts "Lokale Infrastruktur für Open Science" entstanden ist. Das Projekt wurde ermöglicht durch die Stiftung [Innovation in der Hochschullehre](https://stiftung-hochschullehre.de/) und das [Projekt DigiTell](https://www.uni-frankfurt.de/106198465/Digital_Teaching_and_Learning_Lab___DigiTeLL).
