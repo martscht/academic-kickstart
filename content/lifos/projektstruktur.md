@@ -66,12 +66,17 @@ subtitle = ""
  css_class = ""
 +++
 
-<a id="Test2"></a>
-Hier wird noch gebaut.
+<a id="Projektstruktur"></a>
+
+Projekte, die über Templates initiiert werden, beinhalten direkt eine vorangelegte Ordnerstruktur. Diese strukturiert einerseits das Projekt und kann direkt genutzt werden, um die entsprechenden Dateien abzulegen und von anderen wiedergefunden zu werden.
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 1 | **Projektstruktur** | [Inhalte](/post/under-construction) |
-|  |  |  
+| 1 | Präregistrierung |[DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 2 | Skripte| [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 3 | Daten|  [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 4 | Manuskript | [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| Zusatz: | Eigene Ordnerstruktur erstellen | [DE](/post/under-construction) | [EN](/post/under-construction)| 
+|  |  |    
 
 

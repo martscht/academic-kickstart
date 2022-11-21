@@ -66,12 +66,19 @@ subtitle = ""
  css_class = ""
 +++
 
-<a id="Test2"></a>
-Hier wird noch gebaut.
+<a id="Templates"></a>
+
+LIFOS bietet direkt Templates an, die automatisch eine Ordnerstruktur erstellen, die hilft, das eigene Projekt zu organisieren. Insgesamt stehen fünf verschiedene Templates zur Auswahl, die für unterschiedliche Arten von Forschungsprojekten geeignet sind. Insbesondere unterscheiden sie sich im Preregistration Dokument. Im Folgenden werden alle Templates näher erläutert.
+
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 1 | **Template** | [Inhalte](/post/under-construction) |
-|  |  |  
+| 1 | OSF Präregistrierung |[DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 2 | AsPredicted Präregistrierung| [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 3 | Präregistrierung für qualitative Forschung|  [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 4 | Präregistrierung für bereits existierende Daten| [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 5 | Präregistrierung für Replikationsstudien| [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| Zusatz: | Welches Template ist das richtige für mich? | [DE](/post/under-construction) | [EN](/post/under-construction)| 
+|  |  |    
 
 

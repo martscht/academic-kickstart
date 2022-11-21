@@ -66,7 +66,7 @@ subtitle = ""
  css_class = ""
 +++
 
-<a id="Test1"></a>
+<a id="GitLab"></a>
 
 LIFOS basiert auf einer GitLab Plattform. Da diese Anwendung auch häufig für die Software-Entwicklung genutzt wird, ist die Bewegung auf einer solchen Plattform für Einige bestimmt neu. In den ersten beiden Tutorials zeigen wir die Aspekte, die für die einfache Nutzung zur Open-Science gerechten Dokumentation einer Arbeit essentiell sind. Mit diesen Tutorials kann eine Nutzung also bereits problemlos funktionieren. Die anderen, folgenden Zusätze zeigen weitere Möglichkeiten der Arbeit mit der Plattform auf, die etwas technischer sind.
  
