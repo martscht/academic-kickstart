@@ -68,11 +68,12 @@ subtitle = ""
 
 <a id="Test1"></a>
 
+LIFOS basiert auf einer GitLab Plattform. Da diese Anwendung auch häufig für die Software-Entwicklung genutzt wird, ist die Bewegung auf einer solchen Plattform für Einige bestimmt neu. In den ersten beiden Tutorials zeigen wir die Aspekte, die für die einfache Nutzung zur Open-Science gerechten Dokumentation einer Arbeit essentiell sind. Mit diesen Tutorials kann eine Nutzung also bereits problemlos funktionieren. Die anderen, folgenden Zusätze zeigen weitere Möglichkeiten der Arbeit mit der Plattform auf, die etwas technischer sind.
  
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 1 | [Orientierung in der Instanz](/post/under-construction) |
-| 2 | [Einführung in R-Markdown und Subgruppen](/post/under-construction) |
-| Zusatz: | [Verbindung zu SmartGit](/post/under-construction) |
-| Zusatz: | [Tieferer Einblick in die GitLab Oberfläche](/post/under-construction) |
+| 1 | Orientierung in der Instanz |[DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 2 | Einführung in R-Markdown und Subgruppen| [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| Zusatz: | Verbindung zu SmartGit|  [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| Zusatz: | Tieferer Einblick in die GitLab Oberfläche | [DE](/post/under-construction) | [EN](/post/under-construction)| 
 |  |  |    
