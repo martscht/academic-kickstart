@@ -14,7 +14,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [hartig, irmer]
-lastmod: '2021-12-15 12:00:12 CEST'
+lastmod: '2022-11-22 12:00:12 CEST'
 featured: no
 header:
      image: "/header/HLM_head.jpg"
@@ -22,7 +22,6 @@ header:
 projects: []
 ---
 
-<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <div id="pakete-laden" class="section level4">
@@ -47,8 +46,8 @@ lockdown &lt;- lockdown[-which(lockdown$ID %in% names(which(table(lockdown$ID)==
 
 # Daten aufbereiten, Variablen auswählen extrahieren und in Nummern umwandeln
 # Entfernen von Minderjährigen &amp; unbestimmtes Gender mit den Funktionen filter() und select () aus dplyr.
-lockdown &lt;- lockdown %&gt;%
-  filter(Age &gt; 18 &amp; Gender == 1 | Gender == 2) %&gt;%
+lockdown &lt;- lockdown |&gt;
+  filter(Age &gt; 18 &amp; Gender == 1 | Gender == 2) |&gt;
   select(c(&quot;ID&quot;, &quot;Wave&quot;, &quot;Age&quot;, &quot;Gender&quot;, &quot;Income&quot;, &quot;EWB&quot;,&quot;PWB&quot;,&quot;SWB&quot;,
            &quot;IWB&quot;,&quot;E.threat&quot;,&quot;H.threat&quot;, &quot;Optimism&quot;,
            &quot;Self.efficacy&quot;,&quot;Hope&quot;,&quot;P.Wisdom&quot;,&quot;ST.Wisdom&quot;,&quot;Grat.being&quot;,
@@ -61,7 +60,10 @@ lockdown[,c(&quot;EWB&quot;, &quot;PWB&quot;, &quot;SWB&quot;, &quot;IWB&quot;)]
 lockdown[,c(&quot;E.threat&quot;, &quot;H.threat&quot;, &quot;Optimism&quot;, &quot;Self.efficacy&quot;, &quot;Hope&quot;, &quot;P.Wisdom&quot;, 
             &quot;ST.Wisdom&quot;, &quot;Grat.being&quot;, &quot;Grat.world&quot;)] &lt;-
   scale(lockdown[,c(&quot;E.threat&quot;, &quot;H.threat&quot;, &quot;Optimism&quot;, &quot;Self.efficacy&quot;, &quot;Hope&quot;, &quot;P.Wisdom&quot;, 
-            &quot;ST.Wisdom&quot;, &quot;Grat.being&quot;, &quot;Grat.world&quot;)])</code></pre>
+            &quot;ST.Wisdom&quot;, &quot;Grat.being&quot;, &quot;Grat.world&quot;)])
+
+# ID in Faktor Umwandeln
+lockdown$ID &lt;- as.factor(lockdown$ID)</code></pre>
 <div id="variablen-im-datensatz" class="section level3">
 <h3>Variablen im Datensatz</h3>
 <p>In diesem Datensatz stehen die Daten eines Messzeitpunktes in je einer Zeile, d.h. die Daten einer Person stehen in mehreren Zeilen (diese Struktur wird oft auch als <em>long format</em> bezeichtet - im Kontrast zum <em>wide format</em>, bei dem die Daten jeder Person in einer Zeile in verschiedenen Variablen stehen). Die Variable ID markiert, welche Daten zur selben Person gehören.</p>
@@ -140,7 +142,7 @@ ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=PWB, color=ID)) +
 <div id="nullmodell" class="section level3">
 <h3>Nullmodell</h3>
 <p>Als erstes Modell berechnen wir für Psychological Wellbeing das Nullmodell ohne Prädiktoren. Dieses Modell kann für Modelle mit Prädiktoren als Referenz für Modellvergleiche dienen. Außerdem können wir auf dessen Basis auch eine Schätzung für die Intraklassenkorrelation bilden. Beide benötigten Varianzkomponenten <span class="math inline">\(\sigma^2_{between}\)</span> und <span class="math inline">\(\sigma^2_{within}\)</span> werden im Modell geschätzt.</p>
-<p>Der Ausgabe für das Nullmodell können wir entnehmen, dass die Varianz des Intercepts <span class="math inline">\(\sigma^2_{between}=0.804\)</span> beträgt, die Residualvarianz, die hier der Innerpersonen-Varianz entspricht, <span class="math inline">\(\sigma^2_{within}=0.207\)</span>. Hieraus resultiert eine ICC von <span class="math inline">\(\rho_{ICC}=0.795\)</span>. Geringfügige Abweichungen durch die oben mit der Funktion <code>ICCbare</code>ermittelten Ergebnisse können durch die unterschiedlichen Schätzmethoden (Kleinstquadrate vs. ML) zustande kommen.</p>
+<p>Der Ausgabe für das Nullmodell können wir entnehmen, dass die Varianz des Intercepts <span class="math inline">\(\sigma^2_{between}=0.804\)</span> beträgt, die Residualvarianz, die hier der Innerpersonen-Varianz entspricht, <span class="math inline">\(\sigma^2_{within}=0.207\)</span>. Hieraus resultiert eine ICC von <span class="math inline">\(\rho_{ICC}=0.795\)</span>. Geringfügige Abweichungen durch die oben mit der Funktion <code>ICCbare</code> ermittelten Ergebnisse kommen durch die unterschiedlichen Schätzmethoden (Kleinstquadrate vs. ML) zustande.</p>
 <pre class="r"><code># Nulllmodell für PWB
 m0 &lt;- lmer(PWB ~ 1 + (1 | ID), data = lockdown)
 summary(m0)</code></pre>
@@ -215,7 +217,6 @@ ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=pred, color=ID)) +
   theme_bw() + guides(color=&quot;none&quot;) +
   geom_line()</code></pre>
 <p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
-<p>Der Effekt der Zeit war signifikant negativ (was wir durch Betrachten der <code>t</code>-Werte und Vergleichen mit dem kritischen Wert <span class="math inline">\(|t|&gt; 1.96\)</span> erkennen).</p>
 </div>
 <div id="zufallseffekt-random-slope" class="section level3">
 <h3>Zufallseffekt (<em>random slope</em>)</h3>
@@ -254,7 +255,7 @@ summary(PWB.time.random)</code></pre>
 ## Correlation of Fixed Effects:
 ##      (Intr)
 ## Time -0.449</code></pre>
-<p>Mit mehr als einem Zufallseffekt im Modell enthält die Ausgabe nicht nur deren Varianzen, sondern auch deren Korrelation. In unserem Fall beträgt die Korrelation zwischen dem Intercept <span class="math inline">\(\beta_0\)</span> und dem Regressionskoeffizienten <span class="math inline">\(\beta_1\)</span> für ‘Time’ <span class="math inline">\(r=-0.25\)</span>. Das Intercept <span class="math inline">\(\beta_{0j}\)</span> ist das erwartete Wohlbefinden einer Person <span class="math inline">\(j\)</span> zu Beginn des Lockdowns (null Wochen im Lockdown). Die Steigung <span class="math inline">\(\beta_{1j}\)</span> ist die erwartete Veränderung des individuellen Wohlbefindens mit jeder weiteren Woche im Lockdown. Die leicht negative Korrelation bedeutet, dass das Wohlbefinden von Personen mit einem zu Beginn höheren Niveau etwas stärker negativ entwickelt.</p>
+<p>Mit mehr als einem Zufallseffekt im Modell enthält die Ausgabe nicht nur deren Varianzen, sondern auch deren Korrelation. In unserem Fall beträgt die Korrelation zwischen dem Intercept <span class="math inline">\(\beta_0\)</span> und dem Regressionskoeffizienten <span class="math inline">\(\beta_1\)</span> für <code>Time</code> <span class="math inline">\(r=-0.25\)</span>. Das Intercept <span class="math inline">\(\beta_{0j}\)</span> ist das erwartete Wohlbefinden einer Person <span class="math inline">\(j\)</span> zu Beginn des Lockdowns (null Wochen im Lockdown). Die Steigung <span class="math inline">\(\beta_{1j}\)</span> ist die erwartete Veränderung des individuellen Wohlbefindens mit jeder weiteren Woche im Lockdown. Die leicht negative Korrelation bedeutet, dass das Wohlbefinden von Personen mit einem zu Beginn höheren Niveau etwas stärker negativ entwickelt.</p>
 <p>Der Ausgabe können wir entnehmen, dass die Varianz des Zeiteffekts <span class="math inline">\(var(u_1)=0.0039\)</span> beträgt. Ob dieser auf den ersten Blick kleine Effekt signifikant ist, können wir durch den Vergleich des Modells mit und ohne Zufallseffekt testen. Die <code>anova</code>-Funktion schätzt die Modelle standardmäßig für den Modellvergleich neu, und zwar mit Maximum Likelihood (ML) statt der Standardmethode Restricted Maximum Likelihood (REML). Dies muss hier mit der Option <code>refit=FALSE</code> unterdrückt werden, da der Test von Zufallseffekten auf der REML-Schätzung basieren sollte.</p>
 <pre class="r"><code>anova(PWB.time.fixed, PWB.time.random, refit=FALSE)</code></pre>
 <pre><code>## Data: lockdown
@@ -293,7 +294,9 @@ abline(v=fixef(PWB.time.random)[&quot;Time&quot;], col=&quot;blue&quot;) # Lage 
 <li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + Z + (1 | ID)</code></li>
 </ul>
 <p>Um die Modellparameter besser interpretieren zu können, zentrieren wir die Variabe zunächst um ihren Mittelwert (<span class="math inline">\(M(Age)=43.27\)</span>).</p>
-<p>Im Ergebnis sehen wir, dass Alter einen positiven Effekt auf das Psychische Wohlbefinden hat. Mit einem Jahr höherem Alter ändert sich das Niveau des Wohlbefindens um 0.013 Standardabweichungen. Das sieht numerisch wenig aus, bedeutet aber z. B. schon zwischen Zwanzigjährigen und Vierzigjährigen einen erwarteten Unterschied von 0.263 Standardabweichungen.</p>
+<pre class="r"><code># Alter zentrieren
+lockdown$Age &lt;- scale(lockdown$Age, scale = FALSE)</code></pre>
+<p>Im Ergebnis des Modells sehen wir, dass Alter einen positiven Effekt auf das psychische Wohlbefinden hat. Mit einem Jahr höherem Alter ändert sich das Niveau des Wohlbefindens um 0.013 Standardabweichungen. Das sieht numerisch wenig aus, bedeutet aber z. B. schon zwischen Zwanzigjährigen und Vierzigjährigen einen erwarteten Unterschied von 0.263 Standardabweichungen.</p>
 <pre class="r"><code>PWB.Age &lt;- lmer(PWB ~ 1 + Age + (1 | ID), data = lockdown)
 summary(PWB.Age)</code></pre>
 <pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
@@ -331,7 +334,7 @@ summary(PWB.Age)</code></pre>
 <li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{01}Z_j + \gamma_{10}X_{ij} + \gamma_{11}Z_jX_{ij} + u_{1j}X_{ij} + u_{0j} + r_{ij}\)</span></li>
 <li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + Z + X + Z:X + (1 + X | ID)</code></li>
 </ul>
-<p>Für dieses Modell zentrieren wie auch die Zeit-Variable. Deren Nullpunkt ist zwar ohne Zentrierung anschaulicher, aber für die Interpretation des Moderatoreffekts sollten die beteiligten Prädiktoren zentriert sein. In den festen Effekten sehen wir (durch Betrachten der <code>t</code>-Werte und Vergleichen mit dem kritischen Wert <span class="math inline">\(|t|&gt; 1.96\)</span>), dass</p>
+<p>Für dieses Modell zentrieren wie auch die Zeit-Variable. Deren Nullpunkt ist zwar ohne Zentrierung anschaulicher, aber für die Interpretation des Moderatoreffekts sollten die beteiligten Prädiktoren zentriert sein. In den festen Effekten sehen wir, dass</p>
 <ul>
 <li>der signifikante Alterseffekt bestehen bleibt,</li>
 <li>der negative Zeiteffekt bestehen bleibt und</li>
@@ -374,5 +377,9 @@ summary(PWB.Age.Time)</code></pre>
 ## Age:Time -0.012  0.101 -0.015</code></pre>
 <p>Zur grafischen Veranschaulichung der Wechselwirkung kann wie bei der moderierten Regression im linearen Modell auch hier die Funktion <code>interact_plot</code> verwendet werden. Die Lage der Linien zeigt gut den positiven Haupteffekt des Alters auf das Wohlbefinden. Zugleich veranschaulichen die fast parallelen Geraden das Nicht-Vorliegen einer Wechselwirkung.</p>
 <pre class="r"><code>interact_plot(model = PWB.Age.Time, pred = Time, modx = Age)</code></pre>
-<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+</div>
+<div id="r-skript" class="section level2">
+<h2>R-Skript</h2>
+<p>Den gesamten R-Code, der in dieser Sitzung genutzt wird, können Sie <a href="05_HLM_R-Code.R">hier herunterladen</a>.</p>
 </div>
