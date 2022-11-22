@@ -9,7 +9,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [scheppa-lahyani, nehler]
-lastmod: '2020-12-11T19:04:08+01:00'
+lastmod: '2022-22-11T19:04:08+01:00'
 featured: no
 header:
   image: "/header/BSc2_Tests.jpg"
@@ -17,7 +17,6 @@ header:
 projects: []
 ---
 
-<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <details>
@@ -49,9 +48,49 @@ Kernfragen dieser Lehreinheit
 </ul>
 <hr />
 </div>
+<div id="vorbereitende-schritte" class="section level2">
+<h2>Vorbereitende Schritte</h2>
+<p>Der Datensatz wird in diesem Tutorial nicht direkt verwendet, wird aber für das spätere Beispiel gebraucht. Wir beschäftigen uns aber wieder zu Beginn mit dem Einladen, um die Struktur der Tutorials gleich zu lassen. Den Datensatz haben wir bereits unter diesem <a href="/post/fb22.rda"><i class="fas fa-download"></i> Link heruntergeladen</a> und können ihn über den lokalen Speicherort einladen oder Sie können Ihn direkt mittels des folgenden Befehls aus dem Internet in das Environment bekommen. In den vorherigen Tutorials und den dazugehörigen Aufgaben haben wir bereits Änderungen am Datensatz durchgeführt, die hier nochmal aufgeführt sind, um den Datensatz auf dem aktuellen Stand zu haben:</p>
+<pre class="r"><code>#### Was bisher geschah: ----
+
+# Daten laden
+load(url(&#39;https://pandar.netlify.app/post/fb22.rda&#39;))  
+
+# Nominalskalierte Variablen in Faktoren verwandeln
+fb22$geschl_faktor &lt;- factor(fb22$geschl,
+                             levels = 1:3,
+                             labels = c(&quot;weiblich&quot;, &quot;männlich&quot;, &quot;anderes&quot;))
+fb22$fach &lt;- factor(fb22$fach,
+                    levels = 1:5,
+                    labels = c(&#39;Allgemeine&#39;, &#39;Biologische&#39;, &#39;Entwicklung&#39;, &#39;Klinische&#39;, &#39;Diag./Meth.&#39;))
+fb22$ziel &lt;- factor(fb22$ziel,
+                        levels = 1:4,
+                        labels = c(&quot;Wirtschaft&quot;, &quot;Therapie&quot;, &quot;Forschung&quot;, &quot;Andere&quot;))
+fb22$wohnen &lt;- factor(fb22$wohnen, 
+                      levels = 1:4, 
+                      labels = c(&quot;WG&quot;, &quot;bei Eltern&quot;, &quot;alleine&quot;, &quot;sonstiges&quot;))
+
+# Skalenbildung
+
+fb22$prok2_r &lt;- -1 * (fb22$prok2 - 5)
+fb22$prok3_r &lt;- -1 * (fb22$prok3 - 5)
+fb22$prok5_r &lt;- -1 * (fb22$prok5 - 5)
+fb22$prok7_r &lt;- -1 * (fb22$prok7 - 5)
+fb22$prok8_r &lt;- -1 * (fb22$prok8 - 5)
+
+#Prokrastination
+fb22$prok_ges &lt;- fb22[, c(&#39;prok1&#39;, &#39;prok2_r&#39;, &#39;prok3_r&#39;,
+                          &#39;prok4&#39;, &#39;prok5_r&#39;, &#39;prok6&#39;,
+                          &#39;prok7_r&#39;, &#39;prok8_r&#39;, &#39;prok9&#39;, 
+                          &#39;prok10&#39;)] |&gt; rowMeans()
+#Naturverbundenheit
+fb22$nr_ges &lt;-  fb22[, c(&#39;nr1&#39;, &#39;nr2&#39;, &#39;nr3&#39;, &#39;nr4&#39;, &#39;nr5&#39;,  &#39;nr6&#39;)] |&gt; rowMeans()
+fb22$nr_ges_z &lt;- scale(fb22$nr_ges) # Standardisiert</code></pre>
+<hr />
+</div>
 <div id="lets-start" class="section level1">
 <h1>Let’s start</h1>
-<p>Der durchschnittliche IQ der Population ist <span class="math inline">\(\mu_0\)</span> = 100 und die Standardabweichung ist 15. Eine Forschungsgruppe glaubt aber, dass sich das verändert hat und entscheidet, diese Vermutung an der zufälligen Stichprobe von 75 Erwachsenen zu testen. Sie finden heraus, dass der durchschnittliche IQ der Stichprobe <span class="math inline">\(\mu_1\)</span> = 105 (<em>SD</em> = 17) ist.</p>
+<p>Der durchschnittliche IQ der Population ist <span class="math inline">\(\mu_0\)</span> = 100 und die Standardabweichung ist 15. Eine Forschungsgruppe glaubt aber, dass sich das verändert hat und entscheidet, diese Vermutung an einer zufälligen Stichprobe von 75 Erwachsenen zu testen. Sie finden heraus, dass der durchschnittliche IQ der Stichprobe <span class="math inline">\(\mu_1\)</span> = 105 (<em>SD</em> = 17) ist.</p>
 <p><strong>Was wären hier <span class="math inline">\(H_0\)</span> und <span class="math inline">\(H_1\)</span>?</strong></p>
 <p><span class="math inline">\(\alpha\)</span> = .05</p>
 <p><span class="math inline">\(H_0\)</span>: Der durchschnittliche IQ der Stichprobe ist gleich oder geringer als zuvor.</p>
@@ -78,7 +117,7 @@ sample_size &lt;- 75 #Stichprobengröße
 se_IQ &lt;- sd_IQ/sqrt(sample_size) #standard error (SE), also Standardfehler
 new_mean_IQ &lt;- 105 #Stichprobenmittelwert
 new_sd_IQ &lt;- 17 #SD der Stichprobe (Populationsschätzer)</code></pre>
-<p>Demnach wird der empirische <em>z-</em>Wert <span class="math inline">\(z_{emp}\)</span> wie folgt berechnet (Bedenkt, dass es immer um den Betrag des Ergebnisses geht, weshalb wir die Funktion <code>abs()</code> verwenden.):</p>
+<p>Demnach wird der empirische <em>z-</em>Wert <span class="math inline">\(z_{emp}\)</span> wie folgt berechnet:</p>
 <pre class="r"><code>z_IQ &lt;- abs((new_mean_IQ-mean_IQ)/(sd_IQ/sqrt(sample_size))) #abs() berechnet den Betrag des Ergebnisses
 z_IQ</code></pre>
 <pre><code>## [1] 2.886751</code></pre>
@@ -86,7 +125,8 @@ z_IQ</code></pre>
 <pre class="r"><code>z_IQ &lt;- abs((new_mean_IQ-mean_IQ)/se_IQ)
 z_IQ</code></pre>
 <pre><code>## [1] 2.886751</code></pre>
-<p>Der empirische <em>z-</em>Wert <span class="math inline">\(z_{emp}\)</span> ist eine Angabe, um wie viele Standardabweichungen der Mittelwerte der SKV (<em>SE</em>) der Mittelwert der Stichprobe vom Mittelwert der Grundgesamtheit abweicht.<br />
+<p>Beachten Sie: es geht immer um den Betrag des Ergebnisses, weshalb wir die Funktion <code>abs()</code> verwenden.</p>
+<p>Der empirische <em>z-</em>Wert <span class="math inline">\(z_{emp}\)</span> ist eine Angabe, um wie viele Standardabweichungen der Mittelwerte der SKV (das heißt: um wie viele Standardfehler <em>SE</em>) der Mittelwert der Stichprobe vom Mittelwert der Grundgesamtheit abweicht.<br />
 Der beobachtete Stichprobenmittelwert weicht demnach um <strong><span class="math inline">\(z_{IQ}\)</span> = 2.89</strong> <em>SE</em> (nach oben) vom Mittelwert der Grundgesamtheit ab.<br />
 Um entscheiden zu können, ob es sich um eine signifikante Abweichung handelt, muss der <strong>kritische <em>z-</em>Wert</strong> <span class="math inline">\(z_{krit}\)</span> bestimmt werden.<br />
 Für eine Irrtumswahrscheinlichkeit von 5% und eine einseitige Hypothesentestung wäre dies:</p>
@@ -100,26 +140,25 @@ z_krit</code></pre>
 Mit einer Irrtumswahrscheinlichkeit von 5% kann die <span class="math inline">\(H_0\)</span> verworfen werden. Der durchschnittliche IQ der Stichprobe ist höher als der durchschnittliche IQ der Grundgesamtheit.</p>
 <div id="weitere-möglichkeit-pnorm" class="section level3">
 <h3>Weitere Möglichkeit: <code>pnorm</code></h3>
-<p>Wie wahrscheinlich ist es angesichts der bekannten Normalverteilung der <em>z-</em>Werte den beobachteten empirischen <em>z-</em>Wert <span class="math inline">\(z_{emp}\)</span> zu erhalten?</p>
-<p>Wie hoch ist die Wahrscheinlichkeit diesen oder einen GRÖßEREN (einseitig) <em>z-</em>Wert zu erreichen?</p>
+<p>Wie hoch ist die Wahrscheinlichkeit angesichts der bekannten Normalverteilung diesen oder einen GRÖßEREN (einseitig) empirischen <em>z-</em>Wert <span class="math inline">\(z_{emp}\)</span> zu erreichen?</p>
 <pre class="r"><code>p_z_IQ_oneside &lt;- pnorm(z_IQ, lower.tail = FALSE)
 p_z_IQ_oneside</code></pre>
 <pre><code>## [1] 0.001946209</code></pre>
-<p>Wie hoch ist die Wahrscheinlichkeit diesen oder einen EXTREMEREN (zweiseitig) <em>z-</em>Wert zu erreichen?</p>
+<p>Wie hoch ist die Wahrscheinlichkeit angesichts der bekannten Normalverteilung diesen oder einen EXTREMEREN (zweiseitig) <em>z-</em>Wert <span class="math inline">\(z_{emp}\)</span> zu erreichen?</p>
 <pre class="r"><code>p_z_IQ_twoside &lt;- 2*pnorm(z_IQ, lower.tail = FALSE) #verdoppeln, da zweiseitig
 p_z_IQ_twoside</code></pre>
 <pre><code>## [1] 0.003892417</code></pre>
-<p>Wir erkennen, dass in beiden Fällen der Wert kleiner als .05 (5%) ist. Demnach ist die Wahrscheinlichkeit, diesen Wert per Zufall erhalten zu haben, sehr gering.</p>
+<p>Wir erkennen, dass in beiden Fällen der Wert kleiner als .05 (5%) ist. Demnach ist die Wahrscheinlichkeit, diesen Wert (oder einen noch extremeren Wert) per Zufall erhalten zu haben, sehr gering, wenn in die <span class="math inline">\(H_0\)</span> gilt.</p>
 <hr />
 </div>
 </div>
 <div id="konfidenzintervalle" class="section level2">
 <h2>Konfidenzintervalle</h2>
-<p>Wir können auch ein Konfidenzintervall um den wahren Populationsmittelwert <span class="math inline">\(\mu\)</span> bestimmen. Es geht dabei darum, in welchem Wertebereich der wahre Wert <span class="math inline">\(\mu\)</span> mit einer gewissen vorgegebenen Wahrscheinlichkeit liegt. Wenn wir also ein 95%-Konfidenzintervall wählen und wir aus der selben Grundgesamtheit wiederholt die selbe Anzahl an Fällen ziehen, so ist in 95% der Fälle der Mittelwert in dem vorgegeben Konfidenzintervall enthalten.</p>
+<p>Wir können auch ein Konfidenzintervall um den wahren Populationsmittelwert <span class="math inline">\(\mu\)</span> bestimmen. Wenn wir z.B. ein 95%-Konfidenzintervall wählen und wir aus der selben Grundgesamtheit wiederholt die selbe Anzahl an Fällen ziehen (unsere Studie also sehr oft wiederholen), dann werden 95% aller Konfidenzintervalle den wahren Populationsmittelwert <span class="math inline">\(\mu\)</span> enthalten.</p>
 <p>Dabei gilt:</p>
 <p><span class="math display">\[\mu = \bar{x} \pm z_{krit} * \sigma_{\bar{x}} = \bar{x} \pm z_{krit}*\frac{\sigma}{\sqrt{n}}\]</span></p>
-<p>Ein 95%-Konfidenzintervall ist ein Intervall, welches in 95% der Fälle beim Ziehen aus der selben Grundgesamtheit den wahren Wert <span class="math inline">\(\mu\)</span> enthält.</p>
-<p>Wenn wir ein 95%-Konfidenzintervall bestimmen wollen, brauchen wir den <strong>kritischen <em>z-</em>Wert</strong> <span class="math inline">\(z_{krit}\)</span> aus der SNV (Standardnormalverteilung).<br />
+<p>Ein 95%-Konfidenzintervall ist somit ein Intervall, welches in 95% der Fälle beim Ziehen aus der selben Grundgesamtheit den wahren Wert <span class="math inline">\(\mu\)</span> enthält.</p>
+<p>Wenn wir ein 95%-Konfidenzintervall bestimmen wollen, brauchen wir den <strong>kritischen <em>z-</em>Wert</strong> <span class="math inline">\(z_{krit}\)</span> aus der Standardnormalverteilung.<br />
 Für Konfidenzintervalle nutzen wir einen <em>z-</em>Wert für 2-seitiges Testen:</p>
 <pre class="r"><code>z_krit2 &lt;- qnorm(1-(.05/2))
 z_krit2</code></pre>
@@ -133,7 +172,8 @@ negative_mean_IQ</code></pre>
 <pre class="r"><code>conf_interval_IQ &lt;- c(negative_mean_IQ, positive_mean_IQ )
 conf_interval_IQ</code></pre>
 <pre><code>## [1] 101.6052 108.3948</code></pre>
-<p>In diesem Fall liegt der wahre IQ Wert der Grundgesamtheit <span class="math inline">\(\mu\)</span>, aus der die Stichprobe gezogen wurde, zwischen 101.61 und 108.39. Das bedeutet, dass in 95% der Fälle in einer wiederholten Ziehung aus der Grundgesamtheit die mittleren IQ-Werte zwischen 101.61 und 108.39 liegen.</p>
+<p>In diesem Fall liegt der Schätzer für den wahren IQ Wert der Grundgesamtheit <span class="math inline">\(\mu\)</span>, aus der die Stichprobe gezogen wurde, zwischen 101.61 und 108.39. Das bedeutet, dass in 95% der Fälle in einer wiederholten Ziehung aus der Grundgesamtheit die mittleren IQ-Werte zwischen 101.61 und 108.39 liegen.
+Da dieses Intervall den Populationsmittelwert unter der <span class="math inline">\(H_0\)</span> (<span class="math inline">\(\mu\)</span> <span class="math inline">\(\leq\)</span> 100) <strong>nicht</strong> enthält, würden wir die <span class="math inline">\(H_0\)</span> in diesem Fall verwerfen. Beachten Sie: Ein zweiseitiger <em>z</em>-Test bei einer Irrtumswahrscheinlichkeit <span class="math inline">\(\alpha\)</span> und der Test über ein (1-<span class="math inline">\(\alpha\)</span>)-Konfidenzintervall kommen immer zu denselben Schlussfolgerungen.</p>
 <hr />
 </div>
 <div id="t-test" class="section level2">
@@ -144,7 +184,7 @@ conf_interval_IQ</code></pre>
 <li>Metrisch skalierte abhängige Variable</li>
 <li>Bei <em>n</em> &lt; 30 : Normalverteilung der abhängigen Variable in der Population.</li>
 </ol>
-<p>Unterschiedliche Quellen geben an, dass die durchschnittliche Größe der Männer in Deutschland 180 cm beträgt (z.B. <a href="https://www.länderdaten.info/durchschnittliche-körpergrössen.php" class="uri">https://www.länderdaten.info/durchschnittliche-körpergrössen.php</a>). Eine Forschungsgruppe vermutet jedoch, dass die Männer in Deutschland eigentlich größer sind und ermittelt von zehn zufällig gezogenen Männer die Körpergröße.</p>
+<p>Unterschiedliche Quellen geben an, dass die durchschnittliche Größe der Männer in Deutschland 180 cm beträgt (z.B. <a href="https://www.laenderdaten.info/durchschnittliche-körpergrössen.php" class="uri">https://www.laenderdaten.info/durchschnittliche-körpergrössen.php</a>). Eine Forschungsgruppe vermutet jedoch, dass die Männer in Deutschland eigentlich größer sind und ermittelt von zehn zufällig gezogenen Männer die Körpergröße.</p>
 <p>Die Größe der Männer beträgt: 183, 178, 175, 186, 185, 179, 181, 179, 182, 177 (gemessen in cm).</p>
 <p>Kann die Vermutung der Forschungsgruppe bestätigt werden?</p>
 <pre class="r"><code>men.height &lt;- c(183, 178, 175, 186, 185, 179, 181, 179, 182, 177)
@@ -175,7 +215,7 @@ Eine Normalverteilung in der Population liegt vor, wenn das Ergebnis NICHT signi
 <p><strong>Variante 2</strong>: Grafisch: In einem sog. QQ-Plot werden die unter der Normalverteilung erwarteten Quantile und die tatsächlich beobachteten Quantile in einem Streudiagramm dargestellt. Je deutlicher die Punkte auf der Geraden liegen, desto näher ist die beobachtete Verteilung an der Normalverteilung.</p>
 <pre class="r"><code>qqnorm(men.height) 
 qqline(men.height)</code></pre>
-<p><img src="/post/2020-12-11-tests-und-konfidenzintervalle_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p><img src="/post/2020-12-11-tests-und-konfidenzintervalle_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 <p>Beide Varianten lassen darauf schließen, dass die Annahme auf Normalverteilung nicht verworfen werden muss.</p>
 </div>
 <div id="signifikanz-bestimmen" class="section level3">
@@ -231,39 +271,34 @@ p.t.men.height</code></pre>
 </div>
 <div id="beispiel-mit-unserem-datensatz" class="section level2">
 <h2>Beispiel mit unserem Datensatz</h2>
-<p>Den Datensatz <code>fb21.rda</code>, mit dem im Folgenden gearbeitet wird, können Sie <a href="/post/fb21.rda"><i class="fas fa-download"></i> hier herunterladen</a>. Anschließend müssen Sie ihn lokal einladen.</p>
-<pre class="r"><code>load(&#39;fb21.rda&#39;)</code></pre>
-<p>Alternativ können Sie ihn auch direkt über den folgenden Befehl in <code>R</code> laden:</p>
-<pre class="r"><code>load(url(&#39;https://pandar.netlify.app/post/fb21.rda&#39;))</code></pre>
 <p><strong>Unterscheidet sich unsere studentische Stichprobe in ihrem Neurotizismuswert von Studierenden im Allgemeinen?</strong>
 Wir nehmen an, dass der mittlere Neurotizismuswert in der Population der Studierenden bei <span class="math inline">\(\mu\)</span> = 3.3 liegt.</p>
 <ol style="list-style-type: decimal">
 <li>Ist die erste Voraussetzung erfüllt?</li>
-<li>Normalverteilungsananahme darf verletzt sein (verzerrt das Ergebnis des t-Tests nicht), wenn die Stichprobe mindestens 30 Personen umfasst. Dann gilt der <em>zentrale Grenzwertsatz</em>: “Die Stichprobenkennwertverteilung nähert sich einer Normalverteilung an, selbst wenn diese nicht normalverteilt ist.”</li>
+<li>Normalverteilungsannahme darf verletzt sein (verzerrt das Ergebnis des t-Tests nicht), wenn die Stichprobe mindestens 30 Personen umfasst. Dann gilt der <em>zentrale Grenzwertsatz</em>: “Die Stichprobenkennwertverteilung nähert sich einer Normalverteilung an, selbst wenn diese nicht normalverteilt ist.”</li>
 </ol>
 <p>Bevor wir in die inferenzstatistische Analyse einsteigen, ist es immer gut, sich einen Überblick über die deskriptiven Werte zu verschaffen. Wir können nun natürlich einfach die bereits gelernten Funktionen zu Mittelwert, Varianz, Minimum, etc. nutzen. Doch gibt es einen schnelleren Weg? Die Basisinstallation von <code>R</code> bietet uns keine Alternative. Jedoch gibt es zusätzliche <em>Pakete</em>, die den Pool an möglichen Funktionen erweitern. Die Logik wird im Folgenden erläutert.</p>
 <div id="wie-können-andere-funktionen-in-r-genutzt-werden---library-und-pakete" class="section level3">
 <h3>Wie können andere Funktionen in R genutzt werden? - Library und Pakete</h3>
-<p>R ist in einer Pakete-Logik aufgebaut. Das liegt daran, dass es immer mehr Funktionen in R gibt, die aber nie jemand alle gleichzeitig brauchen wird. Zur Schonung der Kapazität sind diese Funktionalitäten also in Pakete aufgeteilt. In <em>Basispaketen</em>, die standardmäßig geladen werden (also vorinstalliert sind beim Öffnen von R) sind grundlegende Befehle und Analysen implementiert (Beispiele für solche Basispakete sind <code>base</code>, <code>stats</code>, <code>graphics</code>). Für spezifischere Analysen (also Funktionen) müssen <em>Zusatzpakete</em> teilweise erst installiert, zumindest aber immer per Hand geladen werden (Beispiele sind <code>psych</code>, <code>car</code>, <code>ggplot2</code>). Nur die Funktionen von erst installierten und dann geladenen Paketen können in einem Skript benutzt werden.</p>
+<p>R ist in einer Pakete-Logik aufgebaut. Das liegt daran, dass es immer mehr Funktionen in R gibt, die aber nie jemand alle gleichzeitig brauchen wird. Zur Schonung der Kapazität sind diese Funktionalitäten also in Pakete aufgeteilt. In <em>Basispaketen</em>, die standardmäßig geladen werden (also vorinstalliert sind beim Öffnen von R), sind grundlegende Befehle und Analysen implementiert (Beispiele für solche Basispakete sind <code>base</code>, <code>stats</code>, <code>graphics</code>). Für spezifischere Analysen (also Funktionen) müssen <em>Zusatzpakete</em> teilweise erst installiert, zumindest aber immer per Hand geladen werden (Beispiele sind <code>psych</code>, <code>car</code>, <code>ggplot2</code>). Nur die Funktionen von erst installierten und dann geladenen Paketen können in einem Skript benutzt werden.</p>
 <p>Unter dem Reiter <em>Packages</em> wird die <em>Library</em> angezeigt. Hier sind alle Pakete enthalten, die einmal installiert wurden. Pakete müssen ab und zu (per Hand) aktualisiert werden.</p>
-<p><img src="/post/library.JPG" /></p>
-<p>Sobald Sie eigene Pakete installiert haben, gibt es in dem Reiter <em>Packages</em> die Einteilung in die <em>Sytem Library</em> (also standardmäßig installierte Pakete) und die <em>User Library</em> (von Ihnen installierte Pakete).</p>
-<p>Die folgenden Bilder verdeutlichen nochmal das Prinzip von Installieren und Laden. Bei der Installation von R werden die Basispakete automatisch in die Library installiert. Zusatzpakete müssen mit der Funktion <code>install.packages()</code> mit dem Paketnamen als Argument installiert werden. Hierzu ist meist eine Internetverbindung nötig.</p>
-<p><img src="/post/pakete_installieren.JPG" /></p>
+<p><img src="./post/library.JPG" /></p>
+<p>Sobald Sie eigene Pakete installiert haben, gibt es in dem Reiter <em>Packages</em> die Einteilung in die <em>System Library</em> (also standardmäßig installierte Pakete) und die <em>User Library</em> (von Ihnen installierte Pakete).</p>
+<p>Die folgenden Bilder verdeutlichen nochmal das Prinzip vom Installieren und Laden. Bei der Installation von R werden die Basispakete automatisch in die Library installiert. Zusatzpakete müssen mit der Funktion <code>install.packages()</code> mit dem Paketnamen als Argument installiert werden. Hierzu ist meist eine Internetverbindung nötig.</p>
+<p><img src="./post/pakete_installieren.JPG" /></p>
 <p>Beim Start von R werden die Basispakete automatisch geladen. Zusatzpakete müssen hingegen mit der Funktion <code>library()</code> mit dem Paketnamen als Argument geladen werden.</p>
-<p><img src="/post/pakete_laden.JPG" /></p>
+<p><img src="./post/pakete_laden.JPG" /></p>
 <p>Gehen wir das Prinzip an dem Beispielpaket <code>psych</code> durch, das verschiedene Operationen enthält, die in der psychologischen Forschung häufig benötigt werden. Die Installation muss dem Laden des Paketes logischerweise vorausgestellt sein. Wenn R einmal geschlossen wird, müssen alle Zusatzpakete neu geladen, jedoch nicht neu installiert werden.</p>
 <pre class="r"><code>install.packages(&#39;psych&#39;)          # installieren</code></pre>
 <pre class="r"><code>library(psych)                     # laden</code></pre>
-<pre><code>## Warning: Paket &#39;psych&#39; wurde unter R Version 4.1.1 erstellt</code></pre>
-<p>Wir erhalten hier als Warning Message den Hinweis, unter welcher Version das Paket erstellt wurde.
-Eine kleine Suche nach Hilfe zu Pakete kann man mit <code>??</code>erhalten.</p>
+<p>Wir erhalten hier als <em>Warning Message</em> den Hinweis, unter welcher Version das Paket erstellt wurde.
+Eine kleine Suche nach Hilfe zu Pakete kann man mit <code>??</code> erhalten.</p>
 <pre class="r"><code>??psych                          # Hilfe</code></pre>
 <p>Da das Paket <code>psych</code> nun geladen ist, können wir Funktionen aus diesem nutzen. Für unsere Übersicht über deskriptive Maße der Variable <code>neuro</code> gibt es die Funktion <code>describe</code>.</p>
-<pre class="r"><code>describe(fb21$neuro)</code></pre>
+<pre class="r"><code>describe(fb22$neuro)</code></pre>
 <pre><code>##    vars   n mean   sd median trimmed  mad  min max range  skew kurtosis   se
-## X1    1 114  3.4 0.78   3.38     3.4 0.74 1.25   5  3.75 -0.08    -0.25 0.07</code></pre>
-<p>Wir bekommen auf einen Schlag sehr viele relevante Informationen über unsere Variable. Der Mittelwert unserer Stichprobe liegt beispielsweise bei 3.4013158. Beachten Sie, dass auch bei <code>describe</code> unter <code>sd</code> die geschätzte Populationsstandardabweichung angegeben wird (wie bei der Basis-Funktion <code>sd</code>). Man müsste Sie also auch umrechnen, um nur eine Angabe über die Stichprobe zu machen.</p>
+## X1    1 159 3.63 0.72   3.75    3.65 0.74 1.25   5  3.75 -0.43     0.09 0.06</code></pre>
+<p>Wir bekommen auf einen Schlag sehr viele relevante Informationen über unsere Variable. Der Mittelwert unserer Stichprobe liegt beispielsweise bei 3.6257862. Beachten Sie, dass auch bei <code>describe</code> unter <code>sd</code> die geschätzte Populationsstandardabweichung angegeben wird (wie bei der Basis-Funktion <code>sd</code>). Man müsste sie also umrechnen, um eine Angabe über die Stichprobe machen zu können.</p>
 </div>
 <div id="hypothesengenerierung" class="section level3">
 <h3>Hypothesengenerierung</h3>
@@ -275,88 +310,88 @@ Eine kleine Suche nach Hilfe zu Pakete kann man mit <code>??</code>erhalten.</p>
 <p><strong>Gerichtete <span class="math inline">\(H_1\)</span></strong>: “Der mittlere Neurotizismuswert unserer Stichprobe ist höher (niedriger) als der mittlere Neurotizismuswert der Studierenden-Population.”
 –&gt; einseitiger t-Test</p>
 <p><strong>Gerichtete <span class="math inline">\(H_0\)</span></strong>: “Der mittlere Neurotizismuswert unserer Stichprobe ist gleich oder niedriger (höher) als der mittlere Neurotizismuswert der Studierenden-Population.”</p>
-<p>In der Praxis würde man sich für eine der beiden Hypothesen-Varianten (<em>ungerichtet</em> vs. <em>gerichtet</em>) entscheiden. Zu Übungszwecken werden aber alle beide Varianten durchgespielt.</p>
-<pre class="r"><code>t.test(fb21$neuro, mu=3.3) #ungerichtet</code></pre>
+<p>In der Praxis würde man sich für eine der beiden Hypothesen-Varianten (<em>ungerichtet</em> vs. <em>gerichtet</em>) entscheiden. Zu Übungszwecken werden aber beide Varianten durchgespielt.</p>
+<pre class="r"><code>t.test(fb22$neuro, mu=3.3) #ungerichtet</code></pre>
 <pre><code>## 
 ##  One Sample t-test
 ## 
-## data:  fb21$neuro
-## t = 1.3924, df = 113, p-value = 0.1665
+## data:  fb22$neuro
+## t = 5.716, df = 158, p-value = 5.295e-08
 ## alternative hypothesis: true mean is not equal to 3.3
 ## 95 percent confidence interval:
-##  3.257160 3.545472
+##  3.513214 3.738358
 ## sample estimates:
 ## mean of x 
-##  3.401316</code></pre>
-<pre class="r"><code>t.test(fb21$neuro, mu=3.3, alternative=&quot;less&quot;) #gerichtet, Stichprobenmittelwert geringer</code></pre>
+##  3.625786</code></pre>
+<pre class="r"><code>t.test(fb22$neuro, mu=3.3, alternative=&quot;less&quot;) #gerichtet, Stichprobenmittelwert geringer</code></pre>
 <pre><code>## 
 ##  One Sample t-test
 ## 
-## data:  fb21$neuro
-## t = 1.3924, df = 113, p-value = 0.9167
+## data:  fb22$neuro
+## t = 5.716, df = 158, p-value = 1
 ## alternative hypothesis: true mean is less than 3.3
 ## 95 percent confidence interval:
-##      -Inf 3.521989
+##      -Inf 3.720089
 ## sample estimates:
 ## mean of x 
-##  3.401316</code></pre>
-<pre class="r"><code>t.test(fb21$neuro, mu=3.3, alternative=&quot;greater&quot;) #gerichtet, Stichprobenmittelwert höher</code></pre>
+##  3.625786</code></pre>
+<pre class="r"><code>t.test(fb22$neuro, mu=3.3, alternative=&quot;greater&quot;) #gerichtet, Stichprobenmittelwert höher</code></pre>
 <pre><code>## 
 ##  One Sample t-test
 ## 
-## data:  fb21$neuro
-## t = 1.3924, df = 113, p-value = 0.08327
+## data:  fb22$neuro
+## t = 5.716, df = 158, p-value = 2.648e-08
 ## alternative hypothesis: true mean is greater than 3.3
 ## 95 percent confidence interval:
-##  3.280643      Inf
+##  3.531484      Inf
 ## sample estimates:
 ## mean of x 
-##  3.401316</code></pre>
+##  3.625786</code></pre>
 <p><strong>Konfidenzintervall:</strong> Wir erkennen, dass das 95%-ige Konfidenzintervall per Standardeinstellung berechnet wird. Falls wir dieses vergrößern oder verkleinern wollen, müssen wir dies explizit formulieren im Argument <code>conf.level</code>:</p>
-<pre class="r"><code>t.test(fb21$neuro, mu=3.3, conf.level=0.99) #99%-iges Konfidenzintervall für die ungerichtete Hypothese</code></pre>
+<pre class="r"><code>t.test(fb22$neuro, mu=3.3, conf.level=0.99) #99%-iges Konfidenzintervall für die ungerichtete Hypothese</code></pre>
 <pre><code>## 
 ##  One Sample t-test
 ## 
-## data:  fb21$neuro
-## t = 1.3924, df = 113, p-value = 0.1665
+## data:  fb22$neuro
+## t = 5.716, df = 158, p-value = 5.295e-08
 ## alternative hypothesis: true mean is not equal to 3.3
 ## 99 percent confidence interval:
-##  3.210675 3.591956
+##  3.477181 3.774391
 ## sample estimates:
 ## mean of x 
-##  3.401316</code></pre>
-<pre class="r"><code>t.test(fb21$neuro, mu=3.3, alternative=&quot;less&quot;, conf.level=0.99) #99%-iges Konfidenzintervall für die gerichtete Hypothese (Stichprobenmittelwert geringer)</code></pre>
+##  3.625786</code></pre>
+<pre class="r"><code>t.test(fb22$neuro, mu=3.3, alternative=&quot;less&quot;, conf.level=0.99) #99%-iges Konfidenzintervall für die gerichtete Hypothese (Stichprobenmittelwert geringer)</code></pre>
 <pre><code>## 
 ##  One Sample t-test
 ## 
-## data:  fb21$neuro
-## t = 1.3924, df = 113, p-value = 0.9167
+## data:  fb22$neuro
+## t = 5.716, df = 158, p-value = 1
 ## alternative hypothesis: true mean is less than 3.3
 ## 99 percent confidence interval:
-##      -Inf 3.573021
+##      -Inf 3.759737
 ## sample estimates:
 ## mean of x 
-##  3.401316</code></pre>
-<pre class="r"><code>t.test(fb21$neuro, mu=3.3, alternative=&quot;greater&quot;, conf.level=0.99) #99%-iges Konfidenzintervall für die gerichtete Hypothese (Stichprobenmittelwert höher)</code></pre>
+##  3.625786</code></pre>
+<pre class="r"><code>t.test(fb22$neuro, mu=3.3, alternative=&quot;greater&quot;, conf.level=0.99) #99%-iges Konfidenzintervall für die gerichtete Hypothese (Stichprobenmittelwert höher)</code></pre>
 <pre><code>## 
 ##  One Sample t-test
 ## 
-## data:  fb21$neuro
-## t = 1.3924, df = 113, p-value = 0.08327
+## data:  fb22$neuro
+## t = 5.716, df = 158, p-value = 2.648e-08
 ## alternative hypothesis: true mean is greater than 3.3
 ## 99 percent confidence interval:
-##  3.229611      Inf
+##  3.491836      Inf
 ## sample estimates:
 ## mean of x 
-##  3.401316</code></pre>
-<p>Es zeigt sich, dass der Neurotizismuswert der Studierenden sich von der Studierenden-Population nicht unterscheidet.</p>
+##  3.625786</code></pre>
+<p>Es zeigt sich, dass der Neurotizismuswert der Studierenden sich von der Studierenden-Population signifikant auf dem 5%-Niveau unterscheidet.</p>
 <p><strong>Ungerichtet</strong></p>
-<p>Die <span class="math inline">\(H_0\)</span> wird mit einer Irrtumswahrscheinlichkeit von 5% beibehalten. Der Neurotizismuswert der Studierenden unterscheidet sich nicht von der Studierenden-Population.</p>
+<p>Die <span class="math inline">\(H_0\)</span> wird mit einer Irrtumswahrscheinlichkeit von 5% verworfen. Der Neurotizismuswert der Studierenden unterscheidet sich von der Studierenden-Population.</p>
 <p><strong>Gerichtet (niedriger)</strong></p>
 <p>Die <span class="math inline">\(H_0\)</span> wird mit einer Irrtumswahrscheinlichkeit von 5% beibehalten. Der Neurotizismuswert der Studierenden ist nicht kleiner als der der Studierenden-Population.
 <em>Bemerke</em>: Einen gerichteten t-Test, der <span class="math inline">\(\bar{x} &lt; \mu\)</span> untersucht, würde man an dieser Stelle nicht durchführen, da die deskriptiven Werte schon gegen die Hypothese sprechen (da <span class="math inline">\(\bar{x} &gt; \mu\)</span> und nicht <span class="math inline">\(\bar{x} &lt; \mu\)</span>).</p>
-<p><strong>Gerichtet (höher)</strong>*</p>
-<p>Die <span class="math inline">\(H_0\)</span> wird mit einer Irrtumswahrscheinlichkeit von 5% beibehalten. Der Neurotizismuswert der Studierenden ist nicht höher als der der Studierenden-Population.</p>
+<p><strong>Gerichtet (höher)</strong></p>
+<p>Die <span class="math inline">\(H_0\)</span> wird mit einer Irrtumswahrscheinlichkeit von 5% verworfen. Der Neurotizismuswert der Studierenden ist höher als der der Studierenden-Population.</p>
 <hr />
 </div>
 </div>
@@ -366,13 +401,13 @@ Eine kleine Suche nach Hilfe zu Pakete kann man mit <code>??</code>erhalten.</p>
 <p>Cohen, J. (1988). <em>Statistical power analysis for the Behavioral Sciences</em>. Routledge.</p>
 <p>Dieses statistische Effektmaß beschreibt die Relevanz von signifikanten Ergebnissen. Zudem kann es verwendet werden, um den Effekt über verschiedene Studien hinweg zu vergleichen.</p>
 <p><span class="math display">\[d = |\frac{\bar{x} - {\mu}}{\sigma}|\]</span></p>
-<pre class="r"><code>mean_Neuro &lt;- mean(fb21$neuro) #Neurotizismuswert der Stichprobe
-sd_Neuro &lt;- sd(fb21$neuro, na.rm = T) #Stichproben SD (Populationsschätzer)
+<pre class="r"><code>mean_Neuro &lt;- mean(fb22$neuro) #Neurotizismuswert der Stichprobe
+sd_Neuro &lt;- sd(fb22$neuro, na.rm = T) #Stichproben SD (Populationsschätzer)
 mean_Popu_Neuro &lt;- 3.3 #Neurotizismuswert der Grundgesamtheit
 d &lt;- abs((mean_Neuro-mean_Popu_Neuro)/sd_Neuro) #abs(), da Betrag
 d</code></pre>
-<pre><code>## [1] 0.1304118</code></pre>
-<p>Die Effektgröße ist in diesem Fall mit einem Wert von .1469 klein. Normalerweise sollte die Einordnung der Größe anhand vergleichbarer Studien aus dem selben Bereich durchgeführt werden. Bei völliger Ahnungslosigkeit über relevante Größen gibt es eine Übersicht zur Orientierung. Es gilt nach Cohen (1988):</p>
+<pre><code>## [1] 0.4533059</code></pre>
+<p>Die Effektgröße ist in diesem Fall mit einem Wert von .4533 mittelstark ausgeprägt. Normalerweise sollte die Einordnung der Größe anhand vergleichbarer Studien aus dem selben Bereich durchgeführt werden. Bei völliger Ahnungslosigkeit über relevante Größen gibt es eine Übersicht zur Orientierung. Es gilt nach Cohen (1988):</p>
 <p><em>d</em> = 0.2 -&gt; kleiner Effekt</p>
 <p><em>d</em> = 0.5 -&gt; mittlerer Effekt</p>
 <p><em>d</em> = 0.8 -&gt; großer Effekt</p>
