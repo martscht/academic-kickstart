@@ -43,10 +43,7 @@ power <- 1 - pchisq(q = qchisq(p = .95, df = REM$k.all - 1), df = REM$k.all - 1,
 power
 
 funnel(REM) # Funnel-Plot
-trimfill(REM)
-
-trimfill(REM, side = "left") # Effekte sollen auch auf der linken Seite ersetzt werden
-funnel(trimfill(REM, side = "left"))
+trimfill(REM, estimator = "R0") # wähle R0, da dieser einer Signifikanzentscheidung enthält
 
 forest(REM) # Forest-Plot
 forest(cumul.rma.uni(REM)) # kumulativer Forest-Plot
@@ -58,8 +55,6 @@ MEM1 <- rma(yi = diff, sei =  se, data = F2F_CBT,
             mods =~ intensity,
             method = "ML")
 summary(MEM1)
-
-cat("Model Results:")
 
 MEM2 <- rma(yi = diff, sei =  se, data = F2F_CBT,
             mods =~ intensity + psed + soc + ba + home,
