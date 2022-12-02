@@ -209,7 +209,7 @@ Wir können auch ein Konfidenzintervall um den wahren Populationsmittelwert $\mu
 
 Dabei gilt:
   
-$$\mu = \bar{x} \pm z_{krit} * \sigma_{\bar{x}} = \bar{x} \pm z_{krit}*\frac{\sigma}{\sqrt{n}}$$
+$$\mu = \bar{x} \pm z_{\frac{\alpha}{2}} * \sigma_{\bar{x}} = \bar{x} \pm z_{\frac{\alpha}{2}}*\frac{\sigma}{\sqrt{n}}$$
   
 Ein 95%-Konfidenzintervall ist somit ein Intervall, welches in 95% der Fälle beim Ziehen aus der selben Grundgesamtheit den wahren Wert $\mu$ enthält.
 
@@ -239,40 +239,30 @@ Da dieses Intervall den Populationsmittelwert unter der $H_0$ ($\mu$ $\leq$ 100)
 
 ## t-Test
 
-Der t-Test ersetzt den z-Test, wenn die Varianz in der Grundgesamtheit nicht bekannt ist. Mit dem t-Test für eine Stichprobe kann man den **Stichprobenmittelwert** einer Variablen mit einem **bekannten Populationsmittelwert** vergleichen. 
+Die Bekanntheit des Populationsmittelwertes und der Populationsvarianz ist jedoch ein seltener Fall in der Praxis. Zunächst machen wir eine Erweiterung auf den Fall, dass die Populationsvarianz nicht bekannt ist. Trotzdem soll weiterhin ein **Stichprobenmittelwert** mit einem **bekannten Populationsmittelwert** verglichen werden. Wir werden sehen, dass dies zwar ein paar Veränderungen im Vorgehen und den Gleichungen mit sich bringt, das Prinzip aber erhalten bleibt. Bezeichnet wird das Vorgehen nun als t-Test, den wir im Einstichproben-Fall hier durchführen möchten.
 
-Der Test hat die folgenden Voraussetzungen:
-  
- 1. Metrisch skalierte abhängige Variable
- 2. Bei *n* < 30 : Normalverteilung der abhängigen Variable in der Population.
 
 Unterschiedliche Quellen geben an, dass die durchschnittliche Größe der Männer in Deutschland 180 cm beträgt (z.B. https://www.laenderdaten.info/durchschnittliche-körpergrössen.php). Eine Forschungsgruppe vermutet jedoch, dass die Männer in Deutschland eigentlich größer sind und ermittelt von zehn zufällig gezogenen Männer die Körpergröße.
 
 Die Größe der Männer beträgt: 183, 178, 175, 186, 185, 179, 181, 179, 182, 177 (gemessen in cm). 
 
-Kann die Vermutung der Forschungsgruppe bestätigt werden?
-  
-```{r}
-men.height <- c(183, 178, 175, 186, 185, 179, 181, 179, 182, 177)
-mean.men.height <- mean(men.height)
-sd.men.height <- sd(men.height)
-average.men.height <- 180
-n.men.height <- length(men.height)
-```
-
-```{r}
-mean.men.height
-sd.men.height
-average.men.height
-n.men.height
-```
-
 
 ### Voraussetzungsprüfung
 
-*Normalverteilt?*
+Der Test hat die folgenden Voraussetzungen:
   
-In der letzten Woche haben wir bereits gelernt, dass man die Normalverteilung grafisch einer erhobenen Variable graphisch prüfung kann. In einem sog. QQ-Plot werden die unter der Normalverteilung erwarteten Quantile und die tatsächlich beobachteten Quantile in einem Streudiagramm dargestellt. Je deutlicher die Punkte auf der Geraden liegen, desto näher ist die beobachtete Verteilung an der Normalverteilung.
+ 1. Metrisch skalierte abhängige Variable
+ 2. Bei *n* < 30 : Normalverteilung der abhängigen Variable in der Population.
+  
+Die erste Voraussetzung lässt sich nicht mathematisch sondern theoretisch prüfen. Im Beispiel können wir uns mit der Größe in cm aber zum Glück sehr sicher sein, dass eine metrische Variable vorliegt.
+
+Fehlt also noch die Testung der Normalverteilung der abhängigen Variable. Dafür sollten wir zunächst unsere gemessenen Werte in einen Vektor ablegen.
+  
+```{r}
+men.height <- c(183, 178, 175, 186, 185, 179, 181, 179, 182, 177)
+```
+  
+In der letzten Woche haben wir bereits gelernt, dass man die Normalverteilung einer erhobenen Variable graphisch prüfen kann. In einem sog. QQ-Plot werden die unter der Normalverteilung erwarteten Quantile und die tatsächlich beobachteten Quantile in einem Streudiagramm dargestellt. Je deutlicher die Punkte auf der Geraden liegen, desto näher ist die beobachtete Verteilung an der Normalverteilung.
 
 ```{r}
 qqnorm(men.height) 
@@ -283,28 +273,50 @@ Es sind keine weiten Abweichungen zu erkennen, weshalb wir zunächst davon ausge
 
 ### Signifikanz bestimmen
 
-Der t-Test basiert auf folgender Formel und unterscheidet sich damit nur minimal vom z-Test:
+Nun wollen wir inferenzstatistisch prüfen, ob die Vermutung der Forschungsgruppe bestätigt werden kann. Als ersten Schritt berechnen wir den Mittelwert in unserer Stichprobe. Da unsere Alternativhypothese davon handelt, dass der Wert in der Stichprobe größer sein soll, können wir zunächst betrachten, ob dies deskriptiv überhaupt der Fall ist.
+  
+```{r}
+mean.men.height <- mean(men.height)
+mean.men.height
+```
+
+Wir sehen, dass der Wert deskriptiv größer ist als die angegebene Größe der Population von 180cm. Der t-Test basiert auf folgender Formel:
   
 $$t_{emp} = |\frac{\bar{x} - {\mu}}{\hat\sigma_{\bar{x}}}|$$
-wobei sich der Standardfehler (*SE*)  des Mittelwerts wie folgt berechnet:
+wobei sich der Standardfehler (*SE*)  des Mittelwerts wie folgt zusammensetzt:
   
 $$\hat\sigma_{\bar{x}} = {\frac{{\hat\sigma}}{\sqrt{n}}}$$
-  
-  
-Der Standardfehler des Mittelwerts wird demnach auf der Basis der Stichprobenvarianz geschätzt.
+
+Da die Varianz in der Population nicht bekannt ist, muss diese mittels Nutzung Varianz der Stichprobe geschätzt werden. Dies funktioniert über die Funktion `sd`.
 
 ```{r}
+sd.men.height <- sd(men.height)
+sd.men.height
+```  
+
+Der Standardfehler des Mittelwerts wird anschließend auf der Basis dieses geschätzten Wertes selber geschätzt und nicht wie im z-Test bestimmt. Dafür brauchen wir als zusätzliche Information noch die Stichprobengröße, die wir beispielsweise über die `length` unserer Werte bestimmen können.
+
+```{r}
+n.men.height <- length(men.height)
 se.men.height <- sd.men.height/sqrt(n.men.height)
 ```
 
-Bestimmen des empirischen *t-*Wertes $t_{emp}$:
+Als letzten Bestandteil unserer Berechnungen kann man jetzt noch den gegebenen Populationsmittelwert in ein Objekt ablegen.
+
+```{r}
+average.men.height <- 180
+```  
+
+Nun haben wir alle Informationen gegeben, um den empirischen *t-*Wert $t_{emp}$ zu bestimmen:
   
 ```{r}
 t.men.height <- abs((mean.men.height-average.men.height)/se.men.height)
 t.men.height
 ```
 
-Bestimmen des kritischen *t-*Wertes $t_{krit}$:
+Die empirische Prüfgröße (wie auch der Name des Tests) weißt bereits darauf hin, dass wir uns bei der Hypothesenprüfung nicht mehr im Rahmen der Standardnormalverteilung bewegen. Dies liegt daran, dass sich durch das Schätzen der Populationsvarianz keine exakte Standardnormalverteilung mehr ergibt. Stattdessen wird mit einer t-Verteilung gearbeitet, deren genaue Form von der Anzahl der Freiheitsgraden abhängt. Die Unterscheidung zwischen Standardnormalverteilung und der t-Verteilung liegt besonders in den Extrembereichen. Da genau diese jedoch für die inferenzstatistische Testung von Interesse sind, ist die Nutzung der richtigen Verteilung wichtig.
+
+Im Rahmen des t-Testes im Einstichproben-Fall bestimmen sich die Freiheitsgrade mittels $n - 1$. Der kritische *t-*Wert $t_{krit}$ für unser Beispiel kann also folgendermaßen bestimmt werden:
 
 ```{r}
 krit.t.men.height <- qt(0.95, df=n.men.height-1) 
