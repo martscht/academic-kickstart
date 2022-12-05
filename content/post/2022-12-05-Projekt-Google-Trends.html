@@ -1,0 +1,433 @@
+---
+title: Google Trends
+date: '2022-12-05T19:30:00'
+slug: projekt-googletrends
+categories:
+  - Projekt 1
+tags: []
+subtitle: ''
+summary: ''
+authors: [berger, mehler, rouchi]
+lastmod: '2022-12-05'
+featured: no
+image:
+  caption: ''
+  focal_point: ''
+  preview_only: no
+projects: []
+header:
+  image: "/header/google_post.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/844156)"
+---
+
+
+
+<div id="übersicht" class="section level1">
+<h1>Übersicht</h1>
+<p>Dieses Projekt befasst sich mit folgender Frage: “Welche politischen Parteien stehen im Zentrum des öffentlichen Interesses?”. Dazu wollen wir uns anschauen, wie sich die Anzahl von Google-Suchanfragen bezogen auf 9 deutsche Parteien seit 2004 entwickelt hat und diese Entwicklung in einer Grafik darstellen. Hat sich das Interesse an den Grünen in Folge der Nuklearkatastrophe in Fukushima im Jahr 2011 gesteigert? Sinkt das Such-Interesse an der SPD parallel zu ihren Umfragwerten in den letzten Jahren? Wie groß ist das Interesse an einer Spartenpartei wie der Tierschutzpartei im Netz? Das sind Fragen, die wir mithilfe der auf <a href="https://trends.google.de/trends/?geo=DE">Google Trends</a> öffentlich zugänglich gemachten Daten über Suchanfragen in Deutschland untersuchen können.</p>
+<div id="zielsetzung" class="section level2">
+<h2>Zielsetzung</h2>
+<p>In diesem ersten Projekt geht es um das Verarbeiten von Datensätzen und die anschließende Darstellung von Daten mit dem <code>R</code>-Paket <code>ggplot2</code>. Ziel ist es also, dass du dich damit auseinandersetzt, wie Daten gut in <code>R</code> eingepflegt werden können, wie sie aufbereitet werden müssen, um gut darstellbar zu sein und wie sie abschließend in Grafiken dargestellt werden können. Es geht schlussendlich darum, eine gute und übersichtliche Aufbereitung der Daten für verschiedene Kontexte zu haben.</p>
+</div>
+<div id="vorbereitung" class="section level2">
+<h2>Vorbereitung</h2>
+<p>Zunächst rufen wir in einem neuen Tab des Browsers <a href="https://trends.google.de/trends/?geo=DE">Google Trends</a> auf.</p>
+<p>Auf der Seite befindet sich ein Suchfeld, wo du den ersten Begriff eingeben und dir eine Statistik dazu anschauen kannst (bitte gebe als Beispiel einmal <em>Affe</em> ein). Nun kannst du andere Begriffe mit dem Beispiel vergleichen (gebe in das Feld “+Vergleichen” <em>Giraffe</em> ein). Du kannst bis zu vier Begriffe vergleichen.</p>
+<p>Die Skala ist bei jeder Statistik sehr wichtig und kann fehlinterpretiert werden. Daher ist es sehr wichtig, dass du dich mit der Skala dieses Datensatzes befasst. Über jeder Abbildung befindet sich ein <i class="far fa-question-circle"></i> , wo die Skala erklärt wird. Hier wird jeder Punkt im Bezug zum höchsten Punkt dargestellt. Als wir diese Seite erstellt haben, sah das Ergebnis der Suche unseres Beispiels so aus:</p>
+<p><img src="/post/affe_giraffe.png" /></p>
+<p>Das heißt also, dass bei uns der Suchbegriff <em>Affe</em> in der Woche vom 23. zum 29. Dezember den Maximalwert erreicht hat, und der Begriff <em>Giraffe</em> nur auf 48% dieser Menge von Suchanfragen gekommen ist. Je nach Bezugspunkt ändern sich also die Werte. Das ist sehr wichtig, wenn man verschiedene dieser Datensätze vergleichen will.</p>
+<!-- dass im Januar 2018 die Giraffe den höchsten Punkt erreicht hat und der Affe zum gleichen Zeitpunkt nur 6% dieser Suchanfragen hatte. Damit bekommt die Giraffe zu dem Zeitpunkt den Wert 100 und der Affe den Wert 6.   -->
+<!-- Je nach Einstellungen bezüglich Ort, Zeitraum und Kategorien sind diese Prozentzahlen nicht reproduzierbar. -->
+<p>Die verschiedenen Datensätze kannst du über das Downloadzeichen <i class="fas fa-download"></i> oben rechts an jeder Abbildung herunterladen und in Excel öffnen. Speichere sie bitte immer in dem Ordner, in dem sich auch dein <code>R</code>-Skript befindet.</p>
+<p>Zur grafischen Darstellung empfehlen wir, dass du mit <code>ggplot2</code> arbeitest. Falls du noch nicht mit dem Paket gearbeitet hast oder eine Auffrischung haben möchtest, kannst du dir <a href="/post/grafiken-mit-ggplot2/">unseren Crash-Kurs</a> dazu durchlesen. Einen deutschsprachigen Überblick über die Befehle von ggplot2 findest du <a href="https://rstudio.com/wp-content/uploads/2015/06/ggplot2-german.pdf">in diesem PDF</a> oder <a href="https://mmi.psycho.unibas.ch/r-toolbox/formatierungswerkzeuge.html">auf dieser Website der Allgemeinen Psychologie von der Uni Basel</a>. Eine englischsprachige Einführung vom Autor und Erfinder von <code>ggplot2</code> - Hadley Wickham - findest du <a href="https://r4ds.had.co.nz/data-visualisation.html">in seinem Online-Buch “R for Data Science”</a>.</p>
+<p>Um ggplot benutzen zu können, musst du dir das passende Paket (<code>ggplot2</code>) herunterladen und es in deine <code>R</code>-Sitzung laden:</p>
+<pre class="r"><code>install.packages(&#39;ggplot2&#39;)
+library(ggplot2)</code></pre>
+<p>Jeder Abschnitt des folgenden Projekts ist unterteilt in eine <strong>Aufgabenstellung</strong>, ein paar <strong>Tipps</strong>, die weiterhelfen sollen, wenn dir die Ideen ausgehen, und eine mögliche <strong>Lösung</strong> für die Umsetzung der Aufgabenstellung. Super wäre es natürlich, wenn du so viel wie möglich alleine schaffst. Falls du jedoch nicht weiterkommen solltest, kannst du jederzeit im Internet nachschauen, dort gibt es die besten Hilfestellungen (beispielsweise auf Seiten wie <a href="https://stackoverflow.com/">stackoverflow.com</a>). Auch wir müssen oftmals im Internet nach dem richtigen Code suchen. Falls du noch nichts oder nur sehr wenig mit <code>R</code> zu tun haben solltest (oder wenn du dich unsicher fühlst), kannst du jederzeit auf den <code>pandaR</code>-Seiten zur <a href="https://pandar.netlify.app/lehre/">Lehre</a> vorbeischauen. Dort gibt es neben vielen statistischen Themen auch ein übersichtliches <a href="/post/r-crash-kurs/">R-Intro</a>, welches dich in die Welt von <code>R</code> einführt.</p>
+<p>Und jetzt kann es losgehen - viel Spaß beim Bearbeiten dieses Projekts.</p>
+</div>
+</div>
+<div id="aufgaben" class="section level1">
+<h1>Aufgaben</h1>
+<div id="aufgabe-1-datensammlung" class="section level2">
+<h2>Aufgabe 1: Datensammlung</h2>
+<p>Im ersten Schritt müssen die richtigen Daten beschafft werden. Wie schon beschrieben, finden wir diese auf der <a href="https://trends.google.de/trends/?geo=DE">Google Trends Seite</a>. Wir werden neun Begriffe miteinander vergleichen. Dies bedeutet, dass wir sie nicht alle auf einmal herunterladen können, sondern in zwei verschiedenen Datensätzen. Dabei ist es wichtig, den Bezugspunkt zu beachten, weil die Skala, auf der die Daten ausgegeben werden, immer in Bezug zum meistgesuchten Begriff gesetzt wird. Hier geht es uns darum, die Suchanfragen von neun deutschen Parteien zu vergleichen: SPD, CDU, Bündnis 90/Die Grünen, Die Linke, AfD, FDP, MLPD, Die Tierschutzpartei und NPD. Wenn du möchtest, kannst du auch eigene Begriffe benutzen. Diese sollten jedoch vergleichbar sein (ein ähnliches Thema beinhalten) und es sollten auch neun Begriffe sein.</p>
+<p>Bei jedem Vergleich solltest du die Einstellung <code>Deutschland</code> und <code>2004-heute</code> wählen, um vergleichbare Ergebnisse zu erhalten. Wenn du eine Partei suchst, erscheint außerdem eine automatische Ergänzung mit der Unterschrift “Politische Partei”, die du nutzen solltest, um potentielle Zweideutigkeiten der Abkürzungen zu vermeiden.</p>
+<p>Den Datensatz kannst du wie beschrieben herunterladen. Dann solltest du zwei <code>.csv</code>-Dateien haben, die du jeweils in <code>R</code> einlesen kannst.</p>
+<p>Wenn du die Aufgabenstellung des ersten Teils bereits abgeschlossen haben solltest - mit und ohne Tipps -, kannst du nun dein Ergebnis mit der Lösung vergleichen. Natürlich gibt es in <code>R</code> in den meisten Fällen viele verschiedene Möglichkeiten, das gleiche Ergebnis zu erhalten. In diesem Fall ist der Weg jedoch nicht unbedingt das Ziel, denn uns geht es hauptsächlich darum, unsere Aufgabenstellung zu lösen - egal, wie wir das erreichen.</p>
+<details>
+<summary>
+Lösung
+</summary>
+<p>Um 9 Parteien gleichzeitig abbilden zu können, ist es notwendig, zwei separate Anfragen bei <a href="https://trends.google.de/trends/?geo=DE">Google Trends</a> zu starten. In beiden sollte die <em>Alternative für Deutschland</em> als Referenzpartei enthalten sein, weil die Suchanfragen bezüglich der AfD um die Bundestagswahl 2017 herum das Maximum bilden und demzufolge den Referenzwert 100 setzen, an dem alle anderen Suchanfragen skaliert werden müssen. Mit dem <i class="fas fa-download"></i> Button erhältst du dann eine Datei mit dem Namen <code>multiTimeline.csv</code>. Wenn du beide Suchanfragen hintereinander durchführst, sollte die zweite Datei dann <code>multiTimeline(1).csv</code> heißen. Du kannst aber auch beiden Dateien beim Download beliebige Namen geben.</p>
+<p>Bevor du die beiden Dateien in <code>R</code> einliest, kannst du ein bisschen Schreibarbeit sparen, wenn du erst den Arbeitsordner (working directory) festlegst. Idealerweise solltest du einen Ordner anlegen, in dem du alle relevanten Dateien für dieses Projekt speicherst.</p>
+<pre class="r"><code>setwd(&#39;...&#39;) # statt &#39;...&#39; einen Ordner-Pfad festlegen</code></pre>
+<p>Die beiden Datensätze können dann mit</p>
+<pre class="r"><code>a &lt;- read.table(&#39;multiTimeline.csv&#39;, header = TRUE, sep= &#39;,&#39;)
+b &lt;- read.table(&#39;multiTimeline(1).csv&#39;, header = TRUE, sep = &#39;,&#39;)</code></pre>
+<p>eingelesen werden. Neben dem Dateinamen müssen hier das Argument <code>header</code> (der Datensatz enthält in der 1. Zeile die Variablennamen) und <code>sep</code> - das Trennzeichen zwischen Variablen - festgelegt werden.</p>
+<p>Die ersten Zeilen der beiden Datensätze sollten dann so aussehen:</p>
+<pre class="r"><code>head(a)</code></pre>
+<pre><code>##     Monat Alternative.für.Deutschland...Deutschland.
+## 1 2004-01                                         &lt;1
+## 2 2004-02                                         &lt;1
+## 3 2004-03                                         &lt;1
+## 4 2004-04                                         &lt;1
+## 5 2004-05                                         &lt;1
+## 6 2004-06                                         &lt;1
+##   Sozialdemokratische.Partei.Deutschlands...Deutschland.
+## 1                                                     10
+## 2                                                     13
+## 3                                                     13
+## 4                                                     11
+## 5                                                     12
+## 6                                                     16
+##   Freie.Demokratische.Partei...Deutschland.
+## 1                                         4
+## 2                                         4
+## 3                                         4
+## 4                                         3
+## 5                                         5
+## 6                                         7
+##   Bündnis.90.Die.Grünen...Deutschland. Die.Linke...Deutschland.
+## 1                                    4                       &lt;1
+## 2                                    4                       &lt;1
+## 3                                    4                        1
+## 4                                    3                       &lt;1
+## 5                                    4                       &lt;1
+## 6                                    8                       &lt;1</code></pre>
+<pre class="r"><code>head(b)</code></pre>
+<pre><code>##     Monat Alternative.für.Deutschland...Deutschland.
+## 1 2004-01                                         &lt;1
+## 2 2004-02                                         &lt;1
+## 3 2004-03                                         &lt;1
+## 4 2004-04                                         &lt;1
+## 5 2004-05                                         &lt;1
+## 6 2004-06                                         &lt;1
+##   Partei.Mensch.Umwelt.Tierschutz...Deutschland.
+## 1                                              0
+## 2                                              0
+## 3                                             &lt;1
+## 4                                             &lt;1
+## 5                                             &lt;1
+## 6                                              1
+##   Christlich.Demokratische.Union.Deutschlands...Deutschland.
+## 1                                                          8
+## 2                                                         10
+## 3                                                          9
+## 4                                                          9
+## 5                                                         11
+## 6                                                         14
+##   Marxistisch.Leninistische.Partei.Deutschlands...Deutschland.
+## 1                                                           &lt;1
+## 2                                                           &lt;1
+## 3                                                           &lt;1
+## 4                                                           &lt;1
+## 5                                                           &lt;1
+## 6                                                           &lt;1
+##   Nationaldemokratische.Partei.Deutschlands...Deutschland.
+## 1                                                        2
+## 2                                                        2
+## 3                                                        2
+## 4                                                        2
+## 5                                                        3
+## 6                                                        4</code></pre>
+<p>Falls du Probleme mit dem Generieren der Datensätze hast, kannst du die beiden Dateien <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/multiTimeline.csv">hier</a> und <a href="https://raw.githubusercontent.com/martscht/projekte/master/content/post/multiTimeline(1).csv">hier</a> herunterladen.</p>
+</details>
+</div>
+<div id="aufgabe-2-datenaufbereitung" class="section level2">
+<h2>Aufgabe 2: Datenaufbereitung</h2>
+<p>Im Anschluss müssen wir beide Datensätze zusammenfügen, um sie in einer Abbildung darstellen zu können. Falls du den Befehl dafür nicht kennst, versuche ihn über die interne Hilfefunktion in <code>R</code> zu finden. Ansonsten kannst du es auch im Internet versuchen. Schaue dir den Datensatz anschließend ein wenig an, um ein Gefühl für Inhalt und Struktur der Daten zu bekommen. Dazu kannst du generelle Informationen (wie die Anzahl an Zeilen und Spalten) nutzen oder dir auch direkt die Rohdaten ansehen und durchscrollen. Wenn dir in diesem Schritt Dinge am Datensatz auffallen, die verändert werden sollten, veändere sie!</p>
+<!-- Für ein überschaubares Diagramm muss nun der Datensatz noch umgeformt werden. Dies geschieht durch den Befehl 'reshape'. Die interne Hilfe wird dir auch hier die einzelnen Komponenten erklären können. -->
+<p>Falls du von alleine nicht weiterkommen solltest, kannst du dir die folgenden <strong>Tipps</strong> anschauen:</p>
+<details>
+<summary>
+Wichtige Vorüberlegungen
+</summary>
+<p>Natürlich könntest du die beiden Datensätze direkt zusammenfügen, doch dann stößt man auf ein Problem. Sowohl das Datum als auch die Werte der Referenzkategorie (in unserem Fall die AfD) treten in beiden Datensätzen auf. Fügt man beide Datensätze nun zusammen, kämen beide Variablen doppelt und jeweils mit der gleichen Bezeichnung vor. Das heißt, dass du die Spalte “AfD” in einem der beiden Datensätze direkt löschen musst. Eine andere Möglichkeit wäre, dass du irgendwie dafür sorgst, dass sich die beiden Variablen in ihrem Namen unterscheiden, sodass sie im zusammengefügten Datensatz einmal gelöscht werden kann.</p>
+</details>
+<details>
+<summary>
+Datensätze zusammenführen
+</summary>
+<p>Nun kannst du dazu übergehen, die beiden Datensätze zusammenzuführen Dafür ist es am einfachsten, sie “aneinanderzuhängen” anstatt sie “zusammenzufügen”. Das kannst du mit dem <code>cbind</code>-Befehl in <code>R</code> erreichen. Schau dir diesen Befehl am besten in der <code>R</code>-Hilfefunktion an.</p>
+<p>Falls du den Befehl nicht verstehst, folgt hier eine kurze Erklärung des Befehls:</p>
+<pre class="r"><code>Datensatz &lt;- cbind(&quot;Datensatz_A&quot;,&quot;Datensatz_B&quot;)</code></pre>
+<p>Voraussetzung für das Funktionieren dieses Befehls in unserem Beispiel ist, dass die Anzahl der Zeilen beider Datensätze übereinstimmt. Als Output erhält man einen <code>Datensatz</code>, bei dem <code>Datensatz_B</code> “hinten” an <code>Datensatz_A</code> angehängt wurde.</p>
+<p>Das Endergebnis sollte ein Datensatz mit 190 Zeilen und 10 Spalten sein.</p>
+</details>
+<details>
+<summary>
+Anpassung der Variablenart: Teil 1
+</summary>
+<p>Hier stellt sich die Frage: Liegen alle Daten in der Variablenart vor, die man benötigt?
+Die Variablenart jeder Variable (Spalte) lässt sich mit folgendem Befehl abfragen:</p>
+<pre class="r"><code>class(Variablenname)</code></pre>
+<p>Hier bekommt man also eine Angabe zum Typ der Variablen. Wie du im <a href="/post/r-crash-kurs/">R Crash Kurs</a> nachlesen kannst, sind Zahlen zum Beispiel als <code>numeric</code> (oder abgekürzt <code>num</code>) abgelegt. Im besonderen Fall, dass eine numerische Variable nur ganze Zahlen enthält, wird sie als <code>integer</code> (kurz: <code>int</code>) abgelegt. Es handelt sich aber nach wie vor um eine Zahl. Unser Ziel ist, dass alle Variablen im Typ <code>int</code> oder <code>num</code> vorliegen, sodass <code>R</code> diese auch als Zahlenwerte erkennt.</p>
+<p>Überprüfe dafür jede Variable und überlege dir, welche Werte ein Problem darstellen. Falls du nicht weiterkommst, nutze Teil 2 des Tipps.</p>
+</details>
+<details>
+<summary>
+Anpassung der Variablenart: Teil 2
+</summary>
+<p>Im Rohdatensatz kann man erkennen, dass die “&lt;1” weder <code>integer</code> noch <code>numeric</code> sind. Dadurch erkennt <code>R</code> all jene Variablen (Spalten), in denen “&lt;1” mindestens ein Mal vorkommt, nicht als Zahlen. Deshalb müssen wir diese “&lt;1” irgendwie durch “0” ersetzen.</p>
+<p>Ziel ist also, dass im zusammengesetzten Datensatz, überall wo zuvor der Wert “&lt;1” stand, eine Null steht. Um das zu erreichen, kannst du die Daten entweder hinterher bearbeiten oder diese Besonderheit direkt beim Einlesen mit <code>read.table</code> berücksichtigen. Dort kannst du mit einem Argument die Kodierung fehlender Werte festlegen. So gelangst du der Umwandlung von “&lt;1” zu “0” einen Schritt näher.</p>
+<p>Falls du ab hier nicht weiter weißt, nutze die Hilfefunktion in <code>R</code> oder suche online.</p>
+</details>
+<p>Wenn du fertig mit der Bearbeitung der Aufgabenstellung sein solltest, kannst du dein Ergebnis jetzt mit der Lösung vergleichen. Wie auch beim ersten Teil (und eigentlich immer bei <code>R</code>) gilt, dass es mehrere Wege zum gleichen Ziel geben kann:</p>
+<details>
+<summary>
+Lösung
+</summary>
+<p>Bevor die beiden Datensätze zusammengeführt werden können, sollten zunächst doppelt vorkommende Spalten umbenannt werden, damit sie hinterher weniger Probleme machen. Um zu sehen, welche Namen in beiden auftauchen, können wir <code>names</code> benutzen:</p>
+<pre class="r"><code>names(a)</code></pre>
+<pre><code>## [1] &quot;Monat&quot;                                                 
+## [2] &quot;Alternative.für.Deutschland...Deutschland.&quot;            
+## [3] &quot;Sozialdemokratische.Partei.Deutschlands...Deutschland.&quot;
+## [4] &quot;Freie.Demokratische.Partei...Deutschland.&quot;             
+## [5] &quot;Bündnis.90.Die.Grünen...Deutschland.&quot;                  
+## [6] &quot;Die.Linke...Deutschland.&quot;</code></pre>
+<pre class="r"><code>names(b)</code></pre>
+<pre><code>## [1] &quot;Monat&quot;                                                       
+## [2] &quot;Alternative.für.Deutschland...Deutschland.&quot;                  
+## [3] &quot;Partei.Mensch.Umwelt.Tierschutz...Deutschland.&quot;              
+## [4] &quot;Christlich.Demokratische.Union.Deutschlands...Deutschland.&quot;  
+## [5] &quot;Marxistisch.Leninistische.Partei.Deutschlands...Deutschland.&quot;
+## [6] &quot;Nationaldemokratische.Partei.Deutschlands...Deutschland.&quot;</code></pre>
+<p>Hier sind also die ersten beiden Spalten doppelt. Wir können diese beiden einfach aus <code>b</code> entfernen:</p>
+<pre class="r"><code>b &lt;- b[, -c(1, 2)]
+names(b)</code></pre>
+<pre><code>## [1] &quot;Partei.Mensch.Umwelt.Tierschutz...Deutschland.&quot;              
+## [2] &quot;Christlich.Demokratische.Union.Deutschlands...Deutschland.&quot;  
+## [3] &quot;Marxistisch.Leninistische.Partei.Deutschlands...Deutschland.&quot;
+## [4] &quot;Nationaldemokratische.Partei.Deutschlands...Deutschland.&quot;</code></pre>
+<p>Um beide zusammenzufügen, dann:</p>
+<pre class="r"><code>c &lt;- cbind(a, b)</code></pre>
+<p>Das Problem dieses kombinierten Datensatzes ist, dass nicht alle Variablen numerisch sind. Das bewirkt, dass die Variablen nur sehr schwer in einer gemeinsamen Abbildung dargestellt werden können:</p>
+<pre class="r"><code>str(c)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    190 obs. of  10 variables:
+##  $ Monat                                                       : chr  &quot;2004-01&quot; &quot;2004-02&quot; &quot;2004-03&quot; &quot;2004-04&quot; ...
+##  $ Alternative.für.Deutschland...Deutschland.                  : chr  &quot;&lt;1&quot; &quot;&lt;1&quot; &quot;&lt;1&quot; &quot;&lt;1&quot; ...
+##  $ Sozialdemokratische.Partei.Deutschlands...Deutschland.      : int  10 13 13 11 12 16 9 11 17 9 ...
+##  $ Freie.Demokratische.Partei...Deutschland.                   : int  4 4 4 3 5 7 3 3 8 4 ...
+##  $ Bündnis.90.Die.Grünen...Deutschland.                        : int  4 4 4 3 4 8 3 3 6 4 ...
+##  $ Die.Linke...Deutschland.                                    : chr  &quot;&lt;1&quot; &quot;&lt;1&quot; &quot;1&quot; &quot;&lt;1&quot; ...
+##  $ Partei.Mensch.Umwelt.Tierschutz...Deutschland.              : chr  &quot;0&quot; &quot;0&quot; &quot;&lt;1&quot; &quot;&lt;1&quot; ...
+##  $ Christlich.Demokratische.Union.Deutschlands...Deutschland.  : int  8 10 9 9 11 14 8 8 16 9 ...
+##  $ Marxistisch.Leninistische.Partei.Deutschlands...Deutschland.: chr  &quot;&lt;1&quot; &quot;&lt;1&quot; &quot;&lt;1&quot; &quot;&lt;1&quot; ...
+##  $ Nationaldemokratische.Partei.Deutschlands...Deutschland.    : int  2 2 2 2 3 4 2 3 15 7 ...</code></pre>
+<p>Das kommt daher, dass der Wert <code>&lt;1</code> nicht als numerisch interpretiert wird, sondern als eine Beschriftung, sodass die Variable in <code>R</code> automatisch als <code>factor</code> erkannt und als nominalskaliert behandelt wird. Diese Werte müssen also alle ersetzt werden, um wieder mit numerischen Daten rechnen zu können.</p>
+<p>Das ließe sich z.B. dadurch erreichen, dass wir in <code>c</code> alle Werte einzeln ersetzen. Dieses Vorgehen hat allerdings den Nachteil, dass es sehr viele einzelne Schritte benötigt, weswegen wir hier einen Trick anwenden: wir lesen die Daten als numerisch ein und tun dabei so, als wären <code>&lt;1</code> fehlende Werte. Das können wir durch das Argument <code>na =</code> im <code>read.table</code>-Befehl erreichen, den wir zum Einlesen der Daten genutzt haben:</p>
+<pre class="r"><code># Daten einlesen
+a &lt;- read.table(&#39;multiTimeline.csv&#39;,header = T, sep= &#39;,&#39; , na = &#39;&lt;1&#39;)
+b &lt;- read.table(&#39;multiTimeline(1).csv&#39;, header = T , sep = &#39;,&#39; , na = &#39;&lt;1&#39;)
+
+# Daten zusammenführen
+b &lt;- b[, -c(1, 2)]
+c &lt;- cbind(a, b)
+
+# Struktur untersuchen
+str(c)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    190 obs. of  10 variables:
+##  $ Monat                                                       : chr  &quot;2004-01&quot; &quot;2004-02&quot; &quot;2004-03&quot; &quot;2004-04&quot; ...
+##  $ Alternative.für.Deutschland...Deutschland.                  : int  NA NA NA NA NA NA NA NA NA NA ...
+##  $ Sozialdemokratische.Partei.Deutschlands...Deutschland.      : int  10 13 13 11 12 16 9 11 17 9 ...
+##  $ Freie.Demokratische.Partei...Deutschland.                   : int  4 4 4 3 5 7 3 3 8 4 ...
+##  $ Bündnis.90.Die.Grünen...Deutschland.                        : int  4 4 4 3 4 8 3 3 6 4 ...
+##  $ Die.Linke...Deutschland.                                    : int  NA NA 1 NA NA NA NA NA NA NA ...
+##  $ Partei.Mensch.Umwelt.Tierschutz...Deutschland.              : int  0 0 NA NA NA 1 NA 0 NA NA ...
+##  $ Christlich.Demokratische.Union.Deutschlands...Deutschland.  : int  8 10 9 9 11 14 8 8 16 9 ...
+##  $ Marxistisch.Leninistische.Partei.Deutschlands...Deutschland.: int  NA NA NA NA NA NA NA NA 1 NA ...
+##  $ Nationaldemokratische.Partei.Deutschlands...Deutschland.    : int  2 2 2 2 3 4 2 3 15 7 ...</code></pre>
+<p>Jetzt sind alle Variablen außer Monat als <code>integer</code> (also eine Sonderform numerischer Variablen) abgespeichert. Das heißt, wir müssen nun lediglich die mit <code>NA</code> als fehlend markierten Beobachtungen durch 0 ersetzen:</p>
+<pre class="r"><code>c[is.na(c)] &lt;- 0</code></pre>
+<p>Im letzten Schritt zur Datenaufbereitung vergeben wir noch etwas kürzere Namen für die Spalten:</p>
+<pre class="r"><code>names(c)</code></pre>
+<pre><code>##  [1] &quot;Monat&quot;                                                       
+##  [2] &quot;Alternative.für.Deutschland...Deutschland.&quot;                  
+##  [3] &quot;Sozialdemokratische.Partei.Deutschlands...Deutschland.&quot;      
+##  [4] &quot;Freie.Demokratische.Partei...Deutschland.&quot;                   
+##  [5] &quot;Bündnis.90.Die.Grünen...Deutschland.&quot;                        
+##  [6] &quot;Die.Linke...Deutschland.&quot;                                    
+##  [7] &quot;Partei.Mensch.Umwelt.Tierschutz...Deutschland.&quot;              
+##  [8] &quot;Christlich.Demokratische.Union.Deutschlands...Deutschland.&quot;  
+##  [9] &quot;Marxistisch.Leninistische.Partei.Deutschlands...Deutschland.&quot;
+## [10] &quot;Nationaldemokratische.Partei.Deutschlands...Deutschland.&quot;</code></pre>
+<pre class="r"><code>names(c) &lt;- c(&#39;Monat&#39;, &#39;AfD&#39;, &#39;SPD&#39;, &#39;FDP&#39;, &#39;DieGrüne&#39;, &#39;DieLinke&#39;, &#39;Tierschutzpartei&#39;, &#39;CDU&#39;, &#39;MLPD&#39;, &#39;NPD&#39;)</code></pre>
+</details>
+</div>
+<div id="aufgabe-3-abbildungen-erstellen" class="section level2">
+<h2>Aufgabe 3: Abbildungen erstellen</h2>
+<p>Zu guter Letzt fehlt noch das eigentliche Diagramm. Denk daran, dass du zunächst einen Befehl brauchst, der den Hintergrund erstellt und mit ‘+’ immer neue Ebenen hinzufügen kannst - wenn du es noch nicht getan hast, kannst du dafür auf <a href="/post/grafiken-mit-ggplot2/">unserem <code>ggplot</code> Crash-Kurs</a> nachschauen. Gestalte das Diagramm so, dass es für jeden verständlich ist. Hierfür benötigst du unter Anderem</p>
+<ul>
+<li>verschiedene Farben,</li>
+<li>eine eingängige Achsenbeschriftung,</li>
+<li>einen aussagekräftigen Titel und</li>
+<li>eine Legende.</li>
+</ul>
+<p>Es gibt noch viele weitere Dinge, mit denen du dein Diagramm verschönern kannst. Lass deiner Fantasie freien Lauf…</p>
+<p>Falls du von alleine nicht weiterkommen solltest, kannst du dir den folgenden <strong>Tipp</strong> anschauen:</p>
+<details>
+<summary>
+Umstrukturierung der Daten
+</summary>
+<p>Das Ziel der Umformung ist, dass eine Zeile des Datensatzes aus Datum, Partei und Prozentzahl besteht. Dadurch erhält man einen Datensatz aus 1710 Zeilen und 3 Spalten.</p>
+<p>Dafür kann man den <code>reshape</code>-Befehl benutzen:</p>
+<pre class="r"><code>langer_Datensatz &lt;- reshape(Datensatz, varying = ...,
+                            v.names = ..., timevar = ...,
+                            idvar = ..., times = ...,
+                            direction = &quot;long&quot;)</code></pre>
+<ul>
+<li><code>varying</code>: Vektor mit den Spaltenbezeichnungen im vorhandenen Datensatz.</li>
+<li><code>v.names</code>: gemessene Größe (Werte), die von mehreren Spalten in eine Spalte übertragen werden sollen.</li>
+<li><code>timevar</code>: Bezeichnung für die Variable, die alle Spaltennamen enthält.</li>
+<li><code>times</code>: Die vorherigen Variablennamen (Spaltennamen), die nun Werte einer durch timevar bezeichneten Variable sind.</li>
+<li><code>idvar</code>: Name der Variable, die die einzelnen Messwerte einer Gruppe (Spalte) auseinanderhält.</li>
+<li><code>direction</code>: Bezeichnung des neuen Formats. Kann entweder “wide” oder “long” sein. Wir brauchen das “long”-Format.</li>
+</ul>
+</details>
+<details>
+<summary>
+Nutzung von <code>ggplot</code>
+</summary>
+<p>Wenn das Paket geladen ist, kann als Grundbefehl <code>ggplot</code> genutzt werden. Dieser kann zunächst die unterste Ebene der Abbildung (die Daten) als Argument entgegennehmen:</p>
+<pre class="r"><code>ggplot(data = Datensatz)</code></pre>
+<p>Weil wir daran interessiert sind, bestimmte Variablen abzubilden, können wir diese in der Abbildung “mappen” oder abbilden:</p>
+<pre class="r"><code>ggplot(data = Datensatz, mapping = aes(x = ..., y = ..., group = ...))</code></pre>
+<p>Diese “Aesthetics” dienen dazu, zu definieren, wie die Variablen im Diagramm dargestellt werden. Dafür können wir festlegen, welche Variable auf der x-Achse und welche auf der y-Achse dargestellt wird. Zusätzlich können wir über <code>group</code> auch noch eine Gruppierung der <span class="math inline">\((x, y)\)</span>-Kombinationen festlegen und diese zum Beispiel später benutzen, um unterschiedlichen Daten unterschiedliche Farben zu geben, damit diese Gruppen optisch leichter voneinander unterscheiden werden können.</p>
+<p>Zusätzlich zu dieser Basis muss noch durch ein <code>geom</code> festgelegt werden, wie die Daten anzeigt werden sollen, die wir abbilden. Weil es sich um Zeitverläufe handelt, bietet sich ein <strong>Liniendiagramm</strong> an. Für die Farbe der Linien können wir die Gruppierungsvariable direkt wieder benutzen!</p>
+<pre class="r"><code>geom_line(aes(colour = ...))</code></pre>
+</details>
+<p>Wenn du fertig mit der Bearbeitung der Aufgabenstellung sein solltest, kannst du dein Ergebnis jetzt mit der Lösung vergleichen. Wie auch bei den ersten Teilen (und eigentlich immer bei <code>R</code>) gilt, dass es mehrere Wege zum gleichen Ziel geben kann:</p>
+<details>
+<summary>
+Lösung
+</summary>
+<p>
+<p>Zunächst müssen wir das Paket <code>ggplot2</code> laden:</p>
+<pre class="r"><code>library(ggplot2)</code></pre>
+<p>Wie bei den <a href="/post/tipps1">Tipps</a> oder auch bei der <a href="/post/grafiken-mit-ggplot2">Kurzeinführung in ggplot2</a> besprochen, erwartet der <code>ggplot</code>-Befehl einen Datensatz mit Variablen, die wir auf x- und y-Achse darstellen wollen und eventuell eine Gruppierungsvariable. Die x-Achse ist in unserem Fall sehr einfach: es ist die Zeit. Das Problem stellt die y-Achse dar: hierfür haben wir zur Zeit nicht 1 sondern 9 Variablen. Darüber hinaus sind diese 9 Variablen eine Mischung aus unserer y-Achse und der Gruppierungsvariable! Was wir benötigen, um eine klare Abbildung in <code>ggplot2</code> zu erzeugen, ist ein Datensatz, der die drei “klassischen” Variablen enthält (x, y, Gruppe). Dafür können wir den <code>reshape</code>-Befehl nutzen:</p>
+<pre class="r"><code>c_long &lt;- reshape(c,      # Ausgansdaten
+  varying =  c(&#39;AfD&#39;, &#39;SPD&#39;, &#39;FDP&#39;, &#39;DieGrüne&#39;, &#39;DieLinke&#39;, &#39;Tierschutzpartei&#39;, &#39;CDU&#39;, &#39;MLPD&#39;, &#39;NPD&#39;),
+                          # alle Variablen, die hinterher eine einzige Variable sein sollen
+  v.names = &#39;Prozent&#39;,    # Name der neuen Variable
+  idvar = &#39;Monat&#39;,        # Variable, die über alle Parteien gleich bleibt
+  timevar = &#39;Partei&#39;,     # Name der Variable, die verschiedene Gruppen unterscheidet
+  times = c(&#39;AfD&#39;, &#39;SPD&#39;, &#39;FDP&#39;, &#39;DieGrüne&#39;, &#39;DieLinke&#39;, &#39;Tierschutzpartei&#39;, &#39;CDU&#39;, &#39;MLPD&#39;, &#39;NPD&#39;),
+                          # Kodierung der Parteien auf dieser Gruppierungsvariable
+  direction = &#39;long&#39;)     # Richtung der Umwandlung</code></pre>
+<p>Hier wird der Datensatz ins <code>long</code>-Format übertragen - er hat hinterher mehr Zeilen (ist also länger) als vorher. Das Gegenteil wäre das <code>wide</code>-Format, in dem ein Datensatz mehr Spalten bekommt (also breiter wird) als zuvor.</p>
+<p>Mit diesem Datensatz können wir in <code>ggplot2</code> direkt ein Liniendiagramm erzeugen:</p>
+<pre class="r"><code>ggplot(data = c_long, aes(x = Monat, y = Prozent, group = Partei)) +
+  geom_line(aes(colour = Partei)) +      # Liniendiagramm
+  xlab(&#39;Zeitraum&#39;) +                     # Beschriftung x-Achse
+  ylab(&#39;Anfragen (in % des Maximums)&#39;) + # Beschriftung y-Achse
+  ggtitle(&#39;Suchanfragen&#39;)                # Überschrift</code></pre>
+<p><img src="/post/2022-12-05-Projekt-Google-Trends_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+</details>
+</div>
+<div id="aufgabe-4-verfeinerung-der-abbildung" class="section level2">
+<h2>Aufgabe 4: Verfeinerung der Abbildung</h2>
+<p>Beim Anblick des Diagramms wirst du erkennen, dass <code>R</code> die Monate nicht richtig darstellen kann. Es gibt Möglichkeiten, diese Spalte zu formatieren, sodass <code>R</code> sie als Datum erkennt und nicht als Faktor. Die Variable Monat sollte nach dieser Umformung die Klasse <code>POSIXct</code> haben.</p>
+<p>Die meisten Parteien werden immer mit einer spezifischen Farbe dargestellt. Um die Grafik schnell verständlich zu machen, kann jeder Partei ihre “typische” Farbe zugewiesen werden.</p>
+<p>Eine weitere Möglichkeit, den Graphen zu verbessern, ist das Verhältnis zwischen dem höchsten Wert und den niedrigeren Werten durch Transformation der Variable zu verringern oder extreme (z.B. sehr hohe) Werte aus der Grafik auszuschließen. Das kann man machen, um Unterschiede zwischen den nicht so häufig gesuchten Parteien zu finden.</p>
+<p>Falls du von alleine nicht weiterkommen solltest, kannst du dir den folgenden <strong>Tipp</strong> anschauen:</p>
+<p>In diesem Tipp geht es darum, eine “richtige” Datumsvariable zu erstellen. Die Überführung der Datumsvariable im Datensatz in eine solche Datumsvariable, die auch von <code>R</code> intern als Datum repäsentiert wird, erfordert einige Schritte, von denen ein paar nicht ganz intuitiv sind.</p>
+<details>
+<summary>
+Schritt 1 anzeigen
+</summary>
+<p>Um die Daten in eine neue Klasse überführen zu können, müssen sie zunächst als <code>character</code> vorliegen. Erstelle dafür eine zweite Datumsvariable, in der das der Fall ist.</p>
+</details>
+<details>
+<summary>
+Schritt 2 anzeigen
+</summary>
+<p>Unser Ziel ist, dass <code>R</code> diese neu erstellte Variable als Datum erkennt. Dafür gibt es in <code>R</code> eine Klasse mit dem Namen <code>POSIXct</code>. Für die Umwandlung <code>character</code> zu <code>POSIXct</code> oder <code>POSIXlt</code> gibt es einen bestimmten Befehl. Such diesen im Internet und schau dir dann die Hilfefunktion in <code>R</code> dazu an.</p>
+</details>
+<details>
+<summary>
+Schritt 3 anzeigen
+</summary>
+<p>Falls du den Befehl aus Schritt 2 nicht finden solltest, sieht der benötigt Befehl so aus: <code>strptime(x, format = "")</code>. <code>x</code> ist in diesem Fall die Variable, die umgewandelt werden soll und das <code>format</code> übermittelt <code>R</code>, wie die Daten momentan aussehen. Der Befehl funktioniert so jedoch noch nicht. Woran könnte das liegen? Schau dafür in die <code>R</code>-Hilfe zum Argument <code>format</code>.</p>
+</details>
+<details>
+<summary>
+Schritt 4 anzeigen
+</summary>
+<p>Das Problem liegt in den vorliegenden Daten. <code>R</code> kann diese Umwandlung nur mit einem <code>character</code> vornehmen, der mindestens Jahr, Monat und Tag enthält. Diese werden in der Hilfe von <code>strptime</code> je nach Formatierung unterschiedlich bezeichnet - z.B. wird <code>%d</code> für den Tag (01 - 31), <code>%m</code> für den Monat (01 - 12) und <code>%y</code> für das Jahr (00-99) genutzt. Unseren Daten fehlt der Tag! Um die Umwandlung vornehmen zu können, muss man also die Daten modifizieren. Schau dir dafür mal den Befehl <code>paste0</code> in der <code>R</code>-Hilfefunktion und im Internet an.</p>
+</details>
+<details>
+<summary>
+Schritt 5 anzeigen
+</summary>
+<p><code>paste0</code> “klebt” die Argumente, die der Funktion gegeben werden aneinander. Die <code>0</code> bedeutet dabei, dass sie durch nichts getrennt werden sollen. Z.B. könnten wir den Befehl benutzen um einen beliebigen Satz zu schreiben:</p>
+<pre class="r"><code>paste0(&#39;Ich will&#39;, &#39; Kuchen.&#39;)</code></pre>
+<pre><code>## [1] &quot;Ich will Kuchen.&quot;</code></pre>
+<p>In <code>paste0</code> können aber auch Variablen genutzt werden, um <em>jeder Beobachtung</em> etwas hinzuzufügen. In unserem Fall müssen wir uns also einfach nur irgendeinen Tag im Monat aussuchen und diesen an unsere Datumsvariable anheften.</p>
+<p>Danach sollte auch die Umwandlung in die Datumsklasse funktionieren.</p>
+</details>
+<details>
+<summary>
+Schritt 6 anzeigen
+</summary>
+<p>Ist die Variable ein <code>POSIXct</code>? Überprüf das mit dem Befehl class(Variable). Sofern das nicht der Fall sein sollte, schau im Internet nach einer Lösung für das Problem.</p>
+<p><strong>Ergebnis</strong>:
+Kopiere den Befehl reshape- und den <code>ggplot</code>-Befehl und ersetze jeweils die alte Monatsvariable (Variablentyp: <code>factor</code>) durch die neue Monatsvariable (Variablentyp: <code>POSIXct</code>). Jetzt sollte die Graphik auf der x-Achse nur noch mit den 4 Jahreszahlen 2005, 2010, 2015 und 2020 beschriftet sein.</p>
+</details>
+<p>Wenn du fertig mit der Bearbeitung der Aufgabenstellung sein solltest, kannst du dein Ergebnis jetzt mit der Lösung vergleichen. Wie auch bei den ersten Teilen (und eigentlich immer bei <code>R</code>) gilt, dass es mehrere Wege zum gleichen Ziel geben kann:</p>
+<details>
+<summary>
+Lösung
+</summary>
+<p>Die Abbildung aus Schritt 1 ist noch nicht sonderlich schön. Das erste offensichtliche Manko ist, dass es unmöglich ist, die Zeit an der x-Achse abzulesen. Um diesen Zustand zu beheben, muss die Zeit in eine “echte” Zeitvariable im <code>POSIXct</code>-Format umgewandelt werden:</p>
+<pre class="r"><code>class(c_long$Monat)</code></pre>
+<pre><code>## [1] &quot;character&quot;</code></pre>
+<p>Für die Umwandlung ins <code>POSIXct</code>-Format gibt es eine Funktion namens <code>strptime</code>. Diese funktioniert allerdings wesentlich besser, wenn die Ausgangsvariable eine <code>character</code>-Variable ist. Also müssen wir die Zeit erst in eine Text-Variable umwandeln (dafür erstellen wir vorsichtshalber eine neue Variable):</p>
+<pre class="r"><code>c_long$nMonat &lt;- as.character(c_long$Monat)</code></pre>
+<p>Aus der Hilfe zu <code>strptime</code> wird ersichtlich, dass immer mindestens Tag, Monat und Jahr in Zeitvariablen erwartet werden. Daher müssen wir der neuen Text-Variable noch einen Tag hinzufügen. Der genaue Tag macht dabei keinen Unterschied (weil unsere Daten ja nur monatlich sind) - wir nehmen einfach den 1. jeden Monats:</p>
+<pre class="r"><code>c_long$nMonat &lt;- paste0(c_long$nMonat, &#39;-01&#39;)
+head(c_long$nMonat)</code></pre>
+<pre><code>## [1] &quot;2004-01-01&quot; &quot;2004-02-01&quot; &quot;2004-03-01&quot; &quot;2004-04-01&quot; &quot;2004-05-01&quot;
+## [6] &quot;2004-06-01&quot;</code></pre>
+<p>So hat die neue <code>nMonat</code>-Variable ein typisches Zeitformat: Jahr-Monat-Tag. Dieses Format erkennt <code>strptime</code> leider nicht automatisch, also müssen wir via <code>format</code>-Argument ansagen, wie unsere Daten aussehen:</p>
+<pre class="r"><code>c_long$nMonat &lt;- strptime(c_long$nMonat,
+  format=&quot;%Y-%m-%d&quot;)    # Format des Datums</code></pre>
+<p>Aus der Hilfe von <code>strptime</code> sehen wir, dass <code>%Y</code> Jahre (mit Jahrhunderten), <code>%m</code> Monate (in Zahlen) und <code>%d</code> Tage sind. Die Variable wird nur folgendermaßen klassifiziert.</p>
+<pre class="r"><code>class(c$nMonat)</code></pre>
+<pre><code>## [1] &quot;NULL&quot;</code></pre>
+<p>Das ist zwar leider nicht die richtige Klasse, aber das Problem lässt sich schnell beheben:</p>
+<pre class="r"><code>c_long$nMonat &lt;- as.POSIXct(c_long$nMonat)</code></pre>
+<p>Wenn wir jetzt die Abbildung erneut erstellen, sieht die x-Achse schon viel besser aus:</p>
+<pre class="r"><code>ggplot(data = c_long, aes(x = nMonat, y = Prozent, group = Partei)) +
+  geom_line(aes(colour = Partei)) +      # Liniendiagramm
+  xlab(&#39;Zeitraum&#39;) +                     # Beschriftung x-Achse
+  ylab(&#39;Anfragen (in % des Maximums)&#39;) + # Beschriftung y-Achse
+  ggtitle(&#39;Suchanfragen&#39;)                # Überschrift</code></pre>
+<p><img src="/post/2022-12-05-Projekt-Google-Trends_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>
+<p>Um bestimmte Abschnitte näher unter die Lupe zu nehmen, können wir jetzt Anhand der Zeitvariable spezifische Auswahlen treffen. Wenn wir uns z.B. den Zeitraum um die Bundestagswahl von 2013 näher angucken möchten, können wir uns auf die Jahre zwischen 2012 und 2014 konzentrieren:</p>
+<pre class="r"><code>wahl_2013 &lt;- subset(c_long, subset = (nMonat &lt; &#39;2014-07-01&#39; &amp; nMonat &gt; &#39;2012-01-01&#39;))
+
+ggplot(data = wahl_2013, aes(x = nMonat, y = Prozent, group = Partei)) +
+  geom_line(aes(colour = Partei)) +      # Liniendiagramm
+  xlab(&#39;Zeitraum&#39;) +                     # Beschriftung x-Achse
+  ylab(&#39;Anfragen (in % des Maximums)&#39;) + # Beschriftung y-Achse
+  ggtitle(&#39;Suchanfragen&#39;)                # Überschrift</code></pre>
+<p><img src="/post/2022-12-05-Projekt-Google-Trends_files/figure-html/unnamed-chunk-30-1.png" width="672" /></p>
+<p>Ein weiteres Manko bei diesen Abbildungen sind die verwirrenden Farben. In Deutschland gibt es ein relativ konsistent genutzes Schema, nach dem die <a href="https://de.wikipedia.org/wiki/Politische_Farbe">politische Parteien durch bestimmte Farben dargestellt werden</a>. Wir können dieses Schema auch in unserer Abbildungen nutzen, wenn wir die Farben per Hand vergeben und dann mit <code>scale_color_manual</code> in unseren Plot aufnehmen:</p>
+<pre class="r"><code>farben &lt;- c(&#39;AfD&#39; = &#39;deepskyblue&#39;, &#39;CDU&#39; = &#39;black&#39;, &#39;DieGrüne&#39; = &#39;green3&#39;,
+            &#39;DieLinke&#39; = &#39;magenta&#39;, &#39;FDP&#39; = &#39;gold&#39;, &#39;MLPD&#39; = &#39;orange&#39;,
+            &#39;NPD&#39; = &#39;brown&#39;, &#39;SPD&#39; = &#39;red&#39;, &#39;Tierschutzpartei&#39; = &#39;darkblue&#39;)
+
+ggplot(data = wahl_2013, aes(x = nMonat, y = Prozent, group = Partei)) +
+  geom_line(aes(colour = Partei)) +      # Liniendiagramm
+  xlab(&#39;Zeitraum&#39;) +                     # Beschriftung x-Achse
+  ylab(&#39;Anfragen (in % des Maximums)&#39;) + # Beschriftung y-Achse
+  ggtitle(&#39;Suchanfragen&#39;) +              # Überschrift
+  scale_color_manual(values = farben)</code></pre>
+<p><img src="/post/2022-12-05-Projekt-Google-Trends_files/figure-html/unnamed-chunk-31-1.png" width="672" /></p>
+</details>
+<hr />
+<p>Herzlichen Glückwunsch! Wenn du es bis hierhin geschafft hast, hast du erfolgreich das Projekt zu den Google Trends abgeschlossen (oder einfach sehr viel Text und <code>R</code>-Code gelesen). Falls dieses Projekt dir Lust nach mehr Projekten gemacht hat, kannst du dich unter dem Reiter <code>Projekte</code> auf <code>pandaR</code> weiter austoben.</p>
+</div>
+</div>
