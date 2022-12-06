@@ -73,4 +73,4 @@ Dr. Sophie Nolden ist wissenschaftliche Mitarbeiterin in der Abteilung _Entwickl
 **Biographie**
 
 - Diplom in Psychologie an der Universität Würzburg (2006-2011)
-- PhD in Psychology an der Université de Montréal (2011-2014)
+- PhD in Psychologie an der Université de Montréal (2011-2014)
