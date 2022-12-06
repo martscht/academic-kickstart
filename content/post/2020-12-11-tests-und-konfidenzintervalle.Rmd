@@ -216,16 +216,16 @@ Ein 95%-Konfidenzintervall ist somit ein Intervall, welches in 95% der Fälle be
 Wenn wir ein 95%-Konfidenzintervall bestimmen wollen, brauchen wir das zugehörige Quantil aus der Standardnormalverteilung - also den *z*-Wert für $\frac{\alpha}{2}$. Wir müssen das $\alpha$-Niveau halbieren, da wir uns momentan beim Bilden eines zweiseitigen Konfidenzintervalles befinden. Wir haben bereits gelernt, dass man Quantile aus der Normalverteilung mit der Funktion `qnorm` erhalten kann. Die Standardnormalverteilung mitt Mittelwert von 0 und Standardabweichung von 1 ist dabei der Default, aber wir geben die Argumente zur Übung trotzdem selbst an.
   
 ```{r}
-z_quantil <- qnorm(p = 1-(.05/2), mean = 0, sd = 1)
-z_quantil
+z_quantil_zweiseitig <- qnorm(p = 1-(.05/2), mean = 0, sd = 1)
+z_quantil_zweiseitig
 ```
-Wir sehen, dass der Wert `r round(z_quantil,3)` 2.5% der Verteilung Richtung unendlich abtrennt. Nun haben wir alle wichtigen Informationen, um ein zweiseitiges Konfidenzintervall um unseren Mittelwert zu legen.
+Wir sehen, dass der Wert `r round(z_quantil_zweiseitig,3)` 2.5% der Verteilung Richtung unendlich abtrennt. Nun haben wir alle wichtigen Informationen, um ein zweiseitiges Konfidenzintervall um unseren Mittelwert zu legen.
 
 ```{r}
-positive_mean_IQ <- new_mean_IQ+((z_quantil*sd_IQ)/sqrt(sample_size))
+positive_mean_IQ <- new_mean_IQ+((z_quantil_zweiseitig*sd_IQ)/sqrt(sample_size))
 positive_mean_IQ
 
-negative_mean_IQ <- new_mean_IQ-((z_quantil*sd_IQ)/sqrt(sample_size))
+negative_mean_IQ <- new_mean_IQ-((z_quantil_zweiseitig*sd_IQ)/sqrt(sample_size))
 negative_mean_IQ
 
 conf_interval_IQ <- c(negative_mean_IQ, positive_mean_IQ )
@@ -233,7 +233,27 @@ conf_interval_IQ
 ```
 
 In diesem Fall liegt der Schätzer für den wahren IQ Wert der Grundgesamtheit $\mu$, aus der die Stichprobe gezogen wurde, zwischen `r round(conf_interval_IQ[1],2)` und `r round(conf_interval_IQ[2],2)`. Das bedeutet, dass mit einer Wahrscheinlichkeit von 95% der wahre IQ Wert der Grundgesamtheit in unserem Konfidenzinterall `r round(conf_interval_IQ[1],2)` und `r round(conf_interval_IQ[2],2)` liegt.
-Da dieses Intervall den Populationsmittelwert unter der $H_0$ ($\mu$ $\leq$ 100) **nicht** enthält, würden wir die $H_0$ in diesem Fall verwerfen. Beachten Sie: Ein zweiseitiger *z*-Test bei einer Irrtumswahrscheinlichkeit $\alpha$ und der Test über ein (1-$\alpha$)-Konfidenzintervall kommen immer zu denselben Schlussfolgerungen. 
+
+Das Konfidenzintervall kann auch dafür genutzt werdne, um eine Aussage über die von uns angenommenen Hypothesen zu treffen. Dafür müsste untersucht werden, ob das Intervall den angenommenen Populationsmittelwert (100 enthählt). Wir erinnern uns jedoch, dass in den Hypothesen eine Richtung vorgegeben wurde, weshalb hierfür auch ein einseitiges Konfidenzintervall benötigt werden würde.
+
+Wir wollten also testen, ob der Stichprobenmittelwert größer als der Wert 100 ist. Daher müssen in unserem Konfidenzintervall um den Stichprobenmittelwert eine untere Grenze bestimmmen, während wir es nach oben offen halten können (Richtung unendlich). Die zugehörige Gleichung ändert sich nur geringfügig. Wir müssen den z-Wert nun einseitig bestimmen und dann eben auch nur die untere Grenze unseres Intervalls. 
+
+$$\mu = \bar{x} - z_{\alpha} * \sigma_{\bar{x}} = \bar{x} \pm z_{\alpha}*\frac{\sigma}{\sqrt{n}}$$
+
+Wir haben bereits gesehen, dass eine Bestimmung des z-Werts durch die Funktion `qnorm` möglich ist. 
+
+```{r}
+z_quantil_einseitig <- qnorm(p = 1-.05, mean = 0, sd = 1)
+z_quantil_einseitig
+```
+
+Anschließend kann die untere Grenze des Intervalls sehr simpel bestimmt werden.
+
+```{r}
+new_mean_IQ-((z_quantil_einseitig*sd_IQ)/sqrt(sample_size))
+```
+
+Da das Konfidenzintervall für den Stichprobenmittelwert die 100 **nicht** enthält, ist die Annahme unter der $H_0$ ($\mu \leq  100$) nicht haltbar. Daher würden wir die $H_0$ in diesem Fall verwerfen. Beachten Sie: Ein einseitiger *z*-Test bei einer Irrtumswahrscheinlichkeit $\alpha$ und die Besimmung über ein (1-$\alpha$)-Konfidenzintervall kommen immer zu denselben Schlussfolgerungen. 
 
 ***
 
