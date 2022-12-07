@@ -1,3 +1,7 @@
+#######################
+### Hierarchische Regression
+# von Julien P. Irmer und Johannes Hartig
+#
 # Pakete laden ----
 # Benötigte Pakete --> Installieren, falls nicht schon vorhanden!
 library(lme4)         # Für die Mehrebenen-Regression
@@ -6,17 +10,17 @@ library(ICC)          # Für die einfache Berechung von ICCs
 library(ggplot2)      # Für Grafiken
 library(interactions) # Zur Veranschaulichung von Moderator-Effekten
 
-# Daten einlesen und vorbereiten ----
+# Daten einlesen und vorbereiten
 lockdown <- read.csv(url("https://osf.io/dc6me/download"))
 
 # Entfernen der Personen, für die weniger als zwei Messpunkte vorhanden sind
 # (Auschluss von Fällen, deren ID nur einmal vorkommt)
-lockdown <- lockdown[-which(lockdown$ID %in% names(which(table(lockdown$ID)==1))),] 
+lockdown <- lockdown[-which(lockdown$ID %in% names(which(table(lockdown$ID)==1))),]
 
 # Daten aufbereiten, Variablen auswählen extrahieren und in Nummern umwandeln
 # Entfernen von Minderjährigen & unbestimmtes Gender mit den Funktionen filter() und select () aus dplyr.
-lockdown <- lockdown |>
-  filter(Age > 18 & Gender == 1 | Gender == 2) |>
+lockdown <- lockdown %>%
+  filter((Age >= 18) & (Gender == 1 | Gender == 2)) %>%
   select(c("ID", "Wave", "Age", "Gender", "Income", "EWB","PWB","SWB",
            "IWB","E.threat","H.threat", "Optimism",
            "Self.efficacy","Hope","P.Wisdom","ST.Wisdom","Grat.being",
@@ -26,10 +30,10 @@ lockdown <- lockdown |>
 # Standardisieren der AVs
 lockdown[,c("EWB", "PWB", "SWB", "IWB")] <- scale(lockdown[,c("EWB", "PWB", "SWB", "IWB")])
 # Standardisieren möglicher Prädiktoren
-lockdown[,c("E.threat", "H.threat", "Optimism", "Self.efficacy", "Hope", "P.Wisdom", 
+lockdown[,c("E.threat", "H.threat", "Optimism", "Self.efficacy", "Hope", "P.Wisdom",
             "ST.Wisdom", "Grat.being", "Grat.world")] <-
-  scale(lockdown[,c("E.threat", "H.threat", "Optimism", "Self.efficacy", "Hope", "P.Wisdom", 
-            "ST.Wisdom", "Grat.being", "Grat.world")])
+  scale(lockdown[,c("E.threat", "H.threat", "Optimism", "Self.efficacy", "Hope", "P.Wisdom",
+                    "ST.Wisdom", "Grat.being", "Grat.world")])
 
 # ID in Faktor Umwandeln
 lockdown$ID <- as.factor(lockdown$ID)
@@ -85,6 +89,11 @@ ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=pred, color=ID)) +
 PWB.time.random <- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown)
 summary(PWB.time.random)
 
+# fehlende Konvergenz:
+PWB.time.random <- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown,
+                        control = lmerControl(optimizer ="Nelder_Mead"))
+summary(PWB.time.random)
+
 # Modellvergleich
 anova(PWB.time.fixed, PWB.time.random, refit=FALSE)
 
@@ -96,8 +105,8 @@ ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=pred, color=ID)) +
   geom_line()
 
 # Histogramm der individuellen Slopes als Summe aus festem Effekt und Residuen
-hist(fixef(PWB.time.random)["Time"] + ranef(PWB.time.random)$ID$Time, 
-     main="Histogramm des Zeiteffekts", xlab = expression(beta[1]), 
+hist(fixef(PWB.time.random)["Time"] + ranef(PWB.time.random)$ID$Time,
+     main="Histogramm des Zeiteffekts", xlab = expression(beta[1]),
      breaks = seq(-0.2,0.2,0.025))
 abline(v=fixef(PWB.time.random)["Time"], col="blue") # Lage des festen Effektes kennzeichnen
 
@@ -114,5 +123,11 @@ lockdown$Time <- scale(lockdown$Time, scale = FALSE) # Zeit zentrieren
 PWB.Age.Time <- lmer(PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID), data = lockdown)
 summary(PWB.Age.Time)
 
+# fehlende Konvergenz:
+PWB.Age.Time <- lmer(PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID), data = lockdown,
+                     control = lmerControl(optimizer ="Nelder_Mead"))
+summary(PWB.Age.Time)
+
+# Visualisierung
 interact_plot(model = PWB.Age.Time, pred = Time, modx = Age)
 
