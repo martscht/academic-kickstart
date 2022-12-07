@@ -14,7 +14,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [hartig, irmer]
-lastmod: '2022-12-01 12:00:12 CEST'
+lastmod: '2022-12-07 12:00:12 CEST'
 featured: no
 header:
      image: "/header/HLM_head.jpg"
@@ -22,7 +22,6 @@ header:
 projects: []
 ---
 
-<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <div id="pakete-laden" class="section level4">
@@ -229,8 +228,10 @@ ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=pred, color=ID)) +
 <li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{01}X_{ij} + u_{0j}X_{ij} + u_{0j} + r_{ij}\)</span></li>
 <li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + X + (1 + X | ID)</code></li>
 </ul>
-<pre class="r"><code>PWB.time.random &lt;- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown)
-summary(PWB.time.random)</code></pre>
+<pre class="r"><code>PWB.time.random &lt;- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown)</code></pre>
+<pre><code>## Warning in checkConv(attr(opt, &quot;derivs&quot;), opt$par, ctrl = control$checkConv, :
+## Model failed to converge with max|grad| = 0.00460588 (tol = 0.002, component 1)</code></pre>
+<pre class="r"><code>summary(PWB.time.random)</code></pre>
 <pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
 ## Formula: PWB ~ 1 + Time + (1 + Time | ID)
 ##    Data: lockdown
@@ -258,8 +259,42 @@ summary(PWB.time.random)</code></pre>
 ## Time -0.454
 ## optimizer (nloptwrap) convergence code: 0 (OK)
 ## Model failed to converge with max|grad| = 0.00460588 (tol = 0.002, component 1)</code></pre>
+<p>Nun sind wir in eine etwas ungünstige Lage gekommen. Wir bekommen nämlich eine Warning ausgegeben, die wir nicht ignorieren sollten. Diese wird sowohl beim Schätzen ausgegeben und steht auch in der Summary ganz unten:</p>
+<pre><code>## optimizer (nloptwrap) convergence code: 0 (OK)
+## Model failed to converge with max|grad| = 0.00460588 (tol = 0.002, component 1)</code></pre>
+<p>Die Konvergenz bezieht sich auf den numerischen Algorithmus der im Hintergrund die Likelihood maximiert: Es handelt sich hierbei um ein iteratives Verfahren, bei welchem in jedem Schritt geschaut wird, wie stark sich die Likelihood noch verändert. Ist diese Veränderung klein, so spricht dies für Konvergenz. Hier wird nun gesagt, dass die letzte Änderung ca. <code>.004</code> war, die Toleranz (also die größte akzeptierte Änderung) aber bei <code>tol = .002</code> liegt. Durch diese Diskrepanz wird die Warnung ausgelöst. Weitere Evaluationsmechanismen der Lösungen zeigen jedoch an, dass die Lösung prinzipiell <code>"OK"</code> ist. Wir wollen es aber “richtig” machen und ändern deshalb den Optimierungsalgorithmus:</p>
+<pre class="r"><code>PWB.time.random &lt;- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown,
+                        control = lmerControl(optimizer =&quot;Nelder_Mead&quot;))
+summary(PWB.time.random)</code></pre>
+<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
+## Formula: PWB ~ 1 + Time + (1 + Time | ID)
+##    Data: lockdown
+## Control: lmerControl(optimizer = &quot;Nelder_Mead&quot;)
+## 
+## REML criterion at convergence: 4039.4
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.7802 -0.4633  0.0390  0.4983  3.8932 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev. Corr 
+##  ID       (Intercept) 0.865730 0.93045       
+##           Time        0.003933 0.06271  -0.26
+##  Residual             0.168721 0.41076       
+## Number of obs: 2188, groups:  ID, 485
+## 
+## Fixed effects:
+##              Estimate Std. Error t value
+## (Intercept)  0.177654   0.047121   3.770
+## Time        -0.035999   0.004693  -7.671
+## 
+## Correlation of Fixed Effects:
+##      (Intr)
+## Time -0.454</code></pre>
+<p>Nun erhalten wir keine Warnung mehr, die Lösung scheint gutartig in dem Sinne zu sein, dass alle Evaluationsmechanismen sagen, dass die numerische Lösung konvergiert ist und damit interpretiert werden kann. Wenn wir die beiden Summaries vergleichen erkennen wir, dass die Unterschiede nur marginal sind (ab der 3. Nachkommastelle gibt es Koeffizienten und Standardfehler, die sich unterscheiden). Somit scheint der optische Hinweis, die Lösung sei <code>"OK"</code> also nicht fehlgeleitet zu sein. Dennoch sollte bei solchen Warnungen immer genauer nachgeschaut werden! Nun zur Interpretation der Ergebnisse:</p>
 <p>Mit mehr als einem Zufallseffekt im Modell enthält die Ausgabe nicht nur deren Varianzen, sondern auch deren Korrelation. In unserem Fall beträgt die Korrelation zwischen dem Intercept <span class="math inline">\(\beta_0\)</span> und dem Regressionskoeffizienten <span class="math inline">\(\beta_1\)</span> für ‘Time’ <span class="math inline">\(r=-0.26\)</span>. Das Intercept <span class="math inline">\(\beta_{0j}\)</span> ist das erwartete Wohlbefinden einer Person <span class="math inline">\(j\)</span> zu Beginn des Lockdowns (null Wochen im Lockdown). Die Steigung <span class="math inline">\(\beta_{1j}\)</span> ist die erwartete Veränderung des individuellen Wohlbefindens mit jeder weiteren Woche im Lockdown. Die leicht negative Korrelation bedeutet, dass das Wohlbefinden von Personen mit einem zu Beginn höheren Niveau etwas stärker negativ entwickelt.</p>
-<p>Der Ausgabe können wir entnehmen, dass die Varianz des Zeiteffekts <span class="math inline">\(var(u_1)=0.0039\)</span> beträgt. Ob dieser auf den ersten Blick kleine Effekt signifikant ist, können wir durch den Vergleich des Modells mit und ohne Zufallseffekt testen. Die <code>anova</code>-Funktion schätzt die Modelle standardmäßig für den Modellvergleich neu, und zwar mit Maximum Likelihood (ML) statt der Standardmethode Restricted Maximum Likelihood (REML). Dies muss hier mit der Option <code>refit=FALSE</code> unterdrückt werden, da der Test von Zufallseffekten auf der REML-Schätzung basieren sollte.</p>
+<p>Der Ausgabe können wir entnehmen, dass die Varianz des Zeiteffekts <span class="math inline">\(var(u_1)=\)</span> 0.0039 beträgt. Ob dieser auf den ersten Blick kleine Effekt signifikant ist, können wir durch den Vergleich des Modells mit und ohne Zufallseffekt testen. Die <code>anova</code>-Funktion schätzt die Modelle standardmäßig für den Modellvergleich neu, und zwar mit Maximum Likelihood (ML) statt der Standardmethode Restricted Maximum Likelihood (REML). Dies muss hier mit der Option <code>refit=FALSE</code> unterdrückt werden, da der Test von Zufallseffekten auf der REML-Schätzung basieren sollte.</p>
 <pre class="r"><code>anova(PWB.time.fixed, PWB.time.random, refit=FALSE)</code></pre>
 <pre><code>## Data: lockdown
 ## Models:
@@ -277,14 +312,14 @@ lockdown$pred &lt;- predict(PWB.time.random)
 ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=pred, color=ID)) +
   theme_bw() + guides(color=&quot;none&quot;) +
   geom_line()</code></pre>
-<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
 <p>Eine weitere Art, sich die Streuung des Zufallseffekts grafisch zu veranschaulichen, ist ein Histogramm. Mit der Funktion <code>fixef</code> lassen sich die festen Effekte des Modells auslesen, mit <code>randef</code> die Zufallseffekte für jede Ebene-2-Einheit, hier also Personen. Die Verteilung der geschätzen individuellen Zeiteffekte <span class="math inline">\(\beta_{1j}\)</span> ergibt sich aus der Verteilung des festen Effekts plus den Ebene-2-Residuen: <span class="math inline">\(\gamma_{10}+u_{1j}\)</span>. Wir sehen, dass ein großer Teil der Slopes im negativen Bereich liegt, einige jedoch auch im positiven, was einer leichten Verbesserung des Wohlbefindens mit zunehmender Zeit im Lockdown entsprechen würde.</p>
 <pre class="r"><code># Histogramm der individuellen Slopes als Summe aus festem Effekt und Residuen
 hist(fixef(PWB.time.random)[&quot;Time&quot;] + ranef(PWB.time.random)$ID$Time, 
      main=&quot;Histogramm des Zeiteffekts&quot;, xlab = expression(beta[1]), 
      breaks = seq(-0.2,0.2,0.025))
 abline(v=fixef(PWB.time.random)[&quot;Time&quot;], col=&quot;blue&quot;) # Lage des festen Effektes kennzeichnen</code></pre>
-<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
 </div>
 </div>
 <div id="Alterseffkte" class="section level2">
@@ -380,9 +415,44 @@ PWB.Age.Time &lt;- lmer(PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID), data 
 ## Age:Time -0.012  0.096 -0.014
 ## optimizer (nloptwrap) convergence code: 0 (OK)
 ## Model failed to converge with max|grad| = 0.00644566 (tol = 0.002, component 1)</code></pre>
+<p>Da wir wieder eine Warnung über Konvergenzprobleme bekommen, ändern wir wieder den Maximierungsalgorithmus:</p>
+<pre class="r"><code>PWB.Age.Time &lt;- lmer(PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID), data = lockdown,
+                        control = lmerControl(optimizer =&quot;Nelder_Mead&quot;))
+summary(PWB.Age.Time)</code></pre>
+<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
+## Formula: PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID)
+##    Data: lockdown
+## Control: lmerControl(optimizer = &quot;Nelder_Mead&quot;)
+## 
+## REML criterion at convergence: 4043.3
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.7741 -0.4747  0.0451  0.4968  3.8920 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev. Corr
+##  ID       (Intercept) 0.784318 0.88562      
+##           Time        0.003934 0.06272  0.12
+##  Residual             0.168739 0.41078      
+## Number of obs: 2188, groups:  ID, 485
+## 
+## Fixed effects:
+##               Estimate Std. Error t value
+## (Intercept) -0.0067297  0.0414488  -0.162
+## Age          0.0130309  0.0030101   4.329
+## Time        -0.0361606  0.0046948  -7.702
+## Age:Time    -0.0002951  0.0003412  -0.865
+## 
+## Correlation of Fixed Effects:
+##          (Intr) Age    Time  
+## Age       0.042              
+## Time      0.098 -0.011       
+## Age:Time -0.012  0.096 -0.014</code></pre>
+<p>Die Warnung verschwindet und die Ergebnisse der beiden Summaries stimmen wie oben auch sehr stark überein!</p>
 <p>Zur grafischen Veranschaulichung der Wechselwirkung kann wie bei der moderierten Regression im linearen Modell auch hier die Funktion <code>interact_plot</code> verwendet werden. Die Lage der Linien zeigt gut den positiven Haupteffekt des Alters auf das Wohlbefinden. Zugleich veranschaulichen die fast parallelen Geraden das Nicht-Vorliegen einer Wechselwirkung.</p>
 <pre class="r"><code>interact_plot(model = PWB.Age.Time, pred = Time, modx = Age)</code></pre>
-<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
 </div>
 <div id="r-skript" class="section level2">
 <h2>R-Skript</h2>

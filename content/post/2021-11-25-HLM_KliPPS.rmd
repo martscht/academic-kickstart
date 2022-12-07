@@ -14,7 +14,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [hartig, irmer]
-lastmod: '2022-12-01 12:00:12 CEST'
+lastmod: '2022-12-07 12:00:12 CEST'
 featured: no
 header:
      image: "/header/HLM_head.jpg"
@@ -233,14 +233,33 @@ In einem nächsten Schritt untersuchen wir nun, ob sich der Effekt der Zeit auf 
 * Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{01}X_{ij} + u_{0j}X_{ij} + u_{0j} + r_{ij}$
 * Als Formel für `lmer`: `Y ~ 1 + X + (1 + X | ID)`
 
-```{r message=FALSE, warning=FALSE}
+```{r}
 PWB.time.random <- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown)
 summary(PWB.time.random)
 ```
 
+
+
+Nun sind wir in eine etwas ungünstige Lage gekommen. Wir bekommen nämlich eine Warning ausgegeben, die wir nicht ignorieren sollten. Diese wird sowohl beim Schätzen ausgegeben und steht auch in der Summary ganz unten: 
+
+```{r, echo = F}
+sumout <- capture.output(summary(PWB.time.random))
+cat(paste(sumout[26:27], collapse = "\n"))
+```
+
+Die Konvergenz bezieht sich auf den numerischen Algorithmus der im Hintergrund die Likelihood maximiert: Es handelt sich hierbei um ein iteratives Verfahren, bei welchem in jedem Schritt geschaut wird, wie stark sich die Likelihood noch verändert. Ist diese Veränderung klein, so spricht dies für Konvergenz. Hier wird nun gesagt, dass die letzte Änderung ca. `.004` war, die Toleranz (also die größte akzeptierte Änderung) aber bei `tol = .002` liegt. Durch diese Diskrepanz wird die Warnung ausgelöst. Weitere Evaluationsmechanismen der Lösungen zeigen jedoch an, dass die Lösung prinzipiell `"OK"` ist. Wir wollen es aber "richtig" machen und ändern deshalb den Optimierungsalgorithmus:
+
+```{r}
+PWB.time.random <- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown,
+                        control = lmerControl(optimizer ="Nelder_Mead"))
+summary(PWB.time.random)
+```
+
+Nun erhalten wir keine Warnung mehr, die Lösung scheint gutartig in dem Sinne zu sein, dass alle Evaluationsmechanismen sagen, dass die numerische Lösung konvergiert ist und damit interpretiert werden kann. Wenn wir die beiden Summaries vergleichen erkennen wir, dass die Unterschiede nur marginal sind (ab der 3. Nachkommastelle gibt es Koeffizienten und Standardfehler, die sich unterscheiden). Somit scheint der optische Hinweis, die Lösung sei `"OK"` also nicht fehlgeleitet zu sein. Dennoch sollte bei solchen Warnungen immer genauer nachgeschaut werden! Nun zur Interpretation der Ergebnisse:
+
 Mit mehr als einem Zufallseffekt im Modell enthält die Ausgabe nicht nur deren Varianzen, sondern auch deren Korrelation. In unserem Fall beträgt die Korrelation zwischen dem Intercept $\beta_0$ und dem Regressionskoeffizienten $\beta_1$ für 'Time' $r=`r round(data.frame(VarCorr(PWB.time.random))[3,"sdcor"],2)`$. Das Intercept $\beta_{0j}$ ist das erwartete Wohlbefinden einer Person $j$ zu Beginn des Lockdowns (null Wochen im Lockdown). Die Steigung $\beta_{1j}$ ist die erwartete Veränderung des individuellen Wohlbefindens mit jeder weiteren Woche im Lockdown. Die leicht negative Korrelation bedeutet, dass das Wohlbefinden von Personen mit einem zu Beginn höheren Niveau etwas stärker negativ entwickelt.
 
-Der Ausgabe können wir entnehmen, dass die Varianz des Zeiteffekts $var(u_1)=`r round(VarCorr(PWB.time.random)$ID[2,2],4)`$ beträgt. Ob dieser auf den ersten Blick kleine Effekt signifikant ist, können wir durch den Vergleich des Modells mit und ohne Zufallseffekt testen. Die `anova`-Funktion schätzt die Modelle standardmäßig für den Modellvergleich neu, und zwar mit Maximum Likelihood (ML) statt der Standardmethode Restricted Maximum Likelihood (REML). Dies muss hier mit der Option `refit=FALSE` unterdrückt werden, da der Test von Zufallseffekten auf der REML-Schätzung basieren sollte. 
+Der Ausgabe können wir entnehmen, dass die Varianz des Zeiteffekts $var(u_1)=$ `r round(VarCorr(PWB.time.random)$ID[2,2],4)` beträgt. Ob dieser auf den ersten Blick kleine Effekt signifikant ist, können wir durch den Vergleich des Modells mit und ohne Zufallseffekt testen. Die `anova`-Funktion schätzt die Modelle standardmäßig für den Modellvergleich neu, und zwar mit Maximum Likelihood (ML) statt der Standardmethode Restricted Maximum Likelihood (REML). Dies muss hier mit der Option `refit=FALSE` unterdrückt werden, da der Test von Zufallseffekten auf der REML-Schätzung basieren sollte. 
 
 ```{r include=FALSE}
 diff <- anova(PWB.time.fixed, PWB.time.random, refit=FALSE)
@@ -322,6 +341,16 @@ PWB.Age.Time <- lmer(PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID), data = l
 summary(PWB.Age.Time)
 
 ```
+
+Da wir wieder eine Warnung über Konvergenzprobleme bekommen, ändern wir wieder den Maximierungsalgorithmus:
+
+```{r}
+PWB.Age.Time <- lmer(PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID), data = lockdown,
+                        control = lmerControl(optimizer ="Nelder_Mead"))
+summary(PWB.Age.Time)
+```
+
+Die Warnung verschwindet und die Ergebnisse der beiden Summaries stimmen wie oben auch sehr stark überein!
 
 Zur grafischen Veranschaulichung der Wechselwirkung kann wie bei der moderierten Regression im linearen Modell auch hier die Funktion `interact_plot` verwendet werden. Die Lage der Linien zeigt gut den positiven Haupteffekt des Alters auf das Wohlbefinden. Zugleich veranschaulichen die fast parallelen Geraden das Nicht-Vorliegen einer Wechselwirkung.
 
