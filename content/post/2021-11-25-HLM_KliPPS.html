@@ -14,7 +14,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [hartig, irmer]
-lastmod: '2022-11-22 12:00:12 CEST'
+lastmod: '2022-12-07 12:00:12 CEST'
 featured: no
 header:
      image: "/header/HLM_head.jpg"
@@ -46,8 +46,8 @@ lockdown &lt;- lockdown[-which(lockdown$ID %in% names(which(table(lockdown$ID)==
 
 # Daten aufbereiten, Variablen auswählen extrahieren und in Nummern umwandeln
 # Entfernen von Minderjährigen &amp; unbestimmtes Gender mit den Funktionen filter() und select () aus dplyr.
-lockdown &lt;- lockdown |&gt;
-  filter(Age &gt; 18 &amp; Gender == 1 | Gender == 2) |&gt;
+lockdown &lt;- lockdown %&gt;%
+  filter((Age &gt;= 18) &amp; (Gender == 1 | Gender == 2)) %&gt;%
   select(c(&quot;ID&quot;, &quot;Wave&quot;, &quot;Age&quot;, &quot;Gender&quot;, &quot;Income&quot;, &quot;EWB&quot;,&quot;PWB&quot;,&quot;SWB&quot;,
            &quot;IWB&quot;,&quot;E.threat&quot;,&quot;H.threat&quot;, &quot;Optimism&quot;,
            &quot;Self.efficacy&quot;,&quot;Hope&quot;,&quot;P.Wisdom&quot;,&quot;ST.Wisdom&quot;,&quot;Grat.being&quot;,
@@ -99,17 +99,17 @@ lockdown$ID &lt;- as.factor(lockdown$ID)</code></pre>
 <p>Eine einfache Methode zur Berechnung der ICC kann auf Basis der Varianzkomponenten (Inner- und Zwischengruppenvarianzen) einer einfaktoriellen ANOVA erfolgen. Mit der Funktion <code>ICCest</code> des Pakets <code>ICC</code> ermitteln wir die ICCs für die vier Befindlichkeitsvariablen:</p>
 <pre class="r"><code># ICCs auf Basis der Varianzkomponenten mit der Funktion ICCbare
 ICCbare(ID, EWB, data = lockdown)</code></pre>
-<pre><code>## [1] 0.7208599</code></pre>
+<pre><code>## [1] 0.7210427</code></pre>
 <pre class="r"><code>ICCbare(ID, PWB, data = lockdown)</code></pre>
-<pre><code>## [1] 0.7933402</code></pre>
+<pre><code>## [1] 0.7922163</code></pre>
 <pre class="r"><code>ICCbare(ID, SWB, data = lockdown)</code></pre>
-<pre><code>## [1] 0.7738752</code></pre>
+<pre><code>## [1] 0.7744171</code></pre>
 <pre class="r"><code>ICCbare(ID, IWB, data = lockdown)</code></pre>
-<pre><code>## [1] 0.7120053</code></pre>
+<pre><code>## [1] 0.7116098</code></pre>
 <p>Wir erhalten für die Befindlichkeitsvariablen die folgenden ICCs:</p>
 <ul>
 <li>Emotional Wellbeing (EWB): <span class="math inline">\(\rho_{ICC} = 0.721\)</span></li>
-<li>Psychological Well-being (PWB): <span class="math inline">\(\rho_{ICC} = 0.793\)</span></li>
+<li>Psychological Well-being (PWB): <span class="math inline">\(\rho_{ICC} = 0.792\)</span></li>
 <li>Social Well-Being (SWB): <span class="math inline">\(\rho_{ICC} = 0.774\)</span></li>
 <li>Inner well-being (IWB): <span class="math inline">\(\rho_{ICC} = 0.712\)</span></li>
 </ul>
@@ -142,7 +142,7 @@ ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=PWB, color=ID)) +
 <div id="nullmodell" class="section level3">
 <h3>Nullmodell</h3>
 <p>Als erstes Modell berechnen wir für Psychological Wellbeing das Nullmodell ohne Prädiktoren. Dieses Modell kann für Modelle mit Prädiktoren als Referenz für Modellvergleiche dienen. Außerdem können wir auf dessen Basis auch eine Schätzung für die Intraklassenkorrelation bilden. Beide benötigten Varianzkomponenten <span class="math inline">\(\sigma^2_{between}\)</span> und <span class="math inline">\(\sigma^2_{within}\)</span> werden im Modell geschätzt.</p>
-<p>Der Ausgabe für das Nullmodell können wir entnehmen, dass die Varianz des Intercepts <span class="math inline">\(\sigma^2_{between}=0.804\)</span> beträgt, die Residualvarianz, die hier der Innerpersonen-Varianz entspricht, <span class="math inline">\(\sigma^2_{within}=0.207\)</span>. Hieraus resultiert eine ICC von <span class="math inline">\(\rho_{ICC}=0.795\)</span>. Geringfügige Abweichungen durch die oben mit der Funktion <code>ICCbare</code> ermittelten Ergebnisse kommen durch die unterschiedlichen Schätzmethoden (Kleinstquadrate vs. ML) zustande.</p>
+<p>Der Ausgabe für das Nullmodell können wir entnehmen, dass die Varianz des Intercepts <span class="math inline">\(\sigma^2_{between}=0.802\)</span> beträgt, die Residualvarianz, die hier der Innerpersonen-Varianz entspricht, <span class="math inline">\(\sigma^2_{within}=0.208\)</span>. Hieraus resultiert eine ICC von <span class="math inline">\(\rho_{ICC}=0.794\)</span>. Geringfügige Abweichungen durch die oben mit der Funktion <code>ICCbare</code>ermittelten Ergebnisse können durch die unterschiedlichen Schätzmethoden (Kleinstquadrate vs. ML) zustande kommen.</p>
 <pre class="r"><code># Nulllmodell für PWB
 m0 &lt;- lmer(PWB ~ 1 + (1 | ID), data = lockdown)
 summary(m0)</code></pre>
@@ -150,21 +150,21 @@ summary(m0)</code></pre>
 ## Formula: PWB ~ 1 + (1 | ID)
 ##    Data: lockdown
 ## 
-## REML criterion at convergence: 4159.5
+## REML criterion at convergence: 4160
 ## 
 ## Scaled residuals: 
 ##     Min      1Q  Median      3Q     Max 
-## -4.4398 -0.5170  0.0187  0.5277  3.6003 
+## -4.4421 -0.5184  0.0177  0.5274  3.6005 
 ## 
 ## Random effects:
 ##  Groups   Name        Variance Std.Dev.
-##  ID       (Intercept) 0.8037   0.8965  
-##  Residual             0.2070   0.4549  
-## Number of obs: 2192, groups:  ID, 486
+##  ID       (Intercept) 0.8019   0.8955  
+##  Residual             0.2081   0.4562  
+## Number of obs: 2188, groups:  ID, 485
 ## 
 ## Fixed effects:
 ##              Estimate Std. Error t value
-## (Intercept) -0.007208   0.041988  -0.172</code></pre>
+## (Intercept) -0.006756   0.041994  -0.161</code></pre>
 </div>
 </div>
 <div id="Zeiteffekte" class="section level2">
@@ -177,7 +177,7 @@ summary(m0)</code></pre>
 <li>Gleichung auf Ebene 1: <span class="math inline">\(Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}\)</span></li>
 <li>Interzept auf Ebene 2: <span class="math inline">\(\beta_{0j}=\gamma_{00}+u_{0j}\)</span></li>
 <li>Slope auf Ebene 2: <span class="math inline">\(\beta_{1j}=\gamma_{10}\)</span></li>
-<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{10}X_{ij} + u_{0j} + r_{ij}\)</span></li>
+<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{01}X_{ij} + u_{0j} + r_{ij}\)</span></li>
 <li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + X + (1 | ID)</code></li>
 </ul>
 <p>In der Anwendung auf die abhängige Variable Psychological Wellbeing (PWB) in R sehen wir, dass Zeit einen signifikanten Effekt hat.</p>
@@ -188,26 +188,26 @@ summary(PWB.time.fixed)</code></pre>
 ## Formula: PWB ~ 1 + Time + (1 | ID)
 ##    Data: lockdown
 ## 
-## REML criterion at convergence: 4085.4
+## REML criterion at convergence: 4086.7
 ## 
 ## Scaled residuals: 
 ##     Min      1Q  Median      3Q     Max 
-## -4.5926 -0.5053  0.0400  0.5305  3.6021 
+## -4.5922 -0.5053  0.0394  0.5292  3.6011 
 ## 
 ## Random effects:
 ##  Groups   Name        Variance Std.Dev.
-##  ID       (Intercept) 0.8093   0.8996  
-##  Residual             0.1970   0.4439  
-## Number of obs: 2192, groups:  ID, 486
+##  ID       (Intercept) 0.8073   0.8985  
+##  Residual             0.1982   0.4452  
+## Number of obs: 2188, groups:  ID, 485
 ## 
 ## Fixed effects:
 ##              Estimate Std. Error t value
-## (Intercept)  0.176058   0.046499   3.786
-## Time        -0.035833   0.003875  -9.247
+## (Intercept)  0.176279   0.046532   3.788
+## Time        -0.035775   0.003889  -9.199
 ## 
 ## Correlation of Fixed Effects:
 ##      (Intr)
-## Time -0.426</code></pre>
+## Time -0.428</code></pre>
 <p>Da wir die AV standardisiert haben und die Zeit in Wochen angegeben ist, können wir den Effekt dahingehend interpretieren, dass sich PWB mit jeder Woche im Lockdown um <span class="math inline">\(0.036\)</span> Standardabweichungen verschlechtert.</p>
 <p>Die folgende Grafik veranschaulicht die Vorhersage aus dem Modell anhand der Teilmenge von Fällen, die für die Darstellung der Rohdaten oben verwendet wurde. Man sieht, dass für alle Fälle dieselbe Steigung für die Zeit angenommen wird.</p>
 <pre class="r"><code># Vorhergesagte Werte im Datensatz speichern
@@ -225,63 +225,101 @@ ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=pred, color=ID)) +
 <li>Gleichung auf Ebene 1: <span class="math inline">\(Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}\)</span></li>
 <li>Interzept auf Ebene 2: <span class="math inline">\(\beta_{0j}=\gamma_{00}+u_{0j}\)</span></li>
 <li>Slope auf Ebene 2: <span class="math inline">\(\beta_{1j}=\gamma_{10}+u_{1j}\)</span></li>
-<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{10}X_{ij} + u_{1j}X_{ij} + u_{0j} + r_{ij}\)</span></li>
+<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{01}X_{ij} + u_{0j}X_{ij} + u_{0j} + r_{ij}\)</span></li>
 <li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + X + (1 + X | ID)</code></li>
 </ul>
-<pre class="r"><code>PWB.time.random &lt;- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown)
-summary(PWB.time.random)</code></pre>
+<pre class="r"><code>PWB.time.random &lt;- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown)</code></pre>
+<pre><code>## Warning in checkConv(attr(opt, &quot;derivs&quot;), opt$par, ctrl = control$checkConv, :
+## Model failed to converge with max|grad| = 0.00460588 (tol = 0.002, component 1)</code></pre>
+<pre class="r"><code>summary(PWB.time.random)</code></pre>
 <pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
 ## Formula: PWB ~ 1 + Time + (1 + Time | ID)
 ##    Data: lockdown
 ## 
-## REML criterion at convergence: 4037.8
+## REML criterion at convergence: 4039.4
 ## 
 ## Scaled residuals: 
 ##     Min      1Q  Median      3Q     Max 
-## -4.7790 -0.4617  0.0404  0.4979  3.8950 
+## -4.7802 -0.4633  0.0390  0.4982  3.8931 
 ## 
 ## Random effects:
 ##  Groups   Name        Variance Std.Dev. Corr 
-##  ID       (Intercept) 0.862984 0.92897       
-##           Time        0.003915 0.06257  -0.25
-##  Residual             0.167694 0.40950       
-## Number of obs: 2192, groups:  ID, 486
+##  ID       (Intercept) 0.865618 0.93039       
+##           Time        0.003932 0.06271  -0.26
+##  Residual             0.168726 0.41076       
+## Number of obs: 2188, groups:  ID, 485
 ## 
 ## Fixed effects:
 ##              Estimate Std. Error t value
-## (Intercept)  0.177684   0.046985   3.782
-## Time        -0.036133   0.004678  -7.725
+## (Intercept)  0.177654   0.047118   3.770
+## Time        -0.036000   0.004693  -7.671
 ## 
 ## Correlation of Fixed Effects:
 ##      (Intr)
-## Time -0.449</code></pre>
-<p>Mit mehr als einem Zufallseffekt im Modell enthält die Ausgabe nicht nur deren Varianzen, sondern auch deren Korrelation. In unserem Fall beträgt die Korrelation zwischen dem Intercept <span class="math inline">\(\beta_0\)</span> und dem Regressionskoeffizienten <span class="math inline">\(\beta_1\)</span> für <code>Time</code> <span class="math inline">\(r=-0.25\)</span>. Das Intercept <span class="math inline">\(\beta_{0j}\)</span> ist das erwartete Wohlbefinden einer Person <span class="math inline">\(j\)</span> zu Beginn des Lockdowns (null Wochen im Lockdown). Die Steigung <span class="math inline">\(\beta_{1j}\)</span> ist die erwartete Veränderung des individuellen Wohlbefindens mit jeder weiteren Woche im Lockdown. Die leicht negative Korrelation bedeutet, dass das Wohlbefinden von Personen mit einem zu Beginn höheren Niveau etwas stärker negativ entwickelt.</p>
-<p>Der Ausgabe können wir entnehmen, dass die Varianz des Zeiteffekts <span class="math inline">\(var(u_1)=0.0039\)</span> beträgt. Ob dieser auf den ersten Blick kleine Effekt signifikant ist, können wir durch den Vergleich des Modells mit und ohne Zufallseffekt testen. Die <code>anova</code>-Funktion schätzt die Modelle standardmäßig für den Modellvergleich neu, und zwar mit Maximum Likelihood (ML) statt der Standardmethode Restricted Maximum Likelihood (REML). Dies muss hier mit der Option <code>refit=FALSE</code> unterdrückt werden, da der Test von Zufallseffekten auf der REML-Schätzung basieren sollte.</p>
+## Time -0.454
+## optimizer (nloptwrap) convergence code: 0 (OK)
+## Model failed to converge with max|grad| = 0.00460588 (tol = 0.002, component 1)</code></pre>
+<p>Nun sind wir in eine etwas ungünstige Lage gekommen. Wir bekommen nämlich eine Warning ausgegeben, die wir nicht ignorieren sollten. Diese wird sowohl beim Schätzen ausgegeben und steht auch in der Summary ganz unten:</p>
+<pre><code>## optimizer (nloptwrap) convergence code: 0 (OK)
+## Model failed to converge with max|grad| = 0.00460588 (tol = 0.002, component 1)</code></pre>
+<p>Die Konvergenz bezieht sich auf den numerischen Algorithmus der im Hintergrund die Likelihood maximiert: Es handelt sich hierbei um ein iteratives Verfahren, bei welchem in jedem Schritt geschaut wird, wie stark sich die Likelihood noch verändert. Ist diese Veränderung klein, so spricht dies für Konvergenz. Hier wird nun gesagt, dass die letzte Änderung ca. <code>.004</code> war, die Toleranz (also die größte akzeptierte Änderung) aber bei <code>tol = .002</code> liegt. Durch diese Diskrepanz wird die Warnung ausgelöst. Weitere Evaluationsmechanismen der Lösungen zeigen jedoch an, dass die Lösung prinzipiell <code>"OK"</code> ist. Wir wollen es aber “richtig” machen und ändern deshalb den Optimierungsalgorithmus:</p>
+<pre class="r"><code>PWB.time.random &lt;- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown,
+                        control = lmerControl(optimizer =&quot;Nelder_Mead&quot;))
+summary(PWB.time.random)</code></pre>
+<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
+## Formula: PWB ~ 1 + Time + (1 + Time | ID)
+##    Data: lockdown
+## Control: lmerControl(optimizer = &quot;Nelder_Mead&quot;)
+## 
+## REML criterion at convergence: 4039.4
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.7802 -0.4633  0.0390  0.4983  3.8932 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev. Corr 
+##  ID       (Intercept) 0.865730 0.93045       
+##           Time        0.003933 0.06271  -0.26
+##  Residual             0.168721 0.41076       
+## Number of obs: 2188, groups:  ID, 485
+## 
+## Fixed effects:
+##              Estimate Std. Error t value
+## (Intercept)  0.177654   0.047121   3.770
+## Time        -0.035999   0.004693  -7.671
+## 
+## Correlation of Fixed Effects:
+##      (Intr)
+## Time -0.454</code></pre>
+<p>Nun erhalten wir keine Warnung mehr, die Lösung scheint gutartig in dem Sinne zu sein, dass alle Evaluationsmechanismen sagen, dass die numerische Lösung konvergiert ist und damit interpretiert werden kann. Wenn wir die beiden Summaries vergleichen erkennen wir, dass die Unterschiede nur marginal sind (ab der 3. Nachkommastelle gibt es Koeffizienten und Standardfehler, die sich unterscheiden). Somit scheint der optische Hinweis, die Lösung sei <code>"OK"</code> also nicht fehlgeleitet zu sein. Dennoch sollte bei solchen Warnungen immer genauer nachgeschaut werden! Nun zur Interpretation der Ergebnisse:</p>
+<p>Mit mehr als einem Zufallseffekt im Modell enthält die Ausgabe nicht nur deren Varianzen, sondern auch deren Korrelation. In unserem Fall beträgt die Korrelation zwischen dem Intercept <span class="math inline">\(\beta_0\)</span> und dem Regressionskoeffizienten <span class="math inline">\(\beta_1\)</span> für ‘Time’ <span class="math inline">\(r=-0.26\)</span>. Das Intercept <span class="math inline">\(\beta_{0j}\)</span> ist das erwartete Wohlbefinden einer Person <span class="math inline">\(j\)</span> zu Beginn des Lockdowns (null Wochen im Lockdown). Die Steigung <span class="math inline">\(\beta_{1j}\)</span> ist die erwartete Veränderung des individuellen Wohlbefindens mit jeder weiteren Woche im Lockdown. Die leicht negative Korrelation bedeutet, dass das Wohlbefinden von Personen mit einem zu Beginn höheren Niveau etwas stärker negativ entwickelt.</p>
+<p>Der Ausgabe können wir entnehmen, dass die Varianz des Zeiteffekts <span class="math inline">\(var(u_1)=\)</span> 0.0039 beträgt. Ob dieser auf den ersten Blick kleine Effekt signifikant ist, können wir durch den Vergleich des Modells mit und ohne Zufallseffekt testen. Die <code>anova</code>-Funktion schätzt die Modelle standardmäßig für den Modellvergleich neu, und zwar mit Maximum Likelihood (ML) statt der Standardmethode Restricted Maximum Likelihood (REML). Dies muss hier mit der Option <code>refit=FALSE</code> unterdrückt werden, da der Test von Zufallseffekten auf der REML-Schätzung basieren sollte.</p>
 <pre class="r"><code>anova(PWB.time.fixed, PWB.time.random, refit=FALSE)</code></pre>
 <pre><code>## Data: lockdown
 ## Models:
 ## PWB.time.fixed: PWB ~ 1 + Time + (1 | ID)
 ## PWB.time.random: PWB ~ 1 + Time + (1 + Time | ID)
 ##                 npar    AIC    BIC  logLik deviance  Chisq Df Pr(&gt;Chisq)    
-## PWB.time.fixed     4 4093.4 4116.2 -2042.7   4085.4                         
-## PWB.time.random    6 4049.8 4083.9 -2018.9   4037.8 47.608  2  4.594e-11 ***
+## PWB.time.fixed     4 4094.7 4117.5 -2043.4   4086.7                         
+## PWB.time.random    6 4051.4 4085.6 -2019.7   4039.4 47.334  2  5.267e-11 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
-<p>Der Modellvergleich zeigt, dass die Varianz des Zeiteffekts signifikant ist (<span class="math inline">\(\chi^2=47.61\)</span>, <span class="math inline">\(df=2\)</span>). Dennoch bleibt dieser Wert noch wenig anschaulich. Eine Möglichkeit zur grafischen Veranschaulichung ist die Darstellung der vorhergesagten individuellen Verläufe, auch hier wieder mit der oben verwendeten Teilmenge von Fällen. Die geschätzen Trajektorien unterscheiden sich nun in ihren Steigungen, manche zeigen eine deutliche Abnahme des Wohlbefindens, andere bleiben eher auf einem konstanten Niveau oder zeigen sogar einen Anstieg.</p>
+<p>Der Modellvergleich zeigt, dass die Varianz des Zeiteffekts signifikant ist (<span class="math inline">\(\chi^2=47.33\)</span>, <span class="math inline">\(df=2\)</span>). Dennoch bleibt dieser Wert noch wenig anschaulich. Eine Möglichkeit zur grafischen Veranschaulichung ist die Darstellung der vorhergesagten individuellen Verläufe, auch hier wieder mit der oben verwendeten Teilmenge von Fällen. Die geschätzen Trajektorien unterscheiden sich nun in ihren Steigungen, manche zeigen eine deutliche Abnahme des Wohlbefindens, andere bleiben eher auf einem konstanten Niveau oder zeigen sogar einen Anstieg.</p>
 <pre class="r"><code># Vorhergesagte Werte im Datensatz speichern
 lockdown$pred &lt;- predict(PWB.time.random)
 # Grafik mit dem Subset
 ggplot(lockdown[lockdown$ID %in% IDs.subset,], aes(x=Time, y=pred, color=ID)) +
   theme_bw() + guides(color=&quot;none&quot;) +
   geom_line()</code></pre>
-<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
 <p>Eine weitere Art, sich die Streuung des Zufallseffekts grafisch zu veranschaulichen, ist ein Histogramm. Mit der Funktion <code>fixef</code> lassen sich die festen Effekte des Modells auslesen, mit <code>randef</code> die Zufallseffekte für jede Ebene-2-Einheit, hier also Personen. Die Verteilung der geschätzen individuellen Zeiteffekte <span class="math inline">\(\beta_{1j}\)</span> ergibt sich aus der Verteilung des festen Effekts plus den Ebene-2-Residuen: <span class="math inline">\(\gamma_{10}+u_{1j}\)</span>. Wir sehen, dass ein großer Teil der Slopes im negativen Bereich liegt, einige jedoch auch im positiven, was einer leichten Verbesserung des Wohlbefindens mit zunehmender Zeit im Lockdown entsprechen würde.</p>
 <pre class="r"><code># Histogramm der individuellen Slopes als Summe aus festem Effekt und Residuen
 hist(fixef(PWB.time.random)[&quot;Time&quot;] + ranef(PWB.time.random)$ID$Time, 
      main=&quot;Histogramm des Zeiteffekts&quot;, xlab = expression(beta[1]), 
      breaks = seq(-0.2,0.2,0.025))
 abline(v=fixef(PWB.time.random)[&quot;Time&quot;], col=&quot;blue&quot;) # Lage des festen Effektes kennzeichnen</code></pre>
-<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
 </div>
 </div>
 <div id="Alterseffkte" class="section level2">
@@ -290,39 +328,37 @@ abline(v=fixef(PWB.time.random)[&quot;Time&quot;], col=&quot;blue&quot;) # Lage 
 <ul>
 <li>Gleichung auf Ebene 1: <span class="math inline">\(Y_{ij}=\beta_{0j}+r_{ij}\)</span></li>
 <li>Interzept auf Ebene 2: <span class="math inline">\(\beta_{0j}=\gamma_{00}+\gamma_{01}Z_j+u_{0j}\)</span></li>
-<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{01}Z_j + u_{0j} + r_{ij}\)</span></li>
+<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{10}Z_j + u_{0j} + r_{ij}\)</span></li>
 <li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + Z + (1 | ID)</code></li>
 </ul>
-<p>Um die Modellparameter besser interpretieren zu können, zentrieren wir die Variabe zunächst um ihren Mittelwert (<span class="math inline">\(M(Age)=43.27\)</span>).</p>
-<pre class="r"><code># Alter zentrieren
-lockdown$Age &lt;- scale(lockdown$Age, scale = FALSE)</code></pre>
-<p>Im Ergebnis des Modells sehen wir, dass Alter einen positiven Effekt auf das psychische Wohlbefinden hat. Mit einem Jahr höherem Alter ändert sich das Niveau des Wohlbefindens um 0.013 Standardabweichungen. Das sieht numerisch wenig aus, bedeutet aber z. B. schon zwischen Zwanzigjährigen und Vierzigjährigen einen erwarteten Unterschied von 0.263 Standardabweichungen.</p>
+<p>Um die Modellparameter besser interpretieren zu können, zentrieren wir die Variabe zunächst um ihren Mittelwert (<span class="math inline">\(M(Age)=43.32\)</span>).</p>
+<p>Im Ergebnis sehen wir, dass Alter einen positiven Effekt auf das Psychische Wohlbefinden hat. Mit einem Jahr höherem Alter ändert sich das Niveau des Wohlbefindens um 0.013 Standardabweichungen. Das sieht numerisch wenig aus, bedeutet aber z. B. schon zwischen Zwanzigjährigen und Vierzigjährigen einen erwarteten Unterschied von 0.254 Standardabweichungen.</p>
 <pre class="r"><code>PWB.Age &lt;- lmer(PWB ~ 1 + Age + (1 | ID), data = lockdown)
 summary(PWB.Age)</code></pre>
 <pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
 ## Formula: PWB ~ 1 + Age + (1 | ID)
 ##    Data: lockdown
 ## 
-## REML criterion at convergence: 4150.3
+## REML criterion at convergence: 4152.2
 ## 
 ## Scaled residuals: 
 ##     Min      1Q  Median      3Q     Max 
-## -4.4318 -0.5176  0.0279  0.5241  3.5569 
+## -4.4343 -0.5185  0.0266  0.5245  3.5588 
 ## 
 ## Random effects:
 ##  Groups   Name        Variance Std.Dev.
-##  ID       (Intercept) 0.7726   0.8790  
-##  Residual             0.2070   0.4549  
-## Number of obs: 2192, groups:  ID, 486
+##  ID       (Intercept) 0.7732   0.8793  
+##  Residual             0.2081   0.4562  
+## Number of obs: 2188, groups:  ID, 485
 ## 
 ## Fixed effects:
 ##              Estimate Std. Error t value
-## (Intercept) 0.0007091  0.0412569   0.017
-## Age         0.0131503  0.0029877   4.401
+## (Intercept) 0.0008183  0.0413217   0.020
+## Age         0.0126956  0.0030009   4.231
 ## 
 ## Correlation of Fixed Effects:
 ##     (Intr)
-## Age 0.044</code></pre>
+## Age 0.043</code></pre>
 </div>
 <div id="Wechselwirkung" class="section level2">
 <h2>4. Interaktion zwischen Personen- und Zeitebene</h2>
@@ -331,8 +367,8 @@ summary(PWB.Age)</code></pre>
 <li>Gleichung auf Ebene 1: <span class="math inline">\(Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}\)</span></li>
 <li>Interzept auf Ebene 2: <span class="math inline">\(\beta_{0j}=\gamma_{00}+\gamma_{01}Z_j+u_{0j}\)</span></li>
 <li>Slope auf Ebene 2: <span class="math inline">\(\beta_{1j}=\gamma_{10}+\gamma_{11}Z_j+u_{1j}\)</span></li>
-<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{01}Z_j + \gamma_{10}X_{ij} + \gamma_{11}Z_jX_{ij} + u_{1j}X_{ij} + u_{0j} + r_{ij}\)</span></li>
-<li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + Z + X + Z:X + (1 + X | ID)</code></li>
+<li>Gesamtmodell: <span class="math inline">\(Y_{ij}=\gamma_{00} + \gamma_{10}Z_j + \gamma_{01}X_{ij} + \gamma_{11}Z_jX_{ij} + u_{0j}X_{ij} + u_{0j} + r_{ij}\)</span></li>
+<li>Als Formel für <code>lmer</code>: <code>Y ~ 1 + X + (1 + X | ID)</code></li>
 </ul>
 <p>Für dieses Modell zentrieren wie auch die Zeit-Variable. Deren Nullpunkt ist zwar ohne Zentrierung anschaulicher, aber für die Interpretation des Moderatoreffekts sollten die beteiligten Prädiktoren zentriert sein. In den festen Effekten sehen wir, dass</p>
 <ul>
@@ -342,42 +378,81 @@ summary(PWB.Age)</code></pre>
 </ul>
 <p>Der Effekt der Zeit im Lockdown hängt demzufolge nicht vom Alter der Betroffenen ab. Trotzdem zur Interpretation: Ein negativer Moderatoreffekt würde bedeuten, dass der negative Effekt des Lockdowns mit zunehmendem Alter noch stärker negativ wird.</p>
 <pre class="r"><code>mean(lockdown$Time)</code></pre>
-<pre><code>## [1] 5.353394</code></pre>
+<pre><code>## [1] 5.355251</code></pre>
 <pre class="r"><code>lockdown$Time &lt;- scale(lockdown$Time, scale = FALSE)
-PWB.Age.Time &lt;- lmer(PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID), data = lockdown)
-summary(PWB.Age.Time)</code></pre>
+PWB.Age.Time &lt;- lmer(PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID), data = lockdown)</code></pre>
+<pre><code>## Warning in checkConv(attr(opt, &quot;derivs&quot;), opt$par, ctrl = control$checkConv, :
+## Model failed to converge with max|grad| = 0.00644566 (tol = 0.002, component 1)</code></pre>
+<pre class="r"><code>summary(PWB.Age.Time)</code></pre>
 <pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
 ## Formula: PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID)
 ##    Data: lockdown
 ## 
-## REML criterion at convergence: 4040.3
+## REML criterion at convergence: 4043.3
 ## 
 ## Scaled residuals: 
 ##     Min      1Q  Median      3Q     Max 
-## -4.7724 -0.4742  0.0457  0.4974  3.8941 
+## -4.7743 -0.4747  0.0452  0.4968  3.8921 
 ## 
 ## Random effects:
 ##  Groups   Name        Variance Std.Dev. Corr
 ##  ID       (Intercept) 0.784388 0.88566      
-##           Time        0.003921 0.06262  0.12
-##  Residual             0.167712 0.40953      
-## Number of obs: 2192, groups:  ID, 486
+##           Time        0.003936 0.06274  0.12
+##  Residual             0.168728 0.41076      
+## Number of obs: 2188, groups:  ID, 485
 ## 
 ## Fixed effects:
 ##               Estimate Std. Error t value
-## (Intercept) -0.0070261  0.0414017  -0.170
-## Age          0.0135161  0.0029982   4.508
-## Time        -0.0362995  0.0046801  -7.756
-## Age:Time    -0.0002579  0.0003394  -0.760
+## (Intercept) -0.0067297  0.0414505  -0.162
+## Age          0.0130309  0.0030103   4.329
+## Time        -0.0361607  0.0046951  -7.702
+## Age:Time    -0.0002951  0.0003412  -0.865
 ## 
 ## Correlation of Fixed Effects:
 ##          (Intr) Age    Time  
 ## Age       0.042              
-## Time      0.102 -0.011       
-## Age:Time -0.012  0.101 -0.015</code></pre>
+## Time      0.098 -0.011       
+## Age:Time -0.012  0.096 -0.014
+## optimizer (nloptwrap) convergence code: 0 (OK)
+## Model failed to converge with max|grad| = 0.00644566 (tol = 0.002, component 1)</code></pre>
+<p>Da wir wieder eine Warnung über Konvergenzprobleme bekommen, ändern wir wieder den Maximierungsalgorithmus:</p>
+<pre class="r"><code>PWB.Age.Time &lt;- lmer(PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID), data = lockdown,
+                        control = lmerControl(optimizer =&quot;Nelder_Mead&quot;))
+summary(PWB.Age.Time)</code></pre>
+<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
+## Formula: PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID)
+##    Data: lockdown
+## Control: lmerControl(optimizer = &quot;Nelder_Mead&quot;)
+## 
+## REML criterion at convergence: 4043.3
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -4.7741 -0.4747  0.0451  0.4968  3.8920 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev. Corr
+##  ID       (Intercept) 0.784318 0.88562      
+##           Time        0.003934 0.06272  0.12
+##  Residual             0.168739 0.41078      
+## Number of obs: 2188, groups:  ID, 485
+## 
+## Fixed effects:
+##               Estimate Std. Error t value
+## (Intercept) -0.0067297  0.0414488  -0.162
+## Age          0.0130309  0.0030101   4.329
+## Time        -0.0361606  0.0046948  -7.702
+## Age:Time    -0.0002951  0.0003412  -0.865
+## 
+## Correlation of Fixed Effects:
+##          (Intr) Age    Time  
+## Age       0.042              
+## Time      0.098 -0.011       
+## Age:Time -0.012  0.096 -0.014</code></pre>
+<p>Die Warnung verschwindet und die Ergebnisse der beiden Summaries stimmen wie oben auch sehr stark überein!</p>
 <p>Zur grafischen Veranschaulichung der Wechselwirkung kann wie bei der moderierten Regression im linearen Modell auch hier die Funktion <code>interact_plot</code> verwendet werden. Die Lage der Linien zeigt gut den positiven Haupteffekt des Alters auf das Wohlbefinden. Zugleich veranschaulichen die fast parallelen Geraden das Nicht-Vorliegen einer Wechselwirkung.</p>
 <pre class="r"><code>interact_plot(model = PWB.Age.Time, pred = Time, modx = Age)</code></pre>
-<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
+<p><img src="/post/2021-11-25-HLM_KliPPS_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
 </div>
 <div id="r-skript" class="section level2">
 <h2>R-Skript</h2>
