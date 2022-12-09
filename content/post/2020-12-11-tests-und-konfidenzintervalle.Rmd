@@ -9,7 +9,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [scheppa-lahyani, nehler]
-lastmod: '2022-22-11T19:04:08+01:00'
+lastmod: '2022-12-02T19:04:08+01:00'
 featured: no
 header:
   image: "/header/BSc2_Tests.jpg"
@@ -103,7 +103,7 @@ fb22$neuro_std <- scale(fb22$neuro)
 
 # Let's start
 
-Der durchschnittliche IQ der Population ist $\mu_0$ = 100 und die Standardabweichung ist 15. Eine Forschungsgruppe glaubt aber, dass sich das verändert hat und entscheidet, diese Vermutung an einer zufälligen Stichprobe von 75 Erwachsenen zu testen. Sie finden heraus, dass der durchschnittliche IQ der Stichprobe $\mu_1$ = 105 (*SD* = 17) ist.
+Der durchschnittliche IQ der Population ist $\mu_0$ = 100 und die Standardabweichung ist 15. Eine Forschungsgruppe glaubt aber, dass dieser gestiegen sei und entscheidet, diese Vermutung an einer zufälligen Stichprobe von 75 Erwachsenen zu testen. Sie finden heraus, dass der durchschnittliche IQ der Stichprobe $\mu_1$ = 105 (*SD* = 17) ist.
 
 **Was wären hier $H_0$ und $H_1$?**
   
@@ -209,110 +209,134 @@ Wir können auch ein Konfidenzintervall um den wahren Populationsmittelwert $\mu
 
 Dabei gilt:
   
-$$\mu = \bar{x} \pm z_{krit} * \sigma_{\bar{x}} = \bar{x} \pm z_{krit}*\frac{\sigma}{\sqrt{n}}$$
+$$\mu = \bar{x} \pm z_{\frac{\alpha}{2}} * \sigma_{\bar{x}} = \bar{x} \pm z_{\frac{\alpha}{2}}*\frac{\sigma}{\sqrt{n}}$$
   
 Ein 95%-Konfidenzintervall ist somit ein Intervall, welches in 95% der Fälle beim Ziehen aus der selben Grundgesamtheit den wahren Wert $\mu$ enthält.
 
-Wenn wir ein 95%-Konfidenzintervall bestimmen wollen, brauchen wir den **kritischen *z-*Wert** $z_{krit}$ aus der Standardnormalverteilung.  
-Für Konfidenzintervalle nutzen wir einen *z-*Wert für 2-seitiges Testen:
+Wenn wir ein 95%-Konfidenzintervall bestimmen wollen, brauchen wir das zugehörige Quantil aus der Standardnormalverteilung - also den *z*-Wert für $\frac{\alpha}{2}$. Wir müssen das $\alpha$-Niveau halbieren, da wir uns momentan beim Bilden eines zweiseitigen Konfidenzintervalles befinden. Wir haben bereits gelernt, dass man Quantile aus der Normalverteilung mit der Funktion `qnorm` erhalten kann. Die Standardnormalverteilung mitt Mittelwert von 0 und Standardabweichung von 1 ist dabei der Default, aber wir geben die Argumente zur Übung trotzdem selbst an.
   
 ```{r}
-z_krit2 <- qnorm(1-(.05/2))
-z_krit2
+z_quantil_zweiseitig <- qnorm(p = 1-(.05/2), mean = 0, sd = 1)
+z_quantil_zweiseitig
 ```
+Wir sehen, dass der Wert `r round(z_quantil_zweiseitig,3)` 2.5% der Verteilung Richtung unendlich abtrennt. Nun haben wir alle wichtigen Informationen, um ein zweiseitiges Konfidenzintervall um unseren Mittelwert zu legen.
 
 ```{r}
-positive_mean_IQ <- new_mean_IQ+((z_krit2*sd_IQ)/sqrt(sample_size))
+positive_mean_IQ <- new_mean_IQ+((z_quantil_zweiseitig*sd_IQ)/sqrt(sample_size))
 positive_mean_IQ
 
-negative_mean_IQ <- new_mean_IQ-((z_krit2*sd_IQ)/sqrt(sample_size))
+negative_mean_IQ <- new_mean_IQ-((z_quantil_zweiseitig*sd_IQ)/sqrt(sample_size))
 negative_mean_IQ
 
 conf_interval_IQ <- c(negative_mean_IQ, positive_mean_IQ )
 conf_interval_IQ
 ```
 
-In diesem Fall liegt der Schätzer für den wahren IQ Wert der Grundgesamtheit $\mu$, aus der die Stichprobe gezogen wurde, zwischen `r round(conf_interval_IQ[1],2)` und `r round(conf_interval_IQ[2],2)`. Das bedeutet, dass in 95% der Fälle in einer wiederholten Ziehung aus der Grundgesamtheit die mittleren IQ-Werte zwischen `r round(conf_interval_IQ[1],2)` und `r round(conf_interval_IQ[2],2)` liegen.
-Da dieses Intervall den Populationsmittelwert unter der $H_0$ ($\mu$ $\leq$ 100) **nicht** enthält, würden wir die $H_0$ in diesem Fall verwerfen. Beachten Sie: Ein zweiseitiger *z*-Test bei einer Irrtumswahrscheinlichkeit $\alpha$ und der Test über ein (1-$\alpha$)-Konfidenzintervall kommen immer zu denselben Schlussfolgerungen. 
+In diesem Fall liegt der Schätzer für den wahren IQ Wert der Grundgesamtheit $\mu$, aus der die Stichprobe gezogen wurde, zwischen `r round(conf_interval_IQ[1],2)` und `r round(conf_interval_IQ[2],2)`. Das bedeutet, dass mit einer Wahrscheinlichkeit von 95% der wahre IQ Wert der Grundgesamtheit in unserem Konfidenzinterall `r round(conf_interval_IQ[1],2)` und `r round(conf_interval_IQ[2],2)` liegt.
+
+Das Konfidenzintervall kann auch dafür genutzt werdne, um eine Aussage über die von uns angenommenen Hypothesen zu treffen. Dafür müsste untersucht werden, ob das Intervall den angenommenen Populationsmittelwert (100 enthählt). Wir erinnern uns jedoch, dass in den Hypothesen eine Richtung vorgegeben wurde, weshalb hierfür auch ein einseitiges Konfidenzintervall benötigt werden würde.
+
+Wir wollten also testen, ob der Stichprobenmittelwert größer als der Wert 100 ist. Daher müssen in unserem Konfidenzintervall um den Stichprobenmittelwert eine untere Grenze bestimmmen, während wir es nach oben offen halten können (Richtung unendlich). Die zugehörige Gleichung ändert sich nur geringfügig. Wir müssen den z-Wert nun einseitig bestimmen und dann eben auch nur die untere Grenze unseres Intervalls. 
+
+$$\mu = \bar{x} - z_{\alpha} * \sigma_{\bar{x}} = \bar{x} \pm z_{\alpha}*\frac{\sigma}{\sqrt{n}}$$
+
+Wir haben bereits gesehen, dass eine Bestimmung des z-Werts durch die Funktion `qnorm` möglich ist. 
+
+```{r}
+z_quantil_einseitig <- qnorm(p = 1-.05, mean = 0, sd = 1)
+z_quantil_einseitig
+```
+
+Anschließend kann die untere Grenze des Intervalls sehr simpel bestimmt werden.
+
+```{r}
+new_mean_IQ-((z_quantil_einseitig*sd_IQ)/sqrt(sample_size))
+```
+
+Da das Konfidenzintervall für den Stichprobenmittelwert die 100 **nicht** enthält, ist die Annahme unter der $H_0$ ($\mu \leq  100$) nicht haltbar. Daher würden wir die $H_0$ in diesem Fall verwerfen. Beachten Sie: Ein einseitiger *z*-Test bei einer Irrtumswahrscheinlichkeit $\alpha$ und die Besimmung über ein (1-$\alpha$)-Konfidenzintervall kommen immer zu denselben Schlussfolgerungen. 
 
 ***
 
 ## t-Test
 
-Der t-Test ersetzt den z-Test, wenn die Varianz in der Grundgesamtheit nicht bekannt ist. Mit dem t-Test für eine Stichprobe kann man den **Stichprobenmittelwert** einer Variablen mit einem **bekannten Populationsmittelwert** vergleichen. 
+Die Bekanntheit des Populationsmittelwertes und der Populationsvarianz ist jedoch ein seltener Fall in der Praxis. Zunächst machen wir eine Erweiterung auf den Fall, dass die Populationsvarianz nicht bekannt ist. Trotzdem soll weiterhin ein **Stichprobenmittelwert** mit einem **bekannten Populationsmittelwert** verglichen werden. Wir werden sehen, dass dies zwar ein paar Veränderungen im Vorgehen und den Gleichungen mit sich bringt, das Prinzip aber erhalten bleibt. Bezeichnet wird das Vorgehen nun als t-Test, den wir im Einstichproben-Fall hier durchführen möchten.
 
-Der Test hat die folgenden Voraussetzungen:
-  
- 1. Metrisch skalierte abhängige Variable
- 2. Bei *n* < 30 : Normalverteilung der abhängigen Variable in der Population.
 
 Unterschiedliche Quellen geben an, dass die durchschnittliche Größe der Männer in Deutschland 180 cm beträgt (z.B. https://www.laenderdaten.info/durchschnittliche-körpergrössen.php). Eine Forschungsgruppe vermutet jedoch, dass die Männer in Deutschland eigentlich größer sind und ermittelt von zehn zufällig gezogenen Männer die Körpergröße.
 
 Die Größe der Männer beträgt: 183, 178, 175, 186, 185, 179, 181, 179, 182, 177 (gemessen in cm). 
 
-Kann die Vermutung der Forschungsgruppe bestätigt werden?
-  
-```{r}
-men.height <- c(183, 178, 175, 186, 185, 179, 181, 179, 182, 177)
-mean.men.height <- mean(men.height)
-sd.men.height <- sd(men.height)
-average.men.height <- 180
-n.men.height <- length(men.height)
-```
-
-```{r}
-mean.men.height
-sd.men.height
-average.men.height
-n.men.height
-```
-
 
 ### Voraussetzungsprüfung
 
-*Normalverteilt?*
+Der Test hat die folgenden Voraussetzungen:
   
-**Variante 1**: Inferenzstatistik: Der **Shapiro-Wilk Test** prüft auf die Normalverteilung von Variablen. 
-Der Wert *W* ist die Teststatistik. 
-Eine Normalverteilung in der Population liegt vor, wenn das Ergebnis NICHT signifikant ist.
+ 1. Metrisch skalierte abhängige Variable
+ 2. Bei *n* < 30 : Normalverteilung der abhängigen Variable in der Population.
+  
+Die erste Voraussetzung lässt sich nicht mathematisch sondern theoretisch prüfen. Im Beispiel können wir uns mit der Größe in cm aber zum Glück sehr sicher sein, dass eine metrische Variable vorliegt.
 
+Fehlt also noch die Testung der Normalverteilung der abhängigen Variable. Dafür sollten wir zunächst unsere gemessenen Werte in einen Vektor ablegen.
+  
 ```{r}
-shapiro.test(men.height)
+men.height <- c(183, 178, 175, 186, 185, 179, 181, 179, 182, 177)
 ```
-
-**Variante 2**: Grafisch: In einem sog. QQ-Plot werden die unter der Normalverteilung erwarteten Quantile und die tatsächlich beobachteten Quantile in einem Streudiagramm dargestellt. Je deutlicher die Punkte auf der Geraden liegen, desto näher ist die beobachtete Verteilung an der Normalverteilung.
+  
+In der letzten Woche haben wir bereits gelernt, dass man die Normalverteilung einer erhobenen Variable graphisch prüfen kann. In einem sog. QQ-Plot werden die unter der Normalverteilung erwarteten Quantile und die tatsächlich beobachteten Quantile in einem Streudiagramm dargestellt. Je deutlicher die Punkte auf der Geraden liegen, desto näher ist die beobachtete Verteilung an der Normalverteilung.
 
 ```{r}
 qqnorm(men.height) 
 qqline(men.height)
 ```
 
-Beide Varianten lassen darauf schließen, dass die Annahme auf Normalverteilung nicht verworfen werden muss.
+Es sind keine weiten Abweichungen zu erkennen, weshalb wir zunächst davon ausgehen, dass die Vermutung nicht verworfen werden muss.
 
 ### Signifikanz bestimmen
 
-Der t-Test basiert auf folgender Formel und unterscheidet sich damit nur minimal vom z-Test:
+Nun wollen wir inferenzstatistisch prüfen, ob die Vermutung der Forschungsgruppe bestätigt werden kann. Als ersten Schritt berechnen wir den Mittelwert in unserer Stichprobe. Da unsere Alternativhypothese davon handelt, dass der Wert in der Stichprobe größer sein soll, können wir zunächst betrachten, ob dies deskriptiv überhaupt der Fall ist.
+  
+```{r}
+mean.men.height <- mean(men.height)
+mean.men.height
+```
+
+Wir sehen, dass der Wert deskriptiv größer ist als die angegebene Größe der Population von 180cm. Der t-Test basiert auf folgender Formel:
   
 $$t_{emp} = |\frac{\bar{x} - {\mu}}{\hat\sigma_{\bar{x}}}|$$
-wobei sich der Standardfehler (*SE*)  des Mittelwerts wie folgt berechnet:
+wobei sich der Standardfehler (*SE*)  des Mittelwerts wie folgt zusammensetzt:
   
 $$\hat\sigma_{\bar{x}} = {\frac{{\hat\sigma}}{\sqrt{n}}}$$
-  
-  
-Der Standardfehler des Mittelwerts wird demnach auf der Basis der Stichprobenvarianz geschätzt.
+
+Da die Varianz in der Population nicht bekannt ist, muss diese mittels Nutzung Varianz der Stichprobe geschätzt werden. Dies funktioniert über die Funktion `sd`.
 
 ```{r}
+sd.men.height <- sd(men.height)
+sd.men.height
+```  
+
+Der Standardfehler des Mittelwerts wird anschließend auf der Basis dieses geschätzten Wertes selber geschätzt und nicht wie im z-Test bestimmt. Dafür brauchen wir als zusätzliche Information noch die Stichprobengröße, die wir beispielsweise über die `length` unserer Werte bestimmen können.
+
+```{r}
+n.men.height <- length(men.height)
 se.men.height <- sd.men.height/sqrt(n.men.height)
 ```
 
-Bestimmen des empirischen *t-*Wertes $t_{emp}$:
+Als letzten Bestandteil unserer Berechnungen kann man jetzt noch den gegebenen Populationsmittelwert in ein Objekt ablegen.
+
+```{r}
+average.men.height <- 180
+```  
+
+Nun haben wir alle Informationen gegeben, um den empirischen *t-*Wert $t_{emp}$ zu bestimmen:
   
 ```{r}
 t.men.height <- abs((mean.men.height-average.men.height)/se.men.height)
 t.men.height
 ```
 
-Bestimmen des kritischen *t-*Wertes $t_{krit}$:
+Die empirische Prüfgröße (wie auch der Name des Tests) weißt bereits darauf hin, dass wir uns bei der Hypothesenprüfung nicht mehr im Rahmen der Standardnormalverteilung bewegen. Dies liegt daran, dass sich durch das Schätzen der Populationsvarianz keine exakte Standardnormalverteilung mehr ergibt. Stattdessen wird mit einer t-Verteilung gearbeitet, deren genaue Form von der Anzahl der Freiheitsgraden abhängt. Die Unterscheidung zwischen Standardnormalverteilung und der t-Verteilung liegt besonders in den Extrembereichen. Da genau diese jedoch für die inferenzstatistische Testung von Interesse sind, ist die Nutzung der richtigen Verteilung wichtig.
+
+Im Rahmen des t-Testes im Einstichproben-Fall bestimmen sich die Freiheitsgrade mittels $n - 1$. Der kritische *t-*Wert $t_{krit}$ für unser Beispiel kann also folgendermaßen bestimmt werden:
 
 ```{r}
 krit.t.men.height <- qt(0.95, df=n.men.height-1) 
@@ -382,20 +406,20 @@ R ist in einer Pakete-Logik aufgebaut. Das liegt daran, dass es immer mehr Funkt
 
 Unter dem Reiter *Packages* wird die *Library* angezeigt. Hier sind alle Pakete enthalten, die einmal installiert wurden. Pakete müssen ab und zu (per Hand) aktualisiert werden. 
 
-![](./post/library.JPG)
+![](/post/library.JPG)
 
 Sobald Sie eigene Pakete installiert haben, gibt es in dem Reiter *Packages* die Einteilung in die *System Library* (also standardmäßig installierte Pakete) und die *User Library* (von Ihnen installierte Pakete).
 
 Die folgenden Bilder verdeutlichen nochmal das Prinzip vom Installieren und Laden. Bei der Installation von R werden die Basispakete automatisch in die Library installiert. Zusatzpakete müssen mit der Funktion `install.packages()` mit dem Paketnamen als Argument installiert werden. Hierzu ist meist eine Internetverbindung nötig.
 
 
-![](./post/pakete_installieren.JPG)
+![](/post/pakete_installieren.JPG)
 
 
 Beim Start von R werden die Basispakete automatisch geladen. Zusatzpakete müssen hingegen mit der Funktion `library()` mit dem Paketnamen als Argument geladen werden.
 
 
-![](./post/pakete_laden.JPG)
+![](/post/pakete_laden.JPG)
 
 
 Gehen wir das Prinzip an dem Beispielpaket `psych` durch, das verschiedene Operationen enthält, die in der psychologischen Forschung häufig benötigt werden. Die Installation muss dem Laden des Paketes logischerweise vorausgestellt sein. Wenn R einmal geschlossen wird, müssen alle Zusatzpakete neu geladen, jedoch nicht neu installiert werden.

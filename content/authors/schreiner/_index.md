@@ -10,7 +10,7 @@ authors:
 superuser: false
 
 # Role/position
-role: Lehre
+role: Projekte
 
 # Organizations/Affiliations
 organizations:
@@ -36,9 +36,9 @@ social:
 # - icon: google-scholar
 #   icon_pack: ai
 #   link: https://scholar.google.co.uk/citations?user=sIwtMXoAAAAJ
-  - icon: github
-    icon_pack: fab
-    link: https://github.com/dominiklawetzky
+# - icon: github
+#   icon_pack: fab
+#   link: https://github.com/dominiklawetzky
 # - icon: bitbucket
 #   icon_pack: fab
 #   link: https://bitbucket.com/martscht
@@ -59,10 +59,10 @@ email: ""
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
-user_groups: ["Teaching"]
+user_groups: ["Team"]
 ---
 
-Zarah Schreiner ist seit 2021 studentische Hilfskraft in den Abteilungen *Psychologische Methoden mit interdisziplinärer Ausrichtung* und *Psychologische Methodenlehre, Evaluation und Forschungsmethodik*. Dabei leitete sie ein Tutorium, das begleitend zu den Vorlesungen Statisitk I und II gehalten wurden. 
+Zarah Schreiner ist seit 2021 studentische Hilfskraft in den Abteilungen *Psychologische Methoden mit interdisziplinärer Ausrichtung* und *Psychologische Methodenlehre, Evaluation und Forschungsmethodik*. Dabei leitete sie ein Tutorium, das begleitend zu den Vorlesungen Statisitk I und II gehalten wurden.
 
 
 **Biographie**

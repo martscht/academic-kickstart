@@ -14,7 +14,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [hartig, irmer]
-lastmod: '2022-11-22 12:00:12 CEST'
+lastmod: '2022-12-07 12:00:12 CEST'
 featured: no
 header:
      image: "/header/HLM_head.jpg"
@@ -49,8 +49,8 @@ lockdown <- lockdown[-which(lockdown$ID %in% names(which(table(lockdown$ID)==1))
 
 # Daten aufbereiten, Variablen auswählen extrahieren und in Nummern umwandeln
 # Entfernen von Minderjährigen & unbestimmtes Gender mit den Funktionen filter() und select () aus dplyr.
-lockdown <- lockdown |>
-  filter(Age > 18 & Gender == 1 | Gender == 2) |>
+lockdown <- lockdown %>%
+  filter((Age >= 18) & (Gender == 1 | Gender == 2)) %>%
   select(c("ID", "Wave", "Age", "Gender", "Income", "EWB","PWB","SWB",
            "IWB","E.threat","H.threat", "Optimism",
            "Self.efficacy","Hope","P.Wisdom","ST.Wisdom","Grat.being",
@@ -68,7 +68,6 @@ lockdown[,c("E.threat", "H.threat", "Optimism", "Self.efficacy", "Hope", "P.Wisd
 # ID in Faktor Umwandeln
 lockdown$ID <- as.factor(lockdown$ID)
 ```
-
 ### Variablen im Datensatz
 
 In diesem Datensatz stehen die Daten eines Messzeitpunktes in je einer Zeile, d.h. die Daten einer Person stehen in mehreren Zeilen (diese Struktur wird oft auch als *long format* bezeichtet - im Kontrast zum *wide format*, bei dem die Daten jeder Person in einer Zeile in verschiedenen Variablen stehen). Die Variable ID markiert, welche Daten zur selben Person gehören. 
@@ -178,7 +177,7 @@ sig2_w <- summary(m0)$sigma^2
 
 Als erstes Modell berechnen wir für Psychological Wellbeing das Nullmodell ohne Prädiktoren. Dieses Modell kann für Modelle mit Prädiktoren als Referenz für Modellvergleiche dienen. Außerdem können wir auf dessen Basis auch eine Schätzung für die Intraklassenkorrelation bilden. Beide  benötigten Varianzkomponenten $\sigma^2_{between}$ und $\sigma^2_{within}$ werden im Modell geschätzt.
 
-Der Ausgabe für das Nullmodell können wir entnehmen, dass die Varianz des Intercepts $\sigma^2_{between}=`r round(sig2_b,3)`$ beträgt, die Residualvarianz, die hier der Innerpersonen-Varianz entspricht, $\sigma^2_{within}=`r round(sig2_w,3)`$. Hieraus resultiert eine ICC von $\rho_{ICC}=`r round(sig2_b / (sig2_b+sig2_w),3)`$. Geringfügige Abweichungen durch die oben mit der Funktion `ICCbare` ermittelten Ergebnisse kommen durch die unterschiedlichen Schätzmethoden (Kleinstquadrate vs. ML) zustande.
+Der Ausgabe für das Nullmodell können wir entnehmen, dass die Varianz des Intercepts $\sigma^2_{between}=`r round(sig2_b,3)`$ beträgt, die Residualvarianz, die hier der Innerpersonen-Varianz entspricht, $\sigma^2_{within}=`r round(sig2_w,3)`$. Hieraus resultiert eine ICC von $\rho_{ICC}=`r round(sig2_b / (sig2_b+sig2_w),3)`$. Geringfügige Abweichungen durch die oben mit der Funktion `ICCbare`ermittelten Ergebnisse können durch die unterschiedlichen Schätzmethoden (Kleinstquadrate vs. ML) zustande kommen.
 
 ```{r}
 
@@ -199,7 +198,7 @@ Den Effekt über alle Personen hinweg können wir in einem Modell schätzen, in 
 * Gleichung auf Ebene 1: $Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}$
 * Interzept auf Ebene 2: $\beta_{0j}=\gamma_{00}+u_{0j}$
 * Slope auf Ebene 2: $\beta_{1j}=\gamma_{10}$
-* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{10}X_{ij} + u_{0j} + r_{ij}$
+* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{01}X_{ij} + u_{0j} + r_{ij}$
 * Als Formel für `lmer`: `Y ~ 1 + X + (1 | ID)`
 
 In der Anwendung auf die abhängige Variable Psychological Wellbeing (PWB) in R sehen wir, dass Zeit einen signifikanten Effekt hat. 
@@ -231,7 +230,7 @@ In einem nächsten Schritt untersuchen wir nun, ob sich der Effekt der Zeit auf 
 * Gleichung auf Ebene 1: $Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}$
 * Interzept auf Ebene 2: $\beta_{0j}=\gamma_{00}+u_{0j}$
 * Slope auf Ebene 2: $\beta_{1j}=\gamma_{10}+u_{1j}$
-* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{10}X_{ij} + u_{1j}X_{ij} + u_{0j} + r_{ij}$
+* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{01}X_{ij} + u_{0j}X_{ij} + u_{0j} + r_{ij}$
 * Als Formel für `lmer`: `Y ~ 1 + X + (1 + X | ID)`
 
 ```{r}
@@ -239,9 +238,28 @@ PWB.time.random <- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown)
 summary(PWB.time.random)
 ```
 
-Mit mehr als einem Zufallseffekt im Modell enthält die Ausgabe nicht nur deren Varianzen, sondern auch deren Korrelation. In unserem Fall beträgt die Korrelation zwischen dem Intercept $\beta_0$ und dem Regressionskoeffizienten $\beta_1$ für `Time` $r=`r round(data.frame(VarCorr(PWB.time.random))[3,"sdcor"],2)`$. Das Intercept $\beta_{0j}$ ist das erwartete Wohlbefinden einer Person $j$ zu Beginn des Lockdowns (null Wochen im Lockdown). Die Steigung $\beta_{1j}$ ist die erwartete Veränderung des individuellen Wohlbefindens mit jeder weiteren Woche im Lockdown. Die leicht negative Korrelation bedeutet, dass das Wohlbefinden von Personen mit einem zu Beginn höheren Niveau etwas stärker negativ entwickelt.
 
-Der Ausgabe können wir entnehmen, dass die Varianz des Zeiteffekts $var(u_1)=`r round(VarCorr(PWB.time.random)$ID[2,2],4)`$ beträgt. Ob dieser auf den ersten Blick kleine Effekt signifikant ist, können wir durch den Vergleich des Modells mit und ohne Zufallseffekt testen. Die `anova`-Funktion schätzt die Modelle standardmäßig für den Modellvergleich neu, und zwar mit Maximum Likelihood (ML) statt der Standardmethode Restricted Maximum Likelihood (REML). Dies muss hier mit der Option `refit=FALSE` unterdrückt werden, da der Test von Zufallseffekten auf der REML-Schätzung basieren sollte. 
+
+Nun sind wir in eine etwas ungünstige Lage gekommen. Wir bekommen nämlich eine Warning ausgegeben, die wir nicht ignorieren sollten. Diese wird sowohl beim Schätzen ausgegeben und steht auch in der Summary ganz unten: 
+
+```{r, echo = F}
+sumout <- capture.output(summary(PWB.time.random))
+cat(paste(sumout[26:27], collapse = "\n"))
+```
+
+Die Konvergenz bezieht sich auf den numerischen Algorithmus der im Hintergrund die Likelihood maximiert: Es handelt sich hierbei um ein iteratives Verfahren, bei welchem in jedem Schritt geschaut wird, wie stark sich die Likelihood noch verändert. Ist diese Veränderung klein, so spricht dies für Konvergenz. Hier wird nun gesagt, dass die letzte Änderung ca. `.004` war, die Toleranz (also die größte akzeptierte Änderung) aber bei `tol = .002` liegt. Durch diese Diskrepanz wird die Warnung ausgelöst. Weitere Evaluationsmechanismen der Lösungen zeigen jedoch an, dass die Lösung prinzipiell `"OK"` ist. Wir wollen es aber "richtig" machen und ändern deshalb den Optimierungsalgorithmus:
+
+```{r}
+PWB.time.random <- lmer(PWB ~ 1 + Time + (1 + Time | ID), data = lockdown,
+                        control = lmerControl(optimizer ="Nelder_Mead"))
+summary(PWB.time.random)
+```
+
+Nun erhalten wir keine Warnung mehr, die Lösung scheint gutartig in dem Sinne zu sein, dass alle Evaluationsmechanismen sagen, dass die numerische Lösung konvergiert ist und damit interpretiert werden kann. Wenn wir die beiden Summaries vergleichen erkennen wir, dass die Unterschiede nur marginal sind (ab der 3. Nachkommastelle gibt es Koeffizienten und Standardfehler, die sich unterscheiden). Somit scheint der optische Hinweis, die Lösung sei `"OK"` also nicht fehlgeleitet zu sein. Dennoch sollte bei solchen Warnungen immer genauer nachgeschaut werden! Nun zur Interpretation der Ergebnisse:
+
+Mit mehr als einem Zufallseffekt im Modell enthält die Ausgabe nicht nur deren Varianzen, sondern auch deren Korrelation. In unserem Fall beträgt die Korrelation zwischen dem Intercept $\beta_0$ und dem Regressionskoeffizienten $\beta_1$ für 'Time' $r=`r round(data.frame(VarCorr(PWB.time.random))[3,"sdcor"],2)`$. Das Intercept $\beta_{0j}$ ist das erwartete Wohlbefinden einer Person $j$ zu Beginn des Lockdowns (null Wochen im Lockdown). Die Steigung $\beta_{1j}$ ist die erwartete Veränderung des individuellen Wohlbefindens mit jeder weiteren Woche im Lockdown. Die leicht negative Korrelation bedeutet, dass das Wohlbefinden von Personen mit einem zu Beginn höheren Niveau etwas stärker negativ entwickelt.
+
+Der Ausgabe können wir entnehmen, dass die Varianz des Zeiteffekts $var(u_1)=$ `r round(VarCorr(PWB.time.random)$ID[2,2],4)` beträgt. Ob dieser auf den ersten Blick kleine Effekt signifikant ist, können wir durch den Vergleich des Modells mit und ohne Zufallseffekt testen. Die `anova`-Funktion schätzt die Modelle standardmäßig für den Modellvergleich neu, und zwar mit Maximum Likelihood (ML) statt der Standardmethode Restricted Maximum Likelihood (REML). Dies muss hier mit der Option `refit=FALSE` unterdrückt werden, da der Test von Zufallseffekten auf der REML-Schätzung basieren sollte. 
 
 ```{r include=FALSE}
 diff <- anova(PWB.time.fixed, PWB.time.random, refit=FALSE)
@@ -280,21 +298,18 @@ Im Datensatz sind eine Reihe von Variablen enthalten, die für jede Person einma
 
 * Gleichung auf Ebene 1: $Y_{ij}=\beta_{0j}+r_{ij}$
 * Interzept auf Ebene 2: $\beta_{0j}=\gamma_{00}+\gamma_{01}Z_j+u_{0j}$
-* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{01}Z_j + u_{0j} + r_{ij}$
+* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{10}Z_j + u_{0j} + r_{ij}$
 * Als Formel für `lmer`: `Y ~ 1 + Z + (1 | ID)`
 
 Um die Modellparameter besser interpretieren zu können, zentrieren wir die Variabe zunächst um ihren Mittelwert ($M(Age)=`r round(mean(lockdown$Age),2)`$).
 
-```{r}
-# Alter zentrieren
-lockdown$Age <- scale(lockdown$Age, scale = FALSE)
-```
-
 ```{r include=FALSE}
+mean(lockdown$Age)
+lockdown$Age <- scale(lockdown$Age, scale = FALSE)
 PWB.Age <- lmer(PWB ~ 1 + Age + (1 | ID), data = lockdown)
 ```
 
-Im Ergebnis des Modells sehen wir, dass Alter einen positiven Effekt auf das psychische Wohlbefinden hat. Mit einem Jahr höherem Alter ändert sich das Niveau des Wohlbefindens um `r round(fixef(PWB.Age)["Age"],3)` Standardabweichungen. Das sieht numerisch wenig aus, bedeutet aber z. B. schon zwischen Zwanzigjährigen und Vierzigjährigen einen erwarteten Unterschied von `r round(20*fixef(PWB.Age)["Age"],3)` Standardabweichungen.
+Im Ergebnis sehen wir, dass Alter einen positiven Effekt auf das Psychische Wohlbefinden hat. Mit einem Jahr höherem Alter ändert sich das Niveau des Wohlbefindens um `r round(fixef(PWB.Age)["Age"],3)` Standardabweichungen. Das sieht numerisch wenig aus, bedeutet aber z. B. schon zwischen Zwanzigjährigen und Vierzigjährigen einen erwarteten Unterschied von `r round(20*fixef(PWB.Age)["Age"],3)` Standardabweichungen.
 
 ```{r}
 PWB.Age <- lmer(PWB ~ 1 + Age + (1 | ID), data = lockdown)
@@ -308,8 +323,8 @@ Schließlich schätzen wir ein gemeinsames Modell mit Zeit und Alter. In diesem 
 * Gleichung auf Ebene 1: $Y_{ij}=\beta_{0j}+\beta_{1j}X_{ij}+r_{ij}$
 * Interzept auf Ebene 2: $\beta_{0j}=\gamma_{00}+\gamma_{01}Z_j+u_{0j}$
 * Slope auf Ebene 2: $\beta_{1j}=\gamma_{10}+\gamma_{11}Z_j+u_{1j}$
-* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{01}Z_j + \gamma_{10}X_{ij} + \gamma_{11}Z_jX_{ij} + u_{1j}X_{ij} + u_{0j} + r_{ij}$
-* Als Formel für `lmer`: `Y ~ 1 + Z + X + Z:X + (1 + X | ID)`
+* Gesamtmodell: $Y_{ij}=\gamma_{00} + \gamma_{10}Z_j + \gamma_{01}X_{ij} + \gamma_{11}Z_jX_{ij} + u_{0j}X_{ij} + u_{0j} + r_{ij}$
+* Als Formel für `lmer`: `Y ~ 1 + X + (1 + X | ID)`
 
 Für dieses Modell zentrieren wie auch die Zeit-Variable. Deren Nullpunkt ist zwar ohne Zentrierung anschaulicher, aber für die Interpretation des Moderatoreffekts sollten die beteiligten Prädiktoren zentriert sein. In den festen Effekten sehen wir, dass
 
@@ -327,11 +342,23 @@ summary(PWB.Age.Time)
 
 ```
 
+Da wir wieder eine Warnung über Konvergenzprobleme bekommen, ändern wir wieder den Maximierungsalgorithmus:
+
+```{r}
+PWB.Age.Time <- lmer(PWB ~ 1 + Age + Time + Age:Time + (1 + Time | ID), data = lockdown,
+                        control = lmerControl(optimizer ="Nelder_Mead"))
+summary(PWB.Age.Time)
+```
+
+Die Warnung verschwindet und die Ergebnisse der beiden Summaries stimmen wie oben auch sehr stark überein!
+
 Zur grafischen Veranschaulichung der Wechselwirkung kann wie bei der moderierten Regression im linearen Modell auch hier die Funktion `interact_plot` verwendet werden. Die Lage der Linien zeigt gut den positiven Haupteffekt des Alters auf das Wohlbefinden. Zugleich veranschaulichen die fast parallelen Geraden das Nicht-Vorliegen einer Wechselwirkung.
 
 ```{r}
 interact_plot(model = PWB.Age.Time, pred = Time, modx = Age)
 ```
+
+
 
 ## R-Skript
 Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](/post/KliPPs_MSc5a_R_Files/6_HLM_RCode.R).
