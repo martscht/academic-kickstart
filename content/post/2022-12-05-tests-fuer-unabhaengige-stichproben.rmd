@@ -11,7 +11,7 @@ tags:
   - unabhängig
 subtitle: ''
 summary: ''
-authors: [koehler, buchholz, irmer, goldhammer]
+authors: [koehler, buchholz, irmer, nehler, goldhammer]
 lastmod: "2022-12-06T14:00:00+01:00"
 featured: no
 header:
@@ -65,46 +65,81 @@ Fragen 1.- 3. werden in dieser Sitzung behandelt. In der nächsten Sitzung schau
 
 ***
 
+## Vorbereitende Schritte {#prep}
+
+Wie man anhand der Fragestellungen bereits gesehen hat, beschäftigen wir uns mit den Werten aus unserem Datensatz. Diesen haben wir bereits unter diesem [<i class="fas fa-download"></i> Link heruntergeladen](/post/fb22.rda) und können ihn über den lokalen Speicherort einladen oder Sie können Ihn direkt mittels des folgenden Befehls aus dem Internet in das Environment bekommen. In den vorherigen Tutorials und den dazugehörigen Aufgaben haben wir bereits Änderungen am Datensatz durchgeführt, die hier nochmal aufgeführt sind, um den Datensatz auf dem aktuellen Stand zu haben: 
+
+```{r}
+#### Was bisher geschah: ----
+
+# Daten laden
+load(url('https://pandar.netlify.app/post/fb22.rda'))  
+
+# Nominalskalierte Variablen in Faktoren verwandeln
+fb22$geschl_faktor <- factor(fb22$geschl,
+                             levels = 1:3,
+                             labels = c("weiblich", "männlich", "anderes"))
+fb22$fach <- factor(fb22$fach,
+                    levels = 1:5,
+                    labels = c('Allgemeine', 'Biologische', 'Entwicklung', 'Klinische', 'Diag./Meth.'))
+fb22$ziel <- factor(fb22$ziel,
+                        levels = 1:4,
+                        labels = c("Wirtschaft", "Therapie", "Forschung", "Andere"))
+fb22$wohnen <- factor(fb22$wohnen, 
+                      levels = 1:4, 
+                      labels = c("WG", "bei Eltern", "alleine", "sonstiges"))
+
+# Skalenbildung
+
+fb22$prok2_r <- -1 * (fb22$prok2 - 5)
+fb22$prok3_r <- -1 * (fb22$prok3 - 5)
+fb22$prok5_r <- -1 * (fb22$prok5 - 5)
+fb22$prok7_r <- -1 * (fb22$prok7 - 5)
+fb22$prok8_r <- -1 * (fb22$prok8 - 5)
+
+# Prokrastination
+fb22$prok_ges <- fb22[, c('prok1', 'prok2_r', 'prok3_r',
+                          'prok4', 'prok5_r', 'prok6',
+                          'prok7_r', 'prok8_r', 'prok9', 
+                          'prok10')] |> rowMeans()
+# Naturverbundenheit
+fb22$nr_ges <-  fb22[, c('nr1', 'nr2', 'nr3', 'nr4', 'nr5',  'nr6')] |> rowMeans()
+fb22$nr_ges_z <- scale(fb22$nr_ges) # Standardisiert
+
+# Weitere Standardisierugen
+fb22$nerd_std <- scale(fb22$nerd)
+fb22$neuro_std <- scale(fb22$neuro)
+
+```
+
+
+***
+
 ## 1. Fragestellung A: Erreichen Studenten im Nerdiness Personality Attributes-Test im Durchschnitt einen höheren Testwert als Studentinnen?
 
-### 1.1 Vorbereitung (Daten einlesen, Daten aufbereiten)
+### 1.1 Vorbereitung (Daten aufbereiten)
 
-Zunächst müssen wir die Daten entsprechend vorbereiten.
-
-```{r echo=F}
-load("fb22.rda")
-```
-
-```{r eval=FALSE}
-setwd("...")
-load("fb22.rda")
-```
-
-Das Geschlecht `geschl` sollte als Faktor vorliegen. Falls Sie das Geschlecht bereits in einen Faktor mit benannten `levels` umgewandelt haben, können Sie dies in der Regel nicht noch einmal tun. Deswegen ist es sinnvoll, zunächst zu prüfen, ob das Geschlecht ein `factor` ist oder nicht. Das können wir mit `is.factor` machen. Diese Funktion gibt uns einen boolschen Wert (`TRUE` oder `FALSE`) wieder und beantwortet damit unsere Frage, ob das Geschlecht ein `factor` ist oder nicht.
+Die Gruppierungsvariable in unserer Fragestellung muss für die Nutzung der Funktionen in `R` als Faktor vorliegen. Bei uns soll es um das Geschlecht gehen. Wir können wir mit `is.factor` überprüfen, ob die Variable `geschl` im Datensatz ein Faktor ist. 
 
 ```{r}
 is.factor(fb22$geschl)
 ```
 
-Da wir den Datensatz "ganz frisch" eingeladen haben, ist dies nicht der Fall. Demnach können wir ganz unbedacht den `factor` nach unseren Wünschen generieren:
+Diese Funktion gibt uns einen boolschen Wert (`TRUE` oder `FALSE`) wieder und beantwortet damit unsere Frage, ob das Geschlecht ein `factor` ist oder nicht. Wir sehen aufgrund der Antwort als `FALSE`, dass die Variable `geschl` nicht als Faktor vorliegt.
+
+Allerdings haben wir in der Vorbereitung gesehen, dass wir bereits eine Variable erstellt haben, die das Geschlecht als Faktor repräsentiert. Diese hatten wir `geschl_faktor` genannt. Auch das können wir nochmal überprüfen:
 
 ```{r}
-fb22$geschl <- factor(fb22$geschl,          
-                        levels = c(1, 2, 3),
-                        labels = c('weiblich', 'maennlich', 'anderes'))
+is.factor(fb22$geschl_faktor)
 ```
 
-Variable `geschl` liegt (nun) als Faktor vor.
+Hier wird ein `TRUE` ausgegeben - die Variable ist also ein Faktor. Auch die `levels` könenn wir bestimmen
 
 ```{r}
-is.factor(fb22$geschl)
+levels(fb22$geschl_faktor)
 ```
 
-Seine `levels` lauten
-
-```{r}
-levels(fb22$geschl)
-```
+Der Faktor hat also `r length(names(levels(fb22$geschl_faktor)))`` Stufen, die bei der Beantwortung möglich gewesen wären.
 
 ### 1.2. Deskriptivstatistik
 
@@ -115,37 +150,37 @@ Im ersten Schritt wollen wir uns die Daten deskriptiv anschauen. Das geht entwed
 Wir werfen zunächst vorbereitend einen tabellarischen Blick auf die Variable Geschlecht.
 
 ```{r}
-table(fb22$geschl)
+table(fb22$geschl_faktor)
 ```
 
-Insgesamt gibt es nur eine Person, welche die Option "anderes" ausgewählt hat. Leider lässt sich über einen Datenpunkt allein keine Varianz bestimmen und auch keine Inferenzstatistik betreiben. Aus diesem Grund müssen wir uns hier auf "maennlich" und "weiblich" beschränken und verwenden im Folgenden den gekürzten Datensatz `dataB`:
+Insgesamt gibt es nur eine Person, welche die Option "anderes" ausgewählt hat. Leider lässt sich über einen Datenpunkt allein keine Varianz bestimmen und auch keine Inferenzstatistik betreiben. Aus diesem Grund müssen wir uns hier auf "männlich" und "weiblich" beschränken und verwenden im Folgenden den gekürzten Datensatz `dataB`:
 
 ```{r}
 # nur Männer und Frauen auswählen:
-dataB <- fb22[ (fb22$geschl=="maennlich"|fb22$geschl=="weiblich"), ]  
-dataB$geschl <- droplevels(dataB$geschl) # levels aus den Datensatz entfernen, die keine Erhebungen haben
+dataB <- fb22[ (fb22$geschl_faktor=="männlich"|fb22$geschl_faktor=="weiblich"), ]  
+dataB$geschl_faktor <- droplevels(dataB$geschl_faktor) # levels aus den Datensatz entfernen, die keine Erhebungen haben
 ```
 
 Mithilfe eines Boxplots, bzw. mithilfe von Histogrammen, lassen sich Unterschiede zwischen Gruppen gut untersuchen. Wir verwenden hier einige Zusatzeinstellungen, um die Grafiken übersichtlicher und auch ein wenig ansprechender zu gestalten.
 
 ```{r}
 # Gruppierter Boxplot :
-boxplot(dataB$nerd ~ dataB$geschl, 
+boxplot(dataB$nerd ~ dataB$geschl_faktor, 
         xlab="Geschlecht", ylab="Nerdiness", 
         las=1, cex.lab=1.5, 
         main="Nerdiness je nach Geschlecht")
 
 # Je ein Histogramm pro Gruppe, untereinander dargestellt, vertikale Linie für den jeweiligen Mittelwert
 par(mfrow=c(2,1), mar=c(3,2,2,0))
-hist(dataB[(dataB$geschl=="weiblich"), "nerd"], main="Testwert (weiblich)", 
+hist(dataB[(dataB$geschl_faktor=="weiblich"), "nerd"], main="Testwert (weiblich)", 
      xlim=c(0,6), xlab="", ylab="", las=1)
-abline(v=mean(dataB[(dataB$geschl=="weiblich"), "nerd"], na.rm=T), col="aquamarine3", lwd=3)
-hist(dataB[(dataB$geschl=="maennlich"), "nerd"], main="Testwert (maennlich)", 
+abline(v=mean(dataB[(dataB$geschl_faktor=="weiblich"), "nerd"], na.rm=T), col="aquamarine3", lwd=3)
+hist(dataB[(dataB$geschl_faktor=="männlich"), "nerd"], main="Testwert (männlich)", 
      xlim=c(0,6), xlab="", ylab="", las=1)
-abline(v=mean(dataB[(dataB$geschl=="maennlich"), "nerd"], na.rm=T), col="darksalmon", lwd=3)
+abline(v=mean(dataB[(dataB$geschl_faktor=="männlich"), "nerd"], na.rm=T), col="darksalmon", lwd=3)
 ```
 
-`dataB$nerd ~ dataB$geschl` ist die Formelnotation in `R`, welche Sie im Rahmen der Regression noch genauer kennenlernen werden. Links von der `~` (Tilde) steht die abhängige Variable (hier der Testwert), deren Mittelwertsunterschiede durch die unabhängige Variable (hier Geschlecht) rechts der `~` erklärt werden soll. Der Befehl `par(mfrow=c(2,1), mar=c(3,2,2,0))` bewirkt, dass 2 Grafiken untereinander dargestellt werden - und zwar im selben Plot. Das Argument `mfrow` definiert ein Plot-Array mit der angebenen Anzahl von Zeilen und Spalten (wobei  mit `mfrow` die Plots zeilenweise verteilt werden; alternativ mit `mfcol`). Mit dem Argument `mar` werden für unten, links, oben und rechts die Randabstände spezifiziert.  Spielen Sie doch einmal selbst an den Einstellungen herum und schauen nach, was die Argumente jeweils bewirken!
+`dataB$nerd ~ dataB$geschl_faktor` ist die Formelnotation in `R`, welche Sie im Rahmen der Regression noch genauer kennenlernen werden. Links von der `~` (Tilde) steht die abhängige Variable (hier der Testwert), deren Mittelwertsunterschiede durch die unabhängige Variable (hier Geschlecht) rechts der `~` erklärt werden soll. Der Befehl `par(mfrow=c(2,1), mar=c(3,2,2,0))` bewirkt, dass 2 Grafiken untereinander dargestellt werden - und zwar im selben Plot. Das Argument `mfrow` definiert ein Plot-Array mit der angebenen Anzahl von Zeilen und Spalten (wobei  mit `mfrow` die Plots zeilenweise verteilt werden; alternativ mit `mfcol`). Mit dem Argument `mar` werden für unten, links, oben und rechts die Randabstände spezifiziert.  Spielen Sie doch einmal selbst an den Einstellungen herum und schauen nach, was die Argumente jeweils bewirken!
 
 Damit von nun an nicht immer zwei Grafiken in einem Plot dargestellt werden, können wir die Einstellungen folgendermaßen zurücksetzen:
 
@@ -159,28 +194,28 @@ Wir können uns auch Deskriptivstatistiken ansehen. Bspw. könnten wir uns die M
 
 ```{r}
 # umständlich:
-summary(dataB$nerd[(dataB$geschl=="weiblich")])  # Gruppe 1: Studentinnen
-summary(dataB$nerd[(dataB$geschl=="maennlich")]) # Gruppe 2: Studenten
+summary(dataB$nerd[(dataB$geschl_faktor=="weiblich")])  # Gruppe 1: Studentinnen
+summary(dataB$nerd[(dataB$geschl_faktor=="männlich")]) # Gruppe 2: Studenten
 
 # komfortabler:
 library(psych)
-describeBy(x = dataB$nerd, group = dataB$geschl)        # beide Gruppen im Vergleich 
+describeBy(x = dataB$nerd, group = dataB$geschl_faktor)        # beide Gruppen im Vergleich 
 ```
 
 Achtung, bei den hier berichteten `sd` handelt es sich nicht um die Stichprobenkennwerte, sondern um die Populationsschätzer. Daher berechnen wir die Standardabweichung auch nochmals per Hand:
 
 ```{r}
-nerd.weiblich <- dataB$nerd[(dataB$geschl=="weiblich")]
+nerd.weiblich <- dataB$nerd[(dataB$geschl_faktor=="weiblich")]
 sigma.weiblich <- sd(nerd.weiblich, na.rm = T)
 n.weiblich <- length(nerd.weiblich[!is.na(nerd.weiblich)])
 sd.weiblich <- sigma.weiblich * sqrt((n.weiblich-1) / n.weiblich)
 sd.weiblich
 
-nerd.maennlich <- dataB$nerd[(dataB$geschl=="maennlich")]
-sigma.maennlich <- sd(nerd.maennlich, na.rm = T)
-n.maennlich <- length(nerd.maennlich[!is.na(nerd.maennlich)])
-sd.maennlich <- sigma.maennlich * sqrt((n.maennlich-1) / n.maennlich)
-sd.maennlich
+nerd.männlich <- dataB$nerd[(dataB$geschl_faktor=="männlich")]
+sigma.männlich <- sd(nerd.männlich, na.rm = T)
+n.männlich <- length(nerd.männlich[!is.na(nerd.männlich)])
+sd.männlich <- sigma.männlich * sqrt((n.männlich-1) / n.männlich)
+sd.männlich
 ```
 
 ### 1.3. Voraussetzungsprüfung
@@ -204,7 +239,7 @@ Falls das Merkmal in der Population normalverteilt ist und die Stichproben groß
 ```{r, fig.height=4, fig.align="center"}
 # Gruppe 1 (weiblich) 
 par(mfrow=c(1,2))
-nerd.weiblich <- dataB[(dataB$geschl=="weiblich"), "nerd"]
+nerd.weiblich <- dataB[(dataB$geschl_faktor=="weiblich"), "nerd"]
 hist(nerd.weiblich, xlim=c(0,6), ylim=c(0,.8), main="Nerdiness Testwert (weiblich)", xlab="", ylab="", las=1, prob=T)
 curve(dnorm(x, mean=mean(nerd.weiblich, na.rm=T), sd=sd(nerd.weiblich, na.rm=T)), col="blue", lwd=2, add=T)
 qqnorm(nerd.weiblich)
@@ -218,16 +253,16 @@ $\rightarrow$ Normalverteilung kann für Gruppe 1 (weiblich) angenommen werden
 Wir wiederholen die Befehle von zuvor auch für die zweite Gruppe:
 
 ```{r, fig.height=4, fig.align="center"}
-# Gruppe 2 (maennlich)
+# Gruppe 2 (männlich)
 par(mfrow=c(1,2))
-nerd.maennlich <- dataB[(dataB$geschl=="maennlich"), "nerd"]
-hist(nerd.maennlich, xlim=c(0,6), ylim=c(0,.8), main="Nerdiness Testwert (maennlich)", xlab="", ylab="", las=1, prob=T)
-curve(dnorm(x, mean=mean(nerd.maennlich, na.rm=T), sd=sd(nerd.maennlich, na.rm=T)), col="blue", lwd=2, add=T)
-qqnorm(nerd.maennlich)
-qqline(nerd.maennlich, col="blue")
+nerd.männlich <- dataB[(dataB$geschl_faktor=="männlich"), "nerd"]
+hist(nerd.männlich, xlim=c(0,6), ylim=c(0,.8), main="Nerdiness Testwert (männlich)", xlab="", ylab="", las=1, prob=T)
+curve(dnorm(x, mean=mean(nerd.männlich, na.rm=T), sd=sd(nerd.männlich, na.rm=T)), col="blue", lwd=2, add=T)
+qqnorm(nerd.männlich)
+qqline(nerd.männlich, col="blue")
 ```
 
-$\rightarrow$ Normalverteilung kann auch für Gruppe 2 (maennlich) einigermaßen angenommen werden (hierbei ist zu beachten, dass die Gruppe der Studenten im Vergleich zur Gruppe der Studentinnen deutlich kleiner ist)
+$\rightarrow$ Normalverteilung kann auch für Gruppe 2 (männlich) einigermaßen angenommen werden (hierbei ist zu beachten, dass die Gruppe der Studenten im Vergleich zur Gruppe der Studentinnen deutlich kleiner ist)
 
 Damit von nun an nicht immer zwei Grafiken in einem Plot dargestellt werden, können wir die Einstellungen folgendermaßen zurücksetzen:
 
@@ -246,11 +281,11 @@ Ein nicht-signifikantes Ergebnis (*p* \> .05) zeigt also Homoskedastizität an. 
 
 ```{r}
 library(car)
-leveneTest(dataB$nerd ~ dataB$geschl)
+leveneTest(dataB$nerd ~ dataB$geschl_faktor)
 ```
 
 ```{r, echo=FALSE}
-levene <- leveneTest(dataB$nerd ~ dataB$geschl)
+levene <- leveneTest(dataB$nerd ~ dataB$geschl_faktor)
 f <- round(levene$`F value`[1], 2)
 p <- round(levene$`Pr(>F)`[1], 3)
 ```
@@ -280,8 +315,8 @@ Hypothesenpaar (inhaltlich):
 
 Hypothesenpaar (statistisch):
 
--   $H_0$: $\mu_\text{weiblich} = \mu_\text{maennlich}$ bzw. $\mu_\text{weiblich} - \mu_\text{maennlich} = 0$\
--   $H_1$: $\mu_\text{weiblich} \ne \mu_\text{maennlich}$ bzw. $\mu_\text{weiblich} - \mu_\text{maennlich} \ne 0$
+-   $H_0$: $\mu_\text{weiblich} = \mu_\text{männlich}$ bzw. $\mu_\text{weiblich} - \mu_\text{männlich} = 0$\
+-   $H_1$: $\mu_\text{weiblich} \ne \mu_\text{männlich}$ bzw. $\mu_\text{weiblich} - \mu_\text{männlich} \ne 0$
 
 **Signifikanzniveau**
 
@@ -292,7 +327,7 @@ Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 
 Wir hatten im Rahmen des Einstichproben-*t*-Tests bereits die Funktion `t.test` kennengelernt. Diese nutzen wir wieder. Wir übergeben dieser wieder die Formel, die wir bereits im Boxplot und im Levene-Test verwendet haben. Außerdem wählen wir einige Zusatzargumente, die dann zum Zweistichproben-*t*-Test für unabhängige Stichproben führt:
 
 ```{r}
-t.test(dataB$nerd ~ dataB$geschl,       # abhängige Variable ~ unabhängige Variable
+t.test(dataB$nerd ~ dataB$geschl_faktor,       # abhängige Variable ~ unabhängige Variable
       paired = FALSE,                   # Stichproben sind unabhängig 
       alternative = "two.sided",        # zweiseitige Testung (Default)
       var.equal = TRUE,                 # Homoskedastizität liegt vor (-> Levene-Test)
@@ -300,7 +335,7 @@ t.test(dataB$nerd ~ dataB$geschl,       # abhängige Variable ~ unabhängige Var
 ```
 
 ```{r, echo=FALSE}
-ttest <- t.test(dataB$nerd ~ dataB$geschl, paired = FALSE, alternative = "two.sided", var.equal = TRUE, conf.level = .95)
+ttest <- t.test(dataB$nerd ~ dataB$geschl_faktor, paired = FALSE, alternative = "two.sided", var.equal = TRUE, conf.level = .95)
 ```
 
 *t*(*df* = `r ttest$parameter`, zweis.) = `r round(ttest$statistic, 3)`, *p* = `r round(ttest$p.value,3)` $\rightarrow$ nicht signifikant, $H_0$ wird beibehalten.
@@ -324,19 +359,19 @@ $$ {\hat{\sigma}_{inn}} = \sqrt{ \frac{{\hat{\sigma}_1^2}*(n_1-1) + {\hat{\sigma
 Wir führen die Berechnung von Cohen's *d* zunächst von Hand durch. Dafür speichern wir uns die nötigen Größen ab und wenden dann die präsentierte Formel an:
 
 ```{r}
-nerd.weiblich <- dataB[(dataB$geschl=="weiblich"), "nerd"]
+nerd.weiblich <- dataB[(dataB$geschl_faktor=="weiblich"), "nerd"]
 mw.weiblich <- mean(nerd.weiblich, na.rm=T)
 n.weiblich <- length(nerd.weiblich[!is.na(nerd.weiblich)])
 sigma.qu.weiblich <- var(nerd.weiblich, na.rm=T) 
 
-nerd.maennlich <- dataB[(dataB$geschl=="maennlich"), "nerd"]
-mw.maennlich <- mean(nerd.maennlich, na.rm=T)
-n.maennlich <- length(nerd.maennlich[!is.na(nerd.maennlich)])
-sigma.qu.maennlich <- var(nerd.maennlich, na.rm=T) 
+nerd.männlich <- dataB[(dataB$geschl_faktor=="männlich"), "nerd"]
+mw.männlich <- mean(nerd.männlich, na.rm=T)
+n.männlich <- length(nerd.männlich[!is.na(nerd.männlich)])
+sigma.qu.männlich <- var(nerd.männlich, na.rm=T) 
 
-sigma.inn <- sqrt((sigma.qu.weiblich* (n.weiblich - 1) + sigma.qu.maennlich* (n.maennlich - 1)) / (n.weiblich-1 + n.maennlich-1))
+sigma.inn <- sqrt((sigma.qu.weiblich* (n.weiblich - 1) + sigma.qu.männlich* (n.männlich - 1)) / (n.weiblich-1 + n.männlich-1))
 
-d1 <- (mw.weiblich - mw.maennlich) / sigma.inn
+d1 <- (mw.weiblich - mw.männlich) / sigma.inn
 d1
 ```
 
@@ -351,7 +386,7 @@ library("effsize")
 ```
 
 ```{r}
-d2 <- cohen.d(dataB$nerd, dataB$geschl, na.rm=T)
+d2 <- cohen.d(dataB$nerd, dataB$geschl_faktor, na.rm=T)
 d2
 ```
 
@@ -359,7 +394,7 @@ Die Effektstärke für diesen Mittelwertsunterschied beträgt *d* = `r round(d1,
 
 ### 1.6. Ergebnisinterpretation
 
-Es wurde untersucht, ob sich Studentinnen und Studenten in dem Nerdiness-Testwert unterscheiden. Tatsächlich findet sich deskriptiv ein Unterschied: Studentinnen weisen einen durchschnittlichen Wert von `r round(mw.weiblich,3)` (*SD* = `r round(sd.weiblich,3)`) auf, während die Studenten einen Wert von `r round(mw.maennlich,3)` (*SD* = `r round(sd.maennlich,3)`) aufweisen. Dies entspricht nach Cohens Konvention (1988) einem kleinen bis mittleren Effekt (*d* = `r round(d1,3)`).
+Es wurde untersucht, ob sich Studentinnen und Studenten in dem Nerdiness-Testwert unterscheiden. Tatsächlich findet sich deskriptiv ein Unterschied: Studentinnen weisen einen durchschnittlichen Wert von `r round(mw.weiblich,3)` (*SD* = `r round(sd.weiblich,3)`) auf, während die Studenten einen Wert von `r round(mw.männlich,3)` (*SD* = `r round(sd.männlich,3)`) aufweisen. Dies entspricht nach Cohens Konvention (1988) einem kleinen bis mittleren Effekt (*d* = `r round(d1,3)`).
 
 Zur Beantwortung der Fragestellung wurde ein *t*-Test unter Annahme von Homoskedastizität (*F*(`r levene$Df[1]`,`r levene$Df[2]`) = `r f`, *p* = `r p`) durchgeführt. Der Gruppenunterschied ist nicht signifikant (*t*(*df* = `r ttest$parameter`, zweis.) = `r round(ttest$statistic, 3)`, *p* = `r round(ttest$p.value,3)`), somit wird die Nullhypothese beibehalten und die Alternativhypothese nicht angenommen. Studentinnen und Studenten unterscheiden sich im Nerdiness-Testwert nicht bedeutsam.
 
@@ -383,7 +418,7 @@ Wir beginnen mit einer grafischen Auseinandersetzung mit der Fragestellung und e
 
 ```{r}
 # Gruppierter Boxplot:
-boxplot(dataB$nr2 ~ dataB$geschl, 
+boxplot(dataB$nr2 ~ dataB$geschl_faktor, 
         xlab="Geschlecht", ylab="nr2", 
         las=1, cex.lab=1.5, 
         main="nr2 nach Geschlecht")
@@ -396,19 +431,19 @@ Graphisch ist kein Unterschied zu erkennen.
 Nun schauen wir uns das Ganze wieder deskriptivstatistisch an.
 
 ```{r}
-describeBy(dataB$nr2, dataB$geschl) # beide Gruppen im Vergleich
+describeBy(dataB$nr2, dataB$geschl_faktor) # beide Gruppen im Vergleich
 
 # Interquartilsbereich (IBQ) über summary()
-summary( dataB[(dataB$geschl=="weiblich"), "nr2"])
-summary( dataB[(dataB$geschl=="maennlich"), "nr2"]) 
+summary( dataB[(dataB$geschl_faktor=="weiblich"), "nr2"])
+summary( dataB[(dataB$geschl_faktor=="männlich"), "nr2"]) 
 ```
 
 ```{r, echo=FALSE}
-deskr <- describeBy(dataB$nr2, dataB$geschl)
+deskr <- describeBy(dataB$nr2, dataB$geschl_faktor)
 
 # Interquartilsbereich (IBQ) über summary()
-weibl <- summary( dataB[(dataB$geschl=="weiblich"), "nr2"])
-maennl <- summary( dataB[(dataB$geschl=="maennlich"), "nr2"]) 
+weibl <- summary( dataB[(dataB$geschl_faktor=="weiblich"), "nr2"])
+maennl <- summary( dataB[(dataB$geschl_faktor=="männlich"), "nr2"]) 
 ```
 
 Deskriptiv weist die Gruppe der männlichen Studierenden den gleichen Median auf wie die Gruppe der weiblichen Studierenden. Auch die Interquartilbereiche unterscheiden sich nicht.
@@ -440,11 +475,11 @@ Da die erste Voraussetzung nicht erfüllt ist - das Item nr2 ist eine lediglich 
 #Gruppe 1 (weiblich) 
 par(mfrow=c(1,2))
 
-nr2.w <- dataB[(dataB$geschl=="weiblich"), "nr2"]
+nr2.w <- dataB[(dataB$geschl_faktor=="weiblich"), "nr2"]
 hist(nr2.w, xlim=c(0,6), ylim=c(0,.6), main="Item nr2 (weiblich)", xlab="", ylab="", las=1, prob=T, breaks = c(.5:5.5))
 
-nr2.m <- dataB[(dataB$geschl=="maennlich"), "nr2"]
-hist(nr2.m, xlim=c(0,6), ylim=c(0,.6), main="Item nr2 (maennlich)", xlab="", ylab="", las=1, prob=T, breaks = c(.5:5.5))
+nr2.m <- dataB[(dataB$geschl_faktor=="männlich"), "nr2"]
+hist(nr2.m, xlim=c(0,6), ylim=c(0,.6), main="Item nr2 (männlich)", xlab="", ylab="", las=1, prob=T, breaks = c(.5:5.5))
 
 ```
 
@@ -462,11 +497,11 @@ Ein nicht-signifikantes Ergebnis (*p* \> .05) zeigt also Homoskedastizität an.
 
 ```{r}
 library(car)
-leveneTest(dataB$nr2 ~ dataB$geschl)
+leveneTest(dataB$nr2 ~ dataB$geschl_faktor)
 ```
 
 ```{r, echo=FALSE}
-levene2 <- leveneTest(dataB$nr2 ~ dataB$geschl)
+levene2 <- leveneTest(dataB$nr2 ~ dataB$geschl_faktor)
 f2 <- round(levene2$`F value`[1], 2)
 p2 <- round(levene2$`Pr(>F)`[1], 3)
 ```
@@ -508,13 +543,13 @@ Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 
 Die Funktion `wilcox.test` nimmt im Grunde die gleichen Argumente entgegen wie die Funktion `t.test`. Damit wir die gerichtete Hypothese in die richtige Richtung aufstellen können, müssen wir wissen, welches das erste Level des Faktors Geschlecht ist:
 
 ```{r}
-levels(dataB$geschl) # wichtig zu wissen: die erste der beiden Faktorstufen ist "weiblich" 
+levels(dataB$geschl_faktor) # wichtig zu wissen: die erste der beiden Faktorstufen ist "weiblich" 
 ```
 
 Da die erste Faktorstufe "weiblich" ist, wissen wir, dass die gerichtete Hypothese "\>" lauten muss, also "greater":
 
 ```{r}
-wilcox.test(dataB$nr2 ~ dataB$geschl,     # abhängige Variable ~ unabhängige Variable
+wilcox.test(dataB$nr2 ~ dataB$geschl_faktor,     # abhängige Variable ~ unabhängige Variable
             paired = FALSE,               # Stichproben sind unabhängig
             alternative = "greater",      # einseitige Testung, und zwar so, dass Gruppe1(w)-Gruppe2(m) > 0
             conf.level = .95)             # alpha = .05
@@ -522,7 +557,7 @@ wilcox.test(dataB$nr2 ~ dataB$geschl,     # abhängige Variable ~ unabhängige V
 ```
 
 ```{r, echo=FALSE}
-wilcox <- wilcox.test(dataB$nr2 ~ dataB$geschl, paired = FALSE, alternative = "greater", conf.level = .95)
+wilcox <- wilcox.test(dataB$nr2 ~ dataB$geschl_faktor, paired = FALSE, alternative = "greater", conf.level = .95)
 ```
 
 $W$ = `r wilcox$statistic`, p = `r round(wilcox$p.value, 3)` $\rightarrow$ Ergebnis ist nicht signfikant, $H_0$ wird beibehalten.
