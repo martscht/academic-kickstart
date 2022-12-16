@@ -163,21 +163,31 @@ p_z_IQ_twoside</code></pre>
 <p><span class="math display">\[\mu = \bar{x} \pm z_{\frac{\alpha}{2}} * \sigma_{\bar{x}} = \bar{x} \pm z_{\frac{\alpha}{2}}*\frac{\sigma}{\sqrt{n}}\]</span></p>
 <p>Ein 95%-Konfidenzintervall ist somit ein Intervall, welches in 95% der Fälle beim Ziehen aus der selben Grundgesamtheit den wahren Wert <span class="math inline">\(\mu\)</span> enthält.</p>
 <p>Wenn wir ein 95%-Konfidenzintervall bestimmen wollen, brauchen wir das zugehörige Quantil aus der Standardnormalverteilung - also den <em>z</em>-Wert für <span class="math inline">\(\frac{\alpha}{2}\)</span>. Wir müssen das <span class="math inline">\(\alpha\)</span>-Niveau halbieren, da wir uns momentan beim Bilden eines zweiseitigen Konfidenzintervalles befinden. Wir haben bereits gelernt, dass man Quantile aus der Normalverteilung mit der Funktion <code>qnorm</code> erhalten kann. Die Standardnormalverteilung mitt Mittelwert von 0 und Standardabweichung von 1 ist dabei der Default, aber wir geben die Argumente zur Übung trotzdem selbst an.</p>
-<pre class="r"><code>z_quantil &lt;- qnorm(p = 1-(.05/2), mean = 0, sd = 1)
-z_quantil</code></pre>
+<pre class="r"><code>z_quantil_zweiseitig &lt;- qnorm(p = 1-(.05/2), mean = 0, sd = 1)
+z_quantil_zweiseitig</code></pre>
 <pre><code>## [1] 1.959964</code></pre>
 <p>Wir sehen, dass der Wert 1.96 2.5% der Verteilung Richtung unendlich abtrennt. Nun haben wir alle wichtigen Informationen, um ein zweiseitiges Konfidenzintervall um unseren Mittelwert zu legen.</p>
-<pre class="r"><code>positive_mean_IQ &lt;- new_mean_IQ+((z_quantil*sd_IQ)/sqrt(sample_size))
+<pre class="r"><code>positive_mean_IQ &lt;- new_mean_IQ+((z_quantil_zweiseitig*sd_IQ)/sqrt(sample_size))
 positive_mean_IQ</code></pre>
 <pre><code>## [1] 108.3948</code></pre>
-<pre class="r"><code>negative_mean_IQ &lt;- new_mean_IQ-((z_quantil*sd_IQ)/sqrt(sample_size))
+<pre class="r"><code>negative_mean_IQ &lt;- new_mean_IQ-((z_quantil_zweiseitig*sd_IQ)/sqrt(sample_size))
 negative_mean_IQ</code></pre>
 <pre><code>## [1] 101.6052</code></pre>
 <pre class="r"><code>conf_interval_IQ &lt;- c(negative_mean_IQ, positive_mean_IQ )
 conf_interval_IQ</code></pre>
 <pre><code>## [1] 101.6052 108.3948</code></pre>
-<p>In diesem Fall liegt der Schätzer für den wahren IQ Wert der Grundgesamtheit <span class="math inline">\(\mu\)</span>, aus der die Stichprobe gezogen wurde, zwischen 101.61 und 108.39. Das bedeutet, dass mit einer Wahrscheinlichkeit von 95% der wahre IQ Wert der Grundgesamtheit in unserem Konfidenzinterall 101.61 und 108.39 liegt.
-Da dieses Intervall den Populationsmittelwert unter der <span class="math inline">\(H_0\)</span> (<span class="math inline">\(\mu\)</span> <span class="math inline">\(\leq\)</span> 100) <strong>nicht</strong> enthält, würden wir die <span class="math inline">\(H_0\)</span> in diesem Fall verwerfen. Beachten Sie: Ein zweiseitiger <em>z</em>-Test bei einer Irrtumswahrscheinlichkeit <span class="math inline">\(\alpha\)</span> und der Test über ein (1-<span class="math inline">\(\alpha\)</span>)-Konfidenzintervall kommen immer zu denselben Schlussfolgerungen.</p>
+<p>In diesem Fall liegt der Schätzer für den wahren IQ Wert der Grundgesamtheit <span class="math inline">\(\mu\)</span>, aus der die Stichprobe gezogen wurde, zwischen 101.61 und 108.39. Das bedeutet, dass mit einer Wahrscheinlichkeit von 95% der wahre IQ Wert der Grundgesamtheit in unserem Konfidenzinterall 101.61 und 108.39 liegt.</p>
+<p>Das Konfidenzintervall kann auch dafür genutzt werdne, um eine Aussage über die von uns angenommenen Hypothesen zu treffen. Dafür müsste untersucht werden, ob das Intervall den angenommenen Populationsmittelwert (100 enthählt). Wir erinnern uns jedoch, dass in den Hypothesen eine Richtung vorgegeben wurde, weshalb hierfür auch ein einseitiges Konfidenzintervall benötigt werden würde.</p>
+<p>Wir wollten also testen, ob der Stichprobenmittelwert größer als der Wert 100 ist. Daher müssen in unserem Konfidenzintervall um den Stichprobenmittelwert eine untere Grenze bestimmmen, während wir es nach oben offen halten können (Richtung unendlich). Die zugehörige Gleichung ändert sich nur geringfügig. Wir müssen den z-Wert nun einseitig bestimmen und dann eben auch nur die untere Grenze unseres Intervalls.</p>
+<p><span class="math display">\[\mu = \bar{x} - z_{\alpha} * \sigma_{\bar{x}} = \bar{x} \pm z_{\alpha}*\frac{\sigma}{\sqrt{n}}\]</span></p>
+<p>Wir haben bereits gesehen, dass eine Bestimmung des z-Werts durch die Funktion <code>qnorm</code> möglich ist.</p>
+<pre class="r"><code>z_quantil_einseitig &lt;- qnorm(p = 1-.05, mean = 0, sd = 1)
+z_quantil_einseitig</code></pre>
+<pre><code>## [1] 1.644854</code></pre>
+<p>Anschließend kann die untere Grenze des Intervalls sehr simpel bestimmt werden.</p>
+<pre class="r"><code>new_mean_IQ-((z_quantil_einseitig*sd_IQ)/sqrt(sample_size))</code></pre>
+<pre><code>## [1] 102.151</code></pre>
+<p>Da das Konfidenzintervall für den Stichprobenmittelwert die 100 <strong>nicht</strong> enthält, ist die Annahme unter der <span class="math inline">\(H_0\)</span> (<span class="math inline">\(\mu \leq 100\)</span>) nicht haltbar. Daher würden wir die <span class="math inline">\(H_0\)</span> in diesem Fall verwerfen. Beachten Sie: Ein einseitiger <em>z</em>-Test bei einer Irrtumswahrscheinlichkeit <span class="math inline">\(\alpha\)</span> und die Besimmung über ein (1-<span class="math inline">\(\alpha\)</span>)-Konfidenzintervall kommen immer zu denselben Schlussfolgerungen.</p>
 <hr />
 </div>
 <div id="t-test" class="section level2">
@@ -198,7 +208,7 @@ Da dieses Intervall den Populationsmittelwert unter der <span class="math inline
 <p>In der letzten Woche haben wir bereits gelernt, dass man die Normalverteilung einer erhobenen Variable graphisch prüfen kann. In einem sog. QQ-Plot werden die unter der Normalverteilung erwarteten Quantile und die tatsächlich beobachteten Quantile in einem Streudiagramm dargestellt. Je deutlicher die Punkte auf der Geraden liegen, desto näher ist die beobachtete Verteilung an der Normalverteilung.</p>
 <pre class="r"><code>qqnorm(men.height) 
 qqline(men.height)</code></pre>
-<p><img src="/post/2020-12-11-tests-und-konfidenzintervalle_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<p><img src="/post/2020-12-11-tests-und-konfidenzintervalle_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 <p>Es sind keine weiten Abweichungen zu erkennen, weshalb wir zunächst davon ausgehen, dass die Vermutung nicht verworfen werden muss.</p>
 </div>
 <div id="signifikanz-bestimmen" class="section level3">
