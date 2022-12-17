@@ -18,39 +18,82 @@ projects: []
 expiryDate: '2023-09-15'
 publishDate: '2023-01-06'
 ---
+## Vorbereitung
+
+```{r, echo = F}
+#### Was bisher geschah: ----
+
+# Daten laden
+load(url('https://pandar.netlify.app/post/fb22.rda'))  
+
+# Nominalskalierte Variablen in Faktoren verwandeln
+fb22$geschl_faktor <- factor(fb22$geschl,
+                             levels = 1:3,
+                             labels = c("weiblich", "männlich", "anderes"))
+fb22$fach <- factor(fb22$fach,
+                    levels = 1:5,
+                    labels = c('Allgemeine', 'Biologische', 'Entwicklung', 'Klinische', 'Diag./Meth.'))
+fb22$ziel <- factor(fb22$ziel,
+                        levels = 1:4,
+                        labels = c("Wirtschaft", "Therapie", "Forschung", "Andere"))
+fb22$wohnen <- factor(fb22$wohnen, 
+                      levels = 1:4, 
+                      labels = c("WG", "bei Eltern", "alleine", "sonstiges"))
+
+# Skalenbildung
+
+fb22$prok2_r <- -1 * (fb22$prok2 - 5)
+fb22$prok3_r <- -1 * (fb22$prok3 - 5)
+fb22$prok5_r <- -1 * (fb22$prok5 - 5)
+fb22$prok7_r <- -1 * (fb22$prok7 - 5)
+fb22$prok8_r <- -1 * (fb22$prok8 - 5)
+
+# Prokrastination
+fb22$prok_ges <- fb22[, c('prok1', 'prok2_r', 'prok3_r',
+                          'prok4', 'prok5_r', 'prok6',
+                          'prok7_r', 'prok8_r', 'prok9', 
+                          'prok10')] |> rowMeans()
+# Naturverbundenheit
+fb22$nr_ges <-  fb22[, c('nr1', 'nr2', 'nr3', 'nr4', 'nr5',  'nr6')] |> rowMeans()
+fb22$nr_ges_z <- scale(fb22$nr_ges) # Standardisiert
+
+# Weitere Standardisierugen
+fb22$nerd_std <- scale(fb22$nerd)
+fb22$neuro_std <- scale(fb22$neuro)
+
+```
+
+Laden Sie zunächst den Datensatz `fb22` von der pandar-Website. Alternativ können Sie die fertige R-Daten-Datei [<i class="fas fa-download"></i> hier herunterladen](/post/fb22.rda). Beachten Sie in jedem Fall, dass die [Ergänzungen im Datensatz](/post/gruppenvergleiche-abhaengig/#prep) vorausgesetzt werden. Die Bedeutung der einzelnen Variablen und ihre Antwortkategorien können Sie dem Dokument [Variablenübersicht.docx](/post/variablen.pdf) entnehmen.
+
+Prüfen Sie zur Sicherheit, ob alles funktioniert hat: 
+
+```{r}
+dim(fb22)
+str(fb22)
+```
+
+Der Datensatz besteht aus `r nrow(fb22)` Zeilen (Beobachtungen) und `r ncol(fb22)` Spalten (Variablen). Falls Sie bereits eigene Variablen erstellt haben, kann die Spaltenzahl natürlich abweichen.
 
 
 ```{r setup, include=FALSE}
 knitr::opts_chunk$set(error = TRUE)
+```
+
+Für die Beantwortung der Fragen werden einige Pakete benötigt, die wir bereits durchgeführt haben.
+
+```{r}
 library(psych)
 library(car)
 library(effsize)
 ```
-
 
 ## Aufgabe 1
 Unterscheidet sich im Durchschnitt die Angabe von Psychologiestudierenden zu ihrer Prokrastinationstendenz, wenn sie positiv formulierte Items (prok1, prok4, prok6, prok9, prok10) beantworten im Vergleich zu negativ formulierten Items (prok2, prok3, prok5, prok7 und prok8)? 
 
 <details><summary>Lösung</summary>
 
-```{r echo=F}
-load("fb22.rda")
-```
 
-```{r eval=FALSE}
-setwd("...")
-load("fb22.rda")
-```
-
-Die Skala "Prokrastination" soll bei hohen Werten eine höhere Prokrastinationstendenz darstellen. Um zu vergleichen, ob die Zustimmung je nach Itemformulierung (pos. vs. neg.) anders ausfällt, müssen wir die negativ formulierten Items zunächst rekodieren (wurde im Seminar bereits durchgeführt).
-
-```{r}
-fb22$prok2_r <- -1 * (fb22$prok2 - 5)
-fb22$prok3_r <- -1 * (fb22$prok3 - 5)
-fb22$prok5_r <- -1 * (fb22$prok5 - 5)
-fb22$prok7_r <- -1 * (fb22$prok7 - 5)
-fb22$prok8_r <- -1 * (fb22$prok8 - 5)
-```
+Die Skala "Prokrastination" soll bei hohen Werten eine höhere Prokrastinationstendenz darstellen. Um zu vergleichen, ob die Zustimmung je nach Itemformulierung (pos. vs. neg.) anders ausfällt, müssen wir die rekodierten Versionen der Variablen nehmen (wurde im Seminar bereits durchgeführt).
 
 Anschließend bilden wir für jede Person ihren Mittelwert auf den positiv formulierten Items sowie ihren Mittelwert auf den negativ formulierten Items.
 

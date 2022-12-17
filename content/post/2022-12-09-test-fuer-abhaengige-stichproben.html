@@ -9,7 +9,7 @@ tags:
   - abhängige Stichproben
 subtitle: ''
 summary: ''
-authors: [koehler, buchholz, irmer]
+authors: [koehler, buchholz, irmer, nehler]
 lastmod: '2022-12-15T16:00:20+01:00'
 featured: no
 header:
@@ -18,25 +18,17 @@ header:
 projects: []
 ---
 
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
+<p>Nachdem wir uns mit <strong>unabhängige Stichproben</strong> in der (<a href="/post/gruppenvergleiche-unabhaengig">letzten Sitzung</a>) beschäftigt haben wollen wir diesmal mit abhängigen Stichproben beschäftigen. Anwendungen dafür in der Praxis sind beispielsweise Zwillinge, Paare oder auch Messwiederholungen.</p>
 <details>
 <summary>
 Kernfragen der Lehreinheiten über Gruppenvergleiche
 </summary>
 <ul>
-<li>Wie fertige ich Deskriptivstatistiken (Grafiken, Kennwerte) zur Veranschaulichung des Unterschieds zwischen zwei Gruppen an?</li>
-</ul>
-<p><strong>unabhängige Stichproben</strong> (<a href="/post/gruppenvergleiche-unabhaengig">letzte Sitzung</a>) <span class="math inline">\(\rightarrow\)</span> bereits erledigt!</p>
-<ul>
-<li>Was sind Voraussetzungen des <em>t</em>-Tests und wie prüfe ich sie? <span class="math inline">\(\rightarrow\)</span> bereits erledigt!</li>
-<li>Wie führe ich einen <em>t</em>-Test in R durch? <span class="math inline">\(\rightarrow\)</span> bereits erledigt!</li>
-<li>Wie berechne ich die Effektstärke Cohen’s <em>d</em>? <span class="math inline">\(\rightarrow\)</span> bereits erledigt!</li>
-<li>Wie führe ich den Wilcoxon-Tests (auch “Mann-Whitney-Test”, “U-Test”, “Mann-Whitney-U-Test”, “Wilcoxon-Rangsummentest”) in R durch? <span class="math inline">\(\rightarrow\)</span> bereits erledigt!</li>
-<li>Wie führe ich den Vierfelder-Chi-Quadrat-Tests in R durch? <span class="math inline">\(\rightarrow\)</span> bereits erledigt!</li>
-</ul>
-<p><strong>abhängige Stichproben</strong> (diese Sitzung)</p>
-<ul>
+<li>Wie fertige ich Deskriptivstatistiken (Grafiken, Kennwerte) zur Veranschaulichung des Unterschieds zwischen zwei Gruppen an?<br />
+</li>
 <li>Was sind Voraussetzungen des abhängigen <em>t</em>-Tests und wie prüfe ich sie?</li>
 <li>Wie führe ich einen abhängigen <em>t</em>-Test in R durch?</li>
 <li>Wie berechne ich den standardisierten Populationseffekt für abhängige Stichproben?<br />
@@ -46,22 +38,53 @@ Kernfragen der Lehreinheiten über Gruppenvergleiche
 </ul>
 </details>
 <hr />
-<div id="aufbau-der-sitzungen-zu-gruppenvergleichen" class="section level2">
-<h2>Aufbau der Sitzungen zu Gruppenvergleichen</h2>
-<ol style="list-style-type: decimal">
-<li>Fragestellung A: Erreichen Studentinnen und Studenten im Nerdiness Personality Attributes-Test im Durchschnitt gleich hohe Testwerte? (<em>t-Test und Cohen’s d für unabhängige Stichproben</em>) <span class="math inline">\(\rightarrow\)</span> bereits erledigt!</li>
-<li>Fragestellung B: Stimmen Studentinnen dem Item “Ich denke immer darüber nach, wie meine Taten sich auf die Umwelt auswirken” stärker zu als Studenten? (<em>Wilcoxon-Test für unabhängige Stichproben</em>) <span class="math inline">\(\rightarrow\)</span> bereits erledigt!</li>
-<li>Fragestellung C: Haben Studierende mit Wohnort in Uninähe (Frankfurt) mit gleicher Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt? (<em>Vierfelder-<span class="math inline">\(\chi^2\)</span>-Test</em>) <span class="math inline">\(\rightarrow\)</span> bereits erledigt!</li>
-<li>Fragestellung D: Haben Psychologiestudierende vergleichbare Werte auf den Skalen Neurotizismus und Extraversion? (<em>t-Test und Cohen’s d für abhängige Stichproben</em>)</li>
-<li>Fragestellung E: Sind jüngere Geschwister kooperativer als ältere? (<em>Wilcoxon-Test für abhängige Stichproben</em>)</li>
-</ol>
-<p>Fragen 1.- 3. wurden in der letzte Sitzung behandelt. In dieser Sitzung schauen wir uns Fragestellung 4. &amp; 5. an.</p>
+<div id="prep" class="section level2">
+<h2>Vorbereitende Schritte</h2>
+<p>Den Datensatz haben wir bereits unter diesem <a href="/post/fb22.rda"><i class="fas fa-download"></i> Link heruntergeladen</a> und können ihn über den lokalen Speicherort einladen oder Sie können Ihn direkt mittels des folgenden Befehls aus dem Internet in das Environment bekommen. In den vorherigen Tutorials und den dazugehörigen Aufgaben haben wir bereits Änderungen am Datensatz durchgeführt, die hier nochmal aufgeführt sind, um den Datensatz auf dem aktuellen Stand zu haben:</p>
+<pre class="r"><code>#### Was bisher geschah: ----
+
+# Daten laden
+load(url(&#39;https://pandar.netlify.app/post/fb22.rda&#39;))  
+
+# Nominalskalierte Variablen in Faktoren verwandeln
+fb22$geschl_faktor &lt;- factor(fb22$geschl,
+                             levels = 1:3,
+                             labels = c(&quot;weiblich&quot;, &quot;männlich&quot;, &quot;anderes&quot;))
+fb22$fach &lt;- factor(fb22$fach,
+                    levels = 1:5,
+                    labels = c(&#39;Allgemeine&#39;, &#39;Biologische&#39;, &#39;Entwicklung&#39;, &#39;Klinische&#39;, &#39;Diag./Meth.&#39;))
+fb22$ziel &lt;- factor(fb22$ziel,
+                        levels = 1:4,
+                        labels = c(&quot;Wirtschaft&quot;, &quot;Therapie&quot;, &quot;Forschung&quot;, &quot;Andere&quot;))
+
+fb22$wohnen &lt;- factor(fb22$wohnen, 
+                      levels = 1:4, 
+                      labels = c(&quot;WG&quot;, &quot;bei Eltern&quot;, &quot;alleine&quot;, &quot;sonstiges&quot;))
+
+# Skalenbildung
+
+fb22$prok2_r &lt;- -1 * (fb22$prok2 - 5)
+fb22$prok3_r &lt;- -1 * (fb22$prok3 - 5)
+fb22$prok5_r &lt;- -1 * (fb22$prok5 - 5)
+fb22$prok7_r &lt;- -1 * (fb22$prok7 - 5)
+fb22$prok8_r &lt;- -1 * (fb22$prok8 - 5)
+
+# Prokrastination
+fb22$prok_ges &lt;- fb22[, c(&#39;prok1&#39;, &#39;prok2_r&#39;, &#39;prok3_r&#39;,
+                          &#39;prok4&#39;, &#39;prok5_r&#39;, &#39;prok6&#39;,
+                          &#39;prok7_r&#39;, &#39;prok8_r&#39;, &#39;prok9&#39;, 
+                          &#39;prok10&#39;)] |&gt; rowMeans()
+# Naturverbundenheit
+fb22$nr_ges &lt;-  fb22[, c(&#39;nr1&#39;, &#39;nr2&#39;, &#39;nr3&#39;, &#39;nr4&#39;, &#39;nr5&#39;,  &#39;nr6&#39;)] |&gt; rowMeans()
+fb22$nr_ges_z &lt;- scale(fb22$nr_ges) # Standardisiert
+
+# Weitere Standardisierugen
+fb22$nerd_std &lt;- scale(fb22$nerd)
+fb22$neuro_std &lt;- scale(fb22$neuro)</code></pre>
 <hr />
 </div>
 <div id="fragestellung-d-haben-psychologiestudierende-vergleichbare-werte-auf-den-skalen-neurotizismus-und-extraversion" class="section level2">
 <h2>4. Fragestellung D: Haben Psychologiestudierende vergleichbare Werte auf den Skalen Neurotizismus und Extraversion?</h2>
-<pre class="r"><code>setwd(&quot;...&quot;)
-load(&quot;fb22.rda&quot;)</code></pre>
 <p>Die Werte auf beiden Variablen sind insofern voneinander abhängig, dass jede Person die Fragen zu Neurotizismus und die Fragen zu Extraversion beantwortet hat (→ Messwiederholung). Es gibt daher Faktoren innerhalb der Person, die einen gemeinsamen Teil der Varianz erzeugen.</p>
 <p>Anmerkung: Wir fragen hier bewusst nicht, ob Psychologiestudierende neurotischer sind als extravertiert. Dies würde voraussetzen, dass die Items der beiden Skalen vergleichbar schwierig sind.</p>
 <p>Wir wollen im Folgenden lediglich die Frage beantworten, ob die Differenz zwischen den beiden Skalen (also die Mittelwerte für Neurotizismus und Extraversion) statistisch bedeutsam ist.</p>
@@ -94,7 +117,7 @@ hist(fb22$extra,
 abline(v=mean(fb22$extra), 
        lty=2, 
        lwd=2)</code></pre>
-<p><img src="/post/2022-12-09-test-fuer-abhaengige-stichproben_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
+<p><img src="/post/2022-12-09-test-fuer-abhaengige-stichproben_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
 <pre class="r"><code>par(mfrow=c(1,1)) #Zurücksetzen des Plotfensters, zuvor hatten wir &quot;dev.off()&quot; kennengelernt</code></pre>
 <p><code>abline</code> fügt eine Linie in eine Grafik ein. Mit dem Zusatzargument <code>v</code> geben wir eine vertikale Linie in den Plot (hier den Mittelwert). Insgesamt scheinen sich die beiden Verteilungen zu unterscheiden: Der Mittelwert von Neurotizismus liegt höher als der von Extraversion.</p>
 </div>
@@ -144,10 +167,10 @@ curve(dnorm(x, mean=mean(difference), sd=sd(difference)),
       col=&quot;blue&quot;, 
       lwd=2, 
       add=T)</code></pre>
-<p><img src="/post/2022-12-09-test-fuer-abhaengige-stichproben_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+<p><img src="/post/2022-12-09-test-fuer-abhaengige-stichproben_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
 <pre class="r"><code>qqnorm(difference)
 qqline(difference, col=&quot;blue&quot;)</code></pre>
-<p><img src="/post/2022-12-09-test-fuer-abhaengige-stichproben_files/figure-html/unnamed-chunk-6-2.png" width="672" /></p>
+<p><img src="/post/2022-12-09-test-fuer-abhaengige-stichproben_files/figure-html/unnamed-chunk-5-2.png" width="672" /></p>
 <p><span class="math inline">\(\Rightarrow\)</span> Differenzen sehen normalverteilt aus, es wird also Normalverteilung angenommen. Somit sind alle drei Voraussetzungen für die Durchführung des <em>t</em>-Tests für abhängige Stichproben erfüllt.</p>
 </div>
 <div id="inferenzstatistik-t-test-für-abhängige-stichproben" class="section level3">
@@ -185,12 +208,12 @@ qqline(difference, col=&quot;blue&quot;)</code></pre>
 ## 
 ## data:  fb22$extra and fb22$neuro
 ## t = -3.2465, df = 158, p-value = 0.001427
-## alternative hypothesis: true mean difference is not equal to 0
+## alternative hypothesis: true difference in means is not equal to 0
 ## 95 percent confidence interval:
 ##  -0.39703668 -0.09667401
 ## sample estimates:
-## mean difference 
-##      -0.2468553</code></pre>
+## mean of the differences 
+##              -0.2468553</code></pre>
 <p><span class="math inline">\(\rightarrow\)</span> <em>t</em>(158) = 3.25, <em>p</em> &lt; .01 <span class="math inline">\(\rightarrow\)</span> signifikant, H0 wird verworfen.</p>
 </div>
 <div id="schätzung-des-standardisierten-populationseffekts" class="section level3">
@@ -306,7 +329,7 @@ hist(dataKooperation[, &quot;Aelter&quot;],
 abline(v=mean(dataKooperation[, &quot;Aelter&quot;]), 
        lty=2, 
        lwd=2)</code></pre>
-<p><img src="/post/2022-12-09-test-fuer-abhaengige-stichproben_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+<p><img src="/post/2022-12-09-test-fuer-abhaengige-stichproben_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
 <pre class="r"><code>par(mfrow=c(1,1)) #Zurücksetzen des Plotfensters</code></pre>
 <p>Die Histogramme sind via <code>xlim</code> so gewählt, dass sie die gleiche x-Achse aufweisen und somit ausgesprochen gut vergleichbar sind. <code>abline</code> fügt eine Linie in eine Grafik ein. Mit dem Zusatzargument <code>v</code> geben wir eine vertikale Linie in den Plot (hier den Mittelwert). Insgesamt scheinen sich die beiden Verteilungen etwas zu unterscheiden!</p>
 </div>
@@ -356,10 +379,10 @@ curve(dnorm(x, mean=mean(difference), sd=sd(difference)),
       col=&quot;blue&quot;, 
       lwd=2, 
       add=T)</code></pre>
-<p><img src="/post/2022-12-09-test-fuer-abhaengige-stichproben_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
+<p><img src="/post/2022-12-09-test-fuer-abhaengige-stichproben_files/figure-html/unnamed-chunk-15-1.png" width="672" /></p>
 <pre class="r"><code>qqnorm(difference)
 qqline(difference, col=&quot;blue&quot;)</code></pre>
-<p><img src="/post/2022-12-09-test-fuer-abhaengige-stichproben_files/figure-html/unnamed-chunk-16-2.png" width="672" /></p>
+<p><img src="/post/2022-12-09-test-fuer-abhaengige-stichproben_files/figure-html/unnamed-chunk-15-2.png" width="672" /></p>
 <p><span class="math inline">\(\Rightarrow\)</span> Differenzen sehen nicht normalverteilt aus.</p>
 <p>Da die letzte Voraussetzung nicht erfüllt ist, führen wir einen Wilcoxon-Test (für abhängige Stichproben) durch.</p>
 <p>Auch für diesen Test gilt es, Voraussetzungen zu untersuchen:</p>
