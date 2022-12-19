@@ -87,19 +87,20 @@ Here are four main sources of help for your script:
 This is how you deal with the `help` function.  
 
 `help(<function>)`
+
 `?<function>`
 
-```{r echo=FALSE}
+```{r eval=FALSE, message=FALSE}
 help.start()
 ```
  
-Use apropos(<topic>) in case you do not know the name of a specific function.
+Use `apropos(<topic>)` in case you do not know the name of a specific function.
 
 ```{r}
 apropos('anova')
 ```
 
-Use example(<topic>) if you want to see an example. 
+Use `example(<topic>)` if you want to see an example. 
 
 ```{r include=FALSE}
 example('boxplot') #Get an example.
@@ -239,6 +240,7 @@ example1[,4] <- c(.5,.6,.7,.7,.8,.9,.9,.8,.5,.7)
 example1[,5] <- c("B","A","B","B","A","B","B","A","B","A")
 example1
 ```
+Side note: if you want to learn more about creating data frames, have a look at our `R` [crash course](/post/r-crash-kurs), starting from the block "Daten".
 
 The column "block_number" contains, well, the block number. Lines with `NA` are practice trials. We can remove them like this:
 ```{r}
@@ -312,7 +314,7 @@ example2$accuracy[(example2$stimulus == "V" & example2$response_type == "V") | (
 example2$accuracy[is.na(example2$accuracy)] <- 0 # Now let us fill up with zeros for the incorrect responses.
 example2
 ```
-Once again, check if all data are as they are supposed to be! The "table" function helps you here.  
+Once again, check if all data are as they are supposed to be! The `table()` function helps you here.  
 If everything looks good, this would be a good moment to save your data frame to disk, e.g., in a `.csv` file.
 
 ## III. Aggregate raw data  
@@ -326,7 +328,7 @@ Sometimes, we need to exclude outliers before we average raw data. For example, 
 my_data <- group_by(my_data, participant)
 ```
   You may be disappointed: Your data frame looks as it has looked before. However, all consecutive commands will be executed within the trials belonging to the same participant. Later, use `ungroup` if you do not want grouping anymore.  
-* Create a new column that contains your z-transformed response times. There are plenty of ways to do the z-transform. I like the function `scale`.  
+* Create a new column that contains your z-transformed response times. There are plenty of ways to do the z-transform. I like the function `scale()`.  
 * Delete all rows that contain a z-value that exceeds your criterion (e.g., 3). You already know how to do this! Check out the "clean up raw data" section for inspiration!  
 
 In a similar way, you can also remove very fast responses, e.g. < 50 ms. In this case, you can work directly with the raw response times, no need for transforms!  
@@ -378,12 +380,12 @@ agg_example3 <- agg_example3[order(agg_example3$participant),]
 agg_example3
 ```
 
-When the aggregation of your example data frame works correctly, turn to the real raw data. Once your done, check again if everything worked correctly. I suggest that you think of all possible cases/constellations and check if they worked for a few randomly selected subjects.
-Again, the "table" function is your friend here!
+When the aggregation of your example data frame works correctly, turn to the real raw data. Once you're done, check again if everything worked correctly. I suggest that you think of all possible cases/constellations and check if they worked for a few randomly selected subjects.
+Again, the `table()` function is your friend here!
 
 Once you have aggregated your raw data, you may still need to do a few adjustments to your data frame in order to get prepared for your further analyses.  
 
-One common dependent variable we use in memory research is the recognition probability (Pr) in recognition tests. This is the difference of hit rates and false alarm rates. Sometimes, we have different conditions during learning (e.g., expected or surprising objects) and thus, you end up with hit rates for expected and surprising objects. If your new objects do not allow you to separate between expected and surprising objects, there will be just one type of false alarm rate. We can still calculate Pr by using the hit rates of each condition and subtracting the same false alarm rate in both cases. I will show you how:
+One common dependent variable we use in memory research is the **recognition probability (Pr)** in recognition tests. This is the difference of hit rates and false alarm rates. Sometimes, we have different conditions during learning (e.g., expected or surprising objects) and thus, you end up with hit rates for expected and surprising objects. If your new objects do not allow you to separate between expected and surprising objects, there will be just one type of false alarm rate. We can still calculate **Pr** by using the hit rates of each condition and subtracting the same false alarm rate in both cases. I will show you how:
 
 We first create an example data frame (already aggregated).
 ```{r}
@@ -399,14 +401,15 @@ example4
 ```
 
 Let us group participants because everybody has an individual false alarm rate.
-```{r}
-library(dplyr) # This library is our friend for so many things!
+
+```{r, message=FALSE}
+library(dplyr) # This library is our friend for so many things! Remember to install the package beforehand, if you have never used it before!
 
 # Group by participants (use "ungroup" to remove all grouping).
 example4 <- group_by(example4, participant)
 ```
 
-And now, let us calculate Pr.
+And now, let us calculate **Pr**.
 Do not forget that, for new items, we currently have accuracy, not false alarm rate.
 ```{r}
 # For false alarm rates, we use 1 - the value in the third row. Thanks to grouping, this is done individually for all subjects.
@@ -414,7 +417,7 @@ example4 <- mutate(example4, Pr = accuracy - (1-accuracy[3])) # mutate is also a
 example4
 ```
 
-Pr values for new items do not make any sense, remove values, so let us remove them.
+**Pr** values for new items do not make any sense, remove values, so let us remove them.
 ```{r}
 example4$Pr[example4$stim_type == "new"] <- NA
 example4
@@ -449,17 +452,20 @@ example5[,3] <- c(.11, .3, .13, .5, .21, .99, .08, .35, .14, .71, .03, .99)
 example5
 ```
 
-Maybe we should start with a short recap of descriptive analyses? What's the aim of it and what do we need it for? Well, the aim of descriptive analyses is to summarize, describe, and visualise your data, so that you and others understand it better, get an overview, and a first idea of its quality.  
+Maybe we should start with a short recap of descriptive analyses? What's the aim of it and what do we need it for? Well, the aim of descriptive analyses is to summarize, describe, and visualise your data, so that you and others understand it better, get an overview, and a first idea of its quality. 
 
-The most convenient function to get an overview is probably the `summary()` function. It gives you the Minimum, 1st quartile, median, mean, 3rd quartile, maximum of all and only numeric variables (everything else is displayed as NA). Tip: if you have a large number of variables, add the `transpose = TRUE` argument for a better display.
+To get a more in-depth overview of descriptive statistics, check out the tutorials on it on `pandaR`! There is one for [categorical and ordinally scaled variables](/post/deskriptiv-nominal/), as well as for [metric variables](/post/deskriptiv-intervall/).
+
+The most convenient function to get an overview is probably the `summary()` function. It gives you the minimum, 1st quartile, median, mean, 3rd quartile, maximum of all and only numeric variables (everything else is displayed as NA). Tip: if you have a large number of variables, add the `transpose = TRUE` argument for a better display.
 ```{r}
 summary(example5) 
 ```
 
-So far so good, but this doesn't really make sense. It would be much more interesting to look at the Pr values for both conditions separately. So let's group the data by condition.
+So far so good, but this doesn't really make sense. It would be much more interesting to look at the **Pr** values for both conditions separately. So let's group the data by condition.
 ```{r}
 by(example5, example5$stim_type, summary) # It's nice to have both steps in just one line 
 ```
+
 I just want to mention here that if you have your data in the wide format, you can skip the grouping step and do instead:  
 ```{r}
 # Reshape to wide format.
@@ -470,35 +476,41 @@ example5_wide
 # Summarize the wide format data frame.
 summary(example5_wide)
 ```
+**FYI**: "wide" means that all data for each participant is in one row of the data frame, whereas in the "long" format you can have several rows for each participants, for example if you have the same variables for different measurement times. 
 
-Another possibility for inspecting your data is with the package `summarytools`. Especially interesting for descriptive analyses are the functions:  
-1. `descr()` for descriptive statistics  
-2. `dfSummary()` for dataframe summaries  
+Another possibility for inspecting your data is with the package `summarytools`. Especially interesting for descriptive analyses are the functions:
+1. `descr()` for descriptive statistics
+2. `dfSummary()` for dataframe summaries
 
-We won't do that here but just for you to know, you could also use:  
-3. `freq()` for frequency tables  
-4. `ctable()` for cross-tabulations  
+We won't do that here but just for you to know, you could also use:
+3. `freq()` for frequency tables
+4. `ctable()` for cross-tabulations
 ```{r}
-# install.packages("summarytools") 
+# install.packages("summarytools")
 # Uncomment if you have to install it the first time. Btw, it is common courtesy to include `install.packages()` functions only commented, i.e. `#install.packages()`. Otherwise you'd expect people who use your script to either check every line for unnecessary installations or to install packages they might already have installed. Both would just waste precious time.
-#library(summarytools)
-#descr(example5_wide, stats = "common") # Most common descriptive statistics.
+library(summarytools)
+descr(example5_wide, stats = "common") # Most common descriptive statistics.
 ```
 
 ```{r}
-# dfSummary(example5_wide) 
+dfSummary(example5_wide)
 ```
+In case you run into problems while installing or unpacking the `summarytools()` package, do not worry! Depending on your operating system, you may need to install different dependencies that allow your `R` to read and unpack the package. On [this page](https://cran.r-project.org/web/packages/summarytools/index.html) you will find a detailed description of the package and all its functions, as well as hints for downloading it correctly. If you are using a Mac Computer, it might also be necessary to download a seperate program, such as [XQuartz](https://www.xquartz.org).
+This could also be good practice in working on problems with your `R` and trying to find a suitable solution online.
+
 
 ### Confidence intervals
 
-Most of the time we are interested whether there is a difference between two conditions and if it is induced by our experimental manipulation. To get a first idea if there could be a difference, you can plot the mean of the according conditions with error bars representing the 95% confidence interval (CI). Usually we look at the 95% CI, sometimes 99%.   
+Most of the time we are interested whether there is a difference between two conditions and if it is induced by our experimental manipulation. To get a first idea of if there could be a difference between the means of your two conditions, you can plot the mean of the according conditions with error bars representing the 95% confidence interval (CI). Usually we look at the 95% CI, sometimes 99%.   
 Short recap of what a CI is? In case of a 95% CI you have to imagine that in 95 out 100 samples, the true value of the mean will lie in between this interval.   
-One thing you should consider here is whether you have a between- or within-subjects design. In a within-subjects design, the test you apply usually accounts for the participant variability only and so, you don't need the between-subjects variance. That is, the between-subjects variance has to be removed and that is done by normalizing the data. In consequence the CIs around the means appear differently and mostly smaller compared to the CIs in between-subjects designs.  
+One thing you should consider here is whether you have a between- or within-subjects design. In a within-subjects design, the test you apply usually accounts for the participant variability only and so, you don't need the between-subjects variance. That is, the between-subjects variance has to be removed and that is done by normalizing the data. In consequence the CIs around the means appear differently and mostly smaller compared to the CIs in between-subjects designs.
+
+For a more detailed description of how to investigate differences between two groups, check out the tutorial on [tests for independent groups](/post/gruppenvergleiche-unabhaengig/) or [this one for dependent groups](/post/gruppenvergleiche-abhaengig/). To get more information on the basics of distributions and confidence intervals, check out [this tutorial](/post/tests-und-konfidenzintervalle/).
 
 **Between-subjects Design**  
-An easy way to get all the information we need is to use the function `summarySE` from the package `Rmisc`. It will provide you with the standard deviation, standard error of the mean, and a (default 95%) confidence interval.  
+An easy way to get all the information we need is to use the function `summarySE()` from the package `Rmisc`. It will provide you with the standard deviation, standard error of the mean, and a (default 95%) confidence interval.  
 
-```{r}
+```{r, message = F}
 # install.packages("Rmisc")
 library(Rmisc)
 
@@ -519,7 +531,7 @@ ggplot(Easyinfo, aes(x=stim_type, y=Pr, colour=stim_type)) + # Here you specify 
 ```
 
 Another very easy way to get the same plot (but with less info and way uglier):  
-```{r}
+```{r, message = F}
 # install.packages("gplots")
 library(gplots)
 plotmeans(Pr ~ stim_type, data = example5)
@@ -529,8 +541,8 @@ plotmeans(Pr ~ stim_type, data = example5)
 **Within-subjects Design**  
 One way to construct CIs in within-subjects designs was proposed by [Cousineau (2005)](https://www.tqmp.org/RegularArticles/vol01-1/p042/) and was advanced by [Morey (2005)](https://www.tqmp.org/RegularArticles/vol04-2/p061/). His approach suggests to **normalize** the data by subtracting the participant's mean from each observation. Then, the normalized data should be used to build confidence intervals with a similar method as for between subjects which also takes the number of observations into account.   
   
-A handy way to calculate the within-subjects CI based on Cousineau is using the function `cm.ci` from the package ``tkmisc`. The only requirement here is that your data are in a wide fromat and contain only the values of the two conditions. In this example we can use the data frame `example5_wide`:      
-```{r}
+A handy way to calculate the within-subjects CI based on Cousineau is using the function `cm.ci` from the package `tkmisc`. The only requirement here is that your data are in a wide format and contain only the values of the two conditions. In this example we can use the data frame `example5_wide`:      
+```{r, message=FALSE}
 # install.packages("remotes")
 # remotes::install_github("TKoscik/tk.r.misc")
 library(tkmisc)
@@ -543,6 +555,7 @@ CI_within = tibble::rownames_to_column(CI_within, "stim_type") # Change "column 
 CI_within$Pr = Easyinfo$Pr # Add the mean values. Also needed for the visuals.
 CI_within
 ```
+
 Of course we want to visually inspect these new CIs:  
 ```{r}
 ggplot(CI_within, aes(x=stim_type, y=Pr, colour=stim_type)) + 
@@ -554,7 +567,8 @@ ggplot(CI_within, aes(x=stim_type, y=Pr, colour=stim_type)) +
 
 ### Data visualisation magic
 
-For plotting I recommend the package [ggplot2](https://raw.githubusercontent.com/rstudio/cheatsheets/master/pngs/thumbnails/data-visualization-cheatsheet-thumbs.png) which has many helpful functions for data visualization and it also gives you the freedom to individualize the plots and to change the  parameters the way you want. 
+For plotting I recommend the package [ggplot2](https://raw.githubusercontent.com/rstudio/cheatsheets/master/pngs/thumbnails/data-visualization-cheatsheet-thumbs.png) which has many helpful functions for data visualization and it also gives you the freedom to individualize the plots and to change the  parameters the way you want. There is also a seperate [tutorial](/extras/#ggplotting) on `pandaR` that gives an in-depth description of the `ggplot2` package and many of its functions.
+
 
 #### Boxplots
 
@@ -574,9 +588,9 @@ ggplot(example5, aes(stim_type, Pr, fill=stim_type)) + # `fill=` assigns differe
 
 #### Adding titles and labels 
 
-Awesome -- we've now got a plot clearly comparing the recognition probability (Pr) of our two different stimulus types. Now that we have that, we might also want to change the axis labels and legend titles to something prettier and more descriptive than the original variable names. We might also want to add a title.
+Awesome -- we've now got a plot clearly comparing the recognition probability (**Pr**) of our two different stimulus types. Now that we have that, we might also want to change the axis labels and legend titles to something prettier and more descriptive than the original variable names. We might also want to add a title.
 
-One way of achieving this is by using ggplot's labs() function. We can simply "add" this to our existing plotting code. For example:
+One way of achieving this is by using `ggplot`'s `labs()` function. We can simply "add" this to our existing plotting code. For example:
 ```{r}
 ggplot(example5, aes(stim_type, Pr, fill=stim_type)) + 
   geom_boxplot() + 
@@ -613,6 +627,7 @@ Now we have plots that make reasonable sense for any reader from a quick glance,
 Of course, there are many, many other ways to customise your data visualisation to your heart's content -- including changing background colours, [text size and positions](https://ggplot2.tidyverse.org/reference/theme.html) of axis labels and titles, and using a colourblind-friendly colour scheme. Some of these things can be very handy, for example, to produce [APA-formatted figures](http://jenrichmond.rbind.io/post/apa-figures/) suitable for inclusion in theses and papers. 
 
 #### Spaghetti plots
+
 Sometimes we want to visualise longitudinal data or we want to show which datapoints in two different conditions belong to the same participant. Therefore, we just add the `geom_line()` extension to what we already have created.  
 **BUT** keep in mind that too many lines (>6) can be confusing. In that case you might consider to create separate plots.  
 ```{r}
@@ -633,7 +648,6 @@ ggplot(example5, aes(stim_type, Pr, fill=stim_type)) +
   scale_colour_gradientn(colours=rainbow(6)) # You can specify the color palette you want to use for the lines. 
 
 ```
-
 
 #### Fancy Barplots
 
@@ -666,12 +680,12 @@ ggplot(example6, aes(animal, fill=animal)) +
    "Animal") 
 ```
 
-Nice!! - naturally, the **Otter** is clearly the [most favourite animal!](https://i.kym-cdn.com/photos/images/original/001/550/716/eff.jpg)
+Nice!! -- naturally, the **Otter** is clearly the [most favourite animal!](https://i.kym-cdn.com/photos/images/original/001/550/716/eff.jpg)
 
 
-#### Visualising correlations with scatter plots
+#### Visualizing correlations with scatter plots
 
-To demonstrate how we can visualise correlation, let us consider a second continuous variable -- reaction time (rt) -- in addition to our existing continuous variable Pr.
+To demonstrate how we can visualize correlation, let us consider a second continuous variable -- reaction time (**rt**) -- in addition to our existing continuous variable **Pr**.
 
 ```{r}
 example7 <- example5
@@ -705,22 +719,24 @@ ggplot(example7, aes(x=Pr, y=rt, color=stim_type, shape=stim_type)) +
   geom_smooth(method=lm, aes(fill=stim_type))
 ```
 
-As we can see here, this visualisation is quite informative, reflecting that the correlation between recognition probability and reaction time is of the same direction between the two stimulus types, and also echoing the previous boxplots that revealed recognition probability to be higher for expected stimuli than for surprising stimuli.
+As we can see here, this visualization is quite informative, reflecting that the correlation between recognition probability and reaction time is of the same direction between the two stimulus types, and also echoing the previous boxplots that revealed recognition probability to be higher for expected stimuli than for surprising stimuli.
 
-Here, taking a closer look at the relationship between our two continuous variables assessed revealed that they were of a similar nature between the levels of our condition (stimulus type). That is, for both stimulus conditions, Pr and rt were negatively correlated, as was congruent with the overall relationship suggested by our first scatterplot.
+Here, taking a closer look at the relationship between our two continuous variables assessed, revealed that they were of a similar nature between the levels of our condition (stimulus type). That is, for both stimulus conditions, **Pr** and **rt** were negatively correlated, as was congruent with the overall relationship suggested by our first scatterplot.
 
-In less straightforward cases, simply assessing relationships between two variables without considering subgroups, as we'd done in the first scatterplot, can be misleading. (See [Simpson's Paradox] (https://rpubs.com/shampjeff/blog_post_2).) Such scenarios highlight why it can be useful -- and important -- to break down your visualisation by subgroups through harnessing the power of R!
+In less straightforward cases, simply assessing relationships between two variables without considering subgroups, as we'd done in the first scatterplot, can be misleading (See [Simpson's Paradox](https://rpubs.com/shampjeff/blog_post_2)). Such scenarios highlight why it can be useful -- and important -- to break down your visualisation by subgroups through harnessing the power of `R`!
+
 
 ## V. Inferential analysis  
 
 Before starting data analysis, it is very important to check if statistical assumptions are met. Yes, okay... but why? the answer is that the so called "parametric tests" (e.g., ANOVA, t-test, regression, etc.) require that data are within certain "parameters" in order for the analyses to be accurate. 
 The most important assumptions are: 
+
 *   Normality: data should be normally distributed. 
 *   Homogeneity of variance: variance on each group tested should be more or less equal.
 
 Before starting, let's create some fake data. Let's assume that we have reasons to believe that participants remember better images of warm food rather that images of cold food. We might want to show them images of cold and warm food (within-participants variable). In addition, we want to know whether this effect changes depending on whether a participant has already eaten or not. Therefore, we assign participants to two groups: hungry and not-hungry. Finally, we test them through a recognition test. Let's simulate!    
 
-(!! Nerd Alert!! The following procedure shows how to simulate and thus can be skipped... unless you are very interested in it (Nerd!))
+(!! Nerd Alert!! The following procedure shows how to simulate and thus can be skipped... unless you are very interested in it)
 ```{r simulate food data, echo=TRUE}
 # Set seed.
 set.seed(234634)
@@ -767,23 +783,26 @@ ggplot(data_food, aes(recog_perf)) +
   geom_density()+
   facet_grid(condition~group)
 ```
-The distribution looks roughly normal. We could use a Q-Q-plot.
-The Q-Q plot (quantile-quantile plot) shows the correlation between the observed data and the expected values, namely the values if data were normally distributed. If observed data are normally distributed, the q-q plot looks as a straight diagonal line. Deviations from the diagonal shows deviation from normality. 
-```{r QQplot, warning=FALSE}
-#qplot(sample = data_food$recog_perf[data_food$condition=="warm" & data_food$group=="hungry"], stat="qq", 
-      #xlab="qq plot for warm condition and hungry group")
-#qplot(sample = data_food$recog_perf[data_food$condition=="warm" & data_food$group=="not hungry"], stat="qq",
-            #xlab="qq plot for warm condition and not hungry group")
-#qplot(sample = data_food$recog_perf[data_food$condition=="cold" & data_food$group=="hungry"], stat="qq",
-                  #xlab="qq plot for cold condition and hungry group")
-#qplot(sample = data_food$recog_perf[data_food$condition=="cold" & data_food$group=="not hungry"], stat="qq", 
-                  #xlab="qq plot for cold condition and not hungry group")
+The distribution looks roughly normal. We could use a `QQ plot`.
+The `QQ plot` (quantile-quantile plot) shows the correlation between the observed data and the expected values, namely the values if data were normally distributed. If observed data are normally distributed, the `QQ plot` looks as a straight diagonal line. Deviations from the diagonal shows deviation from normality.
+```{r}
+qqnorm(data_food$recog_perf[data_food$condition=="warm" & data_food$group=="hungry"], main = "QQ plot for the warm condition & hungry group")
+qqline(data_food$recog_perf[data_food$condition=="warm" & data_food$group=="hungry"])
+
+qqnorm(data_food$recog_perf[data_food$condition=="warm" & data_food$group=="not hungry"], main = "QQ plot for the warm condition & not hungry group")
+qqline(data_food$recog_perf[data_food$condition=="warm" & data_food$group=="not hungry"])
+
+qqnorm(data_food$recog_perf[data_food$condition=="cold" & data_food$group=="hungry"], main = "QQ plot for the cold condition & hungry group")
+qqline(data_food$recog_perf[data_food$condition=="cold" & data_food$group=="hungry"])
+
+qqnorm(data_food$recog_perf[data_food$condition=="cold" & data_food$group=="not hungry"], main = "QQ plot for the cold condition & not hungry group")
+qqline(data_food$recog_perf[data_food$condition=="cold" & data_food$group=="not hungry"])
 ```
 They look close to normality, apart from some outliers in the condition "cold" and "hungry". 
 We have to check it statistically. 
 
-In order to test whether the distribution deviates from a normal distribution, we can use the Shapiro-Wilk test. 
-This test compares the observed vales are significantly different from normally distributed values. It the test is non-significant (p>.05), the distribution of data is not different from a normal distribution. 
+In order to test whether the distribution deviates from a normal distribution, we can use the `Shapiro-Wilk` test. 
+This test compares the observed vales are significantly different from normally distributed values. If the test is non-significant (p>.05), the distribution of data is not different from a normal distribution.
 
 ```{r shapiro test}
 shapiro.test(data_food$recog_perf[data_food$condition=="warm" & data_food$group=="hungry"])
@@ -796,7 +815,7 @@ In case data are not normally distributed, we can use a transformation (square, 
 
 ### Homogeneity of variance assumption
 In addition to being normally distributed, parametric tests require that the variances of different levels of one variable should be more or less equal. In other words, the variances should be "homogeneous". 
-In order to check for homogeneity fo variance, we can use the Levene test.
+In order to check for homogeneity fo variance, we can use the `Levene` test.
 ```{r homogeneity of variance, message=FALSE, warning=FALSE}
 library(car)
 # We can check first if the variance differ across food condition.
@@ -804,12 +823,12 @@ leveneTest(data_food$recog_perf, data_food$condition)
 # Then across hunger group.
 leveneTest(data_food$recog_perf, data_food$group)
 ```
-The variance seems to be homogeneous across condition and group. 
+The variance seems to be homogeneous across condition and group. Similar to the Levene test, we are testing the null hypothesis, that the variances are homogenous, which is the case if our test is non-significant (p>.05).
 Let's run our parametric tests!
 
 ### Correlation
-We can start our analysis by checking whether participants' working memory correlates with recognition performance. 
-In order to do this, we need to work on a "wide-dataset", where every row represents a participant. We can use the "reshape" function from the "reshape2" package. 
+We can start our analysis by checking whether participants' working memory correlates with recognition performance. For a more detailed tutorial on [correlation](/post/korrelation/), check out `pandaR`.
+In order to do this, we need to work on a "wide-dataset", where every row represents a participant. We can use the `reshape()` function from the `reshape2` package. 
 ```{r correlation}
 library(reshape2)
 # Create a wide dataset by aggregating performance on the participant level.
@@ -836,7 +855,8 @@ cor.test(data_food_wide$recog_perf_avg, data_food_wide$wm)
 There is a significant correlation between participants' working memory and their recognition performance: Person's r = 0.29, p < .026.  
 
 ### Regression
-With regression we also explore relationships between variables. Unlike correlation, regression assumes that there are a response variable (or dependent Variable, or outcome) and one or several predictors (or independent variables). It also allows to make prediction, thanks to the coefficients that it returns. 
+With regression we also explore relationships between variables. Unlike correlation, regression assumes that there are a response variable (or dependent variable, or outcome) and one or several predictors (or independent variables). It also allows to make prediction, thanks to the coefficients that it returns. 
+A more detailed tutorial on regression analysis can also be found on `pandaR`, where there's a special [tutorial](/post/regression/) on it.
 Let's consider our working memory - recognition relationship as a regression. 
 ```{r regression}
 # R uses the "lm" (Linear Model) function to compute regression.
@@ -847,27 +867,27 @@ summary(regres)
 ```
 The intercept is not informative in this case: it just tells us that when wm is 0, recognition performance is 0.369, and that this value is significantly different from 0. The estimate for "wm" tells us that after one unit change in our predictor (working memory), the response (recognition memory in %) increases by 0.33. This effect is significant. 
 
-### T-test
-We use t-tests to compare differences between two groups or conditions. In our food_data we have two groups and two conditions: the hungry - not hungry groups vary between participants, while the warm-cold conditions vary within-participants. 
+### t-test
+We use t-tests to compare differences between two groups or conditions. In our food_data we have two groups and two conditions: the hungry - not hungry groups vary between participants, while the warm - cold conditions vary within-participants. 
 Let's test if they differ!
 We can start from the between-participants variable. 
 ``` {r t-test}
 t.test(recog_perf_avg~group, data = data_food_wide)
 ```
-There is a significant difference between the groups, so that hungry group better recognised the images. 
+There is a significant difference between the groups, so that the hungry group better recognized the images. 
 
 The t-test, like the ANOVA, can be considered as a special case of regression, in which the predictor (IV) is categorical.
-R automatically [dummy-codes](https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faqwhat-is-dummy-coding/) the two group as "0" and "1" and returns the difference between the two. 
-Therefore, we could run a t-test by using the lm function as we have already done for regression
+`R` automatically [dummy-codes](https://stats.idre.ucla.edu/other/mult-pkg/faq/general/faqwhat-is-dummy-coding/) the two group as "0" and "1" and returns the difference between the two. 
+Therefore, we could run a t-test by using the `lm()` function as we have already done for regression
 ``` {r t-test as regression}
 t_test_as_reg<-lm(recog_perf_avg~group, data = data_food_wide)
 
 summary(t_test_as_reg)
 # The t-value and p-value are the same as the t-test that we did before. 
 ```
-The only difference with the test that we run before is that the the sign of the t-value in the lm was negative. This occurs because the values that are shown refer to the difference between the "not hungry" condition and the "hungry condition", the latter being the reference level (R automatically assigns reference level according to alphabetical order). 
+The only difference with the test that we ran before is that the sign of the t-value in the lm was negative. This occurs because the values that are shown refer to the difference between the "not hungry" condition and the "hungry" condition, the latter being the reference level (`R` automatically assigns reference level according to alphabetical order). 
 
-Now we can compare the within-participants variable: condition (warm vs cold)
+Now we can compare the within-participants variable: condition (warm vs. cold)
 In this case we have to use a paired sample t-test. We can use the t-test function and specify
 that the data are paired. 
 ``` {r paired t-test }
@@ -886,9 +906,9 @@ Warm food is remembered better than cold food.
 We could also consider the paired-sample t-test as a regression, but in this case would be a bit more difficult. In fact, in this case we have to take into account the dependency in the data, and this is usually done by adding random effects to the normal regression. But we can look into it later on. 
 
 ### One-way ANOVA
-Now that we know how to compare two means, we can consider cases in which we have more than two. This is usually done with an ANOVA.     
+Now that we know how to compare two means, we can consider cases in which we have more than two. This is usually done with an ANOVA. To find out more about ANOVAs and contrasts, have a look at the [pandaR tutorial](/post/anova1/)!    
 
-(!! Nerd Alert !!) We need to create a third group in our data. The following section is not important and can be skipped, unless you really want to be a Nerd. 
+(!! Nerd Alert !!) We need to create a third group in our data. The following section is not important and can be skipped, unless you are really interested. 
 
 ``` {r simulate third group}
 # We can create a third group of "super hungry" people that are just starving.
@@ -925,21 +945,21 @@ data_food_wide<-reshape(data_food, idvar = c("participant", "group", "wm"), time
 data_food_wide$recog_perf_avg<-rowMeans(data_food_wide[c("recog_perf.warm", "recog_perf.cold")])
 head(data_food_wide)
 ```
-Okay, now let's compare the three groups (hungry, not hungry, super hungry) in our wide format dataset (data_food_wide). We can use the "aov" function. Another popular way to run ANOVAs is by using the "ez" package.
+Okay, now let's compare the three groups (hungry, not hungry, super hungry) in our wide format dataset (data_food_wide). We can use the `aov()` function. Another popular way to run ANOVAs is by using the `ez()` package.
 ``` {r ANOVA}
-# Let's run a leven test first.
+# Let's run a levene test first.
 leveneTest(data_food_wide$recog_perf_avg, data_food_wide$group, center = mean)
-# Since is it is non-significant, the variances of the two groups are similar.
+# Since it is non-significant, the variances of the two groups are similar.
 anova_betw<-aov(recog_perf_avg~group, data=data_food_wide)
 
 # Let's see the results.
 summary(anova_betw)
 
-# The "summary" function returns the "omnibus" test, testing whether the recognition performance varies as a function of the hunger group. If we want to have an idea on the differences between the different conditions, we can run the ANOVA as a regression, by using the "lm" function. 
+# The "summary" function returns the "omnibus" test, testing whether the recognition performance varies as a function of the hungry group. If we want to have an idea on the differences between the different conditions, we can run the ANOVA as a regression, by using the "lm" function. 
 LM_betw<-lm(recog_perf_avg~group, data=data_food_wide)
 summary(LM_betw)
 ```
-The output of the ANOVA as regression analysis shows three coefficients. The intercept represents the mean recognition performance for the baseline condition (group "hungry", coded as baseline because it is the first in alphabetical order). The "groupnot hungry" represents the difference between recognition performance of the group "not hungry" and recognition performance of the group "hungry" (baseline). Participants who are hungry performs a bit worse than participants that are hungry, and the difference in performance is significant. Finally, the coefficient "groupsuper hungry" represents the difference in recognition performance between the superhungry group and the hungry group. The super hungry performed significantly worse than the hungry ones... probably at some point the hunger becomes really distracting :)
+The output of the ANOVA as regression analysis shows three coefficients. The intercept represents the mean recognition performance for the baseline condition (group "hungry", coded as baseline because it is the first in alphabetical order). The "groupnot hungry" represents the difference between recognition performance of the group "not hungry" and recognition performance of the group "hungry" (baseline). Participants who are hungry perform a bit worse than participants that are not hungry, and the difference in performance is significant. Finally, the coefficient "groupsuper hungry" represents the difference in recognition performance between the superhungry group and the hungry group. The super hungry performed significantly worse than the hungry ones... probably at some point the hunger becomes really distracting :)
 
 But what about the difference between the super hungry and not hungry groups? If we are interested in it, we can change the reference category.
 ``` {r ANOVA new contrasts}
@@ -956,6 +976,7 @@ You could also use different contrasts (repeated, helmert, etc.) or make your ow
 
 ### Repeated measures ANOVA
 We have seen how to run an ANOVA when our dependent variable varies between participants. But what about within-participants variables?
+There is also a [tutorial](/post/anova3/) on `pandaR` on this topic, including contrasts, how convenient!
 
 First, we need to create a third condition. Let's imagine that we are also showing images of frozen food. 
 
@@ -1015,7 +1036,7 @@ anova_within<-ezANOVA(data = data_food, # Dataframe.
 anova_within
 ```
 The results show that recognition performance significantly differed across conditions. 
-The ezAnova function also runs a "Mauchly test for Sphericity", and corrected results in case it turns out to be significant. 
+The `ezAnova()` function also runs a "Mauchly test for Sphericity", and corrected results in case it turns out to be significant. 
 
 But what about contrasts?
 
@@ -1077,19 +1098,18 @@ Anova(LMM_mixed, type = "III")
 ```
 As before, after using LMM we found that that participants remember differently the images depending on whether they depict warm, cold, or frozen food. In addition, participants' hunger affect image recognition. However, the effect of food condition on image recognition does not change depending on participants' hunger. 
 
-<a name="notes"></a>
 
-# General notes on R
+# General notes on `R`
 
-Here, I will show some basic functions of R. Take your time and play around with them! The examples are pretty straightforward if you do not rush through them. Enjoy!
+Here, I will show some basic functions of `R`. Take your time and play around with them! The examples are pretty straightforward if you do not rush through them. Enjoy!
 
 ## Interface
 Take your time to get familiar with the interface. Check out the different options in the control panel on top. Have you found the "Cheatsheets" under "Help"?  
-You may have noticed that there are different windows in R. One is reserved for your scripts (this should be the current document). In a script, you can save your code in a file on your drive. The code in the script is not immediately executed. However, you can select certain lines of code and execute them manually. Another window is your console, among others. Here, you can also type in code. This code is executed immediately and not saved in a file. Then, you have a window for your global environment where all your objects are saved. We will soon create some objects, hence, you will watch your global environment fill up! There is also another window which contains different tabs, e.g., for help or for plots. We will soon use it as well when we start to use the help function. The windows can be arranged in different ways, you can make them smaller or bigger, or you can detach them. Just explore!
+You may have noticed that there are different windows in `R`. One is reserved for your scripts (this should be the current document). In a script, you can save your code in a file on your drive. The code in the script is not immediately executed. However, you can select certain lines of code and execute them manually. Another window is your console, among others. Here, you can also type in code. This code is executed immediately and not saved in a file. Then, you have a window for your global environment where all your objects are saved. We will soon create some objects, hence, you will watch your global environment fill up! There is also another window which contains different tabs, e.g., for help or for plots. We will soon use it as well when we start to use the `help()` function. The windows can be arranged in different ways, you can make them smaller or bigger, or you can detach them. Just explore!
 
 ## Install and import packages
 
-There are many packages that one can install on top of the base installation of R. These packages contain useful functions that smart people have written and that they want to share with the community. This is how you install a package:
+There are many packages that one can install on top of the base installation of `R`. These packages contain useful functions that smart people have written and that they want to share with the community. This is how you install a package:
 
 `install.packages(<package>) #You need to do this only once.`
 
@@ -1099,6 +1119,7 @@ Example:
 ```
 
 If you want to use the installed package later on, you must load it. Every time you start a new session.
+
 `library(<package>) # You must load a package if you want to use its functions.`
 
 Example:
@@ -1110,7 +1131,7 @@ Useful to get the latest version.
 `data.packages(<package>)`
 
 Sometimes different packages use the same words for their functions which can cause trouble.
-However, you can explicitly tell R which function to use from which package.
+However, you can explicitly tell `R` which function to use from which package.
 
 `library(PackageA)`
 `library(PackageB)`
@@ -1165,9 +1186,9 @@ Let us clean up the global environment first.
 rm(list = ls())
 ```
 
-In R, we can create certain objects that we can play around with, for example a table that contains our study data. Functions help us to play around with our objects, for example by calculating an average. But let us start with little baby steps.
+In `R`, we can create certain objects that we can play around with, for example a table that contains our study data. Functions help us to play around with our objects, for example by calculating an average. But let us start with little baby steps.
 
-### First objects in R
+### First objects in `R`
 
 A common object class is the vector.
 ```{r}
@@ -1256,7 +1277,7 @@ x <- sort(u) # Sort the elements of the vector.
 x
 ```
 
-We can also use characters. There are indeed different classes of objects in R, and text versus numbers have specific formats. Remember to put the '' for characters.
+We can also use characters. There are indeed different classes of objects in `R`, and text versus numbers have specific formats. Remember to put the '' for characters.
 ```{r}
 y <- c('psy', 'rules')
 y
@@ -1304,13 +1325,21 @@ s_log_round
 And here are some more useful functions.
 
 `max(r) #Max value of the vector.`
+
 `min(r) #Min value of the vector.`
+
 `range(r) #gives you a vector containing min and max.`
+
 `c(min(r), max(r))`
+
 `length(s) #number of elements in vector.`
+
 `sum(t) #Sum of elements.`
+
 `prod(t) #Product of elements.`
+
 `mean(u) #Average of elements.`
+
 
 ### Let's turn to somewhat more advanced stuff
 
@@ -1351,7 +1380,7 @@ arr_2_dim <- array(arr_3_dim, dim=c(6,4)) # Cool! We can rearrange our data in a
 arr_2_dim
 ```
 
-You can do anything you want to do - This is your world. (Bob Ross)
+"You can do anything you want to do - This is your world." (Bob Ross)
 ```{r}
 arr <- array(c(-5, r, -3.54), dim=c(2,2,3))
 arr
@@ -1434,7 +1463,7 @@ Transpose your table.
 Well done! Now it is time to be brave and turn mat5 into a data frame. You can figure it out!
 Please also change the second column to characters!
 
-## What are if statements?
+## What are `if` statements?
 
 Check out the following example. Run it several times.
 ```{r}
@@ -1449,20 +1478,20 @@ Cool, hey?
 
 This is a list of useful logical operators:
 
-* <  
-*  >  
-* <=  
-* >=  
-* ==  
-* != (not equal to)  
-* !x (not x)  
-* | (or)  
-* & (and)  
-* isTRUE(x) (test if x is true)  
+* `<`  
+* `>`  
+* `<=`  
+* `>=`  
+* `==`  
+* `!=` (not equal to)  
+* `!x` (not x)  
+* `|` (or)  
+* `&` (and)  
+* `isTRUE(x)` (test if x is true)  
 
-## And what about loops?
+## And what about `loops`?
 
-Loops are not used very often in R because they may take a little longer as if you solved the problem in a different way. However, they do the job, and as long as you do not use them extensively, you will be fine.
+Loops are not used very often in `R` because they may take a little longer as if you solved the problem in a different way. However, they do the job, and as long as you do not use them extensively, you will be fine.
 
 There are different types of loops:
 
@@ -1510,6 +1539,8 @@ for (i in 1:m){
   print('This number is greater than 5.')
 }
 ```
+
+For a detailed introduction into `if` statements and loops, check out the [tutorial](/post/loops-und-funktionen/) on `pandaR`!
 
 
 ***
