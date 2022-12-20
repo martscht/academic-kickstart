@@ -1,3 +1,3 @@
 ---
-title: Autorinnen und Autoren
+title: Autor:innen
 ---
