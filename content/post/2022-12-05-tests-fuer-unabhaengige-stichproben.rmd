@@ -451,7 +451,7 @@ Da die erste Voraussetzung nicht erfüllt ist - das Item nr2 ist eine lediglich 
 1.  die abhängige Variable ist stetig (zumindest ordinal-skaliert) $\rightarrow$ ok\
 2.  die einzelnen Messwerte sind voneinander unabhängig (Messwert einer Vpn hat keinen Einfluss auf den Messwert einer anderen) $\rightarrow$ ok\
 3.  das Merkmal folgt in beiden Gruppen der gleichen Verteilung $\rightarrow$ (ggf.) optische Prüfung\
-4.  Homoskedastizität: Varianzen der Variablen innerhalb der Populationen sind gleich $\rightarrow$ Levene-Test
+4.  Streuung der Variablen für beide Gruppen ist innerhalb der Populationen gleich $\rightarrow$ Folgt aus der Voraussetzung 3 $\rightarrow$  als Indiz können wir in bestimmten Fällen den Levene-Test nutzen
 
 
 **zu 3): Optische Prüfung auf Vergleichbarkeit der Verteilungsform in den beiden Gruppen**
@@ -471,7 +471,7 @@ hist(nr2.m, xlim=c(0,6), ylim=c(0,.6), main="Item nr2 (männlich)", xlab="", yla
 $\rightarrow$ Vergleichbarkeit der Verteilungsform in den beiden Gruppen ist einigermaßen gegeben $\rightarrow$ spricht für Wilcoxon-Test
 
 
-**zu 4) Test auf Homoskedastizität (Levene-Test)**
+**zu 4) Test auf Gleichheit der Streuungen (Levene-Test)**
 
 Das Hypothesenpaar im Levene-Test lautet:
 
@@ -683,20 +683,22 @@ Insgesamt ergibt sich damit.
 -   $p$ = `r round(pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE), 3)`
 -   $p$-Wert \> $\alpha$-Fehlerniveau $\rightarrow H_0$ wird beibehalten
 
-In einem Artikel würden wir schreiben: Die Wohnnähe zur Uni hängt nicht damit zusammen, ob ein Nebenjob ausgeübt wird $\chi^2$(df=1)=`r round(chi_quadrat_Wert, 3)`, $p$ = `r round(pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE), 3)`.
+Daraus lässt sich zusammenfassen: Die Wohnnähe zur Uni hängt nicht damit zusammen, ob ein Nebenjob ausgeübt wird $\chi^2$(df=1)=`r round(chi_quadrat_Wert, 3)`, $p$ = `r round(pchisq(chi_quadrat_Wert, 1, lower.tail = FALSE), 3)`.
 
 #### 3.3.2. Vierfelder-$\chi^2$-Test in R: Funktion `chisq.test()`
 
-Die Funktion `chisq.test` übernimmt die Arbeit für uns, wenn wir ihr einfach eine 4-Feldertabelle übergeben.
+Die Funktion `chisq.test` übernimmt die Arbeit für uns, wenn wir ihr einfach eine 4-Feldertabelle übergeben. Als Argumente brauchen wir hauptsächlich das Objekt mit den Häufigkeiten. Weiterhin müssen wir das Argument `correct` mit `FALSE` angeben. Ansonsten würde standardmäßig die Kontinuitätskorrektur nach Yates durchgeführt werden. Diese ist als Alternative gedacht, wenn nicht der $\chi^2$-Verteilung gefolgt wird. Ein Indiz dafür sind bspw. sehr kleine Zahlen in manchen Kombinationen der Faktoren. Da wir hier in jeder Zelle einen größeren Wert hatten, brauchen wir diese Korrektur nicht.
 
 ```{r}
 chisq.test(tab,        # Kreuztabelle
            correct=F)  # keine Kontinuinitätskorrektur nach Yates
 ```
 
+Das Ergebnis unterscheidet sich natürlich nicht zu unserer händischen Berechnung. Die Wohnnähe zur Uni hängt nicht damit zusammen, ob ein Nebenjob ausgeübt wird.
+
 ### 3.4. Effektstärken
 
-Auch für den $\chi^2$-Test gibt es ein Effektstärkemaß.
+Auch für den $\chi^2$-Test gibt es die Möglichkeit zur Einordnung der Effektstärke. Dabei haben Sie in der Vorlesung zwei Varianten kennengelernt. 
 
 **Yules Q**
 
@@ -714,7 +716,7 @@ effekt_YulesQ <- (tab[1,1]*tab[2,2]-tab[1,2]*tab[2,1])/
 effekt_YulesQ
 ```
 
-**Phi (**$\phi$)
+**Phi** ($\phi$)
 
 Auch kann man $\phi$ bestimmen:
 
@@ -728,12 +730,15 @@ effekt_phi <- (tab[1,1]*tab[2,2]-tab[1,2]*tab[2,1])/
 effekt_phi
 ```
 
+**Umsetzung mit `R`**
+
 Das Ganze lässt sich auch mit dem `psych` und der darin enthaltenen Funktion `phi` umsetzen:
 
 ```{r}
 # alternativ mit psych Paket
 library(psych)
 phi(tab, digits = 8)
+Yule(tab)
 
 # Äquivalentes Ergebnis mittels Pearson-Korrelation (kommt in den nächsten Sitzungen)
 # (dichotome Variablen)
@@ -741,6 +746,16 @@ ort_num <- as.numeric(fb22$ort)
 job_num <- as.numeric(fb22$job)
 cor(ort_num, job_num, use="pairwise")
 ```
+
+Cohen (1988) hat folgende Konventionen zur Beurteilung der Effektstärke $\phi$ vorgeschlagen, die man heranziehen kann, um den Effekt "bei kompletter Ahnungslosigkeit" einschätzen zu können (wissen wir mehr über den Sachverhalt, so sollten Effektstärken lieber im Bezug zu anderen Studienergebnissen interpretiert werden):
+
+|  $|\phi|$  |  Interpretation  |
+|:-----:|:----------------:|
+| \~ .1 |  kleiner Effekt  |
+| \~ .3 | mittlerer Effekt |
+| \~ .5 |  großer Effekt   |
+
+Der Wert für den Zusammenhang der beiden Variablen ist also als klein einzuschätzen.
 
 ### 3.5. Ergebnisinterpretation
 

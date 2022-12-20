@@ -20,7 +20,6 @@ header:
 projects: []
 ---
 
-<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <details>
@@ -426,7 +425,7 @@ summary( dataB[(dataB$geschl_faktor==&quot;weiblich&quot;), &quot;nr2&quot;])</c
 </li>
 <li>das Merkmal folgt in beiden Gruppen der gleichen Verteilung <span class="math inline">\(\rightarrow\)</span> (ggf.) optische Prüfung<br />
 </li>
-<li>Homoskedastizität: Varianzen der Variablen innerhalb der Populationen sind gleich <span class="math inline">\(\rightarrow\)</span> Levene-Test</li>
+<li>Streuung der Variablen für beide Gruppen ist innerhalb der Populationen gleich <span class="math inline">\(\rightarrow\)</span> Folgt aus der Voraussetzung 3 <span class="math inline">\(\rightarrow\)</span> als Indiz können wir in bestimmten Fällen den Levene-Test nutzen</li>
 </ol>
 <p><strong>zu 3): Optische Prüfung auf Vergleichbarkeit der Verteilungsform in den beiden Gruppen</strong></p>
 <pre class="r"><code>#Gruppe 1 (weiblich) 
@@ -439,7 +438,7 @@ nr2.m &lt;- dataB[(dataB$geschl_faktor==&quot;männlich&quot;), &quot;nr2&quot;]
 hist(nr2.m, xlim=c(0,6), ylim=c(0,.6), main=&quot;Item nr2 (männlich)&quot;, xlab=&quot;&quot;, ylab=&quot;&quot;, las=1, prob=T, breaks = c(.5:5.5))</code></pre>
 <p><img src="/post/2022-12-05-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><span class="math inline">\(\rightarrow\)</span> Vergleichbarkeit der Verteilungsform in den beiden Gruppen ist einigermaßen gegeben <span class="math inline">\(\rightarrow\)</span> spricht für Wilcoxon-Test</p>
-<p><strong>zu 4) Test auf Homoskedastizität (Levene-Test)</strong></p>
+<p><strong>zu 4) Test auf Gleichheit der Streuungen (Levene-Test)</strong></p>
 <p>Das Hypothesenpaar im Levene-Test lautet:</p>
 <ul>
 <li><span class="math inline">\(H_0\)</span>: Homoskedastizität ist gegeben.<br />
@@ -619,11 +618,11 @@ chi_quadrat_Wert</code></pre>
 <li><span class="math inline">\(p\)</span> = 0.509</li>
 <li><span class="math inline">\(p\)</span>-Wert &gt; <span class="math inline">\(\alpha\)</span>-Fehlerniveau <span class="math inline">\(\rightarrow H_0\)</span> wird beibehalten</li>
 </ul>
-<p>In einem Artikel würden wir schreiben: Die Wohnnähe zur Uni hängt nicht damit zusammen, ob ein Nebenjob ausgeübt wird <span class="math inline">\(\chi^2\)</span>(df=1)=0.435, <span class="math inline">\(p\)</span> = 0.509.</p>
+<p>Daraus lässt sich zusammenfassen: Die Wohnnähe zur Uni hängt nicht damit zusammen, ob ein Nebenjob ausgeübt wird <span class="math inline">\(\chi^2\)</span>(df=1)=0.435, <span class="math inline">\(p\)</span> = 0.509.</p>
 </div>
 <div id="vierfelder-chi2-test-in-r-funktion-chisq.test" class="section level4">
 <h4>3.3.2. Vierfelder-<span class="math inline">\(\chi^2\)</span>-Test in R: Funktion <code>chisq.test()</code></h4>
-<p>Die Funktion <code>chisq.test</code> übernimmt die Arbeit für uns, wenn wir ihr einfach eine 4-Feldertabelle übergeben.</p>
+<p>Die Funktion <code>chisq.test</code> übernimmt die Arbeit für uns, wenn wir ihr einfach eine 4-Feldertabelle übergeben. Als Argumente brauchen wir hauptsächlich das Objekt mit den Häufigkeiten. Weiterhin müssen wir das Argument <code>correct</code> mit <code>FALSE</code> angeben. Ansonsten würde standardmäßig die Kontinuitätskorrektur nach Yates durchgeführt werden. Diese ist als Alternative gedacht, wenn nicht der <span class="math inline">\(\chi^2\)</span>-Verteilung gefolgt wird. Ein Indiz dafür sind bspw. sehr kleine Zahlen in manchen Kombinationen der Faktoren. Da wir hier in jeder Zelle einen größeren Wert hatten, brauchen wir diese Korrektur nicht.</p>
 <pre class="r"><code>chisq.test(tab,        # Kreuztabelle
            correct=F)  # keine Kontinuinitätskorrektur nach Yates</code></pre>
 <pre><code>## 
@@ -631,11 +630,12 @@ chi_quadrat_Wert</code></pre>
 ## 
 ## data:  tab
 ## X-squared = 0.43547, df = 1, p-value = 0.5093</code></pre>
+<p>Das Ergebnis unterscheidet sich natürlich nicht zu unserer händischen Berechnung. Die Wohnnähe zur Uni hängt nicht damit zusammen, ob ein Nebenjob ausgeübt wird.</p>
 </div>
 </div>
 <div id="effektstärken" class="section level3">
 <h3>3.4. Effektstärken</h3>
-<p>Auch für den <span class="math inline">\(\chi^2\)</span>-Test gibt es ein Effektstärkemaß.</p>
+<p>Auch für den <span class="math inline">\(\chi^2\)</span>-Test gibt es die Möglichkeit zur Einordnung der Effektstärke. Dabei haben Sie in der Vorlesung zwei Varianten kennengelernt.</p>
 <p><strong>Yules Q</strong></p>
 <p>Dieses berechnet sich als</p>
 <p><span class="math display">\[Q=\frac{n_{11}n_{22}-n_{12}n_{21}}{n_{11}n_{22}+n_{12}n_{21}},\]</span></p>
@@ -645,7 +645,7 @@ chi_quadrat_Wert</code></pre>
                  (tab[1,1]*tab[2,2]+tab[1,2]*tab[2,1])
 effekt_YulesQ</code></pre>
 <pre><code>## [1] -0.1187905</code></pre>
-<p><strong>Phi (</strong><span class="math inline">\(\phi\)</span>)</p>
+<p><strong>Phi</strong> (<span class="math inline">\(\phi\)</span>)</p>
 <p>Auch kann man <span class="math inline">\(\phi\)</span> bestimmen:</p>
 <p><span class="math display">\[\phi = \frac{n_{11}n_{22}-n_{12}n_{21}}{\sqrt{(n_{11}+n_{12})(n_{11}+n_{21})(n_{12}+n_{22})(n_{21}+n_{22})}}\]</span> welches einen Wertebereich von [-1,1] aufweist und analog zur Korrelation interpretiert werden kann. 1 steht in diesem Fall für einen perfekten positiven Zusammenhang (dazu in der entsprechenden Sitzung mehr).</p>
 <p>In <code>R</code> sieht das so aus:</p>
@@ -653,17 +653,44 @@ effekt_YulesQ</code></pre>
   sqrt((tab[1,1]+tab[1,2])*(tab[1,1]+tab[2,1])*(tab[1,2]+tab[2,2])*(tab[2,1]+tab[2,2]))
 effekt_phi</code></pre>
 <pre><code>## [1] -0.0540613</code></pre>
+<p><strong>Umsetzung mit <code>R</code></strong></p>
 <p>Das Ganze lässt sich auch mit dem <code>psych</code> und der darin enthaltenen Funktion <code>phi</code> umsetzen:</p>
 <pre class="r"><code># alternativ mit psych Paket
 library(psych)
 phi(tab, digits = 8)</code></pre>
 <pre><code>## [1] -0.0540613</code></pre>
+<pre class="r"><code>Yule(tab)</code></pre>
+<pre><code>## [1] -0.1187905</code></pre>
 <pre class="r"><code># Äquivalentes Ergebnis mittels Pearson-Korrelation (kommt in den nächsten Sitzungen)
 # (dichotome Variablen)
 ort_num &lt;- as.numeric(fb22$ort)
 job_num &lt;- as.numeric(fb22$job)
 cor(ort_num, job_num, use=&quot;pairwise&quot;)</code></pre>
 <pre><code>## [1] -0.0540613</code></pre>
+<p>Cohen (1988) hat folgende Konventionen zur Beurteilung der Effektstärke <span class="math inline">\(\phi\)</span> vorgeschlagen, die man heranziehen kann, um den Effekt “bei kompletter Ahnungslosigkeit” einschätzen zu können (wissen wir mehr über den Sachverhalt, so sollten Effektstärken lieber im Bezug zu anderen Studienergebnissen interpretiert werden):</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center"><span class="math inline">\(|\phi|\)</span></th>
+<th align="center">Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">~ .1</td>
+<td align="center">kleiner Effekt</td>
+</tr>
+<tr class="even">
+<td align="center">~ .3</td>
+<td align="center">mittlerer Effekt</td>
+</tr>
+<tr class="odd">
+<td align="center">~ .5</td>
+<td align="center">großer Effekt</td>
+</tr>
+</tbody>
+</table>
+<p>Der Wert für den Zusammenhang der beiden Variablen ist also als klein einzuschätzen.</p>
 </div>
 <div id="ergebnisinterpretation-2" class="section level3">
 <h3>3.5. Ergebnisinterpretation</h3>
