@@ -25,32 +25,37 @@ projects: []
 
 
 
-<p>Wie angekündigt finden Sie im Folgenden nun nochmal Aufgaben, die sich auf die Tutorials 5 bis 10 beziehen. Laden sie dafür den fb22 Datensatz herunter. load(url(‘<a href="https://pandar.netlify.app/post/fb22.rda" class="uri">https://pandar.netlify.app/post/fb22.rda</a>’))</p>
+<p>Wie angekündigt finden Sie im Folgenden nun nochmal Aufgaben, die sich auf die Tutorials 5 bis 10 beziehen. Laden sie dafür den <a href="https://pandar.netlify.app/post/fb22.rda">fb22</a> Datensatz herunter.</p>
+<div id="tests-und-konfidenzintervalle" class="section level1">
+<h1>Tests und Konfidenzintervalle</h1>
 <div id="aufgabe-1" class="section level2">
 <h2>Aufgabe 1</h2>
 <p>In Deutschland liegt die Gewissenhaftigkeit (<code>gewis</code>) bei Frauen im Mittel bei <em>µ</em> = 3.73.</p>
 <ul>
 <li>Sind Frauen, die Psychologie studieren, im Mittel gewissenhafter als Frauen in der Allgemeinbevölkerung? Stellen Sie die Hypothesen auf und führen Sie einen geeigneten Test durch.</li>
-<li>Geben Sie zudem das 99%-ige Konfidenzintervall an.</li>
+<li>Geben Sie zudem das 99%-ige Konfidenzintervall und die Effektgröße an.</li>
 </ul>
 <details>
 <summary>
 Lösung
 </summary>
-<p><strong>Hypothesen:</strong></p>
+<p><strong>Hypothesen</strong></p>
 <p><span class="math inline">\(H_0\)</span>: Die durchschnittliche Gewissenhaftigkeit der Frauen, die Psychologie studieren, ist gleich oder geringer als die der Frauen in der Allgemeinbevölkerung.</p>
 <p><span class="math inline">\(H_0\)</span>: <span class="math inline">\(\mu_0\)</span> <span class="math inline">\(\geq\)</span> <span class="math inline">\(\mu_1\)</span></p>
 <p><span class="math inline">\(H_1\)</span>: Die durchschnittliche Gewissenhaftigkeit der Frauen, die Psychologie studieren, ist höher als die der Frauen in der Allgemeinbevölkerung.</p>
 <p><span class="math inline">\(H_1\)</span>: <span class="math inline">\(\mu_0\)</span> <span class="math inline">\(&lt;\)</span> <span class="math inline">\(\mu_1\)</span></p>
-<p>Wir testen zuerst ob unsere Variable Geschlecht bereits als Faktor vorliegt. Wenn nicht wandeln wir sie in einen Faktor um.</p>
+<p>Wir testen zuerst ob unsere Variable <code>Geschlecht</code> bereits als Faktor vorliegt. Wenn nicht wandeln wir sie in einen Faktor um.</p>
 <pre class="r"><code>load(url(&#39;https://pandar.netlify.app/post/fb22.rda&#39;))
 is.factor(fb22$geschl)</code></pre>
 <pre><code>## [1] FALSE</code></pre>
-<pre class="r"><code>fb22$geschl &lt;- factor(fb22$geschl,levels = 1:3, labels = c(&quot;weiblich&quot;, &quot;männlich&quot;, &quot;anderes&quot;))</code></pre>
-<p>Nun erstellen wir ein <code>subset</code>, indem nur die weiblichen Teilnehmenden des fb22 Datensatzes enthalten sind.</p>
+<pre class="r"><code>fb22$geschl &lt;- factor(fb22$geschl,
+                      levels = 1:3, 
+                      labels = c(&quot;weiblich&quot;, &quot;männlich&quot;, &quot;anderes&quot;))</code></pre>
+<p>Nun erstellen wir ein <code>subset</code>, indem nur die weiblichen Teilnehmenden des <code>fb22</code> Datensatzes enthalten sind.</p>
 <pre class="r"><code>fb22_frauen &lt;- subset(fb22, geschl == &quot;weiblich&quot;)</code></pre>
+<p><strong>t-Test</strong></p>
 <p>Da wir einen Stichprobenmittelwert mit einem Populationsmittelwert vergleichen wollen und die Varianz in der Population nicht vorliegt, führen wir einen Einstichproben-t-Test durch.</p>
-<pre class="r"><code>t.test(fb22_frauen$gewis, mu = 3.73, alternative = &quot;greater&quot;, conf.level = .99) #mit conf.level = .99 wird uns direkt auch das gewünschte Konfidenzintervall ausgegeben</code></pre>
+<pre class="r"><code>t.test(fb22_frauen$gewis, mu = 3.73, alternative = &quot;greater&quot;, conf.level = .99)</code></pre>
 <pre><code>## 
 ##  One Sample t-test
 ## 
@@ -64,6 +69,87 @@ is.factor(fb22$geschl)</code></pre>
 ##     3.982</code></pre>
 <p>Mit einer Irrtumswahrscheinlichkeit von 5% kann die <span class="math inline">\(H_0\)</span> verworfen und die <span class="math inline">\(H_1\)</span> angenommen werden. Die weiblichen Psychologie-Studierenden haben höhere Gewissenhaftswerte im Vergleich zur Gesamtbevölkerung der Frauen.
 Das 99%-ige Konfidenzintervall liegt zwischen 3.86 und <span class="math inline">\(\infty\)</span> (außerhalb des definierten Wertebereichs). Das bedeutet, dass in 99% der Fälle in einer wiederholten Ziehung aus der Grundgesamtheit die mittleren Verträglichkeitswerte zwischen 3.86 und <span class="math inline">\(\infty\)</span> (außerhalb des definierten Wertebereichs) liegen.</p>
+<p><strong>Effektgröße</strong></p>
+<p>Für das Effektgrößemaß berechnen wir <strong>Cohen’s d</strong>.</p>
+<pre class="r"><code>mean_gewis_frauen &lt;- mean(fb22_frauen$gewis, na.rm = T)
+sd_gewis_frauen &lt;- sd(fb22_frauen$gewis, na.rm = T)
+mean_gewis_population &lt;- 3.73
+d &lt;- abs((mean_gewis_frauen - mean_gewis_population)/sd_gewis_frauen)</code></pre>
+<p>Die Effektgröße ist mit 0.43 als groß einzustufen.</p>
+</details>
+</div>
+</div>
+<div id="tests-für-unabhängige-stichproben" class="section level1">
+<h1>Tests für unabhängige Stichproben</h1>
+<div id="aufgabe-2" class="section level2">
+<h2>Aufgabe 2</h2>
+<p>Unterscheiden sich Personen, die gerne alleine lernen von Personen, die es bevorzugen in Gruppen zu lernen oder ein Mischtyp sind, in ihrer Extraversion (<code>extra</code>)? Schauen Sich sich die Daten graphisch an und führen sie nach Voraussetzungsprüfung einen geeigneten Test durch.</p>
+<details>
+<summary>
+Lösung
+</summary>
+<p>Zuerst schauen wir uns an ob die Variable Lerntyp bereits als Faktor vorliegt und wandeln sie gegebenenfalls um.</p>
+<pre class="r"><code>is.factor(fb22$lerntyp)</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>fb22$lerntyp &lt;- factor(fb22$lerntyp, 
+                       levels = 1:3, 
+                       labels = c(&quot;alleine&quot;, &quot;Gruppe&quot;, &quot;Mischtyp&quot;))</code></pre>
+<p>Nun wollen wir eine neue Variable erstellen, in der die Personen, die gerne in der Gruppe lernen oder ein Mischtyp sind, zusammengefasst werden.</p>
+<pre class="r"><code>fb22$lerntyp_neu &lt;- fb22$lerntyp == &quot;alleine&quot;
+fb22$lerntyp_neu &lt;- as.numeric(fb22$lerntyp_neu) #Umwandlung in Numeric, da der Variablen Typ nun Logical ist
+fb22$lerntyp_neu &lt;- factor(fb22$lerntyp_neu, 
+                           levels = 0:1, 
+                           labels = c(&quot;Gruppe oder Mischtyp&quot;, &quot;alleine&quot;))</code></pre>
+<p>Jetzt können wir uns die Extraversion der Gruppen deskriptiv in einem Boxplot darstellen lassen.</p>
+<pre class="r"><code>boxplot(fb22$extra ~ fb22$lerntyp_neu, xlab = &quot;Lerntyp&quot;, ylab = &quot;Extraversion&quot;) </code></pre>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>Deskriptiv lässt sich ein Mittelwertsunterschied feststellen. Diesen wollen wir aber nun noch inferenzstatistisch überprüfen. Dafür überprüfen wir die Voraussetzungen eines t-Tests für unabhängige Stichproben. Wir können annehmen, dass die abhängige Variable intervallskaliert ist und dass die einzelnen Messwerte voneinander unabhängig sind. Wir müssen nun noch die Normalverteilung der Extraversion in den Gruppen und die Homoskedastizität überprüfen.</p>
+<p><strong>Prüfung der Normalverteilung</strong></p>
+<p>Wir nutzen dafür die qqPlot Funktion aus dem <code>car</code> Paket.</p>
+<pre class="r"><code>library(car)</code></pre>
+<pre><code>## Lade nötiges Paket: carData</code></pre>
+<pre class="r"><code>qqPlot(fb22$extra[fb22$lerntyp_neu == &quot;alleine&quot;])</code></pre>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<pre><code>## [1]  7 38</code></pre>
+<pre class="r"><code>qqPlot(fb22$extra[fb22$lerntyp_neu == &quot;Gruppe oder Mischtyp&quot;])</code></pre>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-9-2.png" width="672" /></p>
+<pre><code>## [1] 12 32</code></pre>
+<p>Die Abweichungen sind nicht zu weit. Trotzdem führen wir zur weiteren Absicherung noch den Shapiro-Test durch.</p>
+<pre class="r"><code>shapiro.test(fb22$extra[fb22$lerntyp_neu == &quot;alleine&quot;])</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  fb22$extra[fb22$lerntyp_neu == &quot;alleine&quot;]
+## W = 0.98369, p-value = 0.5273</code></pre>
+<pre class="r"><code>shapiro.test(fb22$extra[fb22$lerntyp_neu == &quot;Gruppe oder Mischtyp&quot;])</code></pre>
+<pre><code>## 
+##  Shapiro-Wilk normality test
+## 
+## data:  fb22$extra[fb22$lerntyp_neu == &quot;Gruppe oder Mischtyp&quot;]
+## W = 0.98029, p-value = 0.2395</code></pre>
+<p>Keiner der Tests ist signifikant, sodass wir die Normalverteilungsannahme beibehalten.</p>
+<p><strong>Homoskedastizität</strong></p>
+<p>Diese überprüfen wir mittels Levene-Test.</p>
+<pre class="r"><code>leveneTest(fb22$extra ~ fb22$lerntyp_neu)</code></pre>
+<pre><code>## Levene&#39;s Test for Homogeneity of Variance (center = median)
+##        Df F value Pr(&gt;F)
+## group   1  0.0049 0.9445
+##       147</code></pre>
+<p>Das Ergebnis ist nicht signifikant, sodass wir die <span class="math inline">\(H_0\)</span> nicht ablehnen und die Homoskedastizität der Varianzen annehmen können.
+Damit sind alle Voraussetzungen eines t-Tests erfüllt.</p>
+<pre class="r"><code>t.test(fb22$extra ~ fb22$lerntyp_neu, var.equal = T)</code></pre>
+<pre><code>## 
+##  Two Sample t-test
+## 
+## data:  fb22$extra by fb22$lerntyp_neu
+## t = 4.6444, df = 147, p-value = 7.506e-06
+## alternative hypothesis: true difference in means between group Gruppe oder Mischtyp and group alleine is not equal to 0
+## 95 percent confidence interval:
+##  0.2922374 0.7251452
+## sample estimates:
+## mean in group Gruppe oder Mischtyp              mean in group alleine 
+##                           3.594512                           3.085821</code></pre>
+<p>Der deskriptive Unterschied der Mittelwerte lässt sich somit auch inferenzstatistisch feststellen, denn mit einer Irrtumswahrscheinlichkeit von 5% kann die <span class="math inline">\(H_0\)</span> verworfen und die <span class="math inline">\(H_1\)</span> angenommen werden. Die Teilnehmenden, die lieber alleine lernen, unterscheiden sich von den Teilnehmenden, die lieber in der Gruppe lernen oder ein Mischtyp sind, in ihrer Extraversion (t(<em>df</em> = 147, zweis.) = 4.64), <em>p</em> = &lt;.001).</p>
 </details>
 </div>
 <div id="alt" class="section level2">
@@ -126,7 +212,7 @@ str(data$stadt)</code></pre>
 <pre><code>##  Factor w/ 5 levels &quot;Berlin&quot;,&quot;Hamburg&quot;,..: 2 1 1 4 3 2 5 4 1 3</code></pre>
 </details>
 </div>
-<div id="aufgabe-2" class="section level2">
+<div id="aufgabe-2-1" class="section level2">
 <h2>Aufgabe 2</h2>
 <p>Nun wollen wir die Extraktion von bestimmten Datenpunkten nochmal üben.</p>
 <ul>
@@ -339,7 +425,7 @@ Lösung
 Lösung
 </summary>
 <pre class="r"><code>pie(table(data$geschlecht))</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-33-1.png" width="672" /></p>
 <pre class="r"><code>prop.table(table(data$geschlecht))</code></pre>
 <pre><code>## 
 ##   weiblich   männlich     divers 
@@ -381,7 +467,7 @@ Lösung
 <pre><code>## 25% 75% 
 ##   3   4</code></pre>
 <pre class="r"><code>boxplot(data$lz3)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-36-1.png" width="672" /></p>
 <pre class="r"><code>quantile(data$lz3, .75) - quantile(data$lz3, .25)</code></pre>
 <pre><code>## 75% 
 ##   1</code></pre>
@@ -445,9 +531,9 @@ colours2 &lt;- c(&quot;#B7C5D5&quot;, &quot;#D6EDEC&quot;, &quot;#E7E8ED&quot;)
 table_lerntyp &lt;- table(fb22$lerntyp)
 
 barplot(table_lerntyp, main = &quot;Lerntypen Jahrgang 2022&quot;, ylab = &quot;Anzahl Studierende&quot;, col = colours)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
 <pre class="r"><code>barplot(table_lerntyp, main = &quot;Lerntypen Jahrgang 2022&quot;, ylab = &quot;Anzahl Studierende&quot;, col = colours2)</code></pre>
-<img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-32-2.png" width="672" />
+<img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-40-2.png" width="672" />
 </details>
 </div>
 <div id="aufgabe-18" class="section level2">
@@ -495,9 +581,9 @@ Lösung
 <li>Die mittleren 50% der Angaben in Variable <code>prok4</code> reicht vom Wert 2 bis zum Wert 3, bei der Variable <code>prok10</code> reicht er von 2 bis 4.</li>
 </ul>
 <pre class="r"><code>boxplot(fb22$prok4)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-35-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-43-1.png" width="672" /></p>
 <pre class="r"><code>boxplot(fb22$prok10)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-35-2.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-43-2.png" width="672" /></p>
 </details>
 </div>
 <div id="aufgabe-20" class="section level2">
@@ -545,6 +631,7 @@ Lösung
 <p>Der Mittelwert von <code>gewis</code> liegt bei 3.884, der von <code>extra</code> bei 3.379. Unter den getroffenen Annahmen ist Ihre Gruppe gewissenhafter. Auch die Streuung ist deskriptiv auf der Extraversion größer. Hier liegt sie bei 0.495, während sie bei der Gewissenheit bei 0.436 liegt.</p>
 </details>
 </div>
+</div>
 <div id="aufgabe-22" class="section level1">
 <h1>Aufgabe 22</h1>
 <p>Verträglichkeit ist in <code>vertr</code> abgelegt.</p>
@@ -558,15 +645,15 @@ Lösung
 Lösung
 </summary>
 <pre class="r"><code>hist(fb22$vertr)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-39-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-47-1.png" width="672" /></p>
 <p>Dieses Histogramm soll erstmal zum Vergleich dienen. Wir sehen die ursprünglichen Skalenwerte.</p>
 <pre class="r"><code>fb22$vertr_z &lt;- scale(fb22$vertr, scale = F)
 hist(fb22$vertr_z)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-48-1.png" width="672" /></p>
 <p>Durch die Zentrierung verändert sich die Form erstmal nicht. Der Mittelwert der Werte wird auf 0 gesetzt. Optisch äußert sich das dadurch, dass die Werte auf der x-Achse nun andere sind.</p>
 <pre class="r"><code>fb22$vertr_st &lt;- scale(fb22$vertr, scale = T)
 hist(fb22$vertr_st)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-49-1.png" width="672" /></p>
 <p>Die Standardisierung setzt die Standardabweichung auf 1. Aufgrund der neuen Wertestruktur wird natürlich auch die Kategorienanzahl geändert.</p>
 </details>
 <div id="aufgabe-23" class="section level2">
@@ -598,6 +685,6 @@ Personen, die gerne in Gruppen lernen, weisen einen Mittelwert von 4.125 auf. Si
 <div id="abschluss" class="section level2">
 <h2>Abschluss</h2>
 <p>Hurrah, Sie haben alle Aufgaben gerechnet. Hier müssen Sie nichts selbst berechnen. Zur Belohnung gibt es noch einen Comic für zukünftige Skalierungsmöglichkeiten.</p>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-45-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-53-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>

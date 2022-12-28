@@ -23,18 +23,20 @@ header:
 projects: []
 ---
 
-Wie angekündigt finden Sie im Folgenden nun nochmal Aufgaben, die sich auf die Tutorials 5 bis 10 beziehen. Laden sie dafür den fb22 Datensatz herunter. load(url('https://pandar.netlify.app/post/fb22.rda'))
+Wie angekündigt finden Sie im Folgenden nun nochmal Aufgaben, die sich auf die Tutorials 5 bis 10 beziehen. Laden sie dafür den [fb22](https://pandar.netlify.app/post/fb22.rda) Datensatz herunter. 
+
+# Tests und Konfidenzintervalle
 
 ## Aufgabe 1
 
 In Deutschland liegt die Gewissenhaftigkeit (`gewis`) bei Frauen im Mittel bei *µ* = 3.73.
 
 * Sind Frauen, die Psychologie studieren, im Mittel gewissenhafter als Frauen in der Allgemeinbevölkerung? Stellen Sie die Hypothesen auf und führen Sie einen geeigneten Test durch.
-* Geben Sie zudem das 99%-ige Konfidenzintervall an.
+* Geben Sie zudem das 99%-ige Konfidenzintervall und die Effektgröße an.
 
 <details><summary>Lösung</summary>
 
-**Hypothesen:**
+**Hypothesen**
 
 $H_0$: Die durchschnittliche Gewissenhaftigkeit der Frauen, die Psychologie studieren, ist gleich oder geringer als die der Frauen in der Allgemeinbevölkerung.
 
@@ -44,24 +46,28 @@ $H_1$: Die durchschnittliche Gewissenhaftigkeit der Frauen, die Psychologie stud
 
 $H_1$: $\mu_0$ $<$ $\mu_1$
 
-Wir testen zuerst ob unsere Variable Geschlecht bereits als Faktor vorliegt. Wenn nicht wandeln wir sie in einen Faktor um.
+Wir testen zuerst ob unsere Variable `Geschlecht` bereits als Faktor vorliegt. Wenn nicht wandeln wir sie in einen Faktor um.
 
 ```{r}
 load(url('https://pandar.netlify.app/post/fb22.rda'))
 is.factor(fb22$geschl)
-fb22$geschl <- factor(fb22$geschl,levels = 1:3, labels = c("weiblich", "männlich", "anderes"))
+fb22$geschl <- factor(fb22$geschl,
+                      levels = 1:3, 
+                      labels = c("weiblich", "männlich", "anderes"))
 ```
 
-Nun erstellen wir ein `subset`, indem nur die weiblichen Teilnehmenden des fb22 Datensatzes enthalten sind.
+Nun erstellen wir ein `subset`, indem nur die weiblichen Teilnehmenden des `fb22` Datensatzes enthalten sind.
 
 ```{r}
 fb22_frauen <- subset(fb22, geschl == "weiblich")
 ```
 
+**t-Test**
+
 Da wir einen Stichprobenmittelwert mit einem Populationsmittelwert vergleichen wollen und die Varianz in der Population nicht vorliegt, führen wir einen Einstichproben-t-Test durch.
 
 ```{r}
-t.test(fb22_frauen$gewis, mu = 3.73, alternative = "greater", conf.level = .99) #mit conf.level = .99 wird uns direkt auch das gewünschte Konfidenzintervall ausgegeben
+t.test(fb22_frauen$gewis, mu = 3.73, alternative = "greater", conf.level = .99)
 ```
 
 ```{r, echo = FALSE}
@@ -72,9 +78,91 @@ conf.int1 <- t.test1$conf.int
 Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen und die $H_1$ angenommen werden. Die weiblichen Psychologie-Studierenden haben höhere Gewissenhaftswerte im Vergleich zur Gesamtbevölkerung der Frauen.
 Das 99%-ige Konfidenzintervall liegt zwischen `r round(conf.int1[1], digits = 2)` und $\infty$ (außerhalb des definierten Wertebereichs). Das bedeutet, dass in 99% der Fälle in einer wiederholten Ziehung aus der Grundgesamtheit die mittleren Verträglichkeitswerte zwischen `r round(conf.int1[1], digits = 2)` und $\infty$ (außerhalb des definierten Wertebereichs) liegen.
 
+**Effektgröße**
+
+Für das Effektgrößemaß berechnen wir **Cohen's d**.
+```{r}
+mean_gewis_frauen <- mean(fb22_frauen$gewis, na.rm = T)
+sd_gewis_frauen <- sd(fb22_frauen$gewis, na.rm = T)
+mean_gewis_population <- 3.73
+d <- abs((mean_gewis_frauen - mean_gewis_population)/sd_gewis_frauen)
+```
+Die Effektgröße ist mit `r round(d, digits = 2)` als groß einzustufen.
+
 </details>
 
+# Tests für unabhängige Stichproben
 
+## Aufgabe 2
+
+Unterscheiden sich Personen, die gerne alleine lernen von Personen, die es bevorzugen in Gruppen zu lernen oder ein Mischtyp sind, in ihrer Extraversion (`extra`)? Schauen Sich sich die Daten graphisch an und führen sie nach Voraussetzungsprüfung einen geeigneten Test durch.
+
+<details><summary>Lösung</summary>
+
+Zuerst schauen wir uns an ob die Variable Lerntyp bereits als Faktor vorliegt und wandeln sie gegebenenfalls um.
+
+```{r}
+is.factor(fb22$lerntyp)
+fb22$lerntyp <- factor(fb22$lerntyp, 
+                       levels = 1:3, 
+                       labels = c("alleine", "Gruppe", "Mischtyp"))
+```
+
+Nun wollen wir eine neue Variable erstellen, in der die Personen, die gerne in der Gruppe lernen oder ein Mischtyp sind, zusammengefasst werden.
+
+```{r}
+fb22$lerntyp_neu <- fb22$lerntyp == "alleine"
+fb22$lerntyp_neu <- as.numeric(fb22$lerntyp_neu) #Umwandlung in Numeric, da der Variablen Typ nun Logical ist
+fb22$lerntyp_neu <- factor(fb22$lerntyp_neu, 
+                           levels = 0:1, 
+                           labels = c("Gruppe oder Mischtyp", "alleine"))
+```
+
+Jetzt können wir uns die Extraversion der Gruppen deskriptiv in einem Boxplot darstellen lassen.
+
+```{r}
+boxplot(fb22$extra ~ fb22$lerntyp_neu, xlab = "Lerntyp", ylab = "Extraversion") 
+```
+
+Deskriptiv lässt sich ein Mittelwertsunterschied feststellen. Diesen wollen wir aber nun noch inferenzstatistisch überprüfen. Dafür überprüfen wir die Voraussetzungen eines t-Tests für unabhängige Stichproben. Wir können annehmen, dass die abhängige Variable intervallskaliert ist und dass die einzelnen Messwerte voneinander unabhängig sind. Wir müssen nun noch die Normalverteilung der Extraversion in den Gruppen und die Homoskedastizität überprüfen.
+
+**Prüfung der Normalverteilung**
+
+Wir nutzen dafür die qqPlot Funktion aus dem `car` Paket.
+
+```{r}
+library(car)
+qqPlot(fb22$extra[fb22$lerntyp_neu == "alleine"])
+qqPlot(fb22$extra[fb22$lerntyp_neu == "Gruppe oder Mischtyp"])
+```
+
+Die Abweichungen sind nicht zu weit. Trotzdem führen wir zur weiteren Absicherung noch den Shapiro-Test durch.
+
+```{r}
+shapiro.test(fb22$extra[fb22$lerntyp_neu == "alleine"])
+shapiro.test(fb22$extra[fb22$lerntyp_neu == "Gruppe oder Mischtyp"])
+```
+
+Keiner der Tests ist signifikant, sodass wir die Normalverteilungsannahme beibehalten.
+
+**Homoskedastizität**
+
+Diese überprüfen wir mittels Levene-Test.
+
+```{r}
+leveneTest(fb22$extra ~ fb22$lerntyp_neu)
+```
+
+Das Ergebnis ist nicht signifikant, sodass wir die $H_0$ nicht ablehnen und die Homoskedastizität der Varianzen annehmen können.
+Damit sind alle Voraussetzungen eines t-Tests erfüllt.
+
+```{r}
+t.test(fb22$extra ~ fb22$lerntyp_neu, var.equal = T)
+```
+
+Der deskriptive Unterschied der Mittelwerte lässt sich somit auch inferenzstatistisch feststellen, denn mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen und die $H_1$ angenommen werden. Die Teilnehmenden, die lieber alleine lernen, unterscheiden sich von den Teilnehmenden, die lieber in der Gruppe lernen oder ein Mischtyp sind, in ihrer Extraversion (t(*df* = `r t.test(fb22$extra ~ fb22$lerntyp_neu, var.equal = T)$parameter`, zweis.) = `r round(t.test(fb22$extra ~ fb22$lerntyp_neu, var.equal = T)$statistic, 2)`), *p* = <.001).
+
+</details>
 
 
 ## Alt:
