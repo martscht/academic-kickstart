@@ -164,6 +164,102 @@ Der deskriptive Unterschied der Mittelwerte lässt sich somit auch inferenzstati
 
 </details>
 
+# Tests für abhängige Stichproben
+
+## Aufgabe 3
+
+Unterscheidet sich im Durchschnitt die Angabe von Psychologiestudierenden zu ihrer Nerdiness (`nerd`) und ihrem Intellekt (`intel`)?
+
+* Stellen sie die Hypthesen auf.
+
+<details><summary>Lösung</summary>
+
+$H_0$: Die durchschnittliche Nerdiness von Psychologoiestudierenden unterscheidet sich nicht von ihrem Intellekt.
+
+$H_0$: $\mu_0$ $=$ $\mu_1$
+  
+$H_1$: Die durchschnittliche Nerdiness von Psychologoiestudierenden unterscheidet sich von ihrem Intellekt.
+
+$H_1$: $\mu_0$ $≠$ $\mu_1$
+
+</details>
+
+
+* Begründen Sie weshalb Sie welchen Test benutzen wollen.
+
+<details><summary>Lösung</summary>
+
+Da die Werte zur Nerdiness und zum Intellekt, die verglichen werden sollen, immer von der selben Person stammen. Sind die Werte voneinander abhängig. Daher wollen wir einen t-Test für abhängige Stichproben durchführen. Die Werte sind intervallskaliert, sind voneinander abhängig und die Differenzvariable ist normalverteilt, da wir bei einer Stichprobe von n ≥ 30 direkt davon ausgehen können. Somit sind alle Voraussetzungen für den t-Test erfüllt.
+
+</details>
+
+
+* Führen Sie den Test durch und berechnen Sie gegebenfalls eine Effektgröße.
+
+<details><summary>Lösung</summary>
+
+```{r}
+t.test(fb22$nerd, fb22$intel, paired = T)
+
+```
+Der Gruppenunterschied ist signifikant (*t*(158) = `r round(t.test(fb22$nerd, fb22$intel, paired = T)$statistic, 2)` , *p* < .001), somit wird die Nullhypothese verworfen. Psychologiestudierende weisen unterschiedliche Werte auf der Skala Nerdiness und auf der Skala Intellekt auf.
+
+**Effektstärke:**
+
+```{r}
+library("effsize")
+cohen.d(fb22$nerd, fb22$intel, paired = T, within = F)
+```
+
+Der Effekt ist mit `r round(cohen.d(fb22$nerd, fb22$intel, paired = T, within = F)$estimate, 2)` als mittel bis groß einzuschätzen.
+
+</details>
+
+# Korrelation
+
+## Aufgabe 4
+
+Hängt die Gewissenhaftigkeit (`gewis`) positiv mit der Anzahl an geschriebenen Wörtern zusammen, die als Begründung (`grund`) für die Wahl des Psychologiestudiums angegeben wurde? Überprüfen Sie die Voraussetzungen für das Zusammenhangsmaß.
+
+*Tipp:* Mit folgendem Befehl lassen sich die Anzahl an Wörter einer Eingabe berechnen:
+
+
+```{r}
+library(stringr) #falls noch nicht installiert: install.packages("stringr")
+str_count("Wie viele Wörter hat dieser Satz?", "\\w+")
+```
+
+<details><summary>Lösung</summary>
+
+Als erstes erstellen wir eine Variable mit der Anzahl an geschriebenen Wörtern.
+
+```{r}
+fb22$woerter_grund <- str_count(fb22$grund, "\\w+")
+```
+
+Nun schauen wir uns den Zusammenhang der Variablen in einem Scatterplot an.
+
+```{r}
+plot(x = fb22$woerter_grund, y = fb22$gewis)
+```
+
+Wir schließen einen nicht linearen Zusammenhang nicht aus und überprüfen nun die Normalverteilung der Variablen.
+
+```{r}
+library(car)
+qqPlot(fb22$gewis)
+qqPlot(fb22$woerter_grund)
+```
+Die Normalverteilungsannahme ist nicht erfüllt. Daher können wir keine Pearson-Produkt-Moment Korrelation berechnen und berechnen stattdessen die Rangkorrelation nach Spearman, die nicht an die Normalverteilungsannahme gebunden ist.
+
+```{r}
+cor.test(fb22$woerter_grund, fb22$gewis, method = "spearman", alternative = "greater")
+```
+
+Es besteht kein positiver Zusammenhang zwischen Gewissenhaftigkeit und der Anzahl an geschriebenen Wörter bei der Begründung für das Psychologiestudium.
+
+</details>
+
 
 ## Alt:
 
