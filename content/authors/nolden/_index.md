@@ -10,7 +10,7 @@ authors:
 superuser: false
 
 # Role/position
-role: Extras
+role:
 
 # Organizations/Affiliations
 organizations:
@@ -37,8 +37,8 @@ social:
 # icon_pack: ai
 # link: https://scholar.google.co.uk/citations?hl=en&user=368OoWYAAAAJ&view_op=list_works&gmla=AJsN-F64RpJyPmUHhBuIu1cmq1RztcFPdH51ANkMIZYELz9JCdSuPhkuxc3ZPORyrR_meOqPctx4zKIwpMnILGJdPZw-ltYbOcZx359E8MpUYBbpqyFdvVBNu8mJ9KLgPLF0G191Q1g_TckSaUAR1xUimwo7O5m05w
 # - icon: github
-# icon_pack: fab
-# link: https://github.com/HastiRouchi
+#   icon_pack: fab
+#   link: https://github.com/HastiRouchi
 # - icon: bitbucket
 #   icon_pack: fab
 #   link: https://bitbucket.com/martscht
@@ -46,8 +46,8 @@ social:
 #   icon_pack: fa
 #   link: https://www.psychologie.uni-frankfurt.de/54448027/Julien_Irmer
 - icon: researchgate
-icon_pack: fab
-link: https://www.researchgate.net/profile/Sophie-Nolden
+  icon_pack: fab
+  link: https://www.researchgate.net/profile/Sophie-Nolden
 # Link to a PDF of your resume/CV from the About widget.
 # To enable, copy your resume/CV to `static/files/cv.pdf` and uncomment the lines below.
 # - icon: cv
@@ -55,7 +55,7 @@ link: https://www.researchgate.net/profile/Sophie-Nolden
 #   link: files/cv.pdf
 
 # Enter email to display Gravatar (if Gravatar enabled in Config)
-email: "nolden@psych.uni-frankfurt.de"
+email:
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
