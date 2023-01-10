@@ -77,6 +77,7 @@ mean_gewis_population &lt;- 3.73
 d &lt;- abs((mean_gewis_frauen - mean_gewis_population)/sd_gewis_frauen)</code></pre>
 <p>Die Effektgröße ist mit 0.43 als groß einzustufen.</p>
 </details>
+<hr />
 </div>
 </div>
 <div id="tests-für-unabhängige-stichproben" class="section level1">
@@ -152,11 +153,88 @@ Damit sind alle Voraussetzungen eines t-Tests erfüllt.</p>
 <p>Der deskriptive Unterschied der Mittelwerte lässt sich somit auch inferenzstatistisch feststellen, denn mit einer Irrtumswahrscheinlichkeit von 5% kann die <span class="math inline">\(H_0\)</span> verworfen und die <span class="math inline">\(H_1\)</span> angenommen werden. Die Teilnehmenden, die lieber alleine lernen, unterscheiden sich von den Teilnehmenden, die lieber in der Gruppe lernen oder ein Mischtyp sind, in ihrer Extraversion (t(<em>df</em> = 147, zweis.) = 4.64), <em>p</em> = &lt;.001).</p>
 </details>
 </div>
+<div id="aufgabe-3" class="section level2">
+<h2>Aufgabe 3</h2>
+<p>Haben Studierende, die bei ihren Eltern wohnen (<code>wohnen</code>), mit gleicher Wahrscheinlichkeit einen Nebenjob (<code>job</code>) wie Studierende, die nicht bei ihren Eltern wohnen?</p>
+<ul>
+<li>Prüfen Sie die Voraussetungen für einen Chi-Quadrat-Test</li>
+</ul>
+<details>
+<summary>
+Lösung
+</summary>
+<p>Als erstes müssen wir den Datensatz aufbereiten.</p>
+<pre class="r"><code>is.factor(fb22$wohnen)</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>is.factor(fb22$job)</code></pre>
+<pre><code>## [1] FALSE</code></pre>
+<pre class="r"><code>fb22$wohnen &lt;- factor(fb22$wohnen, levels = 1:4, labels = c(&quot;WG&quot;, &quot;bei Eltern&quot;, &quot;alleine&quot;, &quot;sonstiges&quot;))
+fb22$job &lt;- factor(fb22$job, levels = 1:2, labels = c(&quot;nein&quot;, &quot;ja&quot;))
+
+fb22$wohnen_bei_Eltern &lt;- fb22$wohnen == &quot;bei Eltern&quot; #wir erstellen eine Variable, die angibt, ob eine Personen bei den Eltern wohnt oder nicht</code></pre>
+<p>Die Voraussetzungen, dass die einzelnen Beobachtungen voneinander unabhängig sind und, dass jede Person eindeutig einer Merkmalskombination zuordbar ist, ist durch das Studiendesign erfüllt. Wir müssen aber noch prüfen, ob jede Zelle mit mehr als fünf Personen gefüllt ist.</p>
+<pre class="r"><code>tab &lt;- table(fb22$wohnen_bei_Eltern, fb22$job)
+tab</code></pre>
+<pre><code>##        
+##         nein ja
+##   FALSE   62 30
+##   TRUE    35 21</code></pre>
+<p>Die Voraussetungen für einen Chi-Quadrat-Test sind erfüllt.</p>
+</details>
+<ul>
+<li>Berechnen Sie die erwarteten Häufigkeiten der Zellen und treffen Sie eine Signifikanzentscheidung</li>
+</ul>
+<details>
+<summary>
+Lösung
+</summary>
+<p>Für die Erwarteten Häufigkeiten brauchen wir die Randsummen. Diese erhalten wir mit dem Befehl <code>addmargins</code>.</p>
+<pre class="r"><code>tab_mar &lt;- addmargins(tab)
+tab_mar</code></pre>
+<pre><code>##        
+##         nein  ja Sum
+##   FALSE   62  30  92
+##   TRUE    35  21  56
+##   Sum     97  51 148</code></pre>
+<p>Die erwarteten Häufigkeiten der Zellen erhalten wir wie folgt:</p>
+<pre class="r"><code>n &lt;- tab_mar[3,3]
+
+erwartet_11 &lt;- (tab_mar[1,3]*tab_mar[3,1])/n
+erwartet_12 &lt;- (tab_mar[1,3]*tab_mar[3,2])/n
+erwartet_21 &lt;- (tab_mar[2,3]*tab_mar[3,1])/n
+erwartet_22 &lt;- (tab_mar[2,3]*tab_mar[3,2])/n
+
+erwartet &lt;- data.frame(nein = c(erwartet_11, erwartet_21), ja = c(erwartet_12, erwartet_22))
+erwartet</code></pre>
+<pre><code>##      nein      ja
+## 1 60.2973 31.7027
+## 2 36.7027 19.2973</code></pre>
+<p>Für die Signifikanzentscheidung berechnen wir den empirischen Chi-Quadrat-Wert und den zugehörigen p-Wert.</p>
+<pre class="r"><code>chi_quadrat_Wert &lt;- (tab[1,1]-erwartet[1,1])^2/erwartet[1,1]+
+  (tab[1,2]-erwartet[1,2])^2/erwartet[1,2]+
+  (tab[2,1]-erwartet[2,1])^2/erwartet[2,1]+
+  (tab[2,2]-erwartet[2,2])^2/erwartet[2,2]
+
+chi_quadrat_Wert</code></pre>
+<pre><code>## [1] 0.368761</code></pre>
+<pre class="r"><code>pchisq(chi_quadrat_Wert, 1, lower.tail = F) #Freiheitsgrad beträgt 1</code></pre>
+<pre><code>## [1] 0.5436804</code></pre>
+<p>Somit ist der Test nicht signifikant und es lässt sich feststellen, dass das Wohnen bei den Eltern nicht damit zusammen hängt, ob ein Nebenjob ausgeübt wird.</p>
+<p>Wir können unser Ergebnis auch noch mit dem Befehl <code>chisq.test()</code> überprüfen und sehen, dass dieser das gleiche Ergebnis liefert.</p>
+<pre class="r"><code>chisq.test(tab, correct = F)</code></pre>
+<pre><code>## 
+##  Pearson&#39;s Chi-squared test
+## 
+## data:  tab
+## X-squared = 0.36876, df = 1, p-value = 0.5437</code></pre>
+</details>
+<hr />
+</div>
 </div>
 <div id="tests-für-abhängige-stichproben" class="section level1">
 <h1>Tests für abhängige Stichproben</h1>
-<div id="aufgabe-3" class="section level2">
-<h2>Aufgabe 3</h2>
+<div id="aufgabe-4" class="section level2">
+<h2>Aufgabe 4</h2>
 <p>Unterscheidet sich im Durchschnitt die Angabe von Psychologiestudierenden zu ihrer Nerdiness (<code>nerd</code>) und ihrem Intellekt (<code>intel</code>)?</p>
 <ul>
 <li>Stellen sie die Hypthesen auf.</li>
@@ -211,12 +289,13 @@ cohen.d(fb22$nerd, fb22$intel, paired = T, within = F)</code></pre>
 ## -0.7274678 -0.3918542</code></pre>
 <p>Der Effekt ist mit -0.56 als mittel bis groß einzuschätzen.</p>
 </details>
+<hr />
 </div>
 </div>
 <div id="korrelation" class="section level1">
 <h1>Korrelation</h1>
-<div id="aufgabe-4" class="section level2">
-<h2>Aufgabe 4</h2>
+<div id="aufgabe-5" class="section level2">
+<h2>Aufgabe 5</h2>
 <p>Hängt die Gewissenhaftigkeit (<code>gewis</code>) positiv mit der Anzahl an geschriebenen Wörtern zusammen, die als Begründung (<code>grund</code>) für die Wahl des Psychologiestudiums angegeben wurde? Überprüfen Sie die Voraussetzungen für das Zusammenhangsmaß.</p>
 <p><em>Tipp:</em> Mit folgendem Befehl lassen sich die Anzahl an Wörter einer Eingabe berechnen:</p>
 <pre class="r"><code>library(stringr) #falls noch nicht installiert: install.packages(&quot;stringr&quot;)
@@ -230,14 +309,14 @@ Lösung
 <pre class="r"><code>fb22$woerter_grund &lt;- str_count(fb22$grund, &quot;\\w+&quot;)</code></pre>
 <p>Nun schauen wir uns den Zusammenhang der Variablen in einem Scatterplot an.</p>
 <pre class="r"><code>plot(x = fb22$woerter_grund, y = fb22$gewis)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
 <p>Wir schließen einen nicht linearen Zusammenhang nicht aus und überprüfen nun die Normalverteilung der Variablen.</p>
 <pre class="r"><code>library(car)
 qqPlot(fb22$gewis)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-18-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-24-1.png" width="672" /></p>
 <pre><code>## [1] 54 80</code></pre>
 <pre class="r"><code>qqPlot(fb22$woerter_grund)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-18-2.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-24-2.png" width="672" /></p>
 <pre><code>## [1] 136  93</code></pre>
 <p>Die Normalverteilungsannahme ist nicht erfüllt. Daher können wir keine Pearson-Produkt-Moment Korrelation berechnen und berechnen stattdessen die Rangkorrelation nach Spearman, die nicht an die Normalverteilungsannahme gebunden ist.</p>
 <pre class="r"><code>cor.test(fb22$woerter_grund, fb22$gewis, method = &quot;spearman&quot;, alternative = &quot;greater&quot;)</code></pre>
@@ -254,6 +333,7 @@ qqPlot(fb22$gewis)</code></pre>
 ## 0.0432278</code></pre>
 <p>Es besteht kein positiver Zusammenhang zwischen Gewissenhaftigkeit und der Anzahl an geschriebenen Wörter bei der Begründung für das Psychologiestudium.</p>
 </details>
+<hr />
 </div>
 <div id="alt" class="section level2">
 <h2>Alt:</h2>
@@ -381,7 +461,7 @@ Lösung
 data$lz4 &lt;- -1 * (data$lz4 - 6)</code></pre>
 </details>
 </div>
-<div id="aufgabe-5" class="section level2">
+<div id="aufgabe-5-1" class="section level2">
 <h2>Aufgabe 5</h2>
 <p>Datenextraktion kann auch mit logischer Überprüfung kombiniert werden. Bearbeiten Sie dafür folgende Fragestellungen</p>
 <ul>
@@ -528,7 +608,7 @@ Lösung
 Lösung
 </summary>
 <pre class="r"><code>pie(table(data$geschlecht))</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-46-1.png" width="672" /></p>
 <pre class="r"><code>prop.table(table(data$geschlecht))</code></pre>
 <pre><code>## 
 ##   weiblich   männlich     divers 
@@ -570,7 +650,7 @@ Lösung
 <pre><code>## 25% 75% 
 ##   3   4</code></pre>
 <pre class="r"><code>boxplot(data$lz3)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-43-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-49-1.png" width="672" /></p>
 <pre class="r"><code>quantile(data$lz3, .75) - quantile(data$lz3, .25)</code></pre>
 <pre><code>## 75% 
 ##   1</code></pre>
@@ -634,9 +714,9 @@ colours2 &lt;- c(&quot;#B7C5D5&quot;, &quot;#D6EDEC&quot;, &quot;#E7E8ED&quot;)
 table_lerntyp &lt;- table(fb22$lerntyp)
 
 barplot(table_lerntyp, main = &quot;Lerntypen Jahrgang 2022&quot;, ylab = &quot;Anzahl Studierende&quot;, col = colours)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-47-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-53-1.png" width="672" /></p>
 <pre class="r"><code>barplot(table_lerntyp, main = &quot;Lerntypen Jahrgang 2022&quot;, ylab = &quot;Anzahl Studierende&quot;, col = colours2)</code></pre>
-<img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-47-2.png" width="672" />
+<img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-53-2.png" width="672" />
 </details>
 </div>
 <div id="aufgabe-18" class="section level2">
@@ -684,9 +764,9 @@ Lösung
 <li>Die mittleren 50% der Angaben in Variable <code>prok4</code> reicht vom Wert 2 bis zum Wert 3, bei der Variable <code>prok10</code> reicht er von 2 bis 4.</li>
 </ul>
 <pre class="r"><code>boxplot(fb22$prok4)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-50-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-56-1.png" width="672" /></p>
 <pre class="r"><code>boxplot(fb22$prok10)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-50-2.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-56-2.png" width="672" /></p>
 </details>
 </div>
 <div id="aufgabe-20" class="section level2">
@@ -748,15 +828,15 @@ Lösung
 Lösung
 </summary>
 <pre class="r"><code>hist(fb22$vertr)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-54-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-60-1.png" width="672" /></p>
 <p>Dieses Histogramm soll erstmal zum Vergleich dienen. Wir sehen die ursprünglichen Skalenwerte.</p>
 <pre class="r"><code>fb22$vertr_z &lt;- scale(fb22$vertr, scale = F)
 hist(fb22$vertr_z)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-55-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-61-1.png" width="672" /></p>
 <p>Durch die Zentrierung verändert sich die Form erstmal nicht. Der Mittelwert der Werte wird auf 0 gesetzt. Optisch äußert sich das dadurch, dass die Werte auf der x-Achse nun andere sind.</p>
 <pre class="r"><code>fb22$vertr_st &lt;- scale(fb22$vertr, scale = T)
 hist(fb22$vertr_st)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-56-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-62-1.png" width="672" /></p>
 <p>Die Standardisierung setzt die Standardabweichung auf 1. Aufgrund der neuen Wertestruktur wird natürlich auch die Kategorienanzahl geändert.</p>
 </details>
 <div id="aufgabe-23" class="section level2">
@@ -788,6 +868,6 @@ Personen, die gerne in Gruppen lernen, weisen einen Mittelwert von 4.125 auf. Si
 <div id="abschluss" class="section level2">
 <h2>Abschluss</h2>
 <p>Hurrah, Sie haben alle Aufgaben gerechnet. Hier müssen Sie nichts selbst berechnen. Zur Belohnung gibt es noch einen Comic für zukünftige Skalierungsmöglichkeiten.</p>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-60-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-66-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
