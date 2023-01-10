@@ -11,7 +11,7 @@ tags:
   - unabhängig
 subtitle: ''
 summary: ''
-authors: [koehler, buchholz, irmer, goldhammer]
+authors: [koehler, buchholz, irmer, nehler, goldhammer]
 lastmod: "2022-12-06T14:00:00+01:00"
 featured: no
 header:
@@ -28,9 +28,6 @@ Kernfragen der Lehreinheiten über Gruppenvergleiche
 </summary>
 <ul>
 <li>Wie fertige ich Deskriptivstatistiken (Grafiken, Kennwerte) zur Veranschaulichung des Unterschieds zwischen zwei Gruppen an?</li>
-</ul>
-<p><strong>unabhängige Stichproben</strong> (<a href="/post/gruppenvergleiche-unabhaengig">diese Sitzung</a>)</p>
-<ul>
 <li>Was sind Voraussetzungen des <em>t</em>-Tests und wie prüfe ich sie?</li>
 <li>Wie führe ich einen <em>t</em>-Test in R durch?<br />
 </li>
@@ -39,16 +36,6 @@ Kernfragen der Lehreinheiten über Gruppenvergleiche
 <li>Wie führe ich den Wilcoxon-Test (auch “Mann-Whitney-Test”, “U-Test”, “Mann-Whitney-U-Test”, “Wilcoxon-Rangsummentest”) in R durch?<br />
 </li>
 <li>Wie führe ich den Vierfelder-Chi-Quadrat-Test in R durch?</li>
-</ul>
-<p><strong>abhängige Stichproben</strong> (<a href="/post/gruppenvergleiche-abhaengig">nächste Sitzung</a>)</p>
-<ul>
-<li>Was sind Voraussetzungen des abhängigen <em>t</em>-Tests und wie prüfe ich sie?</li>
-<li>Wie führe ich einen abhängigen <em>t</em>-Test in R durch?<br />
-</li>
-<li>Wie berechne ich den standardisierten Populationseffekt für abhängige Stichproben?<br />
-</li>
-<li>Wie führe ich einen abhängigen Wilcoxon-Test in R durch?</li>
-<li>Wie berichte ich statistische Ergebnisse formal?</li>
 </ul>
 </details>
 <hr />
@@ -62,32 +49,68 @@ Kernfragen der Lehreinheiten über Gruppenvergleiche
 <li>Fragestellung A: Erreichen Studentinnen und Studenten im Nerdiness Personality Attributes-Test im Durchschnitt gleich hohe Testwerte? (<em>t-Test und Cohen’s d für unabhängige Stichproben</em>)</li>
 <li>Fragestellung B: Stimmen Studentinnen dem Item “Ich denke immer darüber nach, wie meine Taten sich auf die Umwelt auswirken” stärker zu als Studenten? (<em>Wilcoxon-Test für unabhängige Stichproben</em>)</li>
 <li>Fragestellung C: Haben Studierende mit Wohnort in Uninähe (Frankfurt) mit gleicher Wahrscheinlichkeit einen Nebenjob wie Studierende, deren Wohnort außerhalb von Frankfurt liegt? (<em>Vierfelder-</em><span class="math inline">\(\chi^2\)</span>-Test)</li>
-<li>Fragestellung D: Sind jüngere Geschwister kooperativer als ältere? (<em>t-Test und Cohen’s d für abhängige Stichproben</em>)</li>
-<li>Fragestellung E: Sind jüngere Geschwister kooperativer als ältere? (<em>Wilcoxon-Test für abhängige Stichproben</em>)</li>
 </ol>
-<p>Fragen 1.- 3. werden in dieser Sitzung behandelt. In der nächsten Sitzung schauen wir uns die Fragestellungen 4.- 5. an.</p>
+<hr />
+</div>
+<div id="prep" class="section level2">
+<h2>Vorbereitende Schritte</h2>
+<p>Wie man anhand der Fragestellungen bereits gesehen hat, beschäftigen wir uns mit den Werten aus unserem Datensatz. Diesen haben wir bereits unter diesem <a href="/post/fb22.rda"><i class="fas fa-download"></i> Link heruntergeladen</a> und können ihn über den lokalen Speicherort einladen oder Sie können Ihn direkt mittels des folgenden Befehls aus dem Internet in das Environment bekommen. In den vorherigen Tutorials und den dazugehörigen Aufgaben haben wir bereits Änderungen am Datensatz durchgeführt, die hier nochmal aufgeführt sind, um den Datensatz auf dem aktuellen Stand zu haben:</p>
+<pre class="r"><code>#### Was bisher geschah: ----
+
+# Daten laden
+load(url(&#39;https://pandar.netlify.app/post/fb22.rda&#39;))  
+
+# Nominalskalierte Variablen in Faktoren verwandeln
+fb22$geschl_faktor &lt;- factor(fb22$geschl,
+                             levels = 1:3,
+                             labels = c(&quot;weiblich&quot;, &quot;männlich&quot;, &quot;anderes&quot;))
+fb22$fach &lt;- factor(fb22$fach,
+                    levels = 1:5,
+                    labels = c(&#39;Allgemeine&#39;, &#39;Biologische&#39;, &#39;Entwicklung&#39;, &#39;Klinische&#39;, &#39;Diag./Meth.&#39;))
+fb22$ziel &lt;- factor(fb22$ziel,
+                        levels = 1:4,
+                        labels = c(&quot;Wirtschaft&quot;, &quot;Therapie&quot;, &quot;Forschung&quot;, &quot;Andere&quot;))
+fb22$wohnen &lt;- factor(fb22$wohnen, 
+                      levels = 1:4, 
+                      labels = c(&quot;WG&quot;, &quot;bei Eltern&quot;, &quot;alleine&quot;, &quot;sonstiges&quot;))
+
+# Skalenbildung
+
+fb22$prok2_r &lt;- -1 * (fb22$prok2 - 5)
+fb22$prok3_r &lt;- -1 * (fb22$prok3 - 5)
+fb22$prok5_r &lt;- -1 * (fb22$prok5 - 5)
+fb22$prok7_r &lt;- -1 * (fb22$prok7 - 5)
+fb22$prok8_r &lt;- -1 * (fb22$prok8 - 5)
+
+# Prokrastination
+fb22$prok_ges &lt;- fb22[, c(&#39;prok1&#39;, &#39;prok2_r&#39;, &#39;prok3_r&#39;,
+                          &#39;prok4&#39;, &#39;prok5_r&#39;, &#39;prok6&#39;,
+                          &#39;prok7_r&#39;, &#39;prok8_r&#39;, &#39;prok9&#39;, 
+                          &#39;prok10&#39;)] |&gt; rowMeans()
+# Naturverbundenheit
+fb22$nr_ges &lt;-  fb22[, c(&#39;nr1&#39;, &#39;nr2&#39;, &#39;nr3&#39;, &#39;nr4&#39;, &#39;nr5&#39;,  &#39;nr6&#39;)] |&gt; rowMeans()
+fb22$nr_ges_z &lt;- scale(fb22$nr_ges) # Standardisiert
+
+# Weitere Standardisierugen
+fb22$nerd_std &lt;- scale(fb22$nerd)
+fb22$neuro_std &lt;- scale(fb22$neuro)</code></pre>
 <hr />
 </div>
 <div id="fragestellung-a-erreichen-studenten-im-nerdiness-personality-attributes-test-im-durchschnitt-einen-höheren-testwert-als-studentinnen" class="section level2">
 <h2>1. Fragestellung A: Erreichen Studenten im Nerdiness Personality Attributes-Test im Durchschnitt einen höheren Testwert als Studentinnen?</h2>
-<div id="vorbereitung-daten-einlesen-daten-aufbereiten" class="section level3">
-<h3>1.1 Vorbereitung (Daten einlesen, Daten aufbereiten)</h3>
-<p>Zunächst müssen wir die Daten entsprechend vorbereiten.</p>
-<pre class="r"><code>setwd(&quot;...&quot;)
-load(&quot;fb22.rda&quot;)</code></pre>
-<p>Das Geschlecht <code>geschl</code> sollte als Faktor vorliegen. Falls Sie das Geschlecht bereits in einen Faktor mit benannten <code>levels</code> umgewandelt haben, können Sie dies in der Regel nicht noch einmal tun. Deswegen ist es sinnvoll, zunächst zu prüfen, ob das Geschlecht ein <code>factor</code> ist oder nicht. Das können wir mit <code>is.factor</code> machen. Diese Funktion gibt uns einen boolschen Wert (<code>TRUE</code> oder <code>FALSE</code>) wieder und beantwortet damit unsere Frage, ob das Geschlecht ein <code>factor</code> ist oder nicht.</p>
+<div id="vorbereitung-daten-aufbereiten" class="section level3">
+<h3>1.1 Vorbereitung (Daten aufbereiten)</h3>
+<p>Die Gruppierungsvariable in unserer Fragestellung muss für die Nutzung der Funktionen in <code>R</code> als Faktor vorliegen. Bei uns soll es um das Geschlecht gehen. Wir können wir mit <code>is.factor</code> überprüfen, ob die Variable <code>geschl</code> im Datensatz ein Faktor ist.</p>
 <pre class="r"><code>is.factor(fb22$geschl)</code></pre>
 <pre><code>## [1] FALSE</code></pre>
-<p>Da wir den Datensatz “ganz frisch” eingeladen haben, ist dies nicht der Fall. Demnach können wir ganz unbedacht den <code>factor</code> nach unseren Wünschen generieren:</p>
-<pre class="r"><code>fb22$geschl &lt;- factor(fb22$geschl,          
-                        levels = c(1, 2, 3),
-                        labels = c(&#39;weiblich&#39;, &#39;maennlich&#39;, &#39;anderes&#39;))</code></pre>
-<p>Variable <code>geschl</code> liegt (nun) als Faktor vor.</p>
-<pre class="r"><code>is.factor(fb22$geschl)</code></pre>
+<p>Diese Funktion gibt uns einen boolschen Wert (<code>TRUE</code> oder <code>FALSE</code>) wieder und beantwortet damit unsere Frage, ob das Geschlecht ein <code>factor</code> ist oder nicht. Wir sehen aufgrund der Antwort als <code>FALSE</code>, dass die Variable <code>geschl</code> nicht als Faktor vorliegt.</p>
+<p>Allerdings haben wir in der Vorbereitung gesehen, dass wir bereits eine Variable erstellt haben, die das Geschlecht als Faktor repräsentiert. Diese hatten wir <code>geschl_faktor</code> genannt. Auch das können wir nochmal überprüfen:</p>
+<pre class="r"><code>is.factor(fb22$geschl_faktor)</code></pre>
 <pre><code>## [1] TRUE</code></pre>
-<p>Seine <code>levels</code> lauten</p>
-<pre class="r"><code>levels(fb22$geschl)</code></pre>
-<pre><code>## [1] &quot;weiblich&quot;  &quot;maennlich&quot; &quot;anderes&quot;</code></pre>
+<p>Hier wird ein <code>TRUE</code> ausgegeben - die Variable ist also ein Faktor. Auch die <code>levels</code> könenn wir bestimmen</p>
+<pre class="r"><code>levels(fb22$geschl_faktor)</code></pre>
+<pre><code>## [1] &quot;weiblich&quot; &quot;männlich&quot; &quot;anderes&quot;</code></pre>
+<p>Der Faktor hat also 3` Stufen, die bei der Beantwortung möglich gewesen wären.</p>
 </div>
 <div id="deskriptivstatistik" class="section level3">
 <h3>1.2. Deskriptivstatistik</h3>
@@ -95,31 +118,31 @@ load(&quot;fb22.rda&quot;)</code></pre>
 <div id="grafisch" class="section level4">
 <h4>1.2.1. grafisch</h4>
 <p>Wir werfen zunächst vorbereitend einen tabellarischen Blick auf die Variable Geschlecht.</p>
-<pre class="r"><code>table(fb22$geschl)</code></pre>
+<pre class="r"><code>table(fb22$geschl_faktor)</code></pre>
 <pre><code>## 
-##  weiblich maennlich   anderes 
-##       125        23         1</code></pre>
-<p>Insgesamt gibt es nur eine Person, welche die Option “anderes” ausgewählt hat. Leider lässt sich über einen Datenpunkt allein keine Varianz bestimmen und auch keine Inferenzstatistik betreiben. Aus diesem Grund müssen wir uns hier auf “maennlich” und “weiblich” beschränken und verwenden im Folgenden den gekürzten Datensatz <code>dataB</code>:</p>
+## weiblich männlich  anderes 
+##      125       23        1</code></pre>
+<p>Insgesamt gibt es nur eine Person, welche die Option “anderes” ausgewählt hat. Leider lässt sich über einen Datenpunkt allein keine Varianz bestimmen und auch keine Inferenzstatistik betreiben. Aus diesem Grund müssen wir uns hier auf “männlich” und “weiblich” beschränken und verwenden im Folgenden den gekürzten Datensatz <code>dataB</code>:</p>
 <pre class="r"><code># nur Männer und Frauen auswählen:
-dataB &lt;- fb22[ (fb22$geschl==&quot;maennlich&quot;|fb22$geschl==&quot;weiblich&quot;), ]  
-dataB$geschl &lt;- droplevels(dataB$geschl) # levels aus den Datensatz entfernen, die keine Erhebungen haben</code></pre>
+dataB &lt;- fb22[ (fb22$geschl_faktor==&quot;männlich&quot;|fb22$geschl_faktor==&quot;weiblich&quot;), ]  
+dataB$geschl_faktor &lt;- droplevels(dataB$geschl_faktor) # levels aus den Datensatz entfernen, die keine Erhebungen haben</code></pre>
 <p>Mithilfe eines Boxplots, bzw. mithilfe von Histogrammen, lassen sich Unterschiede zwischen Gruppen gut untersuchen. Wir verwenden hier einige Zusatzeinstellungen, um die Grafiken übersichtlicher und auch ein wenig ansprechender zu gestalten.</p>
 <pre class="r"><code># Gruppierter Boxplot :
-boxplot(dataB$nerd ~ dataB$geschl, 
+boxplot(dataB$nerd ~ dataB$geschl_faktor, 
         xlab=&quot;Geschlecht&quot;, ylab=&quot;Nerdiness&quot;, 
         las=1, cex.lab=1.5, 
         main=&quot;Nerdiness je nach Geschlecht&quot;)</code></pre>
-<p><img src="/post/2022-12-05-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
+<p><img src="/post/2022-12-05-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-7-1.png" width="672" /></p>
 <pre class="r"><code># Je ein Histogramm pro Gruppe, untereinander dargestellt, vertikale Linie für den jeweiligen Mittelwert
 par(mfrow=c(2,1), mar=c(3,2,2,0))
-hist(dataB[(dataB$geschl==&quot;weiblich&quot;), &quot;nerd&quot;], main=&quot;Testwert (weiblich)&quot;, 
+hist(dataB[(dataB$geschl_faktor==&quot;weiblich&quot;), &quot;nerd&quot;], main=&quot;Testwert (weiblich)&quot;, 
      xlim=c(0,6), xlab=&quot;&quot;, ylab=&quot;&quot;, las=1)
-abline(v=mean(dataB[(dataB$geschl==&quot;weiblich&quot;), &quot;nerd&quot;], na.rm=T), col=&quot;aquamarine3&quot;, lwd=3)
-hist(dataB[(dataB$geschl==&quot;maennlich&quot;), &quot;nerd&quot;], main=&quot;Testwert (maennlich)&quot;, 
+abline(v=mean(dataB[(dataB$geschl_faktor==&quot;weiblich&quot;), &quot;nerd&quot;], na.rm=T), col=&quot;aquamarine3&quot;, lwd=3)
+hist(dataB[(dataB$geschl_faktor==&quot;männlich&quot;), &quot;nerd&quot;], main=&quot;Testwert (männlich)&quot;, 
      xlim=c(0,6), xlab=&quot;&quot;, ylab=&quot;&quot;, las=1)
-abline(v=mean(dataB[(dataB$geschl==&quot;maennlich&quot;), &quot;nerd&quot;], na.rm=T), col=&quot;darksalmon&quot;, lwd=3)</code></pre>
-<p><img src="/post/2022-12-05-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-9-2.png" width="672" /></p>
-<p><code>dataB$nerd ~ dataB$geschl</code> ist die Formelnotation in <code>R</code>, welche Sie im Rahmen der Regression noch genauer kennenlernen werden. Links von der <code>~</code> (Tilde) steht die abhängige Variable (hier der Testwert), deren Mittelwertsunterschiede durch die unabhängige Variable (hier Geschlecht) rechts der <code>~</code> erklärt werden soll. Der Befehl <code>par(mfrow=c(2,1), mar=c(3,2,2,0))</code> bewirkt, dass 2 Grafiken untereinander dargestellt werden - und zwar im selben Plot. Das Argument <code>mfrow</code> definiert ein Plot-Array mit der angebenen Anzahl von Zeilen und Spalten (wobei mit <code>mfrow</code> die Plots zeilenweise verteilt werden; alternativ mit <code>mfcol</code>). Mit dem Argument <code>mar</code> werden für unten, links, oben und rechts die Randabstände spezifiziert. Spielen Sie doch einmal selbst an den Einstellungen herum und schauen nach, was die Argumente jeweils bewirken!</p>
+abline(v=mean(dataB[(dataB$geschl_faktor==&quot;männlich&quot;), &quot;nerd&quot;], na.rm=T), col=&quot;darksalmon&quot;, lwd=3)</code></pre>
+<p><img src="/post/2022-12-05-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-7-2.png" width="672" /></p>
+<p><code>dataB$nerd ~ dataB$geschl_faktor</code> ist die Formelnotation in <code>R</code>, welche Sie im Rahmen der Regression noch genauer kennenlernen werden. Links von der <code>~</code> (Tilde) steht die abhängige Variable (hier der Testwert), deren Mittelwertsunterschiede durch die unabhängige Variable (hier Geschlecht) rechts der <code>~</code> erklärt werden soll. Der Befehl <code>par(mfrow=c(2,1), mar=c(3,2,2,0))</code> bewirkt, dass 2 Grafiken untereinander dargestellt werden - und zwar im selben Plot. Das Argument <code>mfrow</code> definiert ein Plot-Array mit der angebenen Anzahl von Zeilen und Spalten (wobei mit <code>mfrow</code> die Plots zeilenweise verteilt werden; alternativ mit <code>mfcol</code>). Mit dem Argument <code>mar</code> werden für unten, links, oben und rechts die Randabstände spezifiziert. Spielen Sie doch einmal selbst an den Einstellungen herum und schauen nach, was die Argumente jeweils bewirken!</p>
 <p>Damit von nun an nicht immer zwei Grafiken in einem Plot dargestellt werden, können wir die Einstellungen folgendermaßen zurücksetzen:</p>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## null device 
@@ -129,36 +152,36 @@ abline(v=mean(dataB[(dataB$geschl==&quot;maennlich&quot;), &quot;nerd&quot;], na
 <h4>1.2.2. deskriptivstatistisch</h4>
 <p>Wir können uns auch Deskriptivstatistiken ansehen. Bspw. könnten wir uns die Mittelwerte oder die SDs etc. ausgeben lassen. Dazu nehmen wir entweder die <code>summary</code> und wählen die entsprechenden Fälle aus oder wir machen uns das <code>psych</code>-Paket zunutze. Dieses muss zuvor installiert sein (<code>install.packages</code>). Falls dem so ist, kann das Paket mit <code>library</code> eingeladen werden. Die Funktion, die uns interessiert, heißt <code>describeBy</code>, welche die Gruppenaufteilung bereits für uns übernimmt.</p>
 <pre class="r"><code># umständlich:
-summary(dataB$nerd[(dataB$geschl==&quot;weiblich&quot;)])  # Gruppe 1: Studentinnen</code></pre>
+summary(dataB$nerd[(dataB$geschl_faktor==&quot;weiblich&quot;)])  # Gruppe 1: Studentinnen</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA&#39;s 
 ##   1.500   2.667   3.167   3.104   3.500   4.667      10</code></pre>
-<pre class="r"><code>summary(dataB$nerd[(dataB$geschl==&quot;maennlich&quot;)]) # Gruppe 2: Studenten</code></pre>
+<pre class="r"><code>summary(dataB$nerd[(dataB$geschl_faktor==&quot;männlich&quot;)]) # Gruppe 2: Studenten</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA&#39;s 
 ##   1.833   2.917   3.333   3.370   3.917   4.500      10</code></pre>
 <pre class="r"><code># komfortabler:
 library(psych)
-describeBy(x = dataB$nerd, group = dataB$geschl)        # beide Gruppen im Vergleich </code></pre>
+describeBy(x = dataB$nerd, group = dataB$geschl_faktor)        # beide Gruppen im Vergleich </code></pre>
 <pre><code>## 
 ##  Descriptive statistics by group 
 ## group: weiblich
 ##    vars   n mean   sd median trimmed  mad min  max range  skew kurtosis   se
 ## X1    1 125  3.1 0.62   3.17     3.1 0.74 1.5 4.67  3.17 -0.05    -0.13 0.06
 ## ------------------------------------------------------------ 
-## group: maennlich
+## group: männlich
 ##    vars  n mean   sd median trimmed  mad  min max range  skew kurtosis   se
 ## X1    1 23 3.37 0.69   3.33     3.4 0.74 1.83 4.5  2.67 -0.34    -0.71 0.14</code></pre>
 <p>Achtung, bei den hier berichteten <code>sd</code> handelt es sich nicht um die Stichprobenkennwerte, sondern um die Populationsschätzer. Daher berechnen wir die Standardabweichung auch nochmals per Hand:</p>
-<pre class="r"><code>nerd.weiblich &lt;- dataB$nerd[(dataB$geschl==&quot;weiblich&quot;)]
+<pre class="r"><code>nerd.weiblich &lt;- dataB$nerd[(dataB$geschl_faktor==&quot;weiblich&quot;)]
 sigma.weiblich &lt;- sd(nerd.weiblich, na.rm = T)
 n.weiblich &lt;- length(nerd.weiblich[!is.na(nerd.weiblich)])
 sd.weiblich &lt;- sigma.weiblich * sqrt((n.weiblich-1) / n.weiblich)
 sd.weiblich</code></pre>
 <pre><code>## [1] 0.6206319</code></pre>
-<pre class="r"><code>nerd.maennlich &lt;- dataB$nerd[(dataB$geschl==&quot;maennlich&quot;)]
-sigma.maennlich &lt;- sd(nerd.maennlich, na.rm = T)
-n.maennlich &lt;- length(nerd.maennlich[!is.na(nerd.maennlich)])
-sd.maennlich &lt;- sigma.maennlich * sqrt((n.maennlich-1) / n.maennlich)
-sd.maennlich</code></pre>
+<pre class="r"><code>nerd.männlich &lt;- dataB$nerd[(dataB$geschl_faktor==&quot;männlich&quot;)]
+sigma.männlich &lt;- sd(nerd.männlich, na.rm = T)
+n.männlich &lt;- length(nerd.männlich[!is.na(nerd.männlich)])
+sd.männlich &lt;- sigma.männlich * sqrt((n.männlich-1) / n.männlich)
+sd.männlich</code></pre>
 <pre><code>## [1] 0.6737962</code></pre>
 </div>
 </div>
@@ -183,24 +206,24 @@ sd.maennlich</code></pre>
 </ul>
 <pre class="r"><code># Gruppe 1 (weiblich) 
 par(mfrow=c(1,2))
-nerd.weiblich &lt;- dataB[(dataB$geschl==&quot;weiblich&quot;), &quot;nerd&quot;]
+nerd.weiblich &lt;- dataB[(dataB$geschl_faktor==&quot;weiblich&quot;), &quot;nerd&quot;]
 hist(nerd.weiblich, xlim=c(0,6), ylim=c(0,.8), main=&quot;Nerdiness Testwert (weiblich)&quot;, xlab=&quot;&quot;, ylab=&quot;&quot;, las=1, prob=T)
 curve(dnorm(x, mean=mean(nerd.weiblich, na.rm=T), sd=sd(nerd.weiblich, na.rm=T)), col=&quot;blue&quot;, lwd=2, add=T)
 qqnorm(nerd.weiblich)
 qqline(nerd.weiblich, col=&quot;blue&quot;)</code></pre>
-<p><img src="/post/2022-12-05-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-13-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2022-12-05-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-11-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p>Mithilfe von <code>curve</code> kann eine Linie in eine Grafik eingezeichnet werden. Hierbei bezeichnet <code>x</code> die x-Koordinate. <code>dnorm</code> hatten wir bereits kennen gelernt. Diese Funktion beschreibt die Dichte der Normalverteilung. Die Normalverteilung ist eindeutig durch ihren Mittelwert und durch ihre Standardabweichung definiert. Wir müssen <code>dnorm</code> also jeweils den empirischen Mittelwert sowie die empirische Standardabweichung übergeben. Das Argument <code>add = T</code> ist nötig, da sonst ein neuer Plot für die Kurve erstellt wird. Durch <code>add = T</code> wird sie dem Histogramm hinzugefügt. Damit die Dichte sichtbar ist, muss im Histogramm zuvor das Argument <code>prob = T</code> gewählt werden. Ansonsten würden absolute Häufigkeiten anstatt der relativen Häufigkeiten abgetragen werden. Den <code>qqnorm</code>-Befehl hatten wir auch bereits kennen gelernt. Mit <code>qqline</code> erhalten wir die nötige Linie, auf welcher die Punkte einigermaßen liegen müssen, damit sie als normalverteilt einzustufen sind.</p>
 <p><span class="math inline">\(\rightarrow\)</span> Normalverteilung kann für Gruppe 1 (weiblich) angenommen werden</p>
 <p>Wir wiederholen die Befehle von zuvor auch für die zweite Gruppe:</p>
-<pre class="r"><code># Gruppe 2 (maennlich)
+<pre class="r"><code># Gruppe 2 (männlich)
 par(mfrow=c(1,2))
-nerd.maennlich &lt;- dataB[(dataB$geschl==&quot;maennlich&quot;), &quot;nerd&quot;]
-hist(nerd.maennlich, xlim=c(0,6), ylim=c(0,.8), main=&quot;Nerdiness Testwert (maennlich)&quot;, xlab=&quot;&quot;, ylab=&quot;&quot;, las=1, prob=T)
-curve(dnorm(x, mean=mean(nerd.maennlich, na.rm=T), sd=sd(nerd.maennlich, na.rm=T)), col=&quot;blue&quot;, lwd=2, add=T)
-qqnorm(nerd.maennlich)
-qqline(nerd.maennlich, col=&quot;blue&quot;)</code></pre>
-<p><img src="/post/2022-12-05-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-14-1.png" width="672" style="display: block; margin: auto;" /></p>
-<p><span class="math inline">\(\rightarrow\)</span> Normalverteilung kann auch für Gruppe 2 (maennlich) einigermaßen angenommen werden (hierbei ist zu beachten, dass die Gruppe der Studenten im Vergleich zur Gruppe der Studentinnen deutlich kleiner ist)</p>
+nerd.männlich &lt;- dataB[(dataB$geschl_faktor==&quot;männlich&quot;), &quot;nerd&quot;]
+hist(nerd.männlich, xlim=c(0,6), ylim=c(0,.8), main=&quot;Nerdiness Testwert (männlich)&quot;, xlab=&quot;&quot;, ylab=&quot;&quot;, las=1, prob=T)
+curve(dnorm(x, mean=mean(nerd.männlich, na.rm=T), sd=sd(nerd.männlich, na.rm=T)), col=&quot;blue&quot;, lwd=2, add=T)
+qqnorm(nerd.männlich)
+qqline(nerd.männlich, col=&quot;blue&quot;)</code></pre>
+<p><img src="/post/2022-12-05-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-12-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><span class="math inline">\(\rightarrow\)</span> Normalverteilung kann auch für Gruppe 2 (männlich) einigermaßen angenommen werden (hierbei ist zu beachten, dass die Gruppe der Studenten im Vergleich zur Gruppe der Studentinnen deutlich kleiner ist)</p>
 <p>Damit von nun an nicht immer zwei Grafiken in einem Plot dargestellt werden, können wir die Einstellungen folgendermaßen zurücksetzen:</p>
 <pre class="r"><code>dev.off()</code></pre>
 <pre><code>## null device 
@@ -214,7 +237,7 @@ qqline(nerd.maennlich, col=&quot;blue&quot;)</code></pre>
 </ul>
 <p>Ein nicht-signifikantes Ergebnis (<em>p</em> &gt; .05) zeigt also Homoskedastizität an. Den Levene-Test können wir mit Hilfe des <code>car</code>-Pakets durchführen (dieses muss natürlich vorher installiert sein). Die nötige Funktion heißt <code>leveneTest</code>. Sie nimmt eine Formel entgegen, die die Punktzahl ihrer jeweiligen Gruppe zuweist. Links von der <code>~</code> (Tilde) steht die abhängige Variable (hier der Nerdiness-Testwert), deren Mittelwertsunterschied durch die unabhängige Variable (hier Geschlecht) rechts der <code>~</code> erklärt werden soll. Wir merken uns also, dass die Gruppenzugehörigkeit rechts der <code>~</code> stehen muss.</p>
 <pre class="r"><code>library(car)
-leveneTest(dataB$nerd ~ dataB$geschl)</code></pre>
+leveneTest(dataB$nerd ~ dataB$geschl_faktor)</code></pre>
 <pre><code>## Levene&#39;s Test for Homogeneity of Variance (center = median)
 ##        Df F value Pr(&gt;F)
 ## group   1   0.569 0.4519
@@ -243,15 +266,15 @@ leveneTest(dataB$nerd ~ dataB$geschl)</code></pre>
 </ul>
 <p>Hypothesenpaar (statistisch):</p>
 <ul>
-<li><span class="math inline">\(H_0\)</span>: <span class="math inline">\(\mu_\text{weiblich} = \mu_\text{maennlich}\)</span> bzw. <span class="math inline">\(\mu_\text{weiblich} - \mu_\text{maennlich} = 0\)</span><br />
+<li><span class="math inline">\(H_0\)</span>: <span class="math inline">\(\mu_\text{weiblich} = \mu_\text{männlich}\)</span> bzw. <span class="math inline">\(\mu_\text{weiblich} - \mu_\text{männlich} = 0\)</span><br />
 </li>
-<li><span class="math inline">\(H_1\)</span>: <span class="math inline">\(\mu_\text{weiblich} \ne \mu_\text{maennlich}\)</span> bzw. <span class="math inline">\(\mu_\text{weiblich} - \mu_\text{maennlich} \ne 0\)</span></li>
+<li><span class="math inline">\(H_1\)</span>: <span class="math inline">\(\mu_\text{weiblich} \ne \mu_\text{männlich}\)</span> bzw. <span class="math inline">\(\mu_\text{weiblich} - \mu_\text{männlich} \ne 0\)</span></li>
 </ul>
 <p><strong>Signifikanzniveau</strong></p>
 <p>Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 5% betragen. <span class="math inline">\(\rightarrow \alpha=.05\)</span></p>
 <p><strong>Durchführung des <em>t</em>-Tests in R: Funktion <code>t.test()</code></strong></p>
 <p>Wir hatten im Rahmen des Einstichproben-<em>t</em>-Tests bereits die Funktion <code>t.test</code> kennengelernt. Diese nutzen wir wieder. Wir übergeben dieser wieder die Formel, die wir bereits im Boxplot und im Levene-Test verwendet haben. Außerdem wählen wir einige Zusatzargumente, die dann zum Zweistichproben-<em>t</em>-Test für unabhängige Stichproben führt:</p>
-<pre class="r"><code>t.test(dataB$nerd ~ dataB$geschl,       # abhängige Variable ~ unabhängige Variable
+<pre class="r"><code>t.test(dataB$nerd ~ dataB$geschl_faktor,       # abhängige Variable ~ unabhängige Variable
       paired = FALSE,                   # Stichproben sind unabhängig 
       alternative = &quot;two.sided&quot;,        # zweiseitige Testung (Default)
       var.equal = TRUE,                 # Homoskedastizität liegt vor (-&gt; Levene-Test)
@@ -259,14 +282,14 @@ leveneTest(dataB$nerd ~ dataB$geschl)</code></pre>
 <pre><code>## 
 ##  Two Sample t-test
 ## 
-## data:  dataB$nerd by dataB$geschl
+## data:  dataB$nerd by dataB$geschl_faktor
 ## t = -1.8477, df = 146, p-value = 0.06667
-## alternative hypothesis: true difference in means between group weiblich and group maennlich is not equal to 0
+## alternative hypothesis: true difference in means between group weiblich and group männlich is not equal to 0
 ## 95 percent confidence interval:
 ##  -0.5496253  0.0184949
 ## sample estimates:
-##  mean in group weiblich mean in group maennlich 
-##                3.104000                3.369565</code></pre>
+## mean in group weiblich mean in group männlich 
+##               3.104000               3.369565</code></pre>
 <p><em>t</em>(<em>df</em> = 146, zweis.) = -1.848, <em>p</em> = 0.067 <span class="math inline">\(\rightarrow\)</span> nicht signifikant, <span class="math inline">\(H_0\)</span> wird beibehalten.</p>
 </div>
 <div id="berechnung-der-effektstärke-cohens-d" class="section level3">
@@ -298,19 +321,19 @@ leveneTest(dataB$nerd ~ dataB$geschl)</code></pre>
 </table>
 <p><strong>Berechnung von Hand</strong></p>
 <p>Wir führen die Berechnung von Cohen’s <em>d</em> zunächst von Hand durch. Dafür speichern wir uns die nötigen Größen ab und wenden dann die präsentierte Formel an:</p>
-<pre class="r"><code>nerd.weiblich &lt;- dataB[(dataB$geschl==&quot;weiblich&quot;), &quot;nerd&quot;]
+<pre class="r"><code>nerd.weiblich &lt;- dataB[(dataB$geschl_faktor==&quot;weiblich&quot;), &quot;nerd&quot;]
 mw.weiblich &lt;- mean(nerd.weiblich, na.rm=T)
 n.weiblich &lt;- length(nerd.weiblich[!is.na(nerd.weiblich)])
 sigma.qu.weiblich &lt;- var(nerd.weiblich, na.rm=T) 
 
-nerd.maennlich &lt;- dataB[(dataB$geschl==&quot;maennlich&quot;), &quot;nerd&quot;]
-mw.maennlich &lt;- mean(nerd.maennlich, na.rm=T)
-n.maennlich &lt;- length(nerd.maennlich[!is.na(nerd.maennlich)])
-sigma.qu.maennlich &lt;- var(nerd.maennlich, na.rm=T) 
+nerd.männlich &lt;- dataB[(dataB$geschl_faktor==&quot;männlich&quot;), &quot;nerd&quot;]
+mw.männlich &lt;- mean(nerd.männlich, na.rm=T)
+n.männlich &lt;- length(nerd.männlich[!is.na(nerd.männlich)])
+sigma.qu.männlich &lt;- var(nerd.männlich, na.rm=T) 
 
-sigma.inn &lt;- sqrt((sigma.qu.weiblich* (n.weiblich - 1) + sigma.qu.maennlich* (n.maennlich - 1)) / (n.weiblich-1 + n.maennlich-1))
+sigma.inn &lt;- sqrt((sigma.qu.weiblich* (n.weiblich - 1) + sigma.qu.männlich* (n.männlich - 1)) / (n.weiblich-1 + n.männlich-1))
 
-d1 &lt;- (mw.weiblich - mw.maennlich) / sigma.inn
+d1 &lt;- (mw.weiblich - mw.männlich) / sigma.inn
 d1</code></pre>
 <pre><code>## [1] -0.419214</code></pre>
 <p><strong>Berechnung mit Funktion <code>cohen.d()</code></strong></p>
@@ -318,7 +341,7 @@ d1</code></pre>
 <pre class="r"><code>#alternativ:
 #install.packages(&quot;effsize&quot;)
 library(&quot;effsize&quot;)</code></pre>
-<pre class="r"><code>d2 &lt;- cohen.d(dataB$nerd, dataB$geschl, na.rm=T)
+<pre class="r"><code>d2 &lt;- cohen.d(dataB$nerd, dataB$geschl_faktor, na.rm=T)
 d2</code></pre>
 <pre><code>## 
 ## Cohen&#39;s d
@@ -339,7 +362,7 @@ d2</code></pre>
 <div id="fragestellung-b-stimmen-studentinnen-dem-item-ich-denke-immer-darüber-nach-wie-meine-taten-sich-auf-die-umwelt-auswirken-stärker-zu-als-studenten" class="section level2">
 <h2>2. Fragestellung B: Stimmen Studentinnen dem Item “Ich denke immer darüber nach, wie meine Taten sich auf die Umwelt auswirken” stärker zu als Studenten?</h2>
 <p>Wir widmen uns nun der 2. Fragestellung. Dazu prüen wir, ob Item nr2 (“Ich denke immer darüber nach, wie meine Taten sich auf die Umwelt auswirken”) zur Messung von Naturverbundenheit von Studentinnen zustimmender beantwortet wird.</p>
-<div id="vorbereitung-daten-einlesen-daten-aufbereiten-1" class="section level3">
+<div id="vorbereitung-daten-einlesen-daten-aufbereiten" class="section level3">
 <h3>2.1 Vorbereitung (Daten einlesen, Daten aufbereiten)</h3>
 <p>Wir benutzen die für Fragestellung A aufbereiteten Daten (<code>dataB</code>) und müssen hier nichts weiter tun.</p>
 </div>
@@ -350,31 +373,31 @@ d2</code></pre>
 <h4>2.2.1. grafisch</h4>
 <p>Wir beginnen mit einer grafischen Auseinandersetzung mit der Fragestellung und erstellen einen Boxplot für die Variable nr2 pro Geschlecht.</p>
 <pre class="r"><code># Gruppierter Boxplot:
-boxplot(dataB$nr2 ~ dataB$geschl, 
+boxplot(dataB$nr2 ~ dataB$geschl_faktor, 
         xlab=&quot;Geschlecht&quot;, ylab=&quot;nr2&quot;, 
         las=1, cex.lab=1.5, 
         main=&quot;nr2 nach Geschlecht&quot;)</code></pre>
-<p><img src="/post/2022-12-05-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<p><img src="/post/2022-12-05-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-21-1.png" width="672" /></p>
 <p>Graphisch ist kein Unterschied zu erkennen.</p>
 </div>
 <div id="statistisch" class="section level4">
 <h4>2.2.2. statistisch</h4>
 <p>Nun schauen wir uns das Ganze wieder deskriptivstatistisch an.</p>
-<pre class="r"><code>describeBy(dataB$nr2, dataB$geschl) # beide Gruppen im Vergleich</code></pre>
+<pre class="r"><code>describeBy(dataB$nr2, dataB$geschl_faktor) # beide Gruppen im Vergleich</code></pre>
 <pre><code>## 
 ##  Descriptive statistics by group 
 ## group: weiblich
 ##    vars   n mean sd median trimmed  mad min max range  skew kurtosis   se
 ## X1    1 125 3.78  1      4    3.86 1.48   1   5     4 -0.61    -0.29 0.09
 ## ------------------------------------------------------------ 
-## group: maennlich
+## group: männlich
 ##    vars  n mean   sd median trimmed  mad min max range  skew kurtosis   se
 ## X1    1 23 3.39 1.12      4    3.47 1.48   1   5     4 -0.58    -0.37 0.23</code></pre>
 <pre class="r"><code># Interquartilsbereich (IBQ) über summary()
-summary( dataB[(dataB$geschl==&quot;weiblich&quot;), &quot;nr2&quot;])</code></pre>
+summary( dataB[(dataB$geschl_faktor==&quot;weiblich&quot;), &quot;nr2&quot;])</code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA&#39;s 
 ##   1.000   3.000   4.000   3.776   4.000   5.000      10</code></pre>
-<pre class="r"><code>summary( dataB[(dataB$geschl==&quot;maennlich&quot;), &quot;nr2&quot;]) </code></pre>
+<pre class="r"><code>summary( dataB[(dataB$geschl_faktor==&quot;männlich&quot;), &quot;nr2&quot;]) </code></pre>
 <pre><code>##    Min. 1st Qu.  Median    Mean 3rd Qu.    Max.    NA&#39;s 
 ##   1.000   3.000   4.000   3.391   4.000   5.000      10</code></pre>
 <p>Deskriptiv weist die Gruppe der männlichen Studierenden den gleichen Median auf wie die Gruppe der weiblichen Studierenden. Auch die Interquartilbereiche unterscheiden sich nicht.</p>
@@ -402,20 +425,20 @@ summary( dataB[(dataB$geschl==&quot;weiblich&quot;), &quot;nr2&quot;])</code></p
 </li>
 <li>das Merkmal folgt in beiden Gruppen der gleichen Verteilung <span class="math inline">\(\rightarrow\)</span> (ggf.) optische Prüfung<br />
 </li>
-<li>Homoskedastizität: Varianzen der Variablen innerhalb der Populationen sind gleich <span class="math inline">\(\rightarrow\)</span> Levene-Test</li>
+<li>Streuung der Variablen für beide Gruppen ist innerhalb der Populationen gleich <span class="math inline">\(\rightarrow\)</span> Folgt aus der Voraussetzung 3 <span class="math inline">\(\rightarrow\)</span> als Indiz können wir in bestimmten Fällen den Levene-Test nutzen</li>
 </ol>
 <p><strong>zu 3): Optische Prüfung auf Vergleichbarkeit der Verteilungsform in den beiden Gruppen</strong></p>
 <pre class="r"><code>#Gruppe 1 (weiblich) 
 par(mfrow=c(1,2))
 
-nr2.w &lt;- dataB[(dataB$geschl==&quot;weiblich&quot;), &quot;nr2&quot;]
+nr2.w &lt;- dataB[(dataB$geschl_faktor==&quot;weiblich&quot;), &quot;nr2&quot;]
 hist(nr2.w, xlim=c(0,6), ylim=c(0,.6), main=&quot;Item nr2 (weiblich)&quot;, xlab=&quot;&quot;, ylab=&quot;&quot;, las=1, prob=T, breaks = c(.5:5.5))
 
-nr2.m &lt;- dataB[(dataB$geschl==&quot;maennlich&quot;), &quot;nr2&quot;]
-hist(nr2.m, xlim=c(0,6), ylim=c(0,.6), main=&quot;Item nr2 (maennlich)&quot;, xlab=&quot;&quot;, ylab=&quot;&quot;, las=1, prob=T, breaks = c(.5:5.5))</code></pre>
-<p><img src="/post/2022-12-05-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-26-1.png" width="672" style="display: block; margin: auto;" /></p>
+nr2.m &lt;- dataB[(dataB$geschl_faktor==&quot;männlich&quot;), &quot;nr2&quot;]
+hist(nr2.m, xlim=c(0,6), ylim=c(0,.6), main=&quot;Item nr2 (männlich)&quot;, xlab=&quot;&quot;, ylab=&quot;&quot;, las=1, prob=T, breaks = c(.5:5.5))</code></pre>
+<p><img src="/post/2022-12-05-tests-fuer-unabhaengige-stichproben_files/figure-html/unnamed-chunk-24-1.png" width="672" style="display: block; margin: auto;" /></p>
 <p><span class="math inline">\(\rightarrow\)</span> Vergleichbarkeit der Verteilungsform in den beiden Gruppen ist einigermaßen gegeben <span class="math inline">\(\rightarrow\)</span> spricht für Wilcoxon-Test</p>
-<p><strong>zu 4) Test auf Homoskedastizität (Levene-Test)</strong></p>
+<p><strong>zu 4) Test auf Gleichheit der Streuungen (Levene-Test)</strong></p>
 <p>Das Hypothesenpaar im Levene-Test lautet:</p>
 <ul>
 <li><span class="math inline">\(H_0\)</span>: Homoskedastizität ist gegeben.<br />
@@ -424,7 +447,7 @@ hist(nr2.m, xlim=c(0,6), ylim=c(0,.6), main=&quot;Item nr2 (maennlich)&quot;, xl
 </ul>
 <p>Ein nicht-signifikantes Ergebnis (<em>p</em> &gt; .05) zeigt also Homoskedastizität an.</p>
 <pre class="r"><code>library(car)
-leveneTest(dataB$nr2 ~ dataB$geschl)</code></pre>
+leveneTest(dataB$nr2 ~ dataB$geschl_faktor)</code></pre>
 <pre><code>## Levene&#39;s Test for Homogeneity of Variance (center = median)
 ##        Df F value Pr(&gt;F)
 ## group   1   0.757 0.3857
@@ -461,17 +484,17 @@ leveneTest(dataB$nr2 ~ dataB$geschl)</code></pre>
 <p>Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 5% betragen. <span class="math inline">\(\rightarrow \alpha = .05\)</span></p>
 <p><strong>Durchführung des Wilcoxon-Tests in R: Funktion <code>wilcox.test()</code></strong></p>
 <p>Die Funktion <code>wilcox.test</code> nimmt im Grunde die gleichen Argumente entgegen wie die Funktion <code>t.test</code>. Damit wir die gerichtete Hypothese in die richtige Richtung aufstellen können, müssen wir wissen, welches das erste Level des Faktors Geschlecht ist:</p>
-<pre class="r"><code>levels(dataB$geschl) # wichtig zu wissen: die erste der beiden Faktorstufen ist &quot;weiblich&quot; </code></pre>
-<pre><code>## [1] &quot;weiblich&quot;  &quot;maennlich&quot;</code></pre>
+<pre class="r"><code>levels(dataB$geschl_faktor) # wichtig zu wissen: die erste der beiden Faktorstufen ist &quot;weiblich&quot; </code></pre>
+<pre><code>## [1] &quot;weiblich&quot; &quot;männlich&quot;</code></pre>
 <p>Da die erste Faktorstufe “weiblich” ist, wissen wir, dass die gerichtete Hypothese “&gt;” lauten muss, also “greater”:</p>
-<pre class="r"><code>wilcox.test(dataB$nr2 ~ dataB$geschl,     # abhängige Variable ~ unabhängige Variable
+<pre class="r"><code>wilcox.test(dataB$nr2 ~ dataB$geschl_faktor,     # abhängige Variable ~ unabhängige Variable
             paired = FALSE,               # Stichproben sind unabhängig
             alternative = &quot;greater&quot;,      # einseitige Testung, und zwar so, dass Gruppe1(w)-Gruppe2(m) &gt; 0
             conf.level = .95)             # alpha = .05</code></pre>
 <pre><code>## 
 ##  Wilcoxon rank sum test with continuity correction
 ## 
-## data:  dataB$nr2 by dataB$geschl
+## data:  dataB$nr2 by dataB$geschl_faktor
 ## W = 1719.5, p-value = 0.05846
 ## alternative hypothesis: true location shift is greater than 0</code></pre>
 <p><span class="math inline">\(W\)</span> = 1719.5, p = 0.058 <span class="math inline">\(\rightarrow\)</span> Ergebnis ist nicht signfikant, <span class="math inline">\(H_0\)</span> wird beibehalten.</p>
@@ -595,11 +618,11 @@ chi_quadrat_Wert</code></pre>
 <li><span class="math inline">\(p\)</span> = 0.509</li>
 <li><span class="math inline">\(p\)</span>-Wert &gt; <span class="math inline">\(\alpha\)</span>-Fehlerniveau <span class="math inline">\(\rightarrow H_0\)</span> wird beibehalten</li>
 </ul>
-<p>In einem Artikel würden wir schreiben: Die Wohnnähe zur Uni hängt nicht damit zusammen, ob ein Nebenjob ausgeübt wird <span class="math inline">\(\chi^2\)</span>(df=1)=0.435, <span class="math inline">\(p\)</span> = 0.509.</p>
+<p>Daraus lässt sich zusammenfassen: Die Wohnnähe zur Uni hängt nicht damit zusammen, ob ein Nebenjob ausgeübt wird <span class="math inline">\(\chi^2\)</span>(df=1)=0.435, <span class="math inline">\(p\)</span> = 0.509.</p>
 </div>
 <div id="vierfelder-chi2-test-in-r-funktion-chisq.test" class="section level4">
 <h4>3.3.2. Vierfelder-<span class="math inline">\(\chi^2\)</span>-Test in R: Funktion <code>chisq.test()</code></h4>
-<p>Die Funktion <code>chisq.test</code> übernimmt die Arbeit für uns, wenn wir ihr einfach eine 4-Feldertabelle übergeben.</p>
+<p>Die Funktion <code>chisq.test</code> übernimmt die Arbeit für uns, wenn wir ihr einfach eine 4-Feldertabelle übergeben. Als Argumente brauchen wir hauptsächlich das Objekt mit den Häufigkeiten. Weiterhin müssen wir das Argument <code>correct</code> mit <code>FALSE</code> angeben. Ansonsten würde standardmäßig die Kontinuitätskorrektur nach Yates durchgeführt werden. Diese ist als Alternative gedacht, wenn nicht der <span class="math inline">\(\chi^2\)</span>-Verteilung gefolgt wird. Ein Indiz dafür sind bspw. sehr kleine Zahlen in manchen Kombinationen der Faktoren. Da wir hier in jeder Zelle einen größeren Wert hatten, brauchen wir diese Korrektur nicht.</p>
 <pre class="r"><code>chisq.test(tab,        # Kreuztabelle
            correct=F)  # keine Kontinuinitätskorrektur nach Yates</code></pre>
 <pre><code>## 
@@ -607,11 +630,12 @@ chi_quadrat_Wert</code></pre>
 ## 
 ## data:  tab
 ## X-squared = 0.43547, df = 1, p-value = 0.5093</code></pre>
+<p>Das Ergebnis unterscheidet sich natürlich nicht zu unserer händischen Berechnung. Die Wohnnähe zur Uni hängt nicht damit zusammen, ob ein Nebenjob ausgeübt wird.</p>
 </div>
 </div>
 <div id="effektstärken" class="section level3">
 <h3>3.4. Effektstärken</h3>
-<p>Auch für den <span class="math inline">\(\chi^2\)</span>-Test gibt es ein Effektstärkemaß.</p>
+<p>Auch für den <span class="math inline">\(\chi^2\)</span>-Test gibt es die Möglichkeit zur Einordnung der Effektstärke. Dabei haben Sie in der Vorlesung zwei Varianten kennengelernt.</p>
 <p><strong>Yules Q</strong></p>
 <p>Dieses berechnet sich als</p>
 <p><span class="math display">\[Q=\frac{n_{11}n_{22}-n_{12}n_{21}}{n_{11}n_{22}+n_{12}n_{21}},\]</span></p>
@@ -621,7 +645,7 @@ chi_quadrat_Wert</code></pre>
                  (tab[1,1]*tab[2,2]+tab[1,2]*tab[2,1])
 effekt_YulesQ</code></pre>
 <pre><code>## [1] -0.1187905</code></pre>
-<p><strong>Phi (</strong><span class="math inline">\(\phi\)</span>)</p>
+<p><strong>Phi</strong> (<span class="math inline">\(\phi\)</span>)</p>
 <p>Auch kann man <span class="math inline">\(\phi\)</span> bestimmen:</p>
 <p><span class="math display">\[\phi = \frac{n_{11}n_{22}-n_{12}n_{21}}{\sqrt{(n_{11}+n_{12})(n_{11}+n_{21})(n_{12}+n_{22})(n_{21}+n_{22})}}\]</span> welches einen Wertebereich von [-1,1] aufweist und analog zur Korrelation interpretiert werden kann. 1 steht in diesem Fall für einen perfekten positiven Zusammenhang (dazu in der entsprechenden Sitzung mehr).</p>
 <p>In <code>R</code> sieht das so aus:</p>
@@ -629,17 +653,44 @@ effekt_YulesQ</code></pre>
   sqrt((tab[1,1]+tab[1,2])*(tab[1,1]+tab[2,1])*(tab[1,2]+tab[2,2])*(tab[2,1]+tab[2,2]))
 effekt_phi</code></pre>
 <pre><code>## [1] -0.0540613</code></pre>
+<p><strong>Umsetzung mit <code>R</code></strong></p>
 <p>Das Ganze lässt sich auch mit dem <code>psych</code> und der darin enthaltenen Funktion <code>phi</code> umsetzen:</p>
 <pre class="r"><code># alternativ mit psych Paket
 library(psych)
 phi(tab, digits = 8)</code></pre>
 <pre><code>## [1] -0.0540613</code></pre>
+<pre class="r"><code>Yule(tab)</code></pre>
+<pre><code>## [1] -0.1187905</code></pre>
 <pre class="r"><code># Äquivalentes Ergebnis mittels Pearson-Korrelation (kommt in den nächsten Sitzungen)
 # (dichotome Variablen)
 ort_num &lt;- as.numeric(fb22$ort)
 job_num &lt;- as.numeric(fb22$job)
 cor(ort_num, job_num, use=&quot;pairwise&quot;)</code></pre>
 <pre><code>## [1] -0.0540613</code></pre>
+<p>Cohen (1988) hat folgende Konventionen zur Beurteilung der Effektstärke <span class="math inline">\(\phi\)</span> vorgeschlagen, die man heranziehen kann, um den Effekt “bei kompletter Ahnungslosigkeit” einschätzen zu können (wissen wir mehr über den Sachverhalt, so sollten Effektstärken lieber im Bezug zu anderen Studienergebnissen interpretiert werden):</p>
+<table>
+<thead>
+<tr class="header">
+<th align="center"><span class="math inline">\(|\phi|\)</span></th>
+<th align="center">Interpretation</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="center">~ .1</td>
+<td align="center">kleiner Effekt</td>
+</tr>
+<tr class="even">
+<td align="center">~ .3</td>
+<td align="center">mittlerer Effekt</td>
+</tr>
+<tr class="odd">
+<td align="center">~ .5</td>
+<td align="center">großer Effekt</td>
+</tr>
+</tbody>
+</table>
+<p>Der Wert für den Zusammenhang der beiden Variablen ist also bei völliger Ahnungslosigkeit als klein einzuschätzen.</p>
 </div>
 <div id="ergebnisinterpretation-2" class="section level3">
 <h3>3.5. Ergebnisinterpretation</h3>

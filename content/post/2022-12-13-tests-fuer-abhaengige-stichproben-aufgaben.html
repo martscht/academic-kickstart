@@ -1,0 +1,207 @@
+---
+title: Tests für abhängige Stichproben - Aufgaben
+date: '2022-12-13'
+slug: gruppenvergleiche-abhaengig-aufgaben
+categories:
+  - BSc2
+tags:
+  - t-Test
+subtitle: ''
+summary: ''
+authors: [koehler, buchholz]
+lastmod: '2022-12-15T12:58:41+01:00'
+featured: no
+header:
+  image: "/header/BSc2_test_abh_stpr.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/449195)"
+projects: []
+---
+
+<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
+
+
+<div id="vorbereitung" class="section level2">
+<h2>Vorbereitung</h2>
+<p>Laden Sie zunächst den Datensatz <code>fb22</code> von der pandar-Website. Alternativ können Sie die fertige R-Daten-Datei <a href="/post/fb22.rda"><i class="fas fa-download"></i> hier herunterladen</a>. Beachten Sie in jedem Fall, dass die <a href="/post/gruppenvergleiche-abhaengig/#prep">Ergänzungen im Datensatz</a> vorausgesetzt werden. Die Bedeutung der einzelnen Variablen und ihre Antwortkategorien können Sie dem Dokument <a href="/post/variablen.pdf">Variablenübersicht.docx</a> entnehmen.</p>
+<p>Prüfen Sie zur Sicherheit, ob alles funktioniert hat:</p>
+<pre class="r"><code>dim(fb22)</code></pre>
+<pre><code>## [1] 159  47</code></pre>
+<pre class="r"><code>str(fb22)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    159 obs. of  47 variables:
+##  $ prok1        : int  1 4 3 1 2 2 2 3 2 4 ...
+##  $ prok2        : int  3 3 3 3 1 4 2 1 3 3 ...
+##  $ prok3        : int  4 2 2 4 4 2 3 2 2 2 ...
+##  $ prok4        : int  2 4 4 NA 3 2 2 3 3 4 ...
+##  $ prok5        : int  3 1 2 4 2 3 3 3 4 2 ...
+##  $ prok6        : int  4 4 4 3 1 2 2 3 2 4 ...
+##  $ prok7        : int  3 2 2 4 2 3 3 3 3 3 ...
+##  $ prok8        : int  3 4 3 4 4 2 3 3 4 2 ...
+##  $ prok9        : int  1 4 4 2 1 1 2 2 3 4 ...
+##  $ prok10       : int  3 4 3 2 1 3 1 4 1 4 ...
+##  $ nr1          : int  1 1 4 2 1 1 1 5 2 1 ...
+##  $ nr2          : int  3 2 5 4 5 4 3 5 4 4 ...
+##  $ nr3          : int  5 1 5 4 1 3 3 5 5 4 ...
+##  $ nr4          : int  4 2 5 4 2 4 4 5 3 5 ...
+##  $ nr5          : int  4 2 5 4 2 3 4 5 4 4 ...
+##  $ nr6          : int  3 1 5 3 2 1 1 5 2 4 ...
+##  $ lz           : num  5.4 6 3 6 3.2 5.8 4.2 NA 5.4 4.6 ...
+##  $ extra        : num  2.75 3.75 4.25 4 2.5 3 2.75 3.5 4.75 5 ...
+##  $ vertr        : num  3.75 4.75 4.5 4.75 4.75 3 3.25 5 4.5 4.5 ...
+##  $ gewis        : num  4.25 2.75 3.75 4.25 5 4.25 4 4.75 4.5 3 ...
+##  $ neuro        : num  4.25 5 4 2.25 3.75 3.25 3 3.5 4 4.5 ...
+##  $ intel        : num  4.75 4 5 4.75 3.5 3 4 4 5 4.25 ...
+##  $ nerd         : num  2.67 4 4.33 3.17 4.17 ...
+##  $ grund        : chr  &quot;Interesse&quot; &quot;Allgemeines Interesse schon seit der Kindheit&quot; &quot;menschliche Kognition wichtig und rätselhaft; Interesse für Psychoanalyse; Schnittstelle zur Linguistik&quot; &quot;Psychoanalyse, Hilfsbereitschaft, Lebenserfahrung&quot; ...
+##  $ fach         : Factor w/ 5 levels &quot;Allgemeine&quot;,&quot;Biologische&quot;,..: 5 4 1 4 2 NA 1 4 3 4 ...
+##  $ ziel         : Factor w/ 4 levels &quot;Wirtschaft&quot;,&quot;Therapie&quot;,..: 2 2 3 2 2 NA 1 2 2 2 ...
+##  $ lerntyp      : num  1 1 1 1 1 NA 3 2 3 1 ...
+##  $ geschl       : int  1 2 2 2 1 NA 2 1 1 1 ...
+##  $ job          : int  1 2 1 1 1 NA 2 1 1 1 ...
+##  $ ort          : int  1 1 1 2 2 NA 2 1 1 1 ...
+##  $ ort12        : int  1 1 1 1 1 NA 1 1 1 1 ...
+##  $ wohnen       : Factor w/ 4 levels &quot;WG&quot;,&quot;bei Eltern&quot;,..: 2 2 3 4 2 NA 2 1 1 3 ...
+##  $ uni1         : num  0 0 0 0 0 0 0 1 1 1 ...
+##  $ uni2         : num  1 1 0 1 1 0 0 1 1 1 ...
+##  $ uni3         : num  0 0 0 0 0 0 0 1 1 1 ...
+##  $ uni4         : num  0 0 1 0 0 0 0 0 0 0 ...
+##  $ geschl_faktor: Factor w/ 3 levels &quot;weiblich&quot;,&quot;männlich&quot;,..: 1 2 2 2 1 NA 2 1 1 1 ...
+##  $ prok2_r      : num  2 2 2 2 4 1 3 4 2 2 ...
+##  $ prok3_r      : num  1 3 3 1 1 3 2 3 3 3 ...
+##  $ prok5_r      : num  2 4 3 1 3 2 2 2 1 3 ...
+##  $ prok7_r      : num  2 3 3 1 3 2 2 2 2 2 ...
+##  $ prok8_r      : num  2 1 2 1 1 3 2 2 1 3 ...
+##  $ prok_ges     : num  2 3.3 3.1 NA 2 2.1 2 2.8 2 3.3 ...
+##  $ nr_ges       : num  3.33 1.5 4.83 3.5 2.17 ...
+##  $ nr_ges_z     : num [1:159, 1] 0.0964 -2.1534 1.9372 0.3009 -1.3353 ...
+##   ..- attr(*, &quot;scaled:center&quot;)= num 3.25
+##   ..- attr(*, &quot;scaled:scale&quot;)= num 0.815
+##  $ nerd_std     : num [1:159, 1] -0.7059 1.3395 1.8509 0.0611 1.5952 ...
+##   ..- attr(*, &quot;scaled:center&quot;)= num 3.13
+##   ..- attr(*, &quot;scaled:scale&quot;)= num 0.652
+##  $ neuro_std    : num [1:159, 1] 0.869 1.912 0.521 -1.914 0.173 ...
+##   ..- attr(*, &quot;scaled:center&quot;)= num 3.63
+##   ..- attr(*, &quot;scaled:scale&quot;)= num 0.719</code></pre>
+<p>Der Datensatz besteht aus 159 Zeilen (Beobachtungen) und 47 Spalten (Variablen). Falls Sie bereits eigene Variablen erstellt haben, kann die Spaltenzahl natürlich abweichen.</p>
+</div>
+<div id="aufgabe-1" class="section level2">
+<h2>Aufgabe 1</h2>
+<p>Unterscheidet sich im Durchschnitt die Angabe von Psychologiestudierenden zu ihrer Prokrastinationstendenz, wenn sie positiv formulierte Items (prok1, prok4, prok6, prok9, prok10) beantworten im Vergleich zu negativ formulierten Items (prok2, prok3, prok5, prok7 und prok8)?</p>
+</div>
+<div id="aufgabe-2" class="section level2">
+<h2>Aufgabe 2</h2>
+<p>Ein Therapeut behauptet, dass eine von ihm entwickelte Meditation die Zufriedenheit von Menschen positiv beeinflusst. Er möchte dies mit wissenschaftlichen Methoden zeigen und misst die Zufriedenheit vor und nach der Meditation. Es ergeben sich folgende Werte für 18 Personen:</p>
+<table>
+<thead>
+<tr class="header">
+<th align="right">Vpn</th>
+<th align="right">Vorher</th>
+<th align="right">Nachher</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td align="right">1</td>
+<td align="right">4.1</td>
+<td align="right">4.0</td>
+</tr>
+<tr class="even">
+<td align="right">2</td>
+<td align="right">5.9</td>
+<td align="right">7.2</td>
+</tr>
+<tr class="odd">
+<td align="right">3</td>
+<td align="right">4.4</td>
+<td align="right">8.1</td>
+</tr>
+<tr class="even">
+<td align="right">4</td>
+<td align="right">7.8</td>
+<td align="right">6.2</td>
+</tr>
+<tr class="odd">
+<td align="right">5</td>
+<td align="right">2.4</td>
+<td align="right">4.1</td>
+</tr>
+<tr class="even">
+<td align="right">6</td>
+<td align="right">8.8</td>
+<td align="right">7.7</td>
+</tr>
+<tr class="odd">
+<td align="right">7</td>
+<td align="right">3.1</td>
+<td align="right">5.5</td>
+</tr>
+<tr class="even">
+<td align="right">8</td>
+<td align="right">5.0</td>
+<td align="right">6.9</td>
+</tr>
+<tr class="odd">
+<td align="right">9</td>
+<td align="right">6.0</td>
+<td align="right">8.2</td>
+</tr>
+<tr class="even">
+<td align="right">10</td>
+<td align="right">4.5</td>
+<td align="right">5.4</td>
+</tr>
+<tr class="odd">
+<td align="right">11</td>
+<td align="right">5.8</td>
+<td align="right">9.1</td>
+</tr>
+<tr class="even">
+<td align="right">12</td>
+<td align="right">4.4</td>
+<td align="right">5.6</td>
+</tr>
+<tr class="odd">
+<td align="right">13</td>
+<td align="right">3.2</td>
+<td align="right">6.8</td>
+</tr>
+<tr class="even">
+<td align="right">14</td>
+<td align="right">7.3</td>
+<td align="right">7.5</td>
+</tr>
+<tr class="odd">
+<td align="right">15</td>
+<td align="right">7.4</td>
+<td align="right">6.4</td>
+</tr>
+<tr class="even">
+<td align="right">16</td>
+<td align="right">6.3</td>
+<td align="right">4.9</td>
+</tr>
+<tr class="odd">
+<td align="right">17</td>
+<td align="right">4.3</td>
+<td align="right">6.1</td>
+</tr>
+<tr class="even">
+<td align="right">18</td>
+<td align="right">7.1</td>
+<td align="right">7.9</td>
+</tr>
+</tbody>
+</table>
+<p>Wirkt die Meditation positiv auf die Zufriedenheit?</p>
+<p><strong>Denken Sie bei der Bearbeitung der Aufgabe an Folgendes:</strong></p>
+<ul>
+<li>Deskriptivstatistische Beantwortung der Fragestellung<br />
+</li>
+<li>Voraussetzungsprüfungen<br />
+</li>
+<li>Spezifikation der Hypothesen und des Signifikanzniveaus<br />
+</li>
+<li>Ggf. Berechnung der Effektstärke<br />
+</li>
+<li>Formales Berichten des Ergebnisses</li>
+</ul>
+</div>
