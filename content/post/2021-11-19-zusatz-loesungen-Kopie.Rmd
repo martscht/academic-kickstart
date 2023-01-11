@@ -91,6 +91,9 @@ Die Effektgröße ist mit `r round(d, digits = 2)` als groß einzustufen.
 
 </details>
 
+
+---
+
 # Tests für unabhängige Stichproben
 
 ## Aufgabe 2
@@ -164,9 +167,95 @@ Der deskriptive Unterschied der Mittelwerte lässt sich somit auch inferenzstati
 
 </details>
 
-# Tests für abhängige Stichproben
 
 ## Aufgabe 3
+
+Haben Studierende, die bei ihren Eltern wohnen (`wohnen`), mit gleicher Wahrscheinlichkeit einen Nebenjob (`job`) wie Studierende, die nicht bei ihren Eltern wohnen?
+
+* Prüfen Sie die Voraussetungen für einen Chi-Quadrat-Test
+
+<details><summary>Lösung</summary>
+
+Als erstes müssen wir den Datensatz aufbereiten.
+
+```{r}
+is.factor(fb22$wohnen)
+is.factor(fb22$job)
+
+fb22$wohnen <- factor(fb22$wohnen, levels = 1:4, labels = c("WG", "bei Eltern", "alleine", "sonstiges"))
+fb22$job <- factor(fb22$job, levels = 1:2, labels = c("nein", "ja"))
+
+fb22$wohnen_bei_Eltern <- fb22$wohnen == "bei Eltern" #wir erstellen eine Variable, die angibt, ob eine Personen bei den Eltern wohnt oder nicht
+```
+
+Die Voraussetzungen, dass die einzelnen Beobachtungen voneinander unabhängig sind und, dass jede Person eindeutig einer Merkmalskombination zuordbar ist, ist durch das Studiendesign erfüllt. Wir müssen aber noch prüfen, ob jede Zelle mit mehr als fünf Personen gefüllt ist.
+
+```{r}
+tab <- table(fb22$wohnen_bei_Eltern, fb22$job)
+tab
+```
+
+Die Voraussetungen für einen Chi-Quadrat-Test sind erfüllt.
+
+</details>
+
+
+* Berechnen Sie die erwarteten Häufigkeiten der Zellen und treffen Sie eine Signifikanzentscheidung
+
+<details><summary>Lösung</summary>
+
+Für die Erwarteten Häufigkeiten brauchen wir die Randsummen. Diese erhalten wir mit dem Befehl `addmargins`.
+
+```{r}
+
+tab_mar <- addmargins(tab)
+tab_mar
+
+```
+
+Die erwarteten Häufigkeiten der Zellen erhalten wir wie folgt:
+
+```{r}
+n <- tab_mar[3,3]
+
+erwartet_11 <- (tab_mar[1,3]*tab_mar[3,1])/n
+erwartet_12 <- (tab_mar[1,3]*tab_mar[3,2])/n
+erwartet_21 <- (tab_mar[2,3]*tab_mar[3,1])/n
+erwartet_22 <- (tab_mar[2,3]*tab_mar[3,2])/n
+
+erwartet <- data.frame(nein = c(erwartet_11, erwartet_21), ja = c(erwartet_12, erwartet_22))
+erwartet
+
+```
+
+Für die Signifikanzentscheidung berechnen wir den empirischen Chi-Quadrat-Wert und den zugehörigen p-Wert.
+
+```{r}
+chi_quadrat_Wert <- (tab[1,1]-erwartet[1,1])^2/erwartet[1,1]+
+  (tab[1,2]-erwartet[1,2])^2/erwartet[1,2]+
+  (tab[2,1]-erwartet[2,1])^2/erwartet[2,1]+
+  (tab[2,2]-erwartet[2,2])^2/erwartet[2,2]
+
+chi_quadrat_Wert
+
+pchisq(chi_quadrat_Wert, 1, lower.tail = F) #Freiheitsgrad beträgt 1
+```
+Somit ist der Test nicht signifikant und es lässt sich feststellen, dass das Wohnen bei den Eltern nicht damit zusammen hängt, ob ein Nebenjob ausgeübt wird.
+
+Wir können unser Ergebnis auch noch mit dem Befehl `chisq.test()` überprüfen und sehen, dass dieser das gleiche Ergebnis liefert.
+
+```{r}
+chisq.test(tab, correct = F)
+```
+
+</details>
+
+
+---
+
+# Tests für abhängige Stichproben
+
+## Aufgabe 4
 
 Unterscheidet sich im Durchschnitt die Angabe von Psychologiestudierenden zu ihrer Nerdiness (`nerd`) und ihrem Intellekt (`intel`)?
 
@@ -215,9 +304,12 @@ Der Effekt ist mit `r round(cohen.d(fb22$nerd, fb22$intel, paired = T, within = 
 
 </details>
 
+
+---
+
 # Korrelation
 
-## Aufgabe 4
+## Aufgabe 5
 
 Hängt die Gewissenhaftigkeit (`gewis`) positiv mit der Anzahl an geschriebenen Wörtern zusammen, die als Begründung (`grund`) für die Wahl des Psychologiestudiums angegeben wurde? Überprüfen Sie die Voraussetzungen für das Zusammenhangsmaß.
 
@@ -260,6 +352,7 @@ Es besteht kein positiver Zusammenhang zwischen Gewissenhaftigkeit und der Anzah
 
 </details>
 
+---
 
 ## Alt:
 
