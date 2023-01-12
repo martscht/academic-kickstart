@@ -354,6 +354,100 @@ Es besteht kein positiver Zusammenhang zwischen Gewissenhaftigkeit und der Anzah
 
 ---
 
+# Regression
+
+## Aufgabe 6
+
+Lässt sich Prokrastination durch Gewissenhaftigkeit (`gewis`) vorsagen? 
+(Falls noch nicht geschehen, berechnen sie den Skalenwert der Prokrastination)
+
+```{r}
+fb22$prok2_r <- -1 * (fb22$prok2 - 5)
+fb22$prok3_r <- -1 * (fb22$prok3 - 5)
+fb22$prok5_r <- -1 * (fb22$prok5 - 5)
+fb22$prok7_r <- -1 * (fb22$prok7 - 5)
+fb22$prok8_r <- -1 * (fb22$prok8 - 5)
+
+fb22$prok_ges <- fb22[, c('prok1', 'prok2_r', 'prok3_r',
+                          'prok4', 'prok5_r', 'prok6',
+                          'prok7_r', 'prok8_r', 'prok9', 
+                          'prok10')] |> rowMeans()
+```
+
+* Stellen Sie die Regressionsgerade auf und prüfen sie die Voraussetzungen.
+
+<details><summary>Lösung</summary>
+
+Die einzige Voraussetzung, die wir vor der Aufstellung des Regressionsmodell prüfen können, ist der lineare Zusammenhang der Variablen mit Hilfe eines Scatterplot.
+
+```{r}
+plot(fb22$gewis, fb22$prok_ges, xlab = "Gewissenhaftigkeit", ylab = "Prokrastination", 
+     main = "Zusammenhang zwischen Gewissenhaftigkeit und Prokrastination", pch = 19)
+lines(loess.smooth(fb22$gewis, fb22$prok_ges), col = 'blue')
+```
+
+Die Voraussetzung ist erfüllt. Wir können nun also unser Regressionsmodell aufstellen.
+
+```{r}
+fm <- lm(prok_ges ~ 1 + gewis, data = fb22)
+```
+
+Nun prüfen wir die anderen Voraussetungen.
+
+```{r}
+par(mfrow = c(2, 2)) #vier Abbildungen gleichzeitig
+plot(fm)
+```
+
+Der qq-Plot oben rechts deutet auf Normalverteilung hin. Die rote Anpassungslinie des Scale-Location Plots unten links ist annähernd parallel zur x-Achse, sodass wir von Varianzhomogenität ausgehen können. Da auch der vierte Plot unten rechts nicht auf potentiell problematische einflussreiche Datenpunkte hin, sodass alle Vorausetzungen erfüllt sind.
+
+```{r}
+fm
+```
+
+</details>
+
+
+* Prüfen Sie nun die Signifikanz der Koeffizienten mit einem 99% Konfidenzintervall.
+
+<details><summary>Lösung</summary>
+
+```{r}
+confint(fm, level = .99)
+```
+
+In keiner der Intervalle ist die Null enthalten, sodass wir davon ausgehen können, dass die beiden Koeffizienten tatsächlich von Null verschieden sind.
+
+</details>
+
+
+* Wie viel Prozent der Varianz von Prokrastination lässt sich durch die Gewissenhaftigkeit aufklären?
+
+<details><summary>Lösung</summary>
+
+```{r}
+summary(fm)
+summary(fm)$r.squared
+```
+
+</details>
+
+
+Durch die Gewissenhaftigkeit kann `r round(summary(fm)$r.squared,4)*100`% der Varianz von Prokrastination erklärt werden.
+
+* Eine Person hat einen Gewissenhaftswert von 3.2. Welchen Prokrastinationswert sagt, dass Modell für diese Person voraus?
+
+<details><summary>Lösung</summary>
+```{r}
+fm$coefficients[1] + 3.2*fm$coefficients[2]
+
+#Alternativ:
+predict(fm, newdata = data.frame(gewis = 3.2))
+```
+
+</details>
+
+
 ## Alt:
 
 Zunächst wollen wir nochmal Übungen mit einem kleinen, ausgedachten Datensatz durchführen. Stellen Sie sich dafür vor, dass Sie im Rahmen Ihres Studiums haben eine Untersuchung mit 10 Studierenden durchgeführt. Dabei haben Sie das Alter (in ganzen Zahlen), das Geschlecht (weiblich, männlich, divers), die deutsche Lieblingsstadt (Berlin, Hamburg, München, Frankfurt, Dresden), sowie die generelle Lebenszufriedenheit, gemessen mit 5 Items, erhoben. 

@@ -335,6 +335,111 @@ qqPlot(fb22$gewis)</code></pre>
 </details>
 <hr />
 </div>
+</div>
+<div id="regression" class="section level1">
+<h1>Regression</h1>
+<div id="aufgabe-6" class="section level2">
+<h2>Aufgabe 6</h2>
+<p>Lässt sich Prokrastination durch Gewissenhaftigkeit (<code>gewis</code>) vorsagen?
+(Falls noch nicht geschehen, berechnen sie den Skalenwert der Prokrastination)</p>
+<pre class="r"><code>fb22$prok2_r &lt;- -1 * (fb22$prok2 - 5)
+fb22$prok3_r &lt;- -1 * (fb22$prok3 - 5)
+fb22$prok5_r &lt;- -1 * (fb22$prok5 - 5)
+fb22$prok7_r &lt;- -1 * (fb22$prok7 - 5)
+fb22$prok8_r &lt;- -1 * (fb22$prok8 - 5)
+
+fb22$prok_ges &lt;- fb22[, c(&#39;prok1&#39;, &#39;prok2_r&#39;, &#39;prok3_r&#39;,
+                          &#39;prok4&#39;, &#39;prok5_r&#39;, &#39;prok6&#39;,
+                          &#39;prok7_r&#39;, &#39;prok8_r&#39;, &#39;prok9&#39;, 
+                          &#39;prok10&#39;)] |&gt; rowMeans()</code></pre>
+<ul>
+<li>Stellen Sie die Regressionsgerade auf und prüfen sie die Voraussetzungen.</li>
+</ul>
+<details>
+<summary>
+Lösung
+</summary>
+<p>Die einzige Voraussetzung, die wir vor der Aufstellung des Regressionsmodell prüfen können, ist der lineare Zusammenhang der Variablen mit Hilfe eines Scatterplot.</p>
+<pre class="r"><code>plot(fb22$gewis, fb22$prok_ges, xlab = &quot;Gewissenhaftigkeit&quot;, ylab = &quot;Prokrastination&quot;, 
+     main = &quot;Zusammenhang zwischen Gewissenhaftigkeit und Prokrastination&quot;, pch = 19)
+lines(loess.smooth(fb22$gewis, fb22$prok_ges), col = &#39;blue&#39;)</code></pre>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-27-1.png" width="672" /></p>
+<p>Die Voraussetzung ist erfüllt. Wir können nun also unser Regressionsmodell aufstellen.</p>
+<pre class="r"><code>fm &lt;- lm(prok_ges ~ 1 + gewis, data = fb22)</code></pre>
+<p>Nun prüfen wir die anderen Voraussetungen.</p>
+<pre class="r"><code>par(mfrow = c(2, 2)) #vier Abbildungen gleichzeitig
+plot(fm)</code></pre>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-29-1.png" width="672" /></p>
+<p>Der qq-Plot oben rechts deutet auf Normalverteilung hin. Die rote Anpassungslinie des Scale-Location Plots unten links ist annähernd parallel zur x-Achse, sodass wir von Varianzhomogenität ausgehen können. Da auch der vierte Plot unten rechts nicht auf potentiell problematische einflussreiche Datenpunkte hin, sodass alle Vorausetzungen erfüllt sind.</p>
+<pre class="r"><code>fm</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = prok_ges ~ 1 + gewis, data = fb22)
+## 
+## Coefficients:
+## (Intercept)        gewis  
+##      4.0282      -0.3922</code></pre>
+</details>
+<ul>
+<li>Prüfen Sie nun die Signifikanz der Koeffizienten mit einem 99% Konfidenzintervall.</li>
+</ul>
+<details>
+<summary>
+Lösung
+</summary>
+<pre class="r"><code>confint(fm, level = .99)</code></pre>
+<pre><code>##                  0.5 %     99.5 %
+## (Intercept)  3.4658771  4.5906215
+## gewis       -0.5352757 -0.2490569</code></pre>
+<p>In keiner der Intervalle ist die Null enthalten, sodass wir davon ausgehen können, dass die beiden Koeffizienten tatsächlich von Null verschieden sind.</p>
+</details>
+<ul>
+<li>Wie viel Prozent der Varianz von Prokrastination lässt sich durch die Gewissenhaftigkeit aufklären?</li>
+</ul>
+<details>
+<summary>
+Lösung
+</summary>
+<pre class="r"><code>summary(fm)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = prok_ges ~ 1 + gewis, data = fb22)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.24783 -0.35371 -0.05175  0.33846  1.04629 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  4.02825    0.21564  18.680  &lt; 2e-16 ***
+## gewis       -0.39217    0.05487  -7.147 3.27e-11 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.4524 on 155 degrees of freedom
+##   (2 Beobachtungen als fehlend gelöscht)
+## Multiple R-squared:  0.2478, Adjusted R-squared:  0.243 
+## F-statistic: 51.07 on 1 and 155 DF,  p-value: 3.273e-11</code></pre>
+<pre class="r"><code>summary(fm)$r.squared</code></pre>
+<pre><code>## [1] 0.2478399</code></pre>
+</details>
+<p>Durch die Gewissenhaftigkeit kann 24.78% der Varianz von Prokrastination erklärt werden.</p>
+<ul>
+<li>Eine Person hat einen Gewissenhaftswert von 3.2. Welchen Prokrastinationswert sagt, dass Modell für diese Person voraus?</li>
+</ul>
+<details>
+<summary>
+Lösung
+</summary>
+<pre class="r"><code>fm$coefficients[1] + 3.2*fm$coefficients[2]</code></pre>
+<pre><code>## (Intercept) 
+##    2.773317</code></pre>
+<pre class="r"><code>#Alternativ:
+predict(fm, newdata = data.frame(gewis = 3.2))</code></pre>
+<pre><code>##        1 
+## 2.773317</code></pre>
+</details>
+</div>
 <div id="alt" class="section level2">
 <h2>Alt:</h2>
 <p>Zunächst wollen wir nochmal Übungen mit einem kleinen, ausgedachten Datensatz durchführen. Stellen Sie sich dafür vor, dass Sie im Rahmen Ihres Studiums haben eine Untersuchung mit 10 Studierenden durchgeführt. Dabei haben Sie das Alter (in ganzen Zahlen), das Geschlecht (weiblich, männlich, divers), die deutsche Lieblingsstadt (Berlin, Hamburg, München, Frankfurt, Dresden), sowie die generelle Lebenszufriedenheit, gemessen mit 5 Items, erhoben.</p>
@@ -608,7 +713,7 @@ Lösung
 Lösung
 </summary>
 <pre class="r"><code>pie(table(data$geschlecht))</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-46-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-54-1.png" width="672" /></p>
 <pre class="r"><code>prop.table(table(data$geschlecht))</code></pre>
 <pre><code>## 
 ##   weiblich   männlich     divers 
@@ -650,7 +755,7 @@ Lösung
 <pre><code>## 25% 75% 
 ##   3   4</code></pre>
 <pre class="r"><code>boxplot(data$lz3)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-49-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-57-1.png" width="672" /></p>
 <pre class="r"><code>quantile(data$lz3, .75) - quantile(data$lz3, .25)</code></pre>
 <pre><code>## 75% 
 ##   1</code></pre>
@@ -714,9 +819,9 @@ colours2 &lt;- c(&quot;#B7C5D5&quot;, &quot;#D6EDEC&quot;, &quot;#E7E8ED&quot;)
 table_lerntyp &lt;- table(fb22$lerntyp)
 
 barplot(table_lerntyp, main = &quot;Lerntypen Jahrgang 2022&quot;, ylab = &quot;Anzahl Studierende&quot;, col = colours)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-53-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-61-1.png" width="672" /></p>
 <pre class="r"><code>barplot(table_lerntyp, main = &quot;Lerntypen Jahrgang 2022&quot;, ylab = &quot;Anzahl Studierende&quot;, col = colours2)</code></pre>
-<img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-53-2.png" width="672" />
+<img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-61-2.png" width="672" />
 </details>
 </div>
 <div id="aufgabe-18" class="section level2">
@@ -764,9 +869,9 @@ Lösung
 <li>Die mittleren 50% der Angaben in Variable <code>prok4</code> reicht vom Wert 2 bis zum Wert 3, bei der Variable <code>prok10</code> reicht er von 2 bis 4.</li>
 </ul>
 <pre class="r"><code>boxplot(fb22$prok4)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-56-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-64-1.png" width="672" /></p>
 <pre class="r"><code>boxplot(fb22$prok10)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-56-2.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-64-2.png" width="672" /></p>
 </details>
 </div>
 <div id="aufgabe-20" class="section level2">
@@ -828,15 +933,15 @@ Lösung
 Lösung
 </summary>
 <pre class="r"><code>hist(fb22$vertr)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-60-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-68-1.png" width="672" /></p>
 <p>Dieses Histogramm soll erstmal zum Vergleich dienen. Wir sehen die ursprünglichen Skalenwerte.</p>
 <pre class="r"><code>fb22$vertr_z &lt;- scale(fb22$vertr, scale = F)
 hist(fb22$vertr_z)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-61-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-69-1.png" width="672" /></p>
 <p>Durch die Zentrierung verändert sich die Form erstmal nicht. Der Mittelwert der Werte wird auf 0 gesetzt. Optisch äußert sich das dadurch, dass die Werte auf der x-Achse nun andere sind.</p>
 <pre class="r"><code>fb22$vertr_st &lt;- scale(fb22$vertr, scale = T)
 hist(fb22$vertr_st)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-62-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-70-1.png" width="672" /></p>
 <p>Die Standardisierung setzt die Standardabweichung auf 1. Aufgrund der neuen Wertestruktur wird natürlich auch die Kategorienanzahl geändert.</p>
 </details>
 <div id="aufgabe-23" class="section level2">
@@ -868,6 +973,6 @@ Personen, die gerne in Gruppen lernen, weisen einen Mittelwert von 4.125 auf. Si
 <div id="abschluss" class="section level2">
 <h2>Abschluss</h2>
 <p>Hurrah, Sie haben alle Aufgaben gerechnet. Hier müssen Sie nichts selbst berechnen. Zur Belohnung gibt es noch einen Comic für zukünftige Skalierungsmöglichkeiten.</p>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-66-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-74-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>
