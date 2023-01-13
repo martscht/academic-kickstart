@@ -9,8 +9,8 @@ tags:
   - Korrelation
 subtitle: ''
 summary: ''
-authors: [nehler, winkler, schroeder]
-lastmod: '2021-12-13T13:13:57+01:00'
+authors: [nehler, winkler, schroeder, neubauer]
+lastmod: '2023-01-13T13:13:57+01:00'
 featured: no
 header:
   image: "/header/BSc2_Korrelation.jpg"
@@ -34,16 +34,54 @@ knitr::opts_chunk$set(error = TRUE)
 
 ***
 
-## Datensatz laden
+## Vorbereitende Schritte {#prep}
 
 Zu Beginn laden wir wie gewohnt den Datensatz und verteilen die relevanten Labels. Beachten Sie, dass diese Befehle bereits angewendet wurden. Wenn Sie die veränderten Daten abgespeichert oder noch aktiv haben, sind die folgenden Befehle natürlich nicht nötig.
 
-```{r, eval=TRUE}
-load(url('https://pandar.netlify.app/post/fb21.rda'))
+```{r}
+#### Was bisher geschah: ----
 
-#Labels
-fb21$fach <- factor(fb21$fach, levels = 1:5, labels = c ('Allgemeine', 'Biologische', 'Entwicklung', 'Klinische', 'Diag./Meth.'))
-fb21$ziel <- factor(fb21$ziel, levels = 1:4, labels = c ('Wirtschaft', 'Therapie', 'Forschung', 'Andere'))
+# Daten laden
+load(url('https://pandar.netlify.app/post/fb22.rda'))  
+
+# Nominalskalierte Variablen in Faktoren verwandeln
+fb22$geschl_faktor <- factor(fb22$geschl,
+                             levels = 1:3,
+                             labels = c("weiblich", "männlich", "anderes"))
+fb22$fach <- factor(fb22$fach,
+                    levels = 1:5,
+                    labels = c('Allgemeine', 'Biologische', 'Entwicklung', 'Klinische', 'Diag./Meth.'))
+fb22$ziel <- factor(fb22$ziel,
+                        levels = 1:4,
+                        labels = c("Wirtschaft", "Therapie", "Forschung", "Andere"))
+
+fb22$wohnen <- factor(fb22$wohnen, 
+                      levels = 1:4, 
+                      labels = c("WG", "bei Eltern", "alleine", "sonstiges"))
+
+fb22$ort <- factor(fb22$ort, levels=c(1,2), labels=c("FFM", "anderer"))
+
+fb22$job <- factor(fb22$job, levels=c(1,2), labels=c("nein", "ja"))
+# Skalenbildung
+
+fb22$prok2_r <- -1 * (fb22$prok2 - 5)
+fb22$prok3_r <- -1 * (fb22$prok3 - 5)
+fb22$prok5_r <- -1 * (fb22$prok5 - 5)
+fb22$prok7_r <- -1 * (fb22$prok7 - 5)
+fb22$prok8_r <- -1 * (fb22$prok8 - 5)
+
+# Prokrastination
+fb22$prok_ges <- fb22[, c('prok1', 'prok2_r', 'prok3_r',
+                          'prok4', 'prok5_r', 'prok6',
+                          'prok7_r', 'prok8_r', 'prok9', 
+                          'prok10')] |> rowMeans()
+# Naturverbundenheit
+fb22$nr_ges <-  fb22[, c('nr1', 'nr2', 'nr3', 'nr4', 'nr5',  'nr6')] |> rowMeans()
+fb22$nr_ges_z <- scale(fb22$nr_ges) # Standardisiert
+
+# Weitere Standardisierungen
+fb22$nerd_std <- scale(fb22$nerd)
+fb22$neuro_std <- scale(fb22$neuro)
 
 ```
 
@@ -55,7 +93,7 @@ Die Erstellung von *Häufigkeitstabellen* zur Darstellung univariater Häufigkei
 
 
 ```{r}
-tab <- table(fb21$fach)               #Absolut
+tab <- table(fb22$fach)               #Absolut
 tab
 
 prop.table(tab)                       #Relativ
@@ -64,7 +102,7 @@ prop.table(tab)                       #Relativ
 Die Erweiterung für den bivariaten Fall ist dabei nicht schwierig und wird als *Kreuztabelle* bezeichnet. Sie liefert die Häufigkeit von Kombinationen von Ausprägungen in mehreren Variablen. In den Zeilen wird die erste Variable abgetragen und in den Spalten die zweite. Im Unterschied zum univariaten Fall muss im `table()`-Befehl nur die zweite interessierende Variable zusätzlich genannt werden. Tabellen können beliebig viele Dimensionen haben, werden dann aber sehr unübersichtlich.
 
 ```{r}
-tab<-table(fb21$fach,fb21$ziel)       #Kreuztabelle
+tab<-table(fb22$fach,fb22$ziel)       #Kreuztabelle
 tab
 ```
 
@@ -136,16 +174,16 @@ Die Funktionen für die Varianz ist dabei `var()`. Im Folgenden wird diese für 
 Wie bereits in vergangenen Sitzungen gesehen, führen fehlende Werte zu der Ausgabe `NA`. Um dies vorzubeugen, wird im univariaten Fall `na.rm = TRUE` zum Ausschluss verwendet. 
 
 ```{r}
-var(fb21$vertr, na.rm = TRUE)            #Varianz Verträglichkeit
+var(fb22$vertr, na.rm = TRUE)            #Varianz Verträglichkeit
 
-var(fb21$gewis, na.rm = TRUE)            #Varianz Gewissenhaftigkeit
+var(fb22$gewis, na.rm = TRUE)            #Varianz Gewissenhaftigkeit
 ```
 
 
 Die Funktion `cov()` wird für die Kovarianz verwendet und benötigt als Argumente die Variablen. 
 
 ```{r}
-cov(fb21$vertr, fb21$gewis)              #Kovarianz Verträglichkeit und Gewissenhaftigkeit
+cov(fb22$vertr, fb22$gewis)              #Kovarianz Verträglichkeit und Gewissenhaftigkeit
 ```
 Da Kovarianzen unstandardisierte Kennzahlen sind, können wir Kovarianzen nicht pauschal nach ihrer Höhe beurteilen. Die Höhe hängt beispielsweise von der Antwortskala ab. 
 
@@ -158,33 +196,44 @@ Natürlich können auch bei der Kovarianzberechnung fehlende Werte zu einem Prob
 Am besten lässt sich der Unterschied in einer *Kovarianzmatrix* veranschaulichen. Hier werden alle Varianzen und Kovarianzen von einer Menge an Variablen berechnet und in einer Tabelle darstellt. Dafür muss ein Datensatz erstellt werden, der nur die interessierenden Variablen enthält. Zu unseren beiden Variablen nehmen wir als drittes noch die Lebenszufriedenheit (`lz`) auf.
 
 ```{r}
-drei <- fb21[, c('vertr','gewis','lz')]         #Datensatzreduktion
+drei <- fb22[, c('vertr','gewis','lz')]         #Datensatzreduktion
 cov(drei)                                       #Kovarianzmatrix   
 ```
 
 Da die fehlenden Werte nicht entfernt wurden, gibt R `NA` aus.
 Nun folgt die Gegenüberstellung der beiden betrachteten Möglichkeiten zum Ausschluss. 
 
-```{r}
-cov(drei, use = 'pairwise')             #Paarweiser Fallausschluss
+Zu Illustrationszwecken setzen wir nun den Wert in Gewissenhaftigkeit in Zeilen 50 und 72 auf fehlend:
 
-cov(drei, use = 'complete')             #Listenweiser Fallausschluss
+```{r}
+fb22$vert_neu <- fb22$vert                     # erstelle neue Variable vert_neu
+fb22[c(50,72), 'vert_neu'] <- NA               # setze vert_neu in den Zeilen 50 und 72 auf fehlend
+drei_neu <- fb22[, c('vert_neu','gewis','lz')]         #Datensatzreduktion
+cov(drei_neu)                                       #Kovarianzmatrix   
 ```
 
-Wie wir sehen, unterscheiden sich die Werte voneinander, da beim listenweisen Fallausschluss noch mehr Personen von Beginn an von der Berechnung ausgeschlossen werden.
+Vergleichen wir nun dieses Ergebnis mit dem Ergebnis nach *paarweisem Fallausschluss* und *listenweisem Fallausschluss*:
+
+```{r}
+cov(drei_neu, use = 'pairwise')             #Paarweiser Fallausschluss
+
+cov(drei_neu, use = 'complete')             #Listenweiser Fallausschluss
+```
+
+Wie wir sehen, unterscheiden sich die Werte voneinander, da beim listenweisen Fallausschluss noch mehr Personen von Beginn an von der Berechnung ausgeschlossen werden (es werden hier auch die Personen in Zeilen 50 und 72 für die Berechnung der Kovarianz von Gewissenhaftigkeit und Lebenszufriedenheit ausgeschlossen - obwohl diese beiden Personen auf diesen beiden Variablen eigentlich gültige Werte besitzen).
 Anmerkung: Die Kovarianz einer Variablen mit sich selbst (zu finden in der Hauptdiagonalen) entspricht ihrer Varianz.
 
 
 Der Zusammenhang zwischen zwei Variablen kann in einem *Scatterplot* bzw. *Streupunktdiagramm* dargestellt werden. Dafür kann man die `plot()` Funktion nutzen. Als Argumente können dabei `x` für die Variable auf der x-Achse, `y` für die Variable auf der y-Achse, `xlim`, `ylim` für eventuelle Begrenzungen der Achsen und `pch` für die Punktart angegeben werden.
 
 ```{r}
-plot(x = fb21$vertr, y = fb21$gewis, xlim = c(1,5) , ylim = c(1,5))
+plot(x = fb22$vertr, y = fb22$gewis, xlim = c(1,5) , ylim = c(1,5))
 ```
 
 Wie in der Vorlesung besprochen, sind für verschiedene Skalenniveaus verschiedene Zusammenhangsmaße verfügbar, die im Gegensatz zur Kovarianz auch eine Vergleichbarkeit zwischen zwei Zusammenhangswerten sicherstellen. Für zwei metrisch skalierte Variablen gibt es dabei die *Produkt-Moment-Korrelation*. In der Funktion `cor()` werden dabei die Argumente `x` und `y` für die beiden betrachteten Variablen benötigt. `use` beschreibt weiterhin den Umgang mit fehlenden Werten.
 
 ```{r}
-cor(x = fb21$vertr, y = fb21$gewis, use = 'pairwise')
+cor(x = fb22$vertr, y = fb22$gewis, use = 'pairwise')
 ```
 
 Bei einer positiven Korrelation gilt „je mehr Variable x... desto mehr Variable y" bzw. umgekehrt, bei einer negativen Korrelation „je mehr Variable x... desto weniger Variable y" bzw. umgekehrt. Korrelationen sind immer ungerichtet, das heißt, sie enthalten keine Information darüber, welche Variable eine andere vorhersagt - beide Variablen sind gleichberechtigt. Korrelationen (und Regressionen, s. nächste Woche) liefern *keine* Hinweise auf Kausalitäten. Sie sagen beide etwas über den (linearen) Zusammenhang zweier Variablen aus.
@@ -200,7 +249,7 @@ Die Stärke des korrelativen Zusammenhangs wird mit dem Korrelationskoeffiziente
 Die default-Einstellung bei `cor()`ist die *Produkt-Moment-Korrelation*, also die Pearson-Korrelation.
 
 ```{r}
-cor(fb21$vertr, fb21$gewis, use = "pairwise", method = "pearson")
+cor(fb22$vertr, fb22$gewis, use = "pairwise", method = "pearson")
 ```
 
 
@@ -218,22 +267,22 @@ $\rightarrow$ QQ-Plot, Histogramm & Shapiro-Wilk-Test
 
 ```{r}
 #QQ
-qqnorm(fb21$vertr)
-qqline(fb21$vertr)
+qqnorm(fb22$vertr)
+qqline(fb22$vertr)
 
-qqnorm(fb21$gewis)
-qqline(fb21$gewis)
+qqnorm(fb22$gewis)
+qqline(fb22$gewis)
 
 #Histogramm
 
-hist(fb21$vertr, prob = T, ylim = c(0, 1))
-curve(dnorm(x, mean = mean(fb21$vertr, na.rm = T), sd = sd(fb21$vertr, na.rm = T)), col = "blue", add = T)  
-hist(fb21$gewis, prob = T, ylim = c(0,1))
-curve(dnorm(x, mean = mean(fb21$gewis, na.rm = T), sd = sd(fb21$gewis, na.rm = T)), col = "blue", add = T)
+hist(fb22$vertr, prob = T, ylim = c(0, 1))
+curve(dnorm(x, mean = mean(fb22$vertr, na.rm = T), sd = sd(fb22$vertr, na.rm = T)), col = "blue", add = T)  
+hist(fb22$gewis, prob = T, ylim = c(0,1))
+curve(dnorm(x, mean = mean(fb22$gewis, na.rm = T), sd = sd(fb22$gewis, na.rm = T)), col = "blue", add = T)
 
 #Shapiro
-shapiro.test(fb21$vertr)
-shapiro.test(fb21$gewis)
+shapiro.test(fb22$vertr)
+shapiro.test(fb22$gewis)
 ```
 
 $p < \alpha$ $\rightarrow$ H1: Normalverteilung kann nicht angenommen werden. Somit ist diese Voraussetzung verletzt. Eine Möglichkeit damit umzugehen, ist die Rangkorrelation nach Spearman. Diese ist nicht an die Voraussetzung der Normalverteilung gebunden. Das Verfahren kann über `method = "spearman"` angewendet werden.
@@ -242,20 +291,19 @@ $p < \alpha$ $\rightarrow$ H1: Normalverteilung kann nicht angenommen werden. So
 **Rangkorrelation in R**
 
 ```{r}
-r1 <- cor(fb21$vertr,fb21$gewis,
+r1 <- cor(fb22$vertr,fb22$gewis,
           method = "spearman",     #Pearson ist default
           use = "complete") 
 
 r1
 
-r1^2                               #R^2, Anteil an erklärter Varianz
 ```
 
 
 **Interpretation des deskriptiven Zusammenhangs:**  
-Es handelt sich um eine positive Korrelation von _r_ = `r round(r1, digits = 2)`. Der Effekt ist nach Cohens (1988) Konvention als schwach zu bewerten. Je höher die Ausprägung in Verträglichkeit, desto höher ist die Ausprägung in der Gewissenhaftigkeit und anders herum. 
+Es handelt sich um eine positive Korrelation von _r_ = `r round(r1, digits = 2)`. Der Effekt ist nach Cohens (1988) Konvention als schwach bis mittelstark zu bewerten. Je höher die Ausprägung in Verträglichkeit, desto höher ist die Ausprägung in der Gewissenhaftigkeit und anders herum. 
 
-**Exkurs: Cohens (1988) Konvention zur Interpretation von $|r|$:**
+**Cohens (1988) Konvention zur Interpretation von $|r|$:**
 
 * ~ .10: schwacher Effekt  
 * ~ .30: mittlerer Effekt  
@@ -264,38 +312,33 @@ Es handelt sich um eine positive Korrelation von _r_ = `r round(r1, digits = 2)`
 Als weitere Variante der Rangkorrelation gibt es noch Kendalls $\tau$. Diese kann man mit `method = "kendall"` angesprochen werden.
 
 ```{r}
-cor(fb21$vertr, fb21$gewis, use = 'complete', method = 'kendall')
+cor(fb22$vertr, fb22$gewis, use = 'complete', method = 'kendall')
 ```
 Die Interpretation erfolgt wie bei Spearman's Rangkorrelation. 
 
 **Signifikanztestung des Korrelationskoeffizienten:**
-Nachdem der Korrelationskoeffizient berechnet wurde, muss dieser noch auf Signifikanz geprüft werden. Dazu verwenden wir die `cor.test()`-Funktion.
+Nachdem der Korrelationskoeffizient berechnet wurde, kann dieser noch auf Signifikanz geprüft werden. Dazu verwenden wir die `cor.test()`-Funktion.
 
 * *H0*: $\rho = 0$ $\rightarrow$ es gibt keinen Zusammenhang zwischen Verträglichkeit und Gewissenhaftigkeit
 * *H1*: $\rho \neq 0$ $\rightarrow$  es gibt einen Zusammenhang zwischen Verträglichkeit und Gewissenhaftigkeit
 
 ```{r}
-cor.test(fb21$vertr, fb21$gewis, 
+cor.test(fb22$vertr, fb22$gewis, 
          alternative = "two.sided", 
          method = "spearman",       #Da Voraussetzungen für Pearson verletzt
          use = "complete")
 ```
 
-$p > \alpha$ $\rightarrow$ H0. Die Korrelation ist **nicht** mit einer Irrtumswahrscheinlichkeit von 5% signifikant von 0 verschieden. 
+$p > \alpha$ $\rightarrow$ H0. Die Korrelation ist mit einer Irrtumswahrscheinlichkeit von 5% signifikant von 0 verschieden. 
 Anmerkung: Bei der Rangkorrelation kann der exakte p-Wert nicht berechnet werden. Wenn die Voraussetzungen für die Pearson-Korrelation erfüllt wären, würde das Ganze so aussehen:
 
-```{r}
-cor.test(fb21$vertr, fb21$gewis, 
-         alternative = "two.sided", 
-         method = "pearson",       
-         use = "complete")
-```
 
-```{r, echo = FALSE}
-cor <- cor.test(fb21$vertr, fb21$gewis, 
+```{r}
+cor <- cor.test(fb22$vertr, fb22$gewis, 
          alternative = "two.sided", 
          method = "pearson",       
          use = "complete")
+cor
 ```
 
 **Ergebnisinterpretation:**
@@ -304,7 +347,7 @@ Es wurde untersucht, ob Verträglichkeit und Gewissenhaftigkeit miteinander zusa
 ***
 
 ## Vertiefung: Wie können Zusammenhangsmaße für ordinalskalierte Daten berechnet werden?
-
+	
 _In diesem Abschnitt wird vertiefend die Bestimmung von Zusammenhangsmaßen für ordinalskalierte Variablen besprochen. Den dazugehörigen Auszug aus den Vorlesungsfolien, der in diesem Jahr herausgekürzt wurde, finden Sie [hier](/post/Bonus_Korrelation.pdf)._
 
 Ordinalskalierte Daten können aufgrund der Verletzung der Äquidistanz zwischen bspw. Antwortstufen eines Items eines Messinstrumentes nicht schlicht mittels Pearson-Korrelation in Zusammenhang gesetzt werden. Zudem sind oft Verteilungsannahmen bei ordinalskalierten Variablen verletzt. Der Koeffizient $\hat{\gamma}$ ist zur Betrachtung solcher Zusammenhänge am besten geeignet (sogar besser als Spearman's und Kendalls's Rangkorrelation). Er nimmt - ähnlich wie Spearman's und Kendall's Koeffizenten - weder eine gewisse Verteilung der Daten an, noch deren Äquidistanz.
@@ -319,7 +362,6 @@ install.packages('rococo')          #installieren
 library(rococo)                     #laden
 ```
 
-Wir erhalten hier als Message den Hinweis, unter welcher Version das Paket erstellt wurde.
 Übersichten über Pakete kann man mit `??` erhalten.
 
 ```{r, eval = FALSE}
@@ -332,21 +374,25 @@ Die Funktion heißt hier zufälligerweise genau gleich wie das Paket. Wenn man n
 ?rococo
 ```
 
-Dank dem neuen Paket können wir nun den Koeffizienten $\hat{\gamma}$ berechnen und damit den Zusammenhang zwischen Items betrachten. Schauen wir uns nun mal den Zusammenhang der beiden Prokrastinationsitems `prok1` und `prok9` an, um zu überprüfen, ob die beiden Items auch (wie beabsichtigt) etwas Ähnliches messen (nähmlich Prokrastionationstendenz). Die beiden Variablen wurden ursprünglich auf einer Skala von 1 (*stimmt nicht*) bis 4 (*stimmt genau*) (also auf Ordinalskalenniveau) erfasst. 
+Dank des neuen Pakets können wir nun den Koeffizienten $\hat{\gamma}$ berechnen und damit den Zusammenhang zwischen Items betrachten. Schauen wir uns nun mal den Zusammenhang der beiden Prokrastinationsitems `prok1` und `prok9` an, um zu überprüfen, ob die beiden Items auch (wie beabsichtigt) etwas Ähnliches messen (nähmlich Prokrastionationstendenz). Die beiden Variablen wurden ursprünglich auf einer Skala von 1 (*stimmt nicht*) bis 4 (*stimmt genau*) (also auf Ordinalskalenniveau) erfasst. 
 
 ```{r}
-rococo(fb21$prok1, fb21$prok9)
+rococo(fb22$prok1, fb22$prok9)
 ```
 
 Um zu überprüfen, ob zwei ordinalskalierte Variablen signifikant miteinander zusammenhängen, können wir die `rococo.test()`-Funktion anwenden.
 
 ```{r}
-rococo.test(fb21$prok1, fb21$prok5)
+rococo.test(fb22$prok1, fb22$prok9)
 ```
+
+Betrachten wir nun den Koeffizienten $\hat{\gamma}$ für zwei andere Items (`prok1` mit `prok2`) 
 
 ```{r, echo = F}
-roc.test <- rococo.test(fb21$prok1, fb21$prok5)
+roc.test <- rococo.test(fb22$prok1, fb22$prok2)
+roc.test
 ```
-Hier haben wir `prok9` mit `prok5` ausgetauscht. Der Koeffizient von `r round(roc.test@sample.gamma, 2)` zeigt uns, dass die Items zwar hoch miteinander korrelieren, allerdings negativ. Ist hier etwas schief gelaufen? Nein, `prok5` ist lediglich ein invertiertes Item. Mit der rekodierten Variante der `prok5` Variable würde das `-` nicht da stehen, aber die Höhe der Korrelation gleich bleiben. Wir sehen daher, dass `prok1` mit `prok5` stark und signifikant zusammenhängt. Die beiden Items messen demnach ein ähnliches zugrundeliegendes Konstrukt (Prokrastination).
+Der Koeffizient von `r round(roc.test@sample.gamma, 2)` zeigt uns, dass die Items zwar miteinander korrelieren, allerdings negativ. Ist hier etwas schief gelaufen? Nein, `prok2` ist lediglich ein invertiertes Item. Mit der rekodierten Variante der `prok2` Variable würde das `-` nicht da stehen, aber die Höhe der Korrelation gleich bleiben. Wir sehen daher, dass `prok1` mit `prok2` signifikant zusammenhängt. Die beiden Items messen demnach ein ähnliches zugrundeliegendes Konstrukt (Prokrastination).
 
 ****
+
