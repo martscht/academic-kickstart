@@ -234,7 +234,7 @@ Anmerkung: Die Kovarianz einer Variablen mit sich selbst (zu finden in der Haupt
 <p>Wie in der Vorlesung besprochen, sind für verschiedene Skalenniveaus verschiedene Zusammenhangsmaße verfügbar, die im Gegensatz zur Kovarianz auch eine Vergleichbarkeit zwischen zwei Zusammenhangswerten sicherstellen. Für zwei metrisch skalierte Variablen gibt es dabei die <em>Produkt-Moment-Korrelation</em>. In der Funktion <code>cor()</code> werden dabei die Argumente <code>x</code> und <code>y</code> für die beiden betrachteten Variablen benötigt. <code>use</code> beschreibt weiterhin den Umgang mit fehlenden Werten.</p>
 <pre class="r"><code>cor(x = fb22$vertr, y = fb22$gewis, use = &#39;pairwise&#39;)</code></pre>
 <pre><code>## [1] 0.2009235</code></pre>
-<p>Bei einer positiven Korrelation gilt „je mehr Variable x… desto mehr Variable y” bzw. umgekehrt, bei einer negativen Korrelation „je mehr Variable x… desto weniger Variable y” bzw. umgekehrt. Korrelationen sind immer ungerichtet, das heißt, sie enthalten keine Information darüber, welche Variable eine andere vorhersagt - beide Variablen sind gleichberechtigt. Korrelationen (und Regressionen, s. nächste Woche) liefern <em>keine</em> Hinweise auf Kausalitäten. Sie sagen beide etwas über den (linearen) Zusammenhang zweier Variablen aus.</p>
+<p>Bei einer positiven Korrelation gilt „je mehr Variable x… desto mehr Variable y” bzw. umgekehrt, bei einer negativen Korrelation „je mehr Variable x… desto weniger Variable y” bzw. umgekehrt. Korrelationen sind immer ungerichtet, das heißt, sie enthalten keine Information darüber, welche Variable eine andere vorhersagt - beide Variablen sind gleichberechtigt. Korrelationen (und Regressionen, die wir später <a href="/post/regression">in einem Tutorial</a> kennen lernen werden) liefern <em>keine</em> Hinweise auf Kausalitäten. Sie sagen beide etwas über den (linearen) Zusammenhang zweier Variablen aus.</p>
 <p>In R können wir uns auch eine <em>Korrelationsmatrix</em> ausgeben lassen. Dies geschieht äquivalent zu der Kovarianzmatrix mit dem Datensatz als Argument in der <code>cor()</code> Funktion. In der Diagonale stehen die Korrelationen der Variable mit sich selbst - also 1 - und in den restlichen Feldern die Korrelationen der Variablen untereinander.</p>
 <pre class="r"><code>cor(drei, use = &#39;pairwise&#39;)</code></pre>
 <pre><code>##           vertr     gewis        lz
@@ -312,28 +312,21 @@ Nachdem der Korrelationskoeffizient berechnet wurde, kann dieser noch auf Signif
 <li><em>H0</em>: <span class="math inline">\(\rho = 0\)</span> <span class="math inline">\(\rightarrow\)</span> es gibt keinen Zusammenhang zwischen Verträglichkeit und Gewissenhaftigkeit</li>
 <li><em>H1</em>: <span class="math inline">\(\rho \neq 0\)</span> <span class="math inline">\(\rightarrow\)</span> es gibt einen Zusammenhang zwischen Verträglichkeit und Gewissenhaftigkeit</li>
 </ul>
-<pre class="r"><code>cor.test(fb22$vertr, fb22$gewis, 
+<pre class="r"><code>cor &lt;- cor.test(fb22$vertr, fb22$gewis, 
          alternative = &quot;two.sided&quot;, 
          method = &quot;spearman&quot;,       #Da Voraussetzungen für Pearson verletzt
          use = &quot;complete&quot;)</code></pre>
 <pre><code>## Warning in cor.test.default(fb22$vertr, fb22$gewis, alternative = &quot;two.sided&quot;, :
 ## Cannot compute exact p-value with ties</code></pre>
-<pre><code>## 
-##  Spearman&#39;s rank correlation rho
-## 
-## data:  fb22$vertr and fb22$gewis
-## S = 503932, p-value = 0.001639
-## alternative hypothesis: true rho is not equal to 0
-## sample estimates:
-##       rho 
-## 0.2477728</code></pre>
-<p><span class="math inline">\(p &gt; \alpha\)</span> <span class="math inline">\(\rightarrow\)</span> H1. Die Korrelation ist mit einer Irrtumswahrscheinlichkeit von 5% signifikant von 0 verschieden.
-Anmerkung: Bei der Rangkorrelation kann der exakte p-Wert nicht berechnet werden. Wenn die Voraussetzungen für die Pearson-Korrelation erfüllt wären, würde das Ganze so aussehen:</p>
-<pre class="r"><code>cor &lt;- cor.test(fb22$vertr, fb22$gewis, 
+<p>Anmerkung: Bei der Rangkorrelation kann der exakte p-Wert nicht berechnet werden, da gebundene Ränge vorliegen. Das Ergebnis ist allerdings sehr eindeutig: <span class="math inline">\(p &gt; \alpha\)</span> <span class="math inline">\(\rightarrow\)</span> H1. Die Korrelation ist mit einer Irrtumswahrscheinlichkeit von 5% signifikant von 0 verschieden. Daraus würde sich die folgende Interpretation ergeben:</p>
+<p><strong>Ergebnisinterpretation:</strong>
+Es wurde untersucht, ob Verträglichkeit und Gewissenhaftigkeit miteinander zusammenhängen. Der spearman-Korrelationskoeffizient beträgt 0.25 und ist statistisch signifikant (<em>p</em> = 0.002). Folglich wird die Nullhypothese hier verworfen: Verträglichkeit und Gewissenhaftigkeit weisen einen signifikanten Zusammenhang auf.</p>
+<p><strong>Modifikation</strong>
+Wir haben in der Funktion <code>cor.test()</code> als Argument <code>method = "spearman"</code> eingegeben, da die Voraussetzungen für die Pearson-Korrelation nicht erfüllt waren. Wenn dies der Fall gewesen wäre, müsste man stattdessen <code>method = "pearson"</code> angeben:</p>
+<pre class="r"><code>cor.test(fb22$vertr, fb22$gewis, 
          alternative = &quot;two.sided&quot;, 
          method = &quot;pearson&quot;,       
-         use = &quot;complete&quot;)
-cor</code></pre>
+         use = &quot;complete&quot;)</code></pre>
 <pre><code>## 
 ##  Pearson&#39;s product-moment correlation
 ## 
@@ -345,8 +338,6 @@ cor</code></pre>
 ## sample estimates:
 ##       cor 
 ## 0.2009235</code></pre>
-<p><strong>Ergebnisinterpretation:</strong>
-Es wurde untersucht, ob Verträglichkeit und Gewissenhaftigkeit miteinander zusammenhängen. Der Pearson-Korrelationskoeffizient beträgt 0.2 und ist statistisch signifikant (<em>t</em>(157) = 2.57, <em>p</em> = 0.011). Folglich wird die Nullhypothese hier verworfen: Verträglichkeit und Lebenszufriedenheit weisen einen signifikanten Zusammenhang auf.</p>
 <hr />
 </div>
 <div id="vertiefung-wie-können-zusammenhangsmaße-für-ordinalskalierte-daten-berechnet-werden" class="section level2">

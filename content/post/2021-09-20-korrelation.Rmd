@@ -236,7 +236,7 @@ Wie in der Vorlesung besprochen, sind für verschiedene Skalenniveaus verschiede
 cor(x = fb22$vertr, y = fb22$gewis, use = 'pairwise')
 ```
 
-Bei einer positiven Korrelation gilt „je mehr Variable x... desto mehr Variable y" bzw. umgekehrt, bei einer negativen Korrelation „je mehr Variable x... desto weniger Variable y" bzw. umgekehrt. Korrelationen sind immer ungerichtet, das heißt, sie enthalten keine Information darüber, welche Variable eine andere vorhersagt - beide Variablen sind gleichberechtigt. Korrelationen (und Regressionen, s. nächste Woche) liefern *keine* Hinweise auf Kausalitäten. Sie sagen beide etwas über den (linearen) Zusammenhang zweier Variablen aus.
+Bei einer positiven Korrelation gilt „je mehr Variable x... desto mehr Variable y" bzw. umgekehrt, bei einer negativen Korrelation „je mehr Variable x... desto weniger Variable y" bzw. umgekehrt. Korrelationen sind immer ungerichtet, das heißt, sie enthalten keine Information darüber, welche Variable eine andere vorhersagt - beide Variablen sind gleichberechtigt. Korrelationen (und Regressionen, die wir später [in einem Tutorial](/post/regression) kennen lernen werden) liefern *keine* Hinweise auf Kausalitäten. Sie sagen beide etwas über den (linearen) Zusammenhang zweier Variablen aus.
 
 In R können wir uns auch eine *Korrelationsmatrix* ausgeben lassen. Dies geschieht äquivalent zu der Kovarianzmatrix mit dem Datensatz als Argument in der `cor()` Funktion. In der Diagonale stehen die Korrelationen der Variable mit sich selbst - also 1 - und in den restlichen Feldern die Korrelationen der Variablen untereinander.
 
@@ -323,26 +323,29 @@ Nachdem der Korrelationskoeffizient berechnet wurde, kann dieser noch auf Signif
 * *H1*: $\rho \neq 0$ $\rightarrow$  es gibt einen Zusammenhang zwischen Verträglichkeit und Gewissenhaftigkeit
 
 ```{r}
-cor.test(fb22$vertr, fb22$gewis, 
+cor <- cor.test(fb22$vertr, fb22$gewis, 
          alternative = "two.sided", 
          method = "spearman",       #Da Voraussetzungen für Pearson verletzt
          use = "complete")
 ```
 
-$p > \alpha$ $\rightarrow$ H1. Die Korrelation ist mit einer Irrtumswahrscheinlichkeit von 5% signifikant von 0 verschieden. 
-Anmerkung: Bei der Rangkorrelation kann der exakte p-Wert nicht berechnet werden. Wenn die Voraussetzungen für die Pearson-Korrelation erfüllt wären, würde das Ganze so aussehen:
+Anmerkung: Bei der Rangkorrelation kann der exakte p-Wert nicht berechnet werden, da gebundene Ränge vorliegen. Das Ergebnis ist allerdings sehr eindeutig: $p > \alpha$ $\rightarrow$ H1. Die Korrelation ist mit einer Irrtumswahrscheinlichkeit von 5% signifikant von 0 verschieden. Daraus würde sich die folgende Interpretation ergeben:
 
+**Ergebnisinterpretation:**
+Es wurde untersucht, ob Verträglichkeit und Gewissenhaftigkeit miteinander zusammenhängen. Der spearman-Korrelationskoeffizient beträgt `r round(cor$estimate, digits = 2)` und ist statistisch signifikant (_p_ = `r round(cor$p.value, digits = 3)`). Folglich wird die Nullhypothese hier verworfen: Verträglichkeit und Gewissenhaftigkeit weisen einen signifikanten Zusammenhang auf.
+
+**Modifikation**
+Wir haben in der Funktion `cor.test()` als Argument `method = "spearman"` eingegeben, da die Voraussetzungen für die Pearson-Korrelation nicht erfüllt waren. Wenn dies der Fall gewesen wäre, müsste man stattdessen `method = "pearson"` angeben:
 
 ```{r}
-cor <- cor.test(fb22$vertr, fb22$gewis, 
+cor.test(fb22$vertr, fb22$gewis, 
          alternative = "two.sided", 
          method = "pearson",       
          use = "complete")
-cor
+
 ```
 
-**Ergebnisinterpretation:**
-Es wurde untersucht, ob Verträglichkeit und Gewissenhaftigkeit miteinander zusammenhängen. Der Pearson-Korrelationskoeffizient beträgt `r round(cor$estimate, digits = 2)` und ist statistisch signifikant (_t_(`r cor$parameter`) = `r round(cor$statistic, digits = 2)`, _p_ = `r round(cor$p.value, digits = 3)`). Folglich wird die Nullhypothese hier verworfen: Verträglichkeit und Lebenszufriedenheit weisen einen signifikanten Zusammenhang auf.
+
 
 ***
 
