@@ -46,7 +46,7 @@ $H_1$: Die durchschnittliche Gewissenhaftigkeit der Frauen, die Psychologie stud
 
 $H_1$: $\mu_0$ $<$ $\mu_1$
 
-Wir testen zuerst ob unsere Variable `Geschlecht` bereits als Faktor vorliegt. Wenn nicht wandeln wir sie in einen Faktor um.
+Wir testen zuerst ob unsere Variable `Geschlecht` bereits als Faktor vorliegt. Wenn nicht wandeln wir sie in einen Faktor um. 
 
 ```{r}
 load(url('https://pandar.netlify.app/post/fb22.rda'))
@@ -250,12 +250,53 @@ chisq.test(tab, correct = F)
 
 </details>
 
+## Aufgabe 4
+
+Weichen Psychologie-Studierende, die einen Nebenjob haben, in ihrem Intellekt (`intel`) von Psychologie-Studierenden, die keinen Nebenjob haben, ab.
+
+* Führen Sie nach Voraussetzungsprüfung einen geeigneten Test durch.
+
+<details><summary>Lösung</summary>
+Wir beginnen die Voraussetzungen des t-Tests für unabhängige Stichproben zu überprüfen. Die Voraussetzungen der Intervallskaliertheit der unabhängigen Variable und die Unabhängigkeit der einzelnen Messwerte ist per Untersuchungsdesign erfüllt. Wir wollen nun also die Normalverteilung des Merkmals in der Grundgesamtheit der Gruppen überprüfen.
+
+
+```{r}
+#Wir überprüfen erst wieder, ob die Variable Nebenjob als Faktor vorliegt
+is.factor(fb22$job)
+
+library(car)
+qqPlot(fb22$intel[fb22$job == "nein"])
+qqPlot(fb22$intel[fb22$job == "ja"])
+shapiro.test(fb22$intel[fb22$job == "nein"])
+shapiro.test(fb22$intel[fb22$job == "ja"])
+```
+Die Normalverteilungsannahme ist nicht erfüllt. Wir können also keinen t-Test durchführen. Wir überprüfen nun die Voraussetzungen des Wilcoxon-Tests.
+Dafür überprüfen wir optisch, ob die Messwerte der beiden Gruppen ungefähr der selben Verteilung folgen
+
+```{r}
+hist(fb22$intel[fb22$job == "ja"])
+hist(fb22$intel[fb22$job == "nein"])
+```
+Dies kann angenommen werden. Zuletzt überprüfen wir noch die Gleichheit der Streuung in beiden Gruppen mittels Levene-Test.
+
+```{r}
+leveneTest(fb22$intel ~ fb22$job)
+```
+
+Wir können von der Varianzhomogenität ausgehen und somit einen Wilcoxon-Test durchführen.
+
+```{r}
+wilcox.test(fb22$lz ~ fb22$ort)
+```
+Das Ergebnis des zweiseitigen Wilcoxon-Tests ist nicht signifikant (*W* = `r wilcox.test(fb22$lz ~ fb22$ort)$statistic `, *p* = `r round(wilcox.test(fb22$lz ~ fb22$ort)$p.value, 3)` ). Die Nullhypothese konnte nicht verworfen werden und wird beibehalten. Wir gehen also davon aus, dass sich Psychologie-Studierende, die einen Nebenjob haben und Psychologie-Studierende, die keinen Nebenjob haben, sich nicht in ihrem Intellekt unterscheiden. 
+
+</details>
 
 ---
 
 # Tests für abhängige Stichproben
 
-## Aufgabe 4
+## Aufgabe 5
 
 Unterscheidet sich im Durchschnitt die Angabe von Psychologiestudierenden zu ihrer Nerdiness (`nerd`) und ihrem Intellekt (`intel`)?
 
@@ -309,7 +350,7 @@ Der Effekt ist mit `r round(cohen.d(fb22$nerd, fb22$intel, paired = T, within = 
 
 # Korrelation
 
-## Aufgabe 5
+## Aufgabe 6
 
 Hängt die Gewissenhaftigkeit (`gewis`) positiv mit der Anzahl an geschriebenen Wörtern zusammen, die als Begründung (`grund`) für die Wahl des Psychologiestudiums angegeben wurde? Überprüfen Sie die Voraussetzungen für das Zusammenhangsmaß.
 
@@ -356,7 +397,7 @@ Es besteht kein positiver Zusammenhang zwischen Gewissenhaftigkeit und der Anzah
 
 # Regression
 
-## Aufgabe 6
+## Aufgabe 7
 
 Lässt sich Prokrastination durch Gewissenhaftigkeit (`gewis`) vorsagen? 
 (Falls noch nicht geschehen, berechnen sie den Skalenwert der Prokrastination)
