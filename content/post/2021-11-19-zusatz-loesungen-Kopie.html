@@ -352,8 +352,8 @@ cohen.d(fb22$nerd, fb22$intel, paired = T, within = F)</code></pre>
 <h1>Korrelation</h1>
 <div id="aufgabe-6" class="section level2">
 <h2>Aufgabe 6</h2>
-<p>Hängt die Gewissenhaftigkeit (<code>gewis</code>) positiv mit der Anzahl an geschriebenen Wörtern zusammen, die als Begründung (<code>grund</code>) für die Wahl des Psychologiestudiums angegeben wurde? Überprüfen Sie die Voraussetzungen für das Zusammenhangsmaß.</p>
-<p><em>Tipp:</em> Mit folgendem Befehl lassen sich die Anzahl an Wörter einer Eingabe berechnen:</p>
+<p>Hängt die Gewissenhaftigkeit (<code>gewis</code>) positiv mit der Anzahl an geschriebenen Wörtern zusammen, die als Begründung (<code>grund</code>) für die Wahl des Psychologiestudiums angegeben wurde? Überprüfen Sie die Voraussetzungen für das gewählte Zusammenhangsmaß.</p>
+<p><em>Tipp:</em> Mit folgendem Befehl lässt sich die Anzahl an Wörter einer Eingabe berechnen:</p>
 <pre class="r"><code>library(stringr) #falls noch nicht installiert: install.packages(&quot;stringr&quot;)
 str_count(&quot;Wie viele Wörter hat dieser Satz?&quot;, &quot;\\w+&quot;)</code></pre>
 <pre><code>## [1] 6</code></pre>
@@ -435,9 +435,10 @@ plot(fm)</code></pre>
 ## Coefficients:
 ## (Intercept)        gewis  
 ##      4.0282      -0.3922</code></pre>
+Die Regressionsgleichung lautet also <span class="math inline">\(y_i\)</span> = 4.028 - 0.392*<span class="math inline">\(x_i\)</span> + <span class="math inline">\(e_i\)</span>.
 </details>
 <ul>
-<li>Prüfen Sie nun die Signifikanz der Koeffizienten mit einem 99% Konfidenzintervall.</li>
+<li>Prüfen Sie nun die Signifikanz der Koeffizienten mit einem 99%-Konfidenzintervall.</li>
 </ul>
 <details>
 <summary>
@@ -494,7 +495,66 @@ Lösung
 predict(fm, newdata = data.frame(gewis = 3.2))</code></pre>
 <pre><code>##        1 
 ## 2.773317</code></pre>
+Das Modell sagt einen Prokrastinationswert von 2.77 voraus.
 </details>
+<hr />
+</div>
+</div>
+<div id="simulation-und-poweranalyse" class="section level1">
+<h1>Simulation und Poweranalyse</h1>
+<div id="aufgabe-8" class="section level2">
+<h2>Aufgabe 8</h2>
+<p>In Aufgabe 5 haben wir herausgefunden, dass sich die Werte von Nerdiness und Intellekt von Psychologie-Studierenden unterscheiden. Die gefundene Effektgröße betrug d = -0.56. Wir wollen nun eine Poweranalyse durchführen, indem wir die Studie 10^4 mal wiederholen.
+Nutzen Sie den Seed 4321 (<code>set.seed(4321)</code>).</p>
+<ul>
+<li>Führen Sie eine Simulation durch, um die empirische Power des t-Tests zu bestimmen.</li>
+</ul>
+<details>
+<summary>
+Lösung
+</summary>
+<pre class="r"><code>d &lt;- -0.56 #Effektstärke
+N &lt;- 159 #Anzahl der Teilnehmenden von fb22
+set.seed(4321)
+tH1 &lt;- replicate(n = 10^4, expr = {X &lt;- rnorm(159) 
+                                   Y &lt;- rnorm(159) + d #Normalverteilte Stichproben mit Mittelwertsunterschied von d Standardabweichungen
+                                   ttestH1 &lt;- t.test(X, Y, var.equal = TRUE, paired = T) #Paired = T, da es sich um einen t-Test für abhängige Stichproben handelt
+                                   ttestH1$p.value})
+mean(tH1 &lt; .05 )</code></pre>
+<pre><code>## [1] 0.9989</code></pre>
+Die Power des Tests beträgt 99.89%.
+</details>
+<ul>
+<li>Wie hoch ist die Wahrscheinlichkeit eines <span class="math inline">\(\beta\)</span>-Fehlers?</li>
+</ul>
+<details>
+<summary>
+Lösung
+</summary>
+<pre class="r"><code>1 - mean(tH1 &lt; .05 )</code></pre>
+<pre><code>## [1] 0.0011</code></pre>
+<p>Die Wahrscheinlichkeit eines <span class="math inline">\(\beta\)</span>-Fehlers beträgt 0.11%.</p>
+</details>
+<ul>
+<li>Angenommen wir wollen das <span class="math inline">\(\alpha\)</span>-Niveau verändern. Wie würde sich das auf die Power des Tests auswirken? Simulieren sie diesmal den empirischen t-Wert und erstellen Sie einen Powerplot für <span class="math inline">\(\alpha\)</span> = 0.001, <span class="math inline">\(\alpha\)</span> = 0.01, <span class="math inline">\(\alpha\)</span> = 0.025, <span class="math inline">\(\alpha\)</span> = 0.05, <span class="math inline">\(\alpha\)</span> = 0.1.</li>
+</ul>
+<details>
+<summary>
+Lösung
+</summary>
+<pre class="r"><code>set.seed(4321)
+tH1 &lt;- replicate(n = 10^4, expr = {X &lt;- rnorm(159) 
+                                   Y &lt;- rnorm(159) + d 
+                                   ttestH1 &lt;- t.test(X, Y, var.equal = TRUE, paired = T)
+                                   ttestH1$statistic})
+power &lt;- c(mean(abs(tH1) &gt; qt(p = 1- 0.001/2, df = N)), mean(abs(tH1) &gt; qt(p = 1- 0.01/2, df = N)), mean(abs(tH1) &gt; qt(p = 1- 0.025/2, df = N)), mean(abs(tH1) &gt; qt(p = 1- 0.05/2, df = N)), mean(abs(tH1) &gt; qt(p = 1- 0.1/2, df = N)))
+
+x &lt;- c(.001, 0.01, 0.025, 0.05, 0.1)
+plot(x = x, y = power, type = &quot;b&quot;, main = &quot;Power vs. Alpha&quot;)</code></pre>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-40-1.png" width="672" /></p>
+<p>Wir sehen das je geringer das <span class="math inline">\(\alpha\)</span>-Niveau ist, desto höher ist unsere Power. Mit unserer Stichprobengröße von n = 159 haben wir selbst bei einem hypothetischen <span class="math inline">\(\alpha\)</span>-Niveau von 0.1% noch eine Power von knapp 95%.</p>
+</details>
+<hr />
 </div>
 <div id="alt" class="section level2">
 <h2>Alt:</h2>
@@ -680,7 +740,7 @@ data[13, ] &lt;- c(&quot;weiblich&quot;, 20, &quot;Berlin&quot;, 1, 5, 1, 5, 1, 
 <p>Hier sollte es am einfachsten sein, die neuen Personen manuell an den Datensatz anzufügen. Dabei starten wir natürlich mit der nächsten Zeile nach der vorherigen Anzahl. In diesem Fall hatten wir schon 10 Personen erhoben, starten also mit 11.</p>
 </details>
 </div>
-<div id="aufgabe-8" class="section level2">
+<div id="aufgabe-8-1" class="section level2">
 <h2>Aufgabe 8</h2>
 <p>Schauen Sie sich die Struktur Ihres Datensatzes an. Was fällt Ihnen auf? Passen Sie den Datensatz ggf. wieder an seine ursprüngliche Struktur an.</p>
 <details>
@@ -769,7 +829,7 @@ Lösung
 Lösung
 </summary>
 <pre class="r"><code>pie(table(data$geschlecht))</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-58-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-61-1.png" width="672" /></p>
 <pre class="r"><code>prop.table(table(data$geschlecht))</code></pre>
 <pre><code>## 
 ##   weiblich   männlich     divers 
@@ -811,7 +871,7 @@ Lösung
 <pre><code>## 25% 75% 
 ##   3   4</code></pre>
 <pre class="r"><code>boxplot(data$lz3)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-61-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-64-1.png" width="672" /></p>
 <pre class="r"><code>quantile(data$lz3, .75) - quantile(data$lz3, .25)</code></pre>
 <pre><code>## 75% 
 ##   1</code></pre>
@@ -875,9 +935,9 @@ colours2 &lt;- c(&quot;#B7C5D5&quot;, &quot;#D6EDEC&quot;, &quot;#E7E8ED&quot;)
 table_lerntyp &lt;- table(fb22$lerntyp)
 
 barplot(table_lerntyp, main = &quot;Lerntypen Jahrgang 2022&quot;, ylab = &quot;Anzahl Studierende&quot;, col = colours)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-65-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-68-1.png" width="672" /></p>
 <pre class="r"><code>barplot(table_lerntyp, main = &quot;Lerntypen Jahrgang 2022&quot;, ylab = &quot;Anzahl Studierende&quot;, col = colours2)</code></pre>
-<img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-65-2.png" width="672" />
+<img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-68-2.png" width="672" />
 </details>
 </div>
 <div id="aufgabe-18" class="section level2">
@@ -925,9 +985,9 @@ Lösung
 <li>Die mittleren 50% der Angaben in Variable <code>prok4</code> reicht vom Wert 2 bis zum Wert 3, bei der Variable <code>prok10</code> reicht er von 2 bis 4.</li>
 </ul>
 <pre class="r"><code>boxplot(fb22$prok4)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-68-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-71-1.png" width="672" /></p>
 <pre class="r"><code>boxplot(fb22$prok10)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-68-2.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-71-2.png" width="672" /></p>
 </details>
 </div>
 <div id="aufgabe-20" class="section level2">
@@ -989,15 +1049,15 @@ Lösung
 Lösung
 </summary>
 <pre class="r"><code>hist(fb22$vertr)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-72-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-75-1.png" width="672" /></p>
 <p>Dieses Histogramm soll erstmal zum Vergleich dienen. Wir sehen die ursprünglichen Skalenwerte.</p>
 <pre class="r"><code>fb22$vertr_z &lt;- scale(fb22$vertr, scale = F)
 hist(fb22$vertr_z)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-73-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-76-1.png" width="672" /></p>
 <p>Durch die Zentrierung verändert sich die Form erstmal nicht. Der Mittelwert der Werte wird auf 0 gesetzt. Optisch äußert sich das dadurch, dass die Werte auf der x-Achse nun andere sind.</p>
 <pre class="r"><code>fb22$vertr_st &lt;- scale(fb22$vertr, scale = T)
 hist(fb22$vertr_st)</code></pre>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-74-1.png" width="672" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-77-1.png" width="672" /></p>
 <p>Die Standardisierung setzt die Standardabweichung auf 1. Aufgrund der neuen Wertestruktur wird natürlich auch die Kategorienanzahl geändert.</p>
 </details>
 <div id="aufgabe-23" class="section level2">
@@ -1029,6 +1089,6 @@ Personen, die gerne in Gruppen lernen, weisen einen Mittelwert von 4.125 auf. Si
 <div id="abschluss" class="section level2">
 <h2>Abschluss</h2>
 <p>Hurrah, Sie haben alle Aufgaben gerechnet. Hier müssen Sie nichts selbst berechnen. Zur Belohnung gibt es noch einen Comic für zukünftige Skalierungsmöglichkeiten.</p>
-<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-78-1.png" width="672" style="display: block; margin: auto;" /></p>
+<p><img src="/post/2021-11-19-zusatz-loesungen-Kopie_files/figure-html/unnamed-chunk-81-1.png" width="672" style="display: block; margin: auto;" /></p>
 </div>
 </div>

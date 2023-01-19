@@ -352,9 +352,9 @@ Der Effekt ist mit `r round(cohen.d(fb22$nerd, fb22$intel, paired = T, within = 
 
 ## Aufgabe 6
 
-Hängt die Gewissenhaftigkeit (`gewis`) positiv mit der Anzahl an geschriebenen Wörtern zusammen, die als Begründung (`grund`) für die Wahl des Psychologiestudiums angegeben wurde? Überprüfen Sie die Voraussetzungen für das Zusammenhangsmaß.
+Hängt die Gewissenhaftigkeit (`gewis`) positiv mit der Anzahl an geschriebenen Wörtern zusammen, die als Begründung (`grund`) für die Wahl des Psychologiestudiums angegeben wurde? Überprüfen Sie die Voraussetzungen für das gewählte Zusammenhangsmaß.
 
-*Tipp:* Mit folgendem Befehl lassen sich die Anzahl an Wörter einer Eingabe berechnen:
+*Tipp:* Mit folgendem Befehl lässt sich die Anzahl an Wörter einer Eingabe berechnen:
 
 
 ```{r}
@@ -445,11 +445,11 @@ Der qq-Plot oben rechts deutet auf Normalverteilung hin. Die rote Anpassungslini
 ```{r}
 fm
 ```
-
+Die Regressionsgleichung lautet also $y_i$ = `r round(coef(fm)[1],3)` - `r abs(round(coef(fm)[2],3))`*$x_i$ + $e_i$. 
 </details>
 
 
-* Prüfen Sie nun die Signifikanz der Koeffizienten mit einem 99% Konfidenzintervall.
+* Prüfen Sie nun die Signifikanz der Koeffizienten mit einem 99%-Konfidenzintervall.
 
 <details><summary>Lösung</summary>
 
@@ -485,8 +485,67 @@ fm$coefficients[1] + 3.2*fm$coefficients[2]
 #Alternativ:
 predict(fm, newdata = data.frame(gewis = 3.2))
 ```
+Das Modell sagt einen Prokrastinationswert von `r round(predict(fm, newdata = data.frame(gewis = 3.2)),2)` voraus.
+</details>
+
+---
+
+# Simulation und Poweranalyse
+
+## Aufgabe 8
+
+In Aufgabe 5 haben wir herausgefunden, dass sich die Werte von Nerdiness und Intellekt von Psychologie-Studierenden unterscheiden. Die gefundene Effektgröße betrug d = -0.56. Wir wollen nun eine Poweranalyse durchführen, indem wir die Studie 10^4 mal wiederholen.
+Nutzen Sie den Seed 4321 (`set.seed(4321)`).
+
+* Führen Sie eine Simulation durch, um die empirische Power des t-Tests zu bestimmen.
+
+<details><summary>Lösung</summary>
+```{r}
+d <- -0.56 #Effektstärke
+N <- 159 #Anzahl der Teilnehmenden von fb22
+set.seed(4321)
+tH1 <- replicate(n = 10^4, expr = {X <- rnorm(159) 
+                                   Y <- rnorm(159) + d #Normalverteilte Stichproben mit Mittelwertsunterschied von d Standardabweichungen
+                                   ttestH1 <- t.test(X, Y, var.equal = TRUE, paired = T) #Paired = T, da es sich um einen t-Test für abhängige Stichproben handelt
+                                   ttestH1$p.value})
+mean(tH1 < .05 )
+```
+
+Die Power des Tests beträgt `r mean(tH1 < .05 )*100`%.
+</details>
+
+* Wie hoch ist die Wahrscheinlichkeit eines $\beta$-Fehlers?
+
+<details><summary>Lösung</summary>
+```{r}
+1 - mean(tH1 < .05 )
+```
+
+Die Wahrscheinlichkeit eines $\beta$-Fehlers beträgt `r (1 - mean(tH1 < .05))*100`%.
 
 </details>
+
+
+* Angenommen wir wollen das $\alpha$-Niveau verändern. Wie würde sich das auf die Power des Tests auswirken? Simulieren sie diesmal den empirischen t-Wert und erstellen Sie einen Powerplot für $\alpha$ = 0.001, $\alpha$ = 0.01, $\alpha$ = 0.025, $\alpha$ = 0.05, $\alpha$ = 0.1.
+
+<details><summary>Lösung</summary>
+```{r}
+set.seed(4321)
+tH1 <- replicate(n = 10^4, expr = {X <- rnorm(159) 
+                                   Y <- rnorm(159) + d 
+                                   ttestH1 <- t.test(X, Y, var.equal = TRUE, paired = T)
+                                   ttestH1$statistic})
+power <- c(mean(abs(tH1) > qt(p = 1- 0.001/2, df = N)), mean(abs(tH1) > qt(p = 1- 0.01/2, df = N)), mean(abs(tH1) > qt(p = 1- 0.025/2, df = N)), mean(abs(tH1) > qt(p = 1- 0.05/2, df = N)), mean(abs(tH1) > qt(p = 1- 0.1/2, df = N)))
+
+x <- c(.001, 0.01, 0.025, 0.05, 0.1)
+plot(x = x, y = power, type = "b", main = "Power vs. Alpha")
+```
+
+Wir sehen das je geringer das $\alpha$-Niveau ist, desto höher ist unsere Power. Mit unserer Stichprobengröße von n = 159 haben wir selbst bei einem hypothetischen $\alpha$-Niveau von 0.1% noch eine Power von knapp 95%.  
+
+</details>
+
+---
 
 
 ## Alt:
