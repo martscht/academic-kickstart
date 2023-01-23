@@ -11,32 +11,82 @@ tags:
 subtitle: ''
 summary: ''
 authors: [winkler, neubauer]
-lastmod: '2021-12-13T13:34:32+01:00'
+lastmod: '2023-01-23T13:34:32+01:00'
 featured: no
 header:
   image: "/header/BSc2_Regression.jpg"
   caption: "[Courtesy of pxhere](https://pxhere.com/de/photo/411588)"
 projects: []
-expiryDate: '2022-09-15'
-publishDate: '2022-01-28'
+expiryDate: '2023-09-15'
+publishDate: '2023-01-27'
 ---
 
-<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <div id="vorbereitung" class="section level2">
 <h2>Vorbereitung</h2>
-<p>Laden Sie die Daten aus <a href="/post/fb21.rda"><i class="fas fa-download"></i> <code>fb21.rda</code></a>.</p>
-<details>
-<summary>
-Lösung
-</summary>
-<pre class="r"><code>load(url(&#39;https://pandar.netlify.app/post/fb21.rda&#39;))</code></pre>
-</details>
+<p>Laden Sie zunächst den Datensatz <code>fb22</code> von der pandar-Website. Alternativ können Sie die fertige R-Daten-Datei <a href="/post/fb22.rda"><i class="fas fa-download"></i> hier herunterladen</a>. Beachten Sie in jedem Fall, dass die <a href="/post/regression/#prep">Ergänzungen im Datensatz</a> vorausgesetzt werden. Die Bedeutung der einzelnen Variablen und ihre Antwortkategorien können Sie dem Dokument <a href="/post/variablen.pdf">Variablenübersicht.docx</a> entnehmen.</p>
+<p>Prüfen Sie zur Sicherheit, ob alles funktioniert hat:</p>
+<pre class="r"><code>dim(fb22)</code></pre>
+<pre><code>## [1] 159  47</code></pre>
+<pre class="r"><code>str(fb22)</code></pre>
+<pre><code>## &#39;data.frame&#39;:    159 obs. of  47 variables:
+##  $ prok1        : int  1 4 3 1 2 2 2 3 2 4 ...
+##  $ prok2        : int  3 3 3 3 1 4 2 1 3 3 ...
+##  $ prok3        : int  4 2 2 4 4 2 3 2 2 2 ...
+##  $ prok4        : int  2 4 4 NA 3 2 2 3 3 4 ...
+##  $ prok5        : int  3 1 2 4 2 3 3 3 4 2 ...
+##  $ prok6        : int  4 4 4 3 1 2 2 3 2 4 ...
+##  $ prok7        : int  3 2 2 4 2 3 3 3 3 3 ...
+##  $ prok8        : int  3 4 3 4 4 2 3 3 4 2 ...
+##  $ prok9        : int  1 4 4 2 1 1 2 2 3 4 ...
+##  $ prok10       : int  3 4 3 2 1 3 1 4 1 4 ...
+##  $ nr1          : int  1 1 4 2 1 1 1 5 2 1 ...
+##  $ nr2          : int  3 2 5 4 5 4 3 5 4 4 ...
+##  $ nr3          : int  5 1 5 4 1 3 3 5 5 4 ...
+##  $ nr4          : int  4 2 5 4 2 4 4 5 3 5 ...
+##  $ nr5          : int  4 2 5 4 2 3 4 5 4 4 ...
+##  $ nr6          : int  3 1 5 3 2 1 1 5 2 4 ...
+##  $ lz           : num  5.4 6 3 6 3.2 5.8 4.2 NA 5.4 4.6 ...
+##  $ extra        : num  2.75 3.75 4.25 4 2.5 3 2.75 3.5 4.75 5 ...
+##  $ vertr        : num  3.75 4.75 4.5 4.75 4.75 3 3.25 5 4.5 4.5 ...
+##  $ gewis        : num  4.25 2.75 3.75 4.25 5 4.25 4 4.75 4.5 3 ...
+##  $ neuro        : num  4.25 5 4 2.25 3.75 3.25 3 3.5 4 4.5 ...
+##  $ intel        : num  4.75 4 5 4.75 3.5 3 4 4 5 4.25 ...
+##  $ nerd         : num  2.67 4 4.33 3.17 4.17 ...
+##  $ grund        : chr  &quot;Interesse&quot; &quot;Allgemeines Interesse schon seit der Kindheit&quot; &quot;menschliche Kognition wichtig und rätselhaft; Interesse für Psychoanalyse; Schnittstelle zur Linguistik&quot; &quot;Psychoanalyse, Hilfsbereitschaft, Lebenserfahrung&quot; ...
+##  $ fach         : Factor w/ 5 levels &quot;Allgemeine&quot;,&quot;Biologische&quot;,..: 5 4 1 4 2 NA 1 4 3 4 ...
+##  $ ziel         : Factor w/ 4 levels &quot;Wirtschaft&quot;,&quot;Therapie&quot;,..: 2 2 3 2 2 NA 1 2 2 2 ...
+##  $ lerntyp      : num  1 1 1 1 1 NA 3 2 3 1 ...
+##  $ geschl       : int  1 2 2 2 1 NA 2 1 1 1 ...
+##  $ job          : int  1 2 1 1 1 NA 2 1 1 1 ...
+##  $ ort          : int  1 1 1 2 2 NA 2 1 1 1 ...
+##  $ ort12        : int  1 1 1 1 1 NA 1 1 1 1 ...
+##  $ wohnen       : Factor w/ 4 levels &quot;WG&quot;,&quot;bei Eltern&quot;,..: 2 2 3 4 2 NA 2 1 1 3 ...
+##  $ uni1         : num  0 0 0 0 0 0 0 1 1 1 ...
+##  $ uni2         : num  1 1 0 1 1 0 0 1 1 1 ...
+##  $ uni3         : num  0 0 0 0 0 0 0 1 1 1 ...
+##  $ uni4         : num  0 0 1 0 0 0 0 0 0 0 ...
+##  $ geschl_faktor: Factor w/ 3 levels &quot;weiblich&quot;,&quot;männlich&quot;,..: 1 2 2 2 1 NA 2 1 1 1 ...
+##  $ prok2_r      : num  2 2 2 2 4 1 3 4 2 2 ...
+##  $ prok3_r      : num  1 3 3 1 1 3 2 3 3 3 ...
+##  $ prok5_r      : num  2 4 3 1 3 2 2 2 1 3 ...
+##  $ prok7_r      : num  2 3 3 1 3 2 2 2 2 2 ...
+##  $ prok8_r      : num  2 1 2 1 1 3 2 2 1 3 ...
+##  $ prok_ges     : num  2 3.3 3.1 NA 2 2.1 2 2.8 2 3.3 ...
+##  $ nr_ges       : num  3.33 1.5 4.83 3.5 2.17 ...
+##  $ nr_ges_z     : num [1:159, 1] 0.0964 -2.1534 1.9372 0.3009 -1.3353 ...
+##   ..- attr(*, &quot;scaled:center&quot;)= num 3.25
+##   ..- attr(*, &quot;scaled:scale&quot;)= num 0.815
+##  $ nerd_std     : num [1:159, 1] -0.7059 1.3395 1.8509 0.0611 1.5952 ...
+##   ..- attr(*, &quot;scaled:center&quot;)= num 3.13
+##   ..- attr(*, &quot;scaled:scale&quot;)= num 0.652
+##  $ neuro_std    : num [1:159, 1] 0.869 1.912 0.521 -1.914 0.173 ...
+##   ..- attr(*, &quot;scaled:center&quot;)= num 3.63
+##   ..- attr(*, &quot;scaled:scale&quot;)= num 0.719</code></pre>
+<p>Der Datensatz besteht aus 159 Zeilen (Beobachtungen) und 47 Spalten (Variablen). Falls Sie bereits eigene Variablen erstellt haben, kann die Spaltenzahl natürlich abweichen.</p>
 <hr />
 </div>
-<div id="regression" class="section level1">
-<h1>Regression</h1>
 <div id="aufgabe-1" class="section level2">
 <h2>Aufgabe 1</h2>
 <p>Welche der fünf Persönlichkeitsdimensionen Extraversion (<code>extra</code>), Verträglichkeit (<code>vertr</code>), Gewissenhaftigkeit (<code>gewis</code>), Neurotizsimus (<code>neuro</code>) und Intellekt (<code>intel</code>) zeigt den höchsten linearen Zusammenhang mit der Lebenszufriedenheit (<code>lz</code>)?</p>
@@ -48,20 +98,20 @@ Lösung
 Lösung
 </summary>
 <p><strong><code>extra</code>:</strong></p>
-<pre class="r"><code>plot(fb21$extra, fb21$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)</code></pre>
-<p><img src="/post/2021-11-22-regression-loesungen_files/figure-html/unnamed-chunk-2-1.png" width="672" /></p>
-<p><strong><code>vertr</code>:</strong></p>
-<pre class="r"><code>plot(fb21$vertr, fb21$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)</code></pre>
+<pre class="r"><code>plot(fb22$extra, fb22$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)</code></pre>
 <p><img src="/post/2021-11-22-regression-loesungen_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
-<p><strong><code>gewis</code>:</strong></p>
-<pre class="r"><code>plot(fb21$gewis, fb21$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)</code></pre>
+<p><strong><code>vertr</code>:</strong></p>
+<pre class="r"><code>plot(fb22$vertr, fb22$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)</code></pre>
 <p><img src="/post/2021-11-22-regression-loesungen_files/figure-html/unnamed-chunk-4-1.png" width="672" /></p>
-<p><strong><code>neuro</code>:</strong></p>
-<pre class="r"><code>plot(fb21$neuro, fb21$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)</code></pre>
+<p><strong><code>gewis</code>:</strong></p>
+<pre class="r"><code>plot(fb22$gewis, fb22$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)</code></pre>
 <p><img src="/post/2021-11-22-regression-loesungen_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
+<p><strong><code>neuro</code>:</strong></p>
+<pre class="r"><code>plot(fb22$neuro, fb22$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)</code></pre>
+<p><img src="/post/2021-11-22-regression-loesungen_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
 <p><strong><code>intel</code>:</strong></p>
-<pre class="r"><code>plot(fb21$intel, fb21$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)</code></pre>
-<img src="/post/2021-11-22-regression-loesungen_files/figure-html/unnamed-chunk-6-1.png" width="672" />
+<pre class="r"><code>plot(fb22$intel, fb22$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)</code></pre>
+<img src="/post/2021-11-22-regression-loesungen_files/figure-html/unnamed-chunk-7-1.png" width="672" />
 </details>
 <p>
 <ul>
@@ -72,120 +122,120 @@ Lösung
 Lösung
 </summary>
 <p><strong><code>extra</code>:</strong></p>
-<pre class="r"><code>fme &lt;- lm(lz ~ extra, fb21)
+<pre class="r"><code>fme &lt;- lm(lz ~ extra, fb22)
 summary(fme)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = lz ~ extra, data = fb21)
+## lm(formula = lz ~ extra, data = fb22)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -3.4484 -0.6175  0.2248  0.7819  2.4277 
+## -3.2680 -0.7009  0.1320  0.8425  2.0096 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   3.8652     0.4785   8.078 9.19e-13 ***
-## extra         0.3381     0.1402   2.412   0.0175 *  
+## (Intercept)   3.6590     0.4128   8.863 1.73e-15 ***
+## extra         0.3105     0.1194   2.599   0.0102 *  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 1.11 on 110 degrees of freedom
-##   (2 Beobachtungen als fehlend gelöscht)
-## Multiple R-squared:  0.05022,    Adjusted R-squared:  0.04158 
-## F-statistic: 5.816 on 1 and 110 DF,  p-value: 0.01754</code></pre>
+## Residual standard error: 1.055 on 155 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.04177,    Adjusted R-squared:  0.03559 
+## F-statistic: 6.757 on 1 and 155 DF,  p-value: 0.01024</code></pre>
 <p><strong><code>vertr</code>:</strong></p>
-<pre class="r"><code>fmv &lt;- lm(lz ~ vertr, fb21)
+<pre class="r"><code>fmv &lt;- lm(lz ~ vertr, fb22)
 summary(fmv)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = lz ~ vertr, data = fb21)
+## lm(formula = lz ~ vertr, data = fb22)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -3.1782 -0.7212  0.0788  0.7717  2.3361 
+## -3.2873 -0.6167  0.1127  0.7774  1.8480 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   4.0350     0.8891   4.538 1.46e-05 ***
-## vertr         0.2287     0.2111   1.083    0.281    
+## (Intercept)   3.6519     0.6136   5.952 1.71e-08 ***
+## vertr         0.2588     0.1487   1.740   0.0838 .  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 1.133 on 110 degrees of freedom
-##   (2 Beobachtungen als fehlend gelöscht)
-## Multiple R-squared:  0.01055,    Adjusted R-squared:  0.001559 
-## F-statistic: 1.173 on 1 and 110 DF,  p-value: 0.2811</code></pre>
+## Residual standard error: 1.067 on 155 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.01917,    Adjusted R-squared:  0.01284 
+## F-statistic: 3.029 on 1 and 155 DF,  p-value: 0.08376</code></pre>
 <p><strong><code>gewis</code>:</strong></p>
-<pre class="r"><code>fmg &lt;- lm(lz ~ gewis, fb21)
+<pre class="r"><code>fmg &lt;- lm(lz ~ gewis, fb22)
 summary(fmg)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = lz ~ gewis, data = fb21)
+## lm(formula = lz ~ gewis, data = fb22)
 ## 
 ## Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -2.7660 -0.5724  0.1784  0.6415  1.9859 
+##      Min       1Q   Median       3Q      Max 
+## -2.90189 -0.57501  0.07874  0.69811  2.25937 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   2.5844     0.6043   4.276 4.06e-05 ***
-## gewis         0.6074     0.1504   4.039 9.98e-05 ***
+## (Intercept)   2.7450     0.4900   5.602 9.42e-08 ***
+## gewis         0.5075     0.1248   4.067 7.57e-05 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 1.062 on 110 degrees of freedom
-##   (2 Beobachtungen als fehlend gelöscht)
-## Multiple R-squared:  0.1291, Adjusted R-squared:  0.1212 
-## F-statistic: 16.31 on 1 and 110 DF,  p-value: 9.979e-05</code></pre>
+## Residual standard error: 1.024 on 155 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.0964, Adjusted R-squared:  0.09058 
+## F-statistic: 16.54 on 1 and 155 DF,  p-value: 7.57e-05</code></pre>
 <p><strong><code>neuro</code>:</strong></p>
-<pre class="r"><code>fmn &lt;- lm(lz ~ neuro, fb21)
+<pre class="r"><code>fmn &lt;- lm(lz ~ neuro, fb22)
 summary(fmn)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = lz ~ neuro, data = fb21)
+## lm(formula = lz ~ neuro, data = fb22)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -3.4594 -0.5610  0.1406  0.7410  1.9406 
+## -3.2277 -0.6419  0.1188  0.7581  1.8795 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   6.3506     0.4793  13.250  &lt; 2e-16 ***
-## neuro        -0.3973     0.1367  -2.905  0.00444 ** 
+## (Intercept)   5.4848     0.4404  12.454   &lt;2e-16 ***
+## neuro        -0.2143     0.1194  -1.794   0.0748 .  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 1.097 on 110 degrees of freedom
-##   (2 Beobachtungen als fehlend gelöscht)
-## Multiple R-squared:  0.07127,    Adjusted R-squared:  0.06283 
-## F-statistic: 8.441 on 1 and 110 DF,  p-value: 0.004435</code></pre>
+## Residual standard error: 1.066 on 155 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.02034,    Adjusted R-squared:  0.01402 
+## F-statistic: 3.219 on 1 and 155 DF,  p-value: 0.07476</code></pre>
 <p><strong><code>intel</code>:</strong></p>
-<pre class="r"><code>fmi &lt;- lm(lz ~ intel, fb21)
+<pre class="r"><code>fmi &lt;- lm(lz ~ intel, fb22)
 summary(fmi)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = lz ~ intel, data = fb21)
+## lm(formula = lz ~ intel, data = fb22)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -3.7870 -0.4941  0.1594  0.7960  2.3059 
+## -3.5318 -0.6023  0.0739  0.7387  2.0797 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   3.3084     0.6037   5.480 2.73e-07 ***
-## intel         0.4619     0.1633   2.829  0.00554 ** 
+## (Intercept)   2.7678     0.4779   5.791 3.77e-08 ***
+## intel         0.5410     0.1312   4.123 6.07e-05 ***
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 1.099 on 110 degrees of freedom
-##   (2 Beobachtungen als fehlend gelöscht)
-## Multiple R-squared:  0.06784,    Adjusted R-squared:  0.05937 
-## F-statistic: 8.006 on 1 and 110 DF,  p-value: 0.005543</code></pre>
-Wenn wir die Koeffizienten der Modelle vergleichen, sehen wir, dass <code>gewis</code> den stärksten linearen Zusammenhang mit <code>lz</code> aufweist (Hinweis: für den Vergleich der Modelle vergleichen wir den Determinationskoeffizienten der fünf Modelle! Dieser ist für das Modell mit dem Prädiktor Gewissenhaftigkeit am höchsten)
+## Residual standard error: 1.023 on 155 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.09885,    Adjusted R-squared:  0.09303 
+## F-statistic:    17 on 1 and 155 DF,  p-value: 6.068e-05</code></pre>
+Wenn wir die Koeffizienten der Modelle vergleichen, sehen wir, dass <code>intel</code> den stärksten linearen Zusammenhang mit <code>lz</code> aufweist (Hinweis: für den Vergleich der Modelle vergleichen wir den Determinationskoeffizienten der fünf Modelle! Dieser ist für das Modell mit dem Prädiktor Intellekt am höchsten)
 </details>
 <p>
 <ul>
-<li>Prüfen Sie die Voraussetzungen und interpretieren Sie den standardisierten Koeffizienten des linearen Zusammenhangs zwischen Gewissenhaftigkeit und Lebenszufriedenheit. Wie verändert sich <code>lz</code>, wenn sich <code>gewis</code> um eine Standardabweichung erhöht?</li>
+<li>Prüfen Sie die Voraussetzungen und interpretieren Sie den standardisierten Koeffizienten des linearen Zusammenhangs zwischen Intellekt und Lebenszufriedenheit. Wie verändert sich <code>lz</code>, wenn sich <code>intel</code> um eine Standardabweichung erhöht?</li>
 </ul>
 <details>
 <summary>
@@ -204,28 +254,28 @@ Lösung
 </ol>
 <p>Die Voraussetzungen 2-4 können erst geprüft werden, nachdem das Modell schon gerechnet wurde, weil sie sich auf die Fehler (Residuen: Differenz aus beobachtetem und vorhergesagtem Wert für y) beziehen!</p>
 <p><strong>zu 1. Linearität: Zusammenhang muss linear sein <span class="math inline">\(\rightarrow\)</span> Grafische Überprüfung (Scatterplot)</strong></p>
-<pre class="r"><code>plot(fb21$gewis, fb21$lz, xlab = &quot;Gewissenhaftigkeit&quot;, ylab = &quot;Lebenszufriedenheit&quot;, 
-     main = &quot;Zusammenhang zwischen Gewissenhaftigkeit und Lebenszufriedenheit&quot;, xlim = c(0, 6), ylim = c(0, 7), pch = 19)
-lines(loess.smooth(fb21$gewis, fb21$lz), col = &#39;blue&#39;)    #beobachteter, lokaler Zusammenhang
-fmg &lt;- lm(lz ~ gewis, fb21)                              #Modell erstellen und ablegen
-abline(fmg, col = &quot;red&quot;)                                  #Modellierter linearer Zusammenhang in zuvor erstellten Plot einzeichnen</code></pre>
-<p><img src="/post/2021-11-22-regression-loesungen_files/figure-html/unnamed-chunk-12-1.png" width="672" /></p>
+<pre class="r"><code>plot(fb22$intel, fb22$lz, xlab = &quot;Intellekt&quot;, ylab = &quot;Lebenszufriedenheit&quot;, 
+     main = &quot;Zusammenhang zwischen Intellekt und Lebenszufriedenheit&quot;, xlim = c(0, 6), ylim = c(0, 7), pch = 19)
+lines(loess.smooth(fb22$intel, fb22$lz), col = &#39;blue&#39;)    #beobachteter, lokaler Zusammenhang
+fmi &lt;- lm(lz ~ intel, fb22)                              #Modell erstellen und ablegen
+abline(fmi, col = &quot;red&quot;)                                  #Modellierter linearer Zusammenhang in zuvor erstellten Plot einzeichnen</code></pre>
+<p><img src="/post/2021-11-22-regression-loesungen_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 <p><strong>zu Voraussetzungen 2-4:</strong></p>
 <pre class="r"><code>par(mfrow = c(2, 2)) #Vier Abbildungen gleichzeitig
-plot(fmg)</code></pre>
-<p><img src="/post/2021-11-22-regression-loesungen_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
+plot(fmi)</code></pre>
+<p><img src="/post/2021-11-22-regression-loesungen_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 <pre class="r"><code>par(mfrow = c(1, 1)) #wieder auf eine Abbildung zurücksetzen</code></pre>
 <p>In diesem Fall ist alles weitestgehend erfüllt.</p>
-<pre class="r"><code>sfmg &lt;- lm(scale(lz) ~ scale(gewis), fb21)
-sfmg</code></pre>
+<pre class="r"><code>sfmi &lt;- lm(scale(lz) ~ scale(intel), fb22)
+sfmi</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = scale(lz) ~ scale(gewis), data = fb21)
+## lm(formula = scale(lz) ~ scale(intel), data = fb22)
 ## 
 ## Coefficients:
-##  (Intercept)  scale(gewis)  
-##   -0.0008185     0.3563170</code></pre>
-Wenn sich die Variable <code>gewis</code> um eine Standardabweichung verändert, verändert sich das Kriterium <code>lz</code> um 0.36 Standardabweichungen.
+##  (Intercept)  scale(intel)  
+##    0.0002271     0.3131344</code></pre>
+Wenn sich die Variable <code>intel</code> um eine Standardabweichung verändert, verändert sich das Kriterium <code>lz</code> um 0.31 Standardabweichungen.
 </details>
 </div>
 </div>
@@ -239,9 +289,9 @@ Wenn sich die Variable <code>gewis</code> um eine Standardabweichung verändert,
 <summary>
 Lösung
 </summary>
-<pre class="r"><code>plot(fb21$neuro, fb21$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)
+<pre class="r"><code>plot(fb22$neuro, fb22$lz, xlim = c(0, 6), ylim = c(0, 7), pch = 19)
 abline(fmn, col = &quot;red&quot;)</code></pre>
-<img src="/post/2021-11-22-regression-loesungen_files/figure-html/unnamed-chunk-15-1.png" width="672" />
+<img src="/post/2021-11-22-regression-loesungen_files/figure-html/unnamed-chunk-16-1.png" width="672" />
 </details>
 <p>
 <ul>
@@ -254,25 +304,25 @@ Lösung
 <pre class="r"><code>summary(fmn)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = lz ~ neuro, data = fb21)
+## lm(formula = lz ~ neuro, data = fb22)
 ## 
 ## Residuals:
 ##     Min      1Q  Median      3Q     Max 
-## -3.4594 -0.5610  0.1406  0.7410  1.9406 
+## -3.2277 -0.6419  0.1188  0.7581  1.8795 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   6.3506     0.4793  13.250  &lt; 2e-16 ***
-## neuro        -0.3973     0.1367  -2.905  0.00444 ** 
+## (Intercept)   5.4848     0.4404  12.454   &lt;2e-16 ***
+## neuro        -0.2143     0.1194  -1.794   0.0748 .  
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 1.097 on 110 degrees of freedom
-##   (2 Beobachtungen als fehlend gelöscht)
-## Multiple R-squared:  0.07127,    Adjusted R-squared:  0.06283 
-## F-statistic: 8.441 on 1 and 110 DF,  p-value: 0.004435</code></pre>
+## Residual standard error: 1.066 on 155 degrees of freedom
+##   (2 observations deleted due to missingness)
+## Multiple R-squared:  0.02034,    Adjusted R-squared:  0.01402 
+## F-statistic: 3.219 on 1 and 155 DF,  p-value: 0.07476</code></pre>
 <ul>
-<li>Das Modell erklärt 7.13% der Varianz in Lebenszufriedenheit durch Neurotizismus.</li>
+<li>Das Modell erklärt 2.03% der Varianz in Lebenszufriedenheit durch Neurotizismus.</li>
 </ul>
 </details>
 <p>
@@ -286,8 +336,6 @@ Lösung
 <pre class="r"><code>new &lt;- data.frame(neuro = c(1.25, 2.75, 3.5, 4.25, 3.75, 2.15))
 predict(fmn, newdata = new)</code></pre>
 <pre><code>##        1        2        3        4        5        6 
-## 5.853970 5.258011 4.960032 4.662052 4.860705 5.496395</code></pre>
+## 5.216925 4.895510 4.734803 4.574096 4.681234 5.024076</code></pre>
 </details>
-<hr />
-</div>
 </div>

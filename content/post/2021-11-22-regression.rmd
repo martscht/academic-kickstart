@@ -9,8 +9,8 @@ tags:
   - Regression
 subtitle: ''
 summary: ''
-authors: [winkler, neubauer]
-lastmod: '2021-12-13T13:13:57+01:00'
+authors: [winkler, neubauer, nehler]
+lastmod: '2023-01-23T13:13:57+01:00'
 featured: no
 header:
   image: "/header/BSc2_Regression.jpg"
@@ -21,6 +21,7 @@ projects: []
 ```{r setup, cache = FALSE, echo = FALSE}
 knitr::opts_chunk$set(error = TRUE)
 ```
+
 
 
 <details><summary>Kernfragen dieser Lehreinheit</summary>
@@ -34,13 +35,55 @@ knitr::opts_chunk$set(error = TRUE)
 
 ***
 
-## Datensatz laden
+## Vorbereitende Schritte {#prep}
 
-Zu Beginn laden wir wie gewohnt den Datensatz (Sie können den Datensatz [hier <i class="fas fa-download"></i> herunterladen](/post/fb21.rda)) und erstellen, falls nötig, Labels und Skalenwerte. 
-Wir laden den Datensatz hier direkt von der Website:
+Zu Beginn laden wir wie gewohnt den Datensatz und verteilen die relevanten Labels. Beachten Sie, dass diese Befehle bereits angewendet wurden. Wenn Sie die veränderten Daten abgespeichert oder noch aktiv haben, sind die folgenden Befehle natürlich nicht nötig.
 
 ```{r}
-load(url('https://pandar.netlify.app/post/fb21.rda'))
+#### Was bisher geschah: ----
+
+# Daten laden
+load(url('https://pandar.netlify.app/post/fb22.rda'))  
+
+# Nominalskalierte Variablen in Faktoren verwandeln
+fb22$geschl_faktor <- factor(fb22$geschl,
+                             levels = 1:3,
+                             labels = c("weiblich", "männlich", "anderes"))
+fb22$fach <- factor(fb22$fach,
+                    levels = 1:5,
+                    labels = c('Allgemeine', 'Biologische', 'Entwicklung', 'Klinische', 'Diag./Meth.'))
+fb22$ziel <- factor(fb22$ziel,
+                        levels = 1:4,
+                        labels = c("Wirtschaft", "Therapie", "Forschung", "Andere"))
+
+fb22$wohnen <- factor(fb22$wohnen, 
+                      levels = 1:4, 
+                      labels = c("WG", "bei Eltern", "alleine", "sonstiges"))
+
+fb22$ort <- factor(fb22$ort, levels=c(1,2), labels=c("FFM", "anderer"))
+
+fb22$job <- factor(fb22$job, levels=c(1,2), labels=c("nein", "ja"))
+# Skalenbildung
+
+fb22$prok2_r <- -1 * (fb22$prok2 - 5)
+fb22$prok3_r <- -1 * (fb22$prok3 - 5)
+fb22$prok5_r <- -1 * (fb22$prok5 - 5)
+fb22$prok7_r <- -1 * (fb22$prok7 - 5)
+fb22$prok8_r <- -1 * (fb22$prok8 - 5)
+
+# Prokrastination
+fb22$prok_ges <- fb22[, c('prok1', 'prok2_r', 'prok3_r',
+                          'prok4', 'prok5_r', 'prok6',
+                          'prok7_r', 'prok8_r', 'prok9', 
+                          'prok10')] |> rowMeans()
+# Naturverbundenheit
+fb22$nr_ges <-  fb22[, c('nr1', 'nr2', 'nr3', 'nr4', 'nr5',  'nr6')] |> rowMeans()
+fb22$nr_ges_z <- scale(fb22$nr_ges) # Standardisiert
+
+# Weitere Standardisierungen
+fb22$nerd_std <- scale(fb22$nerd)
+fb22$neuro_std <- scale(fb22$neuro)
+
 ```
 
 
@@ -51,7 +94,7 @@ load(url('https://pandar.netlify.app/post/fb21.rda'))
 Nachdem wir mit der Korrelation mit der gemeinsamen Betrachtung von zwei Variablen begonnen haben, werden wir jetzt lineare Modelle erstellen, uns Plots - inklusive Regressionsgerade - für Zusammenhänge anzeigen lassen und Determinationskoeffizienten berechnen.
 Hierzu betrachten wir folgende Fragestellung:
 
-* Hat die Extraversion (*extra*) einen Einfluss auf die selbst eingeschätzte "Nerdiness" (*nerd*)?
+* Zeigt die  Extraversion (*extra*) aus dem Selbstbericht einen linearen Zusammenhang mit der selbst eingeschätzten "Nerdiness" (*nerd*)?
 
 ### Voraussetzungen:
 
@@ -62,18 +105,18 @@ Hierzu betrachten wir folgende Fragestellung:
 
 Die Voraussetzungen 2-4 können erst geprüft werden, nachdem das Modell schon gerechnet wurde, weil sie sich auf die Fehler (Residuen: Differenz aus beobachtetem und vorhergesagtem Wert für y) beziehen!
 
-Deshalb erstellen wir zunächst das Regressionsmodell - wir werden weiter unten diesen Befehl - die Funktion `lm()` genauer besprechen, für's erste ist wichtig zu wissen, dass die relevanten Ergebnisse des Regressionsmodell im Objekt `fm` abgespeichert werden.
+Deshalb erstellen wir zunächst das Regressionsmodell - wir werden weiter unten diesen Befehl - die Funktion `lm()` genauer besprechen, für's erste ist wichtig zu wissen, dass die relevanten Ergebnisse des Regressionsmodells im Objekt `fm` abgespeichert werden.
 
 ```{r}
-fm <- lm(nerd ~ extra, fb21)                  #Modell erstellen und ablegen
+fm <- lm(nerd ~ extra, fb22)                  #Modell erstellen und Ergebnisse im Objekt fm ablegen
 ```
 
 **zu 1. Linearität: Zusammenhang muss linear sein $\rightarrow$ Grafische Überprüfung (Scatterplot)**
 
 ```{r, fig = TRUE}
-plot(fb21$extra, fb21$nerd, xlab = "Extraversion", ylab = "Nerdiness", 
+plot(fb22$extra, fb22$nerd, xlab = "Extraversion", ylab = "Nerdiness", 
      main = "Zusammenhang zwischen Extraversion und Nerdiness", xlim = c(0, 6), ylim = c(1, 5), pch = 19)
-lines(loess.smooth(fb21$extra, fb21$nerd), col = 'blue')    #beobachteter, lokaler Zusammenhang
+lines(loess.smooth(fb22$extra, fb22$nerd), col = 'blue')    #beobachteter, lokaler Zusammenhang
 ```
  
  * `pch` verändert die Darstellung der Datenpunkte
@@ -98,14 +141,14 @@ par(mfrow = c(1, 1)) #wieder auf eine Abbildung zurücksetzen
 * *Residuals vs. Fitted*: geeignet um Abweichungen von der Linearität und Verletzungen der Homoskedastizität aufzudecken $\rightarrow$ soll möglichst unsystematisch aussehen, rote Anpassungslinie (y-MW bedingt auf X) verläuft parallel zur x-Achse  
 * *Normal Q-Q*: Zeigt Annäherung der Normalverteilung durch Residuen $\rightarrow$ Punkte sollen auf die Diagonalen liegen  
 * *Scale-Location*: Prüfung der Homoskedastizität, zeigt Zusammenhang zwischen Streuung der Residuen und vorhergesagten Werten $\rightarrow$ rote Anpassungslinie (y-MW bedingt auf X) sollte parallel zur x-Achse verlaufen
-* *Residuals vs. Leverage*: Einflussreiche Datenpunkte liegen „weit draußen“, außerhalb einer der rot gestrichelten Linie.  Dies trifft auf keine Beobachtung in unserer Stichprobe zu (die rot gestrichelte Linie lässt sich hier nur ganz recht oben erahnen; kein Punkt liegt außerhalb dieses Bereichs) $\rightarrow$  Somit lassen sich hier keine potentiell problematischen einflussreichen Datenpunkte identifizieren 
+* *Residuals vs. Leverage*: Einflussreiche Datenpunkte liegen „weit draußen“, außerhalb einer der grau gestrichelten Linie.  Dies trifft auf keine Beobachtung in unserer Stichprobe zu (die grau gestrichelte Linie ist in dieser Abbildung nicht zu sehen; kein Punkt liegt außerhalb dieses Bereichs) $\rightarrow$  Somit lassen sich hier keine potentiell problematischen einflussreichen Datenpunkte identifizieren 
 
-In diesem Fall ist alles weitestgehend erfüllt.
-
-Beispiel für schlechte Ergebnisse: [https://data.library.virginia.edu/diagnostic-plots/](https://data.library.virginia.edu/diagnostic-plots/)
+In diesem Fall ist alles weitestgehend erfüllt. Da wir uns hier im Rahmen einer grafischen Überprüfung befinden, ist es natürlich schwer direkte Richtlinien festzulegen. Die Fähigkeit zur Einordnung einer Verletzung stärkt sich mit der Erfahrung - also der Betrachtung im Rahmen von sehr vielen Analysen. Wir verweisen [hier](https://data.library.virginia.edu/diagnostic-plots/) zur Veranschaulich auch auf ein Beispiel mit starken Verletzungen.
 
 
 **Alternativer Weg zur Prüfung der Normalverteilung der Residuen**
+
+Da wir uns die Residuen (also die Fehler in der Vorhersage) direkt vom Modell ausgeben lassen können, können wir zur Überprüfung ihrer Verteilung auch unsere schon bekannten Befehle nutzen. Hier wird nochmal ein Histogramm und ein QQ-Plot gezeichnet, weiterhin wird die inferzstatistische Testung durchgeführt. 
 
 ```{r}
 res1 <- residuals(fm)   #Residuen speichern 
@@ -126,12 +169,12 @@ curve(dnorm(x,
 shapiro.test(res1)
 ```
 
-$\rightarrow$ Der p-Wert ist größer als .05 $\rightarrow$ Die Nullhypothese konnte nicht verworfen werden und wird beibehalten: Für die Residuen wird also Normalverteilung angenommen. Somit sind alle Voraussetzungen zur Durchführung der linearen Regression erfüllt.
+Die Plots weisen auf keine Verletzung der Annahme hin. Auch der p-Wert ist größer als .05 $\rightarrow$ Die Nullhypothese konnte nicht verworfen werden und wird beibehalten: Für die Residuen wird also Normalverteilung angenommen. Somit sind alle Voraussetzungen zur Durchführung der linearen Regression erfüllt.
 
 
 ### Modellschätzung
 
-Die Modellgleichung für die lineare Regression, wie sie in der Vorlesung besprochen wurde, lautet: $y_i = b_0 + b_1 x_i + e_i$
+Die Modellgleichung für die lineare Regression, wie sie in der Vorlesung besprochen wurde, lautet: $y_m = b_0 + b_1 x_m + e_m$
 
 In R gibt es eine interne Schreibweise, die sehr eng an diese Form der Notation angelehnt ist. Mit `?formula` können Sie sich detailliert ansehen, welche Modelle in welcher Weise mit dieser Notation dargestellt werden können. R verwendet diese Notation für (beinahe) alle Modelle, sodass es sich lohnt, sich mit dieser Schreibweise vertraut zu machen. Die Kernelemente sind im Fall der linearen Regression
 
@@ -149,18 +192,18 @@ Diese Notation enthält fünf Elemente:
 
 Die Notation beschreibt also die Aussage "$y$ wird regrediert auf die Konstante $1$ und die Variable $x$". Die zu schätzenden Parameter $b_0$ und $b_1$ werden in dieser Notation nicht erwähnt, weil sie uns unbekannt sind.
 
-R geht generell davon aus, dass immer auch der Achsenabschnitt $b_0$ geschätzt werden soll, sodass `y ~ x` ausreichend ist, um eine Regression zu beschreiben. Wenn das Intercept unterdrückt werden soll, muss das mit `y ~ 0 + x` explizit gemacht werden.
+R geht generell davon aus, dass immer auch der Achsenabschnitt $b_0$ geschätzt werden soll, sodass `y ~ x` ausreichend ist, um eine Regression mit einem Achsenabschnitt zu beschreiben. Wenn das Intercept unterdrückt werden soll, muss das mit `y ~ 0 + x` explizit gemacht werden.
 
 In unserem Beispiel ist $x$ die Extraversion (`extra`) und $y$ die Nerdiness (`nerd`). Um das Modell zu schätzen, wird dann der `lm` (für "linear model") Befehl genutzt:
 
 ```{r}
-lm(formula = nerd ~ 1 + extra, data = fb21)
+lm(formula = nerd ~ 1 + extra, data = fb22)
 ```
 
-So werden die Koeffizienten direkt ausgegeben. Wir haben das Modell bereits abgespeichert, da wir es für die Überprüfung der Voraussetzungen benötigt haben. Hierzu muss das Modell einem Objekt zugewiesen werden. Hier in verkürzter Schreibweise:
+So werden die Koeffizienten direkt ausgegeben. Wir haben das Modell bereits abgespeichert, da wir es für die Überprüfung der Voraussetzungen benötigt haben. Hierzu muss das Modell einem Objekt zugewiesen werden. Hier in verkürzter Schreibweise (wir lassen die 1 als Repräsentant für den Achsenabschnitt weg)´:
 
 ```{r}
-fm <- lm(nerd ~ extra, fb21)
+fm <- lm(nerd ~ extra, fb22)
 ```
 
 Aus diesem Objekt können mit `coef` die geschätzten Koeffizienten extrahiert werden:
@@ -184,15 +227,15 @@ residuals(fm)
 Diese können auch als neue Variable im Datensatz angelegt werden und hätten dort die Bedeutung des "Ausmaßes an Nerdiness, das nicht durch Extraversion vorhergesagt werden kann" - also die Differenz aus vorhergesagtem und tatsächlich beobachtetem Wert der y-Variable (Nerdiness).
 
 ```{r}
-fb21$res <- residuals(fm)
+fb22$res <- residuals(fm)
 ```
 
 Die folgenden Ergebnisse aus `fm` werden wir verwenden. In `fm$coef` stehen die Regressionskoeffizienten $b_0$ unter `(Intercept)` zur Konstanten gehörend und $b_1$ unter dem Namen der Variable, die wir als Prädiktor nutzen. In diesem Fall also `extra`. Die Regressionsgleichung hat daher die folgende Gestalt: $y_i = `r round(coef(fm)[1],2)` + `r round(coef(fm)[2],2)` \cdot x + e_i$. 
 
 Regressionsgleichung (unstandardisiert): 
 
-$$\hat{y} = b_0 + b_1*x_i$$
-$$\hat{y} = `r round(coef(fm)[1],2)` + `r round(coef(fm)[2],2)`x_i$$
+$$\hat{y} = b_0 + b_1*x_m$$
+$$\hat{y} = `r round(coef(fm)[1],2)` + (`r round(coef(fm)[2],2)`)*x_m$$
 
 **Interpretation der Regressionskoeffizienten:**  
 
@@ -228,9 +271,9 @@ Das Streudiagramm haben wir zu Beginn schon abbilden lassen. Hier kann zusätzli
 
 ```{r, fig = TRUE}
 # Scatterplot zuvor im Skript beschrieben
-plot(fb21$extra, fb21$nerd, 
+plot(fb22$extra, fb22$nerd, 
   xlim = c(0, 6), ylim = c(1, 5), pch = 19)
-lines(loess.smooth(fb21$extra, fb21$nerd), col = 'blue')    #beobachteter, lokaler Zusammenhang
+lines(loess.smooth(fb22$extra, fb22$nerd), col = 'blue')    #beobachteter, lokaler Zusammenhang
 # Ergebnisse der Regression als Gerade aufnehmen
 abline(fm, col = 'red')
 ```
@@ -242,7 +285,7 @@ Bei einer Regression (besonders wenn mehr als ein Prädiktor in das Modell aufge
 Die Variablen werden mit `scale` standardisiert (z-Transformation; Erwartungswert gleich Null und die Varianz gleich Eins gesetzt). Mit `lm` wird das Modell berechnet.
 
 ```{r}
-sfm <- lm(scale(nerd) ~ scale(extra), fb21)
+sfm <- lm(scale(nerd) ~ scale(extra), fb22)
 sfm
 ```
 
@@ -261,14 +304,14 @@ $R^2 = \frac{s^2_{\hat{Y}}}{s^2_{Y}} = \frac{s^2_{\hat{Y}}}{s^2_{\hat{Y}} + s^2_
 
 ```{r}
 # Anhand der Varianz von lz
-var(predict(fm)) / var(fb21$nerd, use = "na.or.complete")
+var(predict(fm)) / var(fb22$nerd, use = "na.or.complete")
 
 # Anhand der Summe der Varianzen
 var(predict(fm)) / (var(predict(fm)) + var(resid(fm)))
 ```
 
 Jedoch kann dieser umständliche Weg umgangen werden.
-Mit der Funktion `summary` kann ein Überblick über verschiedene Variablen und auch Funktionen generiert werden. Für lineare Funktionen werden mit diesem Befehl unter anderem auch die Koeffizienten angezeigt. Anhand des p-Werts kann hier auch die Signifikanz des $R^2$ überprüft werden.
+Mit der Funktion `summary` kann ein Überblick über verschiedene Ergebnisse eines Modells gewonnen werden. Für lineare Modelle werden mit diesem Befehl unter anderem auch die Koeffizienten angezeigt. Anhand des p-Werts kann hier auch die Signifikanz des $R^2$ überprüft werden.
 
 ```{r}
 #Detaillierte Modellergebnisse
@@ -288,9 +331,11 @@ summary(fm)$r.squared
 r2 <- summary(fm)$r.squared*100
 ```
 
-`r round(r2, digits = 2)`% der Varianz von `nerd` können durch `extra` erklärt werden. Dieser Effekt ist nach Cohens (1988) Konvention als mittelstark zu bewerten.
+`r round(r2, digits = 2)`% der Varianz von `nerd` können durch `extra` erklärt werden. Dieser Effekt ist nach Cohens (1988) Konvention als schwach bis mittelstark zu bewerten, wenn keine Erkenntnisse in dem spezifischen Bereich vorliegen.
 
-**Exkurs: Cohens (1988) Konvention zur Interpretation von $R^2$:**  
+**Cohens (1988) Konvention zur Interpretation von $R^2$:**  
+
+Konventionen sind, wie bereits besprochen, heranzuziehen, wenn keine vorherigen Untersuchungen der Fragestellung oder zumindest in dem Forschungsbereich vorliegen. Die vorgeschlagenen Werte von $R^2$ entsprechen dabei dem Quadrat der in der [letzten Sitzung](/post/korrelation) genannten Konventionen für $r$.
 
 * ~ .01: schwacher Effekt  
 * ~ .09: mittlerer Effekt  
@@ -300,26 +345,26 @@ r2 <- summary(fm)$r.squared*100
 
 ### Korrelation vs. Regression 
 
-Im Falle einer einfachen linearen Regression (1 Prädiktor) ist das standardisierte Regressionsgewicht identisch zur Produkt-Moment-Korrelation aus Prtädiktor (`extra`) und Kriterium (`nerd`)
+Im Falle einer einfachen linearen Regression (1 Prädiktor) ist das standardisierte Regressionsgewicht identisch zur Produkt-Moment-Korrelation aus Prädiktor (`extra`) und Kriterium (`nerd`)
 
 ```{r}
-cor(fb21$nerd, fb21$extra)   # Korrelation
-sfm <- lm(scale(nerd) ~ scale(extra), fb21) # Regression mit standardisierten Variablen
+cor(fb22$nerd, fb22$extra)   # Korrelation
+sfm <- lm(scale(nerd) ~ scale(extra), fb22) # Regression mit standardisierten Variablen
 sfm
-round(coef(sfm)["scale(extra)"],3) == round(cor(fb21$nerd, fb21$extra),3)
+round(coef(sfm)["scale(extra)"],3) == round(cor(fb22$nerd, fb22$extra),3)
 ```
 
 Entsprechend ist das Quadrat der Korrelation identisch zum Determinationskoeffizienten des Modells mit standardisierten Variablen...
 ```{r}
-cor(fb21$nerd, fb21$extra)^2   # Quadrierte Korrelation
+cor(fb22$nerd, fb22$extra)^2   # Quadrierte Korrelation
 summary(sfm)$ r.squared  # Det-Koeffizient Modell mit standardisierten Variablen
-round((cor(fb21$nerd, fb21$extra)^2),3) == round(summary(sfm)$ r.squared, 3)
+round((cor(fb22$nerd, fb22$extra)^2),3) == round(summary(sfm)$ r.squared, 3)
 ```
 ... und unstandardisierten Variablen
 ```{r}
-cor(fb21$nerd, fb21$extra)^2   # Quadrierte Korrelation
+cor(fb22$nerd, fb22$extra)^2   # Quadrierte Korrelation
 summary(fm)$ r.squared  # Det-Koeffizient Modell mit unstandardisierten Variablen
-round((cor(fb21$nerd, fb21$extra)^2),3) == round(summary(fm)$ r.squared, 3)
+round((cor(fb22$nerd, fb22$extra)^2),3) == round(summary(fm)$ r.squared, 3)
 ```
 
 Der standardisierte Korrelationskoeffizient in einer einfachen linearen Regression liefert also dieselben Informationen wie eine Produkt-Moment-Korrelation. Daraus wird auch ersichtlich, dass ein Regressionskoeffizient (genau wie eine Korrelation) nicht zulässt, auf die Richtung des Effekts (Kausalität) zu schließen. 
@@ -327,7 +372,7 @@ Der standardisierte Korrelationskoeffizient in einer einfachen linearen Regressi
 
 ****
 
-## Inferenzstatistische Überprüfung des Regressionsparameter _b_
+## Inferenzstatistische Überprüfung der Regressionsparameter _b_
 
 
 **Signifikanztestung der Regressionskoeffizienten:**
@@ -347,8 +392,8 @@ Das Konfidenzintervall von `r round(confint[2], 3)` und `r round(confint[4], 3)`
     + H1: $b_1 \neq 0$, das Regressionsgewicht ist von Null verschieden. 
     
 * $b_0$ (häufig nicht von Interesse)  
-    + H0: $b_0 = 0$, der Achsenabschnitt ist nicht von Null verschieden.  
-    + H1: $b_0 \neq 0$, der Achsenabschnitt ist von Null verschieden.  
+    + H0: $b_0 = 0$, der y-Achsenabschnitt ist nicht von Null verschieden.  
+    + H1: $b_0 \neq 0$, der y-Achsenabschnitt ist von Null verschieden.  
 
 Für beide Parameter ($b_1$ uns $b_0$) wird die H0 auf einem alpha-Fehler-Niveau von 5% verworfen, da die 0 nicht im jeweiligen 95% Konfidenzintervall enthalten ist.
 
@@ -365,4 +410,3 @@ Aus `summary()`: $p < \alpha$ $\rightarrow$ H1: Das Regressionsgewicht für den 
 Aus `summary()`: $p < \alpha$ $\rightarrow$ H1: der Achsenabschnitt ist signifikant von Null verschieden. Beträgt die Extraversion Null wird eine von 0 verschiedene Nerdiness vorhergesagt. 
 
 Konfidenzinteralle und p-Werte für Regressionskoeffizienten kommen immer zu denselben Schlussfolgerungen in Bezug darauf, ob die H0 beibehalten oder verworfen wird!
-
