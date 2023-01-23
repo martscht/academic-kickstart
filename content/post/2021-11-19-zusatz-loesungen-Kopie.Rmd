@@ -23,11 +23,49 @@ header:
 projects: []
 ---
 
-Wie angekündigt finden Sie im Folgenden nun nochmal Aufgaben, die sich auf die Tutorials 5 bis 10 beziehen. Laden sie dafür den [fb22](https://pandar.netlify.app/post/fb22.rda) Datensatz herunter. 
+Wie angekündigt finden Sie im Folgenden nun nochmal Aufgaben, die sich auf die Tutorials 4 bis 10 beziehen. Laden sie dafür den [fb22](https://pandar.netlify.app/post/fb22.rda) Datensatz herunter. 
+
+# Verteilungen
+
+## Aufgabe 1
+
+Etwa 75% Prozent der Psychologiestudierenden in Deutschland sind weiblich. Sie treffen zufällig auf 15 Psychologiestudierende.
+
+* Wie wahrscheinlich ist es, dass genau 9 der Personen weiblich sind?
+
+<details><summary>Lösung</summary>
+```{r}
+dbinom(9, 15, 0.75)
+```
+Die Wahrscheinlichkeit beträgt `r round(dbinom(9, 15, 0.75),4)*100`%.
+</details>
+
+* Wie wahrscheinlich ist es, dass mindestens 11 der Personen weiblich sind?
+
+<details><summary>Lösung</summary>
+
+```{r}
+1- pbinom(10, 15, 0.75)
+#Alternativ:
+pbinom(10, 15, 0.75, lower.tail = F)
+```
+Die Wahrscheinlichkeit beträgt `r round(pbinom(10, 15, 0.75, lower.tail = F),4)*100`%.
+</details>
+
+* Stellen Sie die Verteilungsfunktion der kummulierten Wahrscheinlichkeit aller Werte in einem Plot dar.
+
+<details><summary>Lösung</summary>
+```{r}
+X <- 0:15
+wk <- pbinom(X, 15, 0.75)
+plot(x = X, y = wk, typ = "h", xlab = "Anzahl Frauen", ylab = "kummulierte Wahrscheinlichkeit")
+```
+</details>
+
 
 # Tests und Konfidenzintervalle
 
-## Aufgabe 1
+## Aufgabe 2
 
 In Deutschland liegt die Gewissenhaftigkeit (`gewis`) bei Frauen im Mittel bei *µ* = 3.73.
 
@@ -75,7 +113,7 @@ t.test1 <- t.test(fb22_frauen$gewis, mu = 3.73, alternative = "greater", conf.le
 conf.int1 <- t.test1$conf.int
 ```
 
-Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen und die $H_1$ angenommen werden. Die weiblichen Psychologie-Studierenden haben höhere Gewissenhaftswerte im Vergleich zur Gesamtbevölkerung der Frauen.
+Mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen und die $H_1$ angenommen werden. Die weiblichen Psychologie-Studierenden haben verglichen mit der Gesamtbevölkerung der Frauen höhere Gewissenhaftswerte.
 Das 99%-ige Konfidenzintervall liegt zwischen `r round(conf.int1[1], digits = 2)` und $\infty$ (außerhalb des definierten Wertebereichs). Das bedeutet, dass in 99% der Fälle in einer wiederholten Ziehung aus der Grundgesamtheit die mittleren Verträglichkeitswerte zwischen `r round(conf.int1[1], digits = 2)` und $\infty$ (außerhalb des definierten Wertebereichs) liegen.
 
 **Effektgröße**
@@ -96,13 +134,13 @@ Die Effektgröße ist mit `r round(d, digits = 2)` als groß einzustufen.
 
 # Tests für unabhängige Stichproben
 
-## Aufgabe 2
+## Aufgabe 3
 
-Unterscheiden sich Personen, die gerne alleine lernen von Personen, die es bevorzugen in Gruppen zu lernen oder ein Mischtyp sind, in ihrer Extraversion (`extra`)? Schauen Sich sich die Daten graphisch an und führen sie nach Voraussetzungsprüfung einen geeigneten Test durch.
+Unterscheiden sich Personen, die gerne alleine lernen von Personen, die es bevorzugen in Gruppen zu lernen oder ein Mischtyp sind (`lerntyp`), in ihrer Extraversion (`extra`)? Schauen Sich sich die Daten graphisch an und führen sie nach Voraussetzungsprüfung einen geeigneten Test durch.
 
 <details><summary>Lösung</summary>
 
-Zuerst schauen wir uns an ob die Variable Lerntyp bereits als Faktor vorliegt und wandeln sie gegebenenfalls um.
+Zuerst schauen wir uns an ob die Variable `Lerntyp` bereits als Faktor vorliegt und wandeln sie gegebenenfalls um.
 
 ```{r}
 is.factor(fb22$lerntyp)
@@ -163,16 +201,16 @@ Damit sind alle Voraussetzungen eines t-Tests erfüllt.
 t.test(fb22$extra ~ fb22$lerntyp_neu, var.equal = T)
 ```
 
-Der deskriptive Unterschied der Mittelwerte lässt sich somit auch inferenzstatistisch feststellen, denn mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen und die $H_1$ angenommen werden. Die Teilnehmenden, die lieber alleine lernen, unterscheiden sich von den Teilnehmenden, die lieber in der Gruppe lernen oder ein Mischtyp sind, in ihrer Extraversion (t(*df* = `r t.test(fb22$extra ~ fb22$lerntyp_neu, var.equal = T)$parameter`, zweis.) = `r round(t.test(fb22$extra ~ fb22$lerntyp_neu, var.equal = T)$statistic, 2)`), *p* = <.001).
+Der deskriptive Unterschied der Mittelwerte lässt sich somit auch inferenzstatistisch feststellen, denn mit einer Irrtumswahrscheinlichkeit von 5% kann die $H_0$ verworfen und die $H_1$ angenommen werden. Die Teilnehmenden, die lieber alleine lernen, unterscheiden sich von den Teilnehmenden, die lieber in der Gruppe lernen oder ein Mischtyp sind, in ihrer Extraversion (t(*df* = `r t.test(fb22$extra ~ fb22$lerntyp_neu, var.equal = T)$parameter`, zweis.) = `r round(t.test(fb22$extra ~ fb22$lerntyp_neu, var.equal = T)$statistic, 2)`, *p* = <.001).
 
 </details>
 
 
-## Aufgabe 3
+## Aufgabe 4
 
 Haben Studierende, die bei ihren Eltern wohnen (`wohnen`), mit gleicher Wahrscheinlichkeit einen Nebenjob (`job`) wie Studierende, die nicht bei ihren Eltern wohnen?
 
-* Prüfen Sie die Voraussetungen für einen Chi-Quadrat-Test
+* Prüfen Sie die Voraussetungen für einen Chi-Quadrat-Test.
 
 <details><summary>Lösung</summary>
 
@@ -188,19 +226,19 @@ fb22$job <- factor(fb22$job, levels = 1:2, labels = c("nein", "ja"))
 fb22$wohnen_bei_Eltern <- fb22$wohnen == "bei Eltern" #wir erstellen eine Variable, die angibt, ob eine Personen bei den Eltern wohnt oder nicht
 ```
 
-Die Voraussetzungen, dass die einzelnen Beobachtungen voneinander unabhängig sind und, dass jede Person eindeutig einer Merkmalskombination zuordbar ist, ist durch das Studiendesign erfüllt. Wir müssen aber noch prüfen, ob jede Zelle mit mehr als fünf Personen gefüllt ist.
+Die Voraussetzungen, dass die einzelnen Beobachtungen voneinander unabhängig sind und jede Person eindeutig einer Merkmalskombination zuordbar ist, ist durch das Studiendesign erfüllt. Wir müssen aber noch prüfen, ob jede Zelle mit mehr als fünf Personen gefüllt ist.
 
 ```{r}
 tab <- table(fb22$wohnen_bei_Eltern, fb22$job)
 tab
 ```
 
-Die Voraussetungen für einen Chi-Quadrat-Test sind erfüllt.
+Die Voraussetzungen für einen Chi-Quadrat-Test sind erfüllt.
 
 </details>
 
 
-* Berechnen Sie die erwarteten Häufigkeiten der Zellen und treffen Sie eine Signifikanzentscheidung
+* Berechnen Sie die erwarteten Häufigkeiten der Zellen und treffen Sie eine Signifikanzentscheidung.
 
 <details><summary>Lösung</summary>
 
@@ -250,7 +288,7 @@ chisq.test(tab, correct = F)
 
 </details>
 
-## Aufgabe 4
+## Aufgabe 5
 
 Weichen Psychologie-Studierende, die einen Nebenjob haben, in ihrem Intellekt (`intel`) von Psychologie-Studierenden, die keinen Nebenjob haben, ab.
 
@@ -271,7 +309,7 @@ shapiro.test(fb22$intel[fb22$job == "nein"])
 shapiro.test(fb22$intel[fb22$job == "ja"])
 ```
 Die Normalverteilungsannahme ist nicht erfüllt. Wir können also keinen t-Test durchführen. Wir überprüfen nun die Voraussetzungen des Wilcoxon-Tests.
-Dafür überprüfen wir optisch, ob die Messwerte der beiden Gruppen ungefähr der selben Verteilung folgen
+Wir überprüfen optisch, ob die Messwerte der beiden Gruppen ungefähr der selben Verteilung folgen.
 
 ```{r}
 hist(fb22$intel[fb22$job == "ja"])
@@ -283,7 +321,7 @@ Dies kann angenommen werden. Zuletzt überprüfen wir noch die Gleichheit der St
 leveneTest(fb22$intel ~ fb22$job)
 ```
 
-Wir können von der Varianzhomogenität ausgehen und somit einen Wilcoxon-Test durchführen.
+Wir können von Varianzhomogenität ausgehen und somit einen Wilcoxon-Test durchführen.
 
 ```{r}
 wilcox.test(fb22$lz ~ fb22$ort)
@@ -296,11 +334,11 @@ Das Ergebnis des zweiseitigen Wilcoxon-Tests ist nicht signifikant (*W* = `r wil
 
 # Tests für abhängige Stichproben
 
-## Aufgabe 5
+## Aufgabe 6
 
-Unterscheidet sich im Durchschnitt die Angabe von Psychologiestudierenden zu ihrer Nerdiness (`nerd`) und ihrem Intellekt (`intel`)?
+Unterscheidet sich im Durchschnitt die Nerdiness (`nerd`) von Psychologiestudierenden von ihrem Intellekt (`intel`)?
 
-* Stellen sie die Hypthesen auf.
+* Stellen sie die Hypothesen auf.
 
 <details><summary>Lösung</summary>
 
@@ -319,7 +357,7 @@ $H_1$: $\mu_0$ $≠$ $\mu_1$
 
 <details><summary>Lösung</summary>
 
-Da die Werte zur Nerdiness und zum Intellekt, die verglichen werden sollen, immer von der selben Person stammen. Sind die Werte voneinander abhängig. Daher wollen wir einen t-Test für abhängige Stichproben durchführen. Die Werte sind intervallskaliert, sind voneinander abhängig und die Differenzvariable ist normalverteilt, da wir bei einer Stichprobe von n ≥ 30 direkt davon ausgehen können. Somit sind alle Voraussetzungen für den t-Test erfüllt.
+Da die Nerdiness- und Intellekt-Werte, die verglichen werden sollen, immer von der selben Person stammen, sind die Werte voneinander abhängig. Daher wollen wir einen t-Test für abhängige Stichproben durchführen. Die Werte sind intervallskaliert, voneinander abhängig und die Differenzvariable ist normalverteilt, da wir bei einer Stichprobe von n ≥ 30 direkt davon ausgehen können. Somit sind alle Voraussetzungen für den t-Test erfüllt.
 
 </details>
 
@@ -350,11 +388,11 @@ Der Effekt ist mit `r round(cohen.d(fb22$nerd, fb22$intel, paired = T, within = 
 
 # Korrelation
 
-## Aufgabe 6
+## Aufgabe 7
 
 Hängt die Gewissenhaftigkeit (`gewis`) positiv mit der Anzahl an geschriebenen Wörtern zusammen, die als Begründung (`grund`) für die Wahl des Psychologiestudiums angegeben wurde? Überprüfen Sie die Voraussetzungen für das gewählte Zusammenhangsmaß.
 
-*Tipp:* Mit folgendem Befehl lässt sich die Anzahl an Wörter einer Eingabe berechnen:
+**Tipp:** Mit folgendem Befehl lässt sich die Anzahl an Wörtern einer Eingabe berechnen:
 
 
 ```{r}
@@ -397,7 +435,7 @@ Es besteht kein positiver Zusammenhang zwischen Gewissenhaftigkeit und der Anzah
 
 # Regression
 
-## Aufgabe 7
+## Aufgabe 8
 
 Lässt sich Prokrastination durch Gewissenhaftigkeit (`gewis`) vorsagen? 
 (Falls noch nicht geschehen, berechnen sie den Skalenwert der Prokrastination)
@@ -440,7 +478,7 @@ par(mfrow = c(2, 2)) #vier Abbildungen gleichzeitig
 plot(fm)
 ```
 
-Der qq-Plot oben rechts deutet auf Normalverteilung hin. Die rote Anpassungslinie des Scale-Location Plots unten links ist annähernd parallel zur x-Achse, sodass wir von Varianzhomogenität ausgehen können. Da auch der vierte Plot unten rechts nicht auf potentiell problematische einflussreiche Datenpunkte hin, sodass alle Vorausetzungen erfüllt sind.
+Der Q-Q-Plot oben rechts deutet auf Normalverteilung hin. Die rote Anpassungslinie des Scale-Location Plots unten links ist annähernd parallel zur x-Achse, sodass wir von Varianzhomogenität ausgehen können. Da auch der vierte Plot unten rechts nicht auf potentiell problematische einflussreiche Datenpunkte hindeutet, sind alle Vorausetzungen erfüllt.
 
 ```{r}
 fm
@@ -492,9 +530,9 @@ Das Modell sagt einen Prokrastinationswert von `r round(predict(fm, newdata = da
 
 # Simulation und Poweranalyse
 
-## Aufgabe 8
+## Aufgabe 9
 
-In Aufgabe 5 haben wir herausgefunden, dass sich die Werte von Nerdiness und Intellekt von Psychologie-Studierenden unterscheiden. Die gefundene Effektgröße betrug d = -0.56. Wir wollen nun eine Poweranalyse durchführen, indem wir die Studie 10^4 mal wiederholen.
+In Aufgabe 6 haben wir herausgefunden, dass sich die Werte von Nerdiness und Intellekt von Psychologie-Studierenden unterscheiden. Die gefundene Effektgröße betrug d = -0.56. Wir wollen nun eine Poweranalyse durchführen, indem wir die Studie 10^4 mal wiederholen.
 Nutzen Sie den Seed 4321 (`set.seed(4321)`).
 
 * Führen Sie eine Simulation durch, um die empirische Power des t-Tests zu bestimmen.
@@ -541,7 +579,7 @@ x <- c(.001, 0.01, 0.025, 0.05, 0.1)
 plot(x = x, y = power, type = "b", main = "Power vs. Alpha")
 ```
 
-Wir sehen das je geringer das $\alpha$-Niveau ist, desto höher ist unsere Power. Mit unserer Stichprobengröße von n = 159 haben wir selbst bei einem hypothetischen $\alpha$-Niveau von 0.1% noch eine Power von knapp 95%.  
+Wir sehen das je größer das $\alpha$-Niveau ist, desto höher ist unsere Power. Mit unserer Stichprobengröße von n = 159 haben wir selbst bei einem hypothetischen $\alpha$-Niveau von 0.1% noch eine Power von knapp 95%.  
 
 </details>
 
