@@ -7,7 +7,7 @@ headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
 weight = 10  # Order that this section will appear.
  
-title = "Templates"
+title = "Extras"
 subtitle = ""
 
 [content]
@@ -26,7 +26,7 @@ subtitle = ""
   # Filter posts by a taxonomy term.
   [content.filters]
     tag = ""
-    category = "Templates"
+    category = "Extras"
     publication_type = ""
     exclude_featured = false
 
@@ -66,19 +66,18 @@ subtitle = ""
  css_class = ""
 +++
 
-<a id="Templates"></a>
+<a id="Extras"></a>
 
-LIFOS bietet direkt Templates an, die automatisch eine Ordnerstruktur erstellen, die hilft, das eigene Projekt zu organisieren. Insgesamt stehen fünf verschiedene Templates zur Auswahl, die für unterschiedliche Arten von Forschungsprojekten geeignet sind. Insbesondere unterscheiden sie sich im Preregistration Dokument. Im Folgenden werden alle Templates näher erläutert.
+Hier findet ihr verschiedene Extras, die zum einen mehr Informationen zu den einzelnen Templates geben, als auch einen tieferen Einblick in die GitLab-Oberfläche und Markdown. 
 
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 1 | OSF Präregistrierung |[DE](/post/under-construction) | [EN](/post/under-construction)| 
-| 2 | AsPredicted Präregistrierung| [DE](/post/under-construction) | [EN](/post/under-construction)| 
-| 3 | Präregistrierung für qualitative Forschung|  [DE](/post/under-construction) | [EN](/post/under-construction)| 
-| 4 | Präregistrierung für bereits existierende Daten| [DE](/post/under-construction) | [EN](/post/under-construction)| 
-| 5 | Präregistrierung für Replikationsstudien| [DE](/post/under-construction) | [EN](/post/under-construction)| 
-| Zusatz: | Welches Template ist das richtige für mich? | [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 1 | Vertiefende Informationen zu den Templates|[DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 2 | Vertiefende Erklärung der GitLab Oberfläche| [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 3 | Vertiefende Markdown-Übung|  [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 4 | Verknüpfung mit SmartGit| [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 5 | Informationen für Betreuende| [DE](/post/under-construction) | [EN](/post/under-construction)| 
 |  |  |    
 
 
