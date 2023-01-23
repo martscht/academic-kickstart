@@ -7,7 +7,7 @@ headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
 weight = 10  # Order that this section will appear.
  
-title = "Projektstruktur"
+title = "Relevantes"
 subtitle = ""
 
 [content]
@@ -66,17 +66,16 @@ subtitle = ""
  css_class = ""
 +++
 
-<a id="Projektstruktur"></a>
+<a id="Relevantes"></a>
 
-Projekte, die über Templates initiiert werden, beinhalten direkt eine vorangelegte Ordnerstruktur. Diese strukturiert einerseits das Projekt und kann direkt genutzt werden, um die entsprechenden Dateien abzulegen und von anderen wiedergefunden zu werden.
+In diesem Abschnitt befindet sich alles wichtige, um das erste eigene Projekt anzulegen. Von einer grundauf Erklärung von LIFOS über die Auswahl des richtigen Templates für euch, als auch zuletzt das tatsächliche Anlegen eures Projekts.  
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 1 | Präregistrierung |[DE](/post/under-construction) | [EN](/post/under-construction)| 
-| 2 | Skripte| [DE](/post/under-construction) | [EN](/post/under-construction)| 
-| 3 | Daten|  [DE](/post/under-construction) | [EN](/post/under-construction)| 
-| 4 | Manuskript | [DE](/post/under-construction) | [EN](/post/under-construction)| 
-| Zusatz: | Eigene Ordnerstruktur erstellen | [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 1 | Was ist LIFOS? |[DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 2 | Das passende Template finden| [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 3 | Das eigene Projekt|  [DE](/post/under-construction) | [EN](/post/under-construction)| 
 |  |  |    
+
 
 
