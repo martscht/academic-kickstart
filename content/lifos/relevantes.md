@@ -1,13 +1,13 @@
-+++ 
++++
 # A Recent Blog Posts section created with the Pages widget.
 # This section displays recent blog posts from `content/post/`.
 
 widget = "blank"  # See https://sourcethemes.com/academic/docs/page-builder/
 headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
-weight = 20  # Order that this section will appear.
-
-title = "GitLab"
+weight = 10  # Order that this section will appear.
+ 
+title = "Relevantes"
 subtitle = ""
 
 [content]
@@ -26,7 +26,7 @@ subtitle = ""
   # Filter posts by a taxonomy term.
   [content.filters]
     tag = ""
-    category = "GitLab"
+    category = "Relevantes"
     publication_type = ""
     exclude_featured = false
 
@@ -66,14 +66,16 @@ subtitle = ""
  css_class = ""
 +++
 
-<a id="GitLab"></a>
+<a id="Relevantes"></a>
 
-LIFOS basiert auf einer GitLab Plattform. Da diese Anwendung auch häufig für die Software-Entwicklung genutzt wird, ist die Bewegung auf einer solchen Plattform für Einige bestimmt neu. In den ersten beiden Tutorials zeigen wir die Aspekte, die für die einfache Nutzung zur Open-Science gerechten Dokumentation einer Arbeit essentiell sind. Mit diesen Tutorials kann eine Nutzung also bereits problemlos funktionieren. Die anderen, folgenden Zusätze zeigen weitere Möglichkeiten der Arbeit mit der Plattform auf, die etwas technischer sind.
- 
+In diesem Abschnitt befindet sich alles wichtige, um das erste eigene Projekt anzulegen. Von einer grundauf Erklärung von LIFOS über die Auswahl des richtigen Templates für euch, als auch zuletzt das tatsächliche Anlegen eures Projekts.  
+
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 1 | Orientierung in der Instanz |[DE](/post/under-construction) | [EN](/post/under-construction)| 
-| 2 | Einführung in R-Markdown und Subgruppen| [DE](/post/under-construction) | [EN](/post/under-construction)| 
-| Zusatz: | Verbindung zu SmartGit|  [DE](/post/under-construction) | [EN](/post/under-construction)| 
-| Zusatz: | Tieferer Einblick in die GitLab Oberfläche | [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 1 | Was ist LIFOS? |[DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 2 | Das passende Template finden| [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 3 | Das eigene Projekt|  [DE](/post/under-construction) | [EN](/post/under-construction)| 
 |  |  |    
+
+
+

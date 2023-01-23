@@ -9,8 +9,8 @@ tags:
   - Regression
 subtitle: ''
 summary: ''
-authors: [winkler, neubauer]
-lastmod: '2021-12-13T13:13:57+01:00'
+authors: [winkler, neubauer, nehler]
+lastmod: '2023-01-23T13:13:57+01:00'
 featured: no
 header:
   image: "/header/BSc2_Regression.jpg"
@@ -18,7 +18,6 @@ header:
 projects: []
 ---
 
-<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <details>
@@ -34,11 +33,52 @@ Kernfragen dieser Lehreinheit
 </ul>
 </details>
 <hr />
-<div id="datensatz-laden" class="section level2">
-<h2>Datensatz laden</h2>
-<p>Zu Beginn laden wir wie gewohnt den Datensatz (Sie können den Datensatz <a href="/post/fb21.rda">hier <i class="fas fa-download"></i> herunterladen</a>) und erstellen, falls nötig, Labels und Skalenwerte.
-Wir laden den Datensatz hier direkt von der Website:</p>
-<pre class="r"><code>load(url(&#39;https://pandar.netlify.app/post/fb21.rda&#39;))</code></pre>
+<div id="prep" class="section level2">
+<h2>Vorbereitende Schritte</h2>
+<p>Zu Beginn laden wir wie gewohnt den Datensatz und verteilen die relevanten Labels. Beachten Sie, dass diese Befehle bereits angewendet wurden. Wenn Sie die veränderten Daten abgespeichert oder noch aktiv haben, sind die folgenden Befehle natürlich nicht nötig.</p>
+<pre class="r"><code>#### Was bisher geschah: ----
+
+# Daten laden
+load(url(&#39;https://pandar.netlify.app/post/fb22.rda&#39;))  
+
+# Nominalskalierte Variablen in Faktoren verwandeln
+fb22$geschl_faktor &lt;- factor(fb22$geschl,
+                             levels = 1:3,
+                             labels = c(&quot;weiblich&quot;, &quot;männlich&quot;, &quot;anderes&quot;))
+fb22$fach &lt;- factor(fb22$fach,
+                    levels = 1:5,
+                    labels = c(&#39;Allgemeine&#39;, &#39;Biologische&#39;, &#39;Entwicklung&#39;, &#39;Klinische&#39;, &#39;Diag./Meth.&#39;))
+fb22$ziel &lt;- factor(fb22$ziel,
+                        levels = 1:4,
+                        labels = c(&quot;Wirtschaft&quot;, &quot;Therapie&quot;, &quot;Forschung&quot;, &quot;Andere&quot;))
+
+fb22$wohnen &lt;- factor(fb22$wohnen, 
+                      levels = 1:4, 
+                      labels = c(&quot;WG&quot;, &quot;bei Eltern&quot;, &quot;alleine&quot;, &quot;sonstiges&quot;))
+
+fb22$ort &lt;- factor(fb22$ort, levels=c(1,2), labels=c(&quot;FFM&quot;, &quot;anderer&quot;))
+
+fb22$job &lt;- factor(fb22$job, levels=c(1,2), labels=c(&quot;nein&quot;, &quot;ja&quot;))
+# Skalenbildung
+
+fb22$prok2_r &lt;- -1 * (fb22$prok2 - 5)
+fb22$prok3_r &lt;- -1 * (fb22$prok3 - 5)
+fb22$prok5_r &lt;- -1 * (fb22$prok5 - 5)
+fb22$prok7_r &lt;- -1 * (fb22$prok7 - 5)
+fb22$prok8_r &lt;- -1 * (fb22$prok8 - 5)
+
+# Prokrastination
+fb22$prok_ges &lt;- fb22[, c(&#39;prok1&#39;, &#39;prok2_r&#39;, &#39;prok3_r&#39;,
+                          &#39;prok4&#39;, &#39;prok5_r&#39;, &#39;prok6&#39;,
+                          &#39;prok7_r&#39;, &#39;prok8_r&#39;, &#39;prok9&#39;, 
+                          &#39;prok10&#39;)] |&gt; rowMeans()
+# Naturverbundenheit
+fb22$nr_ges &lt;-  fb22[, c(&#39;nr1&#39;, &#39;nr2&#39;, &#39;nr3&#39;, &#39;nr4&#39;, &#39;nr5&#39;,  &#39;nr6&#39;)] |&gt; rowMeans()
+fb22$nr_ges_z &lt;- scale(fb22$nr_ges) # Standardisiert
+
+# Weitere Standardisierungen
+fb22$nerd_std &lt;- scale(fb22$nerd)
+fb22$neuro_std &lt;- scale(fb22$neuro)</code></pre>
 <hr />
 </div>
 <div id="lineare-regression" class="section level2">
@@ -46,7 +86,7 @@ Wir laden den Datensatz hier direkt von der Website:</p>
 <p>Nachdem wir mit der Korrelation mit der gemeinsamen Betrachtung von zwei Variablen begonnen haben, werden wir jetzt lineare Modelle erstellen, uns Plots - inklusive Regressionsgerade - für Zusammenhänge anzeigen lassen und Determinationskoeffizienten berechnen.
 Hierzu betrachten wir folgende Fragestellung:</p>
 <ul>
-<li>Hat die Extraversion (<em>extra</em>) einen Einfluss auf die selbst eingeschätzte “Nerdiness” (<em>nerd</em>)?</li>
+<li>Zeigt die Extraversion (<em>extra</em>) aus dem Selbstbericht einen linearen Zusammenhang mit der selbst eingeschätzten “Nerdiness” (<em>nerd</em>)?</li>
 </ul>
 <div id="voraussetzungen" class="section level3">
 <h3>Voraussetzungen:</h3>
@@ -60,12 +100,12 @@ Hierzu betrachten wir folgende Fragestellung:</p>
 <li><em>Unabhängigkeit der Fehler</em></li>
 </ol>
 <p>Die Voraussetzungen 2-4 können erst geprüft werden, nachdem das Modell schon gerechnet wurde, weil sie sich auf die Fehler (Residuen: Differenz aus beobachtetem und vorhergesagtem Wert für y) beziehen!</p>
-<p>Deshalb erstellen wir zunächst das Regressionsmodell - wir werden weiter unten diesen Befehl - die Funktion <code>lm()</code> genauer besprechen, für’s erste ist wichtig zu wissen, dass die relevanten Ergebnisse des Regressionsmodell im Objekt <code>fm</code> abgespeichert werden.</p>
-<pre class="r"><code>fm &lt;- lm(nerd ~ extra, fb21)                  #Modell erstellen und ablegen</code></pre>
+<p>Deshalb erstellen wir zunächst das Regressionsmodell - wir werden weiter unten diesen Befehl - die Funktion <code>lm()</code> genauer besprechen, für’s erste ist wichtig zu wissen, dass die relevanten Ergebnisse des Regressionsmodells im Objekt <code>fm</code> abgespeichert werden.</p>
+<pre class="r"><code>fm &lt;- lm(nerd ~ extra, fb22)                  #Modell erstellen und Ergebnisse im Objekt fm ablegen</code></pre>
 <p><strong>zu 1. Linearität: Zusammenhang muss linear sein <span class="math inline">\(\rightarrow\)</span> Grafische Überprüfung (Scatterplot)</strong></p>
-<pre class="r"><code>plot(fb21$extra, fb21$nerd, xlab = &quot;Extraversion&quot;, ylab = &quot;Nerdiness&quot;, 
+<pre class="r"><code>plot(fb22$extra, fb22$nerd, xlab = &quot;Extraversion&quot;, ylab = &quot;Nerdiness&quot;, 
      main = &quot;Zusammenhang zwischen Extraversion und Nerdiness&quot;, xlim = c(0, 6), ylim = c(1, 5), pch = 19)
-lines(loess.smooth(fb21$extra, fb21$nerd), col = &#39;blue&#39;)    #beobachteter, lokaler Zusammenhang</code></pre>
+lines(loess.smooth(fb22$extra, fb22$nerd), col = &#39;blue&#39;)    #beobachteter, lokaler Zusammenhang</code></pre>
 <p><img src="/post/2021-11-22-regression_files/figure-html/unnamed-chunk-3-1.png" width="672" /></p>
 <ul>
 <li><code>pch</code> verändert die Darstellung der Datenpunkte</li>
@@ -86,11 +126,11 @@ plot(fm)</code></pre>
 <li><em>Normal Q-Q</em>: Zeigt Annäherung der Normalverteilung durch Residuen <span class="math inline">\(\rightarrow\)</span> Punkte sollen auf die Diagonalen liegen<br />
 </li>
 <li><em>Scale-Location</em>: Prüfung der Homoskedastizität, zeigt Zusammenhang zwischen Streuung der Residuen und vorhergesagten Werten <span class="math inline">\(\rightarrow\)</span> rote Anpassungslinie (y-MW bedingt auf X) sollte parallel zur x-Achse verlaufen</li>
-<li><em>Residuals vs. Leverage</em>: Einflussreiche Datenpunkte liegen „weit draußen“, außerhalb einer der rot gestrichelten Linie. Dies trifft auf keine Beobachtung in unserer Stichprobe zu (die rot gestrichelte Linie lässt sich hier nur ganz recht oben erahnen; kein Punkt liegt außerhalb dieses Bereichs) <span class="math inline">\(\rightarrow\)</span> Somit lassen sich hier keine potentiell problematischen einflussreichen Datenpunkte identifizieren</li>
+<li><em>Residuals vs. Leverage</em>: Einflussreiche Datenpunkte liegen „weit draußen“, außerhalb einer der grau gestrichelten Linie. Dies trifft auf keine Beobachtung in unserer Stichprobe zu (die grau gestrichelte Linie ist in dieser Abbildung nicht zu sehen; kein Punkt liegt außerhalb dieses Bereichs) <span class="math inline">\(\rightarrow\)</span> Somit lassen sich hier keine potentiell problematischen einflussreichen Datenpunkte identifizieren</li>
 </ul>
-<p>In diesem Fall ist alles weitestgehend erfüllt.</p>
-<p>Beispiel für schlechte Ergebnisse: <a href="https://data.library.virginia.edu/diagnostic-plots/">https://data.library.virginia.edu/diagnostic-plots/</a></p>
+<p>In diesem Fall ist alles weitestgehend erfüllt. Da wir uns hier im Rahmen einer grafischen Überprüfung befinden, ist es natürlich schwer direkte Richtlinien festzulegen. Die Fähigkeit zur Einordnung einer Verletzung stärkt sich mit der Erfahrung - also der Betrachtung im Rahmen von sehr vielen Analysen. Wir verweisen <a href="https://data.library.virginia.edu/diagnostic-plots/">hier</a> zur Veranschaulich auch auf ein Beispiel mit starken Verletzungen.</p>
 <p><strong>Alternativer Weg zur Prüfung der Normalverteilung der Residuen</strong></p>
+<p>Da wir uns die Residuen (also die Fehler in der Vorhersage) direkt vom Modell ausgeben lassen können, können wir zur Überprüfung ihrer Verteilung auch unsere schon bekannten Befehle nutzen. Hier wird nochmal ein Histogramm und ein QQ-Plot gezeichnet, weiterhin wird die inferzstatistische Testung durchgeführt.</p>
 <pre class="r"><code>res1 &lt;- residuals(fm)   #Residuen speichern 
 
 #QQ
@@ -111,12 +151,12 @@ shapiro.test(res1)</code></pre>
 ##  Shapiro-Wilk normality test
 ## 
 ## data:  res1
-## W = 0.99056, p-value = 0.6225</code></pre>
-<p><span class="math inline">\(\rightarrow\)</span> Der p-Wert ist größer als .05 <span class="math inline">\(\rightarrow\)</span> Die Nullhypothese konnte nicht verworfen werden und wird beibehalten: Für die Residuen wird also Normalverteilung angenommen. Somit sind alle Voraussetzungen zur Durchführung der linearen Regression erfüllt.</p>
+## W = 0.99446, p-value = 0.8122</code></pre>
+<p>Die Plots weisen auf keine Verletzung der Annahme hin. Auch der p-Wert ist größer als .05 <span class="math inline">\(\rightarrow\)</span> Die Nullhypothese konnte nicht verworfen werden und wird beibehalten: Für die Residuen wird also Normalverteilung angenommen. Somit sind alle Voraussetzungen zur Durchführung der linearen Regression erfüllt.</p>
 </div>
 <div id="modellschätzung" class="section level3">
 <h3>Modellschätzung</h3>
-<p>Die Modellgleichung für die lineare Regression, wie sie in der Vorlesung besprochen wurde, lautet: <span class="math inline">\(y_i = b_0 + b_1 x_i + e_i\)</span></p>
+<p>Die Modellgleichung für die lineare Regression, wie sie in der Vorlesung besprochen wurde, lautet: <span class="math inline">\(y_m = b_0 + b_1 x_m + e_m\)</span></p>
 <p>In R gibt es eine interne Schreibweise, die sehr eng an diese Form der Notation angelehnt ist. Mit <code>?formula</code> können Sie sich detailliert ansehen, welche Modelle in welcher Weise mit dieser Notation dargestellt werden können. R verwendet diese Notation für (beinahe) alle Modelle, sodass es sich lohnt, sich mit dieser Schreibweise vertraut zu machen. Die Kernelemente sind im Fall der linearen Regression</p>
 <pre class="r"><code>y ~ 1 + x</code></pre>
 <p>Diese Notation enthält fünf Elemente:</p>
@@ -128,127 +168,153 @@ shapiro.test(res1)</code></pre>
 <li><code>x</code>: eine unabhängige Variable</li>
 </ul>
 <p>Die Notation beschreibt also die Aussage “<span class="math inline">\(y\)</span> wird regrediert auf die Konstante <span class="math inline">\(1\)</span> und die Variable <span class="math inline">\(x\)</span>”. Die zu schätzenden Parameter <span class="math inline">\(b_0\)</span> und <span class="math inline">\(b_1\)</span> werden in dieser Notation nicht erwähnt, weil sie uns unbekannt sind.</p>
-<p>R geht generell davon aus, dass immer auch der Achsenabschnitt <span class="math inline">\(b_0\)</span> geschätzt werden soll, sodass <code>y ~ x</code> ausreichend ist, um eine Regression zu beschreiben. Wenn das Intercept unterdrückt werden soll, muss das mit <code>y ~ 0 + x</code> explizit gemacht werden.</p>
+<p>R geht generell davon aus, dass immer auch der Achsenabschnitt <span class="math inline">\(b_0\)</span> geschätzt werden soll, sodass <code>y ~ x</code> ausreichend ist, um eine Regression mit einem Achsenabschnitt zu beschreiben. Wenn das Intercept unterdrückt werden soll, muss das mit <code>y ~ 0 + x</code> explizit gemacht werden.</p>
 <p>In unserem Beispiel ist <span class="math inline">\(x\)</span> die Extraversion (<code>extra</code>) und <span class="math inline">\(y\)</span> die Nerdiness (<code>nerd</code>). Um das Modell zu schätzen, wird dann der <code>lm</code> (für “linear model”) Befehl genutzt:</p>
-<pre class="r"><code>lm(formula = nerd ~ 1 + extra, data = fb21)</code></pre>
+<pre class="r"><code>lm(formula = nerd ~ 1 + extra, data = fb22)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = nerd ~ 1 + extra, data = fb21)
+## lm(formula = nerd ~ 1 + extra, data = fb22)
 ## 
 ## Coefficients:
 ## (Intercept)        extra  
-##      4.3847      -0.3741</code></pre>
-<p>So werden die Koeffizienten direkt ausgegeben. Wir haben das Modell bereits abgespeichert, da wir es für die Überprüfung der Voraussetzungen benötigt haben. Hierzu muss das Modell einem Objekt zugewiesen werden. Hier in verkürzter Schreibweise:</p>
-<pre class="r"><code>fm &lt;- lm(nerd ~ extra, fb21)</code></pre>
+##      3.8554      -0.2156</code></pre>
+<p>So werden die Koeffizienten direkt ausgegeben. Wir haben das Modell bereits abgespeichert, da wir es für die Überprüfung der Voraussetzungen benötigt haben. Hierzu muss das Modell einem Objekt zugewiesen werden. Hier in verkürzter Schreibweise (wir lassen die 1 als Repräsentant für den Achsenabschnitt weg)´:</p>
+<pre class="r"><code>fm &lt;- lm(nerd ~ extra, fb22)</code></pre>
 <p>Aus diesem Objekt können mit <code>coef</code> die geschätzten Koeffizienten extrahiert werden:</p>
 <pre class="r"><code>coef(fm)</code></pre>
 <pre><code>## (Intercept)       extra 
-##   4.3847491  -0.3740577</code></pre>
+##   3.8553535  -0.2156064</code></pre>
 <p>Falls man sich unsicher ist, wie dieses Modell zustande gekommen ist, kann man dies ausdrücklich erfragen:</p>
 <pre class="r"><code>formula(fm)</code></pre>
 <pre><code>## nerd ~ extra</code></pre>
 <p>Wie wir bereits weiter oben gesehen haben, werden mit dem Befehl <code>lm</code> auch automatisch immer die Residuen (<span class="math inline">\(e_m\)</span>) geschätzt, die mit <code>residuals</code> (oder alternativ: <code>resid</code>) abgefragt werden können.</p>
 <pre class="r"><code>residuals(fm)</code></pre>
-<pre><code>##            6            7            8           11           29           37 
-## -0.262575883 -0.543119186 -0.274641511 -0.908880348 -0.148699247  0.082823077 
-##           39           41           48           49           52           53 
-##  0.050395248  0.237424117  0.790214147  0.111481854  0.798510722  0.237424117 
-##           55           56           58           59           60           61 
-## -0.429242550 -0.648699247 -1.095909217 -0.555184813 -0.095909217  1.091119652 
-##           62           64           65           67           68           69 
-## -0.709785853 -1.315365914 -0.209785853  0.509670845 -0.022756984  0.717061915 
-##           70           71           72           73           78           79 
-##  0.790214147 -1.148699247  0.164271884 -1.356090318  0.570757450 -0.043119186 
-##           80           81           84           85           86           87 
-##  0.757786318  0.290214147 -0.148699247 -0.043119186 -0.388518146 -0.055184813 
-##           90           91           92           93           97           98 
-##  0.111481854  0.204996288 -1.148699247 -0.356090318  0.591119652  0.184634086 
-##           99          100          104          105          106          107 
-##  0.404090783  0.538329621 -0.868155945  0.017967419 -1.575547015 -0.075547015 
-##          108          109          111          112          113          116 
-##  0.611481854  0.404090783  0.050395248 -1.116271418 -0.408880348 -0.648699247 
-##          117          118          120          122          125          126 
-## -0.929242550 -0.648699247 -0.408880348 -0.856090318  0.278148520  1.017967419 
-##          128          129          130          131          135          137 
-##  0.871662954  0.143909682  0.143909682  0.038329621  0.570757450  0.944815187 
-##          138          141          143          149          150          151 
-## -1.148699247 -0.055184813 -1.107974844  0.123547481  0.424452985  0.371662954 
-##          152          155          156          157          158          159 
-##  1.778148520  0.278148520 -0.242213682  0.164271884 -0.181127076 -0.002394782 
-##          161          162          163          164          165          166 
-##  0.924452985 -0.262575883 -0.274641511  0.477243016  0.684634086  0.810576349 
-##          167          168          169          170          171          173 
-## -0.262575883 -0.449604752  0.217061915  0.111481854 -0.356090318  0.924452985 
-##          175          177          178          179          180          181 
-## -0.189423651  0.517967419  0.424452985  0.611481854 -0.055184813  0.278148520 
-##          186          187          189          190          192          193 
-##  0.944815187  0.863366380  1.217061915 -0.043119186  0.530033047  0.684634086 
-##          194          195          196          198          199          200 
-##  0.965177389 -0.982032581 -0.742213682 -0.669061449 -0.169061449 -0.669061449 
-##          201          202          203          204          206          208 
-## -0.408880348 -0.648699247  0.538329621 -0.709785853  0.070757450 -0.189423651</code></pre>
+<pre><code>##         1897         1898         1899         1900         1901         1902 
+## -0.595769219  0.953170506  1.394307035  0.173738771  0.850329183  0.458132379 
+##         1903         1904         1905         1906         1907         1908 
+##  0.570897447 -0.434064425  0.668776898  0.389345163 -0.424140680  0.129760918 
+##         1909         1910         1912         1914         1915         1916 
+##  1.173738771  0.007072104 -0.541867621 -0.046829494 -0.095769219  0.070897447 
+##         1917         1918         1919         1920         1921         1922 
+##  0.840405437 -0.875200955  0.065935575  0.394307035 -1.257474013  0.119837173 
+##         1923         1924         1925         1926         1927         1928 
+##  0.345367310  0.394307035 -0.149670817  0.678700643  0.232602241  0.232602241 
+##         1929         1930         1931         1932         1934         1935 
+## -0.051791367  0.453170506  0.060973702  0.619837173 -1.439026298 -0.321299357 
+##         1936         1937         1938         1939         1940         1941 
+## -0.541867621  0.345367310  0.737564114  0.345367310  0.178700643  1.070897447 
+##         1942         1943         1944         1945         1946         1947 
+##  0.516995849 -0.375200955 -0.257474013  0.948208633  0.291465712  0.453170506 
+##         1948         1949         1950         1951         1953         1954 
+## -0.811375611  1.124799045  0.173738771 -0.546829494  0.119837173 -1.100731092 
+##         1955         1956         1957         1958         1959         1960 
+##  0.458132379  1.007072104  0.340405437  0.056011829 -0.257474013  0.963094251 
+##         1961         1962         1963         1964         1965         1966 
+## -1.262435886  0.286503839 -0.164556435 -0.159594563 -1.105692965  0.056011829 
+##         1967         1968         1969         1970         1971         1972 
+##  0.904230781  0.512033977  0.232602241  0.345367310 -0.600731092 -0.385124700 
+##         1974         1975         1976         1977         1978         1979 
+## -0.331223102 -0.380162827 -0.375200955  0.012033977  0.012033977 -0.272359631 
+##         1980         1981         1982         1985         1986         1987 
+## -0.434064425 -1.213496161 -0.595769219 -1.492927896  0.232602241  0.301389457 
+##         1988         1989         1990         1991         1992         1994 
+## -0.767397759 -0.046829494  0.296427585  0.178700643 -0.875200955  0.512033977 
+##         1995         1996         1997         1998         1999         2000 
+## -0.100731092  0.237564114 -0.154632690  0.070897447 -0.605692965  1.781541967 
+##         2001         2002         2003         2004         2006         2008 
+##  0.012033977 -1.041867621 -0.654632690 -0.321299357 -0.267397759 -0.992927896 
+##         2009         2011         2012         2013         2017         2018 
+## -0.046829494  0.678700643 -0.713496161  0.178700643 -0.713496161 -0.708534288 
+##         2021         2022         2023         2024         2027         2028 
+##  0.516995849  0.173738771 -0.159594563  0.953170506  0.463094251 -1.095769219 
+##         2031         2032         2034         2035         2036         2039 
+##  0.512033977 -0.036905749 -0.600731092 -0.429102553  0.012033977 -0.316337484 
+##         2040         2041         2042         2043         2044         2045 
+## -1.036905749 -0.262435886  0.399268908 -0.659594563 -0.659594563 -0.370239082 
+##         2046         2047         2048         2049         2050         2051 
+##  0.129760918 -1.105692965  0.512033977  0.345367310 -0.041867621  1.453170506 
+##         2052         2054         2058         2060         2061         2062 
+##  0.619837173  0.796427585 -0.434064425  0.178700643 -0.487966023 -0.326261229 
+##         2063         2065         2066         2067         2068         2069 
+##  1.129760918  0.286503839  1.232602241 -0.659594563 -0.546829494  0.237564114 
+##         2070         2071         2072         2073         2074         2075 
+##  0.737564114 -0.487966023 -0.551791367 -1.375200955  0.237564114  0.619837173 
+##         2076         2077         2078         2079         2080         2081 
+##  0.512033977  0.060973702 -0.605692965 -0.041867621  0.399268908  0.458132379 
+##         2082         2083         2084 
+## -0.041867621 -0.100731092 -0.885124700</code></pre>
 <p>Diese können auch als neue Variable im Datensatz angelegt werden und hätten dort die Bedeutung des “Ausmaßes an Nerdiness, das nicht durch Extraversion vorhergesagt werden kann” - also die Differenz aus vorhergesagtem und tatsächlich beobachtetem Wert der y-Variable (Nerdiness).</p>
-<pre class="r"><code>fb21$res &lt;- residuals(fm)</code></pre>
-<p>Die folgenden Ergebnisse aus <code>fm</code> werden wir verwenden. In <code>fm$coef</code> stehen die Regressionskoeffizienten <span class="math inline">\(b_0\)</span> unter <code>(Intercept)</code> zur Konstanten gehörend und <span class="math inline">\(b_1\)</span> unter dem Namen der Variable, die wir als Prädiktor nutzen. In diesem Fall also <code>extra</code>. Die Regressionsgleichung hat daher die folgende Gestalt: <span class="math inline">\(y_i = 4.38 + -0.37 \cdot x + e_i\)</span>.</p>
+<pre class="r"><code>fb22$res &lt;- residuals(fm)</code></pre>
+<p>Die folgenden Ergebnisse aus <code>fm</code> werden wir verwenden. In <code>fm$coef</code> stehen die Regressionskoeffizienten <span class="math inline">\(b_0\)</span> unter <code>(Intercept)</code> zur Konstanten gehörend und <span class="math inline">\(b_1\)</span> unter dem Namen der Variable, die wir als Prädiktor nutzen. In diesem Fall also <code>extra</code>. Die Regressionsgleichung hat daher die folgende Gestalt: <span class="math inline">\(y_i = 3.86 + -0.22 \cdot x + e_i\)</span>.</p>
 <p>Regressionsgleichung (unstandardisiert):</p>
-<p><span class="math display">\[\hat{y} = b_0 + b_1*x_i\]</span>
-<span class="math display">\[\hat{y} = 4.38 + -0.37x_i\]</span></p>
+<p><span class="math display">\[\hat{y} = b_0 + b_1*x_m\]</span>
+<span class="math display">\[\hat{y} = 3.86 + (-0.22)*x_m\]</span></p>
 <p><strong>Interpretation der Regressionskoeffizienten:</strong></p>
 <ul>
-<li><em>b0 (Regressionsgewicht)</em>: beträgt die Extraversion 0, wird eine Nerdiness von 4.38 vorhergesagt<br />
+<li><em>b0 (Regressionsgewicht)</em>: beträgt die Extraversion 0, wird eine Nerdiness von 3.86 vorhergesagt<br />
 </li>
-<li><em>b1 (Regressionsgewicht)</em>: mit jeder Steigerung der Extraversion um 1 Einheit wird eine um 0.37 Einheiten niedrigere (!) Nerdiness vorhergesagt</li>
+<li><em>b1 (Regressionsgewicht)</em>: mit jeder Steigerung der Extraversion um 1 Einheit wird eine um 0.22 Einheiten niedrigere (!) Nerdiness vorhergesagt</li>
 </ul>
 </div>
 <div id="vorhergesagte-werte" class="section level3">
 <h3>Vorhergesagte Werte</h3>
 <p>Die vorhergesagten Werten <span class="math inline">\(\hat{y}\)</span> können mit <code>predict</code> ermittelt werden:</p>
 <pre class="r"><code>predict(fm)</code></pre>
-<pre><code>##        6        7        8       11       29       37       39       41 
-## 3.262576 3.543119 2.607975 3.075547 2.982033 3.917177 3.449605 3.262576 
-##       48       49       52       53       55       56       58       59 
-## 3.543119 2.888518 2.701489 3.262576 3.262576 2.982033 3.262576 2.888518 
-##       60       61       62       64       65       67       68       69 
-## 3.262576 3.075547 3.543119 2.982033 3.543119 3.823662 3.356090 3.449605 
-##       70       71       72       73       78       79       80       81 
-## 3.543119 2.982033 3.169061 3.356090 3.262576 3.543119 3.075547 3.543119 
-##       84       85       86       87       90       91       92       93 
-## 2.982033 3.543119 2.888518 2.888518 2.888518 2.795004 2.982033 3.356090 
-##       97       98       99      100      104      105      106      107 
-## 3.075547 2.982033 3.262576 2.795004 2.701489 2.982033 3.075547 3.075547 
-##      108      109      111      112      113      116      117      118 
-## 2.888518 3.262576 3.449605 3.449605 3.075547 2.982033 3.262576 2.982033 
-##      120      122      125      126      128      129      130      131 
-## 3.075547 3.356090 2.888518 2.982033 2.795004 3.356090 3.356090 2.795004 
-##      135      137      138      141      143      149      150      151 
-## 3.262576 2.888518 2.982033 2.888518 2.607975 3.543119 3.075547 2.795004 
-##      152      155      156      157      158      159      161      162 
-## 2.888518 2.888518 3.075547 3.169061 2.514460 3.169061 3.075547 3.262576 
-##      163      164      165      166      167      168      169      170 
-## 2.607975 3.356090 2.982033 3.356090 3.262576 3.449605 3.449605 2.888518 
-##      171      173      175      177      178      179      180      181 
-## 3.356090 3.075547 3.356090 2.982033 3.075547 2.888518 2.888518 2.888518 
-##      186      187      189      190      192      193      194      195 
-## 2.888518 3.636634 3.449605 3.543119 3.636634 2.982033 2.701489 2.982033 
-##      196      198      199      200      201      202      203      204 
-## 3.075547 3.169061 3.169061 3.169061 3.075547 2.982033 2.795004 3.543119 
-##      206      208 
-## 3.262576 3.356090</code></pre>
+<pre><code>##     1897     1898     1899     1900     1901     1902     1903     1904 
+## 3.262436 3.046829 2.939026 2.992928 3.316337 3.208534 3.262436 3.100731 
+##     1905     1906     1907     1908     1909     1910     1912     1914 
+## 2.831223 2.777322 3.424141 3.370239 2.992928 2.992928 3.208534 3.046829 
+##     1915     1916     1917     1918     1919     1920     1921     1922 
+## 3.262436 3.262436 2.992928 3.208534 3.100731 2.939026 3.424141 3.046829 
+##     1923     1924     1925     1926     1927     1928     1929     1930 
+## 3.154633 2.939026 3.316337 3.154633 3.100731 3.100731 2.885125 3.046829 
+##     1931     1932     1934     1935     1936     1937     1938     1939 
+## 2.939026 3.046829 2.939026 3.154633 3.208534 3.154633 3.262436 3.154633 
+##     1940     1941     1942     1943     1944     1945     1946     1947 
+## 3.154633 3.262436 3.316337 3.208534 3.424141 2.885125 3.208534 3.046829 
+##     1948     1949     1950     1951     1953     1954     1955     1956 
+## 3.478042 3.208534 2.992928 3.046829 3.046829 3.100731 3.208534 2.992928 
+##     1957     1958     1959     1960     1961     1962     1963     1964 
+## 2.992928 2.777322 3.424141 3.370239 3.262436 3.046829 2.831223 2.992928 
+##     1965     1966     1967     1968     1969     1970     1971     1972 
+## 2.939026 2.777322 3.262436 3.154633 3.100731 3.154633 3.100731 2.885125 
+##     1974     1975     1976     1977     1978     1979     1980     1981 
+## 2.831223 3.046829 3.208534 3.154633 3.154633 2.939026 3.100731 3.046829 
+##     1982     1985     1986     1987     1988     1989     1990     1991 
+## 3.262436 2.992928 3.100731 3.531944 3.100731 3.046829 3.370239 3.154633 
+##     1992     1994     1995     1996     1997     1998     1999     2000 
+## 3.208534 3.154633 3.100731 3.262436 3.154633 3.262436 2.939026 2.885125 
+##     2001     2002     2003     2004     2006     2008     2009     2011 
+## 3.154633 3.208534 3.154633 3.154633 3.100731 2.992928 3.046829 3.154633 
+##     2012     2013     2017     2018     2021     2022     2023     2024 
+## 3.046829 3.154633 3.046829 3.208534 3.316337 2.992928 2.992928 3.046829 
+##     2027     2028     2031     2032     2034     2035     2036     2039 
+## 3.370239 3.262436 3.154633 3.370239 3.100731 3.262436 3.154633 3.316337 
+##     2040     2041     2042     2043     2044     2045     2046     2047 
+## 3.370239 3.262436 3.100731 2.992928 2.992928 3.370239 3.370239 2.939026 
+##     2048     2049     2050     2051     2052     2054     2058     2060 
+## 3.154633 3.154633 3.208534 3.046829 3.046829 3.370239 3.100731 3.154633 
+##     2061     2062     2063     2065     2066     2067     2068     2069 
+## 3.154633 2.992928 3.370239 3.046829 3.100731 2.992928 3.046829 3.262436 
+##     2070     2071     2072     2073     2074     2075     2076     2077 
+## 3.262436 3.154633 2.885125 3.208534 3.262436 3.046829 3.154633 2.939026 
+##     2078     2079     2080     2081     2082     2083     2084 
+## 2.939026 3.208534 3.100731 3.208534 3.208534 3.100731 2.885125</code></pre>
 <p>Per Voreinstellung werden hier die vorhergesagten Werte aus unserem ursprünglichen Datensatz dargestellt. <code>predict</code> erlaubt uns aber auch Werte von “neuen” Beobachtungen vorherzusagen. Nehmen wir an, wir würden die Extraversion von 5 neuen Personen beobachten (sie haben - vollkommen zufällig - die Werte 1, 2, 3, 4 und 5) und diese Beobachtungen in einem neuem Datensatz <code>extra_neu</code> festhalten:</p>
 <pre class="r"><code>extra_neu &lt;- data.frame(extra = c(1, 2, 3, 4, 5))</code></pre>
 <p>Anhand unseres Modells können wir für diese Personen auch ihre Nerdiness vorhersagen, obwohl wir diese nicht beobachtet haben:</p>
 <pre class="r"><code>predict(fm, newdata = extra_neu)</code></pre>
 <pre><code>##        1        2        3        4        5 
-## 4.010691 3.636634 3.262576 2.888518 2.514460</code></pre>
+## 3.639747 3.424141 3.208534 2.992928 2.777322</code></pre>
 <p>Damit diese Vorhersage funktioniert, muss im neuen Datensatz eine Variable mit dem Namen <code>extra</code> vorliegen.</p>
 </div>
 <div id="streu-punktdiagramm-mit-regressionsgerade" class="section level3">
 <h3>Streu-Punktdiagramm mit Regressionsgerade</h3>
 <p>Das Streudiagramm haben wir zu Beginn schon abbilden lassen. Hier kann zusätzlich noch der geschätzte Zusammenhang zwischen den beiden Variablen als Regressiongerade eingefügt werden. Hierzu wird der Befehl <code>plot</code> durch <code>abline</code> ergänzt:</p>
 <pre class="r"><code># Scatterplot zuvor im Skript beschrieben
-plot(fb21$extra, fb21$nerd, 
+plot(fb22$extra, fb22$nerd, 
   xlim = c(0, 6), ylim = c(1, 5), pch = 19)
-lines(loess.smooth(fb21$extra, fb21$nerd), col = &#39;blue&#39;)    #beobachteter, lokaler Zusammenhang
+lines(loess.smooth(fb22$extra, fb22$nerd), col = &#39;blue&#39;)    #beobachteter, lokaler Zusammenhang
 # Ergebnisse der Regression als Gerade aufnehmen
 abline(fm, col = &#39;red&#39;)</code></pre>
 <p><img src="/post/2021-11-22-regression_files/figure-html/unnamed-chunk-16-1.png" width="672" /></p>
@@ -257,15 +323,15 @@ abline(fm, col = &#39;red&#39;)</code></pre>
 <h3>Standardisierte Regressionsgewichte</h3>
 <p>Bei einer Regression (besonders wenn mehr als ein Prädiktor in das Modell aufgenommen wird) kann es sinnvoll sein, die standardisierten Regressionskoeffizienten zu betrachten, um die Erklärungs- oder Prognosebeiträge der einzelnen unabhängigen Variablen (unabhängig von den bei der Messung der Variablen gewählten Einheiten) miteinander vergleichen zu können, z. B. um zu sehen, welche Variable den größten Beitrag zur Prognose der abhängigen Variable leistet. Außerdem ist es hierdurch möglich, die Ergebnisse zwischen verschiedenen Studien zu vergleichen, die <code>nerd</code> und <code>extra</code> gemessen haben, jedoch in unterschiedlichen Einheiten. Durch die Standardisierung werden die Regressionskoeffizienten vergleichbar.
 Die Variablen werden mit <code>scale</code> standardisiert (z-Transformation; Erwartungswert gleich Null und die Varianz gleich Eins gesetzt). Mit <code>lm</code> wird das Modell berechnet.</p>
-<pre class="r"><code>sfm &lt;- lm(scale(nerd) ~ scale(extra), fb21)
+<pre class="r"><code>sfm &lt;- lm(scale(nerd) ~ scale(extra), fb22)
 sfm</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = scale(nerd) ~ scale(extra), data = fb21)
+## lm(formula = scale(nerd) ~ scale(extra), data = fb22)
 ## 
 ## Coefficients:
 ##  (Intercept)  scale(extra)  
-##    6.899e-17    -3.975e-01</code></pre>
+##    8.719e-17    -2.335e-01</code></pre>
 <hr />
 </div>
 <div id="determinationskoeffizient-r2" class="section level3">
@@ -276,39 +342,40 @@ Das Bestimmtheitsmaß ist definiert als der Anteil, der durch die Regression erk
 <p>Für die Berechnung per Hand werden die einzelnen Varianzen benötigt:</p>
 <p><span class="math inline">\(R^2 = \frac{s^2_{\hat{Y}}}{s^2_{Y}} = \frac{s^2_{\hat{Y}}}{s^2_{\hat{Y}} + s^2_{E}}\)</span></p>
 <pre class="r"><code># Anhand der Varianz von lz
-var(predict(fm)) / var(fb21$nerd, use = &quot;na.or.complete&quot;)</code></pre>
-<pre><code>## [1] 0.1579873</code></pre>
+var(predict(fm)) / var(fb22$nerd, use = &quot;na.or.complete&quot;)</code></pre>
+<pre><code>## [1] 0.05451483</code></pre>
 <pre class="r"><code># Anhand der Summe der Varianzen
 var(predict(fm)) / (var(predict(fm)) + var(resid(fm)))</code></pre>
-<pre><code>## [1] 0.1579873</code></pre>
+<pre><code>## [1] 0.05451483</code></pre>
 <p>Jedoch kann dieser umständliche Weg umgangen werden.
-Mit der Funktion <code>summary</code> kann ein Überblick über verschiedene Variablen und auch Funktionen generiert werden. Für lineare Funktionen werden mit diesem Befehl unter anderem auch die Koeffizienten angezeigt. Anhand des p-Werts kann hier auch die Signifikanz des <span class="math inline">\(R^2\)</span> überprüft werden.</p>
+Mit der Funktion <code>summary</code> kann ein Überblick über verschiedene Ergebnisse eines Modells gewonnen werden. Für lineare Modelle werden mit diesem Befehl unter anderem auch die Koeffizienten angezeigt. Anhand des p-Werts kann hier auch die Signifikanz des <span class="math inline">\(R^2\)</span> überprüft werden.</p>
 <pre class="r"><code>#Detaillierte Modellergebnisse
 summary(fm)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = nerd ~ extra, data = fb21)
+## lm(formula = nerd ~ extra, data = fb22)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
-## -1.57555 -0.40888  0.02815  0.50156  1.77815 
+## -1.49293 -0.43406  0.05601  0.39927  1.78154 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   4.3848     0.2781  15.765  &lt; 2e-16 ***
-## extra        -0.3741     0.0816  -4.584 1.19e-05 ***
+## (Intercept)  3.85535    0.24733  15.588  &lt; 2e-16 ***
+## extra       -0.21561    0.07166  -3.009  0.00306 ** 
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 0.6465 on 112 degrees of freedom
-## Multiple R-squared:  0.158,  Adjusted R-squared:  0.1505 
-## F-statistic: 21.01 on 1 and 112 DF,  p-value: 1.193e-05</code></pre>
+## Residual standard error: 0.6359 on 157 degrees of freedom
+## Multiple R-squared:  0.05451,    Adjusted R-squared:  0.04849 
+## F-statistic: 9.052 on 1 and 157 DF,  p-value: 0.003057</code></pre>
 <p>Determinationskoeffizient <span class="math inline">\(R^2\)</span> ist signifikant, da <span class="math inline">\(p &lt; \alpha\)</span>.</p>
 <p>Der Determinationskoeffizient <span class="math inline">\(R^2\)</span> kann auch direkt über den Befehl <code>summary()$r.squared</code> ausgegeben werden:</p>
 <pre class="r"><code>summary(fm)$r.squared</code></pre>
-<pre><code>## [1] 0.1579873</code></pre>
-<p>15.8% der Varianz von <code>nerd</code> können durch <code>extra</code> erklärt werden. Dieser Effekt ist nach Cohens (1988) Konvention als mittelstark zu bewerten.</p>
-<p><strong>Exkurs: Cohens (1988) Konvention zur Interpretation von <span class="math inline">\(R^2\)</span>:</strong></p>
+<pre><code>## [1] 0.05451483</code></pre>
+<p>5.45% der Varianz von <code>nerd</code> können durch <code>extra</code> erklärt werden. Dieser Effekt ist nach Cohens (1988) Konvention als schwach bis mittelstark zu bewerten, wenn keine Erkenntnisse in dem spezifischen Bereich vorliegen.</p>
+<p><strong>Cohens (1988) Konvention zur Interpretation von <span class="math inline">\(R^2\)</span>:</strong></p>
+<p>Konventionen sind, wie bereits besprochen, heranzuziehen, wenn keine vorherigen Untersuchungen der Fragestellung oder zumindest in dem Forschungsbereich vorliegen. Die vorgeschlagenen Werte von <span class="math inline">\(R^2\)</span> entsprechen dabei dem Quadrat der in der <a href="/post/korrelation">letzten Sitzung</a> genannten Konventionen für <span class="math inline">\(r\)</span>.</p>
 <ul>
 <li>~ .01: schwacher Effekt<br />
 </li>
@@ -320,49 +387,49 @@ summary(fm)</code></pre>
 </div>
 <div id="korrelation-vs.-regression" class="section level3">
 <h3>Korrelation vs. Regression</h3>
-<p>Im Falle einer einfachen linearen Regression (1 Prädiktor) ist das standardisierte Regressionsgewicht identisch zur Produkt-Moment-Korrelation aus Prtädiktor (<code>extra</code>) und Kriterium (<code>nerd</code>)</p>
-<pre class="r"><code>cor(fb21$nerd, fb21$extra)   # Korrelation</code></pre>
-<pre><code>## [1] -0.3974762</code></pre>
-<pre class="r"><code>sfm &lt;- lm(scale(nerd) ~ scale(extra), fb21) # Regression mit standardisierten Variablen
+<p>Im Falle einer einfachen linearen Regression (1 Prädiktor) ist das standardisierte Regressionsgewicht identisch zur Produkt-Moment-Korrelation aus Prädiktor (<code>extra</code>) und Kriterium (<code>nerd</code>)</p>
+<pre class="r"><code>cor(fb22$nerd, fb22$extra)   # Korrelation</code></pre>
+<pre><code>## [1] -0.2334841</code></pre>
+<pre class="r"><code>sfm &lt;- lm(scale(nerd) ~ scale(extra), fb22) # Regression mit standardisierten Variablen
 sfm</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = scale(nerd) ~ scale(extra), data = fb21)
+## lm(formula = scale(nerd) ~ scale(extra), data = fb22)
 ## 
 ## Coefficients:
 ##  (Intercept)  scale(extra)  
-##    6.899e-17    -3.975e-01</code></pre>
-<pre class="r"><code>round(coef(sfm)[&quot;scale(extra)&quot;],3) == round(cor(fb21$nerd, fb21$extra),3)</code></pre>
+##    8.719e-17    -2.335e-01</code></pre>
+<pre class="r"><code>round(coef(sfm)[&quot;scale(extra)&quot;],3) == round(cor(fb22$nerd, fb22$extra),3)</code></pre>
 <pre><code>## scale(extra) 
 ##         TRUE</code></pre>
 <p>Entsprechend ist das Quadrat der Korrelation identisch zum Determinationskoeffizienten des Modells mit standardisierten Variablen…</p>
-<pre class="r"><code>cor(fb21$nerd, fb21$extra)^2   # Quadrierte Korrelation</code></pre>
-<pre><code>## [1] 0.1579873</code></pre>
+<pre class="r"><code>cor(fb22$nerd, fb22$extra)^2   # Quadrierte Korrelation</code></pre>
+<pre><code>## [1] 0.05451483</code></pre>
 <pre class="r"><code>summary(sfm)$ r.squared  # Det-Koeffizient Modell mit standardisierten Variablen</code></pre>
-<pre><code>## [1] 0.1579873</code></pre>
-<pre class="r"><code>round((cor(fb21$nerd, fb21$extra)^2),3) == round(summary(sfm)$ r.squared, 3)</code></pre>
+<pre><code>## [1] 0.05451483</code></pre>
+<pre class="r"><code>round((cor(fb22$nerd, fb22$extra)^2),3) == round(summary(sfm)$ r.squared, 3)</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <p>… und unstandardisierten Variablen</p>
-<pre class="r"><code>cor(fb21$nerd, fb21$extra)^2   # Quadrierte Korrelation</code></pre>
-<pre><code>## [1] 0.1579873</code></pre>
+<pre class="r"><code>cor(fb22$nerd, fb22$extra)^2   # Quadrierte Korrelation</code></pre>
+<pre><code>## [1] 0.05451483</code></pre>
 <pre class="r"><code>summary(fm)$ r.squared  # Det-Koeffizient Modell mit unstandardisierten Variablen</code></pre>
-<pre><code>## [1] 0.1579873</code></pre>
-<pre class="r"><code>round((cor(fb21$nerd, fb21$extra)^2),3) == round(summary(fm)$ r.squared, 3)</code></pre>
+<pre><code>## [1] 0.05451483</code></pre>
+<pre class="r"><code>round((cor(fb22$nerd, fb22$extra)^2),3) == round(summary(fm)$ r.squared, 3)</code></pre>
 <pre><code>## [1] TRUE</code></pre>
 <p>Der standardisierte Korrelationskoeffizient in einer einfachen linearen Regression liefert also dieselben Informationen wie eine Produkt-Moment-Korrelation. Daraus wird auch ersichtlich, dass ein Regressionskoeffizient (genau wie eine Korrelation) nicht zulässt, auf die Richtung des Effekts (Kausalität) zu schließen.</p>
 <hr />
 </div>
 </div>
-<div id="inferenzstatistische-überprüfung-des-regressionsparameter-b" class="section level2">
-<h2>Inferenzstatistische Überprüfung des Regressionsparameter <em>b</em></h2>
+<div id="inferenzstatistische-überprüfung-der-regressionsparameter-b" class="section level2">
+<h2>Inferenzstatistische Überprüfung der Regressionsparameter <em>b</em></h2>
 <p><strong>Signifikanztestung der Regressionskoeffizienten:</strong></p>
 <p>Zuerst kann die Betrachtung der Konfidenzintervalle helfen. Der Befehl <code>confint</code> berechnet die Konfidenzintervalle der Regressionsgewichte.</p>
 <pre class="r"><code>#Konfidenzintervalle der Regressionskoeffizienten
 confint(fm)</code></pre>
-<pre><code>##                  2.5 %     97.5 %
-## (Intercept)  3.8336786  4.9358196
-## extra       -0.5357331 -0.2123824</code></pre>
-<p>Das Konfidenzintervall von -0.536 und -0.212 ist der Bereich, in dem wir den wahren Wert vermuten können. Zur Erinnerung: das 95% Konfidenzintervall besagt, dass, wenn wir diese Studie mit der selben Stichprobengröße sehr oft wiederholen, 95% aller realisierten Konfidenzintervalle den wahren Wert für <span class="math inline">\(b_1\)</span> enthalten werden. Da die 0 nicht in diesem Intervall enthalten ist, ist 0 ein eher unwahrscheinlicher wahrer Wert für <span class="math inline">\(b_1\)</span>.</p>
+<pre><code>##                  2.5 %      97.5 %
+## (Intercept)  3.3668258  4.34388110
+## extra       -0.3571501 -0.07406269</code></pre>
+<p>Das Konfidenzintervall von -0.357 und -0.074 ist der Bereich, in dem wir den wahren Wert vermuten können. Zur Erinnerung: das 95% Konfidenzintervall besagt, dass, wenn wir diese Studie mit der selben Stichprobengröße sehr oft wiederholen, 95% aller realisierten Konfidenzintervalle den wahren Wert für <span class="math inline">\(b_1\)</span> enthalten werden. Da die 0 nicht in diesem Intervall enthalten ist, ist 0 ein eher unwahrscheinlicher wahrer Wert für <span class="math inline">\(b_1\)</span>.</p>
 <ul>
 <li><span class="math inline">\(b_1\)</span>
 <ul>
@@ -372,9 +439,9 @@ confint(fm)</code></pre>
 </ul></li>
 <li><span class="math inline">\(b_0\)</span> (häufig nicht von Interesse)
 <ul>
-<li>H0: <span class="math inline">\(b_0 = 0\)</span>, der Achsenabschnitt ist nicht von Null verschieden.<br />
+<li>H0: <span class="math inline">\(b_0 = 0\)</span>, der y-Achsenabschnitt ist nicht von Null verschieden.<br />
 </li>
-<li>H1: <span class="math inline">\(b_0 \neq 0\)</span>, der Achsenabschnitt ist von Null verschieden.</li>
+<li>H1: <span class="math inline">\(b_0 \neq 0\)</span>, der y-Achsenabschnitt ist von Null verschieden.</li>
 </ul></li>
 </ul>
 <p>Für beide Parameter (<span class="math inline">\(b_1\)</span> uns <span class="math inline">\(b_0\)</span>) wird die H0 auf einem alpha-Fehler-Niveau von 5% verworfen, da die 0 nicht im jeweiligen 95% Konfidenzintervall enthalten ist.</p>
@@ -383,22 +450,22 @@ confint(fm)</code></pre>
 summary(fm)</code></pre>
 <pre><code>## 
 ## Call:
-## lm(formula = nerd ~ extra, data = fb21)
+## lm(formula = nerd ~ extra, data = fb22)
 ## 
 ## Residuals:
 ##      Min       1Q   Median       3Q      Max 
-## -1.57555 -0.40888  0.02815  0.50156  1.77815 
+## -1.49293 -0.43406  0.05601  0.39927  1.78154 
 ## 
 ## Coefficients:
 ##             Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   4.3848     0.2781  15.765  &lt; 2e-16 ***
-## extra        -0.3741     0.0816  -4.584 1.19e-05 ***
+## (Intercept)  3.85535    0.24733  15.588  &lt; 2e-16 ***
+## extra       -0.21561    0.07166  -3.009  0.00306 ** 
 ## ---
 ## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
-## Residual standard error: 0.6465 on 112 degrees of freedom
-## Multiple R-squared:  0.158,  Adjusted R-squared:  0.1505 
-## F-statistic: 21.01 on 1 and 112 DF,  p-value: 1.193e-05</code></pre>
+## Residual standard error: 0.6359 on 157 degrees of freedom
+## Multiple R-squared:  0.05451,    Adjusted R-squared:  0.04849 
+## F-statistic: 9.052 on 1 and 157 DF,  p-value: 0.003057</code></pre>
 <p>Aus <code>summary()</code>: <span class="math inline">\(p &lt; \alpha\)</span> <span class="math inline">\(\rightarrow\)</span> H1: Das Regressionsgewicht für den Prädiktor Extraversion ist signifikant von Null verschieden. Der Zusammenhang von Extraversion und Nerdiness ist statistisch bedeutsam.</p>
 <p>Aus <code>summary()</code>: <span class="math inline">\(p &lt; \alpha\)</span> <span class="math inline">\(\rightarrow\)</span> H1: der Achsenabschnitt ist signifikant von Null verschieden. Beträgt die Extraversion Null wird eine von 0 verschiedene Nerdiness vorhergesagt.</p>
 <p>Konfidenzinteralle und p-Werte für Regressionskoeffizienten kommen immer zu denselben Schlussfolgerungen in Bezug darauf, ob die H0 beibehalten oder verworfen wird!</p>

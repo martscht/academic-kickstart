@@ -74,13 +74,13 @@ In PsyBSc 2 geht es um die erste Einführung in die Statistik im Psychologiestud
 | 2 | **Deskriptivstatistik für Nominal- und Ordinalskalen** | [Inhalte](/post/deskriptiv-nominal) | [Aufgaben](/post/deskriptiv-nominal-aufgaben) | [Lösungen](/post/deskriptiv-nominal-loesungen) |
 | 3 | **Deskriptivstatistik für Intervallskalen** | [Inhalte](/post/deskriptiv-intervall) | [Aufgaben](/post/deskriptiv-intervall-aufgaben) | [Lösungen](/post/deskriptiv-intervall-loesungen) |
 | 4 | **Verteilungen** | [Inhalte](/post/verteilungen) | [Aufgaben](/post/verteilungen-aufgaben) | [Lösungen](/post/verteilungen-loesungen) |
-| *Zusatz* | **Freiwillige Übungsaufgaben** (Abschnitte 1-4) | -- | [Aufgaben](/post/zusatz-aufgaben) | [Lösungen](/post/zusatz-loesungen) |
 | 5 | **Tests und Konfidenzintervalle** | [Inhalte](/post/tests-und-konfidenzintervalle) | [Aufgaben](/post/tests-und-konfidenzintervalle-aufgaben) | [Lösungen](/post/tests-und-konfidenzintervalle-loesungen) |
 | 6 | **Tests für unabhängige Stichproben** | [Inhalte](/post/gruppenvergleiche-unabhaengig) | [Aufgaben](/post/gruppenvergleiche-unabhaengig-aufgaben) | [Lösungen](/post/gruppenvergleiche-unabhaengig-loesungen) |
 | 7 | **Tests für abhängige Stichproben** | [Inhalte](/post/gruppenvergleiche-abhaengig) | [Aufgaben](/post/gruppenvergleiche-abhaengig-aufgaben) | [Lösungen](/post/gruppenvergleiche-abhaengig-loesungen) |
 | 8 | **Korrelation** | [Inhalte](/post/korrelation) | [Aufgaben](/post/korrelation-aufgaben) | [Lösungen](/post/korrelation-loesungen) |
 | 9 | **Regression** | [Inhalte](/post/regression) | [Aufgaben](/post/regression-aufgaben) | [Lösungen](/post/regression-loesungen) |
 | 10 | **Simulation und Poweranalyse** | [Inhalte](/post/simulation) | [Aufgaben](/post/simulation-aufgaben) | [Lösungen](/post/simulation-loesungen) |
+| *Zusatz* | **Freiwillige Übungsaufgaben** (alle Abschnitte)| -- | [Aufgaben](/post/zusatz-aufgaben) | [Lösungen](/post/zusatz-loesungen) |
 | *Zusatz* | **Gruppenprojekt** | [Inhalte](/post/gruppenprojekt) | [Ergebnisbericht](/post/hinweise-zum-ergebnisbericht) | [formr](/post/formr-faq) |
 | | | | |
 
