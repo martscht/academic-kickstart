@@ -57,11 +57,9 @@ library(qgraph) # Paket laden
 centrality_indices <- centrality(graph = reg_net$graph) # Zentralitätsindizes berechnen
 
 centrality_indices$OutDegree # Degree bzw. Strength der Knoten
-centrality_indices$Closeness # Verbundenheit der Knoten
-centrality_indices$Betweenness # Dazwischenheit der Knoten
 
-centralityPlot(reg_net, include = c("Closeness", "Betweenness", "Strength")) # Plot der Zentralitätsindizes als z-Werte
-centralityPlot(reg_net, scale = "raw", include = c("Closeness", "Betweenness", "Strength")) # Plot der Zentralitätsindizes als Rohwerte
+centralityPlot(reg_net, include = c("Strength")) # Plot der Stärke der Knoten als z-Werte
+centralityPlot(reg_net, scale = "raw", include = c("Strength")) # Plot der Stärke der Knoten als Rohwerte
 
 
 
@@ -73,10 +71,10 @@ plot(boot1, order = "sample", labels = F) # Plot
 
 set.seed(2022)
 boot2 <- bootnet(reg_net,   nBoots = 300,
-                 statistics = c("strength", "betweenness", "closeness"),
+                 statistics = c("strength"),
                  type = "case", caseMin = 0.05,
                  caseMax = 0.75, caseN = 15,
                  nCores = 1)
-plot(boot2, c("betweenness","strength","closeness"))
+plot(boot2, c("strength"))
 
 corStability(boot2, cor = 0.7) # CS-Werte bestimmen
