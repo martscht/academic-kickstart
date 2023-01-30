@@ -72,7 +72,7 @@ In diesem Abschnitt befindet sich alles wichtige, um das erste eigene Projekt an
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 1 | Was ist LIFOS? |[DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 1 | Was ist LIFOS? |[DE](/post/lifos-orientierung) | [EN](/post/under-construction)| 
 | 2 | Das passende Template finden| [DE](/post/under-construction) | [EN](/post/under-construction)| 
 | 3 | Das eigene Projekt|  [DE](/post/under-construction) | [EN](/post/under-construction)| 
 |  |  |    
