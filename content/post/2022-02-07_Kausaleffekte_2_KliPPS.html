@@ -1404,6 +1404,114 @@ table(df.strat$Treatment, df.strat$subclass)</code></pre>
 <p><img src="/post/2022-02-07_Kausaleffekte_2_KliPPS_files/figure-html/unnamed-chunk-32-1.png" width="672" /></p>
 <div id="effektschätzung-1" class="section level3">
 <h3>Effektschätzung</h3>
+<p>Es gibt nun mehrere Möglichkeiten bei Stratifizierung den Treatmenteffekt zu bestimmen. Entweder können wir in jedem Stratum den Effekt schätzen, indem wir die Mittelwerte in der CBT und der WL Gruppe vergleichen (siehe hierzu <a href="#AppendixC">Appendix C</a>), oder wir verwenden die Gewichte, die bei der Stratifizierung ebenfalls bestimmt werden und rechnen erneut eine gewichtete Regression. Da bei der ersten Variante das Bestimmen des Standardfehlers und die damit verbundene Signifikanzentscheidung recht schwierig ist, schauen wir uns jetzt, wie für das Full Optimal Matching, eine Schätzung mit dem linearen Modell unter Verwendung der Gewichte an. Der hier resultierende Effekt von <span class="math inline">\(\beta = -3.89\)</span> ist ähnlich dem beim Full Optimal Matching. Beide Methoden sind sich konzeptuell ähnlich, bei der Stratifizierung werden mit einer einfacheren Methode weniger Subklassen gebildet.</p>
+<pre class="r"><code>lm.strat &lt;- lm(BDI_post ~ Treatment, data = df.strat, weights = weights)
+summary(lm.strat)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = BDI_post ~ Treatment, data = df.strat, weights = weights)
+## 
+## Weighted Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -15.004  -4.494  -1.494   1.506  30.792 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   22.3833     0.4458  50.206  &lt; 2e-16 ***
+## TreatmentCBT  -3.8890     0.6068  -6.409 5.16e-10 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 5.46 on 324 degrees of freedom
+## Multiple R-squared:  0.1125, Adjusted R-squared:  0.1098 
+## F-statistic: 41.08 on 1 and 324 DF,  p-value: 5.156e-10</code></pre>
+<p>Die Gewichte waren im Datensatz <code>df.strat</code> unter dem Argument <code>weights</code> verfügbar und mussten so wie zuvor beim Full Optimal Matching im <code>lm</code>-Befehl nur entsprechend zugeordnet werden.</p>
+</div>
+</div>
+<div id="gewichtung-mit-dem-propensity-score" class="section level2">
+<h2>Gewichtung mit dem Propensity Score</h2>
+<p>Alternativ zur Bildung von Gewichten durch Matching können wir die Gewichte direkt auf Basis des Propensity Scores <span class="math inline">\(\pi\)</span> und der Treatmentgruppen-Zugehörigkeit <span class="math inline">\(X \in \{0,1\}\)</span> konstruieren. Die Formel hierfür ist</p>
+<p><span class="math display">\[\frac{X_i}{\pi_i}+\frac{1-X_i}{1-\pi_i}\]</span></p>
+<pre class="r"><code># mit (CBTdata$Treatment==&quot;CBT&quot;)*1 wird Treatment numerisch mit 1, Kontrollgruppe mit 0 kodiert
+CBTdata$ps_w &lt;- (CBTdata$Treatment==&quot;CBT&quot;)*1/CBTdata$PS_P + (1 - (CBTdata$Treatment==&quot;CBT&quot;)*1)/(1 - CBTdata$PS_P)</code></pre>
+<p>Diese Gewichte können in der <code>lm</code>-Funktion verwendet werden, um eine Schätzung mittels <em>weighted least squares</em> (WLS) vorzunehmen. Hierbei erhalten wir mit einem geschätzten Treatment-Effekt von -4.59 eine ähnliche Schätzung wie mit den anderen Methoden.</p>
+<pre class="r"><code>BDI.weighted &lt;- lm(BDI_post ~ Treatment, data = CBTdata, weights = ps_w)
+summary(BDI.weighted)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = BDI_post ~ Treatment, data = CBTdata, weights = ps_w)
+## 
+## Weighted Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -25.164  -6.222  -0.731   3.931  55.347 
+## 
+## Coefficients:
+##              Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)   21.4538     0.4603  46.611  &lt; 2e-16 ***
+## TreatmentCBT  -4.5866     0.6629  -6.919 2.43e-11 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 8.515 on 324 degrees of freedom
+## Multiple R-squared:  0.1287, Adjusted R-squared:  0.1261 
+## F-statistic: 47.88 on 1 and 324 DF,  p-value: 2.435e-11</code></pre>
+<p>Wir sehen, dass alle Korrekturen zu ähnlichen Ergebnissen kommen. Der Treatmenteffekt ist signifikant. Nur in der Ausprägung kommt es von Methode zu Methode zu leichten Unterschieden. Diese Unterschiede kommen mitunter zu Stande, weil die Methoden unterschiedlich viele Informationen über die Daten nutzen. Bspw. hatten wir bei der Stratifizierung nur 5 Subklassen gebildet, während beim Full Matching deutlich mehr Subklassen extrahiert wurden (die Methode war aber auch etwas anders!). Wir können also, unter den (strengen) Annahmen der Methoden, vor allem <em>Strong Ignoribility</em>, schließen, dass es einen Treatmenteffekt gibt (mit einer Irrtumswahrscheinlichkeit von 5%).</p>
+<hr />
+</div>
+<div id="r-skript" class="section level2">
+<h2>R-Skript</h2>
+<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/KliPPs_MSc5a_R_Files/10_Kausalschätzer_2_RCode.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
+<hr />
+</div>
+<div id="AppendixA" class="section level2">
+<h2>Appendix A</h2>
+<details>
+<summary>
+<strong>Kurze Grafiken</strong>
+</summary>
+<p>Mit <code>density</code> kann man die Dichte (also die Häufigkeitsverteilung) einer Variable bestimmen. Diese kann man recht leicht plotten:</p>
+<pre class="r"><code>## Overlap &amp; Common Support ----
+plot(density(CBTdata$PS_P[CBTdata$Treatment == &quot;CBT&quot;]), 
+     type = &quot;l&quot;)
+lines(density(CBTdata$PS_P[CBTdata$Treatment == &quot;WL&quot;]))</code></pre>
+<p><img src="/post/2022-02-07_Kausaleffekte_2_KliPPS_files/figure-html/unnamed-chunk-37-1.png" width="672" /></p>
+<p>Jetzt können wir leider die Linien nicht unterscheiden, weswegen wir die Farben aus den anderen Grafiken nun auch hier einfügen. Außerdem spendieren wir eine Legenende, änderen die Dicke der Linien und entfernen den seltsame Titel:</p>
+<pre class="r"><code>## Overlap &amp; Common Support ----
+plot(density(CBTdata$PS_P[CBTdata$Treatment == &quot;CBT&quot;]), 
+     col = &quot;#56B4E9&quot;, lwd = 2, type = &quot;l&quot;, main = &quot;&quot;)
+lines(density(CBTdata$PS_P[CBTdata$Treatment == &quot;WL&quot;]), 
+      col = &quot;#E69F00&quot;, lwd = 2)
+legend(legend = c(&quot;CBT&quot;, &quot;WL&quot;), lwd = 2, 
+       col = c(&quot;#56B4E9&quot;, &quot;#E69F00&quot;), x = &quot;bottom&quot;)</code></pre>
+<p><img src="/post/2022-02-07_Kausaleffekte_2_KliPPS_files/figure-html/unnamed-chunk-38-1.png" width="672" /></p>
+</details>
+</div>
+<div id="Gewichtung" class="section level2">
+<h2>Appendix B</h2>
+<details>
+<summary>
+<strong>Bildung der Gewichte</strong>
+</summary>
+<p>Die Gewichte zur Schätzung des ATT, mit denen die relativen Häufigkeiten der Kovariaten-Subklassen der Treatment-Gruppe, an die Kontrollgruppe angeglichen werden, werden wie folgt gebildet:</p>
+<p><span class="math display">\[w_{Cs}=\frac{N_C}{n_{Cs}}*\frac{n_{Ts}}{N_T}\]</span>
+Hierbei sind</p>
+<ul>
+<li><span class="math inline">\(w_{Cs}\)</span> das Gewicht für Kontrollpersonen in Subklasse <span class="math inline">\(s\)</span></li>
+<li><span class="math inline">\(N_C\)</span> die Größe der Kontrollgruppe</li>
+<li><span class="math inline">\(N_T\)</span> die Größe der Treatment-Gruppe</li>
+<li><span class="math inline">\(n_{Cs}\)</span> die Anzahl von Kontrollpersonen in Subklasse <span class="math inline">\(s\)</span></li>
+<li><span class="math inline">\(n_{Ts}\)</span> die Anzahl von Treatment-Personen in Subklasse <span class="math inline">\(s\)</span></li>
+</ul>
+<p>Die Gewichte werden also umso größer, je mehr Treatment-Personen in einer Subklasse <span class="math inline">\(s\)</span> sind, und um so kleiner, je mehr Kontrollpersonen in der Subklasse sind. Die Summe der Gewichte über alle Subklassen <span class="math inline">\(S\)</span> entspricht der urprünglichen Fallzahl <span class="math inline">\(N_C\)</span>:</p>
+<span class="math display">\[\sum^S_{s=1}{w_{Cs}}=N_C\]</span>
+</details>
+</div>
+<div id="AppendixC" class="section level2">
+<h2>Appendix C</h2>
+<details>
+<summary>
+<strong>Effektschätzung bei Stratifizierung per Hand</strong>
+</summary>
 <p>Den Treatment-Effekt können wir “per Hand” berechnen. Die Funktion <code>tapply</code> wird hierbei benutzt, um die Mittelwerte von Treatment- und Kontrollgruppe in den Strata zu berechnen. <code>tapply</code> wendet dabei eine Funktion (hier <code>mean</code>) auf eine Kombination aus Gruppierungen an. Diese Mittelwerte packen wir anschließend in einen <code>data.frame</code>, um sie uns besser anzusehen.</p>
 <p>Die Mittelwerte in der CBT und der WL Gruppen werden dann als Schätzer für <span class="math inline">\(Y^0\)</span> und <span class="math inline">\(Y^1\)</span> verwendet, aus ihrer Differenz ergibt sich der ATT innerhalb jedes Stratum.
 Für jedes Stratum wird anhand des Anteils der Fälle an der Gesamtstichprobe ein Gewichtungsfaktor berechtet.</p>
@@ -1437,104 +1545,5 @@ sum(MWW$Wq * MWW$ATEq)</code></pre>
 ## 8         3       CBT 18.52778
 ## 9         4       CBT 19.80000
 ## 10        5       CBT 23.72222</code></pre>
-<p>Eine weitere Möglichkeit ist, wie für das Full Optimal Matching, eine Schätzung mit dem linearen Modell unter Verwendung der Gewichte. Der hier resultierende Effekt von <span class="math inline">\(\beta = -3.89\)</span> ist ähnlich dem beim Full Optimal Matching. Beide Methoden sind sich konzeptuell ähnlich, bei der Stratifizierung werden mit einer einfacheren Methode weniger Subklassen gebildet.</p>
-<pre class="r"><code>lm.strat &lt;- lm(BDI_post ~ Treatment, data = df.strat, weights = weights)
-summary(lm.strat)</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = BDI_post ~ Treatment, data = df.strat, weights = weights)
-## 
-## Weighted Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -15.004  -4.494  -1.494   1.506  30.792 
-## 
-## Coefficients:
-##              Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   22.3833     0.4458  50.206  &lt; 2e-16 ***
-## TreatmentCBT  -3.8890     0.6068  -6.409 5.16e-10 ***
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 5.46 on 324 degrees of freedom
-## Multiple R-squared:  0.1125, Adjusted R-squared:  0.1098 
-## F-statistic: 41.08 on 1 and 324 DF,  p-value: 5.156e-10</code></pre>
-</div>
-</div>
-<div id="gewichtung-mit-dem-propensity-score" class="section level2">
-<h2>Gewichtung mit dem Propensity Score</h2>
-<p>Alternativ zur Bildung von Gewichten durch Matching können wir die Gewichte direkt auf Basis des Propensity Scores <span class="math inline">\(\pi\)</span> und der Treatmentgruppen-Zugehörigkeit <span class="math inline">\(X \in \{0,1\}\)</span> konstruieren. Die Formel hierfür ist</p>
-<p><span class="math display">\[\frac{X_i}{\pi_i}+\frac{1-X_i}{1-\pi_i}\]</span></p>
-<pre class="r"><code># mit (CBTdata$Treatment==&quot;CBT&quot;)*1 wird Treatment numerisch mit 1, Kontrollgruppe mit 0 kodiert
-CBTdata$ps_w &lt;- (CBTdata$Treatment==&quot;CBT&quot;)*1/CBTdata$PS_P + (1 - (CBTdata$Treatment==&quot;CBT&quot;)*1)/(1 - CBTdata$PS_P)</code></pre>
-<p>Diese Gewichte können in der <code>lm</code>-Funktion verwendet werden, um eine Schätzung mittels <em>weighted least squares</em> (WLS) vorzunehmen. Hierbei erhalten wir mit einem geschätzten Treatment-Effekt von -4.59 eine ähnliche Schätzung wie mit den anderen Methoden.</p>
-<pre class="r"><code>BDI.weighted &lt;- lm(BDI_post ~ Treatment, data = CBTdata, weights = ps_w)
-summary(BDI.weighted)</code></pre>
-<pre><code>## 
-## Call:
-## lm(formula = BDI_post ~ Treatment, data = CBTdata, weights = ps_w)
-## 
-## Weighted Residuals:
-##     Min      1Q  Median      3Q     Max 
-## -25.164  -6.222  -0.731   3.931  55.347 
-## 
-## Coefficients:
-##              Estimate Std. Error t value Pr(&gt;|t|)    
-## (Intercept)   21.4538     0.4603  46.611  &lt; 2e-16 ***
-## TreatmentCBT  -4.5866     0.6629  -6.919 2.43e-11 ***
-## ---
-## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
-## 
-## Residual standard error: 8.515 on 324 degrees of freedom
-## Multiple R-squared:  0.1287, Adjusted R-squared:  0.1261 
-## F-statistic: 47.88 on 1 and 324 DF,  p-value: 2.435e-11</code></pre>
-<p>Wir sehen, dass alle Korrekturen zu ähnlichen Ergebnissen kommen. Der Treatment effekt ist signifikant. Nur in der Ausprägung kommt es von Methode zu Methode zu leichten Unterschieden. Diese Unterschiede kommen mitunter zu Stande, weil die Methoden unterschiedlich viele Informationen über die Daten nutzen. Bspw. hatten wir bei der Stratifizierung nur 5 Subklassen gebildet, während beim Full Matching deutlich mehr Subklassen extrahiert wurden (die Methode war aber auch etwas anders!).</p>
-<hr />
-</div>
-<div id="r-skript" class="section level2">
-<h2>R-Skript</h2>
-<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/KliPPs_MSc5a_R_Files/10_Kausalschätzer_2_RCode.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
-<hr />
-</div>
-<div id="AppendixA" class="section level2">
-<h2>Appendix A</h2>
-<details>
-<summary>
-<strong>Kurze Grafiken</strong>
-</summary>
-<p>Mit <code>density</code> kann man die Dichte (also die Häufigkeitsverteilung) einer Variable bestimmen. Diese kann man recht leicht plotten:</p>
-<pre class="r"><code>## Overlap &amp; Common Support ----
-plot(density(CBTdata$PS_P[CBTdata$Treatment == &quot;CBT&quot;]), 
-     type = &quot;l&quot;)
-lines(density(CBTdata$PS_P[CBTdata$Treatment == &quot;WL&quot;]))</code></pre>
-<p><img src="/post/2022-02-07_Kausaleffekte_2_KliPPS_files/figure-html/unnamed-chunk-41-1.png" width="672" /></p>
-<p>Jetzt können wir leider die Linien nicht unterscheiden, weswegen wir die Farben aus den anderen Grafiken nun auch hier einfügen. Außerdem spendieren wir eine Legenende, änderen die Dicke der Linien und entfernen den seltsame Titel:</p>
-<pre class="r"><code>## Overlap &amp; Common Support ----
-plot(density(CBTdata$PS_P[CBTdata$Treatment == &quot;CBT&quot;]), 
-     col = &quot;#56B4E9&quot;, lwd = 2, type = &quot;l&quot;, main = &quot;&quot;)
-lines(density(CBTdata$PS_P[CBTdata$Treatment == &quot;WL&quot;]), 
-      col = &quot;#E69F00&quot;, lwd = 2)
-legend(legend = c(&quot;CBT&quot;, &quot;WL&quot;), lwd = 2, 
-       col = c(&quot;#56B4E9&quot;, &quot;#E69F00&quot;), x = &quot;bottom&quot;)</code></pre>
-<p><img src="/post/2022-02-07_Kausaleffekte_2_KliPPS_files/figure-html/unnamed-chunk-42-1.png" width="672" /></p>
-</details>
-</div>
-<div id="Gewichtung" class="section level2">
-<h2>Appendix B</h2>
-<details>
-<summary>
-<strong>Bildung der Gewichte</strong>
-</summary>
-<p>Die Gewichte zur Schätzung des ATT, mit denen die relativen Häufigkeiten der Kovariaten-Subklassen der Treatment-Gruppe, an die Kontrollgruppe angeglichen werden, werden wie folgt gebildet:</p>
-<p><span class="math display">\[w_{Cs}=\frac{N_C}{n_{Cs}}*\frac{n_{Ts}}{N_T}\]</span>
-Hierbei sind</p>
-<ul>
-<li><span class="math inline">\(w_{Cs}\)</span> das Gewicht für Kontrollpersonen in Subklasse <span class="math inline">\(s\)</span></li>
-<li><span class="math inline">\(N_C\)</span> die Größe der Kontrollgruppe</li>
-<li><span class="math inline">\(N_T\)</span> die Größe der Treatment-Gruppe</li>
-<li><span class="math inline">\(n_{Cs}\)</span> die Anzahl von Kontrollpersonen in Subklasse <span class="math inline">\(s\)</span></li>
-<li><span class="math inline">\(n_{Ts}\)</span> die Anzahl von Treatment-Personen in Subklasse <span class="math inline">\(s\)</span></li>
-</ul>
-<p>Die Gewichte werden also umso größer, je mehr Treatment-Personen in einer Subklasse <span class="math inline">\(s\)</span> sind, und um so kleiner, je mehr Kontrollpersonen in der Subklasse sind. Die Summe der Gewichte über alle Subklassen <span class="math inline">\(S\)</span> entspricht der urprünglichen Fallzahl <span class="math inline">\(N_C\)</span>:</p>
-<span class="math display">\[\sum^S_{s=1}{w_{Cs}}=N_C\]</span>
 </details>
 </div>

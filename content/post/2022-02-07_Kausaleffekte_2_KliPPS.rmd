@@ -387,54 +387,19 @@ ggplot(df.strat, aes(x=distance, fill = Treatment, weights=weights)) +
 ```
 
 ### Effektschätzung
-```{r include=FALSE}
-MWs <- tapply(df.strat$BDI_post, list(df.strat$subclass, df.strat$Treatment), mean)
-MWW <- data.frame(Y0 = MWs[, 1], Y1 = MWs[, 2], ATEq = MWs[, 2]-MWs[, 1])
-MWW$Wq <- tabulate(df.strat$subclass)/nrow(df.strat)
-ATT.strat <- sum(MWW$Wq*MWW$ATEq)
-```
-
-
-Den Treatment-Effekt können wir "per Hand" berechnen. Die Funktion `tapply` wird hierbei benutzt, um die Mittelwerte von Treatment- und Kontrollgruppe in den Strata zu berechnen. `tapply` wendet dabei eine Funktion (hier `mean`) auf eine Kombination aus Gruppierungen an. Diese Mittelwerte packen wir anschließend in einen `data.frame`, um sie uns besser anzusehen.
-
-Die Mittelwerte in der CBT und der WL Gruppen werden dann als Schätzer für $Y^0$ und $Y^1$ verwendet, aus ihrer Differenz ergibt sich der ATT innerhalb jedes Stratum. 
-Für jedes Stratum wird anhand des Anteils der Fälle an der Gesamtstichprobe ein Gewichtungsfaktor berechtet. 
-
-```{r}
-##ATEs in den Strata berechnen und als neuen Datensatz
-MWs <- tapply(df.strat$BDI_post, list(df.strat$subclass, df.strat$Treatment), mean)
-MWW <- data.frame(Y0 = MWs[, 1], Y1 = MWs[, 2], ATEq = MWs[, 2]-MWs[, 1])
-MWW
-```
-
-Der ATT ergibt sich dann als gewichtete Summe der Effekte innerhalb der Strata. Hierzu müssen wir zunächst kurz die Gewichte mittels `table` bestimmen und diese dann durch die Gesamtanzahl (`nrow(df.strat)`) teilen, und dann die gewichtete Summe berechnen.
-
-```{r}
-##Gesamt-ATE als gewichtetes Mittel über die Strata berechnen 
-MWW$Wq <- table(df.strat$subclass)/nrow(df.strat) # Anteil des Stratum an der Stichprobe
-# Gesamteffekt als gewichtete Summe:
-sum(MWW$Wq * MWW$ATEq)
-```
-
-Wir erhalten hier mit `r round(ATT.strat,2)` einen geringfügig geringeren Effekt als bei anderen Methoden.
-
-Eine Alternative zur Bildung für die Mittelwerte wäre `aggregate` gewesen:
-
-```{r}
-aggregate(BDI_post ~ subclass + Treatment, data = df.strat, FUN = mean)
-```
 
 ```{r include=FALSE}
 lm.strat <- lm(BDI_post ~ Treatment, data = df.strat, weights = weights)
 ```
 
-
-Eine weitere Möglichkeit ist, wie für das Full Optimal Matching, eine Schätzung mit dem linearen Modell unter Verwendung der Gewichte. Der hier resultierende Effekt von $\beta = `r round(coef(lm.strat)["TreatmentCBT"],2)`$ ist ähnlich dem beim Full Optimal Matching. Beide Methoden sind sich konzeptuell ähnlich, bei der Stratifizierung werden mit einer einfacheren Methode weniger Subklassen gebildet.
+Es gibt nun mehrere Möglichkeiten bei Stratifizierung den Treatmenteffekt zu bestimmen. Entweder können wir in jedem Stratum den Effekt schätzen, indem wir die Mittelwerte in der CBT und der WL Gruppe vergleichen (siehe hierzu [Appendix C](#AppendixC)), oder wir verwenden die Gewichte, die bei der Stratifizierung ebenfalls bestimmt werden und rechnen erneut eine gewichtete Regression. Da bei der ersten Variante das Bestimmen des Standardfehlers und die damit verbundene Signifikanzentscheidung recht schwierig ist, schauen wir uns jetzt, wie für das Full Optimal Matching, eine Schätzung mit dem linearen Modell unter Verwendung der Gewichte an. Der hier resultierende Effekt von $\beta = `r round(coef(lm.strat)["TreatmentCBT"],2)`$ ist ähnlich dem beim Full Optimal Matching. Beide Methoden sind sich konzeptuell ähnlich, bei der Stratifizierung werden mit einer einfacheren Methode weniger Subklassen gebildet.
 
 ```{r}
 lm.strat <- lm(BDI_post ~ Treatment, data = df.strat, weights = weights)
 summary(lm.strat)
 ```
+
+Die Gewichte waren im Datensatz `df.strat` unter dem Argument `weights` verfügbar und mussten so wie zuvor beim Full Optimal Matching im `lm`-Befehl nur entsprechend  zugeordnet werden.
 
 ## Gewichtung mit dem Propensity Score
 
@@ -454,7 +419,9 @@ BDI.weighted <- lm(BDI_post ~ Treatment, data = CBTdata, weights = ps_w)
 summary(BDI.weighted)
 ```
 
-Wir sehen, dass alle Korrekturen zu ähnlichen Ergebnissen kommen. Der Treatment effekt ist signifikant. Nur in der Ausprägung kommt es von Methode zu Methode zu leichten Unterschieden. Diese Unterschiede kommen mitunter zu Stande, weil die Methoden unterschiedlich viele Informationen über die Daten nutzen. Bspw. hatten wir bei der Stratifizierung nur 5 Subklassen gebildet, während beim Full Matching deutlich mehr Subklassen extrahiert wurden (die Methode war aber auch etwas anders!).
+Wir sehen, dass alle Korrekturen zu ähnlichen Ergebnissen kommen. Der Treatmenteffekt ist signifikant. Nur in der Ausprägung kommt es von Methode zu Methode zu leichten Unterschieden. Diese Unterschiede kommen mitunter zu Stande, weil die Methoden unterschiedlich viele Informationen über die Daten nutzen. Bspw. hatten wir bei der Stratifizierung nur 5 Subklassen gebildet, während beim Full Matching deutlich mehr Subklassen extrahiert wurden (die Methode war aber auch etwas anders!). Wir können also, unter den (strengen) Annahmen der Methoden, vor allem *Strong Ignoribility*, schließen, dass es einen Treatmenteffekt gibt (mit einer Irrtumswahrscheinlichkeit von 5%).
+
+
 
 ***
 
@@ -493,6 +460,7 @@ legend(legend = c("CBT", "WL"), lwd = 2,
 
 </details>
 
+
 ## Appendix B {#Gewichtung}
 
 <details><summary>**Bildung der Gewichte**</summary>
@@ -513,3 +481,48 @@ Die Gewichte werden also umso größer, je mehr Treatment-Personen in einer Subk
 
 $$\sum^S_{s=1}{w_{Cs}}=N_C$$
 </details>
+
+## Appendix C {#AppendixC}
+
+<details><summary>**Effektschätzung bei Stratifizierung per Hand**</summary>
+
+
+```{r include=FALSE}
+MWs <- tapply(df.strat$BDI_post, list(df.strat$subclass, df.strat$Treatment), mean)
+MWW <- data.frame(Y0 = MWs[, 1], Y1 = MWs[, 2], ATEq = MWs[, 2]-MWs[, 1])
+MWW$Wq <- tabulate(df.strat$subclass)/nrow(df.strat)
+ATT.strat <- sum(MWW$Wq*MWW$ATEq)
+```
+
+
+Den Treatment-Effekt können wir "per Hand" berechnen. Die Funktion `tapply` wird hierbei benutzt, um die Mittelwerte von Treatment- und Kontrollgruppe in den Strata zu berechnen. `tapply` wendet dabei eine Funktion (hier `mean`) auf eine Kombination aus Gruppierungen an. Diese Mittelwerte packen wir anschließend in einen `data.frame`, um sie uns besser anzusehen.
+
+Die Mittelwerte in der CBT und der WL Gruppen werden dann als Schätzer für $Y^0$ und $Y^1$ verwendet, aus ihrer Differenz ergibt sich der ATT innerhalb jedes Stratum. 
+Für jedes Stratum wird anhand des Anteils der Fälle an der Gesamtstichprobe ein Gewichtungsfaktor berechtet. 
+
+```{r}
+##ATEs in den Strata berechnen und als neuen Datensatz
+MWs <- tapply(df.strat$BDI_post, list(df.strat$subclass, df.strat$Treatment), mean)
+MWW <- data.frame(Y0 = MWs[, 1], Y1 = MWs[, 2], ATEq = MWs[, 2]-MWs[, 1])
+MWW
+```
+
+Der ATT ergibt sich dann als gewichtete Summe der Effekte innerhalb der Strata. Hierzu müssen wir zunächst kurz die Gewichte mittels `table` bestimmen und diese dann durch die Gesamtanzahl (`nrow(df.strat)`) teilen, und dann die gewichtete Summe berechnen.
+
+```{r}
+##Gesamt-ATE als gewichtetes Mittel über die Strata berechnen 
+MWW$Wq <- table(df.strat$subclass)/nrow(df.strat) # Anteil des Stratum an der Stichprobe
+# Gesamteffekt als gewichtete Summe:
+sum(MWW$Wq * MWW$ATEq)
+```
+
+Wir erhalten hier mit `r round(ATT.strat,2)` einen geringfügig geringeren Effekt als bei anderen Methoden.
+
+Eine Alternative zur Bildung für die Mittelwerte wäre `aggregate` gewesen:
+
+```{r}
+aggregate(BDI_post ~ subclass + Treatment, data = df.strat, FUN = mean)
+```
+
+</details>
+
