@@ -15,8 +15,8 @@ tags:
   - Teststärke
 subtitle: ''
 summary: ''
-authors: [irmer]
-lastmod: '2021-12-15T13:13:57+01:00'
+authors: [irmer, nehler]
+lastmod: '2023-02-01T13:13:57+01:00'
 featured: no
 header:
   image: "/header/BSc2_Sim_Power.jpg"
@@ -25,7 +25,6 @@ projects: []
 
 ---
 
-<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <details>
@@ -63,7 +62,7 @@ p &amp;\ge \alpha\ (=5\%) \Longrightarrow H_0
 <blockquote>
 <p>Eine Power von <span class="math inline">\(1-\beta = 80\%\)</span> bedeutet, wenn wir das gleiche Experiment unendlich häufig und unabhängig von einander wiederholen könnten und dabei unendlich häufig aus einer Population ziehen würden, in welcher es einen Effekt gibt, dann sollte in mindestens <span class="math inline">\(80\%\)</span> der Fälle ein signifikantes Ergebnis beim Durchführen des inferenzstatistischen Test herauskommen.</p>
 </blockquote>
-<p>Im Folgenden wollen wir dieses Gedankenexperiment in die Tat umsetzen und unsere Kenntnisse über das Simulieren von Zufallszahlen verwenden, um die Power und den Fehler 1. Art (<span class="math inline">\(\alpha\)</span>-Fehler) empirisch zu prüfen. Hierbei beschränken wir uns auf den <span class="math inline">\(t\)</span>-Test (in <code>R t.test</code>) und den Korrelationstest (in <code>R cor.test</code>).</p>
+<p>Im Folgenden wollen wir dieses Gedankenexperiment in die Tat umsetzen und unsere Kenntnisse über das Simulieren von Zufallszahlen verwenden, um die Power und den Fehler 1. Art (<span class="math inline">\(\alpha\)</span>-Fehler) empirisch zu prüfen. Hierbei beschränken wir uns auf den <span class="math inline">\(t\)</span>-Test (mit der Funktion <code>t.test</code>) und den Korrelationstest (mit der Funktion <code>cor.test</code>). Da wir nun also Daten simulieren brauchen wir in diesem Tutorial den Datensatz nicht.</p>
 </div>
 <div id="simulation-und-alpha-fehler" class="section level2">
 <h2>Simulation und <span class="math inline">\(\alpha\)</span>-Fehler</h2>
@@ -81,25 +80,25 @@ p &amp;\ge \alpha\ (=5\%) \Longrightarrow H_0
 <li>die Varianzen in den beiden Gruppen sind gleich groß</li>
 <li>die Variable ist in den Populationen normalverteilt</li>
 </ul>
-<p>Wir simulieren nun zwei Variablen <span class="math inline">\(X\)</span> und <span class="math inline">\(Y\)</span> mit jeweils <span class="math inline">\(N=20\)</span>. Dabei nehmen wir an, dass beide Variablen standardnormalverteilt sind (also einer Normalverteilung mit einem Mittelwert von 0 und einer Standardabweichung von 1 folgen). Wie im <a href="/post/verteilungen">Beitrag zu Verteilungen</a> besprochen, können wir mit <code>set.seed()</code> die Analysen replizierbar machen.</p>
+<p>Wir simulieren nun eine Variable <span class="math inline">\(X\)</span> für zwei Gruppen mit jeweils <span class="math inline">\(N=20\)</span>. Dabei nehmen wir an, dass in beiden Gruppen die Werte standardnormalverteilt sind (also einer Normalverteilung mit einem Mittelwert von 0 und einer Standardabweichung von 1 folgen). Für die Simulation von normalverteilten Werten haben wir die Funktion <code>rnorm()</code> kennengelernt. Wie im <a href="/post/verteilungen">Beitrag zu Verteilungen</a> besprochen, können wir mit <code>set.seed()</code> die Analysen replizierbar machen. Das bedeutet, dass eure Werte mit den hier stehenden Werten übereinstimmen sollten.</p>
 <pre class="r"><code>N &lt;- 20
 set.seed(1234)
-X &lt;- rnorm(N)
-Y &lt;- rnorm(N)</code></pre>
-<p>Dadurch dass wir zwei separate Variablen simuliert haben, sind die Werte voneinander unabhängig (erste Voraussetzung erfüllt). Dadurch, dass wir mit <code>rnorm()</code> arbeiten, machen wir außerdem explizit, dass wir Werte erzeugen, die (in der Population) der Normalverteilung folgen (dritte Voraussetzung erfüllt). Dadurch, dass wir in <code>rnorm()</code> außerdem für beide Variablen die Voreinstellung <code>sd = 1</code> für die Standardabweichung nutzen, ist auch die zweite Voraussetzung (Homoskedastizität) erfüllt.</p>
-<p>Zusätzlich haben wir in beiden Fällen auch die Voreinstellung <code>mean = 0</code> für den Mittelwert benutzt. Dadurch gilt <span class="math inline">\(\mu_X=\mu_Y = 0\)</span> für die Verteilungen aus denen beide Stichproben gezogen wurden. Da es sich hier allerdings um eine Zufallsziehung handelt, sind die Mittelwerte der beiden Variablen natürlich nicht exakt 0:</p>
-<pre class="r"><code>mean(X)</code></pre>
+X_1 &lt;- rnorm(N)
+X_2 &lt;- rnorm(N)</code></pre>
+<p>Die Werte der ersten Gruppe legen wir in dem Objekt <code>X_1</code> ab, die Werte der zweiten Gruppe im Objekt <code>X_2</code>. Dadurch dass wir die Werte für beide Gruppen getrennt simuliert haben, sind die Werte voneinander unabhängig (erste Voraussetzung erfüllt). Dadurch, dass wir mit <code>rnorm()</code> arbeiten, machen wir außerdem explizit, dass wir Werte erzeugen, die (in der Population) der Normalverteilung folgen (dritte Voraussetzung erfüllt). Dadurch, dass wir in <code>rnorm()</code> außerdem für beide Variablen die Voreinstellung <code>sd = 1</code> für die Standardabweichung nutzen, ist auch die zweite Voraussetzung (Homoskedastizität) erfüllt.</p>
+<p>Zusätzlich haben wir in beiden Fällen auch die Voreinstellung <code>mean = 0</code> für den Mittelwert benutzt. Dadurch gilt <span class="math inline">\(\mu_{X1}=\mu_{X2} = 0\)</span> für die Verteilungen aus denen beide Stichproben gezogen wurden. Da es sich hier allerdings um eine Zufallsziehung handelt, sind die Mittelwerte der beiden Gruppen natürlich nicht exakt 0:</p>
+<pre class="r"><code>mean(X_1)</code></pre>
 <pre><code>## [1] -0.2506641</code></pre>
-<pre class="r"><code>mean(Y)</code></pre>
+<pre class="r"><code>mean(X_2)</code></pre>
 <pre><code>## [1] -0.5770699</code></pre>
 <p>Sie weichen (zufällig) von der 0 ab. Diese Abweichung wird auch Samplevariation (Stichprobenschwankung) genannt.</p>
-<p>Wir können nun mithilfe des <span class="math inline">\(t\)</span>-Tests untersuchen, ob die beiden Variablen den gleichen Mittelwert haben (da wir den originalen <span class="math inline">\(t\)</span>-Test durchführen wollen, müssen wir <code>var.equal = TRUE</code> wählen, da sonst die Variante mit Welch-Korrektur gerechnet wird):</p>
-<pre class="r"><code>ttestH0 &lt;- t.test(X, Y, var.equal = TRUE)
+<p>Wir können nun mithilfe des <span class="math inline">\(t\)</span>-Tests untersuchen, ob die beiden Variablen den gleichen Mittelwert haben (da wir den <span class="math inline">\(t\)</span>-Test unter Annahme der Varianzhomogenität durchführen wollen, müssen wir <code>var.equal = TRUE</code> wählen, da sonst die Variante mit Welch-Korrektur gerechnet wird):</p>
+<pre class="r"><code>ttestH0 &lt;- t.test(X_1, X_2, var.equal = TRUE)
 ttestH0</code></pre>
 <pre><code>## 
 ##  Two Sample t-test
 ## 
-## data:  X and Y
+## data:  X_1 and X_2
 ## t = 1.1349, df = 38, p-value = 0.2635
 ## alternative hypothesis: true difference in means is not equal to 0
 ## 95 percent confidence interval:
@@ -112,31 +111,31 @@ ttestH0</code></pre>
 ## 1.134902</code></pre>
 <pre class="r"><code>ttestH0$p.value   # zugehöriger p-Wert</code></pre>
 <pre><code>## [1] 0.2635244</code></pre>
-<p>Die Mittelwertsdifferenz liegt bei -0.3264, was einen <span class="math inline">\(t_\text{emp}\)</span>-Wert von $t_ =$1.1349 ergibt. Der zugehörige <span class="math inline">\(p\)</span>-Wert liegt bei $p=$0.2635. Somit ist diese Mittelwertsdifferenz auf einem <span class="math inline">\(\alpha\)</span>-Niveau von <span class="math inline">\(5\%\)</span> nicht statistisch bedeutsam.</p>
-<p>Wir sind an dieser Stelle aber nicht daran interessiert, wie der <span class="math inline">\(p\)</span>-Wert in diesem spezifischen Experiment (mit Seed = 1234) ausfällt, sondern wir möchten wissen, ob die Nullhypothese in ca. <span class="math inline">\(5\%\)</span> der Fälle verworfen wird, wenn wir das Experiment häufig wiederholen. Wir könnten uns jetzt hinsetzen und den oben gezeigten Code immer wieder ausführen und den <span class="math inline">\(p\)</span>-Wert notieren. Das erscheint sehr lästig. Wir können hier bspw. die <code>replicate</code>-Funktion verwenden. Mit dieser Funktion wird irgendein Stück <code>R</code>-Code (eine “Expression”, daher der Namen des Arguments: <code>expr</code>) <code>n</code>-mal wiederholt. Wenn wir z.B. 5 mal drei Werte aus einer Normalverteilung ziehen wollen, kann das Ganze so aussehen:</p>
+<p>Die Mittelwertsdifferenz liegt bei 0.3264, was einen <span class="math inline">\(t_\text{emp}\)</span>-Wert von $t_ =$1.1349 ergibt. Der zugehörige <span class="math inline">\(p\)</span>-Wert liegt bei $p=$0.2635. Somit ist diese Mittelwertsdifferenz auf einem <span class="math inline">\(\alpha\)</span>-Niveau von <span class="math inline">\(5\%\)</span> nicht statistisch bedeutsam. Die Nullyhpothese wird also nicht verworfen, was in diesem Fall die richtige Entscheidung ist, da in der Population ja die Gleichheit der Mittelwerte der beiden Gruppen gilt.</p>
+<p>Wir sind an dieser Stelle aber nicht daran interessiert, wie der <span class="math inline">\(p\)</span>-Wert in diesem spezifischen Experiment (mit Seed = 1234) ausfällt, sondern wir möchten wissen, ob die Nullhypothese in ca. <span class="math inline">\(5\%\)</span> der Fälle verworfen wird, wenn wir das Experiment häufig wiederholen. Dafür könnten wir den oben gezeigten Code immer wieder ausführen und den <span class="math inline">\(p\)</span>-Wert notieren. Das erscheint sehr lästig. Wir können hier bspw. die <code>replicate()</code>-Funktion verwenden. Mit dieser Funktion wird irgendein Stück <code>R</code>-Code (eine “Expression”, daher der Namen des Arguments: <code>expr</code>) <code>n</code>-mal wiederholt. Wenn wir z.B. 5 mal drei Werte aus einer Normalverteilung ziehen wollen, kann das Ganze so aussehen:</p>
 <pre class="r"><code>replicate(n = 5, expr = rnorm(3))</code></pre>
 <pre><code>##            [,1]       [,2]       [,3]       [,4]       [,5]
 ## [1,]  1.4494963 -0.2806230 -1.1073182 -0.4968500 -1.1088896
 ## [2,] -1.0686427 -0.9943401 -1.2519859 -1.8060313 -1.0149620
 ## [3,] -0.8553646 -0.9685143 -0.5238281 -0.5820759 -0.1623095</code></pre>
 <p><code>replicate</code> kann aber nicht nur einzelne Funktionen, sondern auch mehrere Zeilen <code>R</code>-Code entgegennehmen, solange die in geschwungenen Klammern <code>{ ... }</code> angegeben werden. Wenn wir zwei unabhängige Variablen erstellen, mit einem <span class="math inline">\(t\)</span>-Test auf Mittelwertsgleichheit prüfen und uns den <span class="math inline">\(p\)</span>-Wert ausgeben lassen wollen, brauchen wir die folgenden vier Zeilen:</p>
-<pre class="r"><code>X &lt;- rnorm(N)
-Y &lt;- rnorm(N)
-ttestH0 &lt;- t.test(X, Y, var.equal = TRUE)
+<pre class="r"><code>X_1 &lt;- rnorm(N)
+X_2 &lt;- rnorm(N)
+ttestH0 &lt;- t.test(X_1, X_2, var.equal = TRUE)
 ttestH0$p.value</code></pre>
 <p><code>N</code> hatten wir oben bereits als 20 festegelegt. Mit <code>replicate</code> können wir den Code beliebig häufig durchführen. Z.B. zunächst 10 mal:</p>
 <pre class="r"><code>set.seed(1234)
-replicate(n = 10, expr = {X &lt;- rnorm(N)
-                          Y &lt;- rnorm(N)
-                          ttestH0 &lt;- t.test(X, Y, var.equal = TRUE)
+replicate(n = 10, expr = {X_1 &lt;- rnorm(N)
+                          X_2 &lt;- rnorm(N)
+                          ttestH0 &lt;- t.test(X_1, X_2, var.equal = TRUE)
                           ttestH0$p.value})</code></pre>
 <pre><code>##  [1] 0.26352442 0.03081077 0.21285027 0.27429670 0.53201656 0.79232864
 ##  [7] 0.93976306 0.43862992 0.96766599 0.68865560</code></pre>
 <p>Uns werden insgesamt 10 <span class="math inline">\(p\)</span>-Werte übergeben. Wenn wir genau hinsehen, dann erkennen wir den ersten <span class="math inline">\(p\)</span>-Wert wieder. Dies ist der <span class="math inline">\(p\)</span>-Wert unseres Experiments weiter oben. Wiederholen wir nun das Experiment nicht nur 10 Mal, sondern 10000 Mal, dann erhalten wir eine gute Übersicht über das Verhalten der <span class="math inline">\(p\)</span>-Werte unter den Bedingungen, die wir vorgegeben haben: Gültigkeit der Nullhypothese und Standardnormalverteilung der beiden von einander unabhängigen Variablen. Damit uns die 10000 Werte nicht einfach in die Konsole gedruckt werden, legen wir sie im Objekt <code>pt_H0</code> ab (für <span class="math inline">\(p\)</span>-Werte für den <span class="math inline">\(t\)</span>-Test unter der <span class="math inline">\(H_0\)</span>-Hypothese):</p>
 <pre class="r"><code>set.seed(1234)
-pt_H0 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
-                                      Y &lt;- rnorm(N)
-                                      ttestH0 &lt;- t.test(X, Y, var.equal = TRUE)
+pt_H0 &lt;- replicate(n = 10000, expr = {X_1 &lt;- rnorm(N)
+                                      X_2 &lt;- rnorm(N)
+                                      ttestH0 &lt;- t.test(X_1, X_2, var.equal = TRUE)
                                       ttestH0$p.value})</code></pre>
 <p>Schauen wir uns doch mal die Verteilung der <span class="math inline">\(p\)</span>-Werte an:</p>
 <pre class="r"><code>hist(pt_H0, breaks = 20) </code></pre>
@@ -147,9 +146,9 @@ pt_H0 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
 <p>Somit wird die Nullhypothese hier in 4.84% der Fälle verworfen. Dies zeigt uns, dass der <span class="math inline">\(t\)</span>-Test unter <span class="math inline">\(H_0\)</span> für <span class="math inline">\(N=20\)</span> gut funktioniert, da die empirische Rate des Fehlers 1. Art bei ungefähr <span class="math inline">\(5\%\)</span> liegt. Wir könnten auch untersuchen, wie robust ein Test ist, indem wir eine Annahme verletzen (z.B. Varianzhomogenität) und untersuchen, wie sich das auf das empirische <span class="math inline">\(\alpha\)</span>-Niveau und die Verteilung der Teststatistik oder der <span class="math inline">\(p\)</span>-Werte ausübt.</p>
 <p>Im Übrigen hätten wir auch die ganze Prozedur mithilfe der empirischen <span class="math inline">\(t\)</span>-Werte durchführen können (diese sind als <code>statistic</code> im Test-Objekt angelegt):</p>
 <pre class="r"><code>set.seed(1234)
-tt_H0 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
-                                      Y &lt;- rnorm(N)
-                                      ttestH0 &lt;- t.test(X, Y, var.equal = TRUE)
+tt_H0 &lt;- replicate(n = 10000, expr = {X_1 &lt;- rnorm(N)
+                                      X_2 &lt;- rnorm(N)
+                                      ttestH0 &lt;- t.test(X_1, X_2, var.equal = TRUE)
                                       ttestH0$statistic})</code></pre>
 <p>Wir können uns die Verteilung dieser Werte ansehen, um zu prüfen, ob die Werte annähernd <span class="math inline">\(t\)</span>-verteilt sind. Die Dichte erhalten wir mit <code>dt(x = x, df = 38)</code>, wobei <code>x</code> die gewünschte x-Koordinate ist:</p>
 <pre class="r"><code>hist(tt_H0, breaks = 50, freq = FALSE) # freq = FALSE, damit relative Häufigkeiten eingetragen werden!
@@ -171,20 +170,20 @@ mean(abs(tt_H0) &gt; t_krit) # empirischer Alpha-Fehler</code></pre>
 <li>die Variablen sind in der Population normalverteilt</li>
 <li>die Variablen hängen linear zusammen</li>
 </ul>
-<p>Wir können die gleichen Variablen wie zuvor heranziehen und damit den Korrelationstest durchführen:</p>
+<p>Wie bei den vorherigen Berechnungen des t-Tests simulieren wirs uns wieder Daten. Die beiden Variablen, die wir gleich korrelieren wollen, nennen wir <code>Y</code> und <code>Z</code>.</p>
 <pre class="r"><code>set.seed(1234)
-X &lt;- rnorm(N)
 Y &lt;- rnorm(N)
-cor(X, Y) # empirische Korrelation</code></pre>
+Z &lt;- rnorm(N)
+cor(Y, Z) # empirische Korrelation</code></pre>
 <pre><code>## [1] -0.2765719</code></pre>
-<pre class="r"><code>cortestH0 &lt;- cor.test(X, Y)
+<pre class="r"><code>cortestH0 &lt;- cor.test(Y, Z)
 cortestH0$p.value # empirischer p-Wert</code></pre>
 <pre><code>## [1] 0.2378304</code></pre>
 <p>Die empirische Korrelation liegt bei -0.28. Die wahre Korrelation liegt bei 0, da <code>R</code> Zufallsvektoren unabhängig voneinander simuliert. Der <span class="math inline">\(p\)</span>-Wert des Korrelationstests liegt bei 0.2378. Damit ist das Ergebnis nicht statistisch bedeutsam. Die Korrelation von -0.28 ist zufällig aufgetreten. Wir wiederholen nun auch dieses Experiment:</p>
 <pre class="r"><code>set.seed(1234)
-pcor_H0 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
-                                        Y &lt;- rnorm(N)
-                                        cortestH0 &lt;- cor.test(X, Y)
+pcor_H0 &lt;- replicate(n = 10000, expr = {Y &lt;- rnorm(N)
+                                        Z &lt;- rnorm(N)
+                                        cortestH0 &lt;- cor.test(Y, Z)
                                         cortestH0$p.value})</code></pre>
 <p>Die <span class="math inline">\(p\)</span>-Werte sind wieder einigermaßen uniform auf [0,1] verteilt:</p>
 <pre class="r"><code>hist(pcor_H0, breaks = 20) </code></pre>
@@ -201,21 +200,21 @@ pcor_H0 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
 <div id="mittelwertsvergleiche-t-test-unter-h_1" class="section level3">
 <h3>Mittelwertsvergleiche: <span class="math inline">\(t\)</span>-Test unter <span class="math inline">\(H_1\)</span></h3>
 <p>In der Inferenzstatistik gibt es im Grunde nicht “die” Alternativhypothese, sondern eine ganze Batterie an Alternativhypothesen. Beim ungerichteten Mittelwertsvergleich sieht die Alternativhypothese so aus:</p>
-<p><span class="math display">\[H_1: \mu_1 \neq \mu_2,\]</span>
-was natürlich äquivalent zur folgenden Aussage zur Differenz der beiden Mittelwerte ist: <span class="math inline">\(d=\mu_1-\mu_2:\)</span></p>
-<p><span class="math display">\[H_1: d =  \mu_1-\mu_2 \neq 0.\]</span></p>
-<p>Hier wird <span class="math inline">\(d\)</span> als eine feste Zahl angenommen (z.B. 0.5, <span class="math inline">\(-\sqrt{2}\)</span>, <span class="math inline">\(\pi\)</span>, 123.456). Je größer der Effekt, desto größer ist die Wahrscheinlichkeit, dass dieser auch identifiziert wird. Hierbei wird die Größe des Effekts relativ zur zufälligen Streuung genommen. Da wir standardisierte (standardnormalverteilte) Variablen verwendet hatten, ist es so, dass die Mittelwertsdifferenz <span class="math inline">\(d\)</span> gerade in Vielfachen der Standardabweichung zu interpretieren ist (also Cohen’s <span class="math inline">\(d&#39;_2\)</span> darstellt). Bspw. wäre <span class="math inline">\(d=0.5\)</span> eine halbe Standardabweichung. Wir erhalten eine Mittelwertsdifferenz von 0.5, indem wir zu dem zuvorigen Code einfach 0.5 zur Y-Gleichung dazuaddieren. “In der Population unterscheiden sich nun <code>X</code> und <code>Y</code> um 0.5 im Mittelwert, da X einen Mittelwert von 0 hat und <code>Y</code> einen Mittelwert von 0 + 0.5 = 0.5.”</p>
+<p><span class="math display">\[H_1: \mu_{X1} \neq \mu_{X2},\]</span>
+was natürlich äquivalent zur folgenden Aussage zur Differenz der beiden Mittelwerte ist: <span class="math inline">\(d=\mu_{X1}-\mu_{X2}:\)</span></p>
+<p><span class="math display">\[H_1: d =  \mu_{X1}-\mu_{X2} \neq 0.\]</span></p>
+<p>Hier wird <span class="math inline">\(d\)</span> als eine feste Zahl angenommen (z.B. 0.5, <span class="math inline">\(-\sqrt{2}\)</span>, <span class="math inline">\(\pi\)</span>, 123.456). Je größer der Effekt, desto größer ist die Wahrscheinlichkeit, dass dieser auch identifiziert wird. Hierbei wird die Größe des Effekts relativ zur zufälligen Streuung genommen. Da wir standardisierte (standardnormalverteilte) Variablen verwendet hatten, ist es so, dass die Mittelwertsdifferenz <span class="math inline">\(d\)</span> gerade in Vielfachen der Standardabweichung zu interpretieren ist (also Cohen’s <span class="math inline">\(d&#39;_2\)</span> darstellt). Bspw. wäre <span class="math inline">\(d=0.5\)</span> eine halbe Standardabweichung. Wir erhalten eine Mittelwertsdifferenz von 0.5, indem wir zu dem zuvorigen Code einfach 0.5 zur Y-Gleichung dazuaddieren. “In der Population unterscheiden sich nun <code>_X_1</code> und <code>X_2</code> um 0.5 im Mittelwert, da <code>X_1</code> einen Mittelwert von 0 hat und <code>X_2</code> einen Mittelwert von 0 + 0.5 = 0.5.”</p>
 <pre class="r"><code>set.seed(12345)
-X &lt;- rnorm(N)
-Y &lt;- rnorm(N) + 0.5 
-ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+X_1 &lt;- rnorm(N)
+X_2 &lt;- rnorm(N) + 0.5 
+ttestH1 &lt;- t.test(X_1, X_2, var.equal = TRUE)
 ttestH1$p.value</code></pre>
 <pre><code>## [1] 0.0160865</code></pre>
 <p>Der empirische <span class="math inline">\(p\)</span>-Wert ist diesmal kleiner als <span class="math inline">\(0.05\)</span>. Die Frage ist nun, wie häufig das für eine Stichprobengröße von <span class="math inline">\(N=20\)</span> pro Gruppe vorkommt. Wir führen wieder eine Simulation dazu durch:</p>
 <pre class="r"><code>set.seed(12345)
-pt_H1 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
-                                      Y &lt;- rnorm(N) + 0.5 
-                                      ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+pt_H1 &lt;- replicate(n = 10000, expr = {X_1 &lt;- rnorm(N)
+                                      X_2 &lt;- rnorm(N) + 0.5 
+                                      ttestH1 &lt;- t.test(X_1, X_2, var.equal = TRUE)
                                       ttestH1$p.value})
 mean(pt_H1 &lt; 0.05) # empirische Power</code></pre>
 <pre><code>## [1] 0.335</code></pre>
@@ -224,9 +223,9 @@ mean(pt_H1 &lt; 0.05) # empirische Power</code></pre>
 <p>Die empirische Power (die Wahrscheinlichkeit in unserer Simulation, dass die <span class="math inline">\(H_0\)</span> verworfen wird) liegt bei 0.335. Das Histogramm ist nun alles andere als gleichverteilt. Kleine <span class="math inline">\(p\)</span>-Werte nahe Null kommen wesentlich häufiger vor als große <span class="math inline">\(p\)</span>-Werte nahe 1.</p>
 <p>Woran liegt nun dieses schiefe Histogramm? Wir schauen uns dazu noch schnell die <span class="math inline">\(t\)</span>-Werte an:</p>
 <pre class="r"><code>set.seed(12345)
-tt_H1 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(N)
-                                      Y &lt;- rnorm(N) + 0.5 
-                                      ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+tt_H1 &lt;- replicate(n = 10000, expr = {X_1 &lt;- rnorm(N)
+                                      X_2 &lt;- rnorm(N) + 0.5 
+                                      ttestH1 &lt;- t.test(X_1, X_2, var.equal = TRUE)
                                       ttestH1$statistic})
 hist(tt_H1, breaks = 50, freq = FALSE) # freq = FALSE, damit relative Häufigkeiten eingetragen werden!
 x &lt;- seq(-4, 4, 0.01) # Sequenz von -4 bis 4 in 0.01 Schritten
@@ -246,39 +245,40 @@ lines(x = x, y = dt(x = x, df = 38), lwd = 2) # lwd = Liniendicke</code></pre>
 <p>Wir schauen uns die Power-Plots diesmal nur für die Mittelwertsunterschiede an. Zunächst beginnen wir mit der Asymptotik. Wir wiederholen im einfachsten Fall das Experiment von oben für 5 Stichprobengrößen: <span class="math inline">\(N=20, 40, 60, 80, 100\)</span> (wobei wir das Ergebnis für <span class="math inline">\(N=20\)</span> bereits bestimmt haben). Dazu kopieren wir jeweils den Code von oben und ändern die Stichprobengröße ab:</p>
 <pre class="r"><code>set.seed(12345)
 pt_H1_20 &lt;- pt_H1
-pt_H1_40 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(40)
-                                         Y &lt;- rnorm(40) + 0.5 
+pt_H1_40 &lt;- replicate(n = 10000, expr = {X_1 &lt;- rnorm(40)
+                                         X_2 &lt;- rnorm(40) + 0.5 
                                          ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+                                         ttestH1$p.value})</code></pre>
+<pre><code>## Error in t.test(X, Y, var.equal = TRUE): object &#39;X&#39; not found</code></pre>
+<pre class="r"><code>pt_H1_60 &lt;- replicate(n = 10000, expr = {X_1 &lt;- rnorm(60)
+                                         X_2 &lt;- rnorm(60) + 0.5 
+                                         ttestH1 &lt;- t.test(X_1, X_2, var.equal = TRUE)
                                          ttestH1$p.value})
-pt_H1_60 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(60)
-                                         Y &lt;- rnorm(60) + 0.5 
-                                         ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+pt_H1_80 &lt;- replicate(n = 10000, expr = {X_1 &lt;- rnorm(80)
+                                         X_2 &lt;- rnorm(80) + 0.5 
+                                         ttestH1 &lt;- t.test(X_1, X_2, var.equal = TRUE)
                                          ttestH1$p.value})
-pt_H1_80 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(80)
-                                         Y &lt;- rnorm(80) + 0.5 
-                                         ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
-                                         ttestH1$p.value})
-pt_H1_100 &lt;- replicate(n = 10000, expr = {X &lt;- rnorm(100)
-                                          Y &lt;- rnorm(100) + 0.5 
-                                          ttestH1 &lt;- t.test(X, Y, var.equal = TRUE)
+pt_H1_100 &lt;- replicate(n = 10000, expr = {X_1 &lt;- rnorm(100)
+                                          X_2 &lt;- rnorm(100) + 0.5 
+                                          ttestH1 &lt;- t.test(X_1, X_2, var.equal = TRUE)
                                           ttestH1$p.value})</code></pre>
 <p>Nun haben wir eine ganze Menge an <span class="math inline">\(p\)</span>-Werten abgespeichert. Jetzt müssen wir nur noch die Power für jede Bedingung bestimmen. Diese schreiben wir direkt in einen Vektor:</p>
 <pre class="r"><code>t_power &lt;- c(mean(pt_H1_20 &lt; 0.05),
              mean(pt_H1_40 &lt; 0.05),
              mean(pt_H1_60 &lt; 0.05),
              mean(pt_H1_80 &lt; 0.05),
-             mean(pt_H1_100 &lt; 0.05))
-t_power</code></pre>
-<pre><code>## [1] 0.3350 0.5991 0.7700 0.8809 0.9369</code></pre>
+             mean(pt_H1_100 &lt; 0.05))</code></pre>
+<pre><code>## Error in mean(pt_H1_40 &lt; 0.05): object &#39;pt_H1_40&#39; not found</code></pre>
+<pre class="r"><code>t_power</code></pre>
+<pre><code>## Error in eval(expr, envir, enclos): object &#39;t_power&#39; not found</code></pre>
 <p>Wir sehen sehr gut, dass die Power ansteigt. Der zugehörige Power-Plot sieht nun so aus (zunächst legen wir die Stichproben in <code>Ns</code> ab):</p>
 <pre class="r"><code>Ns &lt;- seq(20, 100, 20)
 plot(x = Ns, y = t_power, type = &quot;b&quot;, main = &quot;Power vs. N&quot;)</code></pre>
-<p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<pre><code>## Error in xy.coords(x, y, xlabel, ylabel, log): object &#39;t_power&#39; not found</code></pre>
 <p>Dem Plot entnehmen wir, dass ab etwas über <span class="math inline">\(N=60\)</span> die Power oberhalb der gewünschten <span class="math inline">\(80\%\)</span>-Marke liegt. Wir erkennen also, dass die Wahrscheinlichkeit einen Effekt zu finden, wenn dieser da ist, mit steigender Stichprobengröße wächst. Auf diesem Weg kann ein Experiment auch hinsichtlich der nötigen Stichprobengröße geplant werden. Wenn aus Voruntersuchungen oder der Literatur bekannt ist, wie groß ein Effekt zu erwarten ist, dann kann über Poweranalysen untersucht werden, wie groß eine Stichprobe sein muss, um einen Effekt mit hinreichend großer Wahrscheinlichkeit zu identifizieren.</p>
 <p>Genauso könnten wir uns fragen, wie groß ein Effekt sein muss, damit mit der vorliegenden Stichprobengröße und mit hinreichend großer Wahrscheinlichkeit ein signifikantes Ergebnis gefunden wird. In diesem Fall sprechen wir von einer Sensitivitätsanalyse. Dies schauen Sie sich ebenfalls als Übung an!</p>
 <p>Wenn man dies auf die Spitze treibt, dann landet man vielleicht bei diesem schönen Plot:</p>
-<pre><code>## Warning: Paket &#39;pwr&#39; wurde unter R Version 4.1.2 erstellt</code></pre>
-<pre><code>## Warning: Paket &#39;ggplot2&#39; wurde unter R Version 4.1.2 erstellt</code></pre>
+<pre><code>## Loading required package: tinylabels</code></pre>
 <p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-23-1.png" width="960" style="display: block; margin: auto;" /></p>
 <p>Auf der x-Achse ist die Mittelwertsdifferenz dargestellt, <span class="math inline">\(N\)</span> ist farblich kodiert. Dieser Plot enthält also sowohl Informationen über die Asymptotik (Verhalten mit steigender Stichprobengröße) und über die Auswirkung der Effektstärke. Die gestrichelte Linien symbolisiert die gewünschten <span class="math inline">\(80\%\)</span>, die gepunktete Linie zeigt das <span class="math inline">\(\alpha\)</span>-Fehlerniveau von <span class="math inline">\(5\%\)</span>. Hier wurden allerdings keine Simulationen durchgeführt (sonst wären die Linien nicht so “smooth”), denn für den <span class="math inline">\(t\)</span>-Test lässt sich die Power auch noch leicht über Formeln bestimmen. Diese Formeln sind bspw. in dem <code>R</code>-Paket <code>pwr</code> hinterlegt. Für Interessierte ist in <a href="#AppendixA">Appendix A</a> ein kleiner Exkurs in <code>pwr</code> dargestellt.</p>
 </div>
