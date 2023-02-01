@@ -15,8 +15,8 @@ tags:
   - Teststärke
 subtitle: ''
 summary: ''
-authors: [irmer]
-lastmod: '2021-12-15T13:13:57+01:00'
+authors: [irmer, nehler]
+lastmod: '2023-02-01T13:13:57+01:00'
 featured: no
 header:
   image: "/header/BSc2_Sim_Power.jpg"
@@ -71,7 +71,7 @@ Zurück zu unserem Gedankenexperiment:
 
 > Eine Power von $1-\beta = 80\%$ bedeutet, wenn wir das gleiche Experiment unendlich häufig und unabhängig von einander wiederholen könnten und dabei unendlich häufig aus einer Population ziehen würden, in welcher es einen Effekt gibt, dann sollte in mindestens $80\%$ der Fälle ein signifikantes Ergebnis beim Durchführen des inferenzstatistischen Test herauskommen.
 
-Im Folgenden wollen wir dieses Gedankenexperiment in die Tat umsetzen und unsere Kenntnisse über das Simulieren von Zufallszahlen verwenden, um die Power und den Fehler 1. Art ($\alpha$-Fehler) empirisch zu prüfen. Hierbei beschränken wir uns auf den $t$-Test (in `R t.test`) und den Korrelationstest (in `R cor.test`).
+Im Folgenden wollen wir dieses Gedankenexperiment in die Tat umsetzen und unsere Kenntnisse über das Simulieren von Zufallszahlen verwenden, um die Power und den Fehler 1. Art ($\alpha$-Fehler) empirisch zu prüfen. Hierbei beschränken wir uns auf den $t$-Test (mit der Funktion `t.test`) und den Korrelationstest (mit der Funktion `cor.test`). Da wir nun also Daten simulieren brauchen wir in diesem Tutorial den Datensatz nicht.
 
 ## Simulation und $\alpha$-Fehler
 Sie haben nun die Möglichkeit, in einen möglichen Forschungsbereich von Methodiker:innen hineinzublicken: Simulationsstudien. Um das beschriebene Gedankenexperiment umzusetzen, müssen wir sehr häufig Stichproben aus der Population ziehen und unseren Test (z.B. einen Mittelwertsvergleich) durchführen. Die Realität hat dabei zwei grundlegende Probleme: 
@@ -88,38 +88,38 @@ Der (klassische) $t$-Test hat folgende Voraussetzungen:
 * die Varianzen in den beiden Gruppen sind gleich groß
 * die Variable ist in den Populationen normalverteilt
 
-Wir simulieren nun zwei Variablen $X$ und $Y$ mit jeweils $N=20$. Dabei nehmen wir an, dass beide Variablen standardnormalverteilt sind (also einer Normalverteilung mit einem Mittelwert von 0 und einer Standardabweichung von 1 folgen). Wie im [Beitrag zu Verteilungen](/post/verteilungen) besprochen, können wir mit `set.seed()` die Analysen replizierbar machen.
+Wir simulieren nun eine Variable $X$ für zwei Gruppen mit jeweils $N=20$. Dabei nehmen wir an, dass in beiden Gruppen die Werte standardnormalverteilt sind (also einer Normalverteilung mit einem Mittelwert von 0 und einer Standardabweichung von 1 folgen). Für die Simulation von normalverteilten Werten haben wir die Funktion `rnorm()` kennengelernt. Wie im [Beitrag zu Verteilungen](/post/verteilungen) besprochen, können wir mit `set.seed()` die Analysen replizierbar machen. Das bedeutet, dass eure Werte mit den hier stehenden Werten übereinstimmen sollten.
 
 ```{r}
 N <- 20
 set.seed(1234)
-X <- rnorm(N)
-Y <- rnorm(N)
+X_1 <- rnorm(N)
+X_2 <- rnorm(N)
 ```
 
-Dadurch dass wir zwei separate Variablen simuliert haben, sind die Werte voneinander unabhängig (erste Voraussetzung erfüllt). Dadurch, dass wir mit `rnorm()` arbeiten, machen wir außerdem explizit, dass wir Werte erzeugen, die (in der Population) der Normalverteilung folgen (dritte Voraussetzung erfüllt). Dadurch, dass wir in `rnorm()` außerdem für beide Variablen die Voreinstellung `sd = 1` für die Standardabweichung nutzen, ist auch die zweite Voraussetzung (Homoskedastizität) erfüllt. 
+Die Werte der ersten Gruppe legen wir in dem Objekt `X_1` ab, die Werte der zweiten Gruppe im Objekt `X_2`. Dadurch dass wir die Werte für beide Gruppen getrennt simuliert haben, sind die Werte voneinander unabhängig (erste Voraussetzung erfüllt). Dadurch, dass wir mit `rnorm()` arbeiten, machen wir außerdem explizit, dass wir Werte erzeugen, die (in der Population) der Normalverteilung folgen (dritte Voraussetzung erfüllt). Dadurch, dass wir in `rnorm()` außerdem für beide Variablen die Voreinstellung `sd = 1` für die Standardabweichung nutzen, ist auch die zweite Voraussetzung (Homoskedastizität) erfüllt. 
 
-Zusätzlich haben wir in beiden Fällen auch die Voreinstellung `mean = 0` für den Mittelwert benutzt. Dadurch gilt  $\mu_X=\mu_Y = 0$ für die Verteilungen aus denen beide Stichproben gezogen wurden. Da es sich hier allerdings um eine Zufallsziehung handelt, sind die Mittelwerte der beiden Variablen natürlich nicht exakt 0:
+Zusätzlich haben wir in beiden Fällen auch die Voreinstellung `mean = 0` für den Mittelwert benutzt. Dadurch gilt  $\mu_{X1}=\mu_{X2} = 0$ für die Verteilungen aus denen beide Stichproben gezogen wurden. Da es sich hier allerdings um eine Zufallsziehung handelt, sind die Mittelwerte der beiden Gruppen natürlich nicht exakt 0:
 
 ```{r}
-mean(X)
-mean(Y)
+mean(X_1)
+mean(X_2)
 ```
 
 Sie weichen (zufällig) von der 0 ab. Diese Abweichung wird auch Samplevariation (Stichprobenschwankung) genannt. 
 
-Wir können nun mithilfe des $t$-Tests untersuchen, ob die beiden Variablen den gleichen Mittelwert haben (da wir den originalen $t$-Test durchführen wollen, müssen wir `var.equal = TRUE` wählen, da sonst die Variante mit Welch-Korrektur gerechnet wird): 
+Wir können nun mithilfe des $t$-Tests untersuchen, ob die beiden Variablen den gleichen Mittelwert haben (da wir den $t$-Test unter Annahme der Varianzhomogenität durchführen wollen, müssen wir `var.equal = TRUE` wählen, da sonst die Variante mit Welch-Korrektur gerechnet wird): 
 
 ```{r}
-ttestH0 <- t.test(X, Y, var.equal = TRUE)
+ttestH0 <- t.test(X_1, X_2, var.equal = TRUE)
 ttestH0
 ttestH0$statistic # t-Wert
 ttestH0$p.value   # zugehöriger p-Wert
 ```
 
-Die Mittelwertsdifferenz liegt bei `r round(mean(Y)-mean(X), 4)`, was einen $t_\text{emp}$-Wert von  $t_\text{emp} =$`r round(ttestH0$statistic, 4)` ergibt. Der zugehörige $p$-Wert liegt bei $p=$`r round(ttestH0$p.value, 4)`. Somit ist diese Mittelwertsdifferenz auf einem $\alpha$-Niveau von $5\%$ nicht statistisch bedeutsam.
+Die Mittelwertsdifferenz liegt bei `r round(mean(X_1)-mean(X_2), 4)`, was einen $t_\text{emp}$-Wert von  $t_\text{emp} =$`r round(ttestH0$statistic, 4)` ergibt. Der zugehörige $p$-Wert liegt bei $p=$`r round(ttestH0$p.value, 4)`. Somit ist diese Mittelwertsdifferenz auf einem $\alpha$-Niveau von $5\%$ nicht statistisch bedeutsam. Die Nullyhpothese wird also nicht verworfen, was in diesem Fall die richtige Entscheidung ist, da in der Population ja die Gleichheit der Mittelwerte der beiden Gruppen gilt.
 
-Wir sind an dieser Stelle aber nicht daran interessiert, wie der $p$-Wert in diesem spezifischen Experiment (mit Seed = 1234) ausfällt, sondern wir möchten wissen, ob die Nullhypothese in ca. $5\%$ der Fälle verworfen wird, wenn wir das Experiment häufig wiederholen. Wir könnten uns jetzt hinsetzen und den oben gezeigten Code immer wieder ausführen und den $p$-Wert notieren. Das erscheint sehr lästig. Wir können hier bspw. die `replicate`-Funktion verwenden. Mit dieser Funktion wird irgendein Stück `R`-Code (eine "Expression", daher der Namen des Arguments: `expr`) `n`-mal wiederholt. Wenn wir z.B. 5 mal drei Werte aus einer Normalverteilung ziehen wollen, kann das Ganze so aussehen:
+Wir sind an dieser Stelle aber nicht daran interessiert, wie der $p$-Wert in diesem spezifischen Experiment (mit Seed = 1234) ausfällt, sondern wir möchten wissen, ob die Nullhypothese in ca. $5\%$ der Fälle verworfen wird, wenn wir das Experiment häufig wiederholen. Dafür könnten wir den oben gezeigten Code immer wieder ausführen und den $p$-Wert notieren. Das erscheint sehr lästig. Wir können hier bspw. die `replicate()`-Funktion verwenden. Mit dieser Funktion wird irgendein Stück `R`-Code (eine "Expression", daher der Namen des Arguments: `expr`) `n`-mal wiederholt. Wenn wir z.B. 5 mal drei Werte aus einer Normalverteilung ziehen wollen, kann das Ganze so aussehen:
 
 ```{r}
 replicate(n = 5, expr = rnorm(3))
@@ -127,9 +127,9 @@ replicate(n = 5, expr = rnorm(3))
 `replicate` kann aber nicht nur einzelne Funktionen, sondern auch mehrere Zeilen `R`-Code entgegennehmen, solange die in geschwungenen Klammern `{ ... }` angegeben werden. Wenn wir zwei unabhängige Variablen erstellen, mit einem $t$-Test auf Mittelwertsgleichheit prüfen und uns den $p$-Wert ausgeben lassen wollen, brauchen wir die folgenden vier Zeilen:
 
 ```{r, eval = FALSE}
-X <- rnorm(N)
-Y <- rnorm(N)
-ttestH0 <- t.test(X, Y, var.equal = TRUE)
+X_1 <- rnorm(N)
+X_2 <- rnorm(N)
+ttestH0 <- t.test(X_1, X_2, var.equal = TRUE)
 ttestH0$p.value
 ```
 
@@ -137,9 +137,9 @@ ttestH0$p.value
 
 ```{r}
 set.seed(1234)
-replicate(n = 10, expr = {X <- rnorm(N)
-                          Y <- rnorm(N)
-                          ttestH0 <- t.test(X, Y, var.equal = TRUE)
+replicate(n = 10, expr = {X_1 <- rnorm(N)
+                          X_2 <- rnorm(N)
+                          ttestH0 <- t.test(X_1, X_2, var.equal = TRUE)
                           ttestH0$p.value})
 ```
 
@@ -147,9 +147,9 @@ Uns werden insgesamt 10 $p$-Werte übergeben. Wenn wir genau hinsehen, dann erke
 
 ```{r}
 set.seed(1234)
-pt_H0 <- replicate(n = 10000, expr = {X <- rnorm(N)
-                                      Y <- rnorm(N)
-                                      ttestH0 <- t.test(X, Y, var.equal = TRUE)
+pt_H0 <- replicate(n = 10000, expr = {X_1 <- rnorm(N)
+                                      X_2 <- rnorm(N)
+                                      ttestH0 <- t.test(X_1, X_2, var.equal = TRUE)
                                       ttestH0$p.value})
 ```
 
@@ -171,9 +171,9 @@ Im Übrigen hätten wir auch die ganze Prozedur mithilfe der empirischen $t$-Wer
 
 ```{r}
 set.seed(1234)
-tt_H0 <- replicate(n = 10000, expr = {X <- rnorm(N)
-                                      Y <- rnorm(N)
-                                      ttestH0 <- t.test(X, Y, var.equal = TRUE)
+tt_H0 <- replicate(n = 10000, expr = {X_1 <- rnorm(N)
+                                      X_2 <- rnorm(N)
+                                      ttestH0 <- t.test(X_1, X_2, var.equal = TRUE)
                                       ttestH0$statistic})
 ```
 
@@ -204,24 +204,24 @@ Der (klassische) Korrelationstest hat fast die identischen Voraussetzungen wie d
 * die Variablen sind in der Population normalverteilt
 * die Variablen hängen linear zusammen
 
-Wir können die gleichen Variablen wie zuvor heranziehen und damit den Korrelationstest durchführen:
+Wie bei den vorherigen Berechnungen des t-Tests simulieren wirs uns wieder Daten. Die beiden Variablen, die wir gleich korrelieren wollen, nennen wir `Y` und `Z`.
 
 ```{r}
 set.seed(1234)
-X <- rnorm(N)
 Y <- rnorm(N)
-cor(X, Y) # empirische Korrelation
-cortestH0 <- cor.test(X, Y)
+Z <- rnorm(N)
+cor(Y, Z) # empirische Korrelation
+cortestH0 <- cor.test(Y, Z)
 cortestH0$p.value # empirischer p-Wert
 ```
 
-Die empirische Korrelation liegt bei `r round(cor(X, Y), 2)`. Die wahre Korrelation liegt bei 0, da `R` Zufallsvektoren unabhängig voneinander simuliert. Der $p$-Wert des Korrelationstests liegt bei `r round(cortestH0$p.value, 4)`. Damit ist das Ergebnis nicht statistisch bedeutsam. Die Korrelation von `r round(cor(X, Y), 2)` ist zufällig aufgetreten. Wir wiederholen nun auch dieses Experiment:
+Die empirische Korrelation liegt bei `r round(cor(Y, Z), 2)`. Die wahre Korrelation liegt bei 0, da `R` Zufallsvektoren unabhängig voneinander simuliert. Der $p$-Wert des Korrelationstests liegt bei `r round(cortestH0$p.value, 4)`. Damit ist das Ergebnis nicht statistisch bedeutsam. Die Korrelation von `r round(cor(Y, Z), 2)` ist zufällig aufgetreten. Wir wiederholen nun auch dieses Experiment:
 
 ```{r}
 set.seed(1234)
-pcor_H0 <- replicate(n = 10000, expr = {X <- rnorm(N)
-                                        Y <- rnorm(N)
-                                        cortestH0 <- cor.test(X, Y)
+pcor_H0 <- replicate(n = 10000, expr = {Y <- rnorm(N)
+                                        Z <- rnorm(N)
+                                        cortestH0 <- cor.test(Y, Z)
                                         cortestH0$p.value})
 ```
 
@@ -246,18 +246,18 @@ Mit einer Power-Analyse untersuchen wir im Grunde, wie sich die Wahrscheinlichke
 
 In der Inferenzstatistik gibt es im Grunde nicht "die" Alternativhypothese, sondern eine ganze Batterie an Alternativhypothesen. Beim ungerichteten Mittelwertsvergleich sieht die Alternativhypothese so aus:
 
-$$H_1: \mu_1 \neq \mu_2,$$
-was natürlich äquivalent zur folgenden Aussage zur Differenz der beiden Mittelwerte ist: $d=\mu_1-\mu_2:$
+$$H_1: \mu_{X1} \neq \mu_{X2},$$
+was natürlich äquivalent zur folgenden Aussage zur Differenz der beiden Mittelwerte ist: $d=\mu_{X1}-\mu_{X2}:$
 
-$$H_1: d =  \mu_1-\mu_2 \neq 0.$$
+$$H_1: d =  \mu_{X1}-\mu_{X2} \neq 0.$$
 
-Hier wird $d$ als eine feste Zahl angenommen (z.B. 0.5, $-\sqrt{2}$, $\pi$, 123.456). Je größer der Effekt, desto größer ist die Wahrscheinlichkeit, dass dieser auch identifiziert wird. Hierbei wird die Größe des Effekts relativ zur zufälligen Streuung genommen. Da wir standardisierte (standardnormalverteilte) Variablen verwendet hatten, ist es so, dass die Mittelwertsdifferenz $d$ gerade in Vielfachen der Standardabweichung zu interpretieren ist (also Cohen's $d'_2$ darstellt). Bspw. wäre $d=0.5$ eine halbe Standardabweichung. Wir erhalten eine Mittelwertsdifferenz von 0.5, indem wir zu dem zuvorigen Code einfach 0.5 zur Y-Gleichung dazuaddieren. "In der Population unterscheiden sich nun `X` und `Y` um 0.5 im Mittelwert, da X einen Mittelwert von 0 hat und `Y` einen Mittelwert von 0 + 0.5 = 0.5."
+Hier wird $d$ als eine feste Zahl angenommen (z.B. 0.5, $-\sqrt{2}$, $\pi$, 123.456). Je größer der Effekt, desto größer ist die Wahrscheinlichkeit, dass dieser auch identifiziert wird. Hierbei wird die Größe des Effekts relativ zur zufälligen Streuung genommen. Da wir standardisierte (standardnormalverteilte) Variablen verwendet hatten, ist es so, dass die Mittelwertsdifferenz $d$ gerade in Vielfachen der Standardabweichung zu interpretieren ist (also Cohen's $d'_2$ darstellt). Bspw. wäre $d=0.5$ eine halbe Standardabweichung. Wir erhalten eine Mittelwertsdifferenz von 0.5, indem wir zu dem zuvorigen Code einfach 0.5 zur Y-Gleichung dazuaddieren. "In der Population unterscheiden sich nun `_X_1` und `X_2` um 0.5 im Mittelwert, da `X_1` einen Mittelwert von 0 hat und `X_2` einen Mittelwert von 0 + 0.5 = 0.5."
 
 ```{r}
 set.seed(12345)
-X <- rnorm(N)
-Y <- rnorm(N) + 0.5 
-ttestH1 <- t.test(X, Y, var.equal = TRUE)
+X_1 <- rnorm(N)
+X_2 <- rnorm(N) + 0.5 
+ttestH1 <- t.test(X_1, X_2, var.equal = TRUE)
 ttestH1$p.value
 ```
 
@@ -265,9 +265,9 @@ Der empirische $p$-Wert ist diesmal kleiner als $0.05$. Die Frage ist nun, wie h
 
 ```{r, fig = TRUE}
 set.seed(12345)
-pt_H1 <- replicate(n = 10000, expr = {X <- rnorm(N)
-                                      Y <- rnorm(N) + 0.5 
-                                      ttestH1 <- t.test(X, Y, var.equal = TRUE)
+pt_H1 <- replicate(n = 10000, expr = {X_1 <- rnorm(N)
+                                      X_2 <- rnorm(N) + 0.5 
+                                      ttestH1 <- t.test(X_1, X_2, var.equal = TRUE)
                                       ttestH1$p.value})
 mean(pt_H1 < 0.05) # empirische Power
 hist(pt_H1, breaks = 20)
@@ -279,9 +279,9 @@ Woran liegt nun dieses schiefe Histogramm? Wir schauen uns dazu noch schnell die
 
 ```{r, fig = TRUE}
 set.seed(12345)
-tt_H1 <- replicate(n = 10000, expr = {X <- rnorm(N)
-                                      Y <- rnorm(N) + 0.5 
-                                      ttestH1 <- t.test(X, Y, var.equal = TRUE)
+tt_H1 <- replicate(n = 10000, expr = {X_1 <- rnorm(N)
+                                      X_2 <- rnorm(N) + 0.5 
+                                      ttestH1 <- t.test(X_1, X_2, var.equal = TRUE)
                                       ttestH1$statistic})
 hist(tt_H1, breaks = 50, freq = FALSE) # freq = FALSE, damit relative Häufigkeiten eingetragen werden!
 x <- seq(-4, 4, 0.01) # Sequenz von -4 bis 4 in 0.01 Schritten
@@ -305,21 +305,21 @@ Wir schauen uns die Power-Plots diesmal nur für die Mittelwertsunterschiede an.
 ```{r}
 set.seed(12345)
 pt_H1_20 <- pt_H1
-pt_H1_40 <- replicate(n = 10000, expr = {X <- rnorm(40)
-                                         Y <- rnorm(40) + 0.5 
+pt_H1_40 <- replicate(n = 10000, expr = {X_1 <- rnorm(40)
+                                         X_2 <- rnorm(40) + 0.5 
                                          ttestH1 <- t.test(X, Y, var.equal = TRUE)
                                          ttestH1$p.value})
-pt_H1_60 <- replicate(n = 10000, expr = {X <- rnorm(60)
-                                         Y <- rnorm(60) + 0.5 
-                                         ttestH1 <- t.test(X, Y, var.equal = TRUE)
+pt_H1_60 <- replicate(n = 10000, expr = {X_1 <- rnorm(60)
+                                         X_2 <- rnorm(60) + 0.5 
+                                         ttestH1 <- t.test(X_1, X_2, var.equal = TRUE)
                                          ttestH1$p.value})
-pt_H1_80 <- replicate(n = 10000, expr = {X <- rnorm(80)
-                                         Y <- rnorm(80) + 0.5 
-                                         ttestH1 <- t.test(X, Y, var.equal = TRUE)
+pt_H1_80 <- replicate(n = 10000, expr = {X_1 <- rnorm(80)
+                                         X_2 <- rnorm(80) + 0.5 
+                                         ttestH1 <- t.test(X_1, X_2, var.equal = TRUE)
                                          ttestH1$p.value})
-pt_H1_100 <- replicate(n = 10000, expr = {X <- rnorm(100)
-                                          Y <- rnorm(100) + 0.5 
-                                          ttestH1 <- t.test(X, Y, var.equal = TRUE)
+pt_H1_100 <- replicate(n = 10000, expr = {X_1 <- rnorm(100)
+                                          X_2 <- rnorm(100) + 0.5 
+                                          ttestH1 <- t.test(X_1, X_2, var.equal = TRUE)
                                           ttestH1$p.value})
 ```
 
