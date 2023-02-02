@@ -16,7 +16,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer, nehler]
-lastmod: '2023-02-01T13:13:57+01:00'
+lastmod: '2023-02-02T13:10:00+01:00'
 featured: no
 header:
   image: "/header/BSc2_Sim_Power.jpg"
@@ -71,7 +71,7 @@ Zurück zu unserem Gedankenexperiment:
 
 > Eine Power von $1-\beta = 80\%$ bedeutet, wenn wir das gleiche Experiment unendlich häufig und unabhängig von einander wiederholen könnten und dabei unendlich häufig aus einer Population ziehen würden, in welcher es einen Effekt gibt, dann sollte in mindestens $80\%$ der Fälle ein signifikantes Ergebnis beim Durchführen des inferenzstatistischen Test herauskommen.
 
-Im Folgenden wollen wir dieses Gedankenexperiment in die Tat umsetzen und unsere Kenntnisse über das Simulieren von Zufallszahlen verwenden, um die Power und den Fehler 1. Art ($\alpha$-Fehler) empirisch zu prüfen. Hierbei beschränken wir uns auf den $t$-Test (mit der Funktion `t.test`) und den Korrelationstest (mit der Funktion `cor.test`). Da wir nun also Daten simulieren brauchen wir in diesem Tutorial den Datensatz nicht.
+Im Folgenden wollen wir dieses Gedankenexperiment in die Tat umsetzen und unsere Kenntnisse über das Simulieren von Zufallszahlen verwenden, um die Power und den Fehler 1. Art ($\alpha$-Fehler) empirisch zu prüfen. Hierbei beschränken wir uns auf den $t$-Test (mit der Funktion `t.test()`) und den Korrelationstest (mit der Funktion `cor.test()`). Da wir nun also Daten simulieren brauchen wir in diesem Tutorial den Datensatz nicht.
 
 ## Simulation und $\alpha$-Fehler
 Sie haben nun die Möglichkeit, in einen möglichen Forschungsbereich von Methodiker:innen hineinzublicken: Simulationsstudien. Um das beschriebene Gedankenexperiment umzusetzen, müssen wir sehr häufig Stichproben aus der Population ziehen und unseren Test (z.B. einen Mittelwertsvergleich) durchführen. Die Realität hat dabei zwei grundlegende Probleme: 
@@ -124,7 +124,7 @@ Wir sind an dieser Stelle aber nicht daran interessiert, wie der $p$-Wert in die
 ```{r}
 replicate(n = 5, expr = rnorm(3))
 ```
-`replicate` kann aber nicht nur einzelne Funktionen, sondern auch mehrere Zeilen `R`-Code entgegennehmen, solange die in geschwungenen Klammern `{ ... }` angegeben werden. Wenn wir zwei unabhängige Variablen erstellen, mit einem $t$-Test auf Mittelwertsgleichheit prüfen und uns den $p$-Wert ausgeben lassen wollen, brauchen wir die folgenden vier Zeilen:
+`replicate()` kann aber nicht nur einzelne Funktionen, sondern auch mehrere Zeilen `R`-Code entgegennehmen, solange die in geschwungenen Klammern `{ ... }` angegeben werden. Wenn wir zwei unabhängige Variablen erstellen, mit einem $t$-Test auf Mittelwertsgleichheit prüfen und uns den $p$-Wert ausgeben lassen wollen, brauchen wir die folgenden vier Zeilen:
 
 ```{r, eval = FALSE}
 X_1 <- rnorm(N)
@@ -133,7 +133,7 @@ ttestH0 <- t.test(X_1, X_2, var.equal = TRUE)
 ttestH0$p.value
 ```
 
-`N` hatten wir oben bereits als `r N` festegelegt. Mit `replicate` können  wir den Code beliebig häufig durchführen. Z.B. zunächst 10 mal:
+`N` hatten wir oben bereits als `r N` festegelegt. Mit `replicate()` können  wir den Code beliebig häufig durchführen. Z.B. zunächst 10 mal:
 
 ```{r}
 set.seed(1234)
@@ -194,7 +194,7 @@ t_krit <- qt(p = .975, df = 38)
 mean(abs(tt_H0) > t_krit) # empirischer Alpha-Fehler
 ```
 
-Die Analyse kommt zum exakt gleichen Ergebnis. Das liegt daran, dass - wie oben bereits festgehalten - der $p$-Wert und der $t$-Wert ineinander überführbar sind. Das Histogramm zeigt uns außerdem die $t$-Verteilung unter der Nullhypothese mit 38 Freiheitsgraden ($N-2$). Die theoretische Kurve (mit `dt`) passt sehr gut zum Histogramm!
+Die Analyse kommt zum exakt gleichen Ergebnis. Das liegt daran, dass - wie oben bereits festgehalten - der $p$-Wert und der $t$-Wert ineinander überführbar sind. Das Histogramm zeigt uns außerdem die $t$-Verteilung unter der Nullhypothese mit 38 Freiheitsgraden ($N-2$). Die theoretische Kurve (mit `dt()`) passt sehr gut zum Histogramm!
 
 ### Lineare Beziehungen zwischen Variablen: Korrelationstest unter $H_0$
 Der (klassische) Korrelationstest hat fast die identischen Voraussetzungen wie der $t$-Test:
@@ -307,7 +307,7 @@ set.seed(12345)
 pt_H1_20 <- pt_H1
 pt_H1_40 <- replicate(n = 10000, expr = {X_1 <- rnorm(40)
                                          X_2 <- rnorm(40) + 0.5 
-                                         ttestH1 <- t.test(X, Y, var.equal = TRUE)
+                                         ttestH1 <- t.test(X_1, X_2, var.equal = TRUE)
                                          ttestH1$p.value})
 pt_H1_60 <- replicate(n = 10000, expr = {X_1 <- rnorm(60)
                                          X_2 <- rnorm(60) + 0.5 
@@ -347,7 +347,7 @@ Genauso könnten wir uns fragen, wie groß ein Effekt sein muss, damit mit der v
 
 Wenn man dies auf die Spitze treibt, dann landet man vielleicht bei diesem schönen Plot:
 
-```{r, fig = TRUE, echo = F,fig.align="center", fig.height=10, fig.width=10}
+```{r, fig = TRUE, echo = F,fig.align="center", fig.height=10, fig.width=10, warning=FALSE, message=FALSE}
 library(pwr)
 Erg <- c()
 for(n in c(2, seq(5, 500, 5)))
@@ -378,7 +378,7 @@ Auf der x-Achse ist die Mittelwertsdifferenz dargestellt, $N$ ist farblich kodie
 ### Appendix A {#AppendixA} 
 
 <details><summary>**Poweranalysen: geschlossene Formeln**</summary>
-Für den $t$-Test lässt sich die Power auch über Formeln finden. Diese sind im `pwr`-Paket implementiert. Die Funktion `pwr.t.test` ist die Richtige. Sie nimmt zwei wichtige Argumente entgegen: `n` und `d`. Hierbei ist $n$ die Stichprobengröße und $d$ ist die Effektstärke nach Cohen:
+Für den $t$-Test lässt sich die Power auch über Formeln finden. Diese sind im `pwr`-Paket implementiert. Die Funktion `pwr.t.test()` ist die Richtige. Sie nimmt zwei wichtige Argumente entgegen: `n` und `d`. Hierbei ist $n$ die Stichprobengröße und $d$ ist die Effektstärke nach Cohen:
 
 $$d:=\frac{|\mu_1-\mu_2|}{\sigma},$$
 wobei $\mu_1$ und $\mu_2$ die beiden Mittelwerte in den Gruppen sind und $\sigma$ ist die wahre Standardabweichung über die beiden Gruppen hinweg. Dadurch, dass bei uns die Varianz jeweils 1 in den Gruppen war, hatten wir durch Zufall auch oben die Effektstärke nach Cohen gewählt! Die Werte sind also durchaus vergleichbar. Wir schauen uns die Power für unsere erste Effektstärke von 0.5 bei einer Stichprobengröße von 20 an: 
