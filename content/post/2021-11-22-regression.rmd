@@ -10,7 +10,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [winkler, neubauer, nehler]
-lastmod: '2023-01-23T13:13:57+01:00'
+lastmod: '2023-02-02T12:53:00+01:00'
 featured: no
 header:
   image: "/header/BSc2_Regression.jpg"
@@ -105,10 +105,10 @@ Hierzu betrachten wir folgende Fragestellung:
 
 Die Voraussetzungen 2-4 können erst geprüft werden, nachdem das Modell schon gerechnet wurde, weil sie sich auf die Fehler (Residuen: Differenz aus beobachtetem und vorhergesagtem Wert für y) beziehen!
 
-Deshalb erstellen wir zunächst das Regressionsmodell - wir werden weiter unten diesen Befehl - die Funktion `lm()` genauer besprechen, für's erste ist wichtig zu wissen, dass die relevanten Ergebnisse des Regressionsmodells im Objekt `fm` abgespeichert werden.
+Deshalb erstellen wir zunächst das Regressionsmodell - wir werden weiter unten diesen Befehl - die Funktion `lm()` genauer besprechen, für's erste ist wichtig zu wissen, dass die relevanten Ergebnisse des Regressionsmodells im Objekt `lin_mod` abgespeichert werden.
 
 ```{r}
-fm <- lm(nerd ~ extra, fb22)                  #Modell erstellen und Ergebnisse im Objekt fm ablegen
+lin_mod <- lm(nerd ~ extra, fb22)                  #Modell erstellen und Ergebnisse im Objekt lin_mod ablegen
 ```
 
 **zu 1. Linearität: Zusammenhang muss linear sein $\rightarrow$ Grafische Überprüfung (Scatterplot)**
@@ -128,11 +128,11 @@ lines(loess.smooth(fb22$extra, fb22$nerd), col = 'blue')    #beobachteter, lokal
 
 **zu Voraussetzungen 2-4:**
 
-Mithilfe der Ergebnisse aus dem Regressionsmodell im Objekt `fm` können wir nun überprüfen, ob die weiteren Voraussetzungen der linearen Regression erfüllt sind. 
+Mithilfe der Ergebnisse aus dem Regressionsmodell im Objekt `lin_mod` können wir nun überprüfen, ob die weiteren Voraussetzungen der linearen Regression erfüllt sind. 
 
 ```{r, fig = TRUE}
 par(mfrow = c(2, 2)) #vier Abbildungen gleichzeitig
-plot(fm)
+plot(lin_mod)
 par(mfrow = c(1, 1)) #wieder auf eine Abbildung zurücksetzen
 ```
 
@@ -148,10 +148,10 @@ In diesem Fall ist alles weitestgehend erfüllt. Da wir uns hier im Rahmen einer
 
 **Alternativer Weg zur Prüfung der Normalverteilung der Residuen**
 
-Da wir uns die Residuen (also die Fehler in der Vorhersage) direkt vom Modell ausgeben lassen können, können wir zur Überprüfung ihrer Verteilung auch unsere schon bekannten Befehle nutzen. Hier wird nochmal ein Histogramm und ein QQ-Plot gezeichnet, weiterhin wird die inferzstatistische Testung durchgeführt. 
+Da wir uns die Residuen (also die Fehler in der Vorhersage) direkt vom Modell ausgeben lassen können, können wir zur Überprüfung ihrer Verteilung auch unsere schon bekannten Befehle nutzen. Hier wird nochmal ein Histogramm und ein QQ-Plot gezeichnet, weiterhin wird die inferenzstatistische Testung durchgeführt. 
 
 ```{r}
-res1 <- residuals(fm)   #Residuen speichern 
+res1 <- residuals(lin_mod)   #Residuen speichern 
 
 #QQ
 qqnorm(res1)
@@ -194,63 +194,63 @@ Die Notation beschreibt also die Aussage "$y$ wird regrediert auf die Konstante 
 
 R geht generell davon aus, dass immer auch der Achsenabschnitt $b_0$ geschätzt werden soll, sodass `y ~ x` ausreichend ist, um eine Regression mit einem Achsenabschnitt zu beschreiben. Wenn das Intercept unterdrückt werden soll, muss das mit `y ~ 0 + x` explizit gemacht werden.
 
-In unserem Beispiel ist $x$ die Extraversion (`extra`) und $y$ die Nerdiness (`nerd`). Um das Modell zu schätzen, wird dann der `lm` (für "linear model") Befehl genutzt:
+In unserem Beispiel ist $x$ die Extraversion (`extra`) und $y$ die Nerdiness (`nerd`). Um das Modell zu schätzen, wird dann der `lm()` (für "linear model") Befehl genutzt:
 
 ```{r}
 lm(formula = nerd ~ 1 + extra, data = fb22)
 ```
 
-So werden die Koeffizienten direkt ausgegeben. Wir haben das Modell bereits abgespeichert, da wir es für die Überprüfung der Voraussetzungen benötigt haben. Hierzu muss das Modell einem Objekt zugewiesen werden. Hier in verkürzter Schreibweise (wir lassen die 1 als Repräsentant für den Achsenabschnitt weg)´:
+So werden die Koeffizienten direkt ausgegeben. Wir haben das Modell bereits abgespeichert, da wir es für die Überprüfung der Voraussetzungen benötigt haben. Hierzu muss das Modell einem Objekt zugewiesen werden. Hier in verkürzter Schreibweise (wir lassen die 1 als Repräsentant für den Achsenabschnitt weg):
 
 ```{r}
-fm <- lm(nerd ~ extra, fb22)
+lin_mod <- lm(nerd ~ extra, fb22)
 ```
 
-Aus diesem Objekt können mit `coef` die geschätzten Koeffizienten extrahiert werden:
+Aus diesem Objekt können mit `coef()` die geschätzten Koeffizienten extrahiert werden:
 
 ```{r}
-coef(fm)
+coef(lin_mod)
 ```
 
 Falls man sich unsicher ist, wie dieses Modell zustande gekommen ist, kann man dies ausdrücklich erfragen:
 
 ```{r}
-formula(fm)
+formula(lin_mod)
 ```
 
-Wie wir bereits weiter oben gesehen haben, werden mit dem Befehl `lm` auch automatisch immer die Residuen ($e_m$) geschätzt, die mit `residuals` (oder alternativ: `resid`) abgefragt werden können.
+Wie wir bereits weiter oben gesehen haben, werden mit dem Befehl `lm()` auch automatisch immer die Residuen ($e_m$) geschätzt, die mit `residuals()` (oder alternativ: `resid()`) abgefragt werden können.
 
 ```{r}
-residuals(fm)
+residuals(lin_mod)
 ```
 
 Diese können auch als neue Variable im Datensatz angelegt werden und hätten dort die Bedeutung des "Ausmaßes an Nerdiness, das nicht durch Extraversion vorhergesagt werden kann" - also die Differenz aus vorhergesagtem und tatsächlich beobachtetem Wert der y-Variable (Nerdiness).
 
 ```{r}
-fb22$res <- residuals(fm)
+fb22$res <- residuals(lin_mod)
 ```
 
-Die folgenden Ergebnisse aus `fm` werden wir verwenden. In `fm$coef` stehen die Regressionskoeffizienten $b_0$ unter `(Intercept)` zur Konstanten gehörend und $b_1$ unter dem Namen der Variable, die wir als Prädiktor nutzen. In diesem Fall also `extra`. Die Regressionsgleichung hat daher die folgende Gestalt: $y_i = `r round(coef(fm)[1],2)` + `r round(coef(fm)[2],2)` \cdot x + e_i$. 
+Die folgenden Ergebnisse aus `lin_mod` werden wir verwenden. In `lin_mod$coef` stehen die Regressionskoeffizienten $b_0$ unter `(Intercept)` zur Konstanten gehörend und $b_1$ unter dem Namen der Variable, die wir als Prädiktor nutzen. In diesem Fall also `extra`. Die Regressionsgleichung hat daher die folgende Gestalt: $y_i = `r round(coef(lin_mod)[1],2)` + `r round(coef(lin_mod)[2],2)` \cdot x + e_i$. 
 
 Regressionsgleichung (unstandardisiert): 
 
 $$\hat{y} = b_0 + b_1*x_m$$
-$$\hat{y} = `r round(coef(fm)[1],2)` + (`r round(coef(fm)[2],2)`)*x_m$$
+$$\hat{y} = `r round(coef(lin_mod)[1],2)` + (`r round(coef(lin_mod)[2],2)`)*x_m$$
 
 **Interpretation der Regressionskoeffizienten:**  
 
-* *b0 (Regressionsgewicht)*: beträgt die Extraversion 0, wird eine Nerdiness von `r round(coef(fm)[1],2)` vorhergesagt  
-* *b1 (Regressionsgewicht)*: mit jeder Steigerung der Extraversion um 1 Einheit wird eine um `r abs(round(coef(fm)[2],2))` Einheiten niedrigere (!) Nerdiness vorhergesagt
+* *b0 (Regressionsgewicht)*: beträgt die Extraversion 0, wird eine Nerdiness von `r round(coef(lin_mod)[1],2)` vorhergesagt  
+* *b1 (Regressionsgewicht)*: mit jeder Steigerung der Extraversion um 1 Einheit wird eine um `r abs(round(coef(lin_mod)[2],2))` Einheiten niedrigere (!) Nerdiness vorhergesagt
 
 ### Vorhergesagte Werte
 
-Die vorhergesagten Werten $\hat{y}$ können mit `predict` ermittelt werden:
+Die vorhergesagten Werten $\hat{y}$ können mit `predict()` ermittelt werden:
 
 ```{r}
-predict(fm)
+predict(lin_mod)
 ```
 
-Per Voreinstellung werden hier die vorhergesagten Werte aus unserem ursprünglichen Datensatz dargestellt. `predict` erlaubt uns aber auch Werte von "neuen" Beobachtungen vorherzusagen. Nehmen wir an, wir würden die Extraversion von 5 neuen Personen beobachten (sie haben - vollkommen zufällig - die Werte 1, 2, 3, 4 und 5) und diese Beobachtungen in einem neuem Datensatz `extra_neu` festhalten:
+Per Voreinstellung werden hier die vorhergesagten Werte aus unserem ursprünglichen Datensatz dargestellt. `predict()` erlaubt uns aber auch Werte von "neuen" Beobachtungen vorherzusagen. Nehmen wir an, wir würden die Extraversion von 5 neuen Personen beobachten (sie haben - vollkommen zufällig - die Werte 1, 2, 3, 4 und 5) und diese Beobachtungen in einem neuem Datensatz `extra_neu` festhalten:
 
 ```{r}
 extra_neu <- data.frame(extra = c(1, 2, 3, 4, 5))
@@ -259,7 +259,7 @@ extra_neu <- data.frame(extra = c(1, 2, 3, 4, 5))
 Anhand unseres Modells können wir für diese Personen auch ihre Nerdiness vorhersagen, obwohl wir diese nicht beobachtet haben:
 
 ```{r}
-predict(fm, newdata = extra_neu)
+predict(lin_mod, newdata = extra_neu)
 ```
 
 Damit diese Vorhersage funktioniert, muss im neuen Datensatz eine Variable mit dem Namen `extra` vorliegen.
@@ -267,7 +267,7 @@ Damit diese Vorhersage funktioniert, muss im neuen Datensatz eine Variable mit d
 
 ### Streu-Punktdiagramm mit Regressionsgerade
 
-Das Streudiagramm haben wir zu Beginn schon abbilden lassen. Hier kann zusätzlich noch der geschätzte Zusammenhang zwischen den beiden Variablen als Regressiongerade eingefügt werden. Hierzu wird der Befehl `plot` durch `abline` ergänzt:
+Das Streudiagramm haben wir zu Beginn schon abbilden lassen. Hier kann zusätzlich noch der geschätzte Zusammenhang zwischen den beiden Variablen als Regressiongerade eingefügt werden. Hierzu wird der Befehl `plot()` durch `abline()` ergänzt:
 
 ```{r, fig = TRUE}
 # Scatterplot zuvor im Skript beschrieben
@@ -275,18 +275,18 @@ plot(fb22$extra, fb22$nerd,
   xlim = c(0, 6), ylim = c(1, 5), pch = 19)
 lines(loess.smooth(fb22$extra, fb22$nerd), col = 'blue')    #beobachteter, lokaler Zusammenhang
 # Ergebnisse der Regression als Gerade aufnehmen
-abline(fm, col = 'red')
+abline(lin_mod, col = 'red')
 ```
 
 
 ### Standardisierte Regressionsgewichte
 
 Bei einer Regression (besonders wenn mehr als ein Prädiktor in das Modell aufgenommen wird) kann es sinnvoll sein, die standardisierten Regressionskoeffizienten zu betrachten, um die Erklärungs- oder Prognosebeiträge der einzelnen unabhängigen Variablen (unabhängig von den bei der Messung der Variablen gewählten Einheiten) miteinander vergleichen zu können, z. B. um zu sehen, welche Variable den größten Beitrag zur Prognose der abhängigen Variable leistet. Außerdem ist es hierdurch möglich, die Ergebnisse zwischen verschiedenen Studien zu vergleichen, die `nerd` und `extra` gemessen haben, jedoch in unterschiedlichen Einheiten. Durch die Standardisierung werden die Regressionskoeffizienten vergleichbar.
-Die Variablen werden mit `scale` standardisiert (z-Transformation; Erwartungswert gleich Null und die Varianz gleich Eins gesetzt). Mit `lm` wird das Modell berechnet.
+Die Variablen werden mit `scale()` standardisiert (z-Transformation; Erwartungswert gleich Null und die Varianz gleich Eins gesetzt). Mit `lm()` wird das Modell berechnet.
 
 ```{r}
-sfm <- lm(scale(nerd) ~ scale(extra), fb22)
-sfm
+s_lin_mod <- lm(scale(nerd) ~ scale(extra), fb22)
+s_lin_mod
 ```
 
 ****
@@ -304,31 +304,31 @@ $R^2 = \frac{s^2_{\hat{Y}}}{s^2_{Y}} = \frac{s^2_{\hat{Y}}}{s^2_{\hat{Y}} + s^2_
 
 ```{r}
 # Anhand der Varianz von lz
-var(predict(fm)) / var(fb22$nerd, use = "na.or.complete")
+var(predict(lin_mod)) / var(fb22$nerd, use = "na.or.complete")
 
 # Anhand der Summe der Varianzen
-var(predict(fm)) / (var(predict(fm)) + var(resid(fm)))
+var(predict(lin_mod)) / (var(predict(lin_mod)) + var(resid(lin_mod)))
 ```
 
 Jedoch kann dieser umständliche Weg umgangen werden.
-Mit der Funktion `summary` kann ein Überblick über verschiedene Ergebnisse eines Modells gewonnen werden. Für lineare Modelle werden mit diesem Befehl unter anderem auch die Koeffizienten angezeigt. Anhand des p-Werts kann hier auch die Signifikanz des $R^2$ überprüft werden.
+Mit der Funktion `summary()` kann ein Überblick über verschiedene Ergebnisse eines Modells gewonnen werden. Für lineare Modelle werden mit diesem Befehl unter anderem auch die Koeffizienten angezeigt. Anhand des p-Werts kann hier auch die Signifikanz des $R^2$ überprüft werden.
 
 ```{r}
 #Detaillierte Modellergebnisse
-summary(fm)
+summary(lin_mod)
 
 ```
 
 Determinationskoeffizient $R^2$ ist signifikant, da $p < \alpha$.
 
-Der Determinationskoeffizient $R^2$ kann auch direkt über den Befehl `summary()$r.squared` ausgegeben werden:
+Der Determinationskoeffizient $R^2$ kann auch direkt über den Befehl `summary(lin_mod)$r.squared` ausgegeben werden:
 
 ```{r}
-summary(fm)$r.squared
+summary(lin_mod)$r.squared
 ```
 
 ```{r, echo=FALSE}
-r2 <- summary(fm)$r.squared*100
+r2 <- summary(lin_mod)$r.squared*100
 ```
 
 `r round(r2, digits = 2)`% der Varianz von `nerd` können durch `extra` erklärt werden. Dieser Effekt ist nach Cohens (1988) Konvention als schwach bis mittelstark zu bewerten, wenn keine Erkenntnisse in dem spezifischen Bereich vorliegen.
@@ -349,22 +349,22 @@ Im Falle einer einfachen linearen Regression (1 Prädiktor) ist das standardisie
 
 ```{r}
 cor(fb22$nerd, fb22$extra)   # Korrelation
-sfm <- lm(scale(nerd) ~ scale(extra), fb22) # Regression mit standardisierten Variablen
-sfm
-round(coef(sfm)["scale(extra)"],3) == round(cor(fb22$nerd, fb22$extra),3)
+s_lin_mod <- lm(scale(nerd) ~ scale(extra), fb22) # Regression mit standardisierten Variablen
+s_lin_mod
+round(coef(s_lin_mod)["scale(extra)"],3) == round(cor(fb22$nerd, fb22$extra),3)
 ```
 
 Entsprechend ist das Quadrat der Korrelation identisch zum Determinationskoeffizienten des Modells mit standardisierten Variablen...
 ```{r}
 cor(fb22$nerd, fb22$extra)^2   # Quadrierte Korrelation
-summary(sfm)$ r.squared  # Det-Koeffizient Modell mit standardisierten Variablen
-round((cor(fb22$nerd, fb22$extra)^2),3) == round(summary(sfm)$ r.squared, 3)
+summary(s_lin_mod)$ r.squared  # Det-Koeffizient Modell mit standardisierten Variablen
+round((cor(fb22$nerd, fb22$extra)^2),3) == round(summary(s_lin_mod)$ r.squared, 3)
 ```
 ... und unstandardisierten Variablen
 ```{r}
 cor(fb22$nerd, fb22$extra)^2   # Quadrierte Korrelation
-summary(fm)$ r.squared  # Det-Koeffizient Modell mit unstandardisierten Variablen
-round((cor(fb22$nerd, fb22$extra)^2),3) == round(summary(fm)$ r.squared, 3)
+summary(lin_mod)$ r.squared  # Det-Koeffizient Modell mit unstandardisierten Variablen
+round((cor(fb22$nerd, fb22$extra)^2),3) == round(summary(lin_mod)$ r.squared, 3)
 ```
 
 Der standardisierte Korrelationskoeffizient in einer einfachen linearen Regression liefert also dieselben Informationen wie eine Produkt-Moment-Korrelation. Daraus wird auch ersichtlich, dass ein Regressionskoeffizient (genau wie eine Korrelation) nicht zulässt, auf die Richtung des Effekts (Kausalität) zu schließen. 
@@ -377,13 +377,13 @@ Der standardisierte Korrelationskoeffizient in einer einfachen linearen Regressi
 
 **Signifikanztestung der Regressionskoeffizienten:**
 
-Zuerst kann die Betrachtung der Konfidenzintervalle helfen. Der Befehl `confint` berechnet die Konfidenzintervalle der Regressionsgewichte.
+Zuerst kann die Betrachtung der Konfidenzintervalle helfen. Der Befehl `confint()` berechnet die Konfidenzintervalle der Regressionsgewichte.
 ```{r}
 #Konfidenzintervalle der Regressionskoeffizienten
-confint(fm)
+confint(lin_mod)
 ```
 ```{r, echo=FALSE}
-confint <- confint(fm)
+confint <- confint(lin_mod)
 ```
 Das Konfidenzintervall von `r round(confint[2], 3)` und `r round(confint[4], 3)` ist der Bereich, in dem wir den wahren Wert vermuten können. Zur Erinnerung: das 95% Konfidenzintervall  besagt, dass, wenn wir diese Studie mit der selben Stichprobengröße sehr oft wiederholen, 95% aller realisierten Konfidenzintervalle den wahren Wert für $b_1$ enthalten werden. Da die 0 nicht in diesem Intervall enthalten ist, ist 0 ein eher unwahrscheinlicher wahrer Wert für $b_1$.
 
@@ -401,7 +401,7 @@ Eine andere Möglichkeit zur interenzstatitschen Überpüfung ergibt sich über 
 
 ```{r}
 #Detaillierte Modellergebnisse
-summary(fm)
+summary(lin_mod)
 
 ```
 
