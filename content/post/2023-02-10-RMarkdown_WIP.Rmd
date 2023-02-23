@@ -3,7 +3,7 @@ title: "RMarkdown"
 date: '2022-12-06'
 slug: RMarkdown
 categories:
-  #- extras Erstmal auskommentiert :)
+  - extras
 tags:
 subtitle: ''
 summary: ''
@@ -25,7 +25,7 @@ knitr::opts_chunk$set(message = FALSE, warning = FALSE)
 numberFunc <- sample(1:20, 2, replace = T)
 ```
 ## RMarkdown-Datei erstellen
-Um eine RMarkdown-Datei zu erstellen, muss man in RStudio oben links eine neue Datei erstellen, und dort RMarkdown auswählen. Nun sollte sich ein Fenster öffnen in dem man einige Angaben treffen kann. Die ersten drei Parameter sind dabei relativ selbsterklärend, der Titel des Markdown-Dokuments, das Datum der Erstellung sowie der Name des Autoren des Dokuments. Das Output-Format hingegen bestimmt, in welcher Form das Dokument ausgegeben werden soll, PDF, Word oder Html. Dies lässt sich später aber noch anpassen.
+Um eine RMarkdown-Datei zu erstellen, muss man in RStudio oben links eine neue Datei erstellen, und dort RMarkdown auswählen. Nun sollte sich ein Fenster öffnen in dem man einige Angaben treffen kann. Die ersten drei Parameter sind dabei relativ selbsterklärend, der Titel des Markdown-Dokuments, das Datum der Erstellung sowie der Name der/des Autor*in des Dokuments. Das Output-Format hingegen bestimmt, in welcher Form das Dokument ausgegeben werden soll, PDF, Word oder Html. Dies lässt sich später aber noch anpassen.
 
 <!-- Hier Bild einfügen -->
 
@@ -34,7 +34,7 @@ Um eine RMarkdown-Datei zu erstellen, muss man in RStudio oben links eine neue D
 ## Aufbau des Dokuments
 Eine RMarkdown-Datei enthält typischerweise einen head und einen Textkörper, sowie Code-Chunks.
 
-Im Head des Dokuments befinden sich normalerweise Titel, Autor, Datum und Output-Format. Es gibt viele weitere Output-Möglichkeiten wie beispielsweise Powerpoint-Slides. Auf der [Seite von RStudio](https://rmarkdown.rstudio.com/lesson-9.html) gibt es eine Liste weiterer Optionen bei Interesse.
+Im Head des Dokuments befinden sich die Argumente die beim Erstellen übergeben wurden. Es gibt viele weitere Output-Möglichkeiten wie beispielsweise Powerpoint-Slides. Auf der [Seite von RStudio](https://rmarkdown.rstudio.com/lesson-9.html) gibt es eine Liste weiterer Optionen.
 
 Im eigentlichen Textkörper steht einfacher Text, wie er auch hier steht. Manchmal sind im Text [Links]() gesetzt, oder auch *schiefgestellter* oder **fettgedruckter** Text, dies wird auch mit Markdown-Syntax umgesetzt.
 
@@ -74,7 +74,7 @@ x_{11} & x_{12} & x_{13}\\
 x_{21} & x_{22} & x_{23}
 \end{array}$$
 ```
-in RMarkdown zu
+durch RMarkdown zu
 
 $$f(k) = {n \choose k} p^{k} (1-p)^{n-k}$$
 
@@ -86,8 +86,54 @@ x_{21} & x_{22} & x_{23}
 \end{array}$$
 
 ## Code Chunks
-Mit Code Chunks lässt sich, wie bereits erwähnt, R-Code in ein Dokument einbauen um Ergebnisse, Analysen und Grafiken in einen Fließtext dynamisch zu integrieren.
+Mit Code Chunks lässt sich, wie bereits erwähnt, R-Code in ein Dokument einbauen um Ergebnisse, Analysen und Grafiken in einen Fließtext dynamisch zu integrieren. Hier ein Beispiel basierend auf dem Fragebogendatensatz fb22, bei dem wir hier exemplatorisch ein paar Vorraussetzungsprüfung testen zwischen Student\*innen mit und Student\*innen ohne Nebenjob im Bezug auf ihre Nerdiness.
 
+```{r echo=c(-17:-22)}
+#Fragebogendaten aus PsyBsc2 laden
+load(url('https://pandar.netlify.app/post/fb22.rda'))
+
+#prüfen, ob n >= 30
+length(na.omit(fb22$nerd[fb22$job==2])) #Student*innen mit Nebenjob
+length(na.omit(fb22$nerd[fb22$job==1])) #Student*innen ohne Nebenjob
+
+#Zusätzliche Prüfung der NV
+qqnorm(scale(fb22$nerd[fb22$job==2]))
+qqline(scale(fb22$nerd[fb22$job==2]))
+
+qqnorm(scale(fb22$nerd[fb22$job==1]))
+qqline(scale(fb22$nerd[fb22$job==1]))
+
+
+#Prüfung der Homoskedastizität
+library(car)
+leveneTest(fb22$nerd[!is.na(fb22$nerd) & !is.na(fb22$job)] ~ as.factor(fb22$job[!is.na(fb22$nerd) & !is.na(fb22$job)]))
+
+if (leveneTest(fb22$nerd[!is.na(fb22$nerd) & !is.na(fb22$job)] ~ as.factor(fb22$job[!is.na(fb22$nerd) & !is.na(fb22$job)]))[1,3] < 0.05){
+  ausgabe <-("Die Homoskedastizitätsannahme wird verworfen, daher wird eine Welch-Korrektur genutzt.")
+} else{
+  ausgabe <- ("Die Homoskedastizität kann angenommen werden.")
+}
+
+
+```
+
+`r ausgabe`
+
+Man kann dabei, wie es einigen Lesern vielleicht schon aufgefallen ist, sogar einzelne Abschnitte des Codes verstecken, etwa eigene Kommentare oder wie hier, die logische Abfrage des p-Wert des leveneTest und den Test selbst, um direkt eine Antwort mit `print()` zu schreiben!
+
+Die Plotdarstellung kann ähnlich manipuliert und auch anderweitig im Text angepasst werden:
+
+```{r fig.keep=c(2), fig.align='left'}
+#Erster QQ-Plot
+qqnorm(scale(fb22$nerd[fb22$job==2]))
+qqline(scale(fb22$nerd[fb22$job==2]))
+
+#Zweiter QQ-Plot
+qqnorm(scale(fb22$nerd[fb22$job==1]))
+qqline(scale(fb22$nerd[fb22$job==1]))
+```
+
+Hier wurde im Codeblock `{r fig.keep=c(2), fig.align='left'}` festgelegt, deswegen wird nun im Text nur der erste QQ-Plot mit Linie gezeigt und dieser linksbündig dargestellt. Auch hier gibt es wieder eine Vielzahl an Optionen, mit denen man den Codeblock und seinen Output weiter personalisieren kann.
 
 ## Setup mit knitr
 Der erste Code-Chunk in einem Dokument, der beim Erstellen eines neuen RMarkdown-Dokuments auch in RStudio miterstellt wird, ist typischerweise der Setup-Chunk. In ihm lassen sich durch Argumente verschiedene Regeln festlegen die im `default` auf jeden weiteren Code-Chunk zutreffen werden. Die [möglichen Befehle](https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf?_ga=2.102259713.1013981012.1677056319-671987487.1666819594) innerhalb des Setup-Chunks sind weitreichend, meist wird dort aber nur definiert, ob man seinen Code und seine Ergebnisse anzeigen möchte und ob Warnungen oder Nachrichten angezeigt werden sollen. Letztere Optionen lauten bspw.
