@@ -1,0 +1,233 @@
+---
+title: Einführung in gemischte Modelle mit lme4
+date: '2023-02-23'
+slug: lmm-intro
+categories: ["KiJu"]
+tags: ["Regression", "Hierarchische Daten", "Zufallseffekte"]
+subtitle: ''
+summary: ''
+authors: [schultze]
+lastmod: '2023-02-23T16:20:00+01:00'
+featured: no
+header:
+  image: "/header/KiJu_LMMsQuer.jpg"
+  caption: "[Courtesy of pexels](https://www.pexels.com/photo/bunches-of-grapes-hanging-from-vines-3840335/)"
+projects: []
+---
+
+## Vorbereitung
+
+### Datenbeispiel
+
+- International College Survey (Diener, Kim-Pietro, Scollon, et al., 2001)
+- Wohlbefinden in unterschiedlichen Ländern
+
+```{r}
+load(url('https://pandar.netlify.app/post/kultur.rda'))
+head(kultur)[, 1:8]
+```
+
+- Lebenszufriedenheit (lezu)
+  * 5 Items auf einer Skala von 1 (“strongly disagree”) bis 7 (“strongly agree”)
+  * z.B. “I am satisfied with my life”
+- Positiver Affekt (pa) & negativer Affekt (na)
+  * "For the following list of emotions, please rate how often you felt each of the emotions in the last week"
+  * Skala von 1 (“not at all”) bis 7 (“all the time”)
+  * Für positiven Affekt: Pleasant, Happy, Cheerful, etc.
+  * Für negativen Affekt: Unpleasant, Sad, Anger, etc.
+- Klarheit eigener Gefühle (kla_e)
+- Aufmerksamkeit auf eigene Gefühle (auf_e)
+- Schachtelung in Nationen (nation)
+
+### Regressionsergebnisse im Beispiel
+
+```{r}
+mod <- lm(lezu ~ 1 + pa, kultur)
+summary(mod)
+```
+- Darstellung der Ergebnisse (siehe [ggplotting unter Extras](https://pandar.netlify.app/extras/#ggplotting))
+
+```{r scatter-reg, fig = TRUE}
+library(ggplot2)
+ggplot(kultur, aes(x = pa, y = lezu)) + 
+  geom_point() +
+  geom_abline(intercept = coef(mod)[1], slope = coef(mod)[2], color = 'blue') +
+  theme_minimal()
+```
+
+
+- R-Funktionen für Regression
+
+Befehl | Funktionalität
+--- | ------
+`summary()` | Zusammenfassung der Ergebnisse
+`coef()` | Koeffizienten ausgeben lassen
+`confint()` | Konfidenzintervalle für Koeffizienten
+`resid()` | Ausgabe der $e_{i}$
+`predict()` | Ausgabe der $\hat{y}_i$
+`anova()` | Modellvergleiche
+`plot()` | Residuenplots zur Diagnostik
+
+### Pakete
+
+```{r, eval = FALSE}
+# Für Plots der Modelle - dauert einen Moment
+install.packages('sjPlot', dependencies = TRUE)
+
+# Für eine erweiterte Modellzusammenfassung
+installpackages('jtools')
+```
+
+Für alternative Ansätze der Darstellung bzw. Berechnung von Komponenten (nur in vereinzelten Beispielen genutzt)
+
+```{r, eval = FALSE}
+# Für Inferenz der fixed effects
+install.packages('lmerTest')
+
+# Für Bestimmung von Pseudo R^2
+install.packages('MuMIn')
+```
+
+
+## Hintergrund zu LMMs
+
+- Verletzung der Annahme unabhängiger Beobachtungen
+  * Varianz kleiner als bei Zufallsstichprobe (wegen Abhängigkeiten)
+  * Effektives $n$ überschätzt
+  * Präzision der Effekte überschätzt (SE unterschätzt)
+- Koeffizienten nicht verzerrt, aber gemischt
+  * Risiko falscher Schlüsse
+
+  
+- Für Umgang mit Voraussetzungsverletzung ist Korrektur der SE ausreichend
+- Für korrekte Zerlegung von Effekten und deren Wirkebene: LMMs
+
+
+- Feste Effekte (Kodiervariablen)
+  * Aussagen über einzelne Ausprägungen relevant
+  * Durch Studiendesign festgelegt oder natürliche Gruppen
+  * Geschlecht, Therapieansätze, Schulformen
+- Zufällige Effekte (LMMs)
+  * Zusammenfassende Aussagen über viele Ausprägungen relevant
+  * Per Zufall aus Population gezogen
+  * Schulklasse, Therapeut:innen, Teams
+
+  
+- Übliche Begriffe
+  * Mehrebenenmodelle
+  * Gemischte Modelle (LMMs)
+  * Hierarchische Modelle
+
+Level 2 | Level 1
+--- | ---
+macro-units | micro-units
+primary units | secondary units
+clusters | elementary units
+between level | within level
+
+## Nullmodell
+
+### Notation
+
+Notation | Bedeutung
+-- | -----
+$y_{ij}$ | AV-Wert von Person $i$ in Cluster $j$
+$r_{ij}$ | Residuum auf L1, Abweichung der Person von Vorhersage
+$u_{0j}$ | Residuum auf L2, Abweichung des Clusters von Vorhersage
+$\beta_{0j}$ | (bedingter) Erwartungswert für Cluster $j$
+$\gamma_{00}$ | Erwartungswert der Erwartungswerte über alle Cluster
+
+**Level 1** 
+$$ y_{ij} = \beta_{0j} + r_{ij} $$
+
+**Level 2**
+$$ \beta_{0j} = \gamma_{00} + u_{0j} $$
+
+**Gesamtgleichung**
+$$ y_{ij} = \gamma_{00} + u_{0j} + r_{ij} $$
+
+### Nullmodell in lme4
+
+```{r}
+library(lme4)
+mod0 <- lmer(lezu ~ 1 + (1 | nation), kultur)
+```
+
+Generelle Schreibweise:
+
+- `lmer`: *linear mixed effects regression*
+- `AV ~ UV`: wie in `lm`
+- `(RE | Cluster)`: Welcher Parameter (`RE`) soll über die Cluster variieren dürfen
+
+
+```{r}
+summary(mod0)
+```
+
+### Inferenzstatistik in lme4
+
+```{r}
+confint(mod0)
+```
+
+```{r}
+library(lmerTest)
+mod0 <- lmer(lezu ~ 1 + (1 | nation), kultur)
+summary(mod0)
+```
+
+## Zufällige Effekte
+
+```{r}
+summary(mod0)$var
+```
+
+- Darstellung der Ergebnisse in `sjPlot`
+  * gibt `ggplot` Objekt aus, sodass damit alle üblichen Anpassungen vorgenommen werden können
+
+
+```{r caterpillar-mod0, fig = TRUE}
+library(sjPlot)
+plot_model(mod0, type = 're', sort.est = '(Intercept)') + 
+  ggplot2::theme_minimal()
+```
+
+- Einzelne Werte abrufen (für weitere Verarbeitung)
+
+```{r}
+ranef(mod0)
+```
+
+### ICC
+
+$$
+  ICC = \rho(y_{ij}, y_{i'j}) = \frac{var(u_{0j})}{var(y_{ij})} = \frac{\sigma^2_{u_{0j}}}{\sigma^2_{u_{0j}} + \sigma^2_{r_{ij}}}
+$$
+
+- händisch berechnen:
+
+```{r}
+tmp <- VarCorr(mod0) |> as.data.frame()
+tmp$vcov[1] / sum(tmp$vcov)
+```
+
+- in `jtools`
+
+```{r, render = 'normal_print'}
+library(jtools)
+summ(mod0)
+```
+- Wenn $ICC > 0$, ist die Annahme der Unabhängigkeit verletzt und es wird ein Multilevel-Modell benötigt
+- Wenn $ICC > 0$ können dennoch Gruppenunterschiede bzgl. der _Regressionsgewichte_ bestehen
+- Häufig wird $ICC >.10$ als Cut-Off Kriterium gewertet
+  * Schon bei kleinen Werten, kann Clusterung zur starken Überschätzung der Power führen
+- Forschungsbereich Bildung und Organisationen:
+  * klein:  .05, mittel: .10, groß: .15
+- Forschungsbereich kleine Gruppen und Familien:
+  * klein: .10, mittel: .20, groß: .30
+- Generell: je größer die Gruppen desto kleiner ICC per Zufall
+- Effektive Stichprobengröße:
+$$ 
+  n_{\text{eff}} = \frac{n}{1 + (n_{\text{clus}} - 1)ICC}
+$$
+

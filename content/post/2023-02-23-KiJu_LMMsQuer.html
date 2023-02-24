@@ -1,0 +1,628 @@
+---
+title: Einführung in gemischte Modelle mit lme4
+date: '2023-02-23'
+slug: lmm-intro
+categories: ["KiJu"]
+tags: ["Regression", "Hierarchische Daten", "Zufallseffekte"]
+subtitle: ''
+summary: ''
+authors: [schultze]
+lastmod: '2023-02-23T16:20:00+01:00'
+featured: no
+header:
+  image: "/header/KiJu_LMMsQuer.jpg"
+  caption: "[Courtesy of pexels](https://www.pexels.com/photo/bunches-of-grapes-hanging-from-vines-3840335/)"
+projects: []
+---
+
+
+
+<div id="vorbereitung" class="section level2">
+<h2>Vorbereitung</h2>
+<div id="datenbeispiel" class="section level3">
+<h3>Datenbeispiel</h3>
+<ul>
+<li>International College Survey (Diener, Kim-Pietro, Scollon, et al., 2001)</li>
+<li>Wohlbefinden in unterschiedlichen Ländern</li>
+</ul>
+<pre class="r"><code>load(url(&#39;https://pandar.netlify.app/post/kultur.rda&#39;))
+head(kultur)[, 1:8]</code></pre>
+<pre><code>##   nation female auf_e kla_e lezu       pa    na         bal
+## 1 Turkey   male   3.0   3.0  4.0 4.333333 4.250  0.08333333
+## 2 Turkey female   2.5   2.5  5.6 5.333333 7.375 -2.04166667
+## 3 Turkey female   3.0   3.0  4.0 5.666667 2.000  3.66666667
+## 4 Turkey female   3.5   3.0  2.4 3.833333 5.000 -1.16666667
+## 5 Turkey female   3.5   2.5  2.0 5.666667 6.125 -0.45833333
+## 6 Turkey   male   3.0   3.0  4.4 6.666667 4.500  2.16666667</code></pre>
+<ul>
+<li>Lebenszufriedenheit (lezu)
+<ul>
+<li>5 Items auf einer Skala von 1 (“strongly disagree”) bis 7 (“strongly agree”)</li>
+<li>z.B. “I am satisfied with my life”</li>
+</ul></li>
+<li>Positiver Affekt (pa) &amp; negativer Affekt (na)
+<ul>
+<li>“For the following list of emotions, please rate how often you felt each of the emotions in the last week”</li>
+<li>Skala von 1 (“not at all”) bis 7 (“all the time”)</li>
+<li>Für positiven Affekt: Pleasant, Happy, Cheerful, etc.</li>
+<li>Für negativen Affekt: Unpleasant, Sad, Anger, etc.</li>
+</ul></li>
+<li>Klarheit eigener Gefühle (kla_e)</li>
+<li>Aufmerksamkeit auf eigene Gefühle (auf_e)</li>
+<li>Schachtelung in Nationen (nation)</li>
+</ul>
+</div>
+<div id="regressionsergebnisse-im-beispiel" class="section level3">
+<h3>Regressionsergebnisse im Beispiel</h3>
+<pre class="r"><code>mod &lt;- lm(lezu ~ 1 + pa, kultur)
+summary(mod)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = lezu ~ 1 + pa, data = kultur)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -4.4262 -0.7588  0.1076  0.7743  3.0413 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept) 2.225025   0.049592   44.87   &lt;2e-16 ***
+## pa          0.400132   0.008679   46.10   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 1.086 on 7139 degrees of freedom
+##   (53 observations deleted due to missingness)
+## Multiple R-squared:  0.2294, Adjusted R-squared:  0.2293 
+## F-statistic:  2126 on 1 and 7139 DF,  p-value: &lt; 2.2e-16</code></pre>
+<ul>
+<li>Darstellung der Ergebnisse (siehe <a href="https://pandar.netlify.app/extras/#ggplotting">ggplotting unter Extras</a>)</li>
+</ul>
+<pre class="r"><code>library(ggplot2)
+ggplot(kultur, aes(x = pa, y = lezu)) + 
+  geom_point() +
+  geom_abline(intercept = coef(mod)[1], slope = coef(mod)[2], color = &#39;blue&#39;) +
+  theme_minimal()</code></pre>
+<pre><code>## Warning: Removed 53 rows containing missing values (`geom_point()`).</code></pre>
+<p><img src="/post/2023-02-23-KiJu_LMMsQuer_files/figure-html/scatter-reg-1.png" width="672" /></p>
+<ul>
+<li>R-Funktionen für Regression</li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>Befehl</th>
+<th>Funktionalität</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><code>summary()</code></td>
+<td>Zusammenfassung der Ergebnisse</td>
+</tr>
+<tr class="even">
+<td><code>coef()</code></td>
+<td>Koeffizienten ausgeben lassen</td>
+</tr>
+<tr class="odd">
+<td><code>confint()</code></td>
+<td>Konfidenzintervalle für Koeffizienten</td>
+</tr>
+<tr class="even">
+<td><code>resid()</code></td>
+<td>Ausgabe der <span class="math inline">\(e_{i}\)</span></td>
+</tr>
+<tr class="odd">
+<td><code>predict()</code></td>
+<td>Ausgabe der <span class="math inline">\(\hat{y}_i\)</span></td>
+</tr>
+<tr class="even">
+<td><code>anova()</code></td>
+<td>Modellvergleiche</td>
+</tr>
+<tr class="odd">
+<td><code>plot()</code></td>
+<td>Residuenplots zur Diagnostik</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="pakete" class="section level3">
+<h3>Pakete</h3>
+<pre class="r"><code># Für Plots der Modelle - dauert einen Moment
+install.packages(&#39;sjPlot&#39;, dependencies = TRUE)
+
+# Für eine erweiterte Modellzusammenfassung
+installpackages(&#39;jtools&#39;)</code></pre>
+<p>Für alternative Ansätze der Darstellung bzw. Berechnung von Komponenten (nur in vereinzelten Beispielen genutzt)</p>
+<pre class="r"><code># Für Inferenz der fixed effects
+install.packages(&#39;lmerTest&#39;)
+
+# Für Bestimmung von Pseudo R^2
+install.packages(&#39;MuMIn&#39;)</code></pre>
+</div>
+</div>
+<div id="hintergrund-zu-lmms" class="section level2">
+<h2>Hintergrund zu LMMs</h2>
+<ul>
+<li><p>Verletzung der Annahme unabhängiger Beobachtungen</p>
+<ul>
+<li>Varianz kleiner als bei Zufallsstichprobe (wegen Abhängigkeiten)</li>
+<li>Effektives <span class="math inline">\(n\)</span> überschätzt</li>
+<li>Präzision der Effekte überschätzt (SE unterschätzt)</li>
+</ul></li>
+<li><p>Koeffizienten nicht verzerrt, aber gemischt</p>
+<ul>
+<li>Risiko falscher Schlüsse</li>
+</ul></li>
+<li><p>Für Umgang mit Voraussetzungsverletzung ist Korrektur der SE ausreichend</p></li>
+<li><p>Für korrekte Zerlegung von Effekten und deren Wirkebene: LMMs</p></li>
+<li><p>Feste Effekte (Kodiervariablen)</p>
+<ul>
+<li>Aussagen über einzelne Ausprägungen relevant</li>
+<li>Durch Studiendesign festgelegt oder natürliche Gruppen</li>
+<li>Geschlecht, Therapieansätze, Schulformen</li>
+</ul></li>
+<li><p>Zufällige Effekte (LMMs)</p>
+<ul>
+<li>Zusammenfassende Aussagen über viele Ausprägungen relevant</li>
+<li>Per Zufall aus Population gezogen</li>
+<li>Schulklasse, Therapeut:innen, Teams</li>
+</ul></li>
+<li><p>Übliche Begriffe</p>
+<ul>
+<li>Mehrebenenmodelle</li>
+<li>Gemischte Modelle (LMMs)</li>
+<li>Hierarchische Modelle</li>
+</ul></li>
+</ul>
+<table>
+<thead>
+<tr class="header">
+<th>Level 2</th>
+<th>Level 1</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>macro-units</td>
+<td>micro-units</td>
+</tr>
+<tr class="even">
+<td>primary units</td>
+<td>secondary units</td>
+</tr>
+<tr class="odd">
+<td>clusters</td>
+<td>elementary units</td>
+</tr>
+<tr class="even">
+<td>between level</td>
+<td>within level</td>
+</tr>
+</tbody>
+</table>
+</div>
+<div id="nullmodell" class="section level2">
+<h2>Nullmodell</h2>
+<div id="notation" class="section level3">
+<h3>Notation</h3>
+<table>
+<thead>
+<tr class="header">
+<th>Notation</th>
+<th>Bedeutung</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(y_{ij}\)</span></td>
+<td>AV-Wert von Person <span class="math inline">\(i\)</span> in Cluster <span class="math inline">\(j\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(r_{ij}\)</span></td>
+<td>Residuum auf L1, Abweichung der Person von Vorhersage</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(u_{0j}\)</span></td>
+<td>Residuum auf L2, Abweichung des Clusters von Vorhersage</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\beta_{0j}\)</span></td>
+<td>(bedingter) Erwartungswert für Cluster <span class="math inline">\(j\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\gamma_{00}\)</span></td>
+<td>Erwartungswert der Erwartungswerte über alle Cluster</td>
+</tr>
+</tbody>
+</table>
+<p><strong>Level 1</strong>
+<span class="math display">\[ y_{ij} = \beta_{0j} + r_{ij} \]</span></p>
+<p><strong>Level 2</strong>
+<span class="math display">\[ \beta_{0j} = \gamma_{00} + u_{0j} \]</span></p>
+<p><strong>Gesamtgleichung</strong>
+<span class="math display">\[ y_{ij} = \gamma_{00} + u_{0j} + r_{ij} \]</span></p>
+</div>
+<div id="nullmodell-in-lme4" class="section level3">
+<h3>Nullmodell in lme4</h3>
+<pre class="r"><code>library(lme4)</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre class="r"><code>mod0 &lt;- lmer(lezu ~ 1 + (1 | nation), kultur)</code></pre>
+<p>Generelle Schreibweise:</p>
+<ul>
+<li><code>lmer</code>: <em>linear mixed effects regression</em></li>
+<li><code>AV ~ UV</code>: wie in <code>lm</code></li>
+<li><code>(RE | Cluster)</code>: Welcher Parameter (<code>RE</code>) soll über die Cluster variieren dürfen</li>
+</ul>
+<pre class="r"><code>summary(mod0)</code></pre>
+<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
+## Formula: lezu ~ 1 + (1 | nation)
+##    Data: kultur
+## 
+## REML criterion at convergence: 21954.9
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -3.8470 -0.6650  0.0939  0.7345  3.3902 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  nation   (Intercept) 0.2854   0.5342  
+##  Residual             1.2296   1.1089  
+## Number of obs: 7163, groups:  nation, 40
+## 
+## Fixed effects:
+##             Estimate Std. Error t value
+## (Intercept)  4.39599    0.08581   51.23</code></pre>
+</div>
+<div id="inferenzstatistik-in-lme4" class="section level3">
+<h3>Inferenzstatistik in lme4</h3>
+<pre class="r"><code>confint(mod0)</code></pre>
+<pre><code>## Computing profile confidence intervals ...</code></pre>
+<pre><code>##                 2.5 %    97.5 %
+## .sig01      0.4264675 0.6719161
+## .sigma      1.0908914 1.1273144
+## (Intercept) 4.2259305 4.5662197</code></pre>
+<pre class="r"><code>library(lmerTest)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;lmerTest&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:lme4&#39;:
+## 
+##     lmer</code></pre>
+<pre><code>## The following object is masked from &#39;package:stats&#39;:
+## 
+##     step</code></pre>
+<pre class="r"><code>mod0 &lt;- lmer(lezu ~ 1 + (1 | nation), kultur)
+summary(mod0)</code></pre>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
+## lmerModLmerTest]
+## Formula: lezu ~ 1 + (1 | nation)
+##    Data: kultur
+## 
+## REML criterion at convergence: 21954.9
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -3.8470 -0.6650  0.0939  0.7345  3.3902 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  nation   (Intercept) 0.2854   0.5342  
+##  Residual             1.2296   1.1089  
+## Number of obs: 7163, groups:  nation, 40
+## 
+## Fixed effects:
+##             Estimate Std. Error       df t value Pr(&gt;|t|)    
+## (Intercept)  4.39599    0.08581 39.05402   51.23   &lt;2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+</div>
+</div>
+<div id="zufällige-effekte" class="section level2">
+<h2>Zufällige Effekte</h2>
+<pre class="r"><code>summary(mod0)$var</code></pre>
+<pre><code>##  Groups   Name        Std.Dev.
+##  nation   (Intercept) 0.53423 
+##  Residual             1.10885</code></pre>
+<ul>
+<li>Darstellung der Ergebnisse in <code>sjPlot</code>
+<ul>
+<li>gibt <code>ggplot</code> Objekt aus, sodass damit alle üblichen Anpassungen vorgenommen werden können</li>
+</ul></li>
+</ul>
+<pre class="r"><code>library(sjPlot)</code></pre>
+<pre><code>## Install package &quot;strengejacke&quot; from GitHub (`devtools::install_github(&quot;strengejacke/strengejacke&quot;)`) to load all sj-packages at once!</code></pre>
+<pre class="r"><code>plot_model(mod0, type = &#39;re&#39;, sort.est = &#39;(Intercept)&#39;) + 
+  ggplot2::theme_minimal()</code></pre>
+<p><img src="/post/2023-02-23-KiJu_LMMsQuer_files/figure-html/caterpillar-mod0-1.png" width="672" /></p>
+<ul>
+<li>Einzelne Werte abrufen (für weitere Verarbeitung)</li>
+</ul>
+<pre class="r"><code>ranef(mod0)</code></pre>
+<pre><code>## $nation
+##             (Intercept)
+## Turkey      -0.44818086
+## Korea       -0.40503647
+## Slovenia     0.56208695
+## Nigeria     -0.17616391
+## Japan       -0.56699431
+## Chile        0.86978321
+## China       -1.18650851
+## Thailand    -0.45861364
+## Australia    0.48105911
+## Hong Kong   -0.21362638
+## Iran        -0.48112865
+## Greece       0.14584524
+## Philippines  0.15297260
+## Nepal       -0.58509359
+## Cyprus       0.10940207
+## Indonesia    0.10703558
+## Mexico       0.58950252
+## Belgium      0.48558728
+## Portugal     0.35390197
+## Uganda      -1.15522933
+## Singapore   -0.34397158
+## Netherlands  0.52671074
+## Malaysia     0.29471140
+## Georgia     -0.67191598
+## Croatia      0.17087872
+## Ghana       -0.20139742
+## Bulgaria    -0.29096543
+## Bangladesh   0.05749552
+## Russia       0.05460689
+## Slovakia    -0.12780524
+## Zimbabwe    -0.09329670
+## Germany      0.46822898
+## Kuwait       0.10655340
+## Columbia     0.49243158
+## Brazil       0.46243395
+## Cameroon    -0.91203076
+## Canada       1.09983334
+## India       -0.26631345
+## S. Africa    0.52621827
+## Austria      0.46699289
+## 
+## with conditional variances for &quot;nation&quot;</code></pre>
+<div id="icc" class="section level3">
+<h3>ICC</h3>
+<p><span class="math display">\[
+  ICC = \rho(y_{ij}, y_{i&#39;j}) = \frac{var(u_{0j})}{var(y_{ij})} = \frac{\sigma^2_{u_{0j}}}{\sigma^2_{u_{0j}} + \sigma^2_{r_{ij}}}
+\]</span></p>
+<ul>
+<li>händisch berechnen:</li>
+</ul>
+<pre class="r"><code>tmp &lt;- VarCorr(mod0) |&gt; as.data.frame()
+tmp$vcov[1] / sum(tmp$vcov)</code></pre>
+<pre><code>## [1] 0.1883886</code></pre>
+<ul>
+<li>in <code>jtools</code></li>
+</ul>
+<pre class="r"><code>library(jtools)
+summ(mod0)</code></pre>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Observations
+</td>
+<td style="text-align:right;">
+7163
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Dependent variable
+</td>
+<td style="text-align:right;">
+lezu
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Type
+</td>
+<td style="text-align:right;">
+Mixed effects linear regression
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+AIC
+</td>
+<td style="text-align:right;">
+21960.88
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+BIC
+</td>
+<td style="text-align:right;">
+21981.51
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Pseudo-R² (fixed effects)
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+</tr>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+Pseudo-R² (total)
+</td>
+<td style="text-align:right;">
+0.19
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;border-bottom: 0;">
+<thead>
+<tr>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="6">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Fixed Effects
+</div>
+</th>
+</tr>
+<tr>
+<th style="text-align:left;">
+</th>
+<th style="text-align:right;">
+Est.
+</th>
+<th style="text-align:right;">
+S.E.
+</th>
+<th style="text-align:right;">
+t val.
+</th>
+<th style="text-align:right;">
+d.f.
+</th>
+<th style="text-align:right;">
+p
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left;font-weight: bold;">
+(Intercept)
+</td>
+<td style="text-align:right;">
+4.40
+</td>
+<td style="text-align:right;">
+0.09
+</td>
+<td style="text-align:right;">
+51.23
+</td>
+<td style="text-align:right;">
+39.05
+</td>
+<td style="text-align:right;">
+0.00
+</td>
+</tr>
+</tbody>
+<tfoot>
+<tr>
+<td style="padding: 0; " colspan="100%">
+<sup></sup> p values calculated using Satterthwaite d.f.
+</td>
+</tr>
+</tfoot>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Random Effects
+</div>
+</th>
+</tr>
+<tr>
+<th>
+Group
+</th>
+<th>
+Parameter
+</th>
+<th>
+Std. Dev.
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+nation
+</td>
+<td>
+(Intercept)
+</td>
+<td>
+0.53
+</td>
+</tr>
+<tr>
+<td>
+Residual
+</td>
+<td>
+</td>
+<td>
+1.11
+</td>
+</tr>
+</tbody>
+</table>
+<table class="table table-striped table-hover table-condensed table-responsive" style="width: auto !important; margin-left: auto; margin-right: auto;">
+<thead>
+<tr>
+<th style="border-bottom:hidden;padding-bottom:0; padding-left:3px;padding-right:3px;text-align: center; " colspan="3">
+<div style="border-bottom: 1px solid #ddd; padding-bottom: 5px; ">
+Grouping Variables
+</div>
+</th>
+</tr>
+<tr>
+<th>
+Group
+</th>
+<th>
+# groups
+</th>
+<th>
+ICC
+</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>
+nation
+</td>
+<td>
+40
+</td>
+<td>
+0.19
+</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>Wenn <span class="math inline">\(ICC &gt; 0\)</span>, ist die Annahme der Unabhängigkeit verletzt und es wird ein Multilevel-Modell benötigt</li>
+<li>Wenn <span class="math inline">\(ICC &gt; 0\)</span> können dennoch Gruppenunterschiede bzgl. der <em>Regressionsgewichte</em> bestehen</li>
+<li>Häufig wird <span class="math inline">\(ICC &gt;.10\)</span> als Cut-Off Kriterium gewertet
+<ul>
+<li>Schon bei kleinen Werten, kann Clusterung zur starken Überschätzung der Power führen</li>
+</ul></li>
+<li>Forschungsbereich Bildung und Organisationen:
+<ul>
+<li>klein: .05, mittel: .10, groß: .15</li>
+</ul></li>
+<li>Forschungsbereich kleine Gruppen und Familien:
+<ul>
+<li>klein: .10, mittel: .20, groß: .30</li>
+</ul></li>
+<li>Generell: je größer die Gruppen desto kleiner ICC per Zufall</li>
+<li>Effektive Stichprobengröße:
+<span class="math display">\[
+n_{\text{eff}} = \frac{n}{1 + (n_{\text{clus}} - 1)ICC}
+\]</span></li>
+</ul>
+</div>
+</div>
