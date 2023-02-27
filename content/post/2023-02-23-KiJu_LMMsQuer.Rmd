@@ -15,6 +15,11 @@ header:
 projects: []
 ---
 
+```{r, echo=FALSE}
+library(knitr)
+```
+
+
 ## Vorbereitung
 
 ### Datenbeispiel
@@ -213,9 +218,9 @@ tmp$vcov[1] / sum(tmp$vcov)
 
 - in `jtools`
 
-```{r, render = 'normal_print'}
+```{r}
 library(jtools)
-summ(mod0)
+print(summ(mod0))
 ```
 - Wenn $ICC > 0$, ist die Annahme der Unabhängigkeit verletzt und es wird ein Multilevel-Modell benötigt
 - Wenn $ICC > 0$ können dennoch Gruppenunterschiede bzgl. der _Regressionsgewichte_ bestehen
@@ -230,4 +235,109 @@ summ(mod0)
 $$ 
   n_{\text{eff}} = \frac{n}{1 + (n_{\text{clus}} - 1)ICC}
 $$
+
+## Level-1 Prädiktoren
+
+### Random Intercept Model
+
+**Level 1** 
+$$ y_{ij} = \beta_{0j} + \beta_{1j}x_{ij} + r_{ij} $$
+
+**Level 2**
+$$ \beta_{0j} = \gamma_{00} + u_{0j} $$
+$$ \beta_{1j} = \gamma_{10} $$
+
+
+**Gesamtgleichung**
+$$ y_{ij} = \gamma_{00} + \gamma_{10}x_{ij} + u_{0j} + r_{ij} $$
+
+Vergleich der Parameterinterpretation:
+
+- Nullmodell
+  * $\gamma_{00}$ Erwartungswert der Gruppenerwartungswerte
+  * $r_{ij}$ Abweichung eines individuellen Wertes vom jeweiligen Gruppenerwartungswert
+  * $u_{0j}$ u0j Abweichung eines Gruppenerwartungswert vom Erwartungswert der Gruppenerwartungswerte
+- Random Intercept Modell
+  * $\gamma_{00}$ Mittleres Intercept
+  * $r_{ij}$ Abweichung eines individuellen Wertes von der gruppenspezifische Regressionsgeraden bzw. vom vorhergesagten Wert
+  * $u_{0j}$ Abweichung eines gruppenspezifischen Intercepts vom mittleren Intercept
+
+
+- Modell in `lme4` Aufstellen
+
+```{r}
+mod1 <- lmer(lezu ~ 1 + pa + (1 | nation), kultur)
+print(summ(mod1))
+```
+
+### Grafische Darstellung
+
+```{r caterpillar-mod1, fig = TRUE}
+plot_model(mod1, type = 're', sort.est = '(Intercept)')
+```
+
+### Mehrere Prädiktoren
+
+- *Übungsaufgabe*: positiven und negativen Affekt aufnehmen
+  * Was ist bedeutsam in der Vorhersage der Lebenszufriedenheit?
+  
+```{r}
+mod2 <- lmer(lezu ~ 1 + pa + na + (1 | nation), kultur)
+print(summ(mod2))
+```
+### Prüfung via Modellvergleich
+
+```{r, error = TRUE}
+anova(mod0, mod1, mod2)
+```
+- Fehlende Werte auf den UVs verändern Größe des Datensatzes
+
+```{r}
+kultur_comp <- mod2@frame
+mod0_u <- update(mod0, data = kultur_comp)
+mod1_u <- update(mod1, data = kultur_comp)
+mod2_u <- update(mod2, data = kultur_comp)
+```
+
+```{r, error = TRUE}
+anova(mod0_u, mod1_u, mod2_u)
+```
+
+### Random Slopes Modelle
+
+
+**Level 1** 
+$$ y_{ij} = \beta_{0j} + \beta_{1j}x_{1ij} + \beta_{2j}x_{2ij} + r_{ij} $$
+
+**Level 2**
+$$ \beta_{0j} = \gamma_{00} + u_{0j} $$
+$$ \beta_{1j} = \gamma_{10} + u_{1j} $$
+$$ \beta_{2j} = \gamma_{20} + u_{2j} $$
+
+**Gesamtgleichung**
+$$ y_{ij} = \gamma_{00} + \gamma_{10}x_{1ij} + \gamma_{20}x_{2ij} + u_{0j} + u_{1j}x_{1ij} + u_{2j}x_{2ij} + r_{ij} $$
+```{r, warning = TRUE}
+mod3 <- lmer(lezu ~ 1 + pa + na + (1 + pa + na | nation), kultur)
+```
+
+- Fehlende Konvergenz des Modells
+  * sehr kleine Zufallseffekte
+  * sehr hohe Korrelationen zwischen Zufallseffekten
+  * hohe Modellkomplexität
+  * in jedem Fall: inhaltliche Diagnostik betreiben!
+
+```{r}
+# Optimizer wechseln, langsamer aber Versuch Konvergenz zu erreichen
+opts <- lmerControl(optimizer = 'bobyqa')
+mod3 <- lmer(lezu ~ 1 + pa + na + (1 + pa + na | nation), kultur, control = opts)
+```
+
+```{r}
+print(summ(mod3))
+```
+- Gibt leider Korrelationen zwischen REs nicht aus
+
+```{r}
+summary(mod3)$varcor
+```
 
