@@ -72,6 +72,6 @@ Hier findet sich das (vorläufige) Material zum mini-R-Workshop für die Abt. Ki
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
 | 1 | **R-Crash-Kurs** | Inhalte |
-| 2 | **Lineare Modellierung** | [Inhalte](/post/diagnostik-efa) |
+| 2 | **Lineare Modellierung** | Inhalte |
 | 3 | **Gemischte Modelle** | [Inhalte](/post/lmm-intro) |
 | 4 | **LMMs für den Längsschnitt** | [Inhalte](/post/lmm-long)

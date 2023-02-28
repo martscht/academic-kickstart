@@ -22,6 +22,20 @@ library(knitr)
 
 ## Vorbereitung
 
+### Kontinuierliche vs. diskrete Zeit
+
+- Kontinuierliche Zeit
+  * Zeit wird in "natürlichen" Einheiten (Millisekunden, Stunden, Tage, ...) abgebildet
+  * Veränderung ist eine (stetige) Funktion der Zeit
+  * Eine funktionale Form wird vorgegeben (linear, quadratisch, logarithmisch)
+  * Aus der Funktion wird auf alle zeitlichen Abstände generalisiert
+  * Abstände zwischen Messungen können intra- und interindividuell variieren
+- Diskrete Zeit
+  * Zeit wird in künstlichen Einheiten (meist Messzeitpunkten) angegeben
+  * Veränderung findet in Intervallen statt
+  * Die Form der Veränderung ist unbekannt
+  * Abstände zwischen Messungen müssen interindividuell identisch sein
+  
 ### Datenbeispiel
 
 ```{r}
@@ -40,4 +54,90 @@ Crayen, C., Eid, M., Lischetzke, T., Courvoisier, D. S. und Vermunt, J. K. (2012
 - Einmalige Einschätzung der eigenen Morningness (meq)
 - Zählung der individuellen Messzeitpunkte beginnt bei 0 (mzp)
 - Uhrzeit in (anteiligen) Stunden ab 8 Uhr morgens (ctime)
+
+### Pakete
+
+```{r, eval = FALSE}
+# Für Plots der Modelle - dauert einen Moment
+install.packages('sjPlot', dependencies = TRUE)
+
+# Für eine erweiterte Modellzusammenfassung
+installpackages('jtools')
+```
+
+Für alternative Ansätze der Darstellung bzw. Berechnung von Komponenten (nur in vereinzelten Beispielen genutzt)
+
+```{r, eval = FALSE}
+# Für Inferenz der fixed effects
+install.packages('lmerTest')
+
+# Für Bestimmung von Pseudo R^2
+install.packages('MuMIn')
+```
+
+```{r}
+library(lme4)
+library(sjPlot)
+library(jtools)
+library(ggplot2)
+```
+
+
+## State-Trait-Modell
+
+**Level 1** 
+$$ y_{ti} = \beta_{0i} + r_{ti} $$
+
+**Level 2**
+$$ \beta_{0i} = \gamma_{00} + u_{0i} $$
+
+**Gesamtgleichung**
+$$ y_{ti} = \gamma_{00} + u_{0i} + r_{ti} $$
+- Klassisches Nullmodell, nur $t$ für "Time" und $i$ für "individual"
+- Zerlegung in LST:
+  * $\tau_{ti}$: True Score der Person $i$ zum Zeitpunkt $t$
+  * $\xi_{i}$: Trait der Person $i$
+  * $\zeta_{ti}$: State-Abweichung vom Trait zum Zeitpunkt $t$ für Person $i$
+
+$$ \tau_{ti} = \xi_{i} + \zeta_{ti} $$
+
+```{r}
+mod0 <- lmer(wm ~ 1 + (1 | id), sunday)
+print(summ(mod0))
+```
+ICC: Stabilitätsausmaß (relativer Varianzanteil der Personeneigenschaften)
+
+```{r}
+# Individuelle Traits (Ewartungswerte, beta0i)
+coef(mod0)$id |> head()
+
+# Abweichungen (u0i)
+ranef(mod0)$id |> head()
+```
+
+```{r, fig=TRUE}
+plot_model(mod0, 're', sort.est = '(Intercept)')
+```
+
+## Einfache Wachstumskurven
+
+- Random Intercept Modell mit Zeit als UV
+
+```{r}
+mod1 <- lmer(wm ~ 1 + ctime + (1 | id), sunday)
+print(summ(mod1))
+```
+```{r, fig=TRUE}
+tmp <- coef(mod1)$id
+tmp$id <- rownames(tmp)
+tmp <- subset(tmp, as.numeric(id) < 10)
+
+subset(sunday, as.numeric(id) < 10) |>
+  ggplot(aes(x = ctime, y = wm, color = id)) + 
+    geom_point() + 
+    geom_abline(data = tmp, 
+      aes(intercept = `(Intercept)`, slope = ctime, 
+        color = id)) +
+    theme_minimal() + facet_wrap(~ id)
+```
 

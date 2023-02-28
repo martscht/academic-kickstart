@@ -19,6 +19,26 @@ projects: []
 
 <div id="vorbereitung" class="section level2">
 <h2>Vorbereitung</h2>
+<div id="kontinuierliche-vs.-diskrete-zeit" class="section level3">
+<h3>Kontinuierliche vs. diskrete Zeit</h3>
+<ul>
+<li>Kontinuierliche Zeit
+<ul>
+<li>Zeit wird in “natürlichen” Einheiten (Millisekunden, Stunden, Tage, …) abgebildet</li>
+<li>Veränderung ist eine (stetige) Funktion der Zeit</li>
+<li>Eine funktionale Form wird vorgegeben (linear, quadratisch, logarithmisch)</li>
+<li>Aus der Funktion wird auf alle zeitlichen Abstände generalisiert</li>
+<li>Abstände zwischen Messungen können intra- und interindividuell variieren</li>
+</ul></li>
+<li>Diskrete Zeit
+<ul>
+<li>Zeit wird in künstlichen Einheiten (meist Messzeitpunkten) angegeben</li>
+<li>Veränderung findet in Intervallen statt</li>
+<li>Die Form der Veränderung ist unbekannt</li>
+<li>Abstände zwischen Messungen müssen interindividuell identisch sein</li>
+</ul></li>
+</ul>
+</div>
 <div id="datenbeispiel" class="section level3">
 <h3>Datenbeispiel</h3>
 <pre class="r"><code>load(url(&#39;https://pandar.netlify.app/post/Sunday.rda&#39;))
@@ -45,4 +65,149 @@ head(sunday)</code></pre>
 <li>Uhrzeit in (anteiligen) Stunden ab 8 Uhr morgens (ctime)</li>
 </ul>
 </div>
+<div id="pakete" class="section level3">
+<h3>Pakete</h3>
+<pre class="r"><code># Für Plots der Modelle - dauert einen Moment
+install.packages(&#39;sjPlot&#39;, dependencies = TRUE)
+
+# Für eine erweiterte Modellzusammenfassung
+installpackages(&#39;jtools&#39;)</code></pre>
+<p>Für alternative Ansätze der Darstellung bzw. Berechnung von Komponenten (nur in vereinzelten Beispielen genutzt)</p>
+<pre class="r"><code># Für Inferenz der fixed effects
+install.packages(&#39;lmerTest&#39;)
+
+# Für Bestimmung von Pseudo R^2
+install.packages(&#39;MuMIn&#39;)</code></pre>
+<pre class="r"><code>library(lme4)</code></pre>
+<pre><code>## Loading required package: Matrix</code></pre>
+<pre class="r"><code>library(sjPlot)</code></pre>
+<pre><code>## Learn more about sjPlot with &#39;browseVignettes(&quot;sjPlot&quot;)&#39;.</code></pre>
+<pre class="r"><code>library(jtools)
+library(ggplot2)</code></pre>
+</div>
+</div>
+<div id="state-trait-modell" class="section level2">
+<h2>State-Trait-Modell</h2>
+<p><strong>Level 1</strong>
+<span class="math display">\[ y_{ti} = \beta_{0i} + r_{ti} \]</span></p>
+<p><strong>Level 2</strong>
+<span class="math display">\[ \beta_{0i} = \gamma_{00} + u_{0i} \]</span></p>
+<p><strong>Gesamtgleichung</strong>
+<span class="math display">\[ y_{ti} = \gamma_{00} + u_{0i} + r_{ti} \]</span>
+- Klassisches Nullmodell, nur <span class="math inline">\(t\)</span> für “Time” und <span class="math inline">\(i\)</span> für “individual”
+- Zerlegung in LST:
+* <span class="math inline">\(\tau_{ti}\)</span>: True Score der Person <span class="math inline">\(i\)</span> zum Zeitpunkt <span class="math inline">\(t\)</span>
+* <span class="math inline">\(\xi_{i}\)</span>: Trait der Person <span class="math inline">\(i\)</span>
+* <span class="math inline">\(\zeta_{ti}\)</span>: State-Abweichung vom Trait zum Zeitpunkt <span class="math inline">\(t\)</span> für Person <span class="math inline">\(i\)</span></p>
+<p><span class="math display">\[ \tau_{ti} = \xi_{i} + \zeta_{ti} \]</span></p>
+<pre class="r"><code>mod0 &lt;- lmer(wm ~ 1 + (1 | id), sunday)
+print(summ(mod0))</code></pre>
+<pre><code>## MODEL INFO:
+## Observations: 1069
+## Dependent Variable: wm
+## Type: Mixed effects linear regression 
+## 
+## MODEL FIT:
+## AIC = 2417.01, BIC = 2431.93
+## Pseudo-R² (fixed effects) = 0.00
+## Pseudo-R² (total) = 0.22 
+## 
+## FIXED EFFECTS:
+## --------------------------------------------------------
+##                     Est.   S.E.   t val.     d.f.      p
+## ----------------- ------ ------ -------- -------- ------
+## (Intercept)         2.66   0.04    71.55   152.45   0.00
+## --------------------------------------------------------
+## 
+## p values calculated using Satterthwaite d.f.
+## 
+## RANDOM EFFECTS:
+## ------------------------------------
+##   Group      Parameter    Std. Dev. 
+## ---------- ------------- -----------
+##     id      (Intercept)     0.37    
+##  Residual                   0.69    
+## ------------------------------------
+## 
+## Grouping variables:
+## -------------------------
+##  Group   # groups   ICC  
+## ------- ---------- ------
+##   id       148      0.22 
+## -------------------------</code></pre>
+<p>ICC: Stabilitätsausmaß (relativer Varianzanteil der Personeneigenschaften)</p>
+<pre class="r"><code># Individuelle Traits (Ewartungswerte, beta0i)
+coef(mod0)$id |&gt; head()</code></pre>
+<pre><code>##   (Intercept)
+## 1    2.025617
+## 2    2.548404
+## 3    2.461273
+## 4    2.374142
+## 5    3.027625
+## 6    2.743919</code></pre>
+<pre class="r"><code># Abweichungen (u0i)
+ranef(mod0)$id |&gt; head()</code></pre>
+<pre><code>##   (Intercept)
+## 1 -0.63415702
+## 2 -0.11137054
+## 3 -0.19850162
+## 4 -0.28563270
+## 5  0.36785040
+## 6  0.08414454</code></pre>
+<pre class="r"><code>plot_model(mod0, &#39;re&#39;, sort.est = &#39;(Intercept)&#39;)</code></pre>
+<p><img src="/post/2023-02-28-KiJu_LMMsLang_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+</div>
+<div id="einfache-wachstumskurven" class="section level2">
+<h2>Einfache Wachstumskurven</h2>
+<ul>
+<li>Random Intercept Modell mit Zeit als UV</li>
+</ul>
+<pre class="r"><code>mod1 &lt;- lmer(wm ~ 1 + ctime + (1 | id), sunday)
+print(summ(mod1))</code></pre>
+<pre><code>## MODEL INFO:
+## Observations: 1069
+## Dependent Variable: wm
+## Type: Mixed effects linear regression 
+## 
+## MODEL FIT:
+## AIC = 2418.90, BIC = 2438.80
+## Pseudo-R² (fixed effects) = 0.01
+## Pseudo-R² (total) = 0.23 
+## 
+## FIXED EFFECTS:
+## --------------------------------------------------------
+##                     Est.   S.E.   t val.     d.f.      p
+## ----------------- ------ ------ -------- -------- ------
+## (Intercept)         2.53   0.06    44.08   628.34   0.00
+## ctime               0.02   0.01     2.96   952.29   0.00
+## --------------------------------------------------------
+## 
+## p values calculated using Satterthwaite d.f.
+## 
+## RANDOM EFFECTS:
+## ------------------------------------
+##   Group      Parameter    Std. Dev. 
+## ---------- ------------- -----------
+##     id      (Intercept)     0.37    
+##  Residual                   0.69    
+## ------------------------------------
+## 
+## Grouping variables:
+## -------------------------
+##  Group   # groups   ICC  
+## ------- ---------- ------
+##   id       148      0.23 
+## -------------------------</code></pre>
+<pre class="r"><code>tmp &lt;- coef(mod1)$id
+tmp$id &lt;- rownames(tmp)
+tmp &lt;- subset(tmp, as.numeric(id) &lt; 10)
+
+subset(sunday, as.numeric(id) &lt; 10) |&gt;
+  ggplot(aes(x = ctime, y = wm, color = id)) + 
+    geom_point() + 
+    geom_abline(data = tmp, 
+      aes(intercept = `(Intercept)`, slope = ctime, 
+        color = id)) +
+    theme_minimal() + facet_wrap(~ id)</code></pre>
+<p><img src="/post/2023-02-28-KiJu_LMMsLang_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
 </div>
