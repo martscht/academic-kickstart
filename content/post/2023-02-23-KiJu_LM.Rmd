@@ -1,0 +1,205 @@
+---
+title: Einführung in lineare Modelle in R
+date: '2023-02-23'
+slug: kiju-lm
+categories: ["KiJu"]
+tags: ["Regression"]
+subtitle: ''
+summary: ''
+authors: [nehler]
+lastmod: '2023-02-28T16:20:00+01:00'
+featured: no
+header:
+  image: "/header/KiJu_LMMsQuer.jpg"
+  caption: "[Courtesy of pexels](https://www.pexels.com/photo/bunches-of-grapes-hanging-from-vines-3840335/)"
+projects: []
+---
+
+```{r, echo=FALSE}
+library(knitr)
+```
+
+
+## Vorbereitung
+
+- Pakete aktivieren und Code durchführen, die im letzten Tutorials schon da waren
+
+```{r, eval = FALSE}
+library(haven)
+setwd("~/Pfad/zu/Ordner")
+data <- read_sav(file = "fb22_mod.sav")
+data$geschl_faktor <- factor(data$geschl,                                   # Ausgangsvariable
+                             levels = c(1, 2, 3),                           # Faktorstufen
+                             labels = c("weiblich", "männlich", "anderes")) # Label für Faktorstufen
+data$nr_ges <- rowMeans(data[,c("nr1", "nr2", "nr3", "nr4", "nr5", "nr6")])
+data$prok <- rowMeans(data[,c("prok1", "prok4", "prok6", "prok9", "prok10")])
+
+data$wohnen_faktor <- factor(data$wohnen,                                   
+                             levels = c(1, 2, 3, 4),                                
+                             labels = c("WG", "bei Eltern", "alleine", "sonstiges")) 
+```
+
+```{r, echo = FALSE}
+library(haven)
+data <- read_sav(file = url("https://pandar.netlify.app/post/fb22_mod.sav"))
+data$geschl_faktor <- factor(data$geschl,                                   # Ausgangsvariable
+                             levels = c(1, 2, 3),                           # Faktorstufen
+                             labels = c("weiblich", "männlich", "anderes")) # Label für Faktorstufen
+data$nr_ges <- rowMeans(data[,c("nr1", "nr2", "nr3", "nr4", "nr5", "nr6")])
+data$prok <- rowMeans(data[,c("prok1", "prok4", "prok6", "prok9", "prok10")])
+
+data$wohnen_faktor <- factor(data$wohnen,                                   
+                             levels = c(1, 2, 3, 4),                                
+                             labels = c("WG", "bei Eltern", "alleine", "sonstiges")) 
+```
+
+## lineare Modellierung
+
+- Grundlage für spätere hierarchische Ansetzung ist lineares Modell ohne Hierarchie
+
+### Syntax
+
+- spezielle Syntax für die Darstellungen von Abhängigkeiten
+- Demonstration an der aggregate Funktion
+- Operation wird an einer Variable in Abhängigkeit einer anderen durchgeführt
+
+```{r}
+aggregate(extra ~ geschl_faktor, data = data, FUN = mean)
+```
+
+### Einfaches lineares Modell
+
+- eben gelernte Syntaxlogik übertragen
+
+```{r}
+lm(extra ~ lz, data = data)
+```
+
+- hat erstmal nur sehr beschränkte Ausgabe
+- man kann meist mehr aus Funktionen herausholen, indem man ihren Output in ein Objekt ablegt
+
+```{r}
+mod <- lm(extra ~ lz, data = data)
+```
+
+- erscheint oben im Environment
+- was für ein Typ Objekt ist das nun?
+- steht da, dass es eine List ist; etwas anderes als ein Datensatz; hier gibt es feste Anzahl an Spalten pro Reihe und umgekehrt
+- bei Listen können in verschiedenen Bestandteilen der Liste ganz unterschiedliche Sachen liegen
+- bspw. auch Datensätze; häufig ist die Auswahl von Listenbestandteilen aber auch durch das `$`
+
+```{r}
+mod$coefficients
+mod$call
+```
+
+- wie Variablen auch (`numeric` etc.), können Listen verschiedene Klassen haben
+- bspw. haben wir hier die class lm, erstellt aus der Funktion
+- Datensätze hingegen haben meist die class data.frame
+
+```{r}
+class(data)
+class(mod)
+```
+
+- neben der händischen Exploration können wir auch automatische Funktionen nutzen
+- bspw. die summary Funktion; wird am häufigsten genutzt
+
+```{r}
+summary(mod)
+```
+
+- zeigt uns wichtigste Parameter an
+- Funktion ist auch auf Objetkte anderer Klassen anwendbar; hier auf Datensatz; zeigt Zusammenfassungen der Variablen
+- werden sie auch in den nächsten Blöcken weiter verwenden
+
+```{r}
+summary(data)
+```
+
+
+## Multiple Regression
+
+- Erweiterung des Modells mit Aufnahme von Effekten
+
+### Kontinuierliche Prädiktoren
+
+- einfache Erweiterung der Syntax um eine Addition
+
+```{r}
+mod_kont <- lm(extra ~ lz + nr_ges, data = data)
+```
+
+- class bleibt gleich und auch summary daher gleich aufgebaut
+- coefficient erweitert sich logischerweise um einen Eintrag
+
+```{r}
+class(mod_kont)
+summary(mod_kont)
+```
+
+
+### Aufnahme kategorialer Prädiktor
+
+- nehmen wir zunächst mal geschl auf, wie es ursprünglich vorlag
+- Syntax bleibt genau gleich
+
+```{r}
+mod_kat <- lm(extra ~ lz + geschl, data = data)
+summary(mod_kat)
+```
+
+- geschl bekommt eigenes Steigungsgewicht; aber nur eins, was überraschend ist, da es drei Ausprägungen gibt
+- daher ist Verwandlung in einen Faktor essentiell
+  
+```{r}
+mod_kat <- lm(extra ~ lz + geschl_faktor, data = data)
+summary(mod_kat)
+```
+
+- Summary zeigt direkt an, in welche Kategorie der Unterschied besteht
+- fehlende Kategorie wird als Referenz genutzt
+- Standardmäßig also eine dummykodierung
+
+### Moderierte Regression
+
+- Interaktionseffekt zwischen zwei Variablen soll aufgenommen werden
+- vorher zentrieren, damit Multikollinearität vorgebeugt wird
+
+```{r}
+data$lz_center <- scale(data$lz, scale = F, center = T)
+data$nr_center <- scale(data$nr_ges, scale = F, center = T)
+```
+
+- Funktionalität überprüfen; nicht immer genau null, aber maschinell gesehen schon
+
+```{r}
+mean(data$lz_center)
+mean(data$nr_center)
+```
+
+- lineare Modellierung mit Moderationseffekt
+
+```{r}
+mod_inter_nocenter <- lm(extra ~ lz + nr_ges + lz*nr_ges, data = data)
+mod_inter_center <- lm(extra ~ lz_center + nr_center + lz_center*nr_center, data = data)
+summary(mod_inter_nocenter)
+summary(mod_inter_center)
+```
+
+- grafische Darstellung: Paket unterstützt diese sehr gut
+
+```{r, eval = FALSE}
+install.packages("interactions")
+library(interactions)
+```
+
+```{r}
+library(interactions)
+```
+
+- Festlegung des Moderators kann `R` natürlich nicht für uns übernehmen
+
+```{r}
+interact_plot(model = mod_inter_center, pred = nr_center, modx = lz_center)
+```

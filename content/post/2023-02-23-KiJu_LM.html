@@ -1,0 +1,380 @@
+---
+title: Einführung in lineare Modelle in R
+date: '2023-02-23'
+slug: kiju-lm
+categories: ["KiJu"]
+tags: ["Regression"]
+subtitle: ''
+summary: ''
+authors: [nehler]
+lastmod: '2023-02-28T16:20:00+01:00'
+featured: no
+header:
+  image: "/header/KiJu_LMMsQuer.jpg"
+  caption: "[Courtesy of pexels](https://www.pexels.com/photo/bunches-of-grapes-hanging-from-vines-3840335/)"
+projects: []
+---
+
+
+
+<div id="vorbereitung" class="section level2">
+<h2>Vorbereitung</h2>
+<ul>
+<li>Pakete aktivieren und Code durchführen, die im letzten Tutorials schon da waren</li>
+</ul>
+<pre class="r"><code>library(haven)
+setwd(&quot;~/Pfad/zu/Ordner&quot;)
+data &lt;- read_sav(file = &quot;fb22_mod.sav&quot;)
+data$geschl_faktor &lt;- factor(data$geschl,                                   # Ausgangsvariable
+                             levels = c(1, 2, 3),                           # Faktorstufen
+                             labels = c(&quot;weiblich&quot;, &quot;männlich&quot;, &quot;anderes&quot;)) # Label für Faktorstufen
+data$nr_ges &lt;- rowMeans(data[,c(&quot;nr1&quot;, &quot;nr2&quot;, &quot;nr3&quot;, &quot;nr4&quot;, &quot;nr5&quot;, &quot;nr6&quot;)])
+data$prok &lt;- rowMeans(data[,c(&quot;prok1&quot;, &quot;prok4&quot;, &quot;prok6&quot;, &quot;prok9&quot;, &quot;prok10&quot;)])
+
+data$wohnen_faktor &lt;- factor(data$wohnen,                                   
+                             levels = c(1, 2, 3, 4),                                
+                             labels = c(&quot;WG&quot;, &quot;bei Eltern&quot;, &quot;alleine&quot;, &quot;sonstiges&quot;)) </code></pre>
+</div>
+<div id="lineare-modellierung" class="section level2">
+<h2>lineare Modellierung</h2>
+<ul>
+<li>Grundlage für spätere hierarchische Ansetzung ist lineares Modell ohne Hierarchie</li>
+</ul>
+<div id="syntax" class="section level3">
+<h3>Syntax</h3>
+<ul>
+<li>spezielle Syntax für die Darstellungen von Abhängigkeiten</li>
+<li>Demonstration an der aggregate Funktion</li>
+<li>Operation wird an einer Variable in Abhängigkeit einer anderen durchgeführt</li>
+</ul>
+<pre class="r"><code>aggregate(extra ~ geschl_faktor, data = data, FUN = mean)</code></pre>
+<pre><code>##   geschl_faktor    extra
+## 1      weiblich 3.373967
+## 2      männlich 3.250000
+## 3       anderes 2.750000</code></pre>
+</div>
+<div id="einfaches-lineares-modell" class="section level3">
+<h3>Einfaches lineares Modell</h3>
+<ul>
+<li>eben gelernte Syntaxlogik übertragen</li>
+</ul>
+<pre class="r"><code>lm(extra ~ lz, data = data)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = extra ~ lz, data = data)
+## 
+## Coefficients:
+## (Intercept)           lz  
+##      2.7746       0.1273</code></pre>
+<ul>
+<li>hat erstmal nur sehr beschränkte Ausgabe</li>
+<li>man kann meist mehr aus Funktionen herausholen, indem man ihren Output in ein Objekt ablegt</li>
+</ul>
+<pre class="r"><code>mod &lt;- lm(extra ~ lz, data = data)</code></pre>
+<ul>
+<li>erscheint oben im Environment</li>
+<li>was für ein Typ Objekt ist das nun?</li>
+<li>steht da, dass es eine List ist; etwas anderes als ein Datensatz; hier gibt es feste Anzahl an Spalten pro Reihe und umgekehrt</li>
+<li>bei Listen können in verschiedenen Bestandteilen der Liste ganz unterschiedliche Sachen liegen</li>
+<li>bspw. auch Datensätze; häufig ist die Auswahl von Listenbestandteilen aber auch durch das <code>$</code></li>
+</ul>
+<pre class="r"><code>mod$coefficients</code></pre>
+<pre><code>## (Intercept)          lz 
+##   2.7745981   0.1273186</code></pre>
+<pre class="r"><code>mod$call</code></pre>
+<pre><code>## lm(formula = extra ~ lz, data = data)</code></pre>
+<ul>
+<li>wie Variablen auch (<code>numeric</code> etc.), können Listen verschiedene Klassen haben</li>
+<li>bspw. haben wir hier die class lm, erstellt aus der Funktion</li>
+<li>Datensätze hingegen haben meist die class data.frame</li>
+</ul>
+<pre class="r"><code>class(data)</code></pre>
+<pre><code>## [1] &quot;tbl_df&quot;     &quot;tbl&quot;        &quot;data.frame&quot;</code></pre>
+<pre class="r"><code>class(mod)</code></pre>
+<pre><code>## [1] &quot;lm&quot;</code></pre>
+<ul>
+<li>neben der händischen Exploration können wir auch automatische Funktionen nutzen</li>
+<li>bspw. die summary Funktion; wird am häufigsten genutzt</li>
+</ul>
+<pre class="r"><code>summary(mod)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = extra ~ lz, data = data)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.78851 -0.48758 -0.01305  0.51706  1.63974 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  2.77460    0.25420  10.915   &lt;2e-16 ***
+## lz           0.12732    0.05291   2.406   0.0173 *  
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.7003 on 151 degrees of freedom
+## Multiple R-squared:  0.03693,    Adjusted R-squared:  0.03055 
+## F-statistic:  5.79 on 1 and 151 DF,  p-value: 0.01732</code></pre>
+<ul>
+<li>zeigt uns wichtigste Parameter an</li>
+<li>Funktion ist auch auf Objetkte anderer Klassen anwendbar; hier auf Datensatz; zeigt Zusammenfassungen der Variablen</li>
+<li>werden sie auch in den nächsten Blöcken weiter verwenden</li>
+</ul>
+<pre class="r"><code>summary(data)</code></pre>
+<pre><code>##      prok1           prok2           prok3           prok4      
+##  Min.   :1.000   Min.   :1.000   Min.   :1.000   Min.   :1.000  
+##  1st Qu.:2.000   1st Qu.:2.000   1st Qu.:2.000   1st Qu.:2.000  
+##  Median :3.000   Median :3.000   Median :2.000   Median :3.000  
+##  Mean   :2.667   Mean   :2.588   Mean   :2.235   Mean   :2.569  
+##  3rd Qu.:3.000   3rd Qu.:3.000   3rd Qu.:3.000   3rd Qu.:3.000  
+##  Max.   :4.000   Max.   :4.000   Max.   :4.000   Max.   :4.000  
+##                                                                 
+##      prok5           prok6           prok7           prok8          prok9      
+##  Min.   :1.000   Min.   :1.000   Min.   :1.000   Min.   :1.00   Min.   :1.000  
+##  1st Qu.:3.000   1st Qu.:2.000   1st Qu.:2.000   1st Qu.:2.00   1st Qu.:2.000  
+##  Median :3.000   Median :3.000   Median :3.000   Median :3.00   Median :3.000  
+##  Mean   :2.974   Mean   :2.725   Mean   :2.725   Mean   :2.81   Mean   :2.745  
+##  3rd Qu.:3.000   3rd Qu.:3.000   3rd Qu.:3.000   3rd Qu.:3.00   3rd Qu.:4.000  
+##  Max.   :4.000   Max.   :4.000   Max.   :4.000   Max.   :4.00   Max.   :4.000  
+##                                                                                
+##      prok10           nr1             nr2            nr3             nr4       
+##  Min.   :1.000   Min.   :1.000   Min.   :1.00   Min.   :1.000   Min.   :1.000  
+##  1st Qu.:2.000   1st Qu.:2.000   1st Qu.:3.00   1st Qu.:2.000   1st Qu.:3.000  
+##  Median :3.000   Median :3.000   Median :4.00   Median :3.000   Median :4.000  
+##  Mean   :2.739   Mean   :2.765   Mean   :3.68   Mean   :3.124   Mean   :3.699  
+##  3rd Qu.:4.000   3rd Qu.:4.000   3rd Qu.:4.00   3rd Qu.:4.000   3rd Qu.:4.000  
+##  Max.   :4.000   Max.   :5.000   Max.   :5.00   Max.   :5.000   Max.   :5.000  
+##                                                                                
+##       nr5             nr6              lz            extra           vertr     
+##  Min.   :1.000   Min.   :1.000   Min.   :1.400   Min.   :1.500   Min.   :2.50  
+##  1st Qu.:3.000   1st Qu.:2.000   1st Qu.:4.200   1st Qu.:3.000   1st Qu.:3.75  
+##  Median :3.000   Median :3.000   Median :4.800   Median :3.250   Median :4.00  
+##  Mean   :3.327   Mean   :2.915   Mean   :4.684   Mean   :3.371   Mean   :4.09  
+##  3rd Qu.:4.000   3rd Qu.:4.000   3rd Qu.:5.400   3rd Qu.:3.750   3rd Qu.:4.50  
+##  Max.   :5.000   Max.   :5.000   Max.   :6.600   Max.   :5.000   Max.   :5.00  
+##                                                                                
+##      gewis           neuro           intel            nerd      
+##  Min.   :2.000   Min.   :1.250   Min.   :1.250   Min.   :1.500  
+##  1st Qu.:3.500   1st Qu.:3.250   1st Qu.:3.250   1st Qu.:2.667  
+##  Median :4.000   Median :3.750   Median :3.500   Median :3.167  
+##  Mean   :3.856   Mean   :3.621   Mean   :3.564   Mean   :3.127  
+##  3rd Qu.:4.250   3rd Qu.:4.250   3rd Qu.:4.000   3rd Qu.:3.500  
+##  Max.   :5.000   Max.   :5.000   Max.   :5.000   Max.   :4.667  
+##                                                                 
+##     grund               fach               ziel             lerntyp         
+##  Length:153         Length:153         Length:153         Length:153        
+##  Class :character   Class :character   Class :character   Class :character  
+##  Mode  :character   Mode  :character   Mode  :character   Mode  :character  
+##                                                                             
+##                                                                             
+##                                                                             
+##                                                                             
+##      geschl           job            ort           ort12          
+##  Min.   :1.000   Min.   :1.00   Min.   :1.000   Length:153        
+##  1st Qu.:1.000   1st Qu.:1.00   1st Qu.:1.000   Class :character  
+##  Median :1.000   Median :1.00   Median :1.000   Mode  :character  
+##  Mean   :1.161   Mean   :1.35   Mean   :1.361                     
+##  3rd Qu.:1.000   3rd Qu.:2.00   3rd Qu.:2.000                     
+##  Max.   :3.000   Max.   :2.00   Max.   :2.000                     
+##  NA&#39;s   :10      NA&#39;s   :10     NA&#39;s   :9                         
+##      wohnen           uni1             uni2             uni3       
+##  Min.   :1.000   Min.   :0.0000   Min.   :0.0000   Min.   :0.0000  
+##  1st Qu.:1.500   1st Qu.:0.0000   1st Qu.:1.0000   1st Qu.:0.0000  
+##  Median :2.000   Median :0.0000   Median :1.0000   Median :0.0000  
+##  Mean   :2.238   Mean   :0.2026   Mean   :0.8693   Mean   :0.3791  
+##  3rd Qu.:3.000   3rd Qu.:0.0000   3rd Qu.:1.0000   3rd Qu.:1.0000  
+##  Max.   :4.000   Max.   :1.0000   Max.   :1.0000   Max.   :1.0000  
+##  NA&#39;s   :10                                                        
+##       uni4         geschl_faktor     nr_ges           prok      
+##  Min.   :0.0000   weiblich:121   Min.   :1.000   Min.   :1.200  
+##  1st Qu.:0.0000   männlich: 21   1st Qu.:2.833   1st Qu.:2.200  
+##  Median :0.0000   anderes :  1   Median :3.333   Median :2.800  
+##  Mean   :0.1111   NA&#39;s    : 10   Mean   :3.252   Mean   :2.689  
+##  3rd Qu.:0.0000                  3rd Qu.:3.667   3rd Qu.:3.200  
+##  Max.   :1.0000                  Max.   :5.000   Max.   :4.000  
+##                                                                 
+##     wohnen_faktor
+##  WG        :36   
+##  bei Eltern:55   
+##  alleine   :34   
+##  sonstiges :18   
+##  NA&#39;s      :10   
+##                  
+## </code></pre>
+</div>
+</div>
+<div id="multiple-regression" class="section level2">
+<h2>Multiple Regression</h2>
+<ul>
+<li>Erweiterung des Modells mit Aufnahme von Effekten</li>
+</ul>
+<div id="kontinuierliche-prädiktoren" class="section level3">
+<h3>Kontinuierliche Prädiktoren</h3>
+<ul>
+<li>einfache Erweiterung der Syntax um eine Addition</li>
+</ul>
+<pre class="r"><code>mod_kont &lt;- lm(extra ~ lz + nr_ges, data = data)</code></pre>
+<ul>
+<li>class bleibt gleich und auch summary daher gleich aufgebaut</li>
+<li>coefficient erweitert sich logischerweise um einen Eintrag</li>
+</ul>
+<pre class="r"><code>class(mod_kont)</code></pre>
+<pre><code>## [1] &quot;lm&quot;</code></pre>
+<pre class="r"><code>summary(mod_kont)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = extra ~ lz + nr_ges, data = data)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.77584 -0.48056 -0.04116  0.50003  1.64164 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  2.70477    0.32691   8.274 6.52e-14 ***
+## lz           0.12540    0.05336   2.350   0.0201 *  
+## nr_ges       0.02424    0.07104   0.341   0.7334    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.7023 on 150 degrees of freedom
+## Multiple R-squared:  0.03768,    Adjusted R-squared:  0.02485 
+## F-statistic: 2.936 on 2 and 150 DF,  p-value: 0.05611</code></pre>
+</div>
+<div id="aufnahme-kategorialer-prädiktor" class="section level3">
+<h3>Aufnahme kategorialer Prädiktor</h3>
+<ul>
+<li>nehmen wir zunächst mal geschl auf, wie es ursprünglich vorlag</li>
+<li>Syntax bleibt genau gleich</li>
+</ul>
+<pre class="r"><code>mod_kat &lt;- lm(extra ~ lz + geschl, data = data)
+summary(mod_kat)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = extra ~ lz + geschl, data = data)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.81472 -0.42128 -0.09677  0.48813  1.75984 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)  2.73727    0.34048   8.040 3.41e-13 ***
+## lz           0.15568    0.05572   2.794  0.00593 ** 
+## geschl      -0.10661    0.15358  -0.694  0.48871    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.704 on 140 degrees of freedom
+##   (10 observations deleted due to missingness)
+## Multiple R-squared:  0.05951,    Adjusted R-squared:  0.04608 
+## F-statistic: 4.429 on 2 and 140 DF,  p-value: 0.01364</code></pre>
+<ul>
+<li>geschl bekommt eigenes Steigungsgewicht; aber nur eins, was überraschend ist, da es drei Ausprägungen gibt</li>
+<li>daher ist Verwandlung in einen Faktor essentiell</li>
+</ul>
+<pre class="r"><code>mod_kat &lt;- lm(extra ~ lz + geschl_faktor, data = data)
+summary(mod_kat)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = extra ~ lz + geschl_faktor, data = data)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.81373 -0.43766 -0.06141  0.46888  1.71996 
+## 
+## Coefficients:
+##                       Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)            2.61751    0.27580   9.491   &lt;2e-16 ***
+## lz                     0.15770    0.05592   2.820   0.0055 ** 
+## geschl_faktormännlich -0.06291    0.16817  -0.374   0.7089    
+## geschl_faktoranderes  -0.62449    0.70840  -0.882   0.3795    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.7055 on 139 degrees of freedom
+##   (10 observations deleted due to missingness)
+## Multiple R-squared:  0.06231,    Adjusted R-squared:  0.04208 
+## F-statistic: 3.079 on 3 and 139 DF,  p-value: 0.02962</code></pre>
+<ul>
+<li>Summary zeigt direkt an, in welche Kategorie der Unterschied besteht</li>
+<li>fehlende Kategorie wird als Referenz genutzt</li>
+<li>Standardmäßig also eine dummykodierung</li>
+</ul>
+</div>
+<div id="moderierte-regression" class="section level3">
+<h3>Moderierte Regression</h3>
+<ul>
+<li>Interaktionseffekt zwischen zwei Variablen soll aufgenommen werden</li>
+<li>vorher zentrieren, damit Multikollinearität vorgebeugt wird</li>
+</ul>
+<pre class="r"><code>data$lz_center &lt;- scale(data$lz, scale = F, center = T)
+data$nr_center &lt;- scale(data$nr_ges, scale = F, center = T)</code></pre>
+<ul>
+<li>Funktionalität überprüfen; nicht immer genau null, aber maschinell gesehen schon</li>
+</ul>
+<pre class="r"><code>mean(data$lz_center)</code></pre>
+<pre><code>## [1] -2.293081e-16</code></pre>
+<pre class="r"><code>mean(data$nr_center)</code></pre>
+<pre><code>## [1] 0</code></pre>
+<ul>
+<li>lineare Modellierung mit Moderationseffekt</li>
+</ul>
+<pre class="r"><code>mod_inter_nocenter &lt;- lm(extra ~ lz + nr_ges + lz*nr_ges, data = data)
+mod_inter_center &lt;- lm(extra ~ lz_center + nr_center + lz_center*nr_center, data = data)
+summary(mod_inter_nocenter)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = extra ~ lz + nr_ges + lz * nr_ges, data = data)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.78622 -0.44980 -0.04804  0.49902  1.63873 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)   
+## (Intercept)  2.40436    0.86519   2.779  0.00616 **
+## lz           0.19447    0.19171   1.014  0.31205   
+## nr_ges       0.12492    0.27763   0.450  0.65340   
+## lz:nr_ges   -0.02288    0.06097  -0.375  0.70805   
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.7044 on 149 degrees of freedom
+## Multiple R-squared:  0.03859,    Adjusted R-squared:  0.01923 
+## F-statistic: 1.993 on 3 and 149 DF,  p-value: 0.1175</code></pre>
+<pre class="r"><code>summary(mod_inter_center)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = extra ~ lz_center + nr_center + lz_center * nr_center, 
+##     data = data)
+## 
+## Residuals:
+##      Min       1Q   Median       3Q      Max 
+## -1.78622 -0.44980 -0.04804  0.49902  1.63873 
+## 
+## Coefficients:
+##                     Estimate Std. Error t value Pr(&gt;|t|)    
+## (Intercept)          3.37299    0.05721  58.956   &lt;2e-16 ***
+## lz_center            0.12009    0.05536   2.169   0.0316 *  
+## nr_center            0.01778    0.07330   0.243   0.8087    
+## lz_center:nr_center -0.02288    0.06097  -0.375   0.7080    
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Residual standard error: 0.7044 on 149 degrees of freedom
+## Multiple R-squared:  0.03859,    Adjusted R-squared:  0.01923 
+## F-statistic: 1.993 on 3 and 149 DF,  p-value: 0.1175</code></pre>
+<ul>
+<li>grafische Darstellung: Paket unterstützt diese sehr gut</li>
+</ul>
+<pre class="r"><code>install.packages(&quot;interactions&quot;)
+library(interactions)</code></pre>
+<pre class="r"><code>library(interactions)</code></pre>
+<ul>
+<li>Festlegung des Moderators kann <code>R</code> natürlich nicht für uns übernehmen</li>
+</ul>
+<pre class="r"><code>interact_plot(model = mod_inter_center, pred = nr_center, modx = lz_center)</code></pre>
+<p><img src="/post/2023-02-23-KiJu_LM_files/figure-html/unnamed-chunk-20-1.png" width="672" /></p>
+</div>
+</div>
