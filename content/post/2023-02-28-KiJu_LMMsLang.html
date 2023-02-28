@@ -81,7 +81,7 @@ install.packages(&#39;MuMIn&#39;)</code></pre>
 <pre class="r"><code>library(lme4)</code></pre>
 <pre><code>## Loading required package: Matrix</code></pre>
 <pre class="r"><code>library(sjPlot)</code></pre>
-<pre><code>## Learn more about sjPlot with &#39;browseVignettes(&quot;sjPlot&quot;)&#39;.</code></pre>
+<pre><code>## Install package &quot;strengejacke&quot; from GitHub (`devtools::install_github(&quot;strengejacke/strengejacke&quot;)`) to load all sj-packages at once!</code></pre>
 <pre class="r"><code>library(jtools)
 library(ggplot2)</code></pre>
 </div>
@@ -159,6 +159,8 @@ ranef(mod0)$id |&gt; head()</code></pre>
 </div>
 <div id="einfache-wachstumskurven" class="section level2">
 <h2>Einfache Wachstumskurven</h2>
+<div id="lineares-wachstum" class="section level3">
+<h3>Lineares Wachstum</h3>
 <ul>
 <li>Random Intercept Modell mit Zeit als UV</li>
 </ul>
@@ -198,16 +200,363 @@ print(summ(mod1))</code></pre>
 ## ------- ---------- ------
 ##   id       148      0.23 
 ## -------------------------</code></pre>
-<pre class="r"><code>tmp &lt;- coef(mod1)$id
-tmp$id &lt;- rownames(tmp)
-tmp &lt;- subset(tmp, as.numeric(id) &lt; 10)
+<pre class="r"><code>sunday$pred_mod1 &lt;- predict(mod1)
 
 subset(sunday, as.numeric(id) &lt; 10) |&gt;
   ggplot(aes(x = ctime, y = wm, color = id)) + 
     geom_point() + 
-    geom_abline(data = tmp, 
-      aes(intercept = `(Intercept)`, slope = ctime, 
-        color = id)) +
+    geom_line(aes(y = pred_mod1)) +
     theme_minimal() + facet_wrap(~ id)</code></pre>
 <p><img src="/post/2023-02-28-KiJu_LMMsLang_files/figure-html/unnamed-chunk-10-1.png" width="672" /></p>
+</div>
+<div id="kurvilineares-wachstum" class="section level3">
+<h3>Kurvilineares Wachstum</h3>
+<pre class="r"><code>plot_model(mod1, &#39;slope&#39;)</code></pre>
+<pre><code>## `geom_smooth()` using formula = &#39;y ~ x&#39;
+## `geom_smooth()` using formula = &#39;y ~ x&#39;</code></pre>
+<p><img src="/post/2023-02-28-KiJu_LMMsLang_files/figure-html/unnamed-chunk-11-1.png" width="672" /></p>
+<pre class="r"><code>sunday$ct_quad &lt;- sunday$ctime^2</code></pre>
+<pre class="r"><code>mod2 &lt;- lmer(wm ~ 1 + poly(ctime, 2) + (1 | id), sunday)
+print(summ(mod2))</code></pre>
+<pre><code>## MODEL INFO:
+## Observations: 1069
+## Dependent Variable: wm
+## Type: Mixed effects linear regression 
+## 
+## MODEL FIT:
+## AIC = 2331.56, BIC = 2356.44
+## Pseudo-R² (fixed effects) = 0.06
+## Pseudo-R² (total) = 0.29 
+## 
+## FIXED EFFECTS:
+## -------------------------------------------------------------
+##                          Est.   S.E.   t val.     d.f.      p
+## --------------------- ------- ------ -------- -------- ------
+## (Intercept)              2.66   0.04    71.41   152.21   0.00
+## poly(ctime, 2)1          2.08   0.67     3.11   949.36   0.00
+## poly(ctime, 2)2         -6.02   0.67    -9.05   941.42   0.00
+## -------------------------------------------------------------
+## 
+## p values calculated using Satterthwaite d.f.
+## 
+## RANDOM EFFECTS:
+## ------------------------------------
+##   Group      Parameter    Std. Dev. 
+## ---------- ------------- -----------
+##     id      (Intercept)     0.38    
+##  Residual                   0.66    
+## ------------------------------------
+## 
+## Grouping variables:
+## -------------------------
+##  Group   # groups   ICC  
+## ------- ---------- ------
+##   id       148      0.25 
+## -------------------------</code></pre>
+<ul>
+<li>Was ist eigentlich <code>poly</code>? –&gt; <a href="/post/quadratische-und-moderierte-regression/#AppendixA">siehe Dokumentation hier</a>
+<ul>
+<li>Gesamtmodell nicht anders gegenüber händischem Quadrat</li>
+<li>Nötig, sobald mehr als quadratische Terme, immer sinnvoll</li>
+<li>Anschließende Darstellung etwas komplizierter</li>
+</ul></li>
+</ul>
+<pre class="r"><code>plot_model(mod2, &#39;pred&#39;) # hässlich
+
+# schöner
+sunday$pred_mod2 &lt;- predict(mod2)
+ggplot(sunday, aes(x = ctime, y = pred_mod2)) + 
+  geom_smooth(se = FALSE)</code></pre>
+</div>
+<div id="random-slopes-modell" class="section level3">
+<h3>Random Slopes Modell</h3>
+<pre class="r"><code>tmp &lt;- poly(sunday$ctime, 2)
+tmp &lt;- as.data.frame(tmp)
+names(tmp) &lt;- c(&#39;poly1&#39;, &#39;poly2&#39;)
+sunday &lt;- cbind(sunday, tmp)
+mod3a &lt;- lmer(wm ~ 1 + poly1 + poly2 + (1 + poly1 | id), sunday)
+mod3b &lt;- lmer(wm ~ 1 + poly1 + poly2 + (1 + poly1 + poly2 | id), sunday)
+anova(mod2, mod3a, mod3b, refit = FALSE)</code></pre>
+<pre><code>## Data: sunday
+## Models:
+## mod2: wm ~ 1 + poly(ctime, 2) + (1 | id)
+## mod3a: wm ~ 1 + poly1 + poly2 + (1 + poly1 | id)
+## mod3b: wm ~ 1 + poly1 + poly2 + (1 + poly1 + poly2 | id)
+##       npar    AIC    BIC  logLik deviance  Chisq Df Pr(&gt;Chisq)    
+## mod2     5 2331.6 2356.4 -1160.8   2321.6                         
+## mod3a    7 2242.3 2277.1 -1114.1   2228.3 93.299  2  &lt; 2.2e-16 ***
+## mod3b   10 2226.5 2276.3 -1103.3   2206.5 21.752  3  7.346e-05 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<pre class="r"><code>print(summ(mod3b))</code></pre>
+<pre><code>## MODEL INFO:
+## Observations: 1069
+## Dependent Variable: wm
+## Type: Mixed effects linear regression 
+## 
+## MODEL FIT:
+## AIC = 2226.51, BIC = 2276.26
+## Pseudo-R² (fixed effects) = 0.07
+## Pseudo-R² (total) = 0.51 
+## 
+## FIXED EFFECTS:
+## ---------------------------------------------------------
+##                      Est.   S.E.   t val.     d.f.      p
+## ----------------- ------- ------ -------- -------- ------
+## (Intercept)          2.66   0.04    71.32   151.81   0.00
+## poly1                2.38   1.00     2.37   151.95   0.02
+## poly2               -6.32   0.73    -8.62   137.32   0.00
+## ---------------------------------------------------------
+## 
+## p values calculated using Satterthwaite d.f.
+## 
+## RANDOM EFFECTS:
+## ------------------------------------
+##   Group      Parameter    Std. Dev. 
+## ---------- ------------- -----------
+##     id      (Intercept)     0.40    
+##     id         poly1        9.81    
+##     id         poly2        5.18    
+##  Residual                   0.55    
+## ------------------------------------
+## 
+## Grouping variables:
+## -------------------------
+##  Group   # groups   ICC  
+## ------- ---------- ------
+##   id       148      0.34 
+## -------------------------</code></pre>
+<pre class="r"><code>VarCorr(mod3b)</code></pre>
+<pre><code>##  Groups   Name        Std.Dev. Corr         
+##  id       (Intercept) 0.39926               
+##           poly1       9.80944  -0.131       
+##           poly2       5.18382  -0.002 -0.498
+##  Residual             0.55215</code></pre>
+<pre class="r"><code>sunday$pred_mod3 &lt;- predict(mod3b)
+
+subset(sunday, as.numeric(id) &lt; 10) |&gt;
+  ggplot(aes(x = ctime, y = wm, color = id)) + 
+    geom_point() + 
+    geom_line(aes(y = pred_mod3)) +
+    theme_minimal() + facet_wrap(~ id)</code></pre>
+<p><img src="/post/2023-02-28-KiJu_LMMsLang_files/figure-html/unnamed-chunk-17-1.png" width="672" /></p>
+</div>
+</div>
+<div id="wachstumskurven-mit-prädiktoren" class="section level2">
+<h2>Wachstumskurven mit Prädiktoren</h2>
+<ul>
+<li>Dynamische Prädiktoren (L1-Prädiktoren)
+<ul>
+<li>Variablen auf Ebene der Zeitpunkte</li>
+<li>Situationale Faktoren (z. B. Zeit, Ort, soziale Umgebung)</li>
+<li>Variable Personenfaktoren (z. B. Stimmung, wahrgenommener Stress)</li>
+<li>Erklären Abweichungen der Situationen vom generellen Trend</li>
+</ul></li>
+<li>Stabile Prädiktoren (L2-Prädiktoren)
+<ul>
+<li>Variablen auf Ebene der Personen</li>
+<li>Generell stabile Merkmale (z. B. Geschlecht, Big 5, SES)</li>
+<li>Innerhalb der Erhebung unveränderliche Merkmale (z.B. Experimentalgruppe, Baselinemerkmale)</li>
+<li>Erklären interindividuelle Unterschiede (in der Veränderung)</li>
+</ul></li>
+</ul>
+<div id="dynamische-prädiktoren" class="section level3">
+<h3>Dynamische Prädiktoren</h3>
+<pre class="r"><code>mod4 &lt;- lmer(wm ~ 1 + poly1 + poly2 + pos + (1 + poly1 + poly2 | id), sunday)</code></pre>
+<pre><code>## Warning in checkConv(attr(opt, &quot;derivs&quot;), opt$par, ctrl = control$checkConv, :
+## Model failed to converge with max|grad| = 0.00277381 (tol = 0.002, component 1)</code></pre>
+<pre class="r"><code>print(summ(mod4))</code></pre>
+<pre><code>## MODEL INFO:
+## Observations: 1069
+## Dependent Variable: wm
+## Type: Mixed effects linear regression 
+## 
+## MODEL FIT:
+## AIC = 2223.53, BIC = 2278.25
+## Pseudo-R² (fixed effects) = 0.08
+## Pseudo-R² (total) = 0.51 
+## 
+## FIXED EFFECTS:
+## ---------------------------------------------------------
+##                      Est.   S.E.   t val.     d.f.      p
+## ----------------- ------- ------ -------- -------- ------
+## (Intercept)          2.62   0.04    67.35   184.38   0.00
+## poly1                2.37   1.00     2.37   151.44   0.02
+## poly2               -6.31   0.74    -8.58   136.09   0.00
+## posja                0.14   0.05     3.06   950.08   0.00
+## ---------------------------------------------------------
+## 
+## p values calculated using Satterthwaite d.f.
+## 
+## RANDOM EFFECTS:
+## ------------------------------------
+##   Group      Parameter    Std. Dev. 
+## ---------- ------------- -----------
+##     id      (Intercept)     0.39    
+##     id         poly1        9.78    
+##     id         poly2        5.27    
+##  Residual                   0.55    
+## ------------------------------------
+## 
+## Grouping variables:
+## -------------------------
+##  Group   # groups   ICC  
+## ------- ---------- ------
+##   id       148      0.34 
+## -------------------------</code></pre>
+<pre class="r"><code>sunday$pred_mod4 &lt;- predict(mod4)
+
+subset(sunday, as.numeric(id) &lt; 10) |&gt;
+  ggplot(aes(x = ctime, y = wm, color = id)) + 
+    geom_point(aes(shape = pos)) + 
+    geom_line(aes(y = pred_mod4)) +
+    theme_minimal() + facet_wrap(~ id)</code></pre>
+<p><img src="/post/2023-02-28-KiJu_LMMsLang_files/figure-html/unnamed-chunk-19-1.png" width="672" /></p>
+<p>Sonderfall <em>discontinuous growth</em>:
+- L1-Prädiktoren können auch Kodiervariablen sein
+* Übergang zwischen Grund- und Sekundarschule
+* Interventionsbeginn
+* Tagesübergänge
+- Kodiervariablen können plötzliche Sprünge oder eine Veränderung des Wachstums ermöglichen</p>
+<table>
+<thead>
+<tr class="header">
+<th>time</th>
+<th>event</th>
+<th>ptime</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td>1</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>2</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>3</td>
+<td>0</td>
+<td>0</td>
+</tr>
+<tr class="even">
+<td>4</td>
+<td>1</td>
+<td>0</td>
+</tr>
+<tr class="odd">
+<td>5</td>
+<td>1</td>
+<td>1</td>
+</tr>
+<tr class="even">
+<td>6</td>
+<td>1</td>
+<td>2</td>
+</tr>
+<tr class="odd">
+<td>7</td>
+<td>1</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+<ul>
+<li>“event”: plötzlicher Sprung im Niveau</li>
+<li>“ptime”: Veränderung der Trajectory</li>
+</ul>
+</div>
+<div id="stabile-prädiktoren" class="section level3">
+<h3>Stabile Prädiktoren</h3>
+<pre class="r"><code>mod5 &lt;- lmer(wm ~ 1 + poly1 + poly2 + meq + (1 + poly1 + poly2 | id), sunday)
+print(summ(mod5))</code></pre>
+<pre><code>## MODEL INFO:
+## Observations: 1069
+## Dependent Variable: wm
+## Type: Mixed effects linear regression 
+## 
+## MODEL FIT:
+## AIC = 2236.90, BIC = 2291.62
+## Pseudo-R² (fixed effects) = 0.07
+## Pseudo-R² (total) = 0.51 
+## 
+## FIXED EFFECTS:
+## ---------------------------------------------------------
+##                      Est.   S.E.   t val.     d.f.      p
+## ----------------- ------- ------ -------- -------- ------
+## (Intercept)          2.69   0.16    16.63   153.33   0.00
+## poly1                2.37   1.00     2.36   151.91   0.02
+## poly2               -6.32   0.73    -8.62   137.25   0.00
+## meq                 -0.00   0.01    -0.21   153.07   0.83
+## ---------------------------------------------------------
+## 
+## p values calculated using Satterthwaite d.f.
+## 
+## RANDOM EFFECTS:
+## ------------------------------------
+##   Group      Parameter    Std. Dev. 
+## ---------- ------------- -----------
+##     id      (Intercept)     0.40    
+##     id         poly1        9.81    
+##     id         poly2        5.19    
+##  Residual                   0.55    
+## ------------------------------------
+## 
+## Grouping variables:
+## -------------------------
+##  Group   # groups   ICC  
+## ------- ---------- ------
+##   id       148      0.35 
+## -------------------------</code></pre>
+</div>
+<div id="cross-level-interaktionen" class="section level3">
+<h3>Cross-Level-Interaktionen</h3>
+<pre class="r"><code>mod6 &lt;- lmer(wm ~ 1 + poly1*meq + poly2*meq + (1 + poly1 + poly2 | id), sunday)
+print(summ(mod6))</code></pre>
+<pre><code>## MODEL INFO:
+## Observations: 1069
+## Dependent Variable: wm
+## Type: Mixed effects linear regression 
+## 
+## MODEL FIT:
+## AIC = 2232.68, BIC = 2297.35
+## Pseudo-R² (fixed effects) = 0.08
+## Pseudo-R² (total) = 0.51 
+## 
+## FIXED EFFECTS:
+## ---------------------------------------------------------
+##                      Est.   S.E.   t val.     d.f.      p
+## ----------------- ------- ------ -------- -------- ------
+## (Intercept)          2.63   0.16    16.17   153.83   0.00
+## poly1               17.34   4.23     4.09   156.44   0.00
+## meq                  0.00   0.01     0.20   153.70   0.85
+## poly2               -9.38   3.20    -2.93   139.60   0.00
+## poly1:meq           -0.56   0.15    -3.63   156.40   0.00
+## meq:poly2            0.11   0.12     0.95   140.16   0.34
+## ---------------------------------------------------------
+## 
+## p values calculated using Satterthwaite d.f.
+## 
+## RANDOM EFFECTS:
+## ------------------------------------
+##   Group      Parameter    Std. Dev. 
+## ---------- ------------- -----------
+##     id      (Intercept)     0.40    
+##     id         poly1        9.21    
+##     id         poly2        5.23    
+##  Residual                   0.55    
+## ------------------------------------
+## 
+## Grouping variables:
+## -------------------------
+##  Group   # groups   ICC  
+## ------- ---------- ------
+##   id       148      0.34 
+## -------------------------</code></pre>
+<pre class="r"><code>plot_model(mod6, &#39;pred&#39;, terms = c(&#39;poly1&#39;, &#39;meq&#39;))</code></pre>
+<p><img src="/post/2023-02-28-KiJu_LMMsLang_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+</div>
 </div>
