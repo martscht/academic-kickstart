@@ -1,0 +1,289 @@
+---
+title: Einführung in R und R-Studio
+date: '2023-02-23'
+slug: kiju-r-intro
+categories: ["KiJu"]
+tags: ["Intro"]
+subtitle: ''
+summary: ''
+authors: [nehler]
+lastmod: '2023-02-28T16:20:00+01:00'
+featured: no
+header:
+  image: "/header/KiJu_LMMsQuer.jpg"
+  caption: "[Courtesy of pexels](https://www.pexels.com/photo/bunches-of-grapes-hanging-from-vines-3840335/)"
+projects: []
+---
+
+```{r, echo=FALSE}
+library(knitr)
+```
+
+
+## Einordnung der Begriffe
+
+`R` und RStudio werden meist Synonym verwendet. Dabei gibt es eigentlich einen Unterschied. Während `R` eine Sprache ist, auf der also unsere ganze Syntax basieren wird, bietet RStudio eine benutzerfreundlichere Oberfläche. Weitere Infos zu den beiden Bestandteilen und finden sich [hier](https://pandar.netlify.app/post/r-crash-kurs/#R). Eine Beschreibung der Oberfläche kann man [hier](https://pandar.netlify.app/post/r-crash-kurs/#RStudio) finden. Dort wird auch die Funktionalität der einzelnen Fenster beschrieben und die Wichtigkeit eines Skripts erläutert.
+
+## Überschriften und Kommentare
+
+Reiner Code als Skript ist aus mehreren Gründen nicht gut. Andere Personen haben es ohne Kommentare in einem Skript viel schwerer, die dargestellten Schritte nachzuvollziehen. Darüber hinaus weiß man auch selbst viel später nicht mehr genau, was man an spezifischen Stellen versucht hat zu erreichen. `R` bietet daher Möglichkeiten zur Gliederung anhand von Überschriften und Kommentaren - beide involvieren die Nutzung von `#`.
+
+```{r}
+#### Überschrift ----
+# Kommetar
+```
+
+## Einfache Rechenoperationen und Logik
+
+Natürlich bietet `R` erstmal ganz klassisch die Möglichkeit, Operationen eines Taschenrechners durchzuführen. Neben Addition und Subtraktion mit offensichtlicher Zeichenbelegung werden folgende Zeichen genutzt:
+
+```{r}
+2 * 3 # Multiplikation
+2 / 3 # Division
+2 ^ 3 # Potenz
+```
+
+Eine wichtige Grundlage ist außerdem die Nutzung von logischen Abfragen. Dabei kann `R` für uns überprüfen, ob zwei Einträge bspw. gleich sind oder sich voneinander unterscheiden. Folgende Abfragen wären bspw. möglich: 
+
+```{r}
+2 == 3 # ist gleich?
+2 != 3 # ist ungleich?
+2 < 3  # ist kleiner?
+```
+
+Weitere Informationen finden sich [hier](https://pandar.netlify.app/post/r-crash-kurs/#Taschenrechner)
+
+## Funktionen
+
+- nicht alles selbst schreiben
+- Nutzung von Funktionen funktion(argument1, argument2)
+- erstmal simple Beispiele
+
+```{r}
+log(x = 2, base = 3)
+log(3, 2)
+log(base = 3, x = 2)
+```
+
+- kann `R` auch nach Hilfe fragen, wenn man Argumente nicht mehr kennt oder auch deren Bedeutung
+
+```{r, eval = F}
+help(log)
+```
+
+
+## Objekte und das Environment
+
+- Ergebnisse sollen nicht immer direkt ausgegeben, sondern manchmal auch weiter verarbeitet werden
+- Ablagen werden Objekte genannt; werden über Zuweisungspfeil erstellt `<-`
+- Ergebnisse werden dann nicht mehr in der Konsole angezeigt, sondern im Environment abgelegt 
+
+```{r}
+num <- log(x = 2, base = 3)
+```
+
+- Objekte können dann auch in anderen Funktionen genutzt werden
+- Objekte sind hier nur Zahlen, aber werden später sehen, dass auch andere Sachen Objekte sein können
+
+```{r}
+num_sqrt <- sqrt(num)
+num_sqrt
+```
+
+## Pakete
+
+- nicht alles, was mit `R` möglich ist, ist direkt bei der Installation dabei
+- gibt sogenannte Pakete
+
+```{r, eval = FALSE}
+# Installation Für Einladen SPSS Datensätze 
+install.packages('haven', dependencies = TRUE)
+```
+
+- Installation heißt aber nicht, dass es direkt nutzbar ist
+- muss dann noch aktiviert werden in der aktuellen Session
+
+```{r}
+library(haven)
+```
+
+## Datensatz einladen
+
+- zunächst müssen wir das Working Directory verschieben 
+- Ordner, in dem `R` in unserem lokalen System in einem bestimmten Moment nach Dateien schaut 
+
+```{r, eval=FALSE}
+getwd()
+setwd("~/Pfad/zu/Ordner")
+```
+
+- Einladen ist dann verschieden je nach Format, in dem der Datensatz vorliegt
+- wir konzentrieren uns erstmal auf ein gängiges SPSS Format `.sav`
+- Funktion aus dem eben aktivierten Paket `haven`
+
+```{r, eval = FALSE}
+data <- read_sav(file = "fb22_mod.sav")
+```
+
+```{r, echo = FALSE}
+data <- read_sav(file = url("https://pandar.netlify.app/post/fb22_mod.sav"))
+```
+
+
+## Arbeit mit Datensatz
+
+- zunächst einfache Orientierung
+- Betrachtung der Anzahl an Messungen und Variablen, sowie Betrachtung der Variablennamen
+
+```{r}
+dim(data)
+names(data)
+```
+
+- Befehle zur Datensatzreduktion häufig wichtig, um Analysen für einen bestimmten Teil durchzuführen
+- Auswahl einer Variable funktioniert mit `$` Zeichen
+
+```{r}
+data$extra
+```
+
+- `extra` sind also Skalenwerte
+- sind in einer spezifischen Form abgelegt, die man mit `class` erfragen kann
+
+```{r}
+class(data$extra)
+```
+
+- Skalenwert in diesem Fall numerisch
+- betrachten wir einmal Text 
+
+```{r}
+data$grund
+class(data$grund)
+```
+
+- wird als character bezeichnet
+- gibt aber Variablen, mit wiederholgenden text-Ausprägung
+- bspw. Geschlecht
+
+```{r}
+data$geschl
+class(data$geschl)
+```
+
+- liegt bei Einlesen meist als numerisch vor; NA erstmal ignorieren
+- Bedeutung sollte aber zugeordnet werden; einmal für die Optik bei Auswertung aber auch für die Funktionalität, wie wir im zweiten Abschnitt sehen
+- Art von Variablen wird als Faktor bezeichnet
+- Übertragung ist einfach möglich; Erstellung einer neuen Variable im Datensatz
+
+```{r}
+data$geschl_faktor <- factor(data$geschl,                                   # Ausgangsvariable
+                             levels = c(1, 2, 3),                           # Faktorstufen
+                             labels = c("weiblich", "männlich", "anderes")) # Label für Faktorstufen
+
+```
+
+- können transformierte Variable nochmal betrachtetn
+- level werden dargestellt
+- class ist jetzt Faktor
+
+```{r}
+data$geschl_faktor
+class(data$geschl_faktor)
+```
+
+- nochmal auf die NA eingehen
+- Repräsentiert in `R` fehlende Werte 
+
+
+- haben nun gesehen, dass einzelne Variablen ausgewählt werden können und auch wie deren Typ überprüft wird
+- kann aber auch mehrere Variablen (Spalten) auswählen oder auch mehrere Zeilen
+
+```{r}
+data[1:20,]
+data[,1:3]
+data[,c("prok1", "prok2", "prok3")]
+```
+
+- kann diese Auswahl auch mit der gelernten Logik verknüpfen
+- wählen alle Zeilen aus, für die die Ausprügung einer Variable einer Bedingung entspricht 
+
+```{r}
+data[data$geschl_faktor == "weiblich" | data$geschl_faktor == "männlich",]
+```
+
+
+## Einfache Deskriptivstatistik
+
+- einfache Deskriptivstatistik häufig direkt in den Basisfunk
+
+```{r}
+table(data$geschl_faktor)   # Häufigkeiten
+mean(data$extra)            # Mittelwert
+cor(data$prok1, data$prok2) # Korrelation
+```  
+
+- Erstellung von Skalenwerten als Kombination der Datensatzauswahl und einfachen deskriptiven Funktionen 
+- Hier für die Items der Naturverbundenheit als Mittelwert der 6 Items - jede Person (Reihe) erhält ihren Mittelwert
+
+```{r}
+data$nr_ges <- rowMeans(data[,c("nr1", "nr2", "nr3", "nr4", "nr5", "nr6")])
+```  
+
+## Fazit
+
+- haben nun erste Befehle kennengelernt aber besonders mit der Art der Datenverarbeitung beschäftigt
+- nächstes Tutorial beginnt dann mit der linearen Modellierung
+- am Ende dieses Skripts stehen nochmal ein paar Anwendungen des gelernten Codes
+
+## Anwendungen
+
+1. Erstelle einen Faktor aus der Variable "wohnen", die folgendermaßen kodiert ist: 1 - WG, 2 - bei Eltern, 3 - alleine, 4 - sonstiges.
+
+<details><summary>Lösung</summary>
+
+```{r}
+class(data$wohnen)
+
+data$wohnen_faktor <- factor(data$wohnen,                                   
+                             levels = c(1, 2, 3, 4),                                
+                             labels = c("WG", "bei Eltern", "alleine", "sonstiges")) 
+
+str(data$wohnen_faktor)
+```
+
+</details>
+
+2. Reduziere den Datensatz mittels der `subset()`-Funktion auf diejenigen, die in einer WG leben und lege die Reduktion in einem neuen Objekt ab. Nutze dafür die interne Hilfe.
+
+<details><summary>Lösung</summary>
+
+```{r}
+data_WG <- subset(data, 
+                  subset = wohnen_faktor == "WG"
+                  )
+```
+
+</details>
+
+3. Erstelle im gesamten Datensatz einen Skalenwert für alle positiv formulierten Perfektionismus-Items (1, 4, 6, 9 und 10).
+
+<details><summary>Lösung</summary>
+
+```{r}
+data$prok <- rowMeans(data[,c("prok1", "prok4", "prok6", "prok9", "prok10")], na.rm = T)
+```
+
+</details>
+
+4. Bestimme den Mittelwert, das Minimum und das Maximum für die eben bestimmten Werte.
+
+<details><summary>Lösung</summary>
+
+```{r}
+mean(data$prok)
+min(data$prok)
+max(data$prok)
+```
+
+</details>
