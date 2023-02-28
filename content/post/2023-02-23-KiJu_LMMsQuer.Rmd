@@ -397,7 +397,7 @@ print(summ(mod4))
 
 ```{r}
 cwc <- with(kultur, aggregate(cbind(pa, na) ~ nation, FUN = mean))
-names(cwc) <- c('nation', 'pa_cwc', 'na_cwc')
+names(cwc) <- c('nation', 'pa_mean', 'na_mean')
 kultur_cen <- merge(kultur, cwc, by = 'nation', all.x = TRUE)
 ```
 
@@ -407,3 +407,44 @@ kultur$na_cwc <- kultur$na - kultur$na_mean
 ```
 
 - Modellterme verändern sich
+
+```{r}
+mod5 <- lmer(lezu ~ 1 + pa_mean + pa_cwc + na_mean + na_cwc + (1 | nation), kultur)
+print(summ(mod5))
+```
+### Cross-Level Interaktion
+
+**Level 1** 
+$$ y_{ij} = \beta_{0j} + \beta_{1j}x_{1ij} + \beta_{2j}x_{2ij} + r_{ij} $$
+
+**Level 2**
+$$ \beta_{0j} = \gamma_{00} + \gamma_{01} w_{j} + u_{0j} $$
+$$ \beta_{1j} = \gamma_{10} + \gamma_{11} w_{j}  + u_{1j} $$
+$$ \beta_{2j} = \gamma_{20} + \gamma_{21} w_{j}  + u_{2j} $$
+
+**Gesamtgleichung**
+$$ y_{ij} = \gamma_{00} + \gamma_{10}x_{1ij} + \gamma_{20}x_{2ij} + \gamma_{01} w_{j} + \gamma_{11} w_{j}x_{1ij} + \gamma_{21} w_{j}x_{2ij} + u_{0j} + u_{1j}x_{1ij} + u_{2j}x_{2ij} + r_{ij} $$
+
+Parameter | Bedeutung 
+-- | ---------
+$\gamma_{00}$ | Mittleres Intercept
+$\gamma_{01}$ | Regressionsgewicht des L2-Prädiktors $w_j$ für den Random Intercept
+$\gamma_{10}$ | Slope des L1-Prädiktors $x_{ij}$ für L2-Einheiten mit $w_j = 0$, $E(B_1 | W = 0)$
+$\gamma_{11}$ | Veränderung von $\hat\beta_{ij}$ pro Einheit des L2-Prädiktors $w_j$
+$u_{0j}$ | L2-Residuum bzgl. der Intercepts $(\beta_{0j} − \hat\beta_{0j})$
+$u_{1j}$ | L2-Residuum bzgl. des Slopes  $(\beta_{1j} − \hat\beta_{1j})$
+$r_{ij}$ | L1-Residuum $(y_{ij} − \hat y_{ij})$
+
+```{r}
+mod6 <- lmer(lezu ~ pa_cwc*gdp + na_cwc*gdp + pa_mean*gdp + na_mean*gdp + (pa_cwc + na_cwc | nation), kultur)
+print(summ(mod6))
+```
+```{r, fig = TRUE}
+plot_model(mod6, 'pred', 
+  terms = c('na_cwc', 'gdp'))
+```
+
+```{r, fig = TRUE}
+plot_model(mod6, 'est')
+```
+

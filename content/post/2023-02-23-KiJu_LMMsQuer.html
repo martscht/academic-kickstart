@@ -811,12 +811,104 @@ print(summ(mod4))</code></pre>
 <li>Allgemein CWC für die meisten L1 Prädiktoren empfohlen (mehr bei Enders &amp; Tofighi, 2007, und Yaremych et al., 2021)</li>
 </ul>
 <pre class="r"><code>cwc &lt;- with(kultur, aggregate(cbind(pa, na) ~ nation, FUN = mean))
-names(cwc) &lt;- c(&#39;nation&#39;, &#39;pa_cwc&#39;, &#39;na_cwc&#39;)
+names(cwc) &lt;- c(&#39;nation&#39;, &#39;pa_mean&#39;, &#39;na_mean&#39;)
 kultur_cen &lt;- merge(kultur, cwc, by = &#39;nation&#39;, all.x = TRUE)</code></pre>
 <pre class="r"><code>kultur$pa_cwc &lt;- kultur$pa - kultur$pa_mean
 kultur$na_cwc &lt;- kultur$na - kultur$na_mean</code></pre>
 <ul>
 <li>Modellterme verändern sich</li>
 </ul>
+<pre class="r"><code>mod5 &lt;- lmer(lezu ~ 1 + pa_mean + pa_cwc + na_mean + na_cwc + (1 | nation), kultur)
+print(summ(mod5))</code></pre>
+<pre><code>## MODEL INFO:
+## Observations: 7134
+## Dependent Variable: lezu
+## Type: Mixed effects linear regression 
+## 
+## MODEL FIT:
+## AIC = 20141.83, BIC = 20189.94
+## Pseudo-R² (fixed effects) = 0.27
+## Pseudo-R² (total) = 0.38 
+## 
+## FIXED EFFECTS:
+## ----------------------------------------------------------
+##                      Est.   S.E.   t val.      d.f.      p
+## ----------------- ------- ------ -------- --------- ------
+## (Intercept)          1.96   0.86     2.27     36.67   0.03
+## pa_mean              0.63   0.12     5.25     36.45   0.00
+## pa_cwc               0.31   0.01    35.24   7091.92   0.00
+## na_mean             -0.27   0.15    -1.79     37.60   0.08
+## na_cwc              -0.18   0.01   -18.42   7091.92   0.00
+## ----------------------------------------------------------
+## 
+## p values calculated using Satterthwaite d.f.
+## 
+## RANDOM EFFECTS:
+## ------------------------------------
+##   Group      Parameter    Std. Dev. 
+## ---------- ------------- -----------
+##   nation    (Intercept)     0.40    
+##  Residual                   0.98    
+## ------------------------------------
+## 
+## Grouping variables:
+## --------------------------
+##  Group    # groups   ICC  
+## -------- ---------- ------
+##  nation      40      0.14 
+## --------------------------</code></pre>
+</div>
+<div id="cross-level-interaktion" class="section level3">
+<h3>Cross-Level Interaktion</h3>
+<p><strong>Level 1</strong>
+<span class="math display">\[ y_{ij} = \beta_{0j} + \beta_{1j}x_{1ij} + \beta_{2j}x_{2ij} + r_{ij} \]</span></p>
+<p><strong>Level 2</strong>
+<span class="math display">\[ \beta_{0j} = \gamma_{00} + \gamma_{01} w_{j} + u_{0j} \]</span>
+<span class="math display">\[ \beta_{1j} = \gamma_{10} + \gamma_{11} w_{j}  + u_{1j} \]</span>
+<span class="math display">\[ \beta_{2j} = \gamma_{20} + \gamma_{21} w_{j}  + u_{2j} \]</span></p>
+<p><strong>Gesamtgleichung</strong>
+<span class="math display">\[ y_{ij} = \gamma_{00} + \gamma_{10}x_{1ij} + \gamma_{20}x_{2ij} + \gamma_{01} w_{j} + \gamma_{11} w_{j}x_{1ij} + \gamma_{21} w_{j}x_{2ij} + u_{0j} + u_{1j}x_{1ij} + u_{2j}x_{2ij} + r_{ij} \]</span></p>
+<table>
+<colgroup>
+<col width="18%" />
+<col width="81%" />
+</colgroup>
+<thead>
+<tr class="header">
+<th>Parameter</th>
+<th>Bedeutung</th>
+</tr>
+</thead>
+<tbody>
+<tr class="odd">
+<td><span class="math inline">\(\gamma_{00}\)</span></td>
+<td>Mittleres Intercept</td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\gamma_{01}\)</span></td>
+<td>Regressionsgewicht des L2-Prädiktors <span class="math inline">\(w_j\)</span> für den Random Intercept</td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(\gamma_{10}\)</span></td>
+<td>Slope des L1-Prädiktors <span class="math inline">\(x_{ij}\)</span> für L2-Einheiten mit <span class="math inline">\(w_j = 0\)</span>, <span class="math inline">\(E(B_1 | W = 0)\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(\gamma_{11}\)</span></td>
+<td>Veränderung von <span class="math inline">\(\hat\beta_{ij}\)</span> pro Einheit des L2-Prädiktors <span class="math inline">\(w_j\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(u_{0j}\)</span></td>
+<td>L2-Residuum bzgl. der Intercepts <span class="math inline">\((\beta_{0j} − \hat\beta_{0j})\)</span></td>
+</tr>
+<tr class="even">
+<td><span class="math inline">\(u_{1j}\)</span></td>
+<td>L2-Residuum bzgl. des Slopes <span class="math inline">\((\beta_{1j} − \hat\beta_{1j})\)</span></td>
+</tr>
+<tr class="odd">
+<td><span class="math inline">\(r_{ij}\)</span></td>
+<td>L1-Residuum <span class="math inline">\((y_{ij} − \hat y_{ij})\)</span></td>
+</tr>
+</tbody>
+</table>
 </div>
 </div>
