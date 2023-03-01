@@ -158,6 +158,12 @@ sunday$ct_quad <- sunday$ctime^2
 ```
 
 ```{r}
+cor(sunday$ctime, sunday$ctime^2)
+poly(sunday$ctime, 2)
+```
+
+
+```{r}
 mod2 <- lmer(wm ~ 1 + poly(ctime, 2) + (1 | id), sunday)
 print(summ(mod2))
 ```
@@ -166,6 +172,13 @@ print(summ(mod2))
   * Gesamtmodell nicht anders gegenüber händischem Quadrat
   * Nötig, sobald mehr als quadratische Terme, immer sinnvoll
   * Anschließende Darstellung etwas komplizierter
+
+```{r}
+tmp <- poly(sunday$ctime, 2)
+sunday$poly1 <- tmp[,1]
+sunday$poly2 <- tmp[,2]
+```
+
 
 ```{r, eval = FALSE}
 plot_model(mod2, 'pred') # hässlich
@@ -257,9 +270,17 @@ time | event | ptime
 ### Stabile Prädiktoren
 
 ```{r, warning = TRUE}
-mod5 <- lmer(wm ~ 1 + poly1 + poly2 + meq + (1 + poly1 + poly2 | id), sunday)
+mod5 <- lmer(wm ~ 1 + poly1 + poly2 + meq + (1 + poly1 + poly2 | id), sunday) # + meq = additiver Effekt auf das Mittel (Interaktion morning/evening)
 print(summ(mod5))
 ```
+
+```{r}
+mod5b <- lmer(wm ~ 1 + poly1 + poly2 + meq + meq:poly2 + meq:poly1 + # kann meq weggelassen werden, wenn es nicht interessiert?
+                (1 + poly1 + poly2 | id), sunday)
+summ(mod5b)
+```
+
+
 ### Cross-Level-Interaktionen
 
 ```{r, warning = TRUE}
@@ -408,3 +429,6 @@ for (i in sunday$id) {
   * In diskretem Fall: AR zwischen zwei Zeitpunkten
   * Mittlerer Abstand zwischen zwei Zeitpunkten: `r round(mean(difftime), 2)`
   * Annäherung: $.569^{`r round(mean(difftime), 2)`} = `r round(.569^mean(difftime), 3)`$ (aus Ergebnis oben: $\phi = .392$)
+
+
+# Level 3

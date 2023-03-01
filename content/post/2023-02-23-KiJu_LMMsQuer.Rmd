@@ -29,7 +29,7 @@ library(knitr)
 
 ```{r}
 load(url('https://pandar.netlify.app/post/kultur.rda'))
-head(kultur)[, 1:8]
+head(kultur)[, 1:8] # alle Zeilen und Spalten 1-8 für die ersten 6 Personen
 ```
 
 - Lebenszufriedenheit (lezu)
@@ -44,10 +44,19 @@ head(kultur)[, 1:8]
 - Aufmerksamkeit auf eigene Gefühle (auf_e)
 - Schachtelung in Nationen (nation)
 
+```{r}
+levels(kultur$nation) # Übersicht über alle vorkommenden Nationen
+```
+
+```{r}
+dim(kultur) # Anzahl Zeilen und Spalten des ganzen Datensatzes
+```
+
+
 ### Regressionsergebnisse im Beispiel
 
 ```{r}
-mod <- lm(lezu ~ 1 + pa, kultur)
+mod <- lm(lezu ~ 1 + pa, kultur) # Interzept wird hier explizit angefordert
 summary(mod)
 ```
 - Darstellung der Ergebnisse (siehe [ggplotting unter Extras](https://pandar.netlify.app/extras/#ggplotting))
@@ -193,8 +202,10 @@ summary(mod0)$var
 
 ```{r caterpillar-mod0, fig = TRUE}
 library(sjPlot)
-plot_model(mod0, type = 're', sort.est = '(Intercept)') + 
-  ggplot2::theme_minimal()
+plot_model(mod0, type = 're', sort.est = '(Intercept)') +  # Plot für Random Effects (re), sortiert nach Schätzung (est) der Interzept ('(Intercept)')
+  ggplot2::theme_minimal() # Layout
+
+# Breite der Fehlerbalken hängt mit Stichprobengröße zusammen
 ```
 
 - Einzelne Werte abrufen (für weitere Verarbeitung)
@@ -266,9 +277,19 @@ Vergleich der Parameterinterpretation:
 - Modell in `lme4` Aufstellen
 
 ```{r}
-mod1 <- lmer(lezu ~ 1 + pa + (1 | nation), kultur)
+mod1 <- lmer(lezu ~ 1 + pa + (1 | nation), kultur) # pa als Prädiktor zusätzlich aufnehmen
 print(summ(mod1))
 ```
+
+```{r}
+coef(mod1)$nation['Canada',] # spezifische Koeffizienten für Kanada auswählen
+```
+
+```{r}
+mod1b <- lmer(lezu ~ 1 + pa + (1 + pa | nation), kultur) # Random Intercept Random Slope Modell
+summ(mod1b)
+```
+
 
 ### Grafische Darstellung
 
@@ -285,6 +306,8 @@ plot_model(mod1, type = 're', sort.est = '(Intercept)')
 mod2 <- lmer(lezu ~ 1 + pa + na + (1 | nation), kultur)
 print(summ(mod2))
 ```
+
+
 ### Prüfung via Modellvergleich
 
 ```{r, error = TRUE}
@@ -342,6 +365,19 @@ summary(mod3)$varcor
 ```
 
 ### Tests der Zufallseffekte
+
+```{r, eval=FALSE}
+anova(mod0, mod1) # Fehlermeldung, da Modelle auf den gleichen Datensatz angewandt werden müssen
+```
+
+```{r}
+# Respezifizierung
+mod0b <- update(mod0, data = mod1@frame)
+mod1b <- update(mod1, data = mod1@frame)
+
+anova(mod0b, mod1b)
+```
+
 
 ```{r}
 anova(mod2, mod3, refit = FALSE)
