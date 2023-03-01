@@ -59,10 +59,10 @@ email: ""
 
 # Organizational groups that you belong to (for People widget)
 #   Set this to `[]` or comment out if you are not using People widget.
-user_groups: ["Teaching"]
+user_groups: ["Team"]
 ---
 
-Kevin Pommeranz ist seit 2023 studentische Hilfskraft in den Abteilungen *Psychologische Methoden mit interdisziplinärer Ausrichtung*. 
+Kevin Pommeranz ist seit 2023 studentische Hilfskraft in den Abteilungen *Psychologische Methoden mit interdisziplinärer Ausrichtung*.
 
 
 **Biographie**
