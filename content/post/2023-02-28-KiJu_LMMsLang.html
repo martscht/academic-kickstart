@@ -17,6 +17,14 @@ projects: []
 
 
 
+<p>Abschnitte:</p>
+<ul>
+<li><a href="#vorbereitung">Vorbereitung</a></li>
+<li><a href="#state-trait-modell">LST-Grundmodell</a></li>
+<li><a href="#einfache-wachstumskurven">Wachstumskurven</a></li>
+<li><a href="#wachstumskurven-mit-prädiktoren">Vorhersagen von Veränderung</a></li>
+<li><a href="#autoregressive-modelle">Autoregressive Modelle</a></li>
+</ul>
 <div id="vorbereitung" class="section level2">
 <h2>Vorbereitung</h2>
 <div id="kontinuierliche-vs.-diskrete-zeit" class="section level3">
@@ -63,6 +71,7 @@ head(sunday)</code></pre>
 <li>Einmalige Einschätzung der eigenen Morningness (meq)</li>
 <li>Zählung der individuellen Messzeitpunkte beginnt bei 0 (mzp)</li>
 <li>Uhrzeit in (anteiligen) Stunden ab 8 Uhr morgens (ctime)</li>
+<li>Vorherige gute Stimmung (gs_lag) und Wachheit (wm_lag), erfasst mit 4 bzw. 2 vierstufigen Items</li>
 </ul>
 </div>
 <div id="pakete" class="section level3">
@@ -80,9 +89,8 @@ install.packages(&#39;lmerTest&#39;)
 install.packages(&#39;MuMIn&#39;)</code></pre>
 <pre class="r"><code>library(lme4)</code></pre>
 <pre><code>## Loading required package: Matrix</code></pre>
-<pre class="r"><code>library(sjPlot)</code></pre>
-<pre><code>## Install package &quot;strengejacke&quot; from GitHub (`devtools::install_github(&quot;strengejacke/strengejacke&quot;)`) to load all sj-packages at once!</code></pre>
-<pre class="r"><code>library(jtools)
+<pre class="r"><code>library(sjPlot)
+library(jtools)
 library(ggplot2)</code></pre>
 </div>
 </div>
@@ -303,8 +311,8 @@ anova(mod2, mod3a, mod3b, refit = FALSE)</code></pre>
 ## ---------------------------------------------------------
 ##                      Est.   S.E.   t val.     d.f.      p
 ## ----------------- ------- ------ -------- -------- ------
-## (Intercept)          2.66   0.04    71.32   151.81   0.00
-## poly1                2.38   1.00     2.37   151.95   0.02
+## (Intercept)          2.66   0.04    71.32   151.82   0.00
+## poly1                2.38   1.00     2.37   151.94   0.02
 ## poly2               -6.32   0.73    -8.62   137.32   0.00
 ## ---------------------------------------------------------
 ## 
@@ -328,10 +336,10 @@ anova(mod2, mod3a, mod3b, refit = FALSE)</code></pre>
 ## -------------------------</code></pre>
 <pre class="r"><code>VarCorr(mod3b)</code></pre>
 <pre><code>##  Groups   Name        Std.Dev. Corr         
-##  id       (Intercept) 0.39926               
-##           poly1       9.80944  -0.131       
-##           poly2       5.18382  -0.002 -0.498
-##  Residual             0.55215</code></pre>
+##  id       (Intercept) 0.39924               
+##           poly1       9.80970  -0.131       
+##           poly2       5.18308  -0.003 -0.498
+##  Residual             0.55216</code></pre>
 <pre class="r"><code>sunday$pred_mod3 &lt;- predict(mod3b)
 
 subset(sunday, as.numeric(id) &lt; 10) |&gt;
@@ -362,10 +370,8 @@ subset(sunday, as.numeric(id) &lt; 10) |&gt;
 </ul>
 <div id="dynamische-prädiktoren" class="section level3">
 <h3>Dynamische Prädiktoren</h3>
-<pre class="r"><code>mod4 &lt;- lmer(wm ~ 1 + poly1 + poly2 + pos + (1 + poly1 + poly2 | id), sunday)</code></pre>
-<pre><code>## Warning in checkConv(attr(opt, &quot;derivs&quot;), opt$par, ctrl = control$checkConv, :
-## Model failed to converge with max|grad| = 0.00277381 (tol = 0.002, component 1)</code></pre>
-<pre class="r"><code>print(summ(mod4))</code></pre>
+<pre class="r"><code>mod4 &lt;- lmer(wm ~ 1 + poly1 + poly2 + pos + (1 + poly1 + poly2 | id), sunday)
+print(summ(mod4))</code></pre>
 <pre><code>## MODEL INFO:
 ## Observations: 1069
 ## Dependent Variable: wm
@@ -380,10 +386,10 @@ subset(sunday, as.numeric(id) &lt; 10) |&gt;
 ## ---------------------------------------------------------
 ##                      Est.   S.E.   t val.     d.f.      p
 ## ----------------- ------- ------ -------- -------- ------
-## (Intercept)          2.62   0.04    67.35   184.38   0.00
-## poly1                2.37   1.00     2.37   151.44   0.02
-## poly2               -6.31   0.74    -8.58   136.09   0.00
-## posja                0.14   0.05     3.06   950.08   0.00
+## (Intercept)          2.62   0.04    67.34   184.36   0.00
+## poly1                2.37   1.00     2.37   151.40   0.02
+## poly2               -6.31   0.74    -8.58   136.08   0.00
+## posja                0.14   0.05     3.06   950.09   0.00
 ## ---------------------------------------------------------
 ## 
 ## p values calculated using Satterthwaite d.f.
@@ -393,7 +399,7 @@ subset(sunday, as.numeric(id) &lt; 10) |&gt;
 ##   Group      Parameter    Std. Dev. 
 ## ---------- ------------- -----------
 ##     id      (Intercept)     0.39    
-##     id         poly1        9.78    
+##     id         poly1        9.79    
 ##     id         poly2        5.27    
 ##  Residual                   0.55    
 ## ------------------------------------
@@ -558,5 +564,38 @@ print(summ(mod6))</code></pre>
 ## -------------------------</code></pre>
 <pre class="r"><code>plot_model(mod6, &#39;pred&#39;, terms = c(&#39;poly1&#39;, &#39;meq&#39;))</code></pre>
 <p><img src="/post/2023-02-28-KiJu_LMMsLang_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+</div>
+</div>
+<div id="autoregressive-modelle" class="section level2">
+<h2>Autoregressive Modelle</h2>
+<ul>
+<li>Beliebt weil Grundlage für Vektor-Autoregressive Modelle (Längsschnitt-Netzwerkanalysen)</li>
+<li>iid Annahme (independent and identically distributed)
+<ul>
+<li>L1-Residuen sind voneinander unabhängig</li>
+<li>L1-Residuen folgen der gleichen Verteilung (impliziert Homoskedastizität)</li>
+</ul></li>
+<li>Annahmen der OLS Regression
+<ul>
+<li>Unabhängigkeit der Residuen</li>
+<li>Homoskedastizität der Residuen</li>
+</ul></li>
+<li>MLM berücksichtigt nur Abhängigkeiten durch angegebene Cluster-Variablen</li>
+<li>Andere Abhängigkeiten (serielle Abhängigkeit, weitere Clusterungsebenen, usw.) können weiterhin zu Verzerrungen führen</li>
+</ul>
+<div id="explizite-autoregression" class="section level3">
+<h3>Explizite Autoregression</h3>
+<ul>
+<li>Lag Variable erstellen</li>
+</ul>
+<pre class="r"><code># mit basis R-Befehlen
+sunday$wm_lag &lt;- NA
+for (i in sunday$id) {
+  sunday[sunday$id == i, &#39;wm_lag&#39;] &lt;- embed(c(NA, sunday[sunday$id == i, &#39;wm&#39;]), 2)[, 2]
+}
+
+# mit dplyr (sehr verbreitet)
+library(dplyr)
+sunday &lt;- group_by(sunday, id) %&gt;% mutate(wm_lag = lag(wm))</code></pre>
 </div>
 </div>

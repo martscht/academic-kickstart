@@ -19,6 +19,14 @@ projects: []
 library(knitr)
 ```
 
+Abschnitte:
+
+- [Vorbereitung](#vorbereitung)
+- [LST-Grundmodell](#state-trait-modell)
+- [Wachstumskurven](#einfache-wachstumskurven)
+- [Vorhersagen von Veränderung](#wachstumskurven-mit-prädiktoren)
+- [Autoregressive Modelle](#autoregressive-modelle)
+
 
 ## Vorbereitung
 
@@ -54,6 +62,7 @@ Crayen, C., Eid, M., Lischetzke, T., Courvoisier, D. S. und Vermunt, J. K. (2012
 - Einmalige Einschätzung der eigenen Morningness (meq)
 - Zählung der individuellen Messzeitpunkte beginnt bei 0 (mzp)
 - Uhrzeit in (anteiligen) Stunden ab 8 Uhr morgens (ctime)
+- Vorherige gute Stimmung (gs_lag) und Wachheit (wm_lag), erfasst mit 4 bzw. 2 vierstufigen Items
 
 ### Pakete
 
@@ -259,5 +268,32 @@ print(summ(mod6))
 ```
 ```{r, fig = TRUE}
 plot_model(mod6, 'pred', terms = c('poly1', 'meq'))
+```
+
+## Autoregressive Modelle
+
+- Beliebt weil Grundlage für Vektor-Autoregressive Modelle (Längsschnitt-Netzwerkanalysen)
+- iid Annahme (independent and identically distributed)
+  * L1-Residuen sind voneinander unabhängig
+  * L1-Residuen folgen der gleichen Verteilung (impliziert Homoskedastizität)
+- Annahmen der OLS Regression
+  * Unabhängigkeit der Residuen
+  * Homoskedastizität der Residuen
+- MLM berücksichtigt nur Abhängigkeiten durch angegebene Cluster-Variablen
+- Andere Abhängigkeiten (serielle Abhängigkeit, weitere Clusterungsebenen, usw.) können weiterhin zu Verzerrungen führen
+
+### Explizite Autoregression
+
+- Lag Variable erstellen
+```{r, eval = FALSE}
+# mit basis R-Befehlen
+sunday$wm_lag <- NA
+for (i in sunday$id) {
+  sunday[sunday$id == i, 'wm_lag'] <- embed(c(NA, sunday[sunday$id == i, 'wm']), 2)[, 2]
+}
+
+# mit dplyr (sehr verbreitet)
+library(dplyr)
+sunday <- group_by(sunday, id) %>% mutate(wm_lag = lag(wm))
 ```
 
