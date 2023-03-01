@@ -51,13 +51,13 @@ projects: []
 <h3>Datenbeispiel</h3>
 <pre class="r"><code>load(url(&#39;https://pandar.netlify.app/post/Sunday.rda&#39;))
 head(sunday)</code></pre>
-<pre><code>##   id mzp  pos  neg   gs  wm meq ctime
-## 1  1   0 nein nein 2.00 1.0  33  2.23
-## 2  1   1 nein nein 2.75 1.5  33  3.64
-## 3  1   2   ja nein 2.00 2.5  33  5.21
-## 4  1   3 nein nein 3.00 2.5  33  7.20
-## 5  1   4 nein nein 3.00 2.0  33  9.57
-## 6  1   5 nein nein 2.75 1.0  33 11.12</code></pre>
+<pre><code>##   id mzp  pos  neg   gs  wm meq ctime gs_lag wm_lag
+## 1  1   0 nein nein 2.00 1.0  33  2.23     NA     NA
+## 2  1   1 nein nein 2.75 1.5  33  3.64   2.00    1.0
+## 3  1   2   ja nein 2.00 2.5  33  5.21   2.75    1.5
+## 4  1   3 nein nein 3.00 2.5  33  7.20   2.00    2.5
+## 5  1   4 nein nein 3.00 2.0  33  9.57   3.00    2.5
+## 6  1   5 nein nein 2.75 1.0  33 11.12   3.00    2.0</code></pre>
 <p>Crayen, C., Eid, M., Lischetzke, T., Courvoisier, D. S. und Vermunt, J. K. (2012). Exploring dynamics in mood regulation—Mixture latent Markov modeling of ambulatory assessment data. <em>Psychosomatic Medicine</em>, 74, 366-376.</p>
 <ul>
 <li>Ambulatory-Assessment Studie zur Stimmungsregulation
@@ -597,5 +597,245 @@ for (i in sunday$id) {
 # mit dplyr (sehr verbreitet)
 library(dplyr)
 sunday &lt;- group_by(sunday, id) %&gt;% mutate(wm_lag = lag(wm))</code></pre>
+<pre class="r"><code>mod0 &lt;- lmer(gs ~ 1 + (1 | id), sunday)
+mod1 &lt;- lmer(gs ~ 1 + gs_lag + (1 | id), sunday)
+anova(mod0, mod1)</code></pre>
+<pre><code>## Error in anova.merMod(mod0, mod1): models were not all fitted to the same size of dataset</code></pre>
+<pre class="r"><code>mod0b &lt;- update(mod0, data = mod1@frame)
+mod1b &lt;- update(mod1, data = mod1@frame)
+anova(mod0b, mod1b)</code></pre>
+<pre><code>## refitting model(s) with ML (instead of REML)</code></pre>
+<pre><code>## Data: mod1@frame
+## Models:
+## mod0b: gs ~ 1 + (1 | id)
+## mod1b: gs ~ 1 + gs_lag + (1 | id)
+##       npar    AIC    BIC  logLik deviance  Chisq Df Pr(&gt;Chisq)    
+## mod0b    3 1189.9 1204.4 -591.95   1183.9                         
+## mod1b    4 1078.8 1098.1 -535.38   1070.8 113.13  1  &lt; 2.2e-16 ***
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1</code></pre>
+<p>Drei Varianzkomponenten:</p>
+<ul>
+<li>Stabiler Anteil (ICC)</li>
+<li>Vorhersagbare State-Komponente</li>
+<li>Unvorhersagbare State-Komponente</li>
+</ul>
+<pre class="r"><code>MuMIn::r.squaredGLMM(mod0b)</code></pre>
+<pre><code>## Warning: &#39;r.squaredGLMM&#39; now calculates a revised statistic. See the help page.</code></pre>
+<pre><code>##      R2m       R2c
+## [1,]   0 0.4405919</code></pre>
+<pre class="r"><code>MuMIn::r.squaredGLMM(mod1b)</code></pre>
+<pre><code>##            R2m       R2c
+## [1,] 0.2419568 0.3217569</code></pre>
+<pre class="r"><code>print(summ(mod1b))</code></pre>
+<pre><code>## MODEL INFO:
+## Observations: 921
+## Dependent Variable: gs
+## Type: Mixed effects linear regression 
+## 
+## MODEL FIT:
+## AIC = 1090.18, BIC = 1109.49
+## Pseudo-R² (fixed effects) = 0.24
+## Pseudo-R² (total) = 0.32 
+## 
+## FIXED EFFECTS:
+## --------------------------------------------------------
+##                     Est.   S.E.   t val.     d.f.      p
+## ----------------- ------ ------ -------- -------- ------
+## (Intercept)         1.59   0.09    17.60   367.60   0.00
+## gs_lag              0.47   0.03    16.02   407.11   0.00
+## --------------------------------------------------------
+## 
+## p values calculated using Satterthwaite d.f.
+## 
+## RANDOM EFFECTS:
+## ------------------------------------
+##   Group      Parameter    Std. Dev. 
+## ---------- ------------- -----------
+##     id      (Intercept)     0.14    
+##  Residual                   0.41    
+## ------------------------------------
+## 
+## Grouping variables:
+## -------------------------
+##  Group   # groups   ICC  
+## ------- ---------- ------
+##   id       148      0.11 
+## -------------------------</code></pre>
+<p>Serielle Abhängigkeit:
+<span class="math display">\[
+  y_{ti} = \gamma_{00} + \gamma_{10} y_{(t-1)i} + u_{0i} + r_{ti} \\
+  y_{(t-1)i} = \gamma_{00} + \gamma_{10} y_{(t-2)i} + u_{0i} + r_{(t-1)i} \\
+\]</span></p>
+<p>Indirekter Effekt: <span class="math inline">\(\beta_{t(t-\text{lag})} = \gamma_{10}^{\text{lag}}\)</span></p>
+<pre class="r"><code>curve(.47^x, xlim = c(0, 7))</code></pre>
+<p><img src="/post/2023-02-28-KiJu_LMMsLang_files/figure-html/unnamed-chunk-28-1.png" width="672" /></p>
+<ul>
+<li>Vorteile expliziter AR:
+<ul>
+<li>Einfache Spezifikation und Interpretation</li>
+<li>Umgeht die Unabhängigkeitsannahme</li>
+<li>Erlaubt Zufallseffekte der Autoregression</li>
+</ul></li>
+<li>Nachteile expliziter AR:
+<ul>
+<li>Nimmt zusätzliche Prädiktoren in die Gleichung auf</li>
+<li>Erste Messung pro Person entfällt durch Missing</li>
+<li>Nimmt gleiche Abstände zwischen Messungen an</li>
+<li>Interpretation der Parameter immer unter Annahme gleicher Werte zum vorherigen Zeitpunkt</li>
+</ul></li>
+</ul>
+</div>
+<div id="autoregressive-fehlerstruktur" class="section level3">
+<h3>Autoregressive Fehlerstruktur</h3>
+<ul>
+<li>Ohne zusätzlichen Prädiktoren</li>
+<li>Residualkovarianzmatrix wird verändert</li>
+<li>Gleiche Idee: ein Parameter (<span class="math inline">\(\rho\)</span>) bezeichnet die zusätzliche Abhängigkeit zwischen benachbarten Messungen</li>
+<li>Voraussetzung ist hier, dass der autoregressive Effekte positiv ist</li>
+</ul>
+<p><span class="math display">\[
+  \Sigma_{r} = var(r_{ti})
+    \begin{bmatrix}
+      1 &amp; \rho &amp; \rho^2 &amp; \rho^3 \\
+      \rho &amp; 1 &amp; \rho &amp; \rho^2 \\
+      \rho^2 &amp; \rho &amp; 1 &amp; \rho \\
+      \rho^3 &amp; \rho^2 &amp; \rho &amp; 1
+    \end{bmatrix}
+\]</span></p>
+<ul>
+<li>lme4 dazu nicht in der Lage
+<ul>
+<li>viele alternative Pakete können verschiedene Residualstrukturen</li>
+<li>hier Awendung mit <code>nlme</code>, weil vorinstalliert und <code>lme4</code> relativ ähnlich</li>
+</ul></li>
+</ul>
+<pre class="r"><code>library(nlme)</code></pre>
+<pre><code>## 
+## Attaching package: &#39;nlme&#39;</code></pre>
+<pre><code>## The following object is masked from &#39;package:lme4&#39;:
+## 
+##     lmList</code></pre>
+<pre class="r"><code>mod0_nlme &lt;- lme(fixed = gs ~ 1, random = ~ 1 | id, data = sunday)
+summary(mod0_nlme)</code></pre>
+<pre><code>## Linear mixed-effects model fit by REML
+##   Data: sunday 
+##        AIC      BIC    logLik
+##   1386.189 1401.109 -690.0943
+## 
+## Random effects:
+##  Formula: ~1 | id
+##         (Intercept)  Residual
+## StdDev:   0.3489966 0.4055539
+## 
+## Fixed effects:  gs ~ 1 
+##                Value  Std.Error  DF  t-value p-value
+## (Intercept) 3.001416 0.03132548 921 95.81391       0
+## 
+## Standardized Within-Group Residuals:
+##           Min            Q1           Med            Q3           Max 
+## -5.5913005031 -0.4191647703 -0.0005044242  0.4940976394  2.5971130291 
+## 
+## Number of Observations: 1069
+## Number of Groups: 148</code></pre>
+<pre class="r"><code>summary(mod0)</code></pre>
+<pre><code>## Linear mixed model fit by REML [&#39;lmerMod&#39;]
+## Formula: gs ~ 1 + (1 | id)
+##    Data: sunday
+## 
+## REML criterion at convergence: 1380.2
+## 
+## Scaled residuals: 
+##     Min      1Q  Median      3Q     Max 
+## -5.5913 -0.4192 -0.0005  0.4941  2.5971 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  id       (Intercept) 0.1218   0.3490  
+##  Residual             0.1645   0.4056  
+## Number of obs: 1069, groups:  id, 148
+## 
+## Fixed effects:
+##             Estimate Std. Error t value
+## (Intercept)  3.00142    0.03133   95.81</code></pre>
+<pre class="r"><code>mod1_nlme &lt;- lme(fixed = gs ~ 1, random = ~ 1 | id, data = sunday, 
+  correlation = corAR1())
+summary(mod1_nlme)</code></pre>
+<pre><code>## Linear mixed-effects model fit by REML
+##   Data: sunday 
+##        AIC     BIC    logLik
+##   1296.226 1316.12 -644.1131
+## 
+## Random effects:
+##  Formula: ~1 | id
+##         (Intercept) Residual
+## StdDev:   0.3021535 0.442272
+## 
+## Correlation Structure: AR(1)
+##  Formula: ~1 | id 
+##  Parameter estimate(s):
+##       Phi 
+## 0.3919874 
+## Fixed effects:  gs ~ 1 
+##                Value  Std.Error  DF  t-value p-value
+## (Intercept) 2.996439 0.03125952 921 95.85685       0
+## 
+## Standardized Within-Group Residuals:
+##         Min          Q1         Med          Q3         Max 
+## -5.09726494 -0.35562195  0.00323874  0.47579376  2.39482725 
+## 
+## Number of Observations: 1069
+## Number of Groups: 148</code></pre>
+<ul>
+<li>Das correlation-Argument erlaubt die Spezifikation einer Korrelationsstruktur auf L1</li>
+<li><code>corAR1()</code> wählt die autoregressive Struktur 1. Ordnung</li>
+<li>Es wird angenommen, dass die Daten richtig sortiert sind!</li>
+</ul>
+</div>
+<div id="zeitkontinuierliche-autoregression" class="section level3">
+<h3>Zeitkontinuierliche Autoregression</h3>
+<ul>
+<li>Bisherige Annahme: gleiche Abstände der Messungen, gleiche Messungen für alle Personen
+<ul>
+<li><span class="math inline">\(\phi\)</span> bzw. <span class="math inline">\(\gamma_{10}\)</span> beschreiben AR zwischen <span class="math inline">\(t\)</span> und <span class="math inline">\(t-1\)</span> (diskrete Zeitpunkte)</li>
+<li><span class="math inline">\(\phi\)</span> berücksichtigt dabei nicht zeitlichen Abstand zwischen <span class="math inline">\(t\)</span> und <span class="math inline">\(t-1\)</span></li>
+</ul></li>
+</ul>
+<pre class="r"><code>mod2_nlme &lt;- lme(fixed = gs ~ 1, random = ~ 1 | id, data = sunday, 
+  correlation = corCAR1(, form = ~ ctime))
+summary(mod2_nlme)</code></pre>
+<pre><code>## Linear mixed-effects model fit by REML
+##   Data: sunday 
+##        AIC     BIC    logLik
+##   1289.736 1309.63 -640.8678
+## 
+## Random effects:
+##  Formula: ~1 | id
+##         (Intercept)  Residual
+## StdDev:   0.3072518 0.4405892
+## 
+## Correlation Structure: Continuous AR(1)
+##  Formula: ~ctime | id 
+##  Parameter estimate(s):
+##       Phi 
+## 0.5690876 
+## Fixed effects:  gs ~ 1 
+##                Value  Std.Error  DF  t-value p-value
+## (Intercept) 2.997053 0.03133165 921 95.65577       0
+## 
+## Standardized Within-Group Residuals:
+##          Min           Q1          Med           Q3          Max 
+## -5.138995611 -0.379382642  0.002754803  0.480001652  2.405839942 
+## 
+## Number of Observations: 1069
+## Number of Groups: 148</code></pre>
+<ul>
+<li><span class="math inline">\(\phi\)</span> hier interpretieren als AR über eine Stunde
+<ul>
+<li>In diskretem Fall: AR zwischen zwei Zeitpunkten</li>
+<li>Mittlerer Abstand zwischen zwei Zeitpunkten: 1.79</li>
+<li>Annäherung: <span class="math inline">\(.569^{1.79} = 0.365\)</span> (aus Ergebnis oben: <span class="math inline">\(\phi = .392\)</span>)</li>
+</ul></li>
+</ul>
 </div>
 </div>

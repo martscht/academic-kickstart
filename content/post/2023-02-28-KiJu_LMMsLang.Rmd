@@ -297,3 +297,114 @@ library(dplyr)
 sunday <- group_by(sunday, id) %>% mutate(wm_lag = lag(wm))
 ```
 
+```{r, error = TRUE}
+mod0 <- lmer(gs ~ 1 + (1 | id), sunday)
+mod1 <- lmer(gs ~ 1 + gs_lag + (1 | id), sunday)
+anova(mod0, mod1)
+```
+
+```{r}
+mod0b <- update(mod0, data = mod1@frame)
+mod1b <- update(mod1, data = mod1@frame)
+anova(mod0b, mod1b)
+```
+
+Drei Varianzkomponenten:
+
+- Stabiler Anteil (ICC)
+- Vorhersagbare State-Komponente
+- Unvorhersagbare State-Komponente
+
+```{r}
+MuMIn::r.squaredGLMM(mod0b)
+MuMIn::r.squaredGLMM(mod1b)
+```
+
+```{r}
+print(summ(mod1b))
+```
+
+Serielle Abhängigkeit:
+$$
+  y_{ti} = \gamma_{00} + \gamma_{10} y_{(t-1)i} + u_{0i} + r_{ti} \\
+  y_{(t-1)i} = \gamma_{00} + \gamma_{10} y_{(t-2)i} + u_{0i} + r_{(t-1)i} \\
+$$
+
+Indirekter Effekt: $\beta_{t(t-\text{lag})} = \gamma_{10}^{\text{lag}}$
+
+```{r, fig=TRUE}
+curve(.47^x, xlim = c(0, 7))
+```
+
+- Vorteile expliziter AR:
+  * Einfache Spezifikation und Interpretation
+  * Umgeht die Unabhängigkeitsannahme
+  * Erlaubt Zufallseffekte der Autoregression
+- Nachteile expliziter AR:
+  * Nimmt zusätzliche Prädiktoren in die Gleichung auf
+  * Erste Messung pro Person entfällt durch Missing
+  * Nimmt gleiche Abstände zwischen Messungen an
+  * Interpretation der Parameter immer unter Annahme gleicher Werte zum vorherigen Zeitpunkt
+
+### Autoregressive Fehlerstruktur
+
+- Ohne zusätzlichen Prädiktoren
+- Residualkovarianzmatrix wird verändert
+- Gleiche Idee: ein Parameter ($\rho$) bezeichnet die zusätzliche Abhängigkeit zwischen benachbarten Messungen
+- Voraussetzung ist hier, dass der autoregressive Effekte positiv ist
+
+$$
+  \Sigma_{r} = var(r_{ti}) 
+    \begin{bmatrix}
+      1 & \rho & \rho^2 & \rho^3 \\
+      \rho & 1 & \rho & \rho^2 \\
+      \rho^2 & \rho & 1 & \rho \\
+      \rho^3 & \rho^2 & \rho & 1
+    \end{bmatrix}
+$$
+
+- lme4 dazu nicht in der Lage
+  * viele alternative Pakete können verschiedene Residualstrukturen
+  * hier Awendung mit `nlme`, weil vorinstalliert und `lme4` relativ ähnlich
+  
+```{r}
+library(nlme)
+mod0_nlme <- lme(fixed = gs ~ 1, random = ~ 1 | id, data = sunday)
+summary(mod0_nlme)
+summary(mod0)
+```
+```{r}
+mod1_nlme <- lme(fixed = gs ~ 1, random = ~ 1 | id, data = sunday, 
+  correlation = corAR1())
+summary(mod1_nlme)
+```
+
+- Das correlation-Argument erlaubt die Spezifikation einer Korrelationsstruktur auf L1
+- `corAR1()` wählt die autoregressive Struktur 1. Ordnung
+- Es wird angenommen, dass die Daten richtig sortiert sind!
+
+### Zeitkontinuierliche Autoregression
+
+- Bisherige Annahme: gleiche Abstände der Messungen, gleiche Messungen für alle Personen
+  * $\phi$ bzw. $\gamma_{10}$ beschreiben AR zwischen $t$ und $t-1$ (diskrete Zeitpunkte)
+  * $\phi$ berücksichtigt dabei nicht zeitlichen Abstand zwischen $t$ und $t-1$
+
+```{r}
+mod2_nlme <- lme(fixed = gs ~ 1, random = ~ 1 | id, data = sunday, 
+  correlation = corCAR1(, form = ~ ctime))
+summary(mod2_nlme)
+```
+
+```{r, echo=FALSE}
+difftime <- vector('numeric')
+for (i in sunday$id) {
+  difftime <- c(difftime, diff(sunday[sunday$id == i, 'ctime']))
+}
+
+```
+
+
+- $\phi$ hier interpretieren als AR über eine Stunde
+  * In diskretem Fall: AR zwischen zwei Zeitpunkten
+  * Mittlerer Abstand zwischen zwei Zeitpunkten: `r round(mean(difftime), 2)`
+  * Annäherung: $.569^{`r round(mean(difftime), 2)`} = `r round(.569^mean(difftime), 3)`$ (aus Ergebnis oben: $\phi = .392$)
