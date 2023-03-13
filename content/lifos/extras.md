@@ -75,7 +75,7 @@ Hier findet ihr verschiedene Extras, die zum einen mehr Informationen zu den ein
 | --- | --- | --- | --- | --- |
 | 1 | Vertiefende Informationen zu den Templates|[DE](/post/under-construction) | [EN](/post/under-construction)| 
 | 2 | Vertiefende Erklärung der GitLab Oberfläche| [DE](/post/under-construction) | [EN](/post/under-construction)| 
-| 3 | Vertiefende Markdown-Übung|  [DE](/post/lifos-r-markdown-uebung) | [EN](/post/under-construction)| 
+| 3 | Vertiefende Markdown-Übung|  [DE](/post/lifos-r-markdown-uebung) | [EN](/post/lifos-r-markdown-uebung-eng)| 
 | 4 | Verknüpfung mit SmartGit| [DE](/post/smartgitlifos) | [EN](/post/smartgitlifos-eng)| 
 | 5 | Informationen für Betreuende| [DE](/post/under-construction) | [EN](/post/under-construction)| 
 |  |  |    
