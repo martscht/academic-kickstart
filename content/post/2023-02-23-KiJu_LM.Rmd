@@ -22,7 +22,7 @@ library(knitr)
 
 ## Vorbereitung
 
-- Pakete aktivieren und Code durchführen, die im letzten Tutorials schon da waren
+Zunächst müssen wir das `haven`-Paket wieder aktivieren und einen Teil des Code aus dem letzten Tutorial wieder durchführen.
 
 ```{r, eval = FALSE}
 library(haven)
@@ -55,13 +55,12 @@ data$wohnen_faktor <- factor(data$wohnen,
 
 ## lineare Modellierung
 
-- Grundlage für spätere hierarchische Ansetzung ist lineares Modell ohne Hierarchie
+Die Grundlage für die spätere hierarchische Ansetzung ist das lineares Modell ohne Hierarchie, dem wir uns demnach im Folgenden widmen werden. 
 
 ### Syntax
 
-- spezielle Syntax für die Darstellungen von Abhängigkeiten
-- Demonstration an der aggregate Funktion
-- Operation wird an einer Variable in Abhängigkeit einer anderen durchgeführt
+Es gibt eine spezielle Syntax für die Darstellungen von Abhängigkeiten. Dies wollen wir anhand der `aggregate`-Funktion demonstrieren. Hier wird eine bestimmte Operation an einer Variable in Abhängigkeit einer anderen Variable durchgeführt. 
+
 
 ```{r}
 aggregate(extra ~ geschl_faktor, data = data, FUN = mean)
@@ -69,71 +68,61 @@ aggregate(extra ~ geschl_faktor, data = data, FUN = mean)
 
 ### Einfaches lineares Modell
 
-- eben gelernte Syntaxlogik übertragen
+Nun übertragen wir die eben gelernte Syntaxlogik und schauen uns die Variable `extra` (Extraversion) in Abhängigkeit von `lz` (Lebenszufriedenheit) an. 
 
 ```{r}
 lm(extra ~ lz, data = data)
 ```
 
-- hat erstmal nur sehr beschränkte Ausgabe
-- man kann meist mehr aus Funktionen herausholen, indem man ihren Output in ein Objekt ablegt
+Das Model selbst hat offenbar erstmal nur eine sehr beschränkte Ausgabe. Häufig kann man mehr aus Funktionen herausholen, wenn man ihren Output zunächst in einem Objekt ablegt:
 
 ```{r}
 mod <- lm(extra ~ lz, data = data)
 ```
 
-- erscheint oben im Environment
-- was für ein Typ Objekt ist das nun?
-- steht da, dass es eine List ist; etwas anderes als ein Datensatz; hier gibt es feste Anzahl an Spalten pro Reihe und umgekehrt
-- bei Listen können in verschiedenen Bestandteilen der Liste ganz unterschiedliche Sachen liegen
-- bspw. auch Datensätze; häufig ist die Auswahl von Listenbestandteilen aber auch durch das `$`
+Das Objekt `mod` erscheint damit im Environment. Es ist vom Typ Liste, das ist etwas anderes als ein Datensatz mit einer festen Anzahl an Spalten pro Reihe und umgekehrt. Bei Listen können in verschiedenen Bestandteilen der Liste ganz unterschiedliche Sachen liegen. Beispielsweise können auch Datensätze Bestandteile von Listen sein. Die Auswahl von Listenbestandteilen funktioniert aber ebenfalls durch das `$`. 
 
 ```{r}
 mod$coefficients
 mod$call
 ```
 
-- wie Variablen auch (`numeric` etc.), können Listen verschiedene Klassen haben
-- bspw. haben wir hier die class lm, erstellt aus der Funktion
-- Datensätze hingegen haben meist die class data.frame
+Genau wie Variablen (`numeric` etc.) können auch Listen verschiedene Klassen haben. Beispielsweise liegt hier die `class` `lm` vor, entsprechend der Funktion mit der wir das Objekt erstellt haben. 
+Datensätze hingegen haben meist die `class` `data.frame`.
 
 ```{r}
 class(data)
 class(mod)
 ```
 
-- neben der händischen Exploration können wir auch automatische Funktionen nutzen
-- bspw. die summary Funktion; wird am häufigsten genutzt
+Neben der händischen Exploration eines Objektes können wir auch automatische Funktionen nutzen, wie beispielsweise die `summary`-Funktion, die wohl am häufigsten verwendet wird. 
 
 ```{r}
 summary(mod)
 ```
 
-- zeigt uns wichtigste Parameter an
-- Funktion ist auch auf Objetkte anderer Klassen anwendbar; hier auf Datensatz; zeigt Zusammenfassungen der Variablen
-- werden sie auch in den nächsten Blöcken weiter verwenden
+Sie zeigt uns die wichtigsten Parameter an. Die `summary`-Funktion ist auch auf Objekte anderer Klassen anwendbar. Wenn wir sie auf den Datensatz anwenden, werden uns Zusammenfassungen der Variablen angezeigt. Auch in den nächsten Blöcken werden wir sie noch verwenden. 
 
 ```{r}
 summary(data)
 ```
-- Weitere Beispiele für solche Funktionen sind `plot()` und `resid()`
-- einfache lineare Modellierung kann [hier](/post/regression/) vertieft werden
+Weitere Beispiele für solche Funktionen, die auf Objekte verschiedener Klassen angewandt werden können, sind `plot()` und `resid()`. 
+Die einfache lineare Modellierung kann [hier](/post/regression/) vertieft werden.
 
 ## Multiple Regression
 
-- Erweiterung des Modells mit Aufnahme von Effekten
-- zur multiplen Regression gibt es viele Themen in der [Übersicht von PsyBSc7](/lehre/#bsc7)
+Die multiple Regression ist eine Erweiterung des Modells mit der Aufnahme von Effekten.
+Zur multiplen Regression gibt es viele Themen in der [Übersicht von PsyBSc7](/lehre/#bsc7).
 
 ### Kontinuierliche Prädiktoren
 
-- einfache Erweiterung der Syntax um eine Addition
+Schauen wir uns zunächst eine einfache Erweiterung der Syntax um eine Addition an. 
 
 ```{r}
 mod_kont <- lm(lz ~ neuro + intel, data = data)
 ```
 
-- class bleibt gleich und auch summary daher gleich aufgebaut
-- coefficient erweitert sich logischerweise um einen Eintrag
+Die `class` bleibt gleich und auch die `summary` ist daher gleich aufgebaut. Die `Coefficients` werden logischerweise um einen Eintrag erweitert. 
 
 ```{r}
 class(mod_kont)
@@ -143,45 +132,40 @@ summary(mod_kont)
 
 ### Aufnahme kategorialer Prädiktor
 
-- nehmen wir zunächst mal geschl auf, wie es ursprünglich vorlag
-- Syntax bleibt genau gleich
+Nun nehmen wir zunächst einmal die Variable `geschl` (Geschlecht) auf, so wie sie ursprünglich vorlag. Die Syntax bleibt dabei genau gleich. 
 
 ```{r}
 mod_kat <- lm(lz ~ intel + geschl, data = data)
 summary(mod_kat)
 ```
 
-- geschl bekommt eigenes Steigungsgewicht; aber nur eins, was überraschend ist, da es drei Ausprägungen gibt
-- daher ist Verwandlung in einen Faktor essentiell
-  
+Wir sehen, dass `geschl` ein eigenes Steigungsgewicht bekommt. Das ist überraschend, da es drei Ausprägungen in dieser Variable gibt.
+Daher ist die Verwandlung in einen Faktor essentiell. 
+
 ```{r}
 mod_kat <- lm(lz ~ intel + geschl_faktor, data = data)
 summary(mod_kat)
 ```
 
-- Summary zeigt direkt an, in welche Kategorie der Unterschied besteht
-- fehlende Kategorie wird als Referenz genutzt
-- Standardmäßig also eine dummykodierung
+Die `summary` zeigt uns direkt an, in welcher Kategorie der Unterschied besteht. Die fehlende Kategorie wird als Referenz genutzt. Standardmäßig liegt hier also eine Dummykodierung vor. 
 
 ### Moderierte Regression
 
-- Interaktionseffekt zwischen zwei Variablen soll aufgenommen werden
-- vorher zentrieren, damit Multikollinearität vorgebeugt wird
+Nun soll der Interaktionseffekt zwischen zwei Variablen aufgenommen werden. Bevor wir dies tun, müssen wir die Variablen zentrieren, damit Multikollinearität vorgebeugt wird. 
 
 ```{r}
 data$neuro_center <- scale(data$neuro, scale = F, center = T)
 data$intel_center <- scale(data$intel, scale = F, center = T)
 ```
 
-- Funktionalität überprüfen; nicht immer genau null, aber maschinell gesehen schon
+Wir überprüfen die Funktionalität; diese ist nicht immer genau null, aber maschinell gesehen schon.
 
 ```{r}
 mean(data$neuro_center)
 mean(data$intel_center)
 ```
 
-- lineare Modellierung mit Moderationseffekt
-- da Moderation eine Multiplikation der Effekte ist, würde man intuitiv den Code folgendermaßen schreiben
+Setzen wir nun die lineare Modellierung mit Moderationseffekt um. Da eine Moderation eine Multiplikation der Effekte ist, würde man intuitiv den Code folgendermaßen schreiben. 
 
 ```{r}
 mod_inter_nocenter <- lm(lz ~ neuro + intel + neuro * intel, data = data)
@@ -189,24 +173,21 @@ mod_inter_center <- lm(lz ~ neuro_center + intel_center + neuro_center * intel_c
 summary(mod_inter_nocenter)
 summary(mod_inter_center)
 ```
-- sehen, dass die Zentralisierung wie erwartet die Standardfehler reduziert
-- nochmal zurück zu dem Code: die intuitive Lösung mit der Multiplikation benötigt theoretisch nicht mal die einzelne Aufführung der Variablen, die Teil der Interaktion sind:
+Wir sehen, dass die Zentralisierung wie erwartet die Standardfehler reduziert hat. Kommen wir jetzt nochmal zurück zum Code: die intuitive Lösung mit der Multiplikation benötigt theoretisch nicht die einzelne Aufführung der Variablen, die Teil der Interaktion sind.
 
 ```{r}
 mod_inter_center <- lm(lz ~ neuro_center * intel_center, data = data)
 summary(mod_inter_center)
 ```
 
-- allerdings hat das natürlich den Nachteil, dass man nicht spezifisch auswählt und dann nicht so stark über sein Modell nachdenken muss
-- daher besteht die Möglichkeit, Interaktionen sehr präzise auszuwählen mit dem `:`
+Allerdings hat das natürlich den Nachteil, dass man nicht spezifisch auswählt und damit nicht so stark über sein Modell nachdenken muss. Es besteht daher die Möglichkeit, Interaktionen sehr präzise mit dem `:` auszuwählen.  
 
 ```{r}
 mod_inter_center <- lm(lz ~ neuro_center + intel_center + neuro_center:intel_center, data = data)
 summary(mod_inter_center)
 ```
-
-- grafische Darstellung: Paket unterstützt diese sehr gut
-- erstellt automatisch Grafen im Rahmen von `ggplot()`, wozu es auf PandaR einen [ganzen Workshop](https://pandar.netlify.app/extras/#ggplotting) oder auch ein einzelnes, einführendes [Tutorial](https://pandar.netlify.app/post/grafiken-mit-ggplot2/)
+ 
+Kommen wir nun zur grafischen Darstellung: Es gibt ein Paket, dass diese sehr gut unterstützt. Es erstellt automatisch Grafen im Rahmen von `ggplot()`, wozu es auf PandaR einen [ganzen Workshop](https://pandar.netlify.app/extras/#ggplotting) oder auch ein einzelnes, einführendes [Tutorial](https://pandar.netlify.app/post/grafiken-mit-ggplot2/) gibt. 
 
 ```{r, eval = FALSE}
 install.packages("interactions")
@@ -217,13 +198,13 @@ library(interactions)
 library(interactions)
 ```
 
-- Festlegung des Moderators kann `R` natürlich nicht für uns übernehmen
+Die Festlegung des Moderators kann `R` natürlich nicht für uns übernehmen.
 
 ```{r}
 interact_plot(model = mod_inter_center, pred = intel_center, modx = neuro_center)
 ```
 
-Weitere Infos zur Moderation, besonders Zusammenspiel mit quadratischen Effekten, finden sich [hier](https://pandar.netlify.app/post/ancova-und-moderierte-regression/)
+Weitere Infos zur Moderation, besonders zum Zusammenspiel mit quadratischen Effekten, finden sich [hier](https://pandar.netlify.app/post/ancova-und-moderierte-regression/).
 
 ## Anwendungen
 
@@ -248,8 +229,7 @@ lm.beta(mod_extra)
 summary(lm.beta(mod_extra))
 ```
 
-- geschachtelte Funktion ist teilweise schwieriger zu lesen
-- gibt als Lösung die Pipe, die ein Objekt in eine weitere Funktion weitergibt
+Eine geschachtelte Funktion ist teilweise schwierig zu lesen. Es gibt als Lösung die Pipe, die ein Objekt in eine weitere Funktion weitergibt. 
 
 ```{r}
 mod_extra |> lm.beta() |> summary()
@@ -278,7 +258,7 @@ mod_korrekt <- lm(extra ~ nr_ges_center + prok_center + vertr_center + nr_ges_ce
 summary(mod_korrekt)
 ```
 
-- Empfehlung, keine Modelle zu bestimmen, in denen Interaktionen niedrigerer Ordnung nicht drin sind
+Anmerkung: Es ist empfehlenswert, keine Modelle zu bestimmen, in denen Interaktionen niedrigerer Ordnung nicht drin sind.
 
 </details>
-
+ 
