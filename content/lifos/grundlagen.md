@@ -7,7 +7,7 @@ headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
 weight = 10  # Order that this section will appear.
  
-title = "Relevantes"
+title = "Grundlagen"
 subtitle = ""
 
 [content]
@@ -26,7 +26,7 @@ subtitle = ""
   # Filter posts by a taxonomy term.
   [content.filters]
     tag = ""
-    category = "Relevantes"
+    category = "Grundlagen"
     publication_type = ""
     exclude_featured = false
 
@@ -66,7 +66,7 @@ subtitle = ""
  css_class = ""
 +++
 
-<a id="Relevantes"></a>
+<a id="Grundlagen"></a>
 
 In diesem Abschnitt befindet sich alles wichtige, um das erste eigene Projekt anzulegen. Von einer grundauf Erklärung von LIFOS über die Auswahl des richtigen Templates für euch, als auch zuletzt das tatsächliche Anlegen eures Projekts.  
 
