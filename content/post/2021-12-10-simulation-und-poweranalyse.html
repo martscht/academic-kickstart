@@ -16,7 +16,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer, nehler]
-lastmod: '2023-02-02T13:10:00+01:00'
+lastmod: '2023-03-24T13:10:00+01:00'
 featured: no
 header:
   image: "/header/BSc2_Sim_Power.jpg"
@@ -27,17 +27,17 @@ projects: []
 
 
 
-<details>
-<summary>
-Kernfragen dieser Lehreinheit
-</summary>
+{{% detail_disclosure "Kernfragen dieser Lehreinheit" %}}
+<!-- Die divs sind wichtig, damit die Liste funktioniert! Innerhalb dieses Shortcodes ist HTML erlaubt (safeHTML) -->
+<div>
 <ul>
-<li>Wie können Variablen und ganze Modelle simuliert werden?</li>
-<li>Wie lassen sich der <span class="math inline">\(\alpha\)</span>-Fehler (Type I-Error, Fehler erster Art) und die Power (Testmacht, Teststärke) empirisch bestimmen?</li>
-<li>Welche anderen Möglichkeiten, den <span class="math inline">\(\alpha\)</span>-Fehler und die Power zu bestimmen, gibt es?</li>
-<li>Wie lassen sich Power-Plots erstellen und was bedeuten sie?</li>
+<li>Wie können Variablen und ganze Modelle <a href="#Simulation">simuliert</a> werden?</li>
+<li>Wie lassen sich der <a href="#Alpha"><span class="math inline">\(\alpha\)</span>-Fehler</a> (Type I-Error, Fehler erster Art) und die <a href="#Poweranalyse">Power</a> (Testmacht, Teststärke) empirisch bestimmen?</li>
+<li>Welche anderen Möglichkeiten, den <a href="#t-Alpha"><span class="math inline">\(\alpha\)</span>-Fehler</a> und die <a href="#t-Power">Power</a> zu bestimmen, gibt es?</li>
+<li>Wie lassen sich <a href="#PowerPlots">Power-Plots</a> erstellen und was bedeuten sie?</li>
 </ul>
-</details>
+</div>
+<p>{{% /detail_disclosure %}}</p>
 <hr />
 <div id="Einleitung" class="section level2">
 <h2>Einleitung</h2>
@@ -64,7 +64,7 @@ p &amp;\ge \alpha\ (=5\%) \Longrightarrow H_0
 </blockquote>
 <p>Im Folgenden wollen wir dieses Gedankenexperiment in die Tat umsetzen und unsere Kenntnisse über das Simulieren von Zufallszahlen verwenden, um die Power und den Fehler 1. Art (<span class="math inline">\(\alpha\)</span>-Fehler) empirisch zu prüfen. Hierbei beschränken wir uns auf den <span class="math inline">\(t\)</span>-Test (mit der Funktion <code>t.test()</code>) und den Korrelationstest (mit der Funktion <code>cor.test()</code>). Da wir nun also Daten simulieren brauchen wir in diesem Tutorial den Datensatz nicht.</p>
 </div>
-<div id="simulation-und-alpha-fehler" class="section level2">
+<div id="Simulation" class="section level2 anchorheader">
 <h2>Simulation und <span class="math inline">\(\alpha\)</span>-Fehler</h2>
 <p>Sie haben nun die Möglichkeit, in einen möglichen Forschungsbereich von Methodiker:innen hineinzublicken: Simulationsstudien. Um das beschriebene Gedankenexperiment umzusetzen, müssen wir sehr häufig Stichproben aus der Population ziehen und unseren Test (z.B. einen Mittelwertsvergleich) durchführen. Die Realität hat dabei zwei grundlegende Probleme:</p>
 <ol style="list-style-type: decimal">
@@ -140,10 +140,12 @@ pt_H0 &lt;- replicate(n = 10000, expr = {X_1 &lt;- rnorm(N)
 <p>Schauen wir uns doch mal die Verteilung der <span class="math inline">\(p\)</span>-Werte an:</p>
 <pre class="r"><code>hist(pt_H0, breaks = 20) </code></pre>
 <p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-8-1.png" width="672" /></p>
+<p>{{% intext_anchor "Alpha" %}}</p>
 <p>Die <span class="math inline">\(p\)</span>-Werte erscheinen einigermaßen gleichverteilt auf dem Intervall [0,1]. Dies ist auch genau gewünscht. Unter der <span class="math inline">\(H_0\)</span>-Hypothese ist der <span class="math inline">\(p\)</span>-Wert uniform (gleichverteilt) auf dem Intervall [0,1]. Somit tritt jeder Wert mit der selben Wahrscheinlichkeit auf. Dies bedeutet gleichzeitig, dass in dem Intervall [0, 0.05] gerade <span class="math inline">\(5\%\)</span> der Fälle landen sollten. Dies ist gerade das Intervall, in dem die signifikanten Ergebnisse landen. Somit erkennen wir, dass unter <span class="math inline">\(H_0\)</span> die Nullhypothese nur in <span class="math inline">\(5\%\)</span> verworfen werden sollte, wenn wir uns ein <span class="math inline">\(\alpha\)</span>-Niveau von <span class="math inline">\(5\%\)</span> vorgeben. Wir können prüfen, ob dem so ist, indem wir den relativen Anteil bestimmen, in welchem die <span class="math inline">\(H_0\)</span> verworfen wird. Dies ist genau dann der Fall, wenn der <span class="math inline">\(p\)</span>-Wert kleiner als <span class="math inline">\(0.05\)</span> ist (siehe <a href="#Einleitung">Einleitung</a>). Die relative Häufigkeit bestimmen wir so:</p>
 <pre class="r"><code>mean(pt_H0 &lt; 0.05)</code></pre>
 <pre><code>## [1] 0.0484</code></pre>
 <p>Somit wird die Nullhypothese hier in 4.84% der Fälle verworfen. Dies zeigt uns, dass der <span class="math inline">\(t\)</span>-Test unter <span class="math inline">\(H_0\)</span> für <span class="math inline">\(N=20\)</span> gut funktioniert, da die empirische Rate des Fehlers 1. Art bei ungefähr <span class="math inline">\(5\%\)</span> liegt. Wir könnten auch untersuchen, wie robust ein Test ist, indem wir eine Annahme verletzen (z.B. Varianzhomogenität) und untersuchen, wie sich das auf das empirische <span class="math inline">\(\alpha\)</span>-Niveau und die Verteilung der Teststatistik oder der <span class="math inline">\(p\)</span>-Werte ausübt.</p>
+<p>{{% intext_anchor "t-Alpha" %}}</p>
 <p>Im Übrigen hätten wir auch die ganze Prozedur mithilfe der empirischen <span class="math inline">\(t\)</span>-Werte durchführen können (diese sind als <code>statistic</code> im Test-Objekt angelegt):</p>
 <pre class="r"><code>set.seed(1234)
 tt_H0 &lt;- replicate(n = 10000, expr = {X_1 &lt;- rnorm(N)
@@ -194,7 +196,7 @@ pcor_H0 &lt;- replicate(n = 10000, expr = {Y &lt;- rnorm(N)
 <p>Somit wird die Nullhypothese hier in 4.81% der Fälle verworfen. Dies zeigt uns, dass auch der Korrelationstest unter <span class="math inline">\(H_0\)</span> für <span class="math inline">\(N=20\)</span> gut funktioniert, da die empirische Rate des Fehlers 1. Art bei ungefähr <span class="math inline">\(5\%\)</span> liegt.</p>
 </div>
 </div>
-<div id="poweranalysen" class="section level2">
+<div id="Poweranalyse" class="section level2 anchorheader">
 <h2>Poweranalysen</h2>
 <p>Mit einer Power-Analyse untersuchen wir im Grunde, wie sich die Wahrscheinlichkeit die Nullhypothese zu verwerfen, verändert, je nachdem wie groß der Effekt ist. Dem wollen wir nun nachgehen und entsprechend unsere Daten unter der Alternativhypothese simulieren.</p>
 <div id="mittelwertsvergleiche-t-test-unter-h_1" class="section level3">
@@ -237,7 +239,7 @@ lines(x = x, y = dt(x = x, df = 38), lwd = 2) # lwd = Liniendicke</code></pre>
 <p>Die Power für den Korrelationstest zu bestimmen, ist für diese Sitzung als Übungsaufgabe geplant!</p>
 </div>
 </div>
-<div id="PowerPlots" class="section level2">
+<div id="PowerPlots" class="section level2 anchorheader">
 <h2>Power-Plots</h2>
 <p>Mit einem einzelnen Power-Wert lässt sich in der Regel nicht so viel anfangen. Aus diesem Grund werden Power-Plots erstellt, welche darstellen, wie sich die Power bspw. über unterschiedliche Stichprobengrößen (um die Asymptotik des Tests zu prüfen) oder über unterschiedliche Effektgrößen verändert.</p>
 <div id="power-plots-für-mittelwertsunterschiede" class="section level3">
@@ -277,6 +279,7 @@ plot(x = Ns, y = t_power, type = &quot;b&quot;, main = &quot;Power vs. N&quot;)<
 <p>Genauso könnten wir uns fragen, wie groß ein Effekt sein muss, damit mit der vorliegenden Stichprobengröße und mit hinreichend großer Wahrscheinlichkeit ein signifikantes Ergebnis gefunden wird. In diesem Fall sprechen wir von einer Sensitivitätsanalyse. Dies schauen Sie sich ebenfalls als Übung an!</p>
 <p>Wenn man dies auf die Spitze treibt, dann landet man vielleicht bei diesem schönen Plot:</p>
 <p><img src="/post/2021-12-10-simulation-und-poweranalyse_files/figure-html/unnamed-chunk-23-1.png" width="960" style="display: block; margin: auto;" /></p>
+<p>{{% intext_anchor "t-Power" %}}</p>
 <p>Auf der x-Achse ist die Mittelwertsdifferenz dargestellt, <span class="math inline">\(N\)</span> ist farblich kodiert. Dieser Plot enthält also sowohl Informationen über die Asymptotik (Verhalten mit steigender Stichprobengröße) und über die Auswirkung der Effektstärke. Die gestrichelte Linien symbolisiert die gewünschten <span class="math inline">\(80\%\)</span>, die gepunktete Linie zeigt das <span class="math inline">\(\alpha\)</span>-Fehlerniveau von <span class="math inline">\(5\%\)</span>. Hier wurden allerdings keine Simulationen durchgeführt (sonst wären die Linien nicht so “smooth”), denn für den <span class="math inline">\(t\)</span>-Test lässt sich die Power auch noch leicht über Formeln bestimmen. Diese Formeln sind bspw. in dem <code>R</code>-Paket <code>pwr</code> hinterlegt. Für Interessierte ist in <a href="#AppendixA">Appendix A</a> ein kleiner Exkurs in <code>pwr</code> dargestellt.</p>
 </div>
 <div id="AppendixA" class="section level3">

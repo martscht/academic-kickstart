@@ -16,7 +16,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [irmer, nehler]
-lastmod: '2023-02-02T13:10:00+01:00'
+lastmod: '2023-03-24T13:10:00+01:00'
 featured: no
 header:
   image: "/header/BSc2_Sim_Power.jpg"
@@ -32,13 +32,15 @@ knitr::opts_chunk$set(error = TRUE)
 
 
 
-<details><summary>Kernfragen dieser Lehreinheit</summary>
-
-* Wie können Variablen und ganze Modelle simuliert werden?
-* Wie lassen sich der $\alpha$-Fehler (Type I-Error, Fehler erster Art) und die Power (Testmacht, Teststärke) empirisch bestimmen?
-* Welche anderen Möglichkeiten, den  $\alpha$-Fehler und die Power zu bestimmen, gibt es?
-* Wie lassen sich Power-Plots erstellen und was bedeuten sie?
-</details>
+`r blogdown::shortcode_open("detail_disclosure", "Kernfragen dieser Lehreinheit")`
+<!-- Die divs sind wichtig, damit die Liste funktioniert! Innerhalb dieses Shortcodes ist HTML erlaubt (safeHTML) -->
+<div>
+* Wie können Variablen und ganze Modelle [simuliert](#Simulation) werden?
+* Wie lassen sich der [$\alpha$-Fehler](#Alpha) (Type I-Error, Fehler erster Art) und die [Power](#Poweranalyse) (Testmacht, Teststärke) empirisch bestimmen?
+* Welche anderen Möglichkeiten, den  [$\alpha$-Fehler](#t-Alpha) und die [Power](#t-Power) zu bestimmen, gibt es?
+* Wie lassen sich [Power-Plots](#PowerPlots) erstellen und was bedeuten sie?
+</div>
+`r blogdown::shortcode_close("detail_disclosure")`
 
 *** 
 
@@ -73,7 +75,7 @@ Zurück zu unserem Gedankenexperiment:
 
 Im Folgenden wollen wir dieses Gedankenexperiment in die Tat umsetzen und unsere Kenntnisse über das Simulieren von Zufallszahlen verwenden, um die Power und den Fehler 1. Art ($\alpha$-Fehler) empirisch zu prüfen. Hierbei beschränken wir uns auf den $t$-Test (mit der Funktion `t.test()`) und den Korrelationstest (mit der Funktion `cor.test()`). Da wir nun also Daten simulieren brauchen wir in diesem Tutorial den Datensatz nicht.
 
-## Simulation und $\alpha$-Fehler
+## Simulation und $\alpha$-Fehler {#Simulation .anchorheader}
 Sie haben nun die Möglichkeit, in einen möglichen Forschungsbereich von Methodiker:innen hineinzublicken: Simulationsstudien. Um das beschriebene Gedankenexperiment umzusetzen, müssen wir sehr häufig Stichproben aus der Population ziehen und unseren Test (z.B. einen Mittelwertsvergleich) durchführen. Die Realität hat dabei zwei grundlegende Probleme: 
 
 1. Wir wissen nicht, ob in der Realität die $H_0$ oder $H_1$ gilt.
@@ -159,6 +161,8 @@ Schauen wir uns doch mal die Verteilung der $p$-Werte an:
 hist(pt_H0, breaks = 20) 
 ```
 
+`r blogdown::shortcode("intext_anchor", "Alpha")`
+
 Die $p$-Werte erscheinen einigermaßen gleichverteilt auf dem Intervall [0,1]. Dies ist auch genau gewünscht. Unter der $H_0$-Hypothese ist der $p$-Wert uniform (gleichverteilt) auf dem Intervall [0,1]. Somit tritt jeder Wert mit der selben Wahrscheinlichkeit auf. Dies bedeutet gleichzeitig, dass in dem Intervall [0, 0.05] gerade $5\%$ der Fälle landen sollten. Dies ist gerade das Intervall, in dem die signifikanten Ergebnisse landen. Somit erkennen wir, dass unter $H_0$ die Nullhypothese nur in $5\%$ verworfen werden sollte, wenn wir uns ein $\alpha$-Niveau von $5\%$ vorgeben. Wir können prüfen, ob dem so ist, indem wir den relativen Anteil bestimmen, in welchem die $H_0$ verworfen wird. Dies ist genau dann der Fall, wenn der $p$-Wert kleiner als $0.05$ ist (siehe [Einleitung](#Einleitung)). Die relative Häufigkeit bestimmen wir so:
 
 ```{r}
@@ -166,6 +170,8 @@ mean(pt_H0 < 0.05)
 ```
 
 Somit wird die Nullhypothese hier in `r mean(pt_H0 < 0.05)*100`% der Fälle verworfen. Dies zeigt uns, dass der $t$-Test unter $H_0$ für $N=20$ gut funktioniert, da die empirische Rate des Fehlers 1. Art bei ungefähr $5\%$ liegt. Wir könnten auch untersuchen, wie robust ein Test ist, indem wir eine Annahme verletzen (z.B. Varianzhomogenität) und untersuchen, wie sich das auf das empirische $\alpha$-Niveau und die Verteilung der Teststatistik oder der $p$-Werte ausübt.
+
+`r blogdown::shortcode("intext_anchor", "t-Alpha")`
 
 Im Übrigen hätten wir auch die ganze Prozedur mithilfe der empirischen $t$-Werte durchführen können (diese sind als `statistic` im Test-Objekt angelegt):
 
@@ -239,7 +245,7 @@ mean(pcor_H0 < 0.05)
 
 Somit wird die Nullhypothese hier in `r mean(pcor_H0 < 0.05)*100`% der Fälle verworfen. Dies zeigt uns, dass auch der Korrelationstest unter $H_0$ für $N=20$ gut funktioniert, da die empirische Rate des Fehlers 1. Art bei ungefähr $5\%$ liegt.
 
-## Poweranalysen
+## Poweranalysen {#Poweranalyse .anchorheader}
 Mit einer Power-Analyse untersuchen wir im Grunde, wie sich die Wahrscheinlichkeit die Nullhypothese zu verwerfen, verändert, je nachdem wie groß der Effekt ist. Dem wollen wir nun nachgehen und entsprechend unsere Daten unter der Alternativhypothese simulieren.
 
 ### Mittelwertsvergleiche: $t$-Test unter $H_1$
@@ -296,7 +302,7 @@ Mit größerer Stichprobe wird die Power steigen (was wir im Abschnitt [Power-Pl
 
 Die Power für den Korrelationstest zu bestimmen, ist für diese Sitzung als Übungsaufgabe geplant!
 
-## Power-Plots {#PowerPlots}
+## Power-Plots {#PowerPlots .anchorheader}
 Mit einem einzelnen Power-Wert lässt sich in der Regel nicht so viel anfangen. Aus diesem Grund werden Power-Plots erstellt, welche darstellen, wie sich die Power bspw. über unterschiedliche Stichprobengrößen  (um die Asymptotik des Tests zu prüfen) oder über unterschiedliche Effektgrößen verändert. 
 
 ### Power-Plots für Mittelwertsunterschiede
@@ -369,6 +375,8 @@ ggplot(data = Erg, aes(x = d, y = Power, col = n, group = n))+
      scale_colour_gradientn(colours=rainbow(4))+
      ggtitle("Power vs. d and n", subtitle = " Using formulas instead of simulation")+ theme_apa(base_size = 20)
 ```
+
+`r blogdown::shortcode("intext_anchor", "t-Power")`
 
 Auf der x-Achse ist die Mittelwertsdifferenz dargestellt, $N$ ist farblich kodiert. Dieser Plot enthält also sowohl Informationen über die Asymptotik (Verhalten mit steigender Stichprobengröße) und über die Auswirkung der Effektstärke. Die gestrichelte Linien symbolisiert die gewünschten $80\%$, die gepunktete Linie zeigt das $\alpha$-Fehlerniveau von $5\%$. Hier wurden allerdings keine Simulationen durchgeführt (sonst wären die Linien nicht so "smooth"), denn für den $t$-Test lässt sich die Power auch noch leicht über Formeln bestimmen. Diese Formeln sind bspw. in dem `R`-Paket `pwr` hinterlegt. Für Interessierte ist in [Appendix A](#AppendixA) ein kleiner Exkurs in `pwr` dargestellt. 
 
