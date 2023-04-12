@@ -69,7 +69,6 @@ subtitle = "Forschungsmodul: Forschungsmethoden und Evaluation I"
 <a id="PsyMSc5_FEI"></a>
 Das Modul PsyMSc5 - Forschungsmethoden und Evaluation I beschäftigt sich mit vertiefenden Analysen und Simulationsstudien und gibt dadurch Einblicke in die Welt der Analyse von statistischen Methoden.
 
-Die hier präsentierten Unterlagen sind während des [Forschungsmoduls F&E I - Wintersemester 2020/21](https://qis.server.uni-frankfurt.de/qisserver/rds?state=verpublish&status=init&vmfile=no&publishid=302735&moduleCall=webInfo&publishConfFile=webInfo&publishSubDir=veranstaltung) entstanden.
 
 |  |  |  |  | | |
 | --- | --- | --- | --- | --- | --- |

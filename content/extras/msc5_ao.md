@@ -5,10 +5,10 @@
 widget = "blank"  # See https://sourcethemes.com/academic/docs/page-builder/
 headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
-weight = 70  # Order that this section will appear.
+weight = 60  # Order that this section will appear.
 
-title = "PsyMSc 5"
-subtitle = "Forschungsmodul: Arbeits- und Organisationspsychologie"
+title = "Metaanalyse im A&O-Kontext"
+subtitle = "Arbeits- und Organisationspsychologie"
 
 [content]
   # Page type to display. E.g. post, talk, or publication.
@@ -67,14 +67,13 @@ subtitle = "Forschungsmodul: Arbeits- und Organisationspsychologie"
 +++
 
 <a id="PsyMSc5_AO"></a>
-Das Modul PsyMSc5 - Forschungsmodul Arbeits- und Organisationspsychologie bringt Einblicke in die Forschungsmethoden in der angewandten Psychologie und soll hierbei vertiefende Kenntnisse in einem ausgewählten Gebiet der Arbeits- und Organisationspsychologie: hier aus dem Bereich Arbeit und Gesundheit vermitteln. Die Studierenden sollen die Kompetenz erwerben, in diesem ausgewählten Gebiet den wissenschaftlichen Forschungsprozess im psychologischen Anwendungsbereich von der Einarbeitung in ein Thema, der Entwicklung von Forschungshypothesen, Organisation und Auswertung einer Untersuchung sowie Verfassen eines wissenschaftlichen Papers kennenzulernen, einzuüben und sich damit auf die Masterarbeit vorzubereiten.
+ <!--Das Modul PsyMSc5 - Forschungsmodul Arbeits- und Organisationspsychologie bringt Einblicke in die Forschungsmethoden in der angewandten Psychologie und soll hierbei vertiefende Kenntnisse in einem ausgewählten Gebiet der Arbeits- und Organisationspsychologie: hier aus dem Bereich Arbeit und Gesundheit vermitteln. Die Studierenden sollen die Kompetenz erwerben, in diesem ausgewählten Gebiet den wissenschaftlichen Forschungsprozess im psychologischen Anwendungsbereich von der Einarbeitung in ein Thema, der Entwicklung von Forschungshypothesen, Organisation und Auswertung einer Untersuchung sowie Verfassen eines wissenschaftlichen Papers kennenzulernen, einzuüben und sich damit auf die Masterarbeit vorzubereiten. ALTER TEXT-->
 
 Die hier präsentierten Unterlagen sind während des [Forschungsmoduls A&O - SoSe 2020](https://qis.server.uni-frankfurt.de/qisserver/rds?state=verpublish&status=init&vmfile=no&publishid=289653&moduleCall=webInfo&publishConfFile=webInfo&publishSubDir=veranstaltung) und [WiSe 2020/21](https://qis.server.uni-frankfurt.de/qisserver/rds?state=verpublish&status=init&vmfile=no&publishid=302549&moduleCall=webInfo&publishConfFile=webInfo&publishSubDir=veranstaltung) entstanden. Sie beziehen sich auf den Umgang mit Datensätzen und `R` mit besonderem Schwerpunkt auf dem Durchführen von Meta-Analysen. Inhaltliche Grundelagen wurden in den Veranstaltungen vermittelt.
 
 |  |  |  |  | | |
 | --- | --- | --- | --- | --- | --- |
-| 1 | **Einlesen von Datensätzen** | Inhalte  |
-| 2 | **Meta-Analysen in `R`** | [Inhalte](/post/meta-analysen-in-r)  |
+| 1 | **Meta-Analysen in `R`** | [Inhalte](/post/meta-analysen-in-r)  |
 |  |  |  |  | | |
 
 
