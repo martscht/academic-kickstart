@@ -10,7 +10,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [nehler, winkler, schroeder, neubauer]
-lastmod: '2023-01-13T13:13:57+01:00'
+lastmod: '2023-03-24T16:02:00+01:00'
 featured: no
 header:
   image: "/header/BSc2_Korrelation.jpg"
@@ -23,14 +23,16 @@ knitr::opts_chunk$set(error = TRUE)
 ```
 
 
-<details><summary>Kernfragen dieser Lehreinheit</summary>
-
-* Wie können Kreuztabellen in R erstellt werden? Welche Varianten gibt es, relative Häufigkeitstabellen zu erstellen?
-* Wie kann ein gemeinsames Balkendiagramm für zwei Variablen erstellt werden?
-* Welche zwei Varianten gibt es, Varianzen und Kovarianzen zu bestimmen?
-* Wie kann die Produkt-Moment-Korrelation, die Rang-Korrelation nach Spearman und Kendalls $\tau$ bestimmt werden?
-* Wie wird bei der Berechnung von Korrelationen mit fehlenden Werten umgegangen?
-</details>
+`r blogdown::shortcode_open("detail_disclosure", "Kernfragen dieser Lehreinheit")`
+<!-- Die divs sind wichtig, damit die Liste funktioniert! Innerhalb dieses Shortcodes ist HTML erlaubt (safeHTML) -->
+<div>
+* Wie können [Kreuztabellen](#Kreuztabellen) in R erstellt werden? Welche Varianten gibt es, [relative Häufigkeitstabellen](#Relativtabelle) zu erstellen?
+* Wie kann ein gemeinsames [Balkendiagramm](#Balkendiagramm) für zwei Variablen erstellt werden?
+* Welche zwei Varianten gibt es, [Varianzen und Kovarianzen](#Ko_Varianz) zu bestimmen?
+* Wie kann die [Produkt-Moment-Korrelation](#PMK), die [Rang-Korrelation nach Spearman](#Rs) und [Kendalls $\tau$](#tau) bestimmt werden?
+* Wie wird bei der Berechnung von [Korrelationen mit fehlenden Werten](#NA) umgegangen?
+</div>
+`r blogdown::shortcode_close("detail_disclosure")`
 
 ***
 
@@ -99,6 +101,8 @@ tab
 prop.table(tab)                       #Relativ
 ```
 
+`r blogdown::shortcode("intext_anchor", "Kreuztabellen")`
+
 Die Erweiterung für den bivariaten Fall ist dabei nicht schwierig und wird als *Kreuztabelle* bezeichnet. Sie liefert die Häufigkeit von Kombinationen von Ausprägungen in mehreren Variablen. In den Zeilen wird die erste Variable abgetragen und in den Spalten die zweite. Im Unterschied zum univariaten Fall muss im `table()`-Befehl nur die zweite interessierende Variable zusätzlich genannt werden. Tabellen können beliebig viele Dimensionen haben, werden dann aber sehr unübersichtlich.
 
 ```{r}
@@ -111,6 +115,8 @@ In eine Kreuztabelle können Randsummen mit dem `addmargins()` Befehl hinzugefü
 ```{r}
 addmargins(tab)                       #Randsummen hinzufügen
 ```
+
+`r blogdown::shortcode("intext_anchor", "Relativtabelle")`
 
 Auch für die Kreuztabelle ist die Möglichkeit der Darstellung der Häufigkeiten in Relation zur Gesamtzahl der Beobachtungen gegeben. 
 
@@ -147,7 +153,7 @@ prop.table(tab) |> addmargins()  # als Pipe
 
 ****
 
-## Balkendiagramme
+## Balkendiagramme {#Balkendiagramm .anchorheader}
 
 Grafisch kann eine solche Kreuztabelle durch gruppierte Balkendiagramme dargestellt werden. Das Argument `beside` sorgt für die Anordnung der Balken (bei `TRUE` nebeneinander, bei `FALSE` übereinander). Das Argument `legend` nimmt einen Vektor für die Beschriftung entgegen. Die Zeilen des Datensatzes bilden dabei stets eigene Balken, während die Spalten die Gruppierungsvariable bilden. Deshalb müssen als Legende die Namen der Reihen `rownames()` unserer Tabelle `tab` ausgewählt werden.
 
@@ -160,7 +166,7 @@ barplot (tab,
 
 ****
 
-## Varianz, Kovarianz und Korrelation
+## Varianz, Kovarianz und Korrelation {#Ko_Varianz .anchorheader}
 
 In der Vorlesungen haben Sie gelernt, dass es für *Kovarianzen* und *Varianzen* empirische und geschätzte Werte gibt. R berechnet standardmäßig für die Varianz und Kovarianz die *Populationsschätzer*, verwendet also folgende Formeln für Varianz
 
@@ -186,6 +192,8 @@ Die Funktion `cov()` wird für die Kovarianz verwendet und benötigt als Argumen
 cov(fb22$vertr, fb22$gewis)              #Kovarianz Verträglichkeit und Gewissenhaftigkeit
 ```
 Da Kovarianzen unstandardisierte Kennzahlen sind, können wir Kovarianzen nicht pauschal nach ihrer Höhe beurteilen. Die Höhe hängt beispielsweise von der Antwortskala ab. 
+
+`r blogdown::shortcode("intext_anchor", "NA")`
 
 Natürlich können auch bei der Kovarianzberechnung fehlende Werte zu einem Problem werden. Zur Bewältigung des Problems gibt es das Argument `use`. Bei Zusammenhangsmaßen gibt es in R mehrere Möglichkeiten für den Umgang mit fehlenden Werten, die sich nur unterscheiden, wenn mehr als zwei Variablen korreliert werden:
 
@@ -229,6 +237,8 @@ Der Zusammenhang zwischen zwei Variablen kann in einem *Scatterplot* bzw. *Streu
 ```{r}
 plot(x = fb22$vertr, y = fb22$gewis, xlim = c(1,5) , ylim = c(1,5))
 ```
+
+`r blogdown::shortcode("intext_anchor", "PMK")`
 
 Wie in der Vorlesung besprochen, sind für verschiedene Skalenniveaus verschiedene Zusammenhangsmaße verfügbar, die im Gegensatz zur Kovarianz auch eine Vergleichbarkeit zwischen zwei Zusammenhangswerten sicherstellen. Für zwei metrisch skalierte Variablen gibt es dabei die *Produkt-Moment-Korrelation*. In der Funktion `cor()` werden dabei die Argumente `x` und `y` für die beiden betrachteten Variablen benötigt. `use` beschreibt weiterhin den Umgang mit fehlenden Werten.
 
@@ -287,6 +297,7 @@ shapiro.test(fb22$gewis)
 
 $p < \alpha$ $\rightarrow$ H1: Normalverteilung kann nicht angenommen werden. Somit ist diese Voraussetzung verletzt. Eine Möglichkeit damit umzugehen, ist die Rangkorrelation nach Spearman. Diese ist nicht an die Voraussetzung der Normalverteilung gebunden. Das Verfahren kann über `method = "spearman"` angewendet werden.
 
+`r blogdown::shortcode("intext_anchor", "Rs")`
 
 **Rangkorrelation in R**
 
@@ -309,6 +320,8 @@ Es handelt sich um eine positive Korrelation von _r_ = `r round(r1, digits = 2)`
 * ~ .30: mittlerer Effekt  
 * ~ .50: starker Effekt 
 
+`r blogdown::shortcode("intext_anchor", "tau")`
+
 Als weitere Variante der Rangkorrelation gibt es noch Kendalls $\tau$. Diese kann man mit `method = "kendall"` angesprochen werden.
 
 ```{r}
@@ -325,8 +338,9 @@ Nachdem der Korrelationskoeffizient berechnet wurde, kann dieser noch auf Signif
 ```{r}
 cor <- cor.test(fb22$vertr, fb22$gewis, 
          alternative = "two.sided", 
-         method = "spearman",       #Da Voraussetzungen für Pearson verletzt
+         method = "spearman",      #Da Voraussetzungen für Pearson verletzt
          use = "complete")
+cor$p.value      #Gibt den p-Wert aus
 ```
 
 Anmerkung: Bei der Rangkorrelation kann der exakte p-Wert nicht berechnet werden, da gebundene Ränge vorliegen. Das Ergebnis ist allerdings sehr eindeutig: $p > \alpha$ $\rightarrow$ H1. Die Korrelation ist mit einer Irrtumswahrscheinlichkeit von 5% signifikant von 0 verschieden. Daraus würde sich die folgende Interpretation ergeben:

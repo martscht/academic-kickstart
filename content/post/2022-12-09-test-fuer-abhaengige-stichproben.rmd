@@ -10,7 +10,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [koehler, buchholz, irmer, nehler]
-lastmod: '2022-12-15T16:00:20+01:00'
+lastmod: '2023-03-24T15:45:20+01:00'
 featured: no
 header:
   image: "/header/BSc2_test_abh_stpr.jpg"
@@ -26,22 +26,23 @@ library(knitr)
 Nachdem wir uns mit **unabhängige Stichproben** in der ([letzten Sitzung](/post/gruppenvergleiche-unabhaengig)) beschäftigt haben wollen wir diesmal mit abhängigen Stichproben beschäftigen. Anwendungen dafür in der Praxis sind beispielsweise Zwillinge, Paare oder auch Messwiederholungen. 
      
 
-<details><summary>Kernfragen der Lehreinheiten über Gruppenvergleiche </summary>
-
-* Wie fertige ich Deskriptivstatistiken (Grafiken, Kennwerte) zur Veranschaulichung des Unterschieds zwischen zwei Gruppen an?  
-* Was sind Voraussetzungen des abhängigen _t_-Tests und wie prüfe ich sie?
-* Wie führe ich einen abhängigen _t_-Test in R durch?
-* Wie berechne ich den standardisierten Populationseffekt für abhängige Stichproben?  
-* Wie führe ich einen abhängigen Wilcoxon-Test in R durch?
-* Wie berichte ich statistische Ergebnisse formal? 
-</details>
-
+`r blogdown::shortcode_open("detail_disclosure", "Kernfragen der Lehreinheiten über Gruppenvergleiche")`
+<!-- Die divs sind wichtig, damit die Liste funktioniert! Innerhalb dieses Shortcodes ist HTML erlaubt (safeHTML) -->
+<div>
+* Wie fertige ich [Deskriptivstatistiken](#Statistiken) (Grafiken, Kennwerte) zur Veranschaulichung des Unterschieds zwischen zwei Gruppen an?  
+* Was sind [Voraussetzungen](#Vorraussetzungen) des abhängigen *t*-Tests und wie prüfe ich sie?
+* Wie führe ich einen [abhängigen *t*-Test](#t-Test) in R durch?
+* Wie berechne ich den [standardisierten Populationseffekt](#Populationseffekt) für abhängige Stichproben?  
+* Wie führe ich einen [abhängigen Wilcoxon-Test](#Wilcox) in R durch?
+* Wie [berichte](#Bericht) ich statistische Ergebnisse formal? 
+</div>
+`r blogdown::shortcode_close("detail_disclosure")`
 
 ***
 
 ## Vorbereitende Schritte {#prep}
 
-Den Datensatz haben wir bereits unter diesem [<i class="fas fa-download"></i> Link heruntergeladen](/post/fb22.rda) und können ihn über den lokalen Speicherort einladen oder Sie können Ihn direkt mittels des folgenden Befehls aus dem Internet in das Environment bekommen. In den vorherigen Tutorials und den dazugehörigen Aufgaben haben wir bereits Änderungen am Datensatz durchgeführt, die hier nochmal aufgeführt sind, um den Datensatz auf dem aktuellen Stand zu haben: 
+Den Datensatz haben wir bereits unter diesem [`r blogdown::shortcode("download_image")` Link heruntergeladen](/post/fb22.rda) und können ihn über den lokalen Speicherort einladen oder Sie können Ihn direkt mittels des folgenden Befehls aus dem Internet in das Environment bekommen. In den vorherigen Tutorials und den dazugehörigen Aufgaben haben wir bereits Änderungen am Datensatz durchgeführt, die hier nochmal aufgeführt sind, um den Datensatz auf dem aktuellen Stand zu haben: 
 
 ```{r}
 #### Was bisher geschah: ----
@@ -92,7 +93,7 @@ fb22$neuro_std <- scale(fb22$neuro)
 
 ***
 
-## 4. Fragestellung D: Haben Psychologiestudierende vergleichbare Werte auf den Skalen Neurotizismus und Extraversion?
+## 4. Fragestellung D: Haben Psychologiestudierende vergleichbare Werte auf den Skalen Neurotizismus und Extraversion? {#Statistiken .anchorheader}
 
 Die Werte auf beiden Variablen sind insofern voneinander abhängig, dass jede Person die Fragen zu Neurotizismus und die Fragen zu Extraversion beantwortet hat (&rarr; Messwiederholung). Es gibt daher Faktoren innerhalb der Person, die einen gemeinsamen Teil der Varianz erzeugen.
 
@@ -133,7 +134,7 @@ abline(v=mean(fb22$extra),
 par(mfrow=c(1,1)) #Zurücksetzen des Plotfensters, zuvor hatten wir "dev.off()" kennengelernt
 ```
 
-`abline` fügt eine Linie in eine Grafik ein. Mit dem Zusatzargument `v` geben wir eine vertikale Linie in den Plot (hier den Mittelwert). Insgesamt scheinen sich die beiden Verteilungen  zu unterscheiden: Der Mittelwert von Neurotizismus liegt höher als der von Extraversion.  
+`abline()` fügt eine Linie in eine Grafik ein. Mit dem Zusatzargument `v` geben wir eine vertikale Linie in den Plot (hier den Mittelwert). Insgesamt scheinen sich die beiden Verteilungen  zu unterscheiden: Der Mittelwert von Neurotizismus liegt höher als der von Extraversion.  
 
 #### 4.1.2. statistisch
 
@@ -153,17 +154,17 @@ desctip_extra <- describe(fb22$extra)
 ```
 Achtung: Bei den hier berichteten SD handelt es sich (wie immer in R) um den Populationsschätzer. Die Mittelwerte der beiden Gruppen unterscheiden sich. Die Frage ist nun, ob sich dieser Unterschied auf die Population verallgemeinern lässt.
 
-### 4.2. Voraussetzungsprüfung
+### 4.2. Voraussetzungsprüfung {#Vorraussetzungen}
 
 Um den Ergebnissen eines $t$-Test für abhängige Stichproben vertrauen zu können, müssen dessen Voraussetzungen erfüllt sein: 
 
-**Voraussetzungen für die Durchführung des _t_-Tests für abhängige Stichproben:**  
+**Voraussetzungen für die Durchführung des *t*-Tests für abhängige Stichproben:**  
 
 1. Die abhängige Variable ist intervallskaliert $\rightarrow$ ok  
 2. Die Messwerte innerhalb der Paare dürfen sich gegenseitig beeinflussen/voneinander abhängig sein; keine Abhängigkeiten zwischen den Messwertpaaren $\rightarrow$ ok  
 3. Die Differenzvariable _d_ muss in der Population normalverteilt sein $\rightarrow$ ab $n \ge 30$ meist gegeben (s. zentraler Grenzwertsatz), ggf. grafische Prüfung oder Hintergrundwissen  
 
-**zu 3. Normalverteilung von _d_**
+**zu 3. Normalverteilung von *d* **
 
 Da wir hier die Differenzvariable betrachten müssen, müssen wir diese zunächst erstellen.  Anschließend schauen wir uns das Histogramm der Differenzvariable und den QQ-Plot an:
 
@@ -188,7 +189,7 @@ qqline(difference, col="blue")
 $\Rightarrow$ Differenzen sehen normalverteilt aus, es wird also Normalverteilung angenommen. Somit sind alle drei Voraussetzungen für die Durchführung des _t_-Tests für abhängige Stichproben erfüllt.
 
 
-### 4.3. Inferenzstatistik: _t_-Test für abhängige Stichproben
+### 4.3. Inferenzstatistik: *t*-Test für abhängige Stichproben
 
 Zur Erinnerung:  
 
@@ -213,10 +214,10 @@ Hypothesenpaar (statistisch):
 **Signifikanzniveau**  
 
 Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 5% betragen. $\rightarrow$ $\alpha=.05$
+`r blogdown::shortcode("intext_anchor", "t-Test")`
+**Durchführung des abhängigen *t*-Tests in R:**
 
-**Durchführung des abhängigen _t_-Tests in R:**
-
-Wir verwenden hier die Funktion `t.test`. Diesmal müssen wir allerdings die beiden Variablen einzeln der Funktion übergeben. Dies geschieht über die Argumente `x` und `y`. Das Argument `paired = T` führt dazu, dass der _t_-Test für abhängige (gepaarte) Stichproben durchgeführt wird.
+Wir verwenden hier die Funktion `t.test()`. Diesmal müssen wir allerdings die beiden Variablen einzeln der Funktion übergeben. Dies geschieht über die Argumente `x` und `y`. Das Argument `paired = T` führt dazu, dass der *t*-Test für abhängige (gepaarte) Stichproben durchgeführt wird.
 
 ```{r}
 t.test(x = fb22$extra, y = fb22$neuro, # die beiden abhaengigen Variablen
@@ -234,7 +235,7 @@ $\rightarrow$ _t_(`r ttest$parameter`) = `r round(ttest$statistic, 2)`, _p_ < .0
 
 
 
-### 4.4. Schätzung des standardisierten Populationseffekts
+### 4.4. Schätzung des standardisierten Populationseffekts {#Populationseffekt}
 
 Formel:  $$d_2'' = \frac{\bar{d}} {\hat{sd}_{d}}$$
 
@@ -335,7 +336,7 @@ abline(v=mean(dataKooperation[, "Aelter"]),
 par(mfrow=c(1,1)) #Zurücksetzen des Plotfensters
 ```
 
-Die Histogramme sind via `xlim` so gewählt, dass sie die gleiche x-Achse aufweisen und somit ausgesprochen gut vergleichbar sind. `abline` fügt eine Linie in eine Grafik ein. Mit dem Zusatzargument `v` geben wir eine vertikale Linie in den Plot (hier den Mittelwert). Insgesamt scheinen sich die beiden Verteilungen etwas zu unterscheiden!  
+Die Histogramme sind via `xlim` so gewählt, dass sie die gleiche x-Achse aufweisen und somit ausgesprochen gut vergleichbar sind. `abline()` fügt eine Linie in eine Grafik ein. Mit dem Zusatzargument `v` geben wir eine vertikale Linie in den Plot (hier den Mittelwert). Insgesamt scheinen sich die beiden Verteilungen etwas zu unterscheiden!  
 
 #### 5.1.2. statistisch
 
@@ -361,13 +362,13 @@ Die Mittelwerte der beiden Gruppen unterscheiden sich leicht. Die Frage ist nun,
 
 Zunächst prüfen wir, ob wir zur Beantwortung der Fragestellung einen $t$-Test für abhängige Stichproben verwenden können: 
 
-**Voraussetzungen für die Durchführung des _t_-Tests für abhängige Stichproben:**  
+**Voraussetzungen für die Durchführung des *t*-Tests für abhängige Stichproben:**  
 
 1. Die abhängige Variable ist intervallskaliert $\rightarrow$ ok  
 2. Die Messwerte innerhalb der Paare dürfen sich gegenseitig beeinflussen/voneinander abhängig sein; keine Abhängigkeiten zwischen den Messwertpaaren $\rightarrow$ ok  
 3. Die Differenzvariable _d_ muss in der Population normalverteilt sein $\rightarrow$ ab $n \ge 30$ meist gegeben (s. zentraler Grenzwertsatz), ggf. grafische Prüfung oder Hintergrundwissen  
 
-**zu 3. Normalverteilung von _d_**
+**zu 3. Normalverteilung von *d* **
 
 Da wir die Differenzvariable betrachten müssen, erstellen wir diese zunächst. Das passiert vektorwertig. Anschließend schauen wir uns wie immer das Histogramm und den QQ-Plot an:
 
@@ -396,9 +397,9 @@ Auch für diesen Test gilt es, Voraussetzungen zu untersuchen:
 
 **Voraussetzungen für die Durchführung des Wilcoxon-Tests (für abhängige Stichproben):**
 
-1.  die Differenzvariable ist in der Population stetig (zumindest singulär ordinlal) $\rightarrow$ ok\
+1.  die Differenzvariable ist in der Population stetig (zumindest singulär ordinal) $\rightarrow$ ok\
 2.  die Messwerte innerhalb der Paare dürfen sich gegenseitig beeinflussen/voneinander abhängig sein; keine Abhängigkeiten zwischen den Messwertpaaren $\rightarrow$ ok\
-3.  die Differenzvariable ist symmetrisch verteilt (nicht notwendigerweise normalverteilt) $\rightarrow$ ok\ 
+3.  die Differenzvariable ist symmetrisch verteilt (nicht notwendigerweise normalverteilt) $\rightarrow$ ok\
 
 ### 5.3. Inferenzstatistik: Wilcoxon-Test für abhängige Stichproben
 
@@ -425,7 +426,7 @@ Hypothesenpaar (statistisch):
 **Signifikanzniveau**  
 
 Das Signifikanzniveau muss vor der Untersuchung festgelegt werden. Es soll hier 5% betragen. $\rightarrow$ $\alpha=.05$
-
+`r blogdown::shortcode("intext_anchor", "Wilcox")`
 **Durchführung des Wilcoxon-Tests für abhängige Stichproben in R:**
 
 Die Funktion für den Wilcoxon-Test für abhängige Stichproben sieht dem des _t_-Tests für abhängige Stichproben sehr ähnlich. 
@@ -445,6 +446,7 @@ wilcox <- wilcox.test(x = dataKooperation[, "Juenger"], y  = dataKooperation[, "
 _V_ = `r wilcox$statistic`, _p_ < .01 $\rightarrow$ H0 wird verworfen.
 
 
+`r blogdown::shortcode("intext_anchor", "Bericht")`
 
 ### 5.4 Ergebnisinterpretation  
 

@@ -5,6 +5,9 @@
 
 ### R-Basics
 
+## R-Version ermitteln
+R.Version()$version.string
+
 ## Funktionen
 
 sum(1, 2) # Addition durch Funktion
@@ -113,6 +116,4 @@ ttest <- t.test(cvhn ~ engnat,  # abhängige Variable ~ unabhängige Variable
 names(ttest)    # alle möglichen Argumente, die wir diesem Objekt entlocken können
 ttest$statistic # (empirischer) t-Wert
 ttest$p.value   # zugehöriger p-Wert
-
-
 
