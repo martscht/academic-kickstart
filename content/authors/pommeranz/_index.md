@@ -62,7 +62,7 @@ email: ""
 user_groups: ["Team"]
 ---
 
-Kevin Pommeranz ist seit 2023 studentische Hilfskraft in den Abteilungen *Psychologische Methoden mit interdisziplinärer Ausrichtung*.
+Kevin Pommeranz ist seit 2023 studentische Hilfskraft in der Abteilung *Psychologische Methoden mit interdisziplinärer Ausrichtung*. Sein Fokus liegt auf Strukturelementen und genereller Überarbeitung des Aufbaus und der Inhalte der Seite.
 
 
 **Biographie**
