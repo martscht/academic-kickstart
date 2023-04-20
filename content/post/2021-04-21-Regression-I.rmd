@@ -19,6 +19,18 @@ header:
 projects: []
 ---
 
+```{r setup, include=FALSE, purl=FALSE}
+options(knitr.duplicate.label = "allow") #Muss gesetzt werden, Setup-Chunk blockiert sonst Durchführung da er zeitweise doppelt existiert
+options(knitr.purl.inline = FALSE) #Inline-Code wird hiermit entweder mit ins Skript übernommen (TRUE) oder ausgelassen (FALSE)
+knitr::purl("2021-04-21-Regression-I.Rmd", documentation = 0) #Legt fest das Purl nur die Chunkinhalte(0) in ein R-Skript umwandelt!; NAME DES RMD MUSS EINGESTELLT WERDEN!
+file.rename("2021-04-21-Regression-I.R","PsyBsc7_R_Files/04_reg1.R") #NAME DER R-DATEI MUSS ANGEPASST WERDEN AN RMD-NAMEN!UNTERORDNER SOLLTE MIT KURS ÜBEREINSTIMMEN! (Siehe Ordner in /post)
+```
+
+```{r Info, purl=TRUE, echo=FALSE}
+# ---- Regressionsanalyse I ----
+#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBsc7_R_Files/04_reg1.R, von der PandaR-Website der Goethe Universität Frankfurt.
+#Die Autoren dieses Skripts sind Kai J. Nehler, Marvin Schröder & Luisa Grützmacher. Skriptkompilierung von Kevin Pommeranz.
+```
 
 ## Einleitung
 
@@ -143,7 +155,8 @@ Wir wollen zunächst die Gleichung in einzelne Schritte zerlegen, um die nötige
 
 Die Kreuzproduktsumme (X'X) wird berechnet, indem die transponierte Matrix X (X') mit der Matrix X multipliziert wird. Die transponierte Matrix X' erhalten Sie in R durch die Befehl `t(X)`.
 
-```{r}
+```{r, echo=-1}
+# Transponierte Matrix - Befehl
 t(X) # X' erhalten Sie durch t(X)
 ```
 
@@ -154,7 +167,8 @@ t(X) # X' erhalten Sie durch t(X)
 
 Wir nennen das Kreuzprodukt an dieser Stelle `X.X` und nicht `X'X`, da dies mit der Bedeutung von ' in der Sprache nicht funktioniert. Für das Erstellen der Kreuzproduktsumme muss das normale Zeichen für die Multiplikation `*` von zwei `%`-Zeichen umschlossen werden. An dieser Stelle würde sonst auch eine Fehlermeldung resultieren, aber bei quadratischen Matrizenist der Unterschied von Bedeutung.
 
-```{r}
+```{r, echo=-1}
+# Erster Schritt:
 # Berechnung der Kreuzproduktsumme X’X in R
 X.X <- t(X) %*% X       
 X.X
@@ -168,12 +182,13 @@ Die zugehörige handschriftliche Notation würde demnach so aussehen:
 
 Die Inverse der Kreuzproduktsumme kann in `R` durch den `solve()` Befehl berechnet werden.
 
-```{r, echo = F}
+```{r, echo = F, purl=FALSE}
 # Berechnung der Inversen (mit Regel nach Sarrus) in R
 inv.X.X <- solve(X.X)
 ```
 
-```{r}
+```{r, echo=-1}
+# Zweiter Schritt:
 # Berechnung der Inversen (mit Regel nach Sarrus) in R
 solve(X.X)
 ```
@@ -191,8 +206,9 @@ Der Kreuzproduktsummenvektor (X'y) wird durch die Multiplikation der transponier
 
 Die Verwendung von `%*%` zum Bilden des Kreuzprodukts und der Funktion `t()` zum Transponieren haben wir bereits kennengelernt und können hier problemlos den Code schreiben.
 
-```{r}
-#Berechnung des Kreuzproduksummenvektors X`y in R
+```{r, echo=-1}
+# Dritter Schritt:
+# Berechnung des Kreuzproduksummenvektors X`y in R
 X.y <- t(X) %*% y        
 X.y
 ```
@@ -209,7 +225,8 @@ Die geschätzten Regressionsgewichte nach dem Kriterium der kleinsten Quadrate w
 \begin{align}X'y=\begin{bmatrix}`r format(X.y[1], scientific = F)`\\`r format(X.y[2], scientific = F)`\\`r format(X.y[3], scientific = F)`\end{bmatrix}\end{align}
 
 
-```{r}
+```{r, echo=-1}
+# Vierter Schritt:
 # Berechnung des Einflussgewichtsvektor in R
 b_hat <- solve(X.X) %*% X.y     # Vektor der geschätzten Regressionsgewichte
 b_hat
@@ -224,7 +241,8 @@ b_hat
 Den Vektor mit den vorhergesagten Werten von y ($\hat{y}$) können Sie durch die Multiplikation der Matrix $X$ mit den Regressionsgewichten ($\hat{b}$) berechnen.
 
 
-```{r}
+```{r, echo=-1}
+# Vektor mit den vorhergesagten Werten
 y_hat <- X %*% b_hat # Vorhersagewerte für jede einzelne Person 
 head(y_hat)
 
@@ -257,7 +275,8 @@ X_s[,1] <- 1    # Einsenvektor wieder auffüllen
 
 Die bereits im unstandardisierten Fall zur Bestimmung der Regressionsgewichte könnten nun wieder einzeln durchgeführt werden. Allerdings kann man diese natürlich auch in einer Zeile Code durchführen, was hier demonstriert wird. 
 
-```{r}
+```{r, echo=-1}
+#Kombination der Einzelschritte zur Bestimmung der Regressionsgewichte
 b_hat_s <- solve(t(X_s)%*% X_s) %*% t(X_s)%*%y_s #Regressionsgewichte aus den standardisierten Variablen
 round(b_hat_s, 3)
 ```
@@ -303,7 +322,8 @@ Q_e
 
 Die Summe aus aus der Regressionsquadratsumme und der Fehlerquadratsumme ergibt die totale Quadratsumme. Wir können also überprüfen, ob unsere bisherigen Berechnungen plausibel sind. Aufgrund der großen Zahlen kann es zu kleinen Ungenauigkeiten kommen, weshalb wir hier die Nachkommastellen durch Rundung auf zwei reduzieren.
 
-```{r}
+```{r, echo=-1}
+#Zusammenrechnung der gerundeten Werte, um zu zeigen, dass sich Q_t aus der Summe von Q_d und Q_e ergibt
 round(Q_t,2) == round(Q_d + Q_e, 2)
 ```
 
@@ -327,8 +347,8 @@ An dieser Stelle können wir anstatt der Quadratsummen auch unser Wissen aus dem
 
 In der einfachen Regression haben wir gelernt, dass sich der Determinationskoeffizient als Quadrat der Korrelation bestimmen lässt. Wenn wir nun also die Mathematikleistung zunächst nur durch Lesefähigkeit vorhersagen wollen, können wir die Funktion `cor` nutzen und das Ergebnis quadrieren. Beachtet, dass wir die Mathematikleistung unter `y` abgelegt haben. Die Lesefähigkeit, als ersten Prädiktor, finden wir in der zweiten Spalte der Matrix `X`. Die erste Spalte haben wir mit einem Einsenvektor belegt (also obwohl wir in der zweiten Spalte schauen, nennen wir den Prädiktor in der Notation $x_1$). 
 
-```{r}
-
+```{r, echo=-1}
+#Determinationskoeffizient über quadrierte Korrelation
 corx1y <- cor(y, X[,2])
 corx1y^2 
 ```
@@ -339,21 +359,24 @@ $R^2 = r^2_{yx_1} + r^2_{y(x_2.x_1)} + r^2_{y(x_3.x_2x_1)}$
 
 Wie man in der Gleichung sieht, kann man diese Logik natürtlich auch auf mehr als einen Prädiktor erweitern. Die schon vorhanden Prädiktoren werden dabei stets aus dem neu aufgenommenen herauspartialisiert. In unserem Beispiel ist das nicht notwendig, da wir insgesamt nur zwei Prädiktoren haben. Wir müssen nun also eine Semipartialkorrelation bestimmen, wofür wir das Paket `ppcor` kennen gelernt haben. Darin gibt es die Funktion `spcor.test`. Als Argument benötigen wir hier in `y` die Werte, aus denen herauspartialisiert werden sollen. Hier müssen wir also unserer neuen Prädiktor $x_2$ allgemeine Intelligenz eintragen, der in der dritten Spalte der Matrix `X` zu finden ist. Im Argument `z` werden die Variable eingetragen, die herauspartialisert wird - also die Lesefähigkeit. Für das Kriterium Mathematikfähigkeit bleibt also nur noch das Argument `x`. 
 
-```{r}
+```{r, echo=-1}
+#Semipartialkorrelation mit ppcor, aus y wird partialisiert, x2 ist Prädiktor "allgemeine Intelligenz", z, "Lesefähigkeit" ist Variable die rauspartialisiert wird
 library(ppcor)
 spcor.test(x = y, y = X[,3], z = X[,2])
 ```
 
 Wie besprochen, kann man die Ergebnisse von Analysen auch in ein Objekt ablegen. Dies hat den Vorteil, dass man dann auf verschiedene Informationen zugreifen kann. Mit `$estimate` können wir uns ausschließlich den Wert der Semipartialkorrelation anzeigen lassen.
 
-```{r}
+```{r, echo=-1}
+#Ergebnis wird in Objekt abgelegt und gezeigt, dass per $estimate der Wert der spcor angezeigt werden kann
 semipartial <- spcor.test(x = y, y = X[,3], z = X[,2])
 semipartial$estimate
 ```
 
 Zur Bestimmung des multiplen Determinationskoeffizienten, müssen wir nun nur noch der Formel folgend aufaddieren. Zuerst nehmen wir die einfache Korrelation von Lesefähigkeit und Mathematikfähigkeit zum Quadrat. Anschließend wird noch die Semipartialkorrelation zum Quadrat hinzu addiert.
 
-```{r}
+```{r, echo=-1}
+#Aufaddieren zur Bestimmung des multiplen Determinationskoeffizienten
 corx1y^2 + semipartial$estimate^2
 ```
 
@@ -367,7 +390,8 @@ $F_{omn} = \dfrac{\dfrac{R^2}{m}}{\dfrac{1-R^2}{n-m-1}}$
 
 $R^2$ haben wir bereits im vorherigen Abschnitt bestimmt. Ergänzend müssen wir also noch $n$ und $m$ bestimmen. $n$ ist die Anzahl an Peronen oder Fällen in unserem Datensatz. Diese können wir beispielweise über die Länge `length` des Objekts mit den abhängigen Varibalen `y` bestimmen. $m$ beschreibt die Anzahl der Prädiktoren. Wenn wir dies von `R` automatisch bestimmen lassen wollen, können wir die Anzahl der Spalten `ncol` unserer Prädiktorenmatrix `X` bestimmen. Allerdings müssen wir bedenken, dass wir noch eine Spalten mit 1en hinzugefügt haben. Diese muss von der Zahl der Spalten also noch abgezogen werden. 
 
-```{r}
+```{r, echo=-1}
+#Bestimmen von n (Anzahl Personen/Fälle) und m (Anzahl Prädiktoren), sowie empirischer F-Wert
 n <- length(y)                     # Fallzahl (n=100)
 m <- ncol(X)-1                     # Zahl der Prädiktoren (m=2)
 F_omn <- (R2/m) / ((1-R2)/(n-m-1)) # empirischer F-Wert
@@ -383,7 +407,8 @@ $df_1 = 2, df_2 = n-m-1 = `r n`-`r m`-1 =`r n-m-1`$
 
 Zusätzlich benötigen wir natürlich noch einen $\alpha$-Fehler, der auch hier häufig auf 5% gesetzt wird. Im letzten Semester haben wir gelernt, dass wir Quantile aus Verteilungen mit dem Präfix `q` und dann dem Familiennamen (bspw. `qnorm` oder `qt`)  ausgeben können. Wenig überraschend funktioniert an dieser Stelle also der Befehl `qf`. 
 
-```{r}
+```{r, echo=-1}
+#Berechnung des alpha-Fehlers
 F_krit <- qf(.95, df1=m, df2=n-m-1)  # kritischer F-Wert (alpha=5%)
 ```
 
@@ -391,13 +416,15 @@ $F_{krit}(\alpha=.05, df_1=2, df_2= 97)= `r round (F_krit,2)`$
 
 Für eine Signifikanzentscheidung müssen die F-Werte nun miteinander verglichen werden. 
 
-```{r}
+```{r, echo=-1}
+#Vergleich des kritischen und empirischen F
 F_krit < F_omn  # Vergleich durch logische Überprüfung
 ```
 
 Da der kritische Wert kleiner ist, verwerfen wir die Nullhypothese. Das Gesamtmodell wird als signifikant angesehen. Man kann anstatt des kritischen Wertes auch einfach den $p$-Wert bestimmen, der zu unserem empirischen `F_omn` korrespondiert. Für die Bestimmung von Wahrscheinlichkeiten in Verteilungen haben wir den Präfix `p` kennen gelernt. Mit Angabe der zugehörigen Freiheitsgrade können wir den $p$-Wert erhalten und mit unserem $\alpha$ vergleichen. 
 
-```{r}
+```{r, echo=-1}
+#Verwerfen der Nullhypothese da kritischer Wert kleiner, jetzt jedoch noch alternative Methode mit p-Wert die das selbe ausgibt
 p <- 1-pf(F_omn, m, n-m-1)           # p-Wert
 p < 0.05
 ```
@@ -415,13 +442,14 @@ Im ersten Semester haben wir bereits die einfache lineare Regression in `R` durc
 Für die Schätzung von Regressionsmodellen kann, wie im Fall mit einem Prädiktor, die Basis-Funktion `lm` verwendet werden. Verschiedene Prädiktoren werden alle hinter der Tilde `~` aufgeführt und mit dem `+`-Zeichen getrennt. Wir wollen hier weiterhin in unserem Datensatz `Schulleistungen` die Mathematikleistung (`math`) durch die Leseleistung (`reading`) und den IQ (`IQ`) vorhersagen. Die beiden Prädiktoren werden nach der vorangegangenen Beschreibung also mit `+` getrennt.
 
 ```{r}
-# Regressionsanalyse mit lm
+# Regressionsanalyse mit lm (nicht mehr händisch)
 reg <- lm(math ~ reading + IQ, data = Schulleistungen)
 ```
 
 Nun wollen wir überprüfen, ob die Ergebnisse den händisch berechneten entsprechen. Eine gute Übersicht über das Modell erhält man mit der Funktion `summary`. 
 
-```{r}
+```{r, echo=-1}
+#Vergleich der Ergebnisse mit händischer Berechnung
 summary(reg)
 ```
 ```{r, echo=FALSE}
@@ -451,13 +479,15 @@ Die Übereinstimmung mit den händisch berechneten Regressionsgewichten wird ber
 
 Zur Durchführung der standardisierten Regression könnten wir natürlich händisch alle Variablen mit `scale` standardisieren und dann in `lm` übergeben. Es gibt aber auch eine bereits geschriebene Funktion `lm.beta` aus dem gleichnamigen Paket `lm.beta`, die für uns eine zusätzliche Anzeige der standardisierten Regressionsgewichte bereit hält.. Das Paket haben wir im normalen Ablauf der Tutorials noch nicht insatlliert, weshalb wir hier nochmal darauf verweisen.
 
-```{r, eval = F}
+```{r, eval = F, echo=-1}
+#Paket für Anzeige der standardisiserten Regressionsgewichte - installieren wenn noch nicht vorhanden, dafür auskommentieren!
 install.packages("lm.beta") #Paket installieren (wenn nötig)
 ```
 
 Nach der (ggf. nötigen) Installation müssen wir das Paket für die Bearbeitung laden.
 
-```{r}
+```{r, echo=-1}
+#Nun Paket laden
 library(lm.beta)
 ```
 
@@ -496,7 +526,7 @@ Durch die Benennung der Objekte mit Buchstaben, der schriftlichen Notation mit B
 
 In der einfachen Regression haben wir gelernt, dass sich der Determinationskoeffizient als Quadrat der Korrelation bestimmen lässt. Wenn wir nun also die Mathematikleistung zunächst nur durch Lesefähigkeit vorhersagen wollen, können wir die Funktion `cor` nutzen und das Ergebnis quadrieren. Beide Variablen sind im Datensatz `Schulleistungen` enthalten.
 
-```{r}
+```{r, purl=FALSE}
 
 cor.mathreading <- cor(Schulleistungen$math, Schulleistungen$reading)
 cor.mathreading
@@ -508,7 +538,7 @@ $R^2 = r^2_{MathReading} + r^2_{Math(IQ.Reading)} $
 
 Wir müssen nun also eine Semipartialkorrelation bestimmen, wofür wir das Paket `ppcor` kennen gelernt haben. Darin gibt es die Funktion `spcor.test`. Als Argument benötigen wir hier in `y` die Werte, aus denen herauspartialisiert werden sollen. Hier müssen wir also unserer neuen Prädiktor allgemeine Intelligenz `IQ` eintragen. Im Argument `z` werden die Variable eingetragen, die herauspartialisert wird - also die Lesefähigkeit `reading`. Für das Kriterium Mathematikfähigkeit `math` bleibt also nur noch das Argument `x`. Alle Variablen befinden sich im Datensatz `Schulleistungen
 
-```{r}
+```{r, purl=FALSE}
 library(ppcor)
 spcor.test(x = Schulleistungen$math, 
            y = Schulleistungen$IQ, 
@@ -517,14 +547,14 @@ spcor.test(x = Schulleistungen$math,
 
 Wie besprochen, kann man die Ergebnisse von Analysen auch in ein Objekt ablegen. Dies hat den Vorteil, dass man dann auf verschiedene Informationen zugreifen kann. Mit `$estimate` können wir uns ausschließlich den Wert der Semipartialkorrelation anzeigen lassen.
 
-```{r}
+```{r, purl=FALSE}
 semipartial <- spcor.test(x = y, y = X[,3], z = X[,2])
 semipartial$estimate
 ```
 
 Zur Bestimmung des multiplen Determinationskoeffizienten, müssen wir nun nur noch der Formel folgend aufaddieren. Zuerst nehmen wir die einfache Korrelation von Lesefähigkeit und Mathematikfähigkeit zum Quadrat. Anschließend wird noch die Semipartialkorrelation zum Quadrat hinzu addiert.
 
-```{r}
+```{r, purl=FALSE}
 cor.mathreading^2 + semipartial$estimate^2
 ```
 

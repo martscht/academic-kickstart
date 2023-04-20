@@ -22,11 +22,10 @@ header:
 projects: []
 ---
 
-<script src="/rmarkdown-libs/header-attrs/header-attrs.js"></script>
 
 
 <p>In der letzten Sitzung haben wir die <a href="/post/anova1">einfaktorielle Varianzanalyse</a> behandelt. Die spezifische Benennung als <em>einfaktoriell</em> verdeutlicht schon, dass wir hier ansetzen und Erweiterungen vornehmen können. In dieser Sitzung geht es vor allem um die <em>zweifaktorielle</em> Varianzanalyse. Ziel dieser Analyse ist es gleichzeitig Gruppenunterschiede auf mehreren (um genau zu sein 2 im zweifaktoriellen Fall) Variablen zu untersuchen und dabei zu überprüfen, ob Kombinationen von Gruppen besondere Auswirkungen haben. Für weitere Inhalte siehe bspw. auch <a href="https://hds.hebis.de/ubffm/Record/HEB366849158">Eid, Gollwitzer und Schmitt (2017, Kapitel 13 und insb. 13.2 und folgend)</a>.</p>
-<p>Wir arbeiten wieder mit dem <code>conspiracy</code> Datensatz. Sie können den im Folgenden verwendeten <a href="https://pandar.netlify.app/post/conspiracy.rda"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> Datensatz “conspiracy.rda” hier herunterladen</a>.</p>
+<p>Wir arbeiten wieder mit dem <code>conspiracy</code> Datensatz. Sie können den im Folgenden verwendeten <a href="https://pandar.netlify.app/post/conspiracy.rda"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zM432 456c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg> Datensatz “conspiracy.rda” hier herunterladen</a>.</p>
 <div id="daten-laden" class="section level3">
 <h3>Daten laden</h3>
 <p>Wir laden zunächst die Daten: entweder lokal von Ihrem Rechner:</p>
@@ -58,7 +57,7 @@ projects: []
 <h2>Einfaktorielle ANOVA</h2>
 <p>In der letzten Sitzung zeigte sich, dass die Überzeugung, dass die Existenz von Außerirdischen durch eine globale Verschwörung verdeckt wird (<code>ET</code>), von der Art des Wohngebiets (<code>urban</code>) abhängig ist. Zur Berechnung der einfaktoriellen ANOVA wurde das <code>ez</code>-Paket verwendet. Dieses Paket brauchen wir weiterhin:</p>
 <pre class="r"><code>library(ez)</code></pre>
-<pre><code>## Warning: Paket &#39;ez&#39; wurde unter R Version 4.1.1 erstellt</code></pre>
+<pre><code>## Warning: Paket &#39;ez&#39; wurde unter R Version 4.2.3 erstellt</code></pre>
 <p>Wie schon in der letzten Sitzung, ist es zunächst erforderlich eine Personen-ID zu erzeugen. In diesem Fall kann einfach die Zeilennummer einer Person genutzt werden:</p>
 <pre class="r"><code>conspiracy$id &lt;- as.factor(1:nrow(conspiracy))</code></pre>
 <p>Wir führen zur kurzen Wiederholung noch einmal die einfaktorielle ANOVA bezüglich des Wohnortes durch, um uns zu vergegenwärtigen, wie der <code>ezANOVA</code>-Befehl funktioniert! Der <code>ezANOVA</code> Befehl, um eine einfaktorielle ANOVA durchzuführen, braucht vier Argumente: <code>data</code> übergeben wir unseren Datensatz (<code>data = conspiracy</code>), <code>wid</code> kennzeichnet den Within-Identifier, eine Personen ID Variable, weswegen wir diesem Argument unsere ID-Variable übergeben (<code>wid = id</code>), <code>dv</code> steht für “Dependent Variable”, also abhängige Variable, weswegen wir hier die Überzeugung, dass die Existenz von Außerirdischen durch eine globale Verschwörung verdeckt wird, übergeben (<code>dv = ET</code>), <code>between</code> ist die unabhängige Variable, die zwischen Personen unterscheidet, also die Gruppierungsvariable für deren Effekt wir uns interessieren, hier die Art des Wohngebiets (<code>between = urban</code>).</p>
@@ -116,9 +115,8 @@ aggregate(conspiracy$ET, list(conspiracy$urban), mean)</code></pre>
 ## 2     highschool 2.443033
 ## 3        college 1.937717</code></pre>
 <pre class="r"><code># Mithilfe des describeBy-Befehls aus dem psych-Paket
-library(psych)</code></pre>
-<pre><code>## Warning: Paket &#39;psych&#39; wurde unter R Version 4.1.1 erstellt</code></pre>
-<pre class="r"><code>describeBy(conspiracy$ET, conspiracy$urban)</code></pre>
+library(psych)
+describeBy(conspiracy$ET, conspiracy$urban)</code></pre>
 <pre><code>## 
 ##  Descriptive statistics by group 
 ## group: rural
@@ -364,7 +362,6 @@ tapply(X = conspiracy$ET, INDEX = kombi, FUN = mean)</code></pre>
 ## urban:college-suburban:college                0.35883375 0.9990084</code></pre>
 <p>Leider ist das Ergebnis etwas unübersichtlich, weil sich in diesem Fall 36 Vergleiche ergeben. Mit ein paar Funktionen aus dem <code>emmeans</code>-Paket können wir versuchen, das optisch etwas aufzubereiten. Dafür müssen wir zunächst das Paket laden:</p>
 <pre class="r"><code>library(emmeans)</code></pre>
-<pre><code>## Warning: Paket &#39;emmeans&#39; wurde unter R Version 4.1.3 erstellt</code></pre>
 <p>In diesem Paket gibt es die wenig überraschend benannte <code>emmeans</code>-Funktion, mit der wir alle weiteren Analysen vorbereiten müssen:</p>
 <pre class="r"><code>emm &lt;- emmeans(aov(ET ~ urban*edu, conspiracy), ~ urban * edu)</code></pre>
 <p>Diese Funktion nimmt als erstes Argument das gleiche <code>aov</code>-Objekt entgegen wie <code>TukeyHSD</code>. Als zweites müssen wir definieren, welche unabhängigen Variablen uns in der Post-Hoc Analyse interessieren. Weil wir hier alle Gruppen betrachten möchten, können wir einfach die gleiche Struktur der unabhängigen Variablen wiederholen: <code>~ urban * edu</code>.</p>
@@ -637,7 +634,7 @@ options(&quot;contrasts&quot;)</code></pre>
 </div>
 <div id="r-skript" class="section level2">
 <h2>R-Skript</h2>
-<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/PsyBSc7_R_Files/ANOVA-II.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M216 0h80c13.3 0 24 10.7 24 24v168h87.7c17.8 0 26.7 21.5 14.1 34.1L269.7 378.3c-7.5 7.5-19.8 7.5-27.3 0L90.1 226.1c-12.6-12.6-3.7-34.1 14.1-34.1H192V24c0-13.3 10.7-24 24-24zm296 376v112c0 13.3-10.7 24-24 24H24c-13.3 0-24-10.7-24-24V376c0-13.3 10.7-24 24-24h146.7l49 49c20.1 20.1 52.5 20.1 72.6 0l49-49H488c13.3 0 24 10.7 24 24zm-124 88c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20zm64 0c0-11-9-20-20-20s-20 9-20 20 9 20 20 20 20-9 20-20z"/></svg> hier herunterladen</a>.</p>
+<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/PsyBSc7_R_Files/ANOVA-II.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zM432 456c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg> hier herunterladen</a>.</p>
 <hr />
 </div>
 <div id="literatur" class="section level2">
