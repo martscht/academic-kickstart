@@ -6,7 +6,7 @@ widget = "blank"  # See https://sourcethemes.com/academic/docs/page-builder/
 headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
 weight = 10  # Order that this section will appear.
- 
+
 title = "Grundlagen"
 subtitle = ""
 
@@ -72,10 +72,8 @@ In diesem Abschnitt befindet sich alles wichtige, um das erste eigene Projekt an
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 1 | Was ist LIFOS? |[DE](/post/lifos-orientierung) | [EN](/post/lifos-orientierung-eng)| 
-| 2 | Das passende Template finden| [DE](/post/under-construction) | [EN](/post/under-construction)| 
-| 3 | Das eigene Projekt|  [DE](/post/lifos-eigenesProjekt) | [EN](/post/lifos-eigenesProjekt-eng)| 
+| 1 | Was ist LIFOS? |[DE](/post/lifos-orientierung) | [EN](/post/lifos-orientierung-eng)|
+| 2 | Das passende Template finden| [DE](/post/under-construction) | [EN](/post/under-construction)|
+| 3 | Das eigene Projekt|  [DE](/post/lifos-eigenesProjekt) | [EN](/post/lifos-eigenesProjekt-eng)|
+| 4 | Informationen für Betreuende| [DE](/post/under-construction) | [EN](/post/under-construction)| 
 |  |  |    
-
-
-

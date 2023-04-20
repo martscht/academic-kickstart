@@ -5,8 +5,8 @@
 widget = "blank"  # See https://sourcethemes.com/academic/docs/page-builder/
 headless = true  # This file represents a page section.
 active = true  # Activate this widget? true/false
-weight = 20  # Order that this section will appear. 
- 
+weight = 20  # Order that this section will appear.
+
 title = "Extras"
 subtitle = ""
 
@@ -68,16 +68,13 @@ subtitle = ""
 
 <a id="Extras"></a>
 
-Hier findet ihr verschiedene Extras, die zum einen mehr Informationen zu den einzelnen Templates geben, als auch einen tieferen Einblick in die GitLab-Oberfläche und Markdown. 
+Hier findet ihr verschiedene Extras, die zum einen mehr Informationen zu den einzelnen Templates geben, als auch einen tieferen Einblick in die GitLab-Oberfläche und Markdown.
 
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 1 | Vertiefende Informationen zu den Templates|[DE](/post/under-construction) | [EN](/post/under-construction)| 
-| 2 | Vertiefende Erklärung der GitLab Oberfläche| [DE](/post/under-construction) | [EN](/post/under-construction)| 
-| 3 | Vertiefende Markdown-Übung|  [DE](/post/lifos-r-markdown-uebung) | [EN](/post/lifos-r-markdown-uebung-eng)| 
-| 4 | Verknüpfung mit SmartGit| [DE](/post/smartgitlifos) | [EN](/post/smartgitlifos-eng)| 
-| 5 | Informationen für Betreuende| [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 1 | Vertiefende Informationen zu den Templates|[DE](/post/under-construction) | [EN](/post/under-construction)|
+| 2 | Vertiefende Erklärung der GitLab Oberfläche| [DE](/post/under-construction) | [EN](/post/under-construction)|
+| 3 | Markdown-Übung|  [DE](/post/lifos-r-markdown-uebung) | [EN](/post/lifos-r-markdown-uebung-eng)| 
+| 4 | Verknüpfung mit SmartGit| [DE](/post/smartgitlifos) | [EN](/post/smartgitlifos-eng)|
 |  |  |    
-
-

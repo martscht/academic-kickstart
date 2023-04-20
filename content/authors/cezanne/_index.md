@@ -62,7 +62,7 @@ email: ""
 user_groups: ["Teaching"]
 ---
 
-Yannick Cezanne ist seit 2022 studentische Hilfskraft in den Abteilungen *Psychologische Methoden mit interdisziplinärer Ausrichtung*. Dabei unterstützt er vor allem die Praktika zu `R`.
+Yannick Cezanne ist seit 2022 studentische Hilfskraft in der Abteilung *Psychologische Methoden mit interdisziplinärer Ausrichtung*. Dabei unterstützt er vor allem die Praktika zu `R`.
 
 
 **Biographie**
