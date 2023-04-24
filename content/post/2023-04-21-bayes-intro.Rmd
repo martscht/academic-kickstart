@@ -1,0 +1,114 @@
+---
+title: Einführung in Bayes
+date: '2023-04-21'
+slug: bayes-intro
+categories:
+  - extras
+tags:
+  - Bayes
+  - Verteilungen
+subtitle: 'Eine imperfekte Einführung für absolute Beginner'
+summary: ''
+authors: [schultze]
+lastmod: '2023-04-21T20:46:31+02:00'
+featured: no
+header: 
+  image: "/header/bayes_intro.jpg"
+  caption: "[Courtesy of pxhere](https://pxhere.com/en/photo/769748)"
+projects: []
+---
+
+In vielen Bereichen der Psychologie haben wir ein Problem. Also, eigentlich mehrere, aber eins beschäftigt uns außerordentlich häufig, auch während des Studiums: unsere Studien arbeiten oft mit sehr kleinen Stichproben. Insbesondere in klinischen Untersuchungen liegt das oft einfach daran, dass es sehr aufwendig ist Probanden zu erheben. Wenn wir psychotherapeutische Interventionen untersuchen bedeutet oft jedes einzelne zusätzliche $n$, dass wir dutzende Stunden Arbeit aufwenden müssen. Auf der anderen Seite steht das Problem, dass wir bei jeder Verringerung des $n$ unsere Fähigkeit einschränken, aus unserer Stichprobe auch zulässige Rückschlüsse auf die Population ziehen zu können. In diesem Abschnitt wird es - wie der Titel hoffentlich klar gemacht hat - um eine Einführung in Bayes gehen. Wie die beiden Dinge zusammenhängen, sollte idealerweise nach ungefähr der Hälfte dieses Beitrags klar geworden sein. Danach gibt es ein paar technische Spielereien.
+
+## Ein einfaches Beispiel
+
+Nehmen wir an, dass Sie in einer Suchtklinik arbeiten - oder vielleicht ein Praktikum machen. Das bisherige System, nach welchem Patient:innen Ausgang außerhalb des Klinikgeländes gewährt wird bezieht sich vor allem auf die Zeit, die die Person schon in der Klinik ist. Als Sie anfangen, finden Sie das System irgendwie suboptimal und Sie denken sich: "Das sollte doch eigentlich vom Therapiefortschritt abhängen...". Obwohl Sie vielleicht Recht haben, ist auch für die Patient:innen Planbarkeit wichtig: ein Termin beim Bürgeramt, zum Beispiel, muss etliche Wochen vorab vereinbart werden. Also denken Sie sich etwas Neues aus, das alle super glücklich machen sollte. Sie können dieses System aber nicht an 42 Leuten testen (wie Ihre Poweranalyse Ihnen rät), sondern probieren es zunächst mit den zehn Patient:innen, die im Rahmen des Praktikums in Ihre Obhut übergeben wurden.
+
+Ihr neues System führt dazu, dass 7 von 10 Patient:innen aus dem Ausgang zurück kommen ohne Drogen genommen zu haben. Angesichts der Tatsache, dass es bei den Kolleg:innen, die sich an das alte System halten immer knapp die Hälfte ist, verbuchen Sie das als Erfolg. Übertragen wir das Ganze mal in `R`:
+
+```{r}
+# Beobachtungen
+obs <- c(0, 1, 1, 0, 1, 1, 1, 0, 1, 1)
+
+# N
+length(obs)
+
+# Erfolgsquote
+mean(obs)
+```
+
+Jede `1` stellt eine Person dar, die erfolgreich aus dem Ausgang zurückkam, ohne Drogen genommen zu haben. Jede `0` ein Scheitern, dass Sie an Ihrer Berufswahl zweifeln lässt.
+
+Etwas formaler ausgedrückt: wir wollen jetzt prüfen, ob die Erfolgsquote Ihres Systems sich von der Quote Ihrer Kolleg:innen unterscheidet. Die Nullhypothese ist also, dass wir vermuten, dass auch Ihr System eine Erfolgsquote von 50% produziert: $H_0: \pi = .5$. $\pi$ stellt hierbei die Wahrscheinlichkeit des "erfolgreichen" Ausgangs in der Population aller Personen dar, die jemals an diesem System teilnehmen könnten.
+
+## Frequentistische Ansätze
+
+Gucken wir uns zunächst die Möglichkeiten an, zu prüfen, ob Ihr System besser ist als das Ihrer Kolleg:innen. Ein klassischer Ansatz (den Sie [hier in Fragestellung C](/post/gruppenvergleiche-unabhaengig/#fragestellung-c) nachlesen können) ist der $\chi^2$-Test. In unserem Fall haben wir zwar nicht vier sondern nur zwei Felder, aber das macht das Ganze einfach nur einfacher:
+
+```{r}
+# Häufigkeitstabelle der Erfolge
+tab <- table(obs)
+
+# Tabelle in den Chi2-Test
+chisq.test(tab)
+```
+
+Was hier geprüft wird ist die gleichmäßige Besetzung der Zellen. Unter der Nullhypothese $H_0 : \pi = .5$ müssten wir also fünf Erfolge und fünf Misserfolge beobachten:
+
+```{r}
+chisq.test(tab)$expected
+```
+
+In diesem Fall erhalten wir ein nicht bedeutsames Ergebnis - wir behalten die Nullhypothese also bei. 
+
+Den Aufmerksamen unter Ihnen ist vielleicht aufgefallen, dass der $\chi^2$-Test, den wir hier nutzen, mit ein paar Annahmen einhergeht. Das liegt daran, dass wir [die Diskrepanz zwischen Erwartung und Beobachtung zu einer Zahl verrechnen](/post/gruppenvergleiche-unabhaengig/#Chi-Sq) und die erzeugte Zahl dann mit einer bekannten Verteilung (der $\chi^2$-Verteilung) abgleichen, um festzustellen wie wahrscheinlich unser Ergebnis wäre, wenn die Nullhypothese wahr wäre. Die Übertragung funktioniert nur unter bestimmten Annahmen, vor allem aber funktioniert Sie _immer_ besser, je größer $n$ ist. Das gilt nicht nur für den $\chi^2$-Test, sondern für alle parametrischen Tests - also Tests, die sich darauf verlassen, eine Prüfgröße zu erstellen und diese mit einer bekannten Verteilung abzugleichen.
+
+Diese Tatsache führt dazu, dass insbesondere in klinischen Studien häufig gefordert wird, stattdessen mit Tests zu arbeiten, die sich nicht auf asymptotische Eigenschaften verlassen - sogenannte non-parametrische Tests. Für unser Beispiel gibt es da zum Glück eine recht einfache Möglichkeit!
+
+Wenn Ihre Statistik I Vorlesung noch nicht allzu lange her ist, erinnern Sie sich vielleicht, dass die Anzahl von Erfolgen $x$ aus $n$ unabhängigen Versuchen [binomialverteilt](/post/verteilungen/#Binomial) ist. Das ist, im Gegensatz zu dem was ich gerade über die $\chi^2$-Tests gesagt habe, keine Annahme, sondern einfach eine Realität der Welt in der wir leben. Wir können also mit einer Gleichung direkt bestimmen, wie wahrscheinlich es ist, dass sieben Ihrer zehn Patient:innen aus dem Ausgang zurückkommen ohne rückfällig geworden zu sein, wenn ihr Ausgangsprinzip genauso gut funktioniert, wie das Ihrer Kolleg:innen ($H_0: \pi = .5$).
+
+$$
+  P(X = x | n, \pi) = {n \choose x} \cdot \pi^x \cdot (1 - \pi)^{n-x}
+$$
+
+Für diesen Fall also:
+
+$$
+  P(X = 7 | 10, .5) = {10 \choose 7} \cdot .5^7 \cdot (1 - .5)^{10-7} = .117
+$$
+```{r}
+# Wahrscheinlichkeit händisch bestimmen
+choose(10, 7) * .5^7 * (1 - .5)^(10 - 7)
+```
+
+Uns interessiert aber nicht, wie wahrscheinlich es ist, dass Sie _genau_ sieben Erfolge haben. In der Inferenzstatistik interessiert uns typischerweise, wie wahrscheinlich es ist dieses oder ein extremeres (im Fall der ungerichteten Nullhypothese) Ergebnis zu finden. Dafür können wir einfach die Funktion zur Binomialverteilung nutzen:
+
+```{r}
+# Gerichtet
+pbinom(6, 10, .5, lower.tail = FALSE)
+
+# Ungerichtet
+pbinom(6, 10, .5, lower.tail = FALSE) + pbinom(3, 10, .5)
+```
+
+Wir setzen hier 6 und nicht 7 in die Funktion ein, weil uns `pbinom` die _Überschreitungswahrscheinlichkeit_ ausgibt. Wir brauchen also die Wahrscheinlichkeit dafür einen Wert von 6 zu überschreiten (weil wir die 7 ja einschließen wollen). Der Test, den wir gerade durchgeführt haben, nennt man _Binomialtest_ und auch für diesen gibt es eine eigene Funktion in `R`, die dem gleichen Schema folgt, wie z.B. die `t.test`-Funktion:
+
+```{r}
+binom.test(7, 10, .5)
+```
+
+Auch hier also keine statistische Bedeutsamkeit. 
+
+### Power in unseren frequentistischen Möglichkeiten
+
+```{r, echo = FALSE}
+pwr_chi <- pwr::pwr.chisq.test(.4, NULL, 1, .05, .8)
+
+```
+
+
+Wir haben jetzt also zwei Ansätze gesehen die einfache Frage zu prüfen, ob Ihr Ausgangssystem zu anderen Erfolgsquoten führt, als das Ihrer Kolleg:innen. Dabei hatten wir zunächst den klassischen, parametrischen Weg gewählt und einen $\chi^2$-Test durchgeführt. Allerdings fällt es uns bei kleinen Stichproben häufig schwer uns auf die asymptotischen Eigenschaften von Tests zu verlassen. Bei anderen parametrischen Tests - wie z.B. $t$-Tests oder ANOVAs - kann es bei kleinen Stichproben auch quasi unmöglich werden überhaupt zu prüfen, ob die Annahmen haltbar sind, die diese Verfahren voraussetzen.
+
+Also sind wir auf einen non-parametrischen Test ausgewichen (den Binomialtest). Das Problem dabei ist, dass wir die Power unsere Inferenzstatistik sogar noch verringern. In parametrischen Tests "gewinnen" wir ein wenig Power dadurch, dass wir Annahmen machen. Wenn wir weniger Annahmen machen, brauchen wir mehr Daten, um zur gleichen Sicherheit zu kommen. 
+
+
