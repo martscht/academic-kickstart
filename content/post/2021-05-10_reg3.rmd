@@ -50,7 +50,8 @@ In dieser Sitzung werden wir zunächst die Ermittlung [*standardisierter Regress
 Diese Sitzung basiert auf dem gleichen Datensatz, der auch in der Sitzung zu Regression I und II verwendet wurde. Eine Stichprobe von 100 Schülerinnen und Schülern hat einen Lese- und einen Mathematiktest bearbeitet, und zusätzlich dazu einen allgemeinen Intelligenztest absolviert. Im Datensatz enthalten ist zudem das Geschlecht (Variable: `female`, 0 = m, 1 = w). Die abhängige Variable ist die Matheleistung, die durch die anderen Variablen im Datensatz vorhergesagt werden soll.
 
 Den Datensatz und die benötigten Pakete laden Sie  wie folgt:
-```{r message=FALSE, warning=FALSE}
+```{r message=FALSE, warning=FALSE, echo=-1}
+#### Vorbereitung ----
 # Datensatz laden
 load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
 # Laden der Pakete
@@ -66,12 +67,15 @@ library(lm.beta)
 Wir wollen in einem ersten Schritt die Leseleistung durch das Geschlecht und die Intelligenz vorhersagen. Das Modell wird unter dem Namen `mod` gespeichert und wir sehen uns die Ergebnisse in der Zusammenfassung an. 
 
 
-```{r}
+```{r, echo=c(-1,-2)}
+#### Beta-Koeffizienten ----
+# Leseleistung durch Geschlecht und IQ vorhersagen, von Interesse sind hier die Beta-Gewichte des Modells
+
 mod <- lm(reading ~ female + IQ, data = Schulleistungen)
 summary(mod)
 ```
 
-```{r include=FALSE}
+```{r include=FALSE, purl = FALSE}
 # für spätere Verwendung
 stdsum <- summary(lm.beta(mod))
 ```
@@ -86,7 +90,9 @@ Die Regressionskoeffizienten $b_j$ beziehen sich auf die Maßeinheiten der Varia
 
 Anmerkung: In der Literatur werden oft auch unstandardisierte Regressionkoeffizienten als $\beta$s bezeichnet, sodass darauf stehts zu achten ist - siehe bspw. [Appendix A](#AppendixA)).
 
-```{r}
+```{r, echo=-1}
+# Berechnung standardisierter Koeffizienten
+
 summary(lm.beta(mod))
 ```
 
@@ -99,7 +105,9 @@ Der standardisierte Koeffizient des `IQ` ist  hierbei deutlich größer ($\hat{\
 
 Eine grafische Prüfung der partiellen Linearität zwischen den einzelnen Prädiktorvariablen und dem Kriterium kann durch *partielle Regressionsplots* (engl. *Partialplots*) erfolgen. Dafür sagen wir in einem Zwischenschritt einen einzelnen Prädiktor durch alle anderen Prädiktoren im Modell vorher und speichern die Residuen, die sich aus dieser Regression ergeben. Diese kennzeichnen den eigenständigen Anteil, den ein Prädiktor nicht mit den anderen Prädiktoren gemein hat. Dann werden die Residuen aus dieser Vorhersage gegen die Residuen des Kriteriums bei Vorhersage durch alle Prädiktor bis auf den betrachteten Prädiktor dargestellt. Bspw. im Block `reading | others` vs. `IQ | others` ist die lineare Beziehung zwischen der Leseleistung, wobei alle Varianzanteile der "anderen Prädiktoren" bereits herausgezogen wurden (à la Partial-/Semipartialkorrelation). Hier gibt es nur noch das Geschlecht im Modell, wodurch ersichtlich wird, dass hier die Leseleistung unter Kontrolle des Geschlechts abgebildet wird gegen die Intelligenz unter Kontrolle des Geschlecht. Mit "unter Kontrolle" meinen wir hier "gegeben die jeweiligen Prädiktoren". Das ist im Grunde eine sehr komplizierte Ausdrucksweise, um tatsächlich einfach die Residuen einer Regression zu meinen. Wir tragen also die Residuen der Regression der Leseleistung durch das Geschlecht vs. die Residuen der Intelligenz gegeben das Geschlecht ab. Diese Grafiken können Hinweise auf systematische nicht-lineare Zusammenhänge geben, die in der Modellspezifikation nicht berücksichtigt wurden. Die zugehörige `R`-Funktion des `car` Pakets heißt `avPlots` und braucht als Argument lediglich das Regressionsmodell `mod`. 
 
-```{r}
+```{r, echo=-1}
+## Grafische Prüfung der partiellen Linearität
+
 # partielle Regressionsplots
 avPlots(model = mod, pch = 16, lwd = 4)
 ```
@@ -112,17 +120,18 @@ Mit Hilfe der Argumente `pch=16` und `lwd=4` werden die Darstellung der Punkte (
 
 Die Varianz der Residuen sollte unabhängig von den Ausprägungen der Prädiktoren sein. Dies wird i.d.R. grafisch geprüft, indem die Residuen $e_i$ gegen die vorhergesagten Werte $\hat{y}_i$ geplottet werden: der sogenannte *Residuenplot* (engl.: *residual plot*). In diesem Streudiagramm sollten die Residuen gleichmäßig über $\hat{y}_i$ streuen und keine systematischen Trends (linear, quadratisch, auffächernd, o.ä.) erkennbar sein. Die Funktion `residualPlots` des Pakets `car` erzeugt separate Streudiagramme für die Residuen in Abhängigkeit von jedem einzelnen Prädiktor $x_j$ und von den vorhergesagten Werten $\hat{y}_i$ (*"Fitted Values"*); als Input braucht sie das Modell `mod`. Zusätzlich wird für jeden Plot ein quadratischer Trend eingezeichnet und auf Signifikanz getestet, wodurch eine zusätzliche Prüfung auf nicht-lineare Effekte erfolgt. Sind diese Test nicht signifikant, ist davon auszugehen, dass diese Effekte nicht vorliegen und die Voraussetzungen in dieser Hinsicht nicht verletzt sind.
 
-```{r, fig.height=6, fig.align="center"}
+```{r, fig.height=6, fig.align="center", echo=-1}
+## Prüfung der Homoskedastizität (Grafisch)
 # Residuenplots (+ Test auf Nicht-Linearität)
 residualPlots(mod, pch = 16)
 ```
 
 Die Funktion `ncvTest` (Test For Non-Constant Error Variance) prüft, ob die Varianz der Residuen signifikant linear (!) mit den vorhergesagten Werten zusammenhängt. Wird dieser Test signifikant, ist die Annahme der Homoskedaszidität verletzt [(siehe Breusch-Pagan-Test auf Wikipedia)](https://en.wikipedia.org/wiki/Breusch–Pagan_test). Wird er nicht signifikant, kann dennoch eine Verletzung vorliegen, z.B. ein nicht-linearer Zusammenhang.
 
-```{r}
+```{r, echo=-1}
+## Prüfung der Homoskedastizität (Test)
 # Test For Non-Constant Error Variance
 ncvTest(mod)
-
 ```
 
 Sowohl die grafischen Darstellungen als auch die Ergebnisse der Tests lassen keine Verletzung der Homoskedastizität erkennen.
@@ -134,7 +143,10 @@ Voraussetzung für die Signifikanztests im Kontext der linearen Regression ist d
 Wir beginnen mit der Vorbereitung der Daten. Wir wollen die studentisierten Residuen grafisch mit dem `R`-Paket `ggplot2`darstellen. Studentisierte Residuen sind wie standardisierten Residuen, bei denen zusätzlich eine Gewichtung der geschätzten Standardabweichung an der Stelle $x_j$ mit einfließt, was eine präziseren Schätzung der normierten Residuen zur Folge hat. Der Mittelwert der studentisierten Residuen beträgt *0* und die Varianz *1* (somit lassen sich solche Plots immer gleich interpretieren). Der Befehl `studres` aus dem `MASS` Paket speichert die Residuen aus einem `lm` Objekt, also aus dem definierten Modell `mod`, und studentisiert diese. Speichern Sie die Residuen aus `mod` als `res` ab und erzeugen Sie  daraus einen `data.frame`, den Sie unter dem Namen `df_res` speichern. Diesen wollen wir später in den Grafiken mit `ggplot2` verwenden. 
  
 
-```{r}
+```{r, echo=c(-1,-2)}
+## Prüfung der Normalverteilung (Grafisch)
+# Daten für ggplot extrahieren
+
 res <- studres(mod)       # Studentisierte Residuen als Objekt speichern
 df_res <- data.frame(res) # als Data.Frame für ggplot
 head(df_res)              # Kurzer Blick in den Datensatz
@@ -142,7 +154,8 @@ head(df_res)              # Kurzer Blick in den Datensatz
 
 Im Folgenden erzeugen wir ein Histogramm und ein Q-Q-Diagramm aus dem Datensatz --- die Kommentare im Code erläutern diesen. 
 
-```{r}
+```{r, echo=-1}
+# ggplot erstellen
 library(ggplot2)
 # Histogramm der Residuen mit Normalverteilungs-Kurve
 ggplot(data = df_res, aes(x = res)) + 
@@ -162,7 +175,9 @@ Die in der Konsole von der Funktion `qqplot` ausgegebenen Werte geben die Zeilen
 
 Zusätzlich zur grafischen Darstellung können wir die Hypothese auf Normalverteilung mit dem Shapiro-Wilk-Test und dem Kolmogorov-Smirnov-Test prüfen:
 
-```{r}
+```{r, echo=-1}
+## Prüfung der Normalverteilung (Test)
+
 # Test auf Abweichung von der Normalverteilung mit dem Shapiro-Test
 shapiro.test(res)
 
@@ -187,7 +202,9 @@ Multikollinearität kann durch Inspektion der *bivariaten Zusammenhänge* (Korre
 
 Offensichtlich genügt eine der beiden Statistiken, da sie vollständig ineinander überführbar und damit redundant sind. Empfehlungen als Grenzwert für Kollinearitätsprobleme sind z. B. $VIF_j>10$ ($T_j<0.1$) (siehe [Eid, Gollwitzer, & Schmitt, 2017, S. 712 und folgend](https://ubffm.hds.hebis.de/Record/HEB366849158)). Die Varianzinflationsfaktoren der Prädiktoren im Modell können mit der Funktion `vif` des `car`-Paktes bestimmt werden, der Toleranzwert als Kehrwert des VIFs.
 
-```{r}
+```{r, echo=-1}
+## Prüfung der Mulitkollinearität durch Inspektion der bivariaten ZUsammenhänge (T / VIF)
+
 # Korrelation der Prädiktoren
 cor(Schulleistungen$female, Schulleistungen$IQ)
 ```
@@ -197,6 +214,7 @@ Die beiden Prädiktoren sind nur schwach negativ korreliert. Wir schauen uns tro
 ```{r}
 # Varianzinflationsfaktor:
 vif(mod)
+
 # Toleranzwerte als Kehrwerte
 1 / vif(mod)
 ```
@@ -208,7 +226,9 @@ Die Plausibilität unserer Daten ist enorm wichtig. Aus diesem Grund sollten Aur
 
 *Hebelwerte* $h_j$ erlauben die Identifikation von Ausreißern aus der gemeinsamen Verteilung der unabhängigen Variablen, d.h. einzelne Fälle, die weit entfernt vom  Mittelwert der gemeinsamen Verteilung der unabhängigen Variablen liegen und somit einen starken Einfluss auf die Regressionsgewichte haben können. Diese werden mit der Funktion `hatvalues` ermittelt. Kriterien zur Beurteilung der Hebelwerte variieren, so werden von [Eid et al. (2017, S. 707 und folgend)](https://ubffm.hds.hebis.de/Record/HEB366849158) Grenzen von $2\cdot k / n$ für große und $3\cdot k / n$ für kleine Stichproben vorgeschlagen, in den Vorlesungsfolien werden Werte von $4/n$ als auffällig eingestuft (hierbei ist $k$ die Anzahl an Prädiktoren und $n$ die Anzahl der Beobachtungen). Alternativ zu einem festen Cut-Off-Kriterium kann die Verteilung der Hebelwerte inspiziert und diejenigen Werte kritisch betrachtet werden, die aus der Verteilung ausreißen. Die Funktion `hatvalues` erzeugt die Hebelwerte aus einem Regression-Objekt. Wir wollen diese als Histogramm darstellen.
 
-```{r}
+```{r, echo=-1}
+#### Ausreißerdiagnostik ----
+
 n <- length(residuals(mod)) # n für Berechnung der Cut-Off-Werte
 h <- hatvalues(mod)         # Hebelwerte
 df_h <- data.frame(h)       # als Data.Frame für ggplot
@@ -219,9 +239,11 @@ ggplot(data = df_h, aes(x = h)) +
   geom_vline(xintercept = 4/n, col = "red") # Cut-off bei 4/n
 ```
 
-*Cook's Distanz* $CD_i$ gibt eine Schätzung, wie stark sich die Regressionsgewichte verändern, wenn eine Person $i$ aus dem Datensatz entfernt wird. Fälle, derem Elimination zu einer deutlichen Veränderung der Ergebnisse führen würden, sollten kritisch geprüft werden. Als einfache Daumenregel gilt, dass $CD_i>1$ auf einen einflussreichen Datenpunkt hinweist. Cook's Distanz kann mit der Funktion `cooks.distance` ermittelt werden.
+*Cook's Distanz* $CD_i$ gibt eine Schätzung, wie stark sich die Regressionsgewichte verändern, wenn eine Person $i$ aus dem Datensatz entfernt wird. Fälle, deren Elimination zu einer deutlichen Veränderung der Ergebnisse führen würden, sollten kritisch geprüft werden. Als einfache Daumenregel gilt, dass $CD_i>1$ auf einen einflussreichen Datenpunkt hinweist. Cook's Distanz kann mit der Funktion `cooks.distance` ermittelt werden.
 
-```{r}
+```{r, echo=-1}
+# Cooks Distanz gibt an, wie stark sich Regressionsgewichte ändern, wenn eine Person i aus dem Datensatz entfernt wird
+
 # Cooks Distanz
 CD <- cooks.distance(mod) # Cooks Distanz
 df_CD <- data.frame(CD) # als Data.Frame für ggplot
@@ -234,18 +256,22 @@ ggplot(data = df_CD, aes(x = CD)) +
 
 Die Funktion `influencePlot` des `car`-Paktes erzeugt ein "Blasendiagramm" zur simultanen grafischen Darstellung von Hebelwerten (auf der x-Achse), studentisierten Residuen (auf der y-Achse) und Cooks Distanz (als Größe der Blasen). Vertikale Bezugslinien markieren das Doppelte und Dreifache des durchschnittlichen Hebelwertes, horizontale Bezugslinien die Werte -2, 0 und 2 auf der Skala der studentisierten Residuen. Fälle, die nach einem der drei Kriterien als Ausreißer identifiziert werden, werden im Streudiagramm durch ihre Zeilennummer gekennzeichnet. Diese Zeilennummern können verwendet werden, um sich die Daten der auffälligen Fälle anzeigen zu lassen. Sie werden durch `InfPlot` ausgegeben werden. Auf diese kann durch `as.numeric(row.names(InfPlot))` zugegriffen werden.
 
-```{r}
+```{r, echo=-1}
+# Blasendiagramm, das simultan Hebelwerte, studentisierte Residuen und Cooks Distanz darstellt
+
 InfPlot <- influencePlot(mod)
 IDs <- as.numeric(row.names(InfPlot))
 ```
 
 Schauen wir uns die möglichen Ausreißer an und standardisieren die Ergebnisse für eine bessere Interpretierbarkeit.
 
-```{r}
+```{r, echo=c(1:5)}
 # Rohdaten der auffälligen Fälle (gerundet für bessere Übersichtlichkeit)
 round(Schulleistungen[IDs,],2)
+
 # z-Standardisierte Werte der auffälligen Fälle
 round(scale(Schulleistungen)[IDs,],2) 
+
 ```
 
 Die Funktion `scale` z-standardisiert den Datensatz, mit Hilfe von `[IDs,]`, werden die entsprechenden Zeilen der Ausreißer aus dem Datensatz ausgegeben und anschließend auf 2 Nachkommastellen gerundet. Mit Hilfe der z-standardisieren Ergebnisse lassen sich Ausreißer hinsichtlich ihrer Ausprägungen einordnen:

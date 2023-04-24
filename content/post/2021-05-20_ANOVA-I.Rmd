@@ -47,26 +47,44 @@ Die praktische Arbeit soll anhand des Datensatzes `conspiracy` demonstriert werd
 ### Daten laden
 Wenn Sie den Datensatz lokal auf ihrem Rechner haben möchten, können Sie ihn  [`r fontawesome::fa("download")` Datensatz "conspiracy.rda" hier herunterladen](https://pandar.netlify.app/post/conspiracy.rda). Anschließend muss er eingeladen werden - natürlich mit Ihrem Dateipfad.
 
-```{r, eval = F}
+```{r, eval = F, echo=-1}
+# Beispiel zum exemplarischen lokalen Datensatzladen über Musterverzeichnis
 load("C:/Users/Musterfrau/Desktop/conspiracy.rda")
 ```
 
 Alternativ kann der Datensatz durch die Nutzung von `url` auch direkt über die Website eingeladen werden.
 
-```{r, eval = T}
+```{r, echo=-1}
+# Datensatz der Sitzung über URL laden
 load(url("https://pandar.netlify.app/post/conspiracy.rda"))
 ```
 
 Der Datensatz stammt aus einer Untersuchung zum Thema *verschwörungstheoretische Überzegungen*. Beginnen wir mit einer kurzen Inspektion. 
 
-```{r}
+```{r, echo=-1}
+#### Datensatz - Betrachtung ----
+
 dim(conspiracy)
 ```
 
 Der Datensatz enthält die Werte von `r dim(conspiracy)[1]` Personen auf `r dim(conspiracy)[2]` Variablen. 
 
-```{r}
+```{r, echo=2}
+# Darstellung der 9 Variablen und ihren ersten 6 Einträgen
 head(conspiracy)
+
+## Demographischer Hintergrund
+# edu = Bildungsabschluss
+# urban = Wohnort
+# gender = Geschlecht
+# age = Alter
+
+## Subskalen verschwörungstheoretischer Überzeugungen
+# GM = government malfeasance
+# MG = malevolent global conspiracies
+# ET = extraterrestrial cover-up
+# PW = personal well-being
+# CI = control of information
 ```
 
 Die **ersten vier Variablen** enthalten Informationen über den demographischen Hintergrund der Personen: höchster Bildungsabschluss (`edu`), Typ des Wohnortes (`urban`), Geschlecht (`gender`) und Alter (`age`). Die **fünf restlichen Variablen** sind Skalenwerte bezüglich verschiedener Subdimensionen verschwörungstheoretischer Überzeugungen: `GM` (goverment malfeasance), `MG` (malevolent global conspiracies), `ET` (extraterrestrial cover-up), `PW` (personal well-being) und `CI` (control of information).
@@ -104,7 +122,10 @@ Die Unabhängigkeit der Residuen wäre dann verletzt, wenn abhängige Stichprobe
 
 Die Homoskedastizitätsannahme besagt, dass die Varianzen jeder Gruppe über die Gruppen hinweg gleich sind. Deshalb wird diese Annahme auch häufig "Varianzhomogenitätsannahme" genannt. Zur Überprüfung der Homoskedatizität kann der **Levene-Test** herangezogen werden. Dieser kann mithilfe des `car`-Pakets angefordert werden. Dazu laden wir zunächst das Paket und führen anschließend die Funktion `leveneTest` aus. Installiert haben wir das Paket bereits in vorherigen Tutorials und dort auch bereits angewendet.
 
-```{r ANOVA_II, exercise=TRUE, exercise.lines = 2}
+```{r ANOVA_II, exercise=TRUE, exercise.lines = 2, echo=c(-1,-2)}
+# Unabhängigkeit der Residuen als gegeben betrachtet
+# Prüfung der Homoskedastizität
+
 library(car)
 leveneTest(conspiracy$ET ~ conspiracy$urban)
 ```
@@ -134,6 +155,7 @@ mit $i$ = Index der Personen, $k$ = Index der Gruppe, $K$ = Anzahl der Gruppen, 
 Die Quadratsummen der ANOVA können per Hand bestimmt werden. Hierzu nutzen wir den `aggregate()`-Befehl, der es erlaubt, eine zusammenfassende Statistik (wie Mittelwert oder Standardabweichung) für eine Variable getrennt nach verschiedenen Subgruppen zu berechnen. Dabei übergeben wir `aggregate` die Variable selbst sowie die Gruppierungsvariable als Liste (deshalb steht im Befehl auch `list(conspiracy$urban)`), als drittes Argument wird die Funktion übergeben, die durchgeführt werden soll:
 
 ```{r}
+#### ANOVA per Hand ----
 # Gruppenmittelwerte ermitteln
 mu_k <- aggregate(conspiracy$ET, list(conspiracy$urban), mean)
 mu_k
@@ -141,13 +163,15 @@ mu_k
 
 Unser erstelltes Objekt `mu_k` enthält also die Mittelwerte der drei Gruppen. Da die Variablennamen nicht sehr aussagekräftig sind, überschreiben wir diese.
 
-```{r}
+```{r, echo=-1}
+# Variablennamen überschreiben
 names(mu_k) <- c('urban', 'ET_mu_k')
 ```
 
 Wir wollen nun die Mittelwerte der Gruppen zu unserem ursprünglichen Datensatz hinzufügen. Es soll eine neue Spalte entstehen, die jeder Person den Mittelwert der Gruppe zuweist, in der sie wohnhaft ist. Ein solches Zusammenführen ist mit der Funktion `merge` möglich. Dafür müssen wir zunächst die beiden Datensätze angeben, die zusammengefügt werden sollen (`conspiracy` und `mu_k`). Natürlich müssen wir `R` auch noch mitteilen, welche Variable das Zusammenfügen ermöglicht. Diese (in beiden Datensätzen gleiche) Variable heißt `urban` und wird dem Argument `by` übergeben. Wir nennen das neue Objekt `temp` für seine temporäre Nutzung.
 
-```{r}
+```{r, echo=-1}
+# Gruppenmittelwerte werden nach Gruppenzugehörigkeit hinzugefügt
 temp <- merge(conspiracy, mu_k, by = 'urban')
 dim(temp)
 names(temp)
@@ -167,21 +191,24 @@ n_k <- table(conspiracy$urban)
 
 Nach diesen Vorbereitungen können wir die Quadratsummen $QS_{inn}$ und $QS_{zw}$ berechnen. $QS_{inn}$ beschreibt die quadratischen Abweichungen aller Gruppenmitglieder von ihrem Gruppenmittelwert. Diese beiden Informationen sind in unserem temporären Datensatz `temp` in den Variablen `temp$ET` und `temp$ET_mu_k` festgehalten.
 
-```{r}
+```{r, echo=-1}
+# QS_inn berechnen
 QS_inn <- sum((temp$ET - temp$ET_mu_k)^2)
 ```
 
 Die Berechnung von $QS_{zw}$ benötigt die einzelnen Gruppengrößen, die wir unter `n_k` abgelegt haben. Diese werden jeweils mit dem quadrierten Unterschied ihres Gruppenmittelwertes vom Gesamtmittelwert multipliziert. Die einzelnen Gruppenmittelwerte sind in `mu_k` abgelgt. `mu_k[, 2]` wird hier so verwendet, da in `mu_k` in der ersten Spalte die Gruppenzugehörigkeiten stehen und in der 2. Spalte die Mittelwerte selbst. Der Gesamtmittelwert liegt in `mu`.
 
 
-```{r}
+```{r, echo=-1}
+# QS_zw berechnen
 QS_zw <- sum(n_k * (mu_k[, 2] - mu)^2)
 ```
 
 
 Zur inferenzstatistischen Prüfung wird der $F$-Test herangezogen. Um diesen verwenden zu können, brauchen wir die mittleren Quadratsummen $MQS_{zw} = \frac{QS_{zw}}{K-1}$ und $MQS_{inn} = \frac{QS_{inn}}{N-K}$. Dabei steht $N$ für die Anzahl aller Personen in der Stichprobe und $K$ für die Anzahl an Gruppen. Folglich können die beiden Werten mit diesem Code per Hand bestimmt werden:
 
-```{r}
+```{r, echo=-1}
+# Mittlere Quadratsummen für F-Test berechnen
 MQS_inn <- QS_inn / (nrow(conspiracy) - nlevels(conspiracy$urban))
 MQS_zw <- QS_zw / (nlevels(conspiracy$urban)-1)
 ```
@@ -191,19 +218,21 @@ Nun können wir den $F$-Wert bestimmen. Dieser ergibt sich als
 $$F_{emp} = \frac{MQS{zw}}{MQS{inn}}$$
 Wir erkennen, dass hier einfach die Variation zwischen den Gruppen (Variation der Mittelwerte) relativ zur (zufälligen) Variation innerhalb der Gruppen betrachtet wird. Ist die Variation zwischen den Gruppen relativ zur zufälligen Variation groß, so kann dies nicht durch Zufall passiert sein: die Mittelwerte müssen sich also bei einem großen $F$-Wert unterscheiden. 
 
-```{r}
+```{r, echo=-1}
+# F-Wert
 F_wert <- MQS_zw/MQS_inn
 ```
 
 Das Verhältnis der Quadratsummen ist mit $df_1 = K - 1$ und $df_2 = N - K$ $F$-verteilt. Daher wird der $F_{emp}$ mit dem $F_{krit}$ mit $df_1 = K - 1$ (Zählerfreiheitsgraden) und $df_2 = N - K$ (Nennerfreiheitsgraden) verglichen. In `R` geht das automatisch mit `pf` (die Verteilungsfunktion/ kumulative Dichtefunktion der $F$-Verteilung). Diese gibt uns den $p$-Wert wieder. Hierbei muss zunächst der $F_{emp}$ angegeben werden, danach $df_1$ und als letztes $df_2$. `lower.tail = FALSE` zeigt uns, dass wir gerne die Wahrscheinlichkeit (Fläche unter der Kurve) für extremere Werte als unseren beobachtenen $F_{emp}$ angezeigt bekommen:
 
-```{r}
+```{r, echo=-1}
+# Wahrscheinlichkeit des F-Werts
 pf(F_wert, nlevels(conspiracy$urban)-1, nrow(conspiracy) - nlevels(conspiracy$urban), lower.tail = FALSE)
 ```
 
 Grafisch gesehen lassen wir uns also die Fläche für den folgenden Bereich der F-Verteilung anzeigen.
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, purl=FALSE}
 library(ggplot2)
 Fs <- data.frame(x = seq(0, 7, .1))
 Fs$y <- df(Fs$x,  nlevels(conspiracy$urban)-1, nrow(conspiracy) - nlevels(conspiracy$urban))
@@ -220,7 +249,8 @@ Zur Beurteilung der Signifikanz muss der errechnete p-Wert mit dem vorher festge
 
 Da das Ausrechnen per Hand nun doch etwas umständlich ist, bietet `R` uns einige andere Möglichkeiten, z. B. `anova` oder `aov` und diverse weitere Pakete (z. B. `Anova` aus `car`). Allerdings haben die verschiedenen Ansätze jeweils ihre Vor- und Nachteile, weshalb die `ezANOVA`-Funktion aus dem `ez`-Paket erstellt wurde, um als Meta-Funktion zu dienen, die sich situationsspezifisch bei den grundlegenden Funktionen bedient. Da wir das Paket bisher nicht genutzt haben, müssen wir es zunächst installieren.
 
-```{r, eval = F}
+```{r, eval = F, echo=-1}
+### ezANOVA ----
 # Paket installieren
 install.packages("ez")
 ```
@@ -241,7 +271,9 @@ Weil die Funktion für verschiedene Arten von *ANOVAs* geeignet ist, benötigt s
 
 In unserem Datensatz liegt leider noch keine ID-Variable vor, diese muss also zunächst erstellt werden. Der Einfachheit halber nummerieren wir die Personen von 1 bis `r nrow(conspiracy)` durch. 
 
-```{r}
+```{r, echo=-1}
+# Personen-ID für ezANOVA erstellen
+
 conspiracy$id <- 1:nrow(conspiracy)
 ```
 
@@ -253,7 +285,8 @@ conspiracy$id <- as.factor(conspiracy$id)
 
 Jetzt kann die ANOVA mit dem `ezANOVA`-Befehl durchgeführt werden, indem wir einfach den oben stehenden Argumenten unsere Variablen übergeben:
 
-```{r}
+```{r, echo=-1}
+# ezANOVA anwenden 
 ezANOVA(conspiracy, wid = id, dv = ET, between = urban)
 ```
 
@@ -265,7 +298,8 @@ Der erste Abschnitt der Ausgabe der `ezANOVA`-Funktion liefert die Ergebnisse de
 
 Die letzte Spalte liefert das generalisierte $\eta^2$ (`ges` = *Generalized Eta-Squared*), ein Effektstärkemaß für ANOVAs. Dieses berechnet sich in diesem Fall einfach aus $\eta^2 = \frac{QS_{zw}}{QS_{tot}}$. Um die Quadtratsummen (`SSn` = $QS_{zw}$,`SSd` = $QS_{inn}$) zu erhalten, kann mithilfe des Arguments `detailed = TRUE` eine detaillierte Ausgabe angefordert werden.
 
-```{r}
+```{r, echo=-1}
+# Eine detailliertere Ausgabe
 ezANOVA(conspiracy, wid = id, dv = ET, between = urban, detailed = TRUE)
 ```
 
@@ -279,7 +313,10 @@ Die **ANOVA** ist ein **Omnibustest** - es wird lediglich die Gleichheit aller G
 
 Die naheliegende Untersuchung wäre hier, alle drei Gruppen mithilfe einfacher $t$-Tests zu vergleichen. Da wir hier nicht nur zwei Ausprägungen in unserer Gruppierungsvariable haben, nutzen wir den Befehl `pairwise.t.test`. Aufgrund der $\alpha$-Fehler Kumulierung müssen die $p$-Werte adjustiert werden (`p.adjust = 'bonferroni'`). Dabei ist die Bonferroni-Korrektur einer der einfachsten (und gleichzeitig konservativsten) Ansätze: $\alpha_{\text{kor}} = \frac{\alpha}{m}$, wobei $m = \binom{K}{2}$ die Anzahl der durchgeführten Tests ist. 
 
-```{r}
+```{r, echo=c(-1:-3)}
+#### t-Test ----
+
+# Vergleich der Gruppen mit t-tests, Bonferroni-Korrektur wegen Alpha-Kumulierung
 pairwise.t.test(conspiracy$ET, conspiracy$urban, p.adjust = 'bonferroni')
 ```
 
@@ -293,7 +330,10 @@ Ein präziserer Ansatz als die einfachen $t$-Tests bietet **Tukeys Honest Signif
 
 Der benötigte Code in der Funktion `aov` ähnelt dem der Regressionsanalyse und im Übrigen auch der Gleichung in `leveneTest` aus dem `car`-Paket. In unserem Beispiel sieht der `aov`-Befehl so aus.  
 
-```{r}
+```{r, echo=c(-1:-3)}
+#### Tukey Test ----
+
+# aov-Objekt für Tukey
 alternative<- aov(ET ~ urban, data = conspiracy)
 ```
 
@@ -307,7 +347,8 @@ Diese entsprechen also wie erwartet unserem vorherigen Ergebnis.
 
 Schauen wir uns nun Tukey's Test an. Die Funktion `TukeyHSD` benötigt das durch `aov` erstellte Objekt und die erwünschte Sicherheit.
 
-```{r}
+```{r, echo=-1}
+# Tukey anwenden
 TukeyHSD(alternative, conf.level = 0.95)
 ```
 
@@ -324,7 +365,8 @@ Schließt das Konfidenzintervall für die Mittelwertsdifferenz die Null (gestric
 
 Es ist auch möglich das `aov`-Objekt gleichzeitig mit der ezANOVA ausgeben zu lassen. Dies ist möglich, indem man im `ezANOVA`-Befehl die Bedingung `return_aov = TRUE` hinzufügt und dann mit `$aov` auf das `aov`-Objekt zugreift. Dies kann dann im Environment abspeichert und weiterverwendet werden. Durch den Zugriff auf `names` können wir uns alle Einträge in unserer neu erstellten Liste anzeigen lassen und sehen dabei, dass ein Eintrag `aov` heißt.
 
-```{r}
+```{r, echo=-1}
+# aov-Objekt durch ezANOVA
 aov_t <- ezANOVA(conspiracy, wid = id, dv = ET, between = urban, return_aov = T)
 names(aov_t)
 ```

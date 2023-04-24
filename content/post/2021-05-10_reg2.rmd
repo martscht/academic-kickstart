@@ -72,9 +72,11 @@ Mit Inkrement und Dekrement meinen wir hier das Varianzinkrement/-dekrement, als
 
 ### Testen eines Inkrements
 
-Um ein Inkrement auf Signifikanz zu prüfen (also auf Verallgemeinerung auf die Population), müssen wir einen inferenzstatistischen Vergleich eines eingeschränkten Modells $M_c$ ($_c$ steht hier für "constraint", also eingeschränkt) mit weniger Prädiktoren gegen ein uneingeschränktes Modell $M_u$ ($_u$ steht hier für "unconstraint", also uneingeschränkt) mit zusätzlichen Prädiktoren durchführen. Beispiel: Inkrement durch Hinzunahme von Intelligenz. Wir können uns fragen: Führt die Hinzunahme von Intelligenz zu einem signifikanten Zuwachs an erklärter Varianz, wenn Lesekompetenz und Geschlecht bereits im Vorhersagemodell sind?
+Um ein Inkrement auf Signifikanz zu prüfen (also auf Verallgemeinerung auf die Population), müssen wir einen inferenzstatistischen Vergleich eines eingeschränkten Modells $M_c$ ($_c$ steht hier für "constrained", also eingeschränkt) mit weniger Prädiktoren gegen ein uneingeschränktes Modell $M_u$ ($_u$ steht hier für "unconstrained", also uneingeschränkt) mit zusätzlichen Prädiktoren durchführen. Beispiel: Inkrement durch Hinzunahme von Intelligenz. Wir können uns fragen: Führt die Hinzunahme von Intelligenz zu einem signifikanten Zuwachs an erklärter Varianz, wenn Lesekompetenz und Geschlecht bereits im Vorhersagemodell sind?
 
-```{r}
+```{r, echo=-1}
+##### Testen des Inkrements ----
+
 m.c <- lm(math ~ reading + female, data = Schulleistungen)      # constrained
 m.u <- lm(math ~ reading + female + IQ, data = Schulleistungen) # unconstrained
 summary(m.c)
@@ -103,9 +105,10 @@ Dazu müssen wir dieses *Inkrement* zunächst auf Signifikanz testen. Der Modell
 Wir vergleichen die beiden Determinationskoeffizienten, indem wir der `anova`-Funktion einfach die beiden Modelle übergeben. Hierbei soll das eingeschränkte Modell stets links stehen, damit die Freiheitsgrade des Modellvergleichs positiv sind! Die Freiheitsgrade geben dann an, wie viele weiteren Parameter in unserem Modell zusätzlich geschätzt werden müssen.
 
 
-```{r anova}
+```{r anova, echo=-3}
 # Modellvergleich mit der anova-Funktion
 anova(m.c, m.u)
+# Man erhält einen signifikanten p-Wert, Modell 1 ohne IQ, Modell 2 unter Zunahme von IQ
 ```
 
 Im Output sehen wir zunächst eine Übersicht über die beiden Modelle (auch mehr als 2 Modelle sind möglich, die Modelle müssen nur geschachtelt sein, also auseinander hervorgehen, damit sie sinnvoll miteinander verglichen werden können). Model 1 ist das Modell ohne IQ, während Model 2 das Modell mit IQ beschreibt. Die Zahlen 1 und 2 beschreiben dann die Zeilen der Modelle. `Res.Df` sind die Residualfreiheitsgrade (diese lassen sich bestimmen, indem von der Stichprobengröße $N$ die Anzahl der zu schätzenden Koeffizienten inklusive Interzept abgezogen werden). `RSS` ist die Residual Sum of Squares, also die Residualquadratsumme. `Df` sind die Freiheitsgrade (Degrees of Freedom). `Sum of Sq` ist die durch die hinzukommenden Prädiktoren erklärte Quadratsumme, welche sich einfach durch die Differenz der beiden `RSS` bestimmen lässt. `F` beschreibt den $F$-Wert, der die Änderung in den `Sum of Sq` an der zufälligen Streuung relativiert. `Pr(>F)` ist die Spalte mit den zu dem $F$-Werten gehörigen $p$-Werte, also die Spalte, die uns besonders interessiert!
@@ -120,7 +123,9 @@ Dabei bezeichnen: $R^2_u$ den Determinationskoeffizient des uneingeschränkten (
 
 In `R`:
 
-```{r}
+```{r, echo=-1}
+# Berechnung von F per Hand über die Formel
+
 R2.u <- summary(m.u)$r.squared
 R2.c <- summary(m.c)$r.squared
 df.diff <- summary(m.u)$df[1] - summary(m.c)$df[1] # Änderung in den df
@@ -134,7 +139,9 @@ p.diff # zugehöriger p-Wert
 
 Außerdem sei an dieser Stelle nochmals erwähnt, dass das ganze Vorgehen auch mit Hilfe der Semipartialkorrelation erfolgen kann. Das Varianzinkrement `R2.u - R2.c` des IQs über Leseleistung und Geschlecht hinaus ist ja nichts anderes als die quadrierte Semipartialkorrelation zwischen Matheleistung und IQ wobei Leseleistung und Geschlecht herauspartialisiert wurden:
 
-```{r semipartial_comparison}
+```{r semipartial_comparison, echo=-1}
+# Darstellung, das Rechnung auch mit Semipartialisierung umsetzbar ist (Quadrierte Korrelation zwischen Mathe und IQ, Leseleistung und Geschlecht rauspartialisiert)
+
 R2.u - R2.c # Inkrement
 library(ppcor)
 sp <- spcor.test(x = Schulleistungen$math, y = Schulleistungen$IQ, z = Schulleistungen[, c("reading", "female")])
@@ -148,7 +155,9 @@ Wir stellen keinen Unterschied im Wert selbst fest. Die $p$-Werte unterscheiden 
 
 Das Dekrement ist ebenfalls ein Unterschied im $R^2$ zwischen dem restringierten Modell $M_c$ und dem unrestringierten Modell $M_u$. Wir gehen hier nur nicht von einer Hinzunahme von einem oder mehreren Prädiktoren aus, sondern von einem Herausnehmen von einem oder mehreren Prädiktoren. Es ändert sich also lediglich die Logik, in welcher wir das Modell verändern. Die Testung eines Dekrements erfolgt analog zum Inkrement: das eingeschränkte Modell $M_c$ mit weniger Prädiktoren wird mit dem uneingeschränkten Modell $M_u$ mit mehr Prädiktoren verglichen. Es soll nun geprüft werden, ob das *Weglassen* des Geschlechts aus dem Modell zu einem signifikanten Rückgang der erklärten Varianz führt. Dazu müssen wir im Grunde eigentlich wieder das Inkrement testen... Wir wissen also bereits wie das geht:
 
-```{r}
+```{r, echo=-1}
+#### Testen des Dekrements ----
+
 m.u <- lm(math ~ reading + female + IQ, data = Schulleistungen) # unconstrained
 m.c <- lm(math ~ reading + IQ, data = Schulleistungen) # constrained
 
@@ -186,7 +195,10 @@ Die Selektion kann "vorwärts", "rückwärts", oder in beide Richtungen erfolgen
 
 Einfaches Beispiel: Optimierung des Modells für Mathematikleistung, Start mit allen drei möglichen Prädiktoren:
 
-```{r}
+```{r, echo=c(-1,-2)}
+#### Iterative Modelloptimierung ----
+# Optimierung des Modells nach AIC, Sparsamkeitsprinzip
+
 # Modell mit allen Prädiktoren
 m <- lm(math ~ reading + female + IQ, data = Schulleistungen)
 # Optimierung
@@ -196,6 +208,8 @@ summary(step(m, direction = "both"))
 Der Output enthält folgende Inhalte:
 
 ```{r, warning=FALSE, echo = F}
+# Output der summary, Wert von AIC für Alle
+
 out <- summary(step(m)) |> capture.output()
 begin <- "Start"; end <- "Df"
 out[grep(pattern = begin, out):(grep(pattern = end, out)-1)] |> paste(collapse = "\n") |> cat()
@@ -204,6 +218,8 @@ out[grep(pattern = begin, out):(grep(pattern = end, out)-1)] |> paste(collapse =
 zeigt uns das Anfangsmodell und den zugehörigen AIC.
 
 ```{r, warning=FALSE, echo = F}
+# Darstellung der Modelle
+
 begin <- "Df"; end <- "Step"
 out[grep(pattern = begin, out):(grep(pattern = end, out)-1)] |> paste(collapse = "\n") |> cat()
 ```
@@ -211,6 +227,8 @@ out[grep(pattern = begin, out):(grep(pattern = end, out)-1)] |> paste(collapse =
 ist der Output des ersten Schrittes. `<none>` beschreibt unser Modell (ohne Veränderung). Jede Zeile steht für ein Modell, in welchem jeweils maximal ein Prädiktor aus dem Modell ausgeschlossen wird oder maximal ein Prädiktor in das Modell aufgenommen wird. Das "Minus" (`-`) am Anfang der Zeile zeigt an, dass hier ein Prädiktor ausgeschlossen wird. Eine "Plus" (`+`) zeigt an, dass der jeweilige Prädiktor hinzukam. Die `Df` zeigen wieder an, wie sich die Freiheitsgrade verändern. Würden wir eine Variable verwenden, die aus mehr als 2 Faktorstufen besteht, würden hier auch `Df` größer 1 stehen. `Sum of Sq` zeigt an, wie sich die Sum of Squares verändern. `RSS` ist wieder die Residual Sum of Squares, wie oben.
 
 ```{r, warning=FALSE, echo = F}
+# Darstellung der nächsten Modelle, nachdem Leseleistung ausgeschlossen wurde; Ende bereits erreicht (minimale AIC)
+
 begin <- "Step"; end <- "Call"
 out[grep(pattern = begin, out):(grep(pattern = end, out)-1)] |> paste(collapse = "\n") |> cat()
 ```
@@ -227,9 +245,10 @@ $BIC=-2L(\hat{\theta}) + log(n)\cdot p$
 
 Vorsicht, in der Ausgabe der `step`-Funktion steht immer AIC, auch wenn dies nur mit der Standardeinstellung von $k=2$ tatsächlich dem AIC entspricht!
 
-```{r}
+```{r, echo=-3}
 # Optimierung mit BIC
 summary(step(m, direction = "both", k=log(nrow(Schulleistungen))))
+# Da BIC strenger in der Sparsamkeit ist, wird auch Geschlecht entfernt
 ```
 
 Bei der Verwendung des stengeren Kriteriums wird auch Geschlecht aus dem Modell entfernt, es verbleibt nur der IQ im finalen Modell. Dies entspricht nun eher der Modellmodifikation inklusive finalem Modelltest, den wir beim ersten Modell durchgeführt haben. Der nicht signifikante Geschlechtseffekt wurde ebenfalls aus dem Modell entfernt. 
@@ -244,7 +263,8 @@ Das Paket `olsrr` beinhaltet verschiedene Funktionen, die für die Regressionsan
 
 Nun zurück zur `ols_step_both_p`-Funktion: Der Input  ist ein Regressionsmodell, das mit der bekannten Funktion `lm` erstellt wurde. Über die zusätzlichen Argumente kann gesteuert werden, wie streng bei Aufnahme und Ausschluss getestet wird. Über das Argument `details` können Sie den gesamten Verlauf der schrittweisen Selektion (nicht nur das finale Ergebnis) anzeigen lassen. `pent` ist der p-Wert, der für das "entering" in das Modell zuständig ist. Also muss das Inkrement einen p-Wert von $p<.05$ haben, wenn wir `pent = .05` wählen.`prem` ist der p-Wert, der für das "removing" aus dem Modell zuständig ist. Also muss das Dekremnt einen p-Wert von $p>.10$ haben, wenn wir `pent = .10` wählen. `details = TRUE` fordert weitere Informationen an.
 
-```{r}
+```{r, echo=-1}
+# Modelloptimierung über lm mit Package "olsrr"
 # install.packages("olsrr")
 library(olsrr)
 ols_step_both_p(m, pent = .05, prem = .10, details = TRUE)
@@ -260,7 +280,8 @@ Wenn Sie die AIC Auswahl mit dem `olsrr` Paket verwenden wollen, dann schauen Si
 
 Wer nun den Output etwas genauer betrachtet, bemerkt, dass der AIC, der in der `step`-Funktion berichtet wird, nicht identisch mit demjenigen AIC ist, der in `ols_step_both_p` angezeigt wird. Zu Recht kann man sich nun fragen, ob hier ein Fehler passiert. Die Antwort ist nein (und ja). Es werden tatsächlich unterschiedliche Berechnungen für den AIC herangezogen. In `step` wird intern die `extractAIC`-Funktion verwendet, während in `ols_step_both_p` die `AIC`-Funktion verwendet wird:
 
-```{r}
+```{r, echo=-1}
+# Vergleich des AIC in step und ols_step_both_p, liegt an Unterschied der AIC-Funktionen, bei denen step Konstanten entfernt
 model <- lm(math ~ reading + female, data = Schulleistungen)
 AIC(model)
 extractAIC(model) # erstes Argument ist die Anzahl der Parameter (p)
@@ -280,7 +301,7 @@ Um jetzt den Unterschied genau zu erkennen, müssen wir zunächst die **Loglikel
 
 Wie bereits oben besprochen, benötigen wir für die Berechnung des AIC die Loglikelihood (Logarithmus der Likelihood) der Daten. Diese erhalten wir ganz einfach mit der `logLik` Funktion. 
 
-```{r}
+```{r, purl=FALSE}
 logLik(model)
 ```
 
@@ -304,7 +325,7 @@ $$-\frac{n}{2}\log(2\pi) -\frac{n}{2}\log(\sigma^2) - \frac{n}{2}$$
 
 An dieser Stelle muss noch einmal erwähnt werden, dass in der Likelihoodschreibweise die Schätzer der Fehlervarianz etwas anders ausfallen, da die Parameter alle simultan geschätzt werden können und nicht von den $\beta$-Gewichten abhängen. Deshalb müssen wir die Fehlervarianz anders bestimmen (die Logik ist ein wenig so, wie wenn man die Populationsschätzer und die Stichprobenschätzer der Varianz vergleicht).
 
-```{r}
+```{r, purl=FALSE}
 LL <- logLik(model) # Loglikelihood des Modells
 p <- length(coef(model))+1 # betas + sigma
 n <- nrow(Schulleistungen) # Stichprobengröße (nur so möglich, wenn keine Missings!)
@@ -315,7 +336,7 @@ LL
 
 So, jetzt haben wir die Loglikelihood bestimmt, jetzt fehlt nur noch der AIC:
 
-```{r}
+```{r, purl=FALSE}
 myAIC <- -2*LL[1] + 2*p
 myAIC
 AIC(model)
@@ -325,7 +346,7 @@ Super! Die beiden sind schon mal identisch.
 
 Wie erhalten wir nun den Unterschied zu `extractAIC`? Wir hatten gesagt, dass in `extractAIC` alle "Konstanten" herausgelassen werden, also jene Informationen, die nicht vom Modell beeinflusst werden, solange es auf die gleichen Daten angewandt wird. Die Formel für die Loglikelihood sah so aus: $-\frac{n}{2}\log(2\pi) -\frac{n}{2}\log(\sigma^2) - \frac{n}{2}$. Hier hängt nur der Term $-\frac{n}{2}\log(\sigma^2)$ vom Modell ab, da nur die Residualvarianz $\sigma^2$ von der Inklusion der Prädiktoren abhängt. Somit haben wir also unsere fehlenden Terme gefunden! Da die Loglikelihood in der Bestimmung des AICs mit -2 multipliziert wird, müssen wir also die "Konstanten" nur noch damit multiplizieren und auf `extractAIC` draufaddieren. Außerdem müssen wir die Anzahl der Parameter um die Residualvarianz vergrößern, also müssen wir zusätlich 2*1 addieren:
 
-```{r}
+```{r, purl=FALSE}
 extractAIC(model)[2] + n + n*log(2*pi) + 2
 myAIC
 AIC(model)
@@ -333,7 +354,7 @@ AIC(model)
 
 Nun sind alle AICs gleich! Warum ist das aber kein Problem? Vergleichen wir doch mal 2 Modelle:
 
-```{r}
+```{r, purl=FALSE}
 model1 <- lm(math ~ reading + female, data = Schulleistungen)
 model2 <- lm(math ~ reading , data = Schulleistungen)
 
