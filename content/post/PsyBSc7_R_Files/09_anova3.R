@@ -2,26 +2,33 @@
 #Dieses Skript stammt von https://pandar.netlify.app/post/PsyBsc7_R_Files/09_anova3.R, von der PandaR-Website der Goethe Universität Frankfurt.
 #Die Autoren dieses Skripts sind Miriam Scheppa-Lahyani, Julien P. Irmer, Kai J. Nehler & Martin Schultze. Skriptkompilierung von Kevin Pommeranz.
 
-## load("C:/Users/Musterfrau/Desktop/alc.rda")
 
+
+# Ausklammern um Datensatz zu laden
 load(url("https://pandar.netlify.app/post/alc.rda"))
 
+# Datensatz anschauen
 dim(alc)
 head(alc)
 
+# Kontrollieren, dass jede id nur einmal vorkommt
 table(alc$id)
 
+#### Datensatz zu Langformat transformieren ----
 alc_long <- reshape(data = alc,
   varying = list(c('alcuse.14', 'alcuse.15', 'alcuse.16')),
   direction = 'long')
 
 head(alc_long)
 
+## # Theoretisches Beispiel
 ## varying = list(c('alcuse.14', 'alcuse.15', 'alcuse.16'),
 ##   c('weeduse.14', 'weeduse.15', 'weeduse.16'))
 
+# Werte betrachten
 alc_long[alc_long$id == 1, ]
 
+# timevar bestimmen
 alc_long <- reshape(data = alc,
   varying = list(c('alcuse.14', 'alcuse.15', 'alcuse.16')),
   direction = 'long',
@@ -29,6 +36,7 @@ alc_long <- reshape(data = alc,
 
 head(alc_long)
 
+# Alter korrekt kodieren per times
 alc_long <- reshape(data = alc,
   varying = list(c('alcuse.14', 'alcuse.15', 'alcuse.16')),
   direction = 'long',
@@ -37,6 +45,7 @@ alc_long <- reshape(data = alc,
 
 head(alc_long)
 
+# Umbenennung von varying-Variablen
 alc_long <- reshape(data = alc,
   varying = list(c('alcuse.14', 'alcuse.15', 'alcuse.16')),
   direction = 'long',
@@ -46,6 +55,8 @@ alc_long <- reshape(data = alc,
 
 head(alc_long)
 
+#### Rückübertragung in breites Format ---
+
 alc_wide <- reshape(alc_long, 
             v.names = 'alcuse', 
             timevar = 'age', 
@@ -53,6 +64,9 @@ alc_wide <- reshape(alc_long,
             direction = 'wide')
 head(alc_wide)
 
+#### Einfaktorielle ANOVA mit Messwiederholung ----
+
+# Deskriptivstatistik
 library(ez)
 ezStats(alc_long, alcuse, id, within = age)
 
@@ -70,7 +84,11 @@ var(alc[, c('diff_1415', 'diff_1416', 'diff_1516')])
 
 ezANOVA(data = alc_long, dv = alcuse, wid = id, within = age)
 
+# Effektgröße und ICC
+
 psych::ICC(alc[, c('alcuse.14', 'alcuse.15', 'alcuse.16')])
+
+#### Kontraste ----
 
 library(emmeans)
 
@@ -125,6 +143,8 @@ contrast(em, method = 'pairwise',
 contrast(em,
   adjust = 'bonferroni')
 
+#### Split-Plot ANOVA
+
 # Deskriptive Statistiken
 ezStats(alc_long, 
   dv = alcuse, 
@@ -153,105 +173,3 @@ ezANOVA(alc_long,
   wid = id, 
   within = age, 
   between = coa)
-
-
-set.seed(123) # für Vergleichbarkeit
-Means <- c(0, 0, 0) # wahren Mittelwerte pro Zeitpunkt
-Y <- Means[1] + rnorm(30)
-Y <- c(Y, Means[2] + rnorm(30))
-Y <- c(Y, Means[3] + rnorm(30))
-
-times <- c(rep("1", 30), rep("2", 30), rep("3", 30))
-id <- c(1:30, 1:30, 1:30)
-df <- data.frame(Y, times, id)
-df$times <- as.factor(times)
-df$id <- as.factor(df$id)
-head(df)
-
-ezPlot(df, Y, id, within = times,
-  x = times) +
-  geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
-              formula = y ~ x) +
-  geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
-    formula = y ~ x + I(x^2), color = 'red')+
-    geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
-    formula = y ~ 1, color = 'gold3')
-whd_aov <- aov(Y ~ times + Error(id/times), data = data.frame(df))
-em <- emmeans(whd_aov, ~ times)
-contrast(em, interaction = 'poly')
-
-
-set.seed(123) # für Vergleichbarkeit
-Means <- c(0, 1, 2) # wahren Mittelwerte pro Zeitpunkt
-Y <- Means[1] + rnorm(30)
-Y <- c(Y, Means[2] + rnorm(30))
-Y <- c(Y, Means[3] + rnorm(30))
-
-times <- c(rep("1", 30), rep("2", 30), rep("3", 30))
-id <- c(1:30, 1:30, 1:30)
-df <- data.frame(Y, times, id)
-df$times <- as.factor(times)
-df$id <- as.factor(df$id)
-head(df)
-
-ezPlot(df, Y, id, within = times,
-  x = times) +
-  geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
-              formula = y ~ x) +
-  geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
-    formula = y ~ x + I(x^2), color = 'red')+
-    geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
-    formula = y ~ 1, color = 'gold3')
-whd_aov <- aov(Y ~ times + Error(id/times), data = data.frame(df))
-em <- emmeans(whd_aov, ~ times)
-contrast(em, interaction = 'poly')
-
-set.seed(123) # für Vergleichbarkeit
-Means <- c(0, 1, 0) # wahren Mittelwerte pro Zeitpunkt
-Y <- Means[1] + rnorm(30)
-Y <- c(Y, Means[2] + rnorm(30))
-Y <- c(Y, Means[3] + rnorm(30))
-
-times <- c(rep("1", 30), rep("2", 30), rep("3", 30))
-id <- c(1:30, 1:30, 1:30)
-df <- data.frame(Y, times, id)
-df$times <- as.factor(times)
-df$id <- as.factor(df$id)
-head(df)
-
-ezPlot(df, Y, id, within = times,
-  x = times) +
-  geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
-              formula = y ~ x) +
-  geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
-    formula = y ~ x + I(x^2), color = 'red')+
-    geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
-    formula = y ~ 1, color = 'gold3')
-whd_aov <- aov(Y ~ times + Error(id/times), data = data.frame(df))
-em <- emmeans(whd_aov, ~ times)
-contrast(em, interaction = 'poly')
-
-set.seed(1234) # für Vergleichbarkeit
-Means <- c(1^2, 2^2, 3^2) # wahren Mittelwerte pro Zeitpunkt
-Y <- Means[1] + rnorm(30)
-Y <- c(Y, Means[2] + rnorm(30))
-Y <- c(Y, Means[3] + rnorm(30))
-
-times <- c(rep("1", 30), rep("2", 30), rep("3", 30))
-id <- c(1:30, 1:30, 1:30)
-df <- data.frame(Y, times, id)
-df$times <- as.factor(times)
-df$id <- as.factor(df$id)
-head(df)
-
-ezPlot(df, Y, id, within = times,
-  x = times) +
-  geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
-              formula = y ~ x) +
-  geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
-    formula = y ~ x + I(x^2), color = 'red')+
-    geom_smooth(aes(x = as.numeric(times)), method = 'lm', se = FALSE,
-    formula = y ~ 1, color = 'gold3')
-whd_aov <- aov(Y ~ times + Error(id/times), data = data.frame(df))
-em <- emmeans(whd_aov, ~ times)
-contrast(em, interaction = 'poly')

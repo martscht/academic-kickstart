@@ -2,16 +2,19 @@
 #Dieses Skript stammt von https://pandar.netlify.app/post/PsyBsc7_R_Files/10_reg4.R, von der PandaR-Website der Goethe Universität Frankfurt.
 #Die Autoren dieses Skripts sind Julien P. Irmer & Johannes Hartig. Skriptkompilierung von Kevin Pommeranz.
 
-## load("C:/Users/Musterfrau/Desktop/PISA2009.rda")
 
+
+#Auskommentieren um Datensatz zu laden
 load(url("https://pandar.netlify.app/post/PISA2009.rda"))
 
+#Packages der Session
 library(car)
 library(MASS)
 library(lm.beta) # erforderlich für standardiserte Gewichte
 library(ggplot2)
 library(interactions) # für Interaktionsplots in moderierten Regressionen
 
+#### Quadratische Verläufe an Beispiel ----
 # Berechnung des Modells und Ausgabe der Ergebnisse
 m1 <- lm(Reading ~ HISEI + MotherEdu + Books, data = PISA2009)
 summary(lm.beta(m1))
@@ -34,6 +37,7 @@ ggplot(data = df_res, aes(x = res)) +
 # Test auf Abweichung von der Normalverteilung mit dem Shpiro Test
 shapiro.test(res)
 
+# Aufnahme eines quadratischen Effekts
 m1.b <- lm(Reading ~ HISEI + poly(MotherEdu, 2) + Books, data = PISA2009)
 summary(lm.beta(m1.b))
 

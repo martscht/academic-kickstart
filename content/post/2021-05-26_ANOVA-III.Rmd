@@ -29,7 +29,7 @@ knitr::opts_chunk$set(fig.align = "center")
 options(knitr.duplicate.label = "allow") #Muss gesetzt werden, Setup-Chunk blockiert sonst Durchführung da er zeitweise doppelt existiert
 options(knitr.purl.inline = FALSE) #Inline-Code wird hiermit entweder mit ins Skript übernommen (TRUE) oder ausgelassen (FALSE)
 knitr::purl("2021-05-26_ANOVA-III.Rmd", documentation = 0) #Legt fest das Purl nur die Chunkinhalte(0) in ein R-Skript umwandelt!; NAME DES RMD MUSS EINGESTELLT WERDEN!
-file.rename("2021-05-26_ANOVA-III.R","PsyBsc7_R_Files/09_anova3.R") #NAME DER R-DATEI MUSS ANGEPASST WERDEN AN RMD-NAMEN!UNTERORDNER SOLLTE MIT KURS ÜBEREINSTIMMEN! (Siehe Ordner in /post)
+file.rename("2021-05-26_ANOVA-III.R","PsyBSc7_R_Files/09_anova3.R") #NAME DER R-DATEI MUSS ANGEPASST WERDEN AN RMD-NAMEN!UNTERORDNER SOLLTE MIT KURS ÜBEREINSTIMMEN! (Siehe Ordner in /post)
 ```
 
 ```{r Info, purl=TRUE, echo=FALSE}
@@ -46,17 +46,19 @@ In den letzten beiden Sitzungen ging es darum Unterschiede *zwischen* Personen z
 
 Wir laden zunächst die Daten, entweder lokal von Ihrem Rechner:
 
-```{r, eval = F}
+```{r, eval = F, purl=FALSE}
 load("C:/Users/Musterfrau/Desktop/alc.rda")
 ```
 
 oder wir laden sie direkt über die Website:
 
-```{r, eval = T}
+```{r, eval = T, echo=-1}
+# Ausklammern um Datensatz zu laden
 load(url("https://pandar.netlify.app/post/alc.rda"))
 ```
 
-```{r}
+```{r, echo=-1}
+# Datensatz anschauen
 dim(alc)
 head(alc)
 ```
@@ -90,7 +92,8 @@ Im langen Format hingegen bekommt jede Versuchsperson für jeden Messzeitpunkt e
 
 Wenn wir uns den Datensatz `alc` anschauen sehen wir, dass er erstmal im breiten Format vorliegt. Eine weitere Bestätigung dafür ist, dass jede `ID` auch nur einmal vorkommt.
 
-```{r}
+```{r, echo=-1}
+# Kontrollieren, dass jede id nur einmal vorkommt
 table(alc$id)
 ```
 
@@ -104,7 +107,8 @@ Weil die Benennung und Handhabung von Argumenten in `reshape` mitunter etwas un�
 
 Den umgewndelten Datensatz wollen wir direkt ablegen. Allerdings wollen wir den Datensatz im breiten Format nicht überschreiben, weshalb wir den Namen `alc_long` verwenden. Im Minimalfall sieht die Umwandlung also so aus:
 
-```{r}
+```{r, echo=-1}
+#### Datensatz zu Langformat transformieren ----
 alc_long <- reshape(data = alc,
   varying = list(c('alcuse.14', 'alcuse.15', 'alcuse.16')),
   direction = 'long')
@@ -114,20 +118,23 @@ head(alc_long)
 
 Das Argument `varying` bedarf einer zweiten Betrachtung: hier wird eine Liste von Vektoren erstellt. Die Vektoren enthalten jeweils die Namen der Variablen, die zusammen Messwiederholungen der gleichen Variable sind. Wenn wir z.B. einen weiteren Satz aus drei Variablen hätten, die `weeduse` hieße, würde diese Liste so aussehen:
 
-```{r, eval = FALSE}
+```{r, eval = FALSE, echo=-1}
+# Theoretisches Beispiel
 varying = list(c('alcuse.14', 'alcuse.15', 'alcuse.16'),
   c('weeduse.14', 'weeduse.15', 'weeduse.16'))
 ```
 
 Per Voreinstellung werden alle Variablen übernommen, die nicht explizit als `varying` angegeben werden. Diese Variablen haben dann für jede Zeile, die die gleiche Person betrifft, auch den gleichen Wert. Wenn wir die Werte für die erste Person betrachten:
 
-```{r}
+```{r, echo=-1}
+# Werte betrachten
 alc_long[alc_long$id == 1, ]
 ```
 
 sehen wir diese Variablen in den ersten vier Spalten wieder (`r names(alc_long)[1:4]`). Die nächste Variable ist die Zeitvariable, die von R automatisch als `time` benannt wird. Wenn wir etwas anderes nutzen möchten, können wir mit `timevar` explizit einen Namen vergeben (weil die Wiederholungen das Alter der Jugendlichen sind, bietet sich `age` an):
 
-```{r}
+```{r, echo=-1}
+# timevar bestimmen
 alc_long <- reshape(data = alc,
   varying = list(c('alcuse.14', 'alcuse.15', 'alcuse.16')),
   direction = 'long',
@@ -138,7 +145,8 @@ head(alc_long)
 
 Das Problem mit dieser neuen Variable ist jetzt noch, dass sie nicht das korrekte Alter der Jugendlichen kodiert, sondern stattdessen einfach bei 1 anfängt und hoch zählt. Auch das können wir per Argument ändern:
 
-```{r}
+```{r, echo=-1}
+# Alter korrekt kodieren per times
 alc_long <- reshape(data = alc,
   varying = list(c('alcuse.14', 'alcuse.15', 'alcuse.16')),
   direction = 'long',
@@ -150,7 +158,8 @@ head(alc_long)
 
 Zu guter Letzt wird für die neuen Variablen automatisch der erste Name wiederverwendet. Hier ist der Name der neuen, messwiederholten Variable also `alcuse.14`. Weil in der Variable aber jetzt nicht mehr nur der Alkoholkonsum im 14. Lebensjahr enthalten ist, sondern für alle Jahre von 14 bis 16, bietet es sich an, hier auch einen allgemeineren Namen zu verwenden:
 
-```{r}
+```{r, echo=-1}
+# Umbenennung von varying-Variablen
 alc_long <- reshape(data = alc,
   varying = list(c('alcuse.14', 'alcuse.15', 'alcuse.16')),
   direction = 'long',
@@ -172,7 +181,9 @@ Der Vollständigkeit halber können wir auch noch überlegen, wie man diesen Dat
   - `idvar`: der Personen-Identifikator
   - `direction`: das Zielformat des neuen Datensatzes
 
-```{r}
+```{r, echo=-1}
+#### Rückübertragung in breites Format ---
+
 alc_wide <- reshape(alc_long, 
             v.names = 'alcuse', 
             timevar = 'age', 
@@ -196,7 +207,10 @@ Die Umsetzung in `R` funktioniert aber ähnlich mit den in den letzten Sitzungen
 
 In diesem Fall ist von Interesse, wie sich der **Alkoholkonsum von Jugendlichen zwischen 14 und 16 verändert**. Dafür können wir zunächst deskriptiv betrachten, wie die Mittelwerte sich über die Zeit verändern:
 
-```{r}
+```{r, echo=c(-1:-3)}
+#### Einfaktorielle ANOVA mit Messwiederholung ----
+
+# Deskriptivstatistik
 library(ez)
 ezStats(alc_long, alcuse, id, within = age)
 ```
@@ -259,7 +273,9 @@ ICC | klein | mittel | groß
 
 Die ICC kann generell als $\frac{\sigma^2_{\pi}}{\sigma^2_{\pi} + \sigma^2_{\epsilon}}$ berechnet werden. Dabei ist $\sigma^2_{\pi}$ die Personenvarianz und $\sigma^2_{\epsilon}$ die Residualvarianz. Beide können direkt aus den mittleren Quadratsummen berechnet werden. Alternativ kann die `ICC`-Funktion aus dem `psych`-Paket genutzt werden:
 
-```{r}
+```{r, echo=-1}
+# Effektgröße und ICC
+
 psych::ICC(alc[, c('alcuse.14', 'alcuse.15', 'alcuse.16')])
 ```
 
@@ -271,6 +287,8 @@ Der in diesem Fall relevante ICC-Typ (`type`) ist als `ICC1` gelistet. In diesem
 Wie für eine [ANOVA ohne Messwiederholung](/post/anova2/), kann auch in diesem Fall mit dem `emmeans`-Paket die Kontrastanalyse durchgeführt werden.
 
 ```{r}
+#### Kontraste ----
+
 library(emmeans)
 ```
 
@@ -448,7 +466,9 @@ Wir sehen also, dass die paarweisen Vergleiche extrem schnell anwachsen, was nat
 
 Untersuchungen, in denen *mehrere Gruppen und mehrere Messungen gleichzeitig* betrachtet werden, werden häufig **Split-Plot Designs** genannt. Im aktuellen Datensatz können Jugendliche danach in Gruppen eingeteilt werden, ob ihre Eltern Alkoholiker sind (`coa`). Die entsprechende Syntax für das `ez`-Paket ist eine einfache Kombination aus der Syntax für die beiden Typen der ANOVA, die wir bereits behandelt haben:
 
-```{r}
+```{r, echo=-1}
+#### Split-Plot ANOVA
+
 # Deskriptive Statistiken
 ezStats(alc_long, 
   dv = alcuse, 
@@ -514,7 +534,7 @@ Bezüglich der Ergebnisse der ANOVA zeigt sich, dass das Alter (korrigierte Effe
 
 Wir schauen uns im Folgenden simulierte Daten an und betrachten  nochmals die 3 Trends (horizontal, linear, quadratisch). Wir beginnen mit einem horiziontalen Trend in den Daten an. Die wahren Mittelwerte werden als (0, 0, 0) gewählt:
 
-```{r, warning=F, message=F}
+```{r, warning=F, message=F, purl=FALSE}
 
 set.seed(123) # für Vergleichbarkeit
 Means <- c(0, 0, 0) # wahren Mittelwerte pro Zeitpunkt
@@ -545,7 +565,7 @@ Sowohl der lineare als auch der quadratische Trend sind **nicht** signifikant! D
 
 Nun schauen wir uns einen linearen Trend mit Mittelwerten (0, 1, 2) an:
 
-```{r, warning=F, message=F}
+```{r, warning=F, message=F, purl=FALSE}
 
 set.seed(123) # für Vergleichbarkeit
 Means <- c(0, 1, 2) # wahren Mittelwerte pro Zeitpunkt
@@ -577,7 +597,7 @@ Diesmal ist nur der lineare Trend signifikant. Die Mittelwerte steigen mit jedem
 
 Nun schauen wir uns einen (umgekehrt) U-förmigen Verlauf an mit Mittelwerten: (0, 1, 0):
 
-```{r, warning=F, message=F}
+```{r, warning=F, message=F, purl=FALSE}
 set.seed(123) # für Vergleichbarkeit
 Means <- c(0, 1, 0) # wahren Mittelwerte pro Zeitpunkt
 Y <- Means[1] + rnorm(30)
@@ -606,7 +626,7 @@ contrast(em, interaction = 'poly')
 
 Es ist nur der quadratische Trend signifikant, da wir ja gesehen hatten, dass der Kontrast für den linearen Trend nur die beiden äußeren Mittelwerte gegeneinander testet ($\mu_1$ vs $\mu_3$), welche sich aber nicht unterscheiden und somit auch die blau Gerade horizontal erscheint (sie ist nicht/kaum von der gelben zu unterscheiden)! Schauen wir uns doch einmal einen Verlauf an, in welchem sowohl der lineare als auch de quadratische Trend signifikant ist. Das ist der Fall, wenn die Mittelwerte bspw. "beschleunigt" steigen mit den Zeitpunkten. wir wählen die Mittelwerte als (1, 4, 9), also $t^2$. 
 
-```{r, warning=F, message=F}
+```{r, warning=F, message=F, purl=FALSE}
 set.seed(1234) # für Vergleichbarkeit
 Means <- c(1^2, 2^2, 3^2) # wahren Mittelwerte pro Zeitpunkt
 Y <- Means[1] + rnorm(30)
@@ -642,7 +662,7 @@ Wir erkennen, dass sowohl der lineare als auch der quadratische Trend signifikan
 
 
 ## R-Skript
-Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")`hier herunterladen](/post/PsyBSc7_R_Files/ANOVA-III.R).
+Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")`hier herunterladen](/post/PsyBSc7_R_Files/09_anova3.R).
 
 ***
 

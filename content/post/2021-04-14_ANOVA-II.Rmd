@@ -27,7 +27,7 @@ knitr::opts_chunk$set(fig.align = "center")
 options(knitr.duplicate.label = "allow") #Muss gesetzt werden, Setup-Chunk blockiert sonst Durchführung da er zeitweise doppelt existiert
 options(knitr.purl.inline = FALSE) #Inline-Code wird hiermit entweder mit ins Skript übernommen (TRUE) oder ausgelassen (FALSE)
 knitr::purl("2021-04-14_ANOVA-II.Rmd", documentation = 0) #Legt fest das Purl nur die Chunkinhalte(0) in ein R-Skript umwandelt!; NAME DES RMD MUSS EINGESTELLT WERDEN!
-file.rename("2021-04-14_ANOVA-II.R","PsyBsc7_R_Files/08_anova2.R") #NAME DER R-DATEI MUSS ANGEPASST WERDEN AN RMD-NAMEN!UNTERORDNER SOLLTE MIT KURS ÜBEREINSTIMMEN! (Siehe Ordner in /post)
+file.rename("2021-04-14_ANOVA-II.R","PsyBSc7_R_Files/08_anova2.R") #NAME DER R-DATEI MUSS ANGEPASST WERDEN AN RMD-NAMEN!UNTERORDNER SOLLTE MIT KURS ÜBEREINSTIMMEN! (Siehe Ordner in /post)
 ```
 
 ```{r Info, purl=TRUE, echo=FALSE}
@@ -44,26 +44,42 @@ Wir arbeiten wieder mit dem `conspiracy` Datensatz. Sie können den im Folgenden
 ### Daten laden
 Wir laden zunächst die Daten: entweder lokal von Ihrem Rechner:
 
-```{r, eval = F}
+```{r, eval = F, purl=FALSE}
 load("C:/Users/Musterfrau/Desktop/conspiracy.rda")
 ```
 
 oder wir laden sie direkt über die Website:
 
-```{r, eval = T}
+```{r, eval = T, echo=-1}
+#Auskommentierne um Datensatz zu laden
 load(url("https://pandar.netlify.app/post/conspiracy.rda"))
 ```
 
 Eine kurze Übersicht über den Datensatz zeigt:
 
-```{r}
+```{r, echo=-1}
+#Übersicht über Datensatz
 dim(conspiracy)
 ```
 
 Der Datensatz enthält die Werte von 2451 Personen auf 9 Variablen. 
 
-```{r}
+```{r, echo=2}
+# Darstellung der 9 Variablen und ihren ersten 6 Einträgen
 head(conspiracy)
+
+## Demographischer Hintergrund
+# edu = Bildungsabschluss
+# urban = Wohnort
+# gender = Geschlecht
+# age = Alter
+
+## Subskalen verschwörungstheoretischer Überzeugungen
+# GM = government malfeasance
+# MG = malevolent global conspiracies
+# ET = extraterrestrial cover-up
+# PW = personal well-being
+# CI = control of information
 ```
 
 Er stammt aus einer Untersuchung zum Thema *verschwörungstheoretische Überzegungen*. Die **ersten vier Variablen** enthalten Informationen über den demographischen Hintergrund der Personen: höchster Bildungsabschluss (`edu`), Typ des Wohnortes (`urban`), Geschlecht (`gender`) und Alter (`age`). Die **fünf restlichen Variablen** sind Skalenwerte bezüglich verschiedener subdimensionen verschwörungstheoretischer Überzeugungen: `GM` (goverment malfeasance), `MG` (malevolent global conspiracies), `ET` (extraterrestrial cover-up), `PW` (personal well-being) und `CI` (control of information).
@@ -73,19 +89,22 @@ Er stammt aus einer Untersuchung zum Thema *verschwörungstheoretische Überzegu
 
 In der letzten Sitzung zeigte sich, dass die Überzeugung, dass die Existenz von Außerirdischen durch eine globale Verschwörung verdeckt wird (`ET`), von der Art des Wohngebiets (`urban`) abhängig ist. Zur Berechnung der einfaktoriellen ANOVA wurde das `ez`-Paket verwendet. Dieses Paket brauchen wir weiterhin:
 
-```{r, message = F}
+```{r, message = F, echo=-1}
+#### Einfaktorielle Anova ----
 library(ez)
 ```
 
 Wie schon in der letzten Sitzung, ist es zunächst erforderlich eine Personen-ID zu erzeugen. In diesem Fall kann einfach die Zeilennummer einer Person genutzt werden:
 
-```{r}
+```{r, echo=-1}
+# Personen-ID für ezANOVA
 conspiracy$id <- as.factor(1:nrow(conspiracy))
 ```
 
 Wir führen zur kurzen Wiederholung noch einmal die einfaktorielle ANOVA bezüglich des Wohnortes durch, um uns zu vergegenwärtigen, wie der `ezANOVA`-Befehl funktioniert! Der `ezANOVA` Befehl, um eine einfaktorielle ANOVA durchzuführen, braucht vier Argumente: `data` übergeben wir unseren Datensatz (`data = conspiracy`), `wid` kennzeichnet den Within-Identifier, eine Personen ID Variable, weswegen wir diesem Argument unsere ID-Variable übergeben (`wid = id`),  `dv` steht für "Dependent Variable", also abhängige Variable, weswegen wir hier die Überzeugung, dass die Existenz von Außerirdischen durch eine globale Verschwörung verdeckt wird, übergeben (`dv = ET`), `between` ist die unabhängige Variable, die zwischen Personen unterscheidet, also die Gruppierungsvariable für deren Effekt wir uns interessieren, hier die Art des Wohngebiets (`between = urban`).
 
-```{r}
+```{r, echo=-1}
+# Wiederholung von voriger Sitzung
 ezANOVA(data = conspiracy, wid = id, dv = ET, between = urban)
 ```
 
@@ -93,20 +112,22 @@ Die Ergebnisse zeigen, dass die Annahme der Homoskedastizität nicht verworfen w
 
 Die Ergebnisse aus den Übungsaufgaben ergaben bezüglich des Bildungabschlusses:
 
-```{r, echo = FALSE}
+```{r, echo = FALSE, purl=FALSE}
 ezANOVA(conspiracy, wid = id, dv = ET, between = edu, white.adjust = TRUE)
 ```
 
 Hier musste die Annahme der Homoskedastizität verworfen werden ($p$ < .05), sodass eine Adjustierung der Inferenzstatistik durchgeführt werden sollte (`white.adjust = TRUE`). Im ersten Fall erhalten wir auch das generalisierte partielle $\eta^2$, also einen Schätzer der Effektstärke, die im Grunde angibt, wie viel systematische Variation in den Daten ist, relativ zur zufälligen Schwankung. Um dies in der Skala der ursprünglichen Variablen zu interpretieren, können wir uns rein deskriptiv die gruppenspezifischen Mittelwerte angucken. Dazu kann mit einer Vielzahl von Funktionen gearbeitet werden. Eine gängige Variante ist der `tapply`-Befehl:
 
-```{r}
+```{r, echo=-1}
+# Gruppenspezifische Mittelwerte mit tapply()
 tapply(X = conspiracy$ET, INDEX = conspiracy$urban, FUN = mean)
 tapply(X = conspiracy$ET, INDEX = conspiracy$edu, FUN = mean)
 ```
 
 Dieser Funktion müssen jeweils die Daten (`X`), ein Index für Gruppierung (`INDEX`) sowie eine Funktion, die auf die Subgruppen angewendet werden soll (`FUN`, hier der Mittelwert, deshalb `FUN = mean`), übergeben werden. Es gibt jedoch noch unzählbar viele andere Wege zum selben Ergebnis zu kommen. Hier einige Beispiele:
 
-```{r}
+```{r, echo=-1}
+# Beispiel mit aggregate
 # Mithilfe des aggregate-Befehls
 aggregate(ET ~ urban, data = conspiracy, mean)
 aggregate(ET ~ edu, data = conspiracy, mean)
@@ -125,7 +146,8 @@ describeBy(conspiracy$ET, conspiracy$edu)
 
 In der mehrfaktoriellen ANOVA steht nicht nur der Vergleich von Gruppen anhand *einer* unabhängigen Variable im Mittelpunkt, sondern der Fokus liegt auf der *Kombination von Gruppierungen* anhand mehrerer unabhängiger Variablen. Deksriptiv können die Mittelwerte aus Gruppenkombinationen ebenfalls mit der `tapply`-Funktion bestimmt werden:
 
-```{r}
+```{r, echo=-1}
+#### Mehrfaktorielle ANOVA ----
 # Gruppierungskombinationen erstellen
 kombi <- conspiracy[, c('urban', 'edu')]
 
@@ -142,7 +164,8 @@ Im `ez`-Paket sind neben den Funktionen zur direkten Berechnung von Varianzanaly
 
 Um mehrere Variablen als unabhängige Variablen zu deklarieren, kann mit `c()` ein Vektor eröffnet werden, der an das Argument `between` weitergegeben wird.
 
-```{r}
+```{r, echo=-1}
+# Darstellung von Werten mit ezStats
 ezStats(conspiracy, dv = ET, wid = id, between = c(urban, edu))
 ```
 
@@ -150,7 +173,8 @@ Neben $N$, $\bar{X}$ und $\hat{\sigma}$ wird in der Ausgabe auch *Fisher's Least
 
 Für eine grafische Darstellung der Mittelwerte, kann `ezPlot` benutzt werden. Der Befehl nimmt die gleichen Argumente entgegen wie `ezStats`, benötigt aber zusätzlich eine Aussage darüber, welche Variable auf der x-Achse abgetragen werden soll (`x = `) und welche Variable farblich unterschieden werden soll (`split = `). Mit dieser Funktion wird dann ein `ggplot` erstellt. Diesen könnten Sie mit dem, was wir in der [Sitzung zu `ggplot2`](/post/grafiken-mit-ggplot2) besprochen haben, auch händisch erstellen! `ezPlot` nimmt Ihnen hier aber ein wenig Arbeit ab:
 
-```{r}
+```{r, echo=-1}
+# grafische Darstellung der Mittelwerte
 ezPlot(conspiracy, dv = ET, wid = id, between = c(urban, edu),
   x = urban, split = edu)
 ```
@@ -198,7 +222,8 @@ Da wir wissen wollen, ob sich die Effekte $\alpha_j$, $\beta_k$ und $\gamma_{jk}
 
 Die drei Nullhypothesen werden in der **zweifaktoriellen ANOVA** geprüft. Die für `ezStats` genutzten Argumente können auch für `ezANOVA` benutzt werden. Um eine etwas detailliertere Ausgabe zu erhalten, kann zudem `detailed = TRUE` gesetzt werden.
 
-```{r}
+```{r, echo=-1}
+# mehrfaktorielle ANOVA mit ez
 ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), detailed = TRUE)
 ```
 
@@ -206,7 +231,8 @@ In der ANOVA erhalten wir folgende Informationen: `Effect` ist die unabhängige 
 
 Der *Levene Test* fällt in diesem Fall statistisch bedeutsam aus, sodass die Homoskedastizitätsannahme (in diesem Fall: die Varianz ist in allen 9 Gruppen identisch) verworfen werden muss. `ezANOVA` liefert eine eingebaute Korrekturmöglichkeit (HC3 von MacKinnon & White, 1985), die mithilfe `white.adjust = TRUE` angefordert werden kann. Probieren Sie das doch einmal selbst aus, indem Sie den Code kopieren und die Korrektur anfordern! Wie verändert das die Ergebnisse, die Ihnen ausgegeben werden?
 
-```{r}
+```{r, echo=-1}
+# adjust wegen signifikantem Levene Test
 ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), detailed = TRUE, white.adjust = TRUE)
 ```
 
@@ -223,13 +249,15 @@ Welche unterschiedlichen Kombinationen an Signifikanzen es gibt und was diese sc
 
 Mit *Tukeys Honest Significant Difference* können, wie auch in der [letzten Sitzung](/post/anova1/), alle möglichen Gruppenkombinationen verglichen werden. Wir müssen die `TuckeyHSD` Funktion auf ein `aov`-Objekt anwenden.
 
-```{r}
+```{r, echo=-1}
+#### Post-Hoc Analyse ----
 TukeyHSD(aov(ET ~ urban*edu, conspiracy))
 ```
 
 Leider ist das Ergebnis etwas unübersichtlich, weil sich in diesem Fall 36 Vergleiche ergeben. Mit ein paar Funktionen aus dem `emmeans`-Paket können wir versuchen, das optisch etwas aufzubereiten. Dafür müssen wir zunächst das Paket laden:
 
-```{r}
+```{r, echo=-1}
+# Schönere Darstellung mit emmeans
 library(emmeans)
 ```
 
@@ -273,7 +301,8 @@ In dieser Abbildung ist auf der x-Achse der $p$-Wert des Mittelwertvergleichs da
 
 Wir hätten auch mit Hilfe des `ezANOVA`-Befehls ein `aov`-Objekt erhalten können, mit welchem wir die oben aufgeführten Späße hätten durchführen können. Dazu müssen wir das Objekt lediglich abspeichern und das Argument `return_aov` auf `T`, bzw. `TRUE` setzen:
 
-```{r, warning = F, message = F}
+```{r, warning = F, message = F, echo=-1}
+# aov-Objekt mit ezANOVA erzeugen
 ez1 <- ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), detailed = TRUE, return_aov = T)
 aov1 <- ez1$aov
 emm1 <- emmeans(aov1, ~ urban * edu)
@@ -288,7 +317,8 @@ In Situationen mit vielen Gruppen ist es außerordentlich ineffizient, *alle* Ve
 
 Um Kontraste definieren zu können, müssen wir zunächst in Erfahrung bringen, in welcher Reihenfolge die Gruppenkombinationen intern repräsentiert werden. Diese Reihenfolge haben wir bereits im `emm`-Objekt gesehen:
 
-```{r}
+```{r, echo=-1}
+#### Kontraste ----
 emm
 ```
 
@@ -350,7 +380,7 @@ Bei mehrfaktoriellen ANOVAs können die Quadratsummen auf unterschiedliche Arten
 
 Typ I berücksichtigt in der Berechnung der Quadratsummen nur die vorherigen unabhängigen Variablen. Dies entspricht konzeptuell der sequentiellen Aufnahme von Prädiktoren in der Regression.
 
-```{r}
+```{r, purl=FALSE}
 # QS-Typ 1, Reihenfolge 1
 ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), type = 1)
 
@@ -360,7 +390,7 @@ ezANOVA(conspiracy, dv = ET, wid = id, between = c(edu, urban), type = 1)
 
 Dies ist im Übrigen auch der Default im `lm`-Befehl, an den auch einfach eine `factor`-Variable übergeben werden kann. Auf das `lm`-Objekt wird dann die `anova`-Funktion angewandt, um den gängigen ANOVA-Output zu erhalten. Jedoch sollte hier aufgepasst werden, falls Interaktionen bestimmt werden. Der Default ist immer Typ I!
 
-```{r}
+```{r, purl=FALSE}
 # QS-Typ 1, Reihenfolge 1 mit lm
 anova(lm(ET ~ urban*edu, data = conspiracy))
 
@@ -371,7 +401,7 @@ anova(lm(ET ~ edu*urban, data = conspiracy))
 `*` fügt immer neben der Interaktion automatisch noch die Haupteffekte hinzu. Das gleiche funktioniert selbstverständlich auch mit dem `aov` Befehl (ein `aov`-Objekt können wir auch in der `ezANOVA` anfordern und damit weiterrechnen, wir wollen hier aber die Äquvialenz der Vorgehensweisen aufzeigen):
 
 
-```{r}
+```{r, purl=FALSE}
 # QS-Typ 1, Reihenfolge 1 mit aov
 summary(aov(ET ~ urban*edu, data = conspiracy))
 
@@ -385,7 +415,7 @@ Wir sehen deutlich, dass sich der $F$-Wert ändert, je nach dem in welcher Reihe
 
 Typ II berücksichtigt in der Berechnung alle anderen unabhängigen Variablen. In der Berechnung der einzelnen Quadratsummen wird allerdings angenommen, dass alle Interaktionen, an denen dieser Term beteiligt ist, 0 sind. Typ II ist in `ezANOVA` voreingestellt.
 
-```{r}
+```{r, purl=FALSE}
 # QS-Typ 2
 ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), type = 2)
 ```
@@ -394,13 +424,13 @@ Die Quadratsummen mit `lm` zu replizieren, ist extrem aufwendig. Es geht aber au
 
 Zunächst laden wir das Paket:
 
-```{r, message = F, warning=F}
+```{r, message = F, warning=F, purl=FALSE}
 library(car)
 ```
 
 Anschließend verwenden wir `Anova` aus dem `car`-Paket wie zuvor `anova` auf das `lm`-Objekt oder wie die `summary` auf das `aov`-Objekt an. Mit dem Zusatzargument `type = "II"`, stellen wir, analog zu `ezANOVA`, den Quadratsummentyp ein. Die Reihenfolge der Prädiktoren spielt nun keine Rolle mehr!
 
-```{r}
+```{r, purl=FALSE}
 Anova(lm(ET ~ urban*edu, data = conspiracy), type = "II")
 Anova(aov(ET ~ urban*edu, data = conspiracy), type = "II")
 ```
@@ -410,7 +440,7 @@ Anova(aov(ET ~ urban*edu, data = conspiracy), type = "II")
 
 Typ III unterscheidet sich von Typ II nur darin, dass bei der Berechnung nicht angenommen wird, dass die Interaktionen 0 sind. Typ III ist z.B. in SPSS voreingestellt.
 
-```{r}
+```{r, purl=FALSE}
 # QS-Typ 3
 ezANOVA(conspiracy, dv = ET, wid = id, between = c(urban, edu), type = 3)
 ```
@@ -443,7 +473,7 @@ Generell ist Typ II besser geeignet um die Quadratsummen von Haupteffekten zu be
 ***
 
 ## R-Skript
-Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](/post/PsyBSc7_R_Files/ANOVA-II.R).
+Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](/post/PsyBSc7_R_Files/08_anova2.R).
 
 ***
 
