@@ -124,7 +124,7 @@ Wird für den Bildungsabschluss der Mutter mit der Funktion `poly` ein linearer 
 
 
 ```{r exercise_lm_quad-solution, echo=-1}
-# Aufnahme eines quadratischen Effekts
+#### Aufnahme eines quadratischen Effekts ----
 m1.b <- lm(Reading ~ HISEI + poly(MotherEdu, 2) + Books, data = PISA2009)
 summary(lm.beta(m1.b))
 ```
@@ -134,12 +134,14 @@ summary(lm.beta(m1.b))
 <details><summary> **Lineare und quadratische Funktionen von Variablen und deren Kovarianz/Korrelation** </summary>
 
 Wir bestimmen zunächst die Korrelation zwischen `MotherEdu` und `MotherEdu^2`:
-```{r}
+```{r, echo=-1}
+# Korrelation von linearem und quadratischem Effekt
 cor(PISA2009$MotherEdu, PISA2009$MotherEdu^2)
 ```
 und erkennen, dass diese beiden "Variable" extrem hoch korreliert sind. Nun wenden wir `poly` an und wiederholen das Vorgehen:
 
-```{r}
+```{r, echo=-1}
+# Wiederholt mit poly()
 cor(poly(PISA2009$MotherEdu, 2))
 ```
 Heraus kommt eine Korrelationsmatrix und im Eintrag [1,2] erkennen wir, dass die Korrelation nun de facto 0 ist. Was genau `poly` macht, steht in [Appendix A](#AppendixA).
@@ -156,7 +158,8 @@ summary(m1.b)$r.squared - summary(m1)$r.squared # Inkrement
 Wir möchten dieses Inkrement auf Signifikanz prüfen. Dies geht mit dem `anova`-Befehl.
 
 
-```{r}
+```{r, echo=-1}
+# Signifikanzprüfung mit anova()
 anova(m1, m1.b)
 ```
 
@@ -171,7 +174,7 @@ residualPlots(m1.b, pch = 16)
 Was bedeutet nun dieser Effekt inhaltlich? Um dies genauer zu verstehen, stellen wir die um die anderen Variablen bereinigte Beziehung zwischen dem Bildungsabschluss der Mutter und der Leseleistung grafisch dar. 
 
 
-```{r, echo= F, fig.align="center", fig.height=6}
+```{r, echo= F, fig.align="center", fig.height=6, purl=FALSE}
 X <- scale(poly(PISA2009$MotherEdu, 2))
 std_par_ME <- c(0.1588, -0.1436)
 pred_effect_ME <- X %*% std_par_ME
@@ -205,12 +208,14 @@ Der Interaktionsterm ist in diesem Beispiel $X_iZ_i$ und trägt den Koeffiziente
 $$Y_i=\underbrace{(\beta_0 + \beta_2Z_i)}_{\text{Interzept}(Z_i)} + \underbrace{(\beta_1 + \beta_3Z_i)}_{\text{Slope}(Z_i)}X_i + \varepsilon_i.$$
 Hier ist eigentlich gar nichts passiert - wir haben lediglich die Gleichung umgestellt. Allerdings sieht dies nun so aus, als würde vorne ein Interzept $(\beta_0 + \beta_2Z_i)$ und vor $X_i$ ein Slope (Steigungskoeffizient) $(\beta_1 + \beta_3Z_i)$ stehen - beide abhängig von $Z_i$. Deshalb haben wir sie gleich mal $\text{Interzept}(Z_i)$ und $\text{Slope}(Z_i)$ genannt. Genauso könnten wir allerdings auch alles nach $X$ umstellen: $Y_i=(\beta_0 + \beta_1X_i) + (\beta_2 + \beta_3X_i)Z_i + \varepsilon_i.$ Somit ist ersichtlich, dass es keine mathematische Begründung gibt, welche der beiden Variablen der Prädiktor und welche der Moderator ist! Manche sagen auch, dass dieses Modell "symmetrisch" in den beiden Variablen ist, man sie also leicht hinsichtlich der inhaltlichen Interpretation austauschen kann. Sich das Ganze in `R` anzuschauen geht sehr einfach. Wir wollen dies am Datensatz `Schulleistungen.rda` durchführen, den wir bereits aus vorherigen Sitzungen kennen. Wie genau wir an den Datensatz herankommen, können Sie sich in der entsprechenden Sitzung ansehen. Wir laden den Datensatz wie folgt über die Website:
 
-```{r, eval = T, results="hide"}
+```{r, eval = T, results="hide", echo=-1}
+#### Interaktionsterme ----
+
 load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
 head(Schulleistungen)
 ```
 
-```{r, echo = F}
+```{r, echo = F, purl=FALSE}
 knitr::kable(head(Schulleistungen))
 ```
 
@@ -224,14 +229,16 @@ apply(Schulleistungen_std, 2, sd) # Standardabweichungen pro Spalte ausgeben
 
 Nun führen wir eine moderierte Regression durch, in welcher wir in diesem Datensatz die Leseleistung `reading` durch den `IQ` sowie die Matheleistung `math` vorhersagen, sowie durch deren Interaktion. Die Interaktion können wir durch `:` ausdrücken. Falls wir einfach `*` verwenden, werden auch gleich noch die Haupteffekte, also die Variablen selbst, mit aufgenommen. Es gilt also: `math + IQ + math:IQ = math*IQ`, wobei die Interaktion `math:IQ` ist. Um auch wirklich die Interaktion zu testen, ist es unbedingt notwendig, die Haupteffekte der Variablen ebenfalls in das Modell mit aufzunehmen, da die Variablen trotzdem mit der Interaktion korreliert sein können, auch wenn die Variablen zentriert sind.
 
-```{r}
+```{r, echo=-1}
+# moderierte Regression
 mod_reg <- lm(reading ~ math + IQ + math:IQ, data = Schulleistungen_std)
 summary(mod_reg)
 ```
 
 Dem Output entnehmen wir, dass sowohl (1) der Haupteffekt des IQs ($p=$ `r round(coef(summary(mod_reg))[3,4], 4)` $<.05$) als auch (2) die Interaktion mit der Matheleistung signifikant sind ($p=$ `r round(coef(summary(mod_reg))[4,4], 4)` $<.05$). Die Matheleistung an sich bringt aber keine signifikante Vorhersagekraft der Leseleistung ($p=$ `r round(coef(summary(mod_reg))[2,4], 4)` $>.05$). Wie genau  es hier zu diesen Ergebnissen gekommen ist, ist schwer zu sagen. Matheaufgaben von Tests bestehen häufig aus Textaufgaben, welche ein großes Maß an Textverständnis voraussetzen. Daher wäre eine Beziehung zwischen der Matheleistung und der Leseleistung zu erwarten. Wir wollen es so interpretieren, dass die Matheleistung die Beziehung zwischen dem IQ und der Leseleistung moderiert. Somit wäre $X=$ `IQ` (Prädiktor) und $Z=$ `math` (Moderator). Es gibt ein `R`-Paket, dass eine solche Interaktion grafisch darstellt: `interactions`. Nachdem Sie dieses installiert haben, können Sie es laden und die Funktion `interact_plot` verwenden, um diese Interaktion zu veranschaulichen. Dem Argument `model` übergeben wir `mod_reg`, also unser moderiertes Regressionsmodell. Als Prädiktor wählten wir den IQ, also müssen wir dem Argument `pred` den `IQ` übergeben. Der Moderator ist hier die Matheleistung, folglich übergeben wir `math` dem Argument `modx`.
 
-```{r}
+```{r, echo=-1}
+# Grafische Interaktionsdarstellung
 library(interactions)
 interact_plot(model = mod_reg, pred = IQ, modx = math)
 ```
@@ -242,7 +249,7 @@ Interessierte Lesende können sich bei Interesse, welches über diesen Kurs hina
 
 Die folgende Grafik stellt den Sachverhalt noch einmal als 3D Grafik (mit dem Paket `plot3D`) dar (ziemlich cool oder?). In dieser Grafik erkennen wir sehr deutlich, dass die Simple Slopes tatsächlich eine stark vereinfachte Darstellung sind und es tatsächlich unendlich viele bzw. so viele unterschiedliche Beziehungen zwischen Prädiktor (`IQ`) und Kriterium (`reading`) in Abhängigkeit des Moderators (`math`) gibt, wie dieser (`math`) Ausprägungen hat. Der Code zu den Grafiken lässt sich in [Appendix B](#AppendixB) nachlesen.
 
-```{r, echo = F, fig.align="center", fig.height=6, message=F, warning = F}
+```{r, echo = F, fig.align="center", fig.height=6, message=F, warning = F, purl=FALSE}
 library(plot3D)
 # x, y, z variables
 x <- Schulleistungen_std$IQ
@@ -269,7 +276,7 @@ scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
 
 Hier ist die x-Achse ($-links\longleftrightarrow rechts+$) des IQs dargestellt und in die Tiefe ist die Matheleistung (oft z-Achse: ($-vorne\longleftrightarrow hinten+$)). Die y-Achse (im Plot heißt diese blöderweise z-Achse) stellt die Leseleistung dar. ($-unten\longleftrightarrow oben+$). Wir erkennen in dieser Ansicht ein wenig die Simple-Slopes von zuvor, denn die Achse der Matheleistung läuft ins Negative "aus dem Bildschirm hinaus", während sie ins Positive "in den Bildschirm hinein" verläuft. Der nähere Teil der "Hyperebene" weißt eine geringere Beziehung zwischen dem IQ und der Leseleistung auf, während der Teil, der weiter entfernt liegt, eine stärkere Beziehung aufweist. Genau das haben wir auch in den Simple Slopes zuvor gesehen. Dort war für eine hohe Matheleistung die Beziehung zwischen dem IQ und der Leseleistung auch stärker. Wichtig ist, dass in diesem Plot die Beziehung zwischen dem IQ und der Leseleistung für eine fest gewählte Ausprägung der Matheleistung tatsächlich linear verläuft. Es ist also so, dass wir quasi ganz viele Linien aneinander kleben, um diese gewölbte Ebene zu erhalten. Die Ausprägung der Matheleistung ist im nächsten Plot noch besser zu erkennen, in der der Plot etwas gedreht dargestellt wird. Farblich ist außerdem die Ausprägung der Leseleistung dargestellt, damit die Werte leichter zu vergleichen sind. 
 
-```{r, echo =F, fig.align="center", fig.height=6, message=F, warning = F}
+```{r, echo =F, fig.align="center", fig.height=6, message=F, warning = F, purl=FALSE}
 scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
           theta = 20, phi = 20, ticktype = "detailed",
           xlab = "IQ", ylab = "math", zlab = "reading",  
@@ -289,7 +296,7 @@ Mithilfe der Funktion `I()` ("as is", führt dazu, das arithmetische Operatoren 
 ## Appendix A {#AppendixA}
 <details><summary> **Exkurs: Was genau macht `poly`?** </summary>
 
-```{r}
+```{r, purl=FALSE}
 X <- 1:10   # Variable X
 X2 <- X^2   # Variable X hoch 2
 X_poly <- poly(X, 2)  # erzeuge Variable X und X hoch mit Hilfe der poly Funktion
@@ -300,7 +307,7 @@ cbind(X, X2, X_poly)
 Die Funktion `poly` erzeugt sogenannte *orthogonale Polynome*. Das bedeutet, dass zwar die $X$ und $X^2$ berechnet werden, diese Terme anschließend allerdings so transformiert werden, dass sie jeweils einen Mittelwert von *0* und die gleiche Varianz haben und zusätzlich noch unkorreliert sind.  Die Unkorreliertheit ist wichtig, um z.B. einen quadratischen Effekt vom Haupteffekt des Prädiktors trennen zu können. Wenn $X$ nur positive Werte hat, sind $X$ und $X^2$ ohne zusätzliche Transformation hoch miteinander korreliert, sodass der lineare Effekt von $X$ und der quadratische Effekt von $X^2$ nur schwer voneinander getrennt werden können.
  
 
-```{r}
+```{r, purl=FALSE}
 round(apply(X = cbind(X, X2, X_poly), MARGIN = 2, FUN = mean), 2) # Mittelwerte über die Spalten hinweg berechnen
 round(apply(X = cbind(X, X2, X_poly), MARGIN = 2, FUN = sd), 2) # Standardabweichung über die Spalten hinweg berechnen
 round(cor(cbind(X, X2, X_poly)),2) # Korrelationen berechnen
@@ -308,7 +315,7 @@ round(cor(cbind(X, X2, X_poly)),2) # Korrelationen berechnen
 Die Funktion `apply` führt an der Matrix, welche dem Argument `X` übergeben wird, entweder über die Zeilen `MARGIN = 1` oder über die Spalten `MARGIN = 2` (hier jeweils gewählt) die Funktion aus, welche im Argument `FUN` angegeben wird. So wird zunächst mit `FUN = mean` der Mittelwert und anschließend mit `FUN = sd` die Standardabweichung von $X, X^2$ sowie `poly(X, 2)` berechnet. Der Korrelationsmatrix ist zu entnehmen, dass $X$ und $X^2$ in diesem Beispiel sehr hoch miteinander korrelieren und somit gleiche lineare Informationen enthalten ($\hat{r}_{X,X^2}$ = `cor(X, X2)` = 0.97), während die linearen und die quadratischen Anteile in `poly(X, 2)` keinerlei lineare Gemeinsamkeiten haben - sie sind unkorreliert (`cor(poly(X,2)1 , poly(X,2)2)` = 0). Ein weiterer Vorteil ist deshalb, dass sich die Parameterschätzungen des linearen Terms im Modell bei sukzessiver Aufnahme der Anteile von `poly(X, 2)` in ein Regressionmodell nicht (bzw. sehr wenig) ändern. Der Anteil erklärter Varianz bleibt jedoch in allen Modellen gleich - die Modelle sind äquivalent, egal auf welche Art und Weise quadratische Terme gebildet werden. 
 
 
-```{r}
+```{r, purl=FALSE}
 m1.b1 <- lm(Reading ~ HISEI + poly(MotherEdu, 1) + Books, data = PISA2009)
 summary(lm.beta(m1.b1))
 m1.b2 <- lm(Reading ~ HISEI + poly(MotherEdu, 2) + Books, data = PISA2009)
@@ -342,7 +349,7 @@ $$f(x):=ax^2 + bx + c,$$
 wobei $a\neq 0$, da es sich sonst nicht um eine quadratische Funktion handelt. Wäre $a=0$, würde es sich um eine lineare Funktion mit Achsenabschnitt $c$ und Steigung (Slope) $b$ handeln. Wäre zusätzlich $b=0$, handelt es sich um eine horizontale Linie bei $y=f(x)=c$. 
 Für betraglich große $x$ fällt $x^2$ besonders ins Gewicht. Damit entscheidet das Vorzeichen von $a$, ob es sich um eine u-förmige (falls $a>0$) oder eine umgekehrt-u-förmige (falls $a<0$) Beziehung handelt. Die betragliche Größe von $a$ entscheidet hierbei, wie gestaucht die u-förmige Beziehung (die Parabel) ist. Die reine quadratische Beziehung $f(x)=x^2$ sieht so aus:
 
-```{r, fig.align="center", fig.height=6}
+```{r, fig.align="center", fig.height=6, purl=FALSE}
 a <- 1; b <- 0; c <- 0
 x <- seq(-2,2,0.01)
 f <- a*x^2 + b*x + c
@@ -354,7 +361,7 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
 ```
 Wir werden diese Funktion immer als Referenz mit in die Grafiken einzeichnen.
 
-```{r, fig.align="center", fig.height=6}
+```{r, fig.align="center", fig.height=6, purl=FALSE}
 a <- 0.5; b <- 0; c <- 0
 x <- seq(-2,2,0.01)
 f <- a*x^2 + b*x + c
@@ -365,7 +372,7 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
           title = expression("f(x)="~0.5*x^2))
 ```
 
-```{r, fig.align="center", fig.height=6}
+```{r, fig.align="center", fig.height=6, purl=FALSE}
 a <- 2; b <- 0; c <- 0
 x <- seq(-2,2,0.01)
 f <- a*x^2 + b*x + c
@@ -377,7 +384,7 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
 ```
 
 
-```{r, fig.align="center", fig.height=6}
+```{r, fig.align="center", fig.height=6, purl=FALSE}
 a <- -1; b <- 0; c <- 0
 x <- seq(-2,2,0.01)
 f <- a*x^2 + b*x + c
@@ -390,7 +397,7 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
 Diese invers-u-förmige Beziehung ist eine konkave Funktion. Als Eselsbrücke für das Wort *konkav*, welches fast das englische Wort *cave* enthält, können wir uns merken: Eine konkave Funktion stellt eine Art *Höhleneingang* dar.
 
 $c$ bewirkt eine vertikale Verschiebung der Parabel:
-```{r, fig.align="center", fig.height=6}
+```{r, fig.align="center", fig.height=6, purl=FALSE}
 a <- 1; b <- 0; c <- 1
 x <- seq(-2,2,0.01)
 f <- a*x^2 + b*x + c
@@ -403,7 +410,7 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
 
 $b$ bewirkt eine horizontale und vertikale Verschiebung, die nicht mehr leicht vorhersehbar ist. Für $f(x)=x^2+x$ lässt sich beispielsweise durch Umformen $f(x)=x^2+x=x(x+1)$ leicht erkennen, dass diese Funktion zwei Nullstellen bei $0$ und $-1$ hat. Somit ist ersichtlich, dass die Funktion nach unten und nach links verschoben ist:
 
-```{r, fig.align="center", fig.height=6}
+```{r, fig.align="center", fig.height=6, purl=FALSE}
 a <- 1; b <- 1; c <- 0
 x <- seq(-2,2,0.01)
 f <- a*x^2 + b*x + c
@@ -416,7 +423,7 @@ ggplot(data = data_X, aes(x = x,  y = f)) +
 
 Für die genaue Gestalt einer allgemeinen quadratischen Funktion $ax^2 + bx + c$ würden wir die Nullstellen durch das Lösen der Gleichung $ax^2 + bx + c=0$ bestimmen (via *p-q Formel* oder *a-b-c-Formel*). Den Scheitelpunkt würden wir durch das Ableiten und Nullsetzen der Gleichung bestimmen. Wir müssten also $2ax+b=0$ lösen und dies in die Gleichung einsetzen. Wir könnten auch die binomischen Formeln nutzen, um die Funktion in die Gestalt $f(x):=a'(x-b')^2+c'$ oder $f(x):=a'(x-b'_1)(x-b_2')+c'$ zu bekommen, falls die Nullstellen reell sind (also das Gleichungssystem *lösbar* ist), da wir so die Nullstellen ablesen können als $b'$ oder $b_1'$ und $b_2'$, falls $c=0$. Für die Interpretation der Ergebnisse reicht es zu wissen, dass $a$ eine Stauchung bewirkt und entscheind dafür ist, ob die Funktion u-förmig oder invers-u-förmig verläuft.
 
-```{r, fig.align="center", fig.height=6}
+```{r, fig.align="center", fig.height=6, purl=FALSE}
 a <- -0.5; b <- 1; c <- 2
 x <- seq(-2,2,0.01)
 f <- a*x^2 + b*x + c
@@ -432,7 +439,7 @@ $\longrightarrow$ so ähnlich sieht die bedingte Beziehung (kontrolliert für di
 
 <details><summary> **Code für quadratische Verlaufsgrafik** </summary>
 Der Code, der die Grafik des standardisierten vorhergesagten bedingten Verlaufs des Bildungsabschlusses der Mutter erzeugt, sieht folgendermaßen aus:
-```{r, fig.align="center", fig.height=6}
+```{r, fig.align="center", fig.height=6, purl=FALSE}
 X <- scale(poly(PISA2009$MotherEdu, 2))
 std_par_ME <- c(0.1588, -0.1436)
 pred_effect_ME <- X %*% std_par_ME
@@ -451,18 +458,18 @@ Wir verwenden `scale`, um die linearen und quadratischen Anteile des Bildungsabs
 
 Wir vergleichen nun an einem ganz einfachen Beispiel, was `poly` und was Zentrierung bewirkt. Dazu erstellen wir einen Vektor (also eine Variable) $A$ der die Zahlen von 0 bis 10 enthält in 0.1 Schritten:
 
-```{r}
+```{r, purl=FALSE}
 A <- seq(0, 10, 0.1)
 ```
 
 Nun bestimmen wir zunächst die Korrelation zwischen $A$ und $A^2$:
 
-```{r}
+```{r, purl=FALSE}
 cor(A, A^2)
 ```
 welche sehr hoch ausfällt. Wir hatten bereits mit `poly` erkannt, dass diese Funktion die linearen und quadratischen Anteile trennt. Nun zentrieren wir die Daten. Das geht entweder händisch oder mit der `scale` Funktion:
 
-```{r}
+```{r, purl=FALSE}
 A_c <- A - mean(A)
 mean(A_c)
 
@@ -472,7 +479,7 @@ mean(A_c2)
 
 Nun vergleichen wir die Korrelationen zwischen $A_c$ mit $A_c^2$ mit den Ergebnissen von `poly`:
 
-```{r}
+```{r, purl=FALSE}
 cor(A_c, A_c^2)
 cor(poly(A, 2))
 
@@ -484,7 +491,7 @@ beide Vorgehensweisen sind bis auf 15 Nachkommastellen identisch!
 
 Spaßeshalber nehmen wir noch die Terme $A^3$ und $A^4$ auf und vergleichen die Ergebnisse:
 
-```{r}
+```{r, purl=FALSE}
 # auf 15 Nachkommastellen gerundet:
 round(cor(cbind(A, A^2, A^3, A^4)), 2)
 round(cor(cbind(A_c, A_c^2, A_c^3, A_c^4)), 2) 
@@ -521,7 +528,7 @@ Folglich können wir sagen, dass
 
 wobei wir hier benutzen, dass die Kovarianz mit sich selbst die Varianz ist und dass die zentrierte Variable $A_c$ die gleiche Varianz wie $A$ hat  (im Allgemeinen, siehe weiter unten, bleibt auch noch die Kovarianz zwischen $A_c$ und $A_c^2$ erhalten). Dies können wir leicht prüfen:
 
-```{r}
+```{r, purl=FALSE}
 var(A)
 var(A_c)
 
@@ -554,7 +561,7 @@ somit wird die Kovarianz zwischen $A$ und $A^2$ künstlich vergrößert, wenn di
 <details><summary> **Code zu 3D Grafiken** </summary>
 
 
-```{r, echo = T, fig.align="center", fig.height=6, message=F, warning = F}
+```{r, echo = T, fig.align="center", fig.height=6, message=F, warning = F, purl=FALSE}
 library(plot3D)
 # Übersichtlicher: Vorbereitung
 x <- Schulleistungen_std$IQ
@@ -579,7 +586,7 @@ scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
 ```
 
 
-```{r, echo =T, fig.align="center", fig.height=6, message=F, warning = F}
+```{r, echo =T, fig.align="center", fig.height=6, message=F, warning = F, purl=FALSE}
 scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
           theta = 20, phi = 20, ticktype = "detailed",
           xlab = "IQ", ylab = "math", zlab = "reading",  
@@ -598,7 +605,7 @@ Für weitere Informationen zum Umgang mit diesem Plot siehe bspw. hier: [3D Graf
 
 Für die Simple Slopes müssen wir nur die quadratischen Effekte aufnehmen und erkennen, dass es nun nicht mehr Geraden sondern Kurven sind:
 
-```{r}
+```{r, purl=FALSE}
 mod_reg_full <- lm(reading ~ math + IQ + math:IQ  + I(math^2) + I(IQ^2), data = Schulleistungen_std)
 summary(mod_reg_full)
 interact_plot(model = mod_reg_full, pred = IQ, modx = math, modx.values = c(-3, -1, 0, 1, 3))
@@ -609,7 +616,7 @@ Mit `modx.values = c(-3, -1, 0, 1, 3)` stellen wir hier noch ein, dass wir auch 
 Gleiches erkennen wir auch in den 3D-Plots:
 
 
-```{r, echo = T, fig.align="center", fig.height=6, message=F, warning = F}
+```{r, echo = T, fig.align="center", fig.height=6, message=F, warning = F, purl=FALSE}
 library(plot3D)
 # Übersichtlicher: Vorbereitung
 x <- Schulleistungen_std$IQ
@@ -634,7 +641,7 @@ scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2,
 ```
 
 
-```{r, echo =T, fig.align="center", fig.height=6, message=F, warning = F}
+```{r, echo =T, fig.align="center", fig.height=6, message=F, warning = F, purl=FALSE}
 scatter3D(x = x, y = z, z = y, pch = 16, cex = 1.2, 
           theta = 20, phi = 20, ticktype = "detailed",
           xlab = "IQ", ylab = "math", zlab = "reading",  
@@ -651,7 +658,7 @@ Auch die 3D-Grafiken sind nicht länger aus "Geraden zusammengesetzt", sondern b
 ***
 
 ## R-Skript
-Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](/post/PsyBSc7_R_Files/Regression-IV.R).
+Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](/post/PsyBSc7_R_Files/10_reg4.R).
 
 ***
 

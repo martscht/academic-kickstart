@@ -19,9 +19,18 @@ header:
 projects: []
 ---
 
-```{r setup, include=FALSE}
-# Vorbereitungen
-knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+```{r setup, include=FALSE, purl=FALSE}
+knitr::opts_chunk$set(fig.align = "center")
+options(knitr.duplicate.label = "allow") #Muss gesetzt werden, Setup-Chunk blockiert sonst Durchführung da er zeitweise doppelt existiert
+options(knitr.purl.inline = FALSE) #Inline-Code wird hiermit entweder mit ins Skript übernommen (TRUE) oder ausgelassen (FALSE)
+knitr::purl("2021-04-14_Regression-V.Rmd", documentation = 0) #Legt fest das Purl nur die Chunkinhalte(0) in ein R-Skript umwandelt!; NAME DES RMD MUSS EINGESTELLT WERDEN!
+file.rename("2021-04-14_Regression-V.R","PsyBSc7_R_Files/12_reg5.R") #NAME DER R-DATEI MUSS ANGEPASST WERDEN AN RMD-NAMEN!UNTERORDNER SOLLTE MIT KURS ÜBEREINSTIMMEN! (Siehe Ordner in /post)
+```
+
+```{r Info, purl=TRUE, echo=FALSE}
+# ---- Regression IV: quadratische und moderierte Regression ----
+#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBsc7_R_Files/10_reg4.R, von der PandaR-Website der Goethe Universität Frankfurt.
+#Die Autoren dieses Skripts sind Julien P. Irmer & Martin Schultze. Skriptkompilierung von Kevin Pommeranz.
 ```
 
 Bisher hatten wir mittels Regressionsanalysen lineare Beziehungen modelliert. In der Sitzung zur [quadratischen und moderierte Regresssion](/post/quadratische-und-moderierte-regression) kamen dann im Grunde quadratische Effekte mit hinzu. Wir können unser Wissen über Regressionen allerdings auch nutzen um nichtlineare Effekte zu modellieren. Wie das geht und was zu beachten ist, schauen wir uns im Folgenden an. Dazu laden wir zunächst altbekannte Pakete:
@@ -121,7 +130,9 @@ $$10^3=e^{\text{ln}(10^3)}=e^{3\text{ln}(10)}=1000$$
 
 Da sich durch *e* und *ln* alle exponentiellen Verläufe darstellen lassen, wird in der Mathematik häufig *log* als das Symbol für den natürlich Logarithmus verwendet; so ist es auch in `R`: ohne weitere Einstellungen ist `log` der natürliche Logarithmus und `exp` ist die Exponentialfunktion. Mit Hilfe von `log(..., base = 10)` erhalten sie beispielsweise den 10er-Logarithmus. Probieren Sie die obige Gleichung selbst aus:
 
-```{r}
+```{r, echo=-1}
+# log und exp-Funktionen: Demonstration
+
 # gleiches Ergebnis:
 10^3
 exp(3*log(10))
@@ -143,7 +154,8 @@ Wir betrachten nun eine allgemeine exponentielle Wachstumsfunktion $$f(x) = a\ b
 
 Die folgenden zwei Grafiken verdeutlichen dies (Der folgende Block ist gedacht, dass Sie diesen kopieren und die Inputparameter verändern und sich den Effekt auf die Grafiken ansehen; die horizontale gestrichelte Linien repräsentiert jeweils den Wert $a$ bzw. $\text{ln}(a)$, an welchem die Kurve $f$ bzw. $\ln(f)$ die y-Achse schneiden):
 
-```{r fig.height=6, fig.align="center"}
+```{r fig.height=6, fig.align="center", echo=-1}
+#### Das Modellieren von exponentiellem Wachstum ----
 ##################
 #### Einstellen der Koeffizienten und berechnen von f(x)
 #### 
@@ -178,13 +190,14 @@ Die Dokumentation des Datensatzes mit Datenquellen sind hier einzusehen: [gapmin
 #### Daten laden
 Wir laden zunächst die Daten: entweder lokal von Ihrem Rechner:
 
-```{r, eval = F}
+```{r, eval = F, purl=FALSE}
 load("C:/Users/Musterfrau/Desktop/WorldPopulation.rda")
 ```
 
 oder wir laden sie direkt über die Website:
 
-```{r, eval = T}
+```{r, eval = T, echo=-1}
+# Datensatz für diesen Abschnitt der Sitzung
 load(url("https://pandar.netlify.app/post/WorldPopulation.rda"))
 ```
 
@@ -192,7 +205,8 @@ Nun sollte in `R`-Studio oben rechts in dem Fenster unter der Rubrik "Data" unse
 
 #### Überblick über die Daten
 Schauen wir uns die Daten an:
-```{r}
+```{r, echo=-1}
+# Überblick über die Daten
 head(WorldPopulation)
 ```
 
@@ -208,7 +222,8 @@ Das Diagramm lässt deutlich einen nichtlinearen Anstieg der Weltbevölkerung vo
 Wir wollen uns naiverweise ein lineares Regressionmodell, also einen linearen Verlauf, der Weltbevölkerung vorhergesagt durch das Jahr, ansehen.
 
 
-```{r, fig.height=4, fig.align="center"}
+```{r, fig.height=4, fig.align="center", echo=-1}
+# Lineares Modell für das Bevölkerungswachstum
 ggplot(data = WorldPopulation, aes(x = Year, y = Population))+
      geom_point()+geom_smooth(method="lm", formula = "y~x")         # plotte linearen Verlauf 
 m_l <- lm(Population ~ Year, data = WorldPopulation) # linearer Verlauf
@@ -236,7 +251,8 @@ Durch `+ geom_smooth(method="lm", formula = "y~x")`, kann mit `ggplot` ein linea
 
 Nun wollen wir prüfen, ob ein exponentieller Verlauf die Daten besser beschreibt. Dazu müssen wir zunächst die Weltpopulation logarithmieren und können anschließend ein lineares Modell verwenden. Wir transformieren hierzu die Variablen und speichern diese als weitere Spalte in unserem Datensatz mit dem Namen `log_Population` ab: 
 
-```{r}
+```{r, echo=-1}
+# Exponentielles Modell für das Bevölkerungswachstum
 WorldPopulation$log_Population <- log(WorldPopulation$Population) # Logarithmus der Weltbevölkerung
 ```
 
@@ -299,7 +315,8 @@ In der Modellierung von längsschnittlichen Prozessen ist es auch in der Psychol
 
 Was dafür genutzt wird ist ein simpler Trick: wir erstellen eine Variable die mit 0 die Zeit "vor dem Ereignis" und mit 1 die Zeit "nach dem Ereignis" kodiert. Im Fall des Bevölkerungswachstums nehmen wir mal das Jahr 1950 als Ereginis an:
 
-```{r}
+```{r, echo=-1}
+# Diskontinuierliches Modell: Interaktion mit Dummy-Variablen
 WorldPopulation$Post1950 <- as.numeric(WorldPopulation$Year > 1950)
 ```
 
@@ -346,7 +363,7 @@ ggplot(data = WorldPopulation, aes(x = Year, y = Population))+
 ***
 
 ## R-Skript
-Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](/post/PsyBSc7_R_Files/Regression-V.R).
+Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](/post/PsyBSc7_R_Files/12_reg5.R).
 
 
 ***
@@ -358,20 +375,20 @@ Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fonta
 
 Vielleicht ist in den Daten anstatt eines exponentiellen Trends ein quadratischer Effekt versteckt? Wir möchten dem auf den Grund gehen und nutzen wieder die Funktion `poly`, um ein Polynom 2. Grades (eine quadratische Funktion) der Jahreszahl in unsere Analysen mit aufzunehmen.
 
-```{r}
+```{r, purl=FALSE}
 m_q <- lm(Population ~ poly(Year,2), data = WorldPopulation) # quadratischer Verlauf
 summary(m_q)
 ```
 
 
 Das Varianzinkrement im Vergleich zum linearen Verlauf beläuft sich auf:
-```{r}
+```{r, purl=FALSE}
 summary(m_q)$r.squared - summary(m_l)$r.squared  # Inkrement 
 ```
 
 Da der Parameter des quadratischen Anteils signifikant ist, gehen wir davon aus, dass das Modell durch den quadratischen Verlauf verbessert wird. Wir sichern dies noch einmal mit einem Modellvergleich ab:
 
-```{r}
+```{r, purl=FALSE}
 anova(m_l, m_q)
 ```
 
@@ -379,7 +396,7 @@ Dies ist der Modellvergleich des linearen und des quadratischen Modells. Hier so
 
 Auch dem `geom_smooth` Befehl kann einfach das modifizierte Regressionsmodell übergeben werden. Stellen Sie die Weltbevölkerung sowie das lineare und das quadratische Modell dar und färben Sie die Kurve in dunkelblau (`col = "darkblue"`).
 
-```{r exercise_graph_pop_quad-solution}
+```{r exercise_graph_pop_quad-solution, purl=FALSE}
 ggplot(data = WorldPopulation, aes(x = Year, y = Population))+
      geom_point()+geom_smooth(method="lm", formula = "y~x")+         # plotte linearen Verlauf 
      geom_smooth(method="lm", formula = "y~poly(x,2)", col = "darkblue")  # plotte quadratischen Verlauf
@@ -390,7 +407,7 @@ Durch den quadratischen Verlauf lassen sich `r round(summary(m_q)$r.squared*100,
 Den quadratischen Verlauf können wir, wie auch den linearen, nicht inferenzstatistisch gegen den exponentiellen Verlauf testen. Dies liegt daran, dass die Modelle nicht auseinander hervorgehen (sie sind nicht geschachtelt). Allerdings war es so, dass das lineare Modell für die logarithmierte Bevölkerungsdichte zwar gut zu den Daten zu passen schien. Insgesamt können `r round(summary(m_log)$r.squared*100, 2)` % der Variation in den Daten durch den Zeitverlauf erklärt werden --- das war allerdings etwas weniger als durch das quadratische Wachstum, durch welches `r round(summary(m_q)$r.squared*100, 2)` % der Variation in den Daten durch den Zeitverlauf erklärt werden konnten. 
 
 
-```{r}
+```{r, purl=FALSE}
 ggplot(data = WorldPopulation, aes(x = Year, y = Population))+
      geom_point()+geom_smooth(method="lm", formula = "y~x")+         # plotte linearen Verlauf 
      geom_smooth(method="lm", formula = "y~poly(x,2)", col = "darkblue")+  # plotte quadratischen Verlauf
@@ -409,13 +426,13 @@ Das Diagramm der retransformierten vorhergesagten Werten signalisiert, dass ein 
 Die Vorhersage mit dem diskontinuierlichen Modell exponentiellen Wachstums ist immer noch nicht perfekt. Insbesondere der vorhergesagte sprunghafte Anstieg von 1950 zu 1951 scheint unrealistisch. Inspizieren wir noch einmal den Residuenplot aus dem exponentiellen Modell: 
 
 
-```{r exercise_resid_mlog-solution}
+```{r exercise_resid_mlog-solution, purl=FALSE}
 residualPlot(m_log, col = "red") # Residualplot
 ```
 
 Dem Residualplot ist zu entnehmen, dass ggf. sogar ein nicht-linearer Verlauf angemessen wäre (wobei wir uns hier auf die *logarithmische* Skala beziehen, die Ursprungsdaten werden natürlich bereits nicht-linear, nämlich exponentiell, modelliert). Wir gehen dieser Vermutung nach, indem wir dem Log-Plot  einen quadratischen Verlauf hinzufügen. Auch dem `geom_smooth` Befehl kann einfach das modifizierte Regressionsmodell übergeben werden. Dem Argument `formula` müssen wir dazu jediglich die Formel für die Regression übergeben, wobei `y` das Kriterium und `poly(x,2)` (dies hatten wir in der vergangen Sitzung zu [quadratischer oder moderierter Regression](/post/quadratische-und-moderierte-regression) kennengelernt) der Prädiktor mit linearem und quadratischen Anteil beschreibt.  Mit `col = "gold3"` wird die neue Linie auch extra eingefärbt.
 
-```{r, fig.height=6, fig.align="center"}
+```{r, fig.height=6, fig.align="center", purl=FALSE}
 ggplot(data = WorldPopulation, aes(x = Year, y = log_Population))+
      geom_point()+geom_smooth(method="lm", formula = "y~x", col = "red")+
   geom_smooth(method="lm", formula = "y~poly(x,2)", col = "gold3")+
@@ -426,14 +443,14 @@ Vielleicht wächst die Bevölkerung sogar schneller als exponentiell? Die gelbe 
 
 Dies wollen wir schätzen, indem wir im Regressionsmodell der logarithmierten Populationsgröße  einen quadratischen Trend (`poly(...,2)`) für die Zeit definieren. Das Modell nennen wir, mein unbegrenztes Einfallsreichtum beweisend, `m_log_quad`:
 
-```{r exercise_log_Pop_reg_quad-solution}
+```{r exercise_log_Pop_reg_quad-solution, purl=FALSE}
 m_log_quad <- lm(log_Population ~ poly(Year, 2), data = WorldPopulation) # lineares Modell mit log(y) als AV (logarithmische Skala)
 summary(m_log_quad)
 ```
 
 Wir können dieses Modell nun gegen `m_log` testen und so die Modellverbesserung des quadratisch exponentiellen Verlaufs auf Signifikanz prüfen (und zwar mit dem `anova`-Befehl).
 
-```{r}
+```{r, purl=FALSE}
 anova(m_log, m_log_quad)
 ```
 
@@ -441,7 +458,7 @@ Durch den quadratisch-exponentiellen Verlauf (bzw. den quadratischen Verlauf in 
 
 Schauen wir uns den Residuenplot des quadratisch-exponentiellen Modells an (in logarithmierter Skala, in welcher das Modell auch geschätzt wurde!).
 
-```{r resid_log_Pop_reg_quad}
+```{r resid_log_Pop_reg_quad, purl=FALSE}
 residualPlot(m_log_quad)
 ```
 
@@ -449,7 +466,7 @@ Es ist deutlich zu sehen, dass der Knick um 1950 auch im quadratisch-exponentiel
 
 Stellen wir dies grafisch dar. Dazu müssen wir wieder die Vorhersage abspeichern. Diese können wir einem `lm`-Objekt mit `predict` entlocken. Wir nennen die neue Variable einfach `pred_Pop_exp_quad`.
 
-```{r excercise_log_Pop_reg_predict_quad-solution}
+```{r excercise_log_Pop_reg_predict_quad-solution, purl=FALSE}
 WorldPopulation$pred_Pop_exp_quad <- exp(predict(m_log_quad)) # Abspeichern der retransformierten vorhergesagten Werten (wieder auf der Skala der Weltbevölkerung)
 head(WorldPopulation)
 ```
@@ -457,7 +474,7 @@ head(WorldPopulation)
 Dem Datensatz haben wir nun eine neue Spalte hinzugefügt, welche die vorhergesagten Populationswerte enthält, die durch das quadratisch-exponentielle Modell vorhergesagt werden (retransformiert; nicht mehr in Log-Skala). Im Folgenden ist die finale Grafik mit dem linearen, exponentiellen, diskontinuierlichen und dem quadratisch-exponentiellen Verlauf dargestellt. Außerdem 
 
 
-```{r final_pred_comp, fig.height=6, fig.align="center"}
+```{r final_pred_comp, fig.height=6, fig.align="center", purl=FALSE}
 ggplot(data = WorldPopulation, aes(x = Year, y = Population))+
      geom_point()+geom_smooth(method="lm", formula = "y~x")+         # plotte linearen Verlauf 
      geom_line(aes(x = Year, y = pred_Pop_exp), col = "red", lwd = 1.5) +
@@ -488,7 +505,7 @@ Final ist zu sagen, dass die Menschheit am wahrscheinlichsten exponentiell wäch
 
 Hier sind nochmals die Anteile erklärter Varianz der Bevölkerungsdichte über die Zeit in den vier betrachteten Modellen dargestellt:
 
-```{r}
+```{r, purl=FALSE}
 R2 <- rbind(summary(m_l)$r.squared,
             summary(m_q)$r.squared,
             summary(m_log)$r.squared,
