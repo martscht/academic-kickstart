@@ -1,5 +1,5 @@
 # ---- Grafiken mit ggplot2 ----
-#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBsc7_R_Files/02_grafiken-mit-ggplot2.R, von der PandaR-Website der Goethe Universität Frankfurt.
+#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/02_grafiken-mit-ggplot2.R, von der PandaR-Website der Goethe Universität Frankfurt.
 #Der Autor dieses Skripts ist Martin Schultze. Skriptkompilierung von Kevin Pommeranz.
 
 ## #Hier kann der Fragebogen geladen werden, muss auskommentiert werden!

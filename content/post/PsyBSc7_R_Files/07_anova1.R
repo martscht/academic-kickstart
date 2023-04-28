@@ -1,5 +1,5 @@
 # ---- ANOVA I: einfaktorielle ANOVA ----
-#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBsc7_R_Files/07_anova1.R, von der PandaR-Website der Goethe Universität Frankfurt.
+#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/07_anova1.R, von der PandaR-Website der Goethe Universität Frankfurt.
 #Die Autoren dieses Skripts sind Miriam Scheppa-Lahyani, Julien P. Irmer, Sebastian Wallot & Kai J. Nehler. Skriptkompilierung von Kevin Pommeranz.
 
 ## # Beispiel zum exemplarischen lokalen Datensatzladen über Musterverzeichnis

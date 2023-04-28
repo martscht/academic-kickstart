@@ -1,5 +1,5 @@
 # ---- Regression IV: quadratische und moderierte Regression ----
-#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBsc7_R_Files/10_reg4.R, von der PandaR-Website der Goethe Universität Frankfurt.
+#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/10_reg4.R, von der PandaR-Website der Goethe Universität Frankfurt.
 #Die Autoren dieses Skripts sind Julien P. Irmer & Johannes Hartig. Skriptkompilierung von Kevin Pommeranz.
 
 

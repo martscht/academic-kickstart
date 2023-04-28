@@ -1,5 +1,5 @@
 # ---- Loops und Funktionen ----
-#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBsc7_R_Files/11_loops-und-funktionen.R, von der PandaR-Website der Goethe Universität Frankfurt.
+#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/11_loops-und-funktionen.R, von der PandaR-Website der Goethe Universität Frankfurt.
 #Die Autoren dieses Skripts sind Julien P. Irmer, Johanna Schüller & Sebastian Wallot. Skriptkompilierung von Kevin Pommeranz.
 
 load(url("https://pandar.netlify.app/post/mdbf.rda")) #Datensatz, der hier verwendet wird

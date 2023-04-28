@@ -1,5 +1,5 @@
 # ---- Regressionsanalyse I ----
-#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBsc7_R_Files/04_reg1.R, von der PandaR-Website der Goethe Universität Frankfurt.
+#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/04_reg1.R, von der PandaR-Website der Goethe Universität Frankfurt.
 #Die Autoren dieses Skripts sind Kai J. Nehler, Marvin Schröder & Luisa Grützmacher. Skriptkompilierung von Kevin Pommeranz.
 
 # Datensatz laden

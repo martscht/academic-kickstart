@@ -1,5 +1,5 @@
 # ---- Wiederholung von Grundlagen in R ----
-#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBsc7_R_Files/01_wiederholung-grundlagen.R, von der PandaR-Website der Goethe Universität Frankfurt.
+#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/01_wiederholung-grundlagen.R, von der PandaR-Website der Goethe Universität Frankfurt.
 #Die Autoren dieses Skripts sind Kai J. Nehler, Johanna Schüller & Martin Schultze. Skriptkompilierung von Kevin Pommeranz.
 
 # Aktuelle R-Version kontrollieren

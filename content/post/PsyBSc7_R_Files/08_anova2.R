@@ -1,5 +1,5 @@
 # ---- ANOVA II: zweifaktorielle ANOVA ----
-#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBsc7_R_Files/08_anova2.R, von der PandaR-Website der Goethe Universität Frankfurt.
+#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/08_anova2.R, von der PandaR-Website der Goethe Universität Frankfurt.
 #Die Autoren dieses Skripts sind Julien P. Irmer, Miriam Scheppa-Lahyani & Martin Schultze. Skriptkompilierung von Kevin Pommeranz.
 
 

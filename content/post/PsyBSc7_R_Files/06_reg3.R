@@ -1,5 +1,5 @@
 # ---- Regressionsanalyse III ----
-#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBsc7_R_Files/06_reg3.R, von der PandaR-Website der Goethe Universität Frankfurt.
+#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/06_reg3.R, von der PandaR-Website der Goethe Universität Frankfurt.
 #Die Autoren dieses Skripts sind Julien P. Irmer, Johannes Hartig. Skriptkompilierung von Kevin Pommeranz.
 
 #### Vorbereitung ----

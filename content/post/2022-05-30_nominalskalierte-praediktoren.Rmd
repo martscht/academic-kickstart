@@ -17,8 +17,18 @@ header:
 projects: []
 ---
 
-```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE, fig.align = "center")
+```{r setup, include=FALSE, purl=FALSE}
+knitr::opts_chunk$set(fig.align = "center")
+options(knitr.duplicate.label = "allow") #Muss gesetzt werden, Setup-Chunk blockiert sonst Durchführung da er zeitweise doppelt existiert
+options(knitr.purl.inline = FALSE) #Inline-Code wird hiermit entweder mit ins Skript übernommen (TRUE) oder ausgelassen (FALSE)
+knitr::purl("2022-05-30_nominalskalierte-praediktoren.Rmd", documentation = 0) #Legt fest das Purl nur die Chunkinhalte(0) in ein R-Skript umwandelt!; NAME DES RMD MUSS EINGESTELLT WERDEN!
+file.rename("2022-05-30_nominalskalierte-praediktoren.R","PsyBSc7_R_Files/13_reg6.R") #NAME DER R-DATEI MUSS ANGEPASST WERDEN AN RMD-NAMEN!UNTERORDNER SOLLTE MIT KURS ÜBEREINSTIMMEN! (Siehe Ordner in /post)
+```
+
+```{r Info, purl=TRUE, echo=FALSE}
+# ---- Regression mit nominalskalierten Prädiktoren ----
+#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/13_reg6.R, von der PandaR-Website der Goethe Universität Frankfurt.
+#Der Autor dieses Skripts ist Martin Schultze. Skriptkompilierung von Kevin Pommeranz.
 ```
 
 In den bisherigen Sitzungen zur multiplen Regression haben wir als Prädiktoren hauptsächlich intervallskalierte Variablen betrachtet. In einigen Beispielen ist aber z.B. das Geschlecht aufgetaucht. In diesem Beitrag gucken wir uns etwas genauer an, was passiert, wenn Prädiktoren nominalskaliert sind.
@@ -29,7 +39,8 @@ Hier wird es, wie immer auf Pandar, vor allem um die Umsetzung in R und die Inte
 
 Das Beispiel, was wir in diesem Beitrag betrachten, dreht sich um Daten aus der ersten Studie im Artikel von [Hong-Zhi et al. (2021)](https://onlinelibrary.wiley.com/doi/10.1111/ajsp.12509). Weil die Daten für unsere Berechnungen ein wenig gekürzt und umbenannt werden müssen, können wir das dafür vorbereitete Skript ausführen:
 
-```{r}
+```{r, echo=-1}
+# Datensatz laden
 source("https://pandar.netlify.app/post/Preprocessing/Data_Processing_punish.R")
 ```
 
@@ -71,7 +82,8 @@ Wie wir schon in der Vorlesung aus dem 1. Semester gesehen hatten, können wir R
 
 Als ersten Prädiktor nutzen wir das Land (`country`) um festzustellen, ob es globale Unterschiede zwischen China und den USA im Ausmaß von vorhergesagter Bestrafungsschwere gibt:
 
-```{r}
+```{r, echo=-1}
+#### Regresssion mit Dummy-Kodierung ----
 mod1 <- lm(severe ~ country, punish)
 summary(mod1)
 ```
@@ -128,7 +140,9 @@ In der Dummy-Kodierung, die in R voreinstellung ist, wird die zweite Gruppe mit 
 
 Obwohl die Dummy-Kodierung auch in der Psychologie die verbreitetste Kodierung darstellt, wird auch die sogenannte Effekt-Kodierung häufig verwendet. Dabei ist das Ziel, dass das Intercept nicht mehr an eine Gruppe gebunden ist, sondern die gesamte Stichprobe darlegt und das Regressionsgewicht die Abweichung einzelnen Gruppen von diesem globalen Wert darstellt. In R können wir die Kodierung eines `factor` mit `contrasts` nicht nur abfragen, sondern auch einstellen:
 
-```{r}
+```{r, echo=-1}
+#### Effektkodierung ----
+
 contrasts(punish$country) <- contr.sum(2)
 ```
 
@@ -155,7 +169,9 @@ Das Regressionsgewicht ist jetzt der _Effekt_ (daher die Bezeichnung Effektkodie
 
 Im Folgenden arbeiten wir mit dummy-kodierten Prädiktoren weiter, weil diese in der Psychologie der häufigste Fall sind. Weil wir im vorherigen Abschnitt die Kodierung aber händisch umgestellt hatten, müssen wir erst einmal wieder den Ausgangszustand herstellen (die zweiten Zeile garantiert, dass in unseren Ausgaben in Zukunft auch weiterhin `China` erscheint und nicht `2`):
 
-```{r}
+```{r, echo=-1}
+#### Kombination dichotomer Prädiktoren ----
+
 contrasts(punish$country) <- contr.treatment(2)
 dimnames(contrasts(punish$country))[[2]] <- 'China'
 ```
@@ -286,7 +302,9 @@ Dies bedeutet auch, dass es auf die spezifische Kombination aus Land und Art der
 
 Wie wir in der [Sitzung zur Modelloptimierung](/post/reg2) gesehen haben, können wir die drei Modelle über `anova()` vergleichen, um zu prüfen, ob sie sich hinsichtlich der Vorhersagekraft der eingeschätzten Schwere der Bestrafung unterscheiden. Die Modelle sind ineinander geschachtelt, weil wir in jedem Schritt lediglich einen weiteren Prädiktor aufgenommen haben. 
 
-```{r}
+```{r, echo=-1}
+## Modellvergleiche
+
 anova(mod1, mod2, mod3)
 
 # Deskriptiv
@@ -296,11 +314,13 @@ summary(mod3)$r.squared - summary(mod2)$r.squared
 
 Was wir hier sehen ist also wieder: für die Untersuchung von Interaktionseffekten ist es nicht zwingend notwendig, dass die additiven Modellkomponenten statistisch bedeutsam sind. Gegenläufige Effekte können sich über die verschiedenen Ausprägungen der unabhängigen Variablen hinweg ausmitteln, sodass sie verdeckt werden.
 
-## Nominalsklierte Prädiktoren mit mehr als zwei Kategorien
+## Nominalskalierte Prädiktoren mit mehr als zwei Kategorien
 
 In dem Datenbeispiel, das wir hier nutzen gibt es leider keine nominalskalierte Variable, die mehr als zwei Ausprägungen hat. Allerdings werden (wie wir es jetzt auch tun werden) ordinalskalierte UVs in den meisten Fällen nach dem gleichen Prinzipien behandelt, wie nominalskalierte. In den hier vorliegenden Daten ist das Alter (wie aus Datenschutzgründen üblich) in Segmenten und nicht in Jahren erhoben:
 
-```{r}
+```{r, echo=-1}
+#### Nominalskalierte Prädiktoren mit mehr als zwei Kategorien
+
 table(punish$age)
 ```
 
@@ -345,7 +365,9 @@ Der Kombination von unabhängigen Variablen mit Nominal- und Intervallskalennive
 
 Für unseren Fall hatten wir [schon gesehen](#kombination-mehrerer-dichotomer-praediktoren), dass es Unterschiede zwischen den USA und China in der Einschätzung darüber gibt, welche Art von Bestechung mehr oder weniger stark bestraft werden wird. Damit das Modell übersichtlich bleibt, nutzen wir hier erst einmal nur die Daten aus den USA weiter, aber das volle Modell findet sich in [Appendix A](#appendix-a).
 
-```{r}
+```{r, echo=-1}
+#### Kombination nominal- und intervallskalierter Prädiktoren ----
+
 usa <- subset(punish, country == 'U.S')
 ```
 
@@ -435,13 +457,19 @@ Erkenntnisse wie diese sind für die Überprüfung von Interventionsmaßnahmen v
 
 ***
 
+## R-Skript
+Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](/post/PsyBSc7_R_Files/13_reg6.R).
+
+
+***
+
 ## Appendix A
 
 <details><summary>Vollständiges Modell zur Kombination von `country`, `bribe` und `gains`</summary>
 
 Um vollständig untersuchen zu können, wie die Effekte des Landes, der Bestechungsart und des Ausmaß an erwartetem Profit mit einander interagieren, können wir ein Modell aufstellen, welches alle drei Variablen gleichzeitig als Prädiktoren enthält. Das additive Modell ist zunächst relativ simpel:
 
-```{r}
+```{r, purl=FALSE}
 mod8 <- lm(severe ~ country + bribe + gains, punish)
 summary(mod8)
 ```
@@ -453,14 +481,14 @@ $$
 $$
 Hier sind $x_{1m}$ und $x_{2m}$ unsere dummykodierten Indikatoren für `country` und `bribe` und $x_{3m}$ ist die intervallskalierte Variable `gains`. Wieder macht es Sinn, die behaupteten Effekte in einer Abbildung zu inspizieren. 
 
-```{r}
+```{r, purl=FALSE}
 scatter <- ggplot(punish, aes(x = gains, y = severe, color = country:bribe)) +
   geom_point()
 ```
 
 Mit `country:bribe` wird - wie wir es schon in den Regressionen gesehen haben - die _Kreuzung_ von zwei Variablen erstellt. In unserem Fall erhalten wir im Scatterplot also vier Gruppen, die zur Färbung der Punkte genutzt werden. Weil wir wieder vier Linien anlegen müssen und diese nicht komplett händisch eintragen und idealerweise in der entsprechenden Farbe halten wollen, legen wir einen `data.frame` an, in dem wir die Intercepts und Slopes für `abline` hinterlegen:
 
-```{r}
+```{r, purl=FALSE}
 tmp <- coef(mod8)
 tab <- data.frame(country = as.factor(c('U.S', 'U.S', 'China', 'China')),
   bribe = as.factor(c('group', 'individual', 'group', 'individual')),
@@ -472,14 +500,14 @@ tab$slope <- tmp[4]
 
 Intercepts und Slopes ergeben sich nach dem gleichen Prinzip, das wir in den vorherigen Abschnitten für die kleineren Modelle gesehen hatten. 
 
-```{r complex_plot_additive, fig = TRUE}
+```{r complex_plot_additive, fig = TRUE, purl=FALSE}
 scatter + 
   geom_abline(data = tab, aes(intercept = intercept, slope = slope,
     color = country:bribe))
 ```
 Wie wir zuvor gesehen hatten, sind die Effekte der Bestechungsart in den beiden Ländern aber genau gegenläufig, sodass wir hier einen Interaktionsterm aufnehmen sollten:
 
-```{r complex_plot_1interact, fig = TRUE}
+```{r complex_plot_1interact, fig = TRUE, purl=FALSE}
 # Modell
 mod9 <- lm(severe ~ country + bribe + gains + country:bribe, punish)
 
@@ -497,7 +525,7 @@ In diesem Modell sind jetzt die spezifischen Effekte der Gruppen-Bestechungskons
 
 Es ist möglich, für jeden der dummykodierten Prädiktoren einzeln den Interaktionseffekt mit der intervallskalierten Variable in das Modell aufzunehmen. Hier die Schritte im Schnelldurchlauf mit anschließender Modellauswahl über das Informationskriterium $AIC$:
 
-```{r}
+```{r, purl=FALSE}
 # Schrittweise Modelle mit Interaktionen
 mod10 <- lm(severe ~ country + bribe + gains + country:bribe + country:gains, punish)
 mod11 <- lm(severe ~ country + bribe + gains + country:bribe + bribe:gains, punish)
@@ -517,7 +545,7 @@ aics
 ```
 Wie wir sehen, bevorzugt der AIC das Modell 13 - ein Modell mit beiden paarweisen Interaktionen und der _dreifach Interaktion_. Diese Interaktion gibt in dieser Konstellation an, dass das Regressionsgewicht wieder für jede der vier Gruppen individuell sein darf. Es folgt dem gleichen Prinzip, wie wir es schon für die Interaktionen der nominalskalierten Variablen [in der Vorhersage des Schweregrads](#kombination-mehrerer-dichotomer-pradiktoren) gesehen hatten. Nur dass sich der Effekt diesmal nicht auf Mittelwerte, sondern auf Regressionsgewichte bezieht. In der Abbildung:
 
-```{r complex_plot_fullinteract, fig = TRUE}
+```{r complex_plot_fullinteract, fig = TRUE, purl=FALSE}
 # Plot vorbereitung
 tmp <- coef(mod13)
 tab$intercept <- c(tmp[1], sum(tmp[c(1, 3)]), sum(tmp[1:2]), sum(tmp[c(1:3, 5)]))
@@ -530,7 +558,7 @@ scatter +
 ```
 Wir sehen also, dass die entgegengesetzten Effekte, die wir für Mittelwerte gesehen hatten auch für die Zusammenhänge zwischen `gains` und `severe` bestehen: in den USA geht mit größerem Gewinn bei Gruppenbestechung (rote Linie) eine _geringere_ Erwartung der Schwere der Bestrafung einher; in China hingegen eine _höhere_ (türkise Linie). Wir können wieder über `simple_slopes` die gruppenspezifischen Regressionsgewichte prüfen:
 
-```{r, warning = FALSE}
+```{r, warning = FALSE, purl=FALSE}
 simple_slopes(mod13, levels = list(gains = 'sstest'))
 ```
 Wir sehen also, dass trotz der großen optischen Unterschiede in den Regressionsgewichten, keins der gruppenspezifischen Regressionsgewichte statistisch bedeutsam von 0 abweicht.

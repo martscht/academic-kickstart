@@ -1,5 +1,5 @@
 # ---- Partial- & Semipartialkorrelation ----
-#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBsc7_R_Files/03_partial.R, von der PandaR-Website der Goethe Universität Frankfurt.
+#Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/03_partial.R, von der PandaR-Website der Goethe Universität Frankfurt.
 #Die Autoren dieses Skripts sind Marvin Schröder, Luisa Grützmacher & Kai J. Nehler. Skriptkompilierung von Kevin Pommeranz.
 
 #Daten abrufen
