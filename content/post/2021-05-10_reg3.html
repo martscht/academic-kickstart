@@ -14,7 +14,7 @@ tags:
 subtitle: 'Voraussetzungsprüfung'
 summary: ''
 authors: [irmer, hartig]
-lastmod: '2022-05-06 12:00:12 CEST'
+lastmod: '2023-05-03 12:00:12 CEST'
 featured: no
 header:
      image: "/header/PsyBSc7_Reg3.jpg"
@@ -132,7 +132,7 @@ ncvTest(mod)</code></pre>
 <div id="Normalverteilung" class="section level3">
 <h3>Normalverteilung</h3>
 <p>Voraussetzung für die Signifikanztests im Kontext der linearen Regression ist die Normalverteilung der Residuen (nicht, wie oft irrtürmlich angenommen wird, der in die Analyse einbezogenen Variablen). Diese Annahme wird i.d.R. grafisch geprüft. Hierfür bietet sich zum einen ein Histogramm der Residuen an, zum anderen ein <em>Q-Q-Diagramm</em> (oder “Quantile-Quantile-Plot”). Zusätzlich zur grafischen Darstellung erlaubt z.B. der Shapiro-Wilk-Test auf Normalität (<code>shapiro.test</code>) einen Signifkanztest der Nullhypothese, dass die Residuen normalverteilt sind. Auch der Kolmogorov-Smirnov (<code>ks.test</code>) Test, welcher eine deskriptive mit einer theoretischen Verteilung vergleicht, wäre denkbar.</p>
-<p>Wir beginnen mit der Vorbereitung der Daten. Wir wollen die studentisierten Residuen grafisch mit dem <code>R</code>-Paket <code>ggplot2</code>darstellen. Studentisierte Residuen sind wie standardisierten Residuen, bei denen zusätzlich eine Gewichtung der geschätzten Standardabweichung an der Stelle <span class="math inline">\(x_j\)</span> mit einfließt, was eine präziseren Schätzung der normierten Residuen zur Folge hat. Der Mittelwert der studentisierten Residuen beträgt <em>0</em> und die Varianz <em>1</em> (somit lassen sich solche Plots immer gleich interpretieren). Der Befehl <code>studres</code> aus dem <code>MASS</code> Paket speichert die Residuen aus einem <code>lm</code> Objekt, also aus dem definierten Modell <code>mod</code>, und studentisiert diese. Speichern Sie die Residuen aus <code>mod</code> als <code>res</code> ab und erzeugen Sie daraus einen <code>data.frame</code>, den Sie unter dem Namen <code>df_res</code> speichern. Diesen wollen wir später in den Grafiken mit <code>ggplot2</code> verwenden.</p>
+<p>Wir beginnen mit der Vorbereitung der Daten. Wir wollen die studentisierten Residuen grafisch mit dem <code>R</code>-Paket <code>ggplot2</code>darstellen. Studentisierte Residuen sind wie standardisierten Residuen, bei denen zusätzlich eine Gewichtung der geschätzten Standardabweichung an der Stelle <span class="math inline">\(x_j\)</span> mit einfließt, was eine präziseren Schätzung der normierten Residuen zur Folge hat. Normiert bedeutet hier, dass der Mittelwert der studentisierten Residuen <em>0</em> beträgt und die Varianz <em>1</em> ist (somit lassen sich solche Plots immer gleich interpretieren). Für mehr Informationen zu standardisierten und studentisierten Residuen schaue doch im <a href="#AppendixB">Appendix B</a> vorbei. Der Befehl <code>studres</code> aus dem <code>MASS</code> Paket speichert die Residuen aus einem <code>lm</code> Objekt, also aus dem definierten Modell <code>mod</code>, und studentisiert diese. Speichern Sie die Residuen aus <code>mod</code> als <code>res</code> ab und erzeugen Sie daraus einen <code>data.frame</code>, den Sie unter dem Namen <code>df_res</code> speichern. Diesen wollen wir später in den Grafiken mit <code>ggplot2</code> verwenden.</p>
 <pre class="r"><code>res &lt;- studres(mod)       # Studentisierte Residuen als Objekt speichern
 df_res &lt;- data.frame(res) # als Data.Frame für ggplot
 head(df_res)              # Kurzer Blick in den Datensatz</code></pre>
@@ -154,7 +154,10 @@ ggplot(data = df_res, aes(x = res)) +
      stat_function(fun = dnorm, args = list(mean = mean(res), sd = sd(res)), col = &quot;darkblue&quot;) + # Füge die Normalverteilungsdiche &quot;dnorm&quot; hinzu und nutze den empirischen Mittelwert und die empirische Standardabweichung &quot;args = list(mean = mean(res), sd = sd(res))&quot;, wähle dunkelblau als Linienfarbe
      labs(title = &quot;Histogramm der Residuen mit Normalverteilungsdichte&quot;, x = &quot;Residuen&quot;) # Füge eigenen Titel und Achsenbeschriftung hinzu</code></pre>
 <pre><code>## Warning: The dot-dot notation (`..density..`) was deprecated in ggplot2 3.4.0.
-## ℹ Please use `after_stat(density)` instead.</code></pre>
+## ℹ Please use `after_stat(density)` instead.
+## This warning is displayed once every 8 hours.
+## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
+## generated.</code></pre>
 <p><img src="/post/2021-05-10_reg3_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
 <pre class="r"><code># Grafisch: Q-Q-Diagramm mit der car Funktion qqPlot
 qqPlot(mod, pch = 16, distribution = &quot;norm&quot;) </code></pre>
@@ -211,7 +214,7 @@ vif(mod)</code></pre>
 <div id="Ausreißer" class="section level2">
 <h2>Identifikation von Ausreißern und einflussreichen Datenpunkten</h2>
 <p>Die Plausibilität unserer Daten ist enorm wichtig. Aus diesem Grund sollten Aureißer oder einflussreiche Datenpunkte analysiert werden. Diese können bspw. durch Eingabefehler entstehen (Alter von 211 Jahren anstatt 21) oder es sind seltene Fälle (hochintelligentes Kind in einer Normstichprobe), welche so in natürlicher Weise (aber mit sehr geringer Häufigkeit) auftreten können. Es muss dann entschieden werden, ob Ausreißer die Repräsentativität der Stichprobe gefährden und ob diese besser ausgeschlossen werden sollten.</p>
-<p><em>Hebelwerte</em> <span class="math inline">\(h_j\)</span> erlauben die Identifikation von Ausreißern aus der gemeinsamen Verteilung der unabhängigen Variablen, d.h. einzelne Fälle, die weit entfernt vom Mittelwert der gemeinsamen Verteilung der unabhängigen Variablen liegen und somit einen starken Einfluss auf die Regressionsgewichte haben können. Diese werden mit der Funktion <code>hatvalues</code> ermittelt. Kriterien zur Beurteilung der Hebelwerte variieren, so werden von <a href="https://ubffm.hds.hebis.de/Record/HEB366849158">Eid et al. (2017, S. 707 und folgend)</a> Grenzen von <span class="math inline">\(2\cdot k / n\)</span> für große und <span class="math inline">\(3\cdot k / n\)</span> für kleine Stichproben vorgeschlagen, in den Vorlesungsfolien werden Werte von <span class="math inline">\(4/n\)</span> als auffällig eingestuft (hierbei ist <span class="math inline">\(k\)</span> die Anzahl an Prädiktoren und <span class="math inline">\(n\)</span> die Anzahl der Beobachtungen). Alternativ zu einem festen Cut-Off-Kriterium kann die Verteilung der Hebelwerte inspiziert und diejenigen Werte kritisch betrachtet werden, die aus der Verteilung ausreißen. Die Funktion <code>hatvalues</code> erzeugt die Hebelwerte aus einem Regression-Objekt. Wir wollen diese als Histogramm darstellen.</p>
+<p><em>Hebelwerte</em> <span class="math inline">\(h_j\)</span> erlauben die Identifikation von Ausreißern aus der gemeinsamen Verteilung der unabhängigen Variablen, d.h. einzelne Fälle, die weit entfernt vom Mittelwert der gemeinsamen Verteilung der unabhängigen Variablen liegen und somit einen starken Einfluss auf die Regressionsgewichte haben können. Diese werden mit der Funktion <code>hatvalues</code> ermittelt (die Hebelwerte spielen auch bei der Bestimmung standardisierter und studentisierter Residuen eine wichtige Rolle, sodass interessierte Lesende gerne im <a href="#AppendixB">Appendix B</a> mehr Informationen dazu finden). Kriterien zur Beurteilung der Hebelwerte variieren, so werden von <a href="https://ubffm.hds.hebis.de/Record/HEB366849158">Eid et al. (2017, S. 707 und folgend)</a> Grenzen von <span class="math inline">\(2\cdot k / n\)</span> für große und <span class="math inline">\(3\cdot k / n\)</span> für kleine Stichproben vorgeschlagen, in den Vorlesungsfolien werden Werte von <span class="math inline">\(4/n\)</span> als auffällig eingestuft (hierbei ist <span class="math inline">\(k\)</span> die Anzahl an Prädiktoren und <span class="math inline">\(n\)</span> die Anzahl der Beobachtungen). Alternativ zu einem festen Cut-Off-Kriterium kann die Verteilung der Hebelwerte inspiziert und diejenigen Werte kritisch betrachtet werden, die aus der Verteilung ausreißen. Die Funktion <code>hatvalues</code> erzeugt die Hebelwerte aus einem Regression-Objekt. Wir wollen diese als Histogramm darstellen.</p>
 <pre class="r"><code>n &lt;- length(residuals(mod)) # n für Berechnung der Cut-Off-Werte
 h &lt;- hatvalues(mod)         # Hebelwerte
 df_h &lt;- data.frame(h)       # als Data.Frame für ggplot
@@ -273,6 +276,7 @@ round(scale(Schulleistungen)[IDs,],2) </code></pre>
 <summary>
 <strong>Multikollinearität und Standardfehler</strong>
 </summary>
+<p><strong>Disclaimer:</strong> Dieser Block ist als Zusatz anzusehen und für Interessierte bestimmt.</p>
 <p>Im Folgenden stehen <span class="math inline">\(\beta\)</span>s für <em><strong>unstandardisierte</strong></em> Regressionskoeffizienten.</p>
 <p>Für eine einfache Regressionsgleichung mit <span class="math display">\[Y_i=\beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \varepsilon_i\]</span>
 kann die selbe Gleichung auch in Matrixnotation formuliert werden <span class="math display">\[Y = X\beta + \varepsilon.\]</span> Hier ist <span class="math inline">\(X\)</span> die Systemmatrix, welche die Zeilenvektoren <span class="math inline">\(X_i=(1, x_{i1}, x_{i2})\)</span> enthält. Die Standardfehler, welche die Streuung der Parameter <span class="math inline">\(\beta:=(\beta_0,\beta_1,\beta_2)\)</span> beschreiben, lassen sich wie folgt ermitteln. Wir bestimmen zunächst die Matrix <span class="math inline">\(I\)</span> wie folgt
@@ -353,11 +357,137 @@ sqrt(diag(I_3)) # Wurzel aus den Diagonalelementen der Inverse = SE, wenn sigma_
 <p>Dieser Exkurs zeigt, wie sich die Multikolinearität auf die Standardfehler und damit auf die Präzision der Parameterschätzung auswirkt. Inhaltlich bedeutet dies, dass die Prädiktoren redundant sind und nicht klar ist, welchem Prädiktor die Effekte zugeschrieben werden können.</p>
 <p><em>Die Matrix <span class="math inline">\(I\)</span> ist im Zusammenhang mit der Maximum-Likelihood-Schätzung die Inverse der Fischer-Information und enthält die Informationen der Kovariationen der Parameterschätzer (diese Informationen enthält sie hier im Übrigen auch!).</em></p>
 </details>
+</div>
+<div id="AppendixB" class="section level2">
+<h2>Appendix B</h2>
+<details>
+<summary>
+<strong>Standardisierte und Studentisierte Residuen</strong>
+</summary>
+<p><strong>Disclaimer:</strong> Dieser Block ist als Zusatz anzusehen und für Interessierte bestimmt.</p>
+<p>Der Einfluss der Position entlang der Regressiongerade (oder Hyperebene, wenn es mehrere Prädiktoren sind) in “x”-Richtung kann mit unter enorm sein. Weit vom (gemeinsamen) Mittelwert entfernt liegende Punkte in den Prädiktoren sind hinsichtlich der Vorhersage von <span class="math inline">\(Y\)</span> mit wesentlich größerer Unsicherheit behaftet, als diejenigen, die nah am (gemeinsamen) Mittelwert liegen. Eben jene Unsicherheit gilt es bei standardisierten und studentisierten Residuen einzupreisen. Zunächst schauen wir uns diese Unsicherheit an: Dazu simulieren wir geschwind ein paar Daten - so ähnlich wie wir dies im vergangenen Semester bereits kennengelernt haben. Wir benötigen einen Prädiktor <span class="math inline">\(X\)</span>, der beispielsweise gamma-verteilt sein soll (das ist eine recht schiefe Verteilung). Anschließend brauchen wir für eine Regressionsgleichung noch ein Residuum <span class="math inline">\(\varepsilon\)</span>, welches wir als normalverteilt annehmen, sowie ein Interzept <span class="math inline">\(\beta_0\)</span> und einen Steigungskoeffizienten <span class="math inline">\(\beta_1\)</span>:</p>
+<pre class="r"><code># Vergleichbarkeit
+set.seed(1)
+
+# simuliere X~gamma
+n &lt;- 20
+X &lt;- rgamma(n = n, shape = .7, rate = 1)
+hist(X) # recht schief</code></pre>
+<p><img src="/post/2021-05-10_reg3_files/figure-html/unnamed-chunk-22-1.png" width="672" /></p>
+<pre class="r"><code># simuliere eps~norm
+eps &lt;- rnorm(n = n, mean = 0, sd = 2)
+
+# setzte Y zusammen
+beta0 &lt;- .5; beta1 &lt;- .6
+Y &lt;- beta0 + beta1*X + eps
+
+# füge X und Y in einen data.frame
+df &lt;- data.frame(X, Y)
+
+# fitte ein Regressionsmodell
+reg &lt;- lm(Y~X, data = df)
+summary(reg)</code></pre>
+<pre><code>## 
+## Call:
+## lm(formula = Y ~ X, data = df)
+## 
+## Residuals:
+##     Min      1Q  Median      3Q     Max 
+## -4.2530 -1.5084 -0.2787  1.2584  5.0920 
+## 
+## Coefficients:
+##             Estimate Std. Error t value Pr(&gt;|t|)
+## (Intercept)   0.2648     0.6378   0.415    0.683
+## X             0.7395     0.5209   1.420    0.173
+## 
+## Residual standard error: 2.283 on 18 degrees of freedom
+## Multiple R-squared:  0.1007,	Adjusted R-squared:  0.05076 
+## F-statistic: 2.016 on 1 and 18 DF,  p-value: 0.1727</code></pre>
+<p>Wir sehen, dass die Populationsparameter, die wir vorgegeben haben, nicht exakt getroffen werden. Das Interzept ist mit <span class="math inline">\(\hat{\beta_0}\)</span> = 0.265 und der Steigungskoeffizent mit <span class="math inline">\(\hat{\beta_1}\)</span> = 0.74 recht nah an den wahren Werten 0.5 und 0.6 dran, aber eben nicht exakt. Diese Unsicherheit gilt es in der Statistik zu beschreiben und einzuordnen. Ist der Effekt relativ zur Unsicherheit groß, dann sprechen wir von Signifikanz. Wir können diese Daten sehr leicht mit <code>ggplot</code> veranschaulichen und einen Regressionstrend hinzu zufügen. Per Default wird dann auch direkt ein Konfidenzintervall für die Regressionsgerade eingezeichnet:</p>
+<pre class="r"><code>library(ggplot2)
+ggplot(data = df, mapping = aes(x = X, y = Y)) + geom_point() + 
+  geom_smooth(method = &quot;lm&quot;, formula = &quot;y~x&quot;) + 
+  theme_minimal()</code></pre>
+<p><img src="/post/2021-05-10_reg3_files/figure-html/unnamed-chunk-23-1.png" width="672" /></p>
+<p>Diesem Plot entnehmen wir sehr deutlich, dass die Unsicherheit bezüglich der Vorhersage von <span class="math inline">\(Y\)</span> (nämlich <span class="math inline">\(\hat{Y}\)</span>) für große <span class="math inline">\(X\)</span> viel größer ausfällt, als für mittlere (oder kleine) <span class="math inline">\(X\)</span>. Wir bestimmen nun das standardisierte Residuum und das studentisierte Residuum für den größten <span class="math inline">\(X\)</span>-Wert. Diesen müssen wir vorher erst noch einmal finden und nennen ihn dann <code>Xmax</code>:</p>
+<pre class="r"><code># größtes X finden
+ind_Xmax &lt;- which.max(X)
+Xmax &lt;- X[ind_Xmax]
+Xmax</code></pre>
+<pre><code>## [1] 4.230831</code></pre>
+<pre class="r"><code># zugehörigen Y-Wert finden
+Y_Xmax &lt;- Y[ind_Xmax]
+Y_Xmax</code></pre>
+<pre><code>## [1] 1.374412</code></pre>
+<pre class="r"><code># sd_eps bestimmen
+sd_eps &lt;- summary(reg)$sigma
+sd_eps</code></pre>
+<pre><code>## [1] 2.282814</code></pre>
+<pre class="r"><code># vorhergesaten y-Wert bestimmen
+Y_pred_Xmax &lt;- predict(reg, newdata = data.frame(&quot;X&quot; = Xmax))
+Y_pred_Xmax</code></pre>
+<pre><code>##       1 
+## 3.39369</code></pre>
+<p>In <code>ind_Xmax</code> steht einfach nur die Position innerhalb des Vektors, an der das Maximum angenommen wird - also quasi die Personennummer - hier ist das die 5. Wenn wir diese auf <span class="math inline">\(X\)</span> und <span class="math inline">\(Y\)</span> anwenden, erhalten wir die jeweiligen Werte, die zu dieser Person gehören.</p>
+<p>Um zu prüfen, ob wir uns verrechnet haben, zeichnen wir den vorhergesagten <span class="math inline">\(Y\)</span>-Wert für den größten <span class="math inline">\(X\)</span>-Wert von 4.231 in unsere Grafik ein:</p>
+<pre class="r"><code>ggplot(data = df, mapping = aes(x = X, y = Y)) + geom_point() + 
+  geom_smooth(method = &quot;lm&quot;, formula = &quot;y~x&quot;) + 
+  theme_minimal()+
+  geom_point(mapping = aes(x = Xmax, y = Y_pred_Xmax), cex = 4, col = &quot;gold3&quot;)</code></pre>
+<p><img src="/post/2021-05-10_reg3_files/figure-html/unnamed-chunk-25-1.png" width="672" /></p>
+<p>Der gelbe Punkt liegt genau auf der Gerade - super! Jetzt müssen wir noch die Unsicherheit einpreisen, die dadurch resultiert, dass die <span class="math inline">\(X\)</span>-Werte weit entfernt von ihrem Mittelwert liegen. Wir haben dazu bereits ein Maß kennengelernt - nämlich die Hebelwerte. Diese berechnen sich wie folgt:</p>
+<p><span class="math display">\[h = \text{diag}\left[X(X&#39;X)^{-1}X&#39;\right]\]</span></p>
+<p>Sie sind die Diagonalelemente der sogenannten Hut-Matrix. <span class="math inline">\(\text{diag}[\cdot]\)</span> bestimmt hier die Diagonalelemente der Matrix <span class="math inline">\(X(X&#39;X)^{-1}X&#39;\)</span>, welche oft auch als Hutmatrix bezeichnet iwrd. Wir berechnen diese und vergleichen Sie mit der jeweiligen Funktion, welche wir oben schon kennengelernt haben:</p>
+<pre class="r"><code>X_mat &lt;- cbind(1, X)
+h &lt;- diag(X_mat %*% solve(t(X_mat) %*% X_mat) %*% t(X_mat))
+round(h-hatvalues(reg), digits = 10)</code></pre>
+<pre><code>##  1  2  3  4  5  6  7  8  9 10 11 12 13 14 15 16 17 18 19 20 
+##  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0  0</code></pre>
+<p>Super, die <em>hatvalues</em> haben wir schon mal ausgerechnet. Nun kommen wir zu den standardiserten und studentisierten Residuen, welche diese Werte mit einbeziehen:</p>
+<p><span class="math display">\[\hat{\varepsilon}_{i,\text{std}} := \frac{\hat{\varepsilon}_{i}}{\hat{\sigma}\sqrt{1-h_i}}\]</span>
+<span class="math display">\[\hat{\varepsilon}_{i,\text{stud}} := \frac{\hat{\varepsilon}_{i}}{\hat{\sigma}_{(-i)}\sqrt{1-h_i}}\]</span>
+Die beiden Residuen werden also bestimmt, indem das eigentliche Residuum der Person <span class="math inline">\(i\)</span>, nämlich <span class="math inline">\(\hat{\varepsilon}_i = Y_i - \hat{Y}_i\)</span> durch den Standardfehler <span class="math inline">\(\hat{\sigma}\)</span> multipliziert mit <span class="math inline">\(\sqrt{1-h_i}\)</span> geteilt wird: <span class="math inline">\(\hat{\sigma}\sqrt{1-h_i}\)</span>. <span class="math inline">\(h_i\)</span> ist der Hebelwert der Person <span class="math inline">\(i\)</span>. Für das studentisierte Residuum wird nun zur Bestimmung des Standardfehlers die Analyse wiederholt, nur das Person <span class="math inline">\(i\)</span> aus dem Datensatz ausgeschlossen wird. Dies ist Ähnlich zu der Cooks-Distanz von oben. Nun führen wir das Ganze mal empirisch durch:</p>
+<pre class="r"><code># hatvalue für Xmax bestimmen
+h_Xmax &lt;- h[ind_Xmax]
+h_Xmax</code></pre>
+<pre><code>## [1] 0.686591</code></pre>
+<pre class="r"><code># Residuum bestimmen
+resid_Xmax &lt;- resid(reg)[ind_Xmax]
+resid_Xmax</code></pre>
+<pre><code>##         5 
+## -2.019278</code></pre>
+<pre class="r"><code># Residuum standardisieren (Mittelwert abziehen und durch SD teilen)
+resid_Xmax_std &lt;- resid_Xmax  / (sd_eps*sqrt(1-h_Xmax))
+resid_Xmax_std</code></pre>
+<pre><code>##         5 
+## -1.580047</code></pre>
+<pre class="r"><code># vergleich -&gt; identisch!
+stdres(reg)[ind_Xmax]</code></pre>
+<pre><code>##         5 
+## -1.580047</code></pre>
+<pre class="r"><code># studentisiertes Residuum bestimmen
+reg2 &lt;- lm(Y~X, data = df[-ind_Xmax,]) # Regression ohne Person i
+sd_eps_Xmax &lt;- summary(reg2)$sigma
+studres_Xmax &lt;- resid_Xmax  / (sd_eps_Xmax*sqrt(1-h_Xmax))
+studres_Xmax</code></pre>
+<pre><code>##         5 
+## -1.654551</code></pre>
+<pre class="r"><code># vergleich -&gt; identisch!
+studres(reg)[ind_Xmax]</code></pre>
+<pre><code>##         5 
+## -1.654551</code></pre>
+<p>Das Schöne ist nun, dass sich diese Residuen auch über Analysen hinweg vergleichen lassen, da sie eben normiert sind und den Abstand vom Mittelwert und damit auch den Einfluss auf die Analyse und die damit verbundenen Unsicherheit integrieren. Beide Arten der Normierung haben den Abstand zum Mittelwert von <span class="math inline">\(X\)</span> ausgedrückt durch die Hebelwerte berücksichtigt. Würden wir dies nicht tun, würde das <em>naiv</em>-standardisierte Residuum so ausfallen:</p>
+<pre class="r"><code>resid_Xmax_std_naiv &lt;- resid_Xmax  / sd_eps
+resid_Xmax_std_naiv</code></pre>
+<pre><code>##          5 
+## -0.8845566</code></pre>
+<p>Also sehr viel kleiner! Somit würde sein Einfluss auf die Analyse unterschätzt, da signalisiert werden würde, dass der Vorhersagefehler nicht sonderlich groß ausfällt.</p>
+</details>
 <hr />
 </div>
 <div id="r-skript" class="section level2">
 <h2>R-Skript</h2>
-<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/PsyBSc7_R_Files/06_reg3.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zM432 456c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg> hier herunterladen</a>.</p>
+<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/PsyBSc7_R_Files/06_reg3.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/></svg> hier herunterladen</a>.</p>
 <hr />
 </div>
 <div id="literatur" class="section level2">

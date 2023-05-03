@@ -14,7 +14,7 @@ tags:
 subtitle: 'Voraussetzungsprüfung'
 summary: ''
 authors: [irmer, hartig]
-lastmod: '2022-05-06 12:00:12 CEST'
+lastmod: '2023-05-03 12:00:12 CEST'
 featured: no
 header:
      image: "/header/PsyBSc7_Reg3.jpg"
@@ -140,7 +140,7 @@ Sowohl die grafischen Darstellungen als auch die Ergebnisse der Tests lassen kei
 
 Voraussetzung für die Signifikanztests im Kontext der linearen Regression ist die Normalverteilung der Residuen (nicht, wie oft irrtürmlich angenommen wird, der in die Analyse einbezogenen Variablen). Diese Annahme wird i.d.R. grafisch geprüft. Hierfür bietet sich zum einen ein Histogramm der Residuen an, zum anderen ein *Q-Q-Diagramm* (oder "Quantile-Quantile-Plot"). Zusätzlich zur grafischen Darstellung erlaubt z.B. der Shapiro-Wilk-Test auf Normalität (`shapiro.test`) einen Signifkanztest der Nullhypothese, dass die Residuen normalverteilt sind. Auch der Kolmogorov-Smirnov (`ks.test`) Test, welcher eine deskriptive mit einer theoretischen Verteilung vergleicht, wäre denkbar. 
 
-Wir beginnen mit der Vorbereitung der Daten. Wir wollen die studentisierten Residuen grafisch mit dem `R`-Paket `ggplot2`darstellen. Studentisierte Residuen sind wie standardisierten Residuen, bei denen zusätzlich eine Gewichtung der geschätzten Standardabweichung an der Stelle $x_j$ mit einfließt, was eine präziseren Schätzung der normierten Residuen zur Folge hat. Der Mittelwert der studentisierten Residuen beträgt *0* und die Varianz *1* (somit lassen sich solche Plots immer gleich interpretieren). Der Befehl `studres` aus dem `MASS` Paket speichert die Residuen aus einem `lm` Objekt, also aus dem definierten Modell `mod`, und studentisiert diese. Speichern Sie die Residuen aus `mod` als `res` ab und erzeugen Sie  daraus einen `data.frame`, den Sie unter dem Namen `df_res` speichern. Diesen wollen wir später in den Grafiken mit `ggplot2` verwenden. 
+Wir beginnen mit der Vorbereitung der Daten. Wir wollen die studentisierten Residuen grafisch mit dem `R`-Paket `ggplot2`darstellen. Studentisierte Residuen sind wie standardisierten Residuen, bei denen zusätzlich eine Gewichtung der geschätzten Standardabweichung an der Stelle $x_j$ mit einfließt, was eine präziseren Schätzung der normierten Residuen zur Folge hat. Normiert bedeutet hier, dass der Mittelwert der studentisierten Residuen *0* beträgt und die Varianz *1* ist (somit lassen sich solche Plots immer gleich interpretieren). Für mehr Informationen zu standardisierten und studentisierten Residuen schaue doch im [Appendix B](#AppendixB) vorbei. Der Befehl `studres` aus dem `MASS` Paket speichert die Residuen aus einem `lm` Objekt, also aus dem definierten Modell `mod`, und studentisiert diese. Speichern Sie die Residuen aus `mod` als `res` ab und erzeugen Sie  daraus einen `data.frame`, den Sie unter dem Namen `df_res` speichern. Diesen wollen wir später in den Grafiken mit `ggplot2` verwenden. 
  
 
 ```{r, echo=c(-1,-2)}
@@ -224,7 +224,7 @@ Für unser Modell wird ersichtlich, dass die Prädiktoren praktisch unkorreliert
 
 Die Plausibilität unserer Daten ist enorm wichtig. Aus diesem Grund sollten Aureißer oder einflussreiche Datenpunkte analysiert werden. Diese können bspw. durch Eingabefehler entstehen (Alter von 211 Jahren anstatt 21) oder es sind seltene Fälle (hochintelligentes Kind in einer Normstichprobe), welche so in natürlicher Weise (aber mit sehr geringer Häufigkeit) auftreten können. Es muss dann entschieden werden, ob Ausreißer die Repräsentativität der Stichprobe gefährden und ob diese besser ausgeschlossen werden sollten.  
 
-*Hebelwerte* $h_j$ erlauben die Identifikation von Ausreißern aus der gemeinsamen Verteilung der unabhängigen Variablen, d.h. einzelne Fälle, die weit entfernt vom  Mittelwert der gemeinsamen Verteilung der unabhängigen Variablen liegen und somit einen starken Einfluss auf die Regressionsgewichte haben können. Diese werden mit der Funktion `hatvalues` ermittelt. Kriterien zur Beurteilung der Hebelwerte variieren, so werden von [Eid et al. (2017, S. 707 und folgend)](https://ubffm.hds.hebis.de/Record/HEB366849158) Grenzen von $2\cdot k / n$ für große und $3\cdot k / n$ für kleine Stichproben vorgeschlagen, in den Vorlesungsfolien werden Werte von $4/n$ als auffällig eingestuft (hierbei ist $k$ die Anzahl an Prädiktoren und $n$ die Anzahl der Beobachtungen). Alternativ zu einem festen Cut-Off-Kriterium kann die Verteilung der Hebelwerte inspiziert und diejenigen Werte kritisch betrachtet werden, die aus der Verteilung ausreißen. Die Funktion `hatvalues` erzeugt die Hebelwerte aus einem Regression-Objekt. Wir wollen diese als Histogramm darstellen.
+*Hebelwerte* $h_j$ erlauben die Identifikation von Ausreißern aus der gemeinsamen Verteilung der unabhängigen Variablen, d.h. einzelne Fälle, die weit entfernt vom  Mittelwert der gemeinsamen Verteilung der unabhängigen Variablen liegen und somit einen starken Einfluss auf die Regressionsgewichte haben können. Diese werden mit der Funktion `hatvalues` ermittelt (die Hebelwerte spielen auch bei der Bestimmung standardisierter und studentisierter Residuen eine wichtige Rolle, sodass interessierte Lesende gerne im [Appendix B](#AppendixB) mehr Informationen dazu finden). Kriterien zur Beurteilung der Hebelwerte variieren, so werden von [Eid et al. (2017, S. 707 und folgend)](https://ubffm.hds.hebis.de/Record/HEB366849158) Grenzen von $2\cdot k / n$ für große und $3\cdot k / n$ für kleine Stichproben vorgeschlagen, in den Vorlesungsfolien werden Werte von $4/n$ als auffällig eingestuft (hierbei ist $k$ die Anzahl an Prädiktoren und $n$ die Anzahl der Beobachtungen). Alternativ zu einem festen Cut-Off-Kriterium kann die Verteilung der Hebelwerte inspiziert und diejenigen Werte kritisch betrachtet werden, die aus der Verteilung ausreißen. Die Funktion `hatvalues` erzeugt die Hebelwerte aus einem Regression-Objekt. Wir wollen diese als Histogramm darstellen.
 
 ```{r, echo=-1}
 #### Ausreißerdiagnostik ----
@@ -294,6 +294,9 @@ Die Entscheidung, ob Ausreißer oder auffällige Datenpunkte aus Analysen ausges
 ## Appendix A {#AppendixA}
 
 <details><summary>**Multikollinearität und Standardfehler**</summary>
+
+**Disclaimer:** Dieser Block ist als Zusatz anzusehen und für Interessierte bestimmt.
+
 Im Folgenden stehen $\beta$s für _**unstandardisierte**_ Regressionskoeffizienten.
 
 Für eine einfache Regressionsgleichung mit $$Y_i=\beta_0 + \beta_1x_{i1} + \beta_2x_{i2} + \varepsilon_i$$
@@ -375,6 +378,136 @@ Der VIF bzw. die Toleranz quantifizieren die Korrelation zwischen den beiden Var
 Dieser Exkurs zeigt, wie sich die Multikolinearität auf die Standardfehler und damit auf die Präzision der Parameterschätzung auswirkt. Inhaltlich bedeutet dies, dass die Prädiktoren redundant sind und nicht klar ist, welchem Prädiktor die Effekte zugeschrieben werden können.
 
 *Die Matrix $I$ ist im Zusammenhang mit der Maximum-Likelihood-Schätzung die Inverse der Fischer-Information und enthält die Informationen der Kovariationen der Parameterschätzer (diese Informationen enthält sie hier im Übrigen auch!).*
+
+</details>
+
+
+## Appendix B {#AppendixB}
+
+<details><summary>**Standardisierte und Studentisierte Residuen**</summary>
+
+**Disclaimer:** Dieser Block ist als Zusatz anzusehen und für Interessierte bestimmt.
+
+Der Einfluss der Position entlang der Regressiongerade (oder Hyperebene, wenn es mehrere Prädiktoren sind) in "x"-Richtung kann mit unter enorm sein. Weit vom (gemeinsamen) Mittelwert entfernt liegende Punkte in den Prädiktoren sind hinsichtlich der Vorhersage von $Y$ mit wesentlich größerer Unsicherheit behaftet, als diejenigen, die nah am (gemeinsamen) Mittelwert liegen. Eben jene Unsicherheit gilt es bei standardisierten und studentisierten Residuen einzupreisen. Zunächst schauen wir uns diese Unsicherheit an: Dazu simulieren wir geschwind ein paar Daten - so ähnlich wie wir dies im vergangenen Semester bereits kennengelernt haben. Wir benötigen einen Prädiktor $X$, der beispielsweise gamma-verteilt sein soll (das ist eine recht schiefe Verteilung). Anschließend brauchen wir für eine Regressionsgleichung noch ein Residuum $\varepsilon$, welches wir als normalverteilt annehmen, sowie ein Interzept $\beta_0$ und einen Steigungskoeffizienten $\beta_1$:
+
+```{r}
+# Vergleichbarkeit
+set.seed(1)
+
+# simuliere X~gamma
+n <- 20
+X <- rgamma(n = n, shape = .7, rate = 1)
+hist(X) # recht schief
+
+# simuliere eps~norm
+eps <- rnorm(n = n, mean = 0, sd = 2)
+
+# setzte Y zusammen
+beta0 <- .5; beta1 <- .6
+Y <- beta0 + beta1*X + eps
+
+# füge X und Y in einen data.frame
+df <- data.frame(X, Y)
+
+# fitte ein Regressionsmodell
+reg <- lm(Y~X, data = df)
+summary(reg)
+```
+
+Wir sehen, dass die Populationsparameter, die wir vorgegeben haben, nicht exakt getroffen werden. Das Interzept ist mit $\hat{\beta_0}$ = `r round(coef(reg)[1], 3)` und der Steigungskoeffizent mit $\hat{\beta_1}$ = `r round(coef(reg)[2], 3)` recht nah an den wahren Werten `r beta0` und `r beta1` dran, aber eben nicht exakt. Diese Unsicherheit gilt es in der Statistik zu beschreiben und einzuordnen. Ist der Effekt relativ zur Unsicherheit groß, dann sprechen wir von Signifikanz. Wir können diese Daten sehr leicht mit `ggplot` veranschaulichen und einen Regressionstrend hinzu zufügen. Per Default wird dann auch direkt ein Konfidenzintervall für die Regressionsgerade eingezeichnet: 
+
+```{r}
+library(ggplot2)
+ggplot(data = df, mapping = aes(x = X, y = Y)) + geom_point() + 
+  geom_smooth(method = "lm", formula = "y~x") + 
+  theme_minimal()
+```
+
+Diesem Plot entnehmen wir sehr deutlich, dass die Unsicherheit bezüglich der Vorhersage von $Y$ (nämlich $\hat{Y}$) für große $X$ viel größer ausfällt, als für mittlere (oder kleine) $X$. Wir bestimmen nun das standardisierte Residuum und das studentisierte Residuum für den größten $X$-Wert. Diesen müssen wir vorher erst noch einmal finden und nennen ihn dann `Xmax`:
+
+```{r}
+# größtes X finden
+ind_Xmax <- which.max(X)
+Xmax <- X[ind_Xmax]
+Xmax
+
+# zugehörigen Y-Wert finden
+Y_Xmax <- Y[ind_Xmax]
+Y_Xmax
+
+# sd_eps bestimmen
+sd_eps <- summary(reg)$sigma
+sd_eps
+
+# vorhergesaten y-Wert bestimmen
+Y_pred_Xmax <- predict(reg, newdata = data.frame("X" = Xmax))
+Y_pred_Xmax
+```
+
+In `ind_Xmax` steht einfach nur die Position innerhalb des Vektors, an der das Maximum angenommen wird - also quasi die Personennummer - hier ist das die `r ind_Xmax`. Wenn wir diese auf $X$ und $Y$ anwenden, erhalten wir die jeweiligen Werte, die zu dieser Person gehören. 
+
+Um zu prüfen, ob wir uns verrechnet haben, zeichnen wir den vorhergesagten $Y$-Wert für den größten $X$-Wert von `r round(Xmax, 3)` in unsere Grafik ein:
+
+```{r}
+ggplot(data = df, mapping = aes(x = X, y = Y)) + geom_point() + 
+  geom_smooth(method = "lm", formula = "y~x") + 
+  theme_minimal()+
+  geom_point(mapping = aes(x = Xmax, y = Y_pred_Xmax), cex = 4, col = "gold3")
+```
+
+Der gelbe Punkt liegt genau auf der Gerade - super! Jetzt müssen wir noch die Unsicherheit einpreisen, die dadurch resultiert, dass die $X$-Werte weit entfernt von ihrem Mittelwert liegen. Wir haben dazu bereits ein Maß kennengelernt - nämlich die Hebelwerte. Diese berechnen sich wie folgt: 
+
+$$h = \text{diag}\left[X(X'X)^{-1}X'\right]$$
+
+Sie sind die Diagonalelemente der sogenannten Hut-Matrix. $\text{diag}[\cdot]$ bestimmt hier die Diagonalelemente der Matrix $X(X'X)^{-1}X'$, welche oft auch als Hutmatrix bezeichnet iwrd. Wir berechnen diese und vergleichen Sie mit der jeweiligen Funktion, welche wir oben schon kennengelernt haben:
+
+```{r}
+X_mat <- cbind(1, X)
+h <- diag(X_mat %*% solve(t(X_mat) %*% X_mat) %*% t(X_mat))
+round(h-hatvalues(reg), digits = 10)
+```
+
+Super, die *hatvalues* haben wir schon mal ausgerechnet. Nun kommen wir zu den standardiserten und studentisierten Residuen, welche diese Werte mit einbeziehen:
+
+$$\hat{\varepsilon}_{i,\text{std}} := \frac{\hat{\varepsilon}_{i}}{\hat{\sigma}\sqrt{1-h_i}}$$
+$$\hat{\varepsilon}_{i,\text{stud}} := \frac{\hat{\varepsilon}_{i}}{\hat{\sigma}_{(-i)}\sqrt{1-h_i}}$$
+Die beiden Residuen werden also bestimmt, indem das eigentliche Residuum der Person $i$, nämlich $\hat{\varepsilon}_i = Y_i - \hat{Y}_i$ durch den Standardfehler $\hat{\sigma}$ multipliziert mit $\sqrt{1-h_i}$ geteilt wird: $\hat{\sigma}\sqrt{1-h_i}$. $h_i$ ist der Hebelwert der Person $i$. Für das studentisierte Residuum wird nun zur Bestimmung des Standardfehlers die Analyse wiederholt, nur das Person $i$ aus dem Datensatz ausgeschlossen wird. Dies ist Ähnlich zu der Cooks-Distanz von oben. Nun führen wir das Ganze mal empirisch durch: 
+
+
+```{r}
+# hatvalue für Xmax bestimmen
+h_Xmax <- h[ind_Xmax]
+h_Xmax
+
+# Residuum bestimmen
+resid_Xmax <- resid(reg)[ind_Xmax]
+resid_Xmax
+
+# Residuum standardisieren (Mittelwert abziehen und durch SD teilen)
+resid_Xmax_std <- resid_Xmax  / (sd_eps*sqrt(1-h_Xmax))
+resid_Xmax_std
+
+# vergleich -> identisch!
+stdres(reg)[ind_Xmax]
+
+# studentisiertes Residuum bestimmen
+reg2 <- lm(Y~X, data = df[-ind_Xmax,]) # Regression ohne Person i
+sd_eps_Xmax <- summary(reg2)$sigma
+studres_Xmax <- resid_Xmax  / (sd_eps_Xmax*sqrt(1-h_Xmax))
+studres_Xmax
+
+# vergleich -> identisch!
+studres(reg)[ind_Xmax]
+```
+
+Das Schöne ist nun, dass sich diese Residuen auch über Analysen hinweg vergleichen lassen, da sie eben normiert sind und den Abstand vom Mittelwert und damit auch den Einfluss auf die Analyse und die damit verbundenen Unsicherheit integrieren. Beide Arten der Normierung haben den Abstand zum Mittelwert von $X$ ausgedrückt durch die Hebelwerte berücksichtigt. Würden wir dies nicht tun, würde das *naiv*-standardisierte Residuum so ausfallen:
+
+```{r}
+resid_Xmax_std_naiv <- resid_Xmax  / sd_eps
+resid_Xmax_std_naiv
+```
+
+Also sehr viel kleiner! Somit würde sein Einfluss auf die Analyse unterschätzt, da signalisiert werden würde, dass der Vorhersagefehler nicht sonderlich groß ausfällt.
 
 </details>
 

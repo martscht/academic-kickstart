@@ -146,3 +146,83 @@ det(XX_3) # Determinante on X'X im Fall 3
 ## 
 ## #    Error in solve.default(XX_3) :
 ## #    Lapack routine dgesv: system is exactly singular: U[2,2] = 0
+
+# Vergleichbarkeit
+set.seed(1)
+
+# simuliere X~gamma
+n <- 20
+X <- rgamma(n = n, shape = .7, rate = 1)
+hist(X) # recht schief
+
+# simuliere eps~norm
+eps <- rnorm(n = n, mean = 0, sd = 2)
+
+# setzte Y zusammen
+beta0 <- .5; beta1 <- .6
+Y <- beta0 + beta1*X + eps
+
+# füge X und Y in einen data.frame
+df <- data.frame(X, Y)
+
+# fitte ein Regressionsmodell
+reg <- lm(Y~X, data = df)
+summary(reg)
+
+library(ggplot2)
+ggplot(data = df, mapping = aes(x = X, y = Y)) + geom_point() + 
+  geom_smooth(method = "lm", formula = "y~x") + 
+  theme_minimal()
+
+# größtes X finden
+ind_Xmax <- which.max(X)
+Xmax <- X[ind_Xmax]
+Xmax
+
+# zugehörigen Y-Wert finden
+Y_Xmax <- Y[ind_Xmax]
+Y_Xmax
+
+# sd_eps bestimmen
+sd_eps <- summary(reg)$sigma
+sd_eps
+
+# vorhergesaten y-Wert bestimmen
+Y_pred_Xmax <- predict(reg, newdata = data.frame("X" = Xmax))
+Y_pred_Xmax
+
+ggplot(data = df, mapping = aes(x = X, y = Y)) + geom_point() + 
+  geom_smooth(method = "lm", formula = "y~x") + 
+  theme_minimal()+
+  geom_point(mapping = aes(x = Xmax, y = Y_pred_Xmax), cex = 4, col = "gold3")
+
+X_mat <- cbind(1, X)
+h <- diag(X_mat %*% solve(t(X_mat) %*% X_mat) %*% t(X_mat))
+round(h-hatvalues(reg), digits = 10)
+
+# hatvalue für Xmax bestimmen
+h_Xmax <- h[ind_Xmax]
+h_Xmax
+
+# Residuum bestimmen
+resid_Xmax <- resid(reg)[ind_Xmax]
+resid_Xmax
+
+# Residuum standardisieren (Mittelwert abziehen und durch SD teilen)
+resid_Xmax_std <- resid_Xmax  / (sd_eps*sqrt(1-h_Xmax))
+resid_Xmax_std
+
+# vergleich -> identisch!
+stdres(reg)[ind_Xmax]
+
+# studentisiertes Residuum bestimmen
+reg2 <- lm(Y~X, data = df[-ind_Xmax,]) # Regression ohne Person i
+sd_eps_Xmax <- summary(reg2)$sigma
+studres_Xmax <- resid_Xmax  / (sd_eps_Xmax*sqrt(1-h_Xmax))
+studres_Xmax
+
+# vergleich -> identisch!
+studres(reg)[ind_Xmax]
+
+resid_Xmax_std_naiv <- resid_Xmax  / sd_eps
+resid_Xmax_std_naiv
