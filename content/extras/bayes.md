@@ -71,6 +71,9 @@ Haben Sie es satt in Ihren Analysen immer nur in die letzte Spalte (auf den p-We
 
 |  |  |  |  |  |
 | --- | --- | --- | --- | --- |
-| 1 | **Grundlagen** | [Inhalte](/post/bayes-intro) | --- |
+| 1 | **Grundlagen** | [Inhalte](/post/under-construction) | --- |
+| 2 | **Conjugate Priors** | [Inhalte](/post/under-construction) | R-Script |
+| 3 | **Bayesian Sampling** | [Inhalte](/post/under-construction) | R-Script |
+| 4 | **Regression mit brms** | [Inhalte](/post/under-construction) | R-Script |
 | | | | |
 
