@@ -50,6 +50,8 @@ Etwas formaler ausgedrückt: wir wollen jetzt prüfen, ob die Erfolgsquote Ihres
 
 ## Frequentistische Ansätze
 
+<details><summary>Parametrischer Ansatz: $\chi^2$-Test</summary>
+
 Gucken wir uns zunächst die Möglichkeiten an, zu prüfen, ob Ihr System besser ist als das Ihrer Kolleg:innen. Ein klassischer Ansatz (den Sie [hier in Fragestellung C](/post/gruppenvergleiche-unabhaengig/#fragestellung-c) nachlesen können) ist der $\chi^2$-Test. In unserem Fall haben wir zwar nicht vier sondern nur zwei Felder, aber das macht das Ganze einfach nur einfacher:
 
 ```{r}
@@ -72,7 +74,10 @@ Den Aufmerksamen unter Ihnen ist vielleicht aufgefallen, dass der $\chi^2$-Test,
 
 Diese Tatsache führt dazu, dass insbesondere in klinischen Studien häufig gefordert wird, stattdessen mit Tests zu arbeiten, die sich nicht auf asymptotische Eigenschaften verlassen - sogenannte non-parametrische Tests. Für unser Beispiel gibt es da zum Glück eine recht einfache Möglichkeit!
 
-Wenn Ihre Statistik I Vorlesung noch nicht allzu lange her ist, erinnern Sie sich vielleicht, dass die Anzahl von Erfolgen $x$ aus $n$ unabhängigen Versuchen [binomialverteilt](/post/verteilungen/#Binomial) ist. Das ist, im Gegensatz zu dem was ich gerade über die $\chi^2$-Tests gesagt habe, keine Annahme, sondern einfach eine Realität der Welt in der wir leben. Wir können also mit einer Gleichung direkt bestimmen, wie wahrscheinlich es ist, dass sieben Ihrer zehn Patient:innen aus dem Ausgang zurückkommen ohne rückfällig geworden zu sein, wenn ihr Ausgangsprinzip genauso gut funktioniert, wie das Ihrer Kolleg:innen ($H_0: \pi = .5$).
+</details>
+
+
+Wenn Ihre Statistik I Vorlesung noch nicht allzu lange her ist, erinnern Sie sich vielleicht, dass die Anzahl von Erfolgen $x$ aus $n$ unabhängigen Versuchen [binomialverteilt](/post/verteilungen/#Binomial) ist. Das ist, im Gegensatz zu dem was in parametrischen Tests wie z.B. dem $\chi^2$-Test vorausgesetzt wird, keine Annahme, sondern einfach eine Realität der Welt in der wir leben. Wir können also mit einer Gleichung direkt bestimmen, wie wahrscheinlich es ist, dass sieben Ihrer zehn Patient:innen aus dem Ausgang zurückkommen ohne rückfällig geworden zu sein, wenn ihr Ausgangsprinzip genauso gut funktioniert, wie das Ihrer Kolleg:innen ($H_0: \pi = .5$).
 
 $$
   P(X = x | n, \pi) = {n \choose x} \cdot \pi^x \cdot (1 - \pi)^{n-x}
@@ -320,7 +325,45 @@ Das 95%-Credible Interval ist in diesem Fall $[`r round(ci[1],2)`; `r round(ci[2
 
 ### Bayes-Factor
 
-Der Bayes-Factor ist eine Kennzahl, die uns einen etwas direkteren Einblick in das Verhältnis zweier konkurrierender Theorien bzw. Hypothesen gibt. Dabei stellt 
+Der Bayes-Factor ist eine Kennzahl, die uns einen etwas direkteren Einblick in das Verhältnis zweier konkurrierender Theorien bzw. Hypothesen gibt. Dabei ist sie - anders als klassische $p$-Werte - auch in der Lage, das Ausmaß darzustellen, in dem unsere Daten _für_ die Nullhypothese sprechen. Im Wesentlichen gibt es dabei zwei Wege, auf denen ein Bayes-Factor berechnet werden kann. 
+
+Der erste Weg ist der mittlere Term unserer [generellen Bayes-Gleichung](#basic-bayes): $\frac{P(D | H_1)}{P(D|H_0)}$.
+Wir hatten ihn oben als Likelihood-Ratio bezeichnet, was zeigt wie eng dieses Konzept mit dem Likelihood-Ratio-Test verwandt ist, mit dem wir z.B. in der [Faktorenanalyse](/post/cfa/#modellvergleiche) konkurrierende Modelle vergleichen. Letztlich ist dieses Verhältnis die Aussage darüber, wie viel wahrscheinlicher unserer Daten aufgrund des einen Modells (hier $H_1$) als aufgrund eines anderen Modells (hier $H_0$) sind.
+
+Der Zweite Weg ist der Vergleich der beiden äußeren Terme besagter genereller Gleichung. Dabei wird $\frac{P(H_1)}{P(H_0)}$ als _Prior Odds_ bezeichnet: das Wahrscheinlichkeitsverhältnis unserer beiden Modelle bevor sie mit Daten konfrontieren. Die linke Seite der Gleichung  $\frac{P(H_1|D)}{P(H_0|D)}$ wird als _Posterior Odds_ bezeichnet: das Wahrscheinlichkeitsverhältnis unserer beiden Modelle nachdem wir sie mit Daten konfrontiert haben. Das Verhältnis zwischen den beiden $\frac{\text{Posterior Odds}}{\text{Prior Odds}}$ zeigt dann an, wie viel Wahrscheinlicher unser Modell $H_1$ im Verhätlnis zum Modell $H_0$ durch die Daten geworden ist. 
+
+Falls Sie sich wundern: beide Wege sind komplett identisch - der erste Weg bietet sich lediglich als einfachere Konzeptualisierung an, wenn wir ganze Modelle vergleichen, der zweite Weg dann, wenn wir spezifische Punkt- (ungerichtete) oder Flächenhypothesen (gerichtete) vergleichen.
+
+In unserem einfach Beispiel gab es zunächst nicht direkt zwei "konkurrierende Modelle" - diesen Fall des Bayes-Factors werden wir im Beitrag zur [Regression mit Bayes](/post/bayes-regression) genauer beleuchten. Wir gucken uns hier also erst einmal nur den Vergleich einer Punkt-Hypothese an. Nehmen wir den [Fall mit starkem Prior](#starke-prior). Dort hatten wir angenommen, dass der Wert von $\pi = .5$ für neues Ausgangskonzept am wahrscheinlichsten ist: für $\pi = .5$ ist die Dichte der Prior-Verteilung `r round(dbeta(.5, 6, 6),2)`. Wenn wir von dieser Punkt-Hypothese ausgehen (dass Ihr neues Ausgangskonzept genauso gut funktioniert, wie das aller Anderen, also $\pi = .5$), können wir die Dichte des Wertes in der Prior-Verteilung mit der Dichte des Wertes in der Posterior-Verteilung vergleichen. Dieses Verhältnis wir _Savage-Dickey Density Ratio_ genannt und ist für einzelene Werte in Bayes-Analysen eine relativ simple Approximation des Bayes-Factors. In unserem Bespiel sieht man direkt, dass Posterior und Prior bei $\pi = .5$ fast die gleiche Dichte haben. Im Posterior ist diese `r round(dbeta(.5, 13, 9),2)`. Der Bayes-Factor von $\pi = .5$ ist hier also $\frac{`r round(dbeta(.5, 6, 6),2)`}{`r round(dbeta(.5, 13, 9),2)`} = `r round(dbeta(.5, 13, 9)/dbeta(.5, 6, 6),2)`$. Die Annahme, dass die Grundrate Ihres Ausgangskonzepts sich von .5 unterscheidet ist _nach_ der durchgeführten Untersuchung also nur minimal weniger Wahrscheinlich wahr, als sie es _vor_ der Untersuchung war.
+
+Dieser Vergleich lässt sich für jeden beliebigen Wert von $\pi$ durchführen. Die Annahme, dass Ihr Ausgangskonzept eine Erfolgsquote von .3 hat, ist beispielsweise nach der Untersuchung nur $\frac{`r round(dbeta(.3, 6, 6),2)`}{`r round(dbeta(.3, 13, 9),2)`} = `r round(dbeta(.3, 13, 9)/dbeta(.3, 6, 6),2)`$-mal so wahrscheinlich annehmnbar, wie vor der Untersuchung. Dadurch, dass wir das für _jeden_ einzelnen Wert machen können, können wir es auch für ganze Regionen von Werten machen. Z.B. könnten wir prüfen, wie viel sicherer wir uns nun sein können, dass Ihr Ausgangskonzept eine Erfolgsquote von _über_ $\pi = .5$ hat. Dafür vergleichen wir die beiden eingfärbten Regionen unseres Priors (blau) und unseres Posteriors (grün):
+
+```{r, echo = FALSE, fig = TRUE, height = 3, width = 4}
+ggplot(strongly, aes(x = x, y = Dichte)) +
+  geom_line(aes(color = Verteilung), lwd = 1.5, alpha = .25) +
+  geom_line(data = strongly[strongly$Verteilung == 'Posterior',], aes(color = Verteilung), lwd = 1.5) +
+  geom_line(data = strongly[strongly$Verteilung == 'Prior',], aes(color = Verteilung), lwd = 1.5) +
+  ylim(0, max(strongly$Dichte)) +
+  geom_vline(xintercept = .5, lty = 2) +
+  geom_ribbon(data = strongly[strongly$x >= .5 & strongly$Verteilung == 'Prior', ], 
+    aes(ymax = Dichte, fill = Verteilung), ymin = 0, alpha = .25) +
+  geom_ribbon(data = strongly[strongly$x >= .5 & strongly$Verteilung == 'Posterior', ], 
+    aes(ymax = Dichte, fill = Verteilung), ymin = 0, alpha = .25) +
+  theme_minimal() +
+  scale_color_manual(values = colors) +
+  scale_fill_manual(values = colors) +
+  theme(legend.position = 'top') +
+  guides(fill = 'none') + 
+  labs(x = expression(pi))
+```
+Die Fläche unter den beiden Verteilungen können wir durch Integrale (yay!) bestimmen. In diesem Fall ergibt sich ein Bayes-Factor von $\frac{`r round(pbeta(.5, 13, 9, lower.tail = FALSE), 3)`}{`r round(pbeta(.5, 6, 6, lower.tail = FALSE), 3)`} = `r round(pbeta(.5, 13, 9, lower.tail = FALSE)/pbeta(.5, 6, 6, lower.tail = FALSE), 3)`$. Es ist also `r round(pbeta(.5, 13, 9, lower.tail = FALSE)/pbeta(.5, 6, 6, lower.tail = FALSE), 3)`-mal so wahrscheinlich, dass Ihr neues Ausgangsschema eine bessere Erfolgsquote hat, als die Ihrer Kolleg:innen ($\pi > .5$) als es ist, dass Ihr Schema genausogut oder schlechter ($\pi \leq .5$) ist.
+
+Der Bayes-Factor ist eine Aussage über die _relative Evidenz_ für eine Hypothese gegenüber einer anderen. Weil viele Menschen etwas dagegen haben, Werte auch interpretieren zu müssen, hat sich für den Bayes-Factor die Daumenregel eingebürgert, dass ein Wert $1/3 < BF < 3$ als schwache oder anekdotische Evidenz gewertet werden sollte. Ein $BF < 1/3$ stellt hingegen eine Unterstützung der "Nullhypothese" (in unserem Fall, dass Ihr Ausgangsystem schlechter als das Ihrer Kolleg:innen sit) dar. Umgekehrt heißt es, dass ein $BF > 3$ Unterstützung für "Alternativhypothese" anzeigt (in unserem Fall also, dass Ihr System besser ist, als dass Ihrer Kolleg:innen). Wie Sie sehen, kann ein Bayes-Factor also auch dafür genutzt werden eine Aussage zu treffen, wenn die Nullyhpothese beibehalten wird. 
+
+***
+
+Hier beenden wir erst einmal die generelle Einführung in Bayes. In den kommenden Abschnitten werden wir an diesem gleichen Beispiel noch zeigen, wie man mit `R` händisch Bayesianische Analysen rechnen kann, wenn man [Verteilungen kennt](/post/bayes-conjugate) oder sich selbst eine [Verteilung sampeln muss](/post/bayes-metropolis), weil man Verteilungen nicht kennt. Für die praktische Umsetzung mit echten Daten, gucken wir uns auch noch an, wie man mit dem `R`-Paket `brms` [Bayesianisch Regressionen](/post/bayes-brms) rechnen kann. 
+
 
 ***
 

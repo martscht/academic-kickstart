@@ -39,6 +39,10 @@ mean(obs)</code></pre>
 </div>
 <div id="frequentistische-ansätze" class="section level2">
 <h2>Frequentistische Ansätze</h2>
+<details>
+<summary>
+Parametrischer Ansatz: <span class="math inline">\(\chi^2\)</span>-Test
+</summary>
 <p>Gucken wir uns zunächst die Möglichkeiten an, zu prüfen, ob Ihr System besser ist als das Ihrer Kolleg:innen. Ein klassischer Ansatz (den Sie <a href="/post/gruppenvergleiche-unabhaengig/#fragestellung-c">hier in Fragestellung C</a> nachlesen können) ist der <span class="math inline">\(\chi^2\)</span>-Test. In unserem Fall haben wir zwar nicht vier sondern nur zwei Felder, aber das macht das Ganze einfach nur einfacher:</p>
 <pre class="r"><code># Häufigkeitstabelle der Erfolge
 tab &lt;- table(obs)
@@ -46,7 +50,7 @@ tab &lt;- table(obs)
 # Tabelle in den Chi2-Test
 chisq.test(tab)</code></pre>
 <pre><code>## 
-##  Chi-squared test for given probabilities
+## 	Chi-squared test for given probabilities
 ## 
 ## data:  tab
 ## X-squared = 1.6, df = 1, p-value = 0.2059</code></pre>
@@ -57,7 +61,8 @@ chisq.test(tab)</code></pre>
 <p>In diesem Fall erhalten wir ein nicht bedeutsames Ergebnis - wir behalten die Nullhypothese also bei.</p>
 <p>Den Aufmerksamen unter Ihnen ist vielleicht aufgefallen, dass der <span class="math inline">\(\chi^2\)</span>-Test, den wir hier nutzen, mit ein paar Annahmen einhergeht. Das liegt daran, dass wir <a href="/post/gruppenvergleiche-unabhaengig/#Chi-Sq">die Diskrepanz zwischen Erwartung und Beobachtung zu einer Zahl verrechnen</a> und die erzeugte Zahl dann mit einer bekannten Verteilung (der <span class="math inline">\(\chi^2\)</span>-Verteilung) abgleichen, um festzustellen wie wahrscheinlich unser Ergebnis wäre, wenn die Nullhypothese wahr wäre. Die Übertragung funktioniert nur unter bestimmten Annahmen, vor allem aber funktioniert Sie <em>immer</em> besser, je größer <span class="math inline">\(n\)</span> ist. Das gilt nicht nur für den <span class="math inline">\(\chi^2\)</span>-Test, sondern für alle parametrischen Tests - also Tests, die sich darauf verlassen, eine Prüfgröße zu erstellen und diese mit einer bekannten Verteilung abzugleichen.</p>
 <p>Diese Tatsache führt dazu, dass insbesondere in klinischen Studien häufig gefordert wird, stattdessen mit Tests zu arbeiten, die sich nicht auf asymptotische Eigenschaften verlassen - sogenannte non-parametrische Tests. Für unser Beispiel gibt es da zum Glück eine recht einfache Möglichkeit!</p>
-<p>Wenn Ihre Statistik I Vorlesung noch nicht allzu lange her ist, erinnern Sie sich vielleicht, dass die Anzahl von Erfolgen <span class="math inline">\(x\)</span> aus <span class="math inline">\(n\)</span> unabhängigen Versuchen <a href="/post/verteilungen/#Binomial">binomialverteilt</a> ist. Das ist, im Gegensatz zu dem was ich gerade über die <span class="math inline">\(\chi^2\)</span>-Tests gesagt habe, keine Annahme, sondern einfach eine Realität der Welt in der wir leben. Wir können also mit einer Gleichung direkt bestimmen, wie wahrscheinlich es ist, dass sieben Ihrer zehn Patient:innen aus dem Ausgang zurückkommen ohne rückfällig geworden zu sein, wenn ihr Ausgangsprinzip genauso gut funktioniert, wie das Ihrer Kolleg:innen (<span class="math inline">\(H_0: \pi = .5\)</span>).</p>
+</details>
+<p>Wenn Ihre Statistik I Vorlesung noch nicht allzu lange her ist, erinnern Sie sich vielleicht, dass die Anzahl von Erfolgen <span class="math inline">\(x\)</span> aus <span class="math inline">\(n\)</span> unabhängigen Versuchen <a href="/post/verteilungen/#Binomial">binomialverteilt</a> ist. Das ist, im Gegensatz zu dem was in parametrischen Tests wie z.B. dem <span class="math inline">\(\chi^2\)</span>-Test vorausgesetzt wird, keine Annahme, sondern einfach eine Realität der Welt in der wir leben. Wir können also mit einer Gleichung direkt bestimmen, wie wahrscheinlich es ist, dass sieben Ihrer zehn Patient:innen aus dem Ausgang zurückkommen ohne rückfällig geworden zu sein, wenn ihr Ausgangsprinzip genauso gut funktioniert, wie das Ihrer Kolleg:innen (<span class="math inline">\(H_0: \pi = .5\)</span>).</p>
 <p><span class="math display">\[
   P(X = x | n, \pi) = {n \choose x} \cdot \pi^x \cdot (1 - \pi)^{n-x}
 \]</span></p>
@@ -78,7 +83,7 @@ pbinom(6, 10, .5, lower.tail = FALSE) + pbinom(3, 10, .5)</code></pre>
 <p>Wir setzen hier 6 und nicht 7 in die Funktion ein, weil uns <code>pbinom</code> die <em>Überschreitungswahrscheinlichkeit</em> ausgibt. Wir brauchen also die Wahrscheinlichkeit dafür einen Wert von 6 zu überschreiten (weil wir die 7 ja einschließen wollen). Der Test, den wir gerade durchgeführt haben, nennt man <em>Binomialtest</em> und auch für diesen gibt es eine eigene Funktion in <code>R</code>, die dem gleichen Schema folgt, wie z.B. die <code>t.test</code>-Funktion:</p>
 <pre class="r"><code>binom.test(7, 10, .5)</code></pre>
 <pre><code>## 
-##  Exact binomial test
+## 	Exact binomial test
 ## 
 ## data:  7 and 10
 ## number of successes = 7, number of trials = 10, p-value = 0.3438
@@ -196,7 +201,7 @@ In diesem Fall stellt der Posterior wirklich eine Mischung aus Ihren vorherigen 
 <p>In frequentistischer Statistik können wir Konfidenzintervalle um unsere Punktschätzer generieren, die von Parameter, Standardfehler und der angestrebten Sicherheit abhängen. Z.B. hatten wir oben im Binomialtest von <code>R</code> folgendes Konfidenzintervall ausgegeben bekommen:</p>
 <pre class="r"><code>binom.test(7, 10, .5)</code></pre>
 <pre><code>## 
-##  Exact binomial test
+## 	Exact binomial test
 ## 
 ## data:  7 and 10
 ## number of successes = 7, number of trials = 10, p-value = 0.3438
@@ -218,7 +223,18 @@ likeli_plot +
 </div>
 <div id="bayes-factor" class="section level3">
 <h3>Bayes-Factor</h3>
-<p>Der Bayes-Factor ist eine Kennzahl, die uns einen etwas direkteren Einblick in das Verhältnis zweier konkurrierender Theorien bzw. Hypothesen gibt. Dabei stellt</p>
+<p>Der Bayes-Factor ist eine Kennzahl, die uns einen etwas direkteren Einblick in das Verhältnis zweier konkurrierender Theorien bzw. Hypothesen gibt. Dabei ist sie - anders als klassische <span class="math inline">\(p\)</span>-Werte - auch in der Lage, das Ausmaß darzustellen, in dem unsere Daten <em>für</em> die Nullhypothese sprechen. Im Wesentlichen gibt es dabei zwei Wege, auf denen ein Bayes-Factor berechnet werden kann.</p>
+<p>Der erste Weg ist der mittlere Term unserer <a href="#basic-bayes">generellen Bayes-Gleichung</a>: <span class="math inline">\(\frac{P(D | H_1)}{P(D|H_0)}\)</span>.
+Wir hatten ihn oben als Likelihood-Ratio bezeichnet, was zeigt wie eng dieses Konzept mit dem Likelihood-Ratio-Test verwandt ist, mit dem wir z.B. in der <a href="/post/cfa/#modellvergleiche">Faktorenanalyse</a> konkurrierende Modelle vergleichen. Letztlich ist dieses Verhältnis die Aussage darüber, wie viel wahrscheinlicher unserer Daten aufgrund des einen Modells (hier <span class="math inline">\(H_1\)</span>) als aufgrund eines anderen Modells (hier <span class="math inline">\(H_0\)</span>) sind.</p>
+<p>Der Zweite Weg ist der Vergleich der beiden äußeren Terme besagter genereller Gleichung. Dabei wird <span class="math inline">\(\frac{P(H_1)}{P(H_0)}\)</span> als <em>Prior Odds</em> bezeichnet: das Wahrscheinlichkeitsverhältnis unserer beiden Modelle bevor sie mit Daten konfrontieren. Die linke Seite der Gleichung <span class="math inline">\(\frac{P(H_1|D)}{P(H_0|D)}\)</span> wird als <em>Posterior Odds</em> bezeichnet: das Wahrscheinlichkeitsverhältnis unserer beiden Modelle nachdem wir sie mit Daten konfrontiert haben. Das Verhältnis zwischen den beiden <span class="math inline">\(\frac{\text{Posterior Odds}}{\text{Prior Odds}}\)</span> zeigt dann an, wie viel Wahrscheinlicher unser Modell <span class="math inline">\(H_1\)</span> im Verhätlnis zum Modell <span class="math inline">\(H_0\)</span> durch die Daten geworden ist.</p>
+<p>Falls Sie sich wundern: beide Wege sind komplett identisch - der erste Weg bietet sich lediglich als einfachere Konzeptualisierung an, wenn wir ganze Modelle vergleichen, der zweite Weg dann, wenn wir spezifische Punkt- (ungerichtete) oder Flächenhypothesen (gerichtete) vergleichen.</p>
+<p>In unserem einfach Beispiel gab es zunächst nicht direkt zwei “konkurrierende Modelle” - diesen Fall des Bayes-Factors werden wir im Beitrag zur <a href="/post/bayes-regression">Regression mit Bayes</a> genauer beleuchten. Wir gucken uns hier also erst einmal nur den Vergleich einer Punkt-Hypothese an. Nehmen wir den <a href="#starke-prior">Fall mit starkem Prior</a>. Dort hatten wir angenommen, dass der Wert von <span class="math inline">\(\pi = .5\)</span> für neues Ausgangskonzept am wahrscheinlichsten ist: für <span class="math inline">\(\pi = .5\)</span> ist die Dichte der Prior-Verteilung 2.71. Wenn wir von dieser Punkt-Hypothese ausgehen (dass Ihr neues Ausgangskonzept genauso gut funktioniert, wie das aller Anderen, also <span class="math inline">\(\pi = .5\)</span>), können wir die Dichte des Wertes in der Prior-Verteilung mit der Dichte des Wertes in der Posterior-Verteilung vergleichen. Dieses Verhältnis wir <em>Savage-Dickey Density Ratio</em> genannt und ist für einzelene Werte in Bayes-Analysen eine relativ simple Approximation des Bayes-Factors. In unserem Bespiel sieht man direkt, dass Posterior und Prior bei <span class="math inline">\(\pi = .5\)</span> fast die gleiche Dichte haben. Im Posterior ist diese 2.52. Der Bayes-Factor von <span class="math inline">\(\pi = .5\)</span> ist hier also <span class="math inline">\(\frac{2.71}{2.52} = 0.93\)</span>. Die Annahme, dass die Grundrate Ihres Ausgangskonzepts sich von .5 unterscheidet ist <em>nach</em> der durchgeführten Untersuchung also nur minimal weniger Wahrscheinlich wahr, als sie es <em>vor</em> der Untersuchung war.</p>
+<p>Dieser Vergleich lässt sich für jeden beliebigen Wert von <span class="math inline">\(\pi\)</span> durchführen. Die Annahme, dass Ihr Ausgangskonzept eine Erfolgsquote von .3 hat, ist beispielsweise nach der Untersuchung nur <span class="math inline">\(\frac{1.13}{0.08} = 0.07\)</span>-mal so wahrscheinlich annehmnbar, wie vor der Untersuchung. Dadurch, dass wir das für <em>jeden</em> einzelnen Wert machen können, können wir es auch für ganze Regionen von Werten machen. Z.B. könnten wir prüfen, wie viel sicherer wir uns nun sein können, dass Ihr Ausgangskonzept eine Erfolgsquote von <em>über</em> <span class="math inline">\(\pi = .5\)</span> hat. Dafür vergleichen wir die beiden eingfärbten Regionen unseres Priors (blau) und unseres Posteriors (grün):</p>
+<p><img src="/post/2023-04-21-bayes-intro_files/figure-html/unnamed-chunk-19-1.png" width="672" />
+Die Fläche unter den beiden Verteilungen können wir durch Integrale (yay!) bestimmen. In diesem Fall ergibt sich ein Bayes-Factor von <span class="math inline">\(\frac{0.808}{0.5} = 1.617\)</span>. Es ist also 1.617-mal so wahrscheinlich, dass Ihr neues Ausgangsschema eine bessere Erfolgsquote hat, als die Ihrer Kolleg:innen (<span class="math inline">\(\pi &gt; .5\)</span>) als es ist, dass Ihr Schema genausogut oder schlechter (<span class="math inline">\(\pi \leq .5\)</span>) ist.</p>
+<p>Der Bayes-Factor ist eine Aussage über die <em>relative Evidenz</em> für eine Hypothese gegenüber einer anderen. Weil viele Menschen etwas dagegen haben, Werte auch interpretieren zu müssen, hat sich für den Bayes-Factor die Daumenregel eingebürgert, dass ein Wert <span class="math inline">\(1/3 &lt; BF &lt; 3\)</span> als schwache oder anekdotische Evidenz gewertet werden sollte. Ein <span class="math inline">\(BF &lt; 1/3\)</span> stellt hingegen eine Unterstützung der “Nullhypothese” (in unserem Fall, dass Ihr Ausgangsystem schlechter als das Ihrer Kolleg:innen sit) dar. Umgekehrt heißt es, dass ein <span class="math inline">\(BF &gt; 3\)</span> Unterstützung für “Alternativhypothese” anzeigt (in unserem Fall also, dass Ihr System besser ist, als dass Ihrer Kolleg:innen). Wie Sie sehen, kann ein Bayes-Factor also auch dafür genutzt werden eine Aussage zu treffen, wenn die Nullyhpothese beibehalten wird.</p>
+<hr />
+<p>Hier beenden wir erst einmal die generelle Einführung in Bayes. In den kommenden Abschnitten werden wir an diesem gleichen Beispiel noch zeigen, wie man mit <code>R</code> händisch Bayesianische Analysen rechnen kann, wenn man <a href="/post/bayes-conjugate">Verteilungen kennt</a> oder sich selbst eine <a href="/post/bayes-metropolis">Verteilung sampeln muss</a>, weil man Verteilungen nicht kennt. Für die praktische Umsetzung mit echten Daten, gucken wir uns auch noch an, wie man mit dem <code>R</code>-Paket <code>brms</code> <a href="/post/bayes-brms">Bayesianisch Regressionen</a> rechnen kann.</p>
 <hr />
 </div>
 </div>
