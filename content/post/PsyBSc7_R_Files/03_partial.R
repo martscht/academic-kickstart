@@ -17,24 +17,23 @@ ggplot(Schulleistungen, aes(x=reading, y=math)) +
 # Korrelationstest
 cor.test(Schulleistungen$reading, Schulleistungen$math)
 
+# Korrelation der Drittvariablen mit den beiden ursprünglichen Variablen
+cor.test(Schulleistungen$IQ, Schulleistungen$reading)
+cor.test(Schulleistungen$IQ, Schulleistungen$math)
 
-# Regression Leseleistung durch allgemeine Intelligenz
-reg.reading.IQ <- lm(reading ~ IQ, data = Schulleistungen)
-summary(reg.reading.IQ)
+
+# Regression 
+reg_math_IQ <- lm(math ~ IQ, data = Schulleistungen)
+reg_reading_IQ <- lm(reading ~ IQ, data = Schulleistungen)
 
 # Residuen in Objekt ablegen (Residuen x)
-res.reading.IQ <- reg.reading.IQ$residuals
-
-# Regression Mathematikleistung durch allgemeine Intelligenz
-reg.math.IQ <- lm(math ~ IQ, data = Schulleistungen)
-summary(reg.math.IQ)
+res_reading_IQ <- residuals(reg_reading_IQ)
 
 # Residuen in Objekt ablegen (Residuen y)
-res.math.IQ <- reg.math.IQ$residuals
+res_math_IQ <- residuals(reg_math_IQ)
 
 # Partialkorrelation durch Residuen
-cor.test(res.reading.IQ, res.math.IQ)
-
+cor(res_reading_IQ, res_math_IQ)
 
 ## # Paket für Partial- und Semipartialkorrelation
 ## install.packages("ppcor")
@@ -46,7 +45,7 @@ library(ppcor)
 pcor.test(x=Schulleistungen$reading, y=Schulleistungen$math, z=Schulleistungen$IQ)
 
 # Semipartialkorrelation durch Nutzung des Residuums
-cor.test(Schulleistungen$reading, res.math.IQ)
+cor(Schulleistungen$reading, res_math_IQ)
 
 
 # Semipartialkorrelation mit Funktion

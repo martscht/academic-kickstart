@@ -110,28 +110,3 @@ sum(cont1) == 0
 cont2 <- c(0, 0, 1, 0, 0, -.5, 0, 0, -.5)
 
 contrast(emm, list(cont1, cont2), adjust = 'bonferroni')
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-# verstelle die Art, wie Kontraste bestimmt werden --- Achtung! Immer wieder zurückstellen
-options(contrasts=c(unordered="contr.sum", ordered="contr.poly")) 
-Anova(lm(ET ~ urban*edu, data = conspiracy), type = "III")
-Anova(aov(ET ~ urban*edu, data = conspiracy), type = "III")
-
-# Einstellungen zurücksetzen zum Default:
-options(contrasts=c(unordered="contr.treatment", ordered="contr.poly"))
-
-# Der Default kann getestet werden via
-options("contrasts")
