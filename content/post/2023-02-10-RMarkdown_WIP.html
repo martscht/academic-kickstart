@@ -8,7 +8,7 @@ tags:
 subtitle: ''
 summary: ''
 authors: [pommeranz]
-lastmod: '2023-05-03'
+lastmod: '2023-05-12'
 featured: no
 header:
   image: "/header/" #https://pxhere.com/de/photo/29 maybe this?
@@ -47,6 +47,7 @@ projects: []
 <div id="Zusammenspiel" class="section level2 anchorheader">
 <h2>RMarkdown und Pandoc</h2>
 <p>Die RMarkdown-Datei wird mit dem Knit-Button, welcher in der Leiste unterhalb des Dateifensters ist, zu einem Dokument nach vordefiniertem Format kompiliert. Dabei wird zuerst der R-Code ausgeführt und dann in ein normales Markdown-Dokument kompiliert, dies ist die Funktion von “knitr”. Im Anschluss wird das Markdown-Dokument mit Pandoc zu einem fertigen Dokument im gewünschten Format kompiliert. Innerhalb dieses Ablaufs wird aus dem Rmd bspw. eine Homepage oder ein PDF.</p>
+<!--- Bild hier einfügen? -->
 </div>
 <div id="WD" class="section level2 anchorheader">
 <h2>Working Directory</h2>
@@ -98,28 +99,196 @@ qqline(scale(fb22$nerd[fb22$job==2]))</code></pre>
 qqnorm(scale(fb22$nerd[fb22$job==1]))
 qqline(scale(fb22$nerd[fb22$job==1]))</code></pre>
 <p>Hier wurde im Codeblock <code>{r fig.keep=c(2), fig.align='left'}</code> festgelegt, deswegen wird nun im Text nur der erste QQ-Plot gezeigt und dieser linksbündig dargestellt, während der andere nicht dargestellt wird. Auch hier gibt es wieder eine Vielzahl an Optionen, mit denen man Plots verschieden individualisieren kann. PARAMETER VERLINKEN</p>
-<p>Wir können nun die existierenden Codeblöcke mit Code Chunks austauschen, die direkt die korrekte Syntax zeigen. Mit der Option <code>tidy</code> können wir unseren Code auch zusätzlich automatisch formatieren lassen, damit dieser visuell ansprechend angeordnet ist mit gleichmäßigen Abständen und übersichtlicherer Gliederung. Weiterhin ersetzen wir unsere bisherigen per Bild eingebundenen Plots und lesen diese nun direkt über den R-Code ein.</p>
-<!--- Bild hier einfügen? -->
+<p>Wir können nun die existierenden Codeblöcke mit Code Chunks austauschen, die direkt die korrekte Syntax zeigen. Mit der Option <code>tidy</code> können wir unseren Code auch zusätzlich automatisch formatieren lassen, damit dieser visuell ansprechend angeordnet ist mit gleichmäßigen Abständen und übersichtlicherer Gliederung. Weiterhin ersetzen wir unsere bisherigen per Bild eingebundenen Plots und lesen diese nun direkt über den R-Code ein. Ebenfalls werden die Chunks dabei etwas umformatiert um von ihrer Funktionalität direkt zu profitieren.</p>
+<!--- Version 1 hier einfügen? -->
+<p>In dieser ersten Lösung steht der gesamte umformatierte Code mit allen Änderungen, die bisher durchgeführt wurden. Es empfiehlt trotzdem vorher selbst einmal die Code-Chunks auszuprobieren, vor allem da die nächsten Schritte unabhängig vom Aufbau des Berichts durchgeführt werden können.</p>
+{{% detail_disclosure "Zeig mir die Lösung an" %}}
+<pre>
+---
+title: Minibericht
+author: Kevin Pommeranz
+abstract: Im folgenden Bericht werde ich eine lineare Regression und ihre Ergebnisse beispielhaft abbilden, um zu zeigen wie Markdown im wissenschaftlichen Austausch genutzt werden kann. Es ist kein formaler wissenschaftlicher Bericht, sondern nur zur Veranschaulichung!
+output:
+  html_document:
+    toc: true
+    toc_float: true
+    toc_collapsed: true
+    toc_depth: 4
+
+---
+
+
+## RMarkdown Version 1
+
+#### **Übersicht**
+
+- [Datensatz](#Datensatz)
+- [Deskriptivstatistik](#Deskriptivstatistik)
+- [Durchführungsplan](#Durchführung)
+- [Voraussetzungsprüfung](#Vorraussetzungsprüfung)
+- [Ergebnis](#Ergebnis)
+
+#### **Datensatz** {#Datensatz}
+Der Datensatz kann mit folgendem Befehl geladen werden:
+
+```r
+load(url('https://pandar.netlify.app/post/fb22.rda')) 
+```
+
+#### **Deskriptiv** {#Deskriptivstatistik}
+
+Von der Stichprobe dieses Fragebogen wurde nur die Geschlechterverteilung aufgenommen, welche folgendermaßen aussieht:
+
+
+```r
+fb22$geschl_faktor <- factor(fb22$geschl
+                             ,levels = 1:3,
+                             labels = c("weiblich"
+                                        ,
+                                        "männlich", "anderes"))
+table(fb22$geschl_faktor)
+```
+
+#### **Was wurde durchgeführt?** {#Durchführung}
+
+Es wurde eine <span style='color: red'>lineare Regression</span> durchgeführt, um zu sehen, ob innerhalb des Datenatz die Nerdigkeit einen linearen Zusammenhang mit der Neurotizität aufzeigt.
+
+Als Hypothesen formuliert:
+
+>
+>Hypothesen
+>
+> #. H1: Das Regressionsgewicht $b_1$ des Prädiktors Nerdigkeit ist signifikant von Null verschieden ($b_1 \neq 0$). Der Zusammenhang von Nerdigkeit und Neurotizität ist statistisch bedeutsam. 
+>
+> #. H0: Das Regressionsgewicht $b_1$ des Prädiktors Nerdigkeit ist nicht signifikant von Null verschieden ($b_1 = 0$). Der Zusammenhang von Nerdigkeit und Neurotizität ist nicht statistisch bedeutsam. 
+>
+***
+
+Der Code dazu sah folgenderweise aus:
+
+```r
+model <- lm(neuro ~ nerd, fb22)
+```
+
+#### **Vorraussetzungsprüfung** {#Vorraussetzungsprüfung}
+
+Die Vorrausssetzungsprüfungen wurden graphisch durchgeführt.
+
+
+```r
+UV <- fb22$nerd
+AV <- fb22$neuro
+
+## Linearität
+plot(UV, AV, xlab = "Nerdigkeit", ylab = "Neurozität", 
+     main= "Zusammenhang zwischen Gewicht und Treibstoffeffizienz"
+     , pch =19)
+lines(loess.smooth(UV, AV), col = 'blue')
+
+## Restliche Prüfungen
+par(mfrow = c(2, 2)) #vier Abbildungen gleichzeitig
+plot(model)
+
+## Varianzhomogenität
+#Siehe Plot
+
+## Unabhängigkeit der Residuen
+# Siehe plot
+
+
+## Normalverteilung der Residuen
+shapiro.test(model[["residuals"]]) #Zusatz da unklar durch graphische Prüfung
+# + Normal Q-Q
+```
+Sie sind alle annehmbar, wobei die Normalverteilung noch zusätzlich mit einem shapiro Test (p = .0698) überprüft wurde, da der dargestellte QQ-Plot schon an der Grenze zu liegen scheint.
+
+***
+
+
+
+#### **Ergebnis** {#Ergebnis}
+
+Das Ergebnis ist, dass unser Prädiktor nicht signifikant von Null verschieden ist (p-Wert von 0.3406 bei einem Alpha von .05). Die Alternativhypothese wird verworfen und die Nullhypothese bleibt erhalten.
+
+***
+
+Der Code dazu sah folgenderweise aus:
+
+```r
+summary(model)
+p = 0.3406
+
+if(p < 0.05){
+  print("Die Nullhypothese wird verworfen")
+}else{
+  print("Die Nullhypothese bleibt erhalten.")
+}
+```
+
+</pre>
+<p>{{% /detail_disclosure %}}</p>
 </div>
 <div id="Setup" class="section level2 anchorheader">
 <h2>Der Sonderfall: Setup mit knitr</h2>
-<p>Der erste Code-Chunk in einem Dokument, der beim Erstellen eines neuen RMarkdown-Dokuments auch in RStudio miterstellt wird, ist typischerweise der Setup-Chunk. In ihm lassen sich durch Argumente verschiedene Regeln festlegen die im <code>default</code> auf jeden weiteren Code-Chunk zutreffen werden. Die <a href="https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf?_ga=2.102259713.1013981012.1677056319-671987487.1666819594">möglichen Befehle</a> innerhalb des Setup-Chunks sind weitreichend, meist wird dort aber nur definiert, ob man seinen Code und seine Ergebnisse standardmäßig anzeigen möchte und ob Warnungen oder Nachrichten angezeigt werden sollen. Letztere Optionen lauten bspw.</p>
+<p>Der erste Code-Chunk in einem Dokument, der beim Erstellen eines neuen RMarkdown-Dokuments auch in RStudio miterstellt wird, ist typischerweise der Setup-Chunk. In ihm lassen sich durch Argumente verschiedene Regeln festlegen die im <code>default</code> auf jeden weiteren Code-Chunk zutreffen werden. Die <a href="https://www.rstudio.com/wp-content/uploads/2015/03/rmarkdown-reference.pdf?_ga=2.102259713.1013981012.1677056319-671987487.1666819594">möglichen Befehle</a> innerhalb des Setup-Chunks sind weitreichend, meist wird dort aber nur definiert, ob man seinen Code und seine Ergebnisse standardmäßig anzeigen möchte und ob Warnungen oder Nachrichten angezeigt werden sollen. Letztere Optionen lauten beispielsweise:</p>
 <pre><code>knitr::opts_chunk$set(include= TRUE, echo = TRUE, message = TRUE, warning = TRUE)
-include -&gt;
-echo -&gt;
-message -&gt;
-warning -&gt;</code></pre>
-<p>wenn man alle Elemente mit anzeigen möchte. Aber dies muss man auch nicht unbedingt selbst setzen, diese 4 Werte sind beispielsweise als <code>default = TRUE</code>, also standardmäßig auf <code>TRUE</code> gesetzt, und müssen daher eigentlich nur angepasst werden, wenn man sie spezifisch auf <code>FALSE</code> setzen will.</p>
-<p>Diesen besonderen Chunk nutzen wir nun, um <code>tidy</code> global zu setzen und um unsere Plots automatisch zu zentrieren.</p>
-<!--- Bild hier einfügen? -->
+</code></pre>
+<p>Diese muss man aber nicht unbedingt selbst setzen, diese 4 Werte sind beispielsweise als <code>default = TRUE</code>, also standardmäßig auf <code>TRUE</code> gesetzt, und müssen daher eigentlich nur angepasst werden, wenn man sie spezifisch auf <code>FALSE</code> setzen will.</p>
+<p>Man kann auch globale R-Optionen in diesem Chunk einstellen, wie bspw. <code>options(digits)</code> um die globale Anzahl an Nachkommastellen zu setzen</p>
+<p>Diesen besonderen Chunk nutzen wir nun, um <code>tidy</code> global zu setzen, damit der Code endlich schön und einheitlich ist. Bisher waren absichtlich unschöne Darstellungen, wie <code>=</code> statt eine Zuweisungspfeil, oder schlecht indentierter Code, diese sollten nun mit tidy verschwinden. Wer dies selbst umsetzen möchte statt die Lösung zu betrachten sollte sich <a href="https://bookdown.org/yihui/rmarkdown-cookbook/opts-tidy.html">Den entsprechenden Abschnitt im RMarkdown-Cookbok anschauen</a>.</p>
+<!--- Version 2 hier einfügen? -->
+{{% detail_disclosure "Zeig mir die Lösung an" %}}
+Der neue Setup-Chunk:
+<pre>
+
+```{r setup, echo=FALSE}⠀
+knitr::opts_chunk$set(tidy = TRUE,tidy.opts = list(arrow=TRUE, indent=2, width.cutoff=50))
+```⠀
+
+</pre>
+<p>{{% /detail_disclosure %}}</p>
 </div>
 <div id="Inline" class="section level2 anchorheader">
 <h2>Inline Code &amp; Parameter</h2>
 <p>Genau so, wie man Abschnitte im Text visuell als Code herausstellen kann in RMarkdown, lässt sich auch R-Code im Text ausführen. In diesem Dokument wurden bspw. zu Beginn in einem nicht sichtbaren Codeblock zwei zufällige Zahlen zwischen 1 und 20 in einen Vektor gelegt.</p>
-<p>Dieser Vektor lässt sich nun direkt darstellen mit <code>r numberFunc</code> , umschlossen von zwei Backticks <code>``</code>: 17, 4.</p>
+<p>Dieser Vektor lässt sich nun direkt darstellen mit <code>r numberFunc</code> , umschlossen von zwei Backticks <code>``</code>: 5, 8.</p>
 <p>Der Vektor der zwei Zahlen wird dabei direkt in einer Aufführung mit Kommas dargestellt. Die Zahlen werden immer neu randomisiert, wenn das Dokument bearbeitet und neu geladen wird.</p>
-<p>Unsere Testergebnisse aus dem Bericht müssen nun nicht mehr per Hand eingegeben werden, sondern werden automatisch ausgefüllt. Dies ist nützlich, wenn man beispielsweise weitere Daten hat, die die Ergebnisse leicht verändern, da man dann die einzelnen Werte im Text nicht zwingend per Hand eintragen muss. Jedoch müssen wir die einzelnen Werte dafür auch noch zusätzlich im R-Code speichern, dies wird realisiert indem wir den Code zum speichern schreiben (in Zeile x bis y) und danach die Chunkoption <code>echo=-c(x:y)</code> einsetzen, womit der Code von Zeile x bis y im fertigen Dokument nicht angezeigt wird. Hier nun der finale Minibericht:</p>
-<!--- Bild hier einfügen? -->
+<p>Unsere Testergebnisse aus dem Bericht müssen nun nicht mehr per Hand eingegeben werden, sondern werden automatisch ausgefüllt. Dies ist nützlich, wenn man beispielsweise weitere Daten hat, die die Ergebnisse leicht verändern, da man dann die einzelnen Werte im Text nicht zwingend per Hand eintragen muss. Jedoch müssen wir die einzelnen Werte dafür auch noch zusätzlich im R-Code vor ihrem Auftauchen speichern, dies wird realisiert indem wir den Code zum speichern schreiben (in Zeile x bis y) und danach die Chunkoption <code>echo=-c(x:y)</code> einsetzen, womit der Code von Zeile x bis y im fertigen Dokument nicht angezeigt wird. Hier nun der finale Minibericht:</p>
+<!--- Version 3 hier einfügen? -->
+{{% detail_disclosure "Zeig mir die Lösung an" %}}
+Nach Vorrausetzungsprüfung wird ein neuer Block eingesetzt um die Werte zu speichern, bevor sie im Text danach erwähnt werden
+<pre>
+
+```{r echo=FALSE}⠀
+p = 0.3406
+p_shap = 0.0698
+```⠀
+
+Sie sind alle annehmbar, wobei die Normalverteilung noch zusätzlich mit einem shapiro Test (p = ```r
+p_shap```) überprüft wurde, da der dargestellte QQ-Plot schon an der Grenze zu liegen scheint.
+
+***
+
+#### **Ergebnis** {#Ergebnis}
+
+Das Ergebnis ist, dass unser Prädiktor nicht signifikant von Null verschieden ist (p-Wert von "r p" bei einem Alpha von .05). Die Alternativhypothese wird verworfen und die Nullhypothese bleibt erhalten.
+
+***
+
+Der Code dazu sah folgenderweise aus:
+
+```r
+summary(model)
+p = 0.3406
+
+if(p < 0.05){
+  print("Die Nullhypothese wird verworfen")
+}else{
+  print("Die Nullhypothese bleibt erhalten.")
+}
+```
+</pre>
+<p>{{% /detail_disclosure %}}</p>
 </div>
 <div id="fazit" class="section level2">
 <h2>Fazit</h2>
