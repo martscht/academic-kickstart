@@ -11,8 +11,8 @@ tags:
 - Zusammenhangsanalyse
 subtitle: ''
 summary: ''
-authors: [schroeder, gruetzmacher, nehler]
-lastmod: '2023-05-10 12:00:12 CEST'
+authors: [schroeder, gruetzmacher, nehler, irmer]
+lastmod: '2023-05-12 12:00:12 CEST'
 featured: no
 header:
      image: "/header/PsyBSc7_Partial.jpg"
@@ -30,9 +30,8 @@ file.rename("2021-04-21-Partialkorrelation.R","PsyBSc7_R_Files/03_partial.R") #N
 ```{r Info, purl=TRUE, echo=FALSE}
 # ---- Partial- & Semipartialkorrelation ----
 #Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/03_partial.R, von der PandaR-Website der Goethe Universität Frankfurt.
-#Die Autoren dieses Skripts sind Marvin Schröder, Luisa Grützmacher & Kai J. Nehler. Skriptkompilierung von Kevin Pommeranz.
+#Die Autoren dieses Skripts sind Marvin Schröder, Luisa Grützmacher, Kai J. Nehler & Julien P. Irmer. Skriptkompilierung von Kevin Pommeranz.
 ```
-
 
 
 ## Einleitung
@@ -68,7 +67,7 @@ Der Zusammenhang zwischen zwei Variablen *x* und *y* kann aber auch durch eine D
 
 ## Partialkorrelation
 
-Die Partialkorrelation ist die bivariate Korrelation zweier Variablen *x* und *y*, die bestehen würde, wenn zuvor der Einfluss einer weiteren Variable *z* statistisch kontrolliert (d.h. "auspartialisiert" oder "herausgerechnet") wird. Die Partialkorrelation r~xy.z~ kann gebildet werden als Korrelation der Regressionsresiduen von *x* bei Vorhersage durch *z* und *y* bei Vorhersage durch *z*. Denn dann bleibt jeweils der Anteil an *x* und *y* übrig, der nichts mit *z* zu tun hat.
+Die Partialkorrelation ist die bivariate Korrelation zweier Variablen *x* und *y*, die bestehen würde, wenn zuvor der Einfluss einer weiteren Variable *z* statistisch kontrolliert (d.h. "auspartialisiert" oder "herausgerechnet") wird. Konzeptionell kann die Partialkorrelation r~xy.z~ gebildet werden als Korrelation der Regressionsresiduen von *x* bei Vorhersage durch *z* und *y* bei Vorhersage durch *z*. Weil das Regressionsresiduum nichts mit den Prädiktoren gemein hat, bleiben nach Regression von *x* und *y* auf *z* jeweils nur der Anteil an *x* und *y* übrig, der nichts mit *z* zu tun hat.
 ![](/post/Partial2.png){width="50%"}
 
 
@@ -110,7 +109,7 @@ ggplot(Schulleistungen, aes(x=reading, y=math)) +
 cor.test(Schulleistungen$reading, Schulleistungen$math)
 ```
 
-Der Output zeigt einen Korrelationskoeffiziert von `r cor(Schulleistungen$reading, Schulleistungen$math)|>round(3)`, was bedeutet dass die beiden fachspezifischen Tests für Lesen und Mathematik positiv miteinander korrelieren. Der p-Wert beträgt `r cor.test(Schulleistungen$reading, Schulleistungen$math)$p.value|>round(3)|>format(nsmall=3)`. Der Zusammenhang, den die Schulleitung beobachtet hat, nehmen wir also mit einer Irrtumswahrscheinlichkeit von 5%  an. Schüler:innen, die gute Mathematikleistungen erbringen, zeigen eine bessere Leseleistung.
+Der Output zeigt einen Korrelationskoeffiziert von `r cor(Schulleistungen$reading, Schulleistungen$math)|>round(3)`, was bedeutet dass die beiden fachspezifischen Tests für Lesen und Mathematik positiv miteinander korrelieren (was wiederum bedeutet, dass wenn die Leseleistung überdurchschnittlich ausgeprägt ist, so ist im Mittel auch die Matheleistung überdurchschnittlich ausgeprägt - und umgekehrt). Der p-Wert beträgt `r cor.test(Schulleistungen$reading, Schulleistungen$math)$p.value|>round(3)|>format(nsmall=3)`. Der Zusammenhang, den die Schulleitung beobachtet hat, nehmen wir also mit einer Irrtumswahrscheinlichkeit von 5%  an. Schüler:innen, die gute Mathematikleistungen erbringen, zeigen eine bessere Leseleistung.
 
 Nun heißt es näher zu betrachten, wie der IQ mit den einzelnen Leistungsbereichen zusammenhängt. 
 
@@ -125,9 +124,9 @@ cor.test(Schulleistungen$IQ, Schulleistungen$math)
 
 ```
 
-Die Ergebnisse zeigen, dass die allgemeine Intelligenz sowohl mit der Lese-, als auch mit der Mathematikleistung signifikant zusammenhängt. Sie stellt daher eine mögliche konfundierende Drittvariable dar. Diese Vermutung können wir nun mit einer Partialkorrelation überprüfen, für die wir die Residuen brauchen.
+Die Ergebnisse zeigen, dass die allgemeine Intelligenz sowohl mit der Lese-, als auch mit der Mathematikleistung signifikant zusammenhängt. Sie stellt daher eine mögliche konfundierende Drittvariable dar. Diese Vermutung können wir nun mit einer Partialkorrelation überprüfen, für die wir die Residuen brauchen. Mehr Infos gibt es in [Appendix A](#AppendixA).
 
-Um die Residuen zu erhalten bestimmen wir die bivariate Regression zwischen der dritten Variable und der ursprünglichen beiden Variablen. Die Residuen repräsentieren den Teil der Variablen, der von der Drittvariable unabhängig ist. Das kann man also äquivalent dazu sehen, dass dieser Anteil von der Drittvariablen nicht erklärt werden kann (also dem Fehler in der Regression)
+Um die Residuen zu erhalten bestimmen wir die bivariate Regression zwischen der dritten Variable und der ursprünglichen beiden Variablen. Die Residuen repräsentieren den Teil der Variablen, der von der Drittvariable unkorreliert ist. Das kann man also äquivalent dazu sehen, dass dieser Anteil von der Drittvariablen nicht erklärt werden kann (also dem Fehler in der Regression).
 
 ```{r}
 # Regression 
@@ -145,9 +144,9 @@ res_math_IQ <- residuals(reg_math_IQ)
 
 Wir haben die Residuen nun in Objekten abgelegt und können die Partialkorrelation bestimmen.
 
-#### Partialkorrelation (Korrelation zwischen den Residuen)
+#### Partialkorrelation (als Korrelation zwischen den Residuen)
 
-Die bivariate Korrelation kann durch die Funktion `cor()` bestimmt werden. Als Argumente brauchen wir die beiden Objekte mit den Residuen. Beachten Sie, dass wir hier NICHT `cor.test()` verwenden, da die inferenzstatistische Absicherung die falschen Freiheitsgrade nutzen würde. Für interessierte Lesende findet sich [hier](#AppendixA) eine genauere Erläuterung der Problematik.
+Die bivariate Korrelation kann durch die Funktion `cor()` bestimmt werden. Als Argumente brauchen wir die beiden Objekte mit den Residuen. Beachten Sie, dass wir hier NICHT `cor.test()` verwenden, da die inferenzstatistische Absicherung die falschen Freiheitsgrade nutzen würde. Für interessierte Lesende findet sich in [Appendix A](#AppendixA) eine genauere Erläuterung der Problematik.
 
 ```{r}
 # Partialkorrelation durch Residuen
@@ -175,25 +174,25 @@ Mit der Funktion `pcor.test()` lässt sich die Partialkorrelation direkt ermitte
 
 ```{r}
 # Partialkorrelation mit Funktion
-
 pcor.test(x=Schulleistungen$reading, y=Schulleistungen$math, z=Schulleistungen$IQ)
 ```
-Die Partialkorrelation (r~xy.z~) beträgt `r cor(res_reading_IQ, res_math_IQ)|> round(2)` und ist nicht signifikant von 0 verschieden (p= `r pcor.test(x=Schulleistungen$reading, y=Schulleistungen$math, z=Schulleistungen$IQ)$p.value |> round(2)`). Es zeigt sich also, dass der ursprüngliche Zusammenhang zwischen der Lese- und Mathematikleistung (*r~xy~*=`r cor(Schulleistungen$reading, Schulleistungen$math)|> round(2)`) unter Kontrolle der allgemeinen Intelligenz verschwindet. Es handelt sich also um eine Scheinkorrelation.
+
+Die Partialkorrelation (r~xy.z~) beträgt `r cor(res_reading_IQ, res_math_IQ)|> round(2)` und ist nicht signifikant von 0 verschieden (p= `r pcor.test(x=Schulleistungen$reading, y=Schulleistungen$math, z=Schulleistungen$IQ)$p.value |> round(2)`). Es zeigt sich also, dass der ursprüngliche Zusammenhang zwischen der Lese- und Mathematikleistung (*r~xy~*=`r cor(Schulleistungen$reading, Schulleistungen$math)|> round(2)`) unter Kontrolle der allgemeinen Intelligenz verschwindet. Es handelt sich also um eine Scheinkorrelation zwischen der Lese- und der Matheleistung. Anders ausgedrückt lassen sich gemeinsame Unterschiede auf Lese und Matheleistung zwischen zwei Kindern allein druch den Unterschied in der Intelligenz dieser beiden Kinder erklären. Angenommen Kind *A* hat überdurchschnittliche Lese- und und Matheleistungen in den beiden Tests, während Kind *B* durchschnittliche Werte auf beiden Tests aufweist, dann lässt sich dieser Unterschied in beiden Tests zwischen Kind *A* und Kind *B* allein durch Unterschiede der beiden Kinder in der Intelligenz erklären. Auf Grund der Vorzeichen müsste Kind *A* bspw. eine überdurchschnittliche Intelligenz aufweisen, während Kind *B* eine durchschnittliche Intelligenz zeigt.
     
 ### Mögliche Veränderung der ursprünglichen Korrelation bei Bestimmung der Partialkorrelation
 
-Wird eine Partialkorrelation berechnet, kann die ursprüngliche Korrelation sich auf drei Arten verhalten:
+Wird eine Partialkorrelation berechnet, kann die ursprüngliche Korrelation sich auf drei Arten verhalten (betraglich bedeutet immer "ohne Vorzeichen": z.B. |-1| = 1):
 
-1. Partialkorrelation ist kleiner als die ursprüngliche Korrelation
+1. Partialkorrelation ist (betraglich) kleiner als die ursprüngliche Korrelation (|r~xy.z~|<|r~xy~|)
 
-Wie in unserem Bespiel teilen alle drei Variablen miteinander Varianz. Partialisiert man nun eine Variable aus dem Zusammenhang der beiden anderen Variablen heraus, wird die geteilte Varianz weniger, womit die Korrelation sinkt. Dieser Fall ist der am häufigsten eintretende, da in der Forschung oft Variablen auspartialisiert werden, weil es theoretische Annahme gibt, warum die Variablen Varianz teilen sollten, man aber einen isolierten Effekt von *x* auf *y* betrachten möchte. Der im Tutorial dargestellte Effekt ist die extremste Form der Veränderung, bei der die Partialkorrelation dann fast bei 0 liegt.
+Wie in unserem Bespiel teilen alle drei Variablen miteinander Varianz. Partialisiert man nun eine Variable aus dem Zusammenhang der beiden anderen Variablen heraus, wird die geteilte Varianz weniger, womit die Korrelation betraglich sinkt (es ist wichtig diese Aussage für den Betrag zu formulieren, denn auch wenn eine Korrelation negativ ausfällt, bspw. r~xy~ = -.20, und eine dritte Variable wird auspartialisiert womit dann die gemeinsame Varianz zwischen *x* und *y* sinkt, so verringert sich die Partialkorrelation bspw. auf r~xy.z~=-.10). Dieser Fall ist der am häufigsten eintretende, da in der Forschung oft Variablen auspartialisiert werden, weil es theoretische Annahme gibt, warum die Variablen Varianz teilen sollten, man aber eine isolierte Assoziation (Beziehung) zwischen *x* auf *y* betrachten möchte. Der im Tutorial dargestellte Effekt ist die extremste Form dieser Klasse an  Veränderung, bei der die Partialkorrelation dann fast bei 0 liegt.
 
-2. Partialkorrelation ist gleich der ursprünglichen Korrelation
+2. Partialkorrelation ist gleich der ursprünglichen Korrelation (r~xy.z~=r~xy~)
 
-Ist die Partialkorrelation r~xy.z~ genauso groß (nicht signifikant unterschiedlich) wie die Ausgangskorrelation r~xy~, ist *z* mit *x* und *y* unkorreliert. Die Drittvariable *z* würde also keinen Zusammenhang und damit keine geteilte Varianz mit *x* und *y* haben.
+Ist die Partialkorrelation r~xy.z~ genauso groß (nicht signifikant unterschiedlich) wie die Ausgangskorrelation r~xy~, ist *z* mit *x* und *y* unkorreliert. Die Drittvariable *z* würde also keinen Zusammenhang und damit keine geteilte Varianz mit *x* und *y* haben (und auch nicht erklären).
 
 
-3. Partialkorrelation ist größer als die ursprüngliche Korrelation
+3. Partialkorrelation ist (betraglich) größer als die ursprüngliche Korrelation (|r~xy.z~|>|r~xy~|)
 
 In einem solchen Fall liegt meist ein Suppressoreffekt vor (ein Teil der Varianz in *x* wird durch die Drittvariable unterdrückt bzw. supprimiert, der für den Zusammenhang mit *y* irrelevant ist). Der klassische Suppressoreffekt tritt dann auf, wenn *z* mit *y* zu 0 korreliert (was nicht immer der Fall sein muss), mit *x* aber eine bedeutende Korrelation aufweist (Sonderformen eines Suppressoreffekts finden Interessierte in Eid & Gollwitzer 2017, Kap.18,19). In solch einem Fall wird der für *y* irrelevante Varianzanteil in *x* durch den Supressor *z* gebunden, wodurch der relative Anteil an geteilter Varianz zwischen *x* und *y* größer wird. Ein Beispiel: Sie untersuchen den Zusammenhang von Sport (x), Kalorienzufuhr(z) und Gewichtsverlust (y). Sporttreiben korreliert positiv mit Gewichtsverlust und Kalorienzufuhr, Kalorienzufuhr aber nicht mit Gewichtsverlust. In einer Partialkorrelation wird die Korrelation von Sporttreiben mit Gewichtsverlust unter der Kontrolle von Kalorienzufuhr größer. Sie können daraus schließen, dass die Kalorienzuführ in diesem Beispiel als Suppressor agiert. Die Inhaltliche Begründung dafür wäre, dass mit einer erhöhten sportlichen Aktivität eine erhöhte Kalorienzufuhr einhergeht. Dieser Zusammenhang hat den positiven Effekt von Sport supprimiert. 
 
@@ -220,29 +219,239 @@ spcor.test(x=Schulleistungen$reading, y=Schulleistungen$math, z=Schulleistungen$
 
 ```
 
-Der Koeffizient der Semipartialkorrelation (r~x(y.z)~) beträgt `r spcor.test(x=Schulleistungen$reading, y=Schulleistungen$math, z=Schulleistungen$IQ)$estimate |> round(2)` und ist nicht signifikant (p=`r spcor.test(x=Schulleistungen$reading, y=Schulleistungen$math, z=Schulleistungen$IQ)$estimate |> round()`). Es zeigt sich also, dass der ursprüngliche Zusammenhang zwische Lese- und Mathematikleistung (*r~xy~*= `r cor(Schulleistungen$reading, Schulleistungen$math) |> round()`) verschwindet, wenn der Einfluss der allgemeinen Intelligenz auf die Mathematikleistung kontrolliert wird.
+Der Koeffizient der Semipartialkorrelation (r~x(y.z)~) beträgt `r spcor.test(x=Schulleistungen$reading, y=Schulleistungen$math, z=Schulleistungen$IQ)$estimate |> round(2)` und ist nicht signifikant (p=`r spcor.test(x=Schulleistungen$reading, y=Schulleistungen$math, z=Schulleistungen$IQ)$estimate |> round()`). Es zeigt sich also, dass der ursprüngliche Zusammenhang zwischen Lese- und Mathematikleistung (*r~xy~*= `r cor(Schulleistungen$reading, Schulleistungen$math) |> round()`) verschwindet, wenn der Einfluss der allgemeinen Intelligenz auf die Mathematikleistung kontrolliert wird.
 
 ## Wann wähle ich die Partial- und wann die Semipartialkorrelation?
 
 Ob Sie in Ihren Untersuchungen die Partial- oder Semipartialkorrelation zur Kontrolle von Drittvariablen verwenden, begründet sich primär in theoretischen Annahmen. Bei der Partialkorrelation nehmen Sie an, dass die Drittvariable *z* beide Variablen *x* und *y* ursächlich beeinflusst. In unserem Beispiel stellen wir uns den IQ als Ursache für die Leistungen in Mathematik und Lesen vor, daher wäre eine Partialkorrelation angebracht. 
-Die Semipartialkorrelation ist dann das Mittel der Wahl, wenn die Drittvariable nur eine der beiden Variablen *x* oder *y* theoretisch kausal bedingt und zwischen den anderen Variablen lediglich ein ungerichteter Zusammenhang angenommen wird. In unserem Beispiel würde dies bedeuten, dass wir beispielsweise lediglich annehmen, dass der IQ die Matehmatikleistung bedingt, jedoch nicht die Leseleitung. Eine mögliche Begründung könnte sein, dass Mathematik stark von der abstrakten Vorstellungkraft profitiert, die im IQ abgebildet ist, die Leseleistung hingegen eine Fertigkeit ist, die vorallem erlernt wird. Da diese Annahme schwer empirisch zu stützen ist, eignet sich die Semipartialkorrelation in unserem Beispiel weniger als die Partialkorrelaton.
-
-
+Die Semipartialkorrelation ist dann das Mittel der Wahl, wenn die Drittvariable nur eine der beiden Variablen *x* oder *y* theoretisch kausal bedingt und zwischen den anderen Variablen lediglich ein ungerichteter Zusammenhang angenommen wird. In unserem Beispiel würde dies bedeuten, dass wir beispielsweise lediglich annehmen, dass der IQ die Matehmatikleistung bedingt, jedoch nicht die Leseleitung. Eine mögliche Begründung könnte sein, dass Mathematik stark von der abstrakten Vorstellungkraft profitiert, die im IQ abgebildet ist, die Leseleistung hingegen eine Fertigkeit ist, die vorallem erlernt wird. Da diese Annahme schwer empirisch zu stützen ist, eignet sich die Semipartialkorrelation in unserem Beispiel weniger als die Partialkorrelaton. Dies ist vermutlich in den meisten Anwendungsbereichen so. Im Rahmen der Regressionsanalyse stellt die Semi-Partialkorrelation eine wichtige Rolle in der Berechnung des Determinationskoeffizienten dar. Darüber erfähren Sie in der nächsten Sitzung mehr.
 
 # Zusammenfassung
 
 Wir haben in dem Tutorial die Partial- und Semipartialkorrelation als Erweiterungen der Korrelation kennengelernt. Die Zusammenhänge zwischen den drei Größen soll der folgende Plot nochmal zusammenfassen.
 
 ![](/post/Partial4.png){width="90%"}
+
 ***
 
 ## Appendix A {#AppendixA .anchorhead}
 
-<details><summary>**Inferenzstatistik der Partialkorrelation**</summary>
-**WORK IN PROGRESS**
+<details><summary>**Inferenzstatistik der Partialkorrelation und weiter konzeptionelle Überlegungen**</summary>
+
+Bevor wir uns die Inferenzstatistik der Partialkorrelation genauer ansehen, wiederholen wir die Inferenzstatistik der Korrelation und schauen uns nochmal genau an, welche Eigenschaften eigentlich so ein Residuum hat.
+
+### Inferenzstatistik der Korrelation
+
+Um eine Korrelation auf Signifikanz zu prüfen, untersuchen wir die Nullhypothese, dass die Korrelation $\rho$ in der Population tatsächlich 0 ist: $H_0:\rho=0$. Unter dieser Nullhypothese lässt sich eine Teststatistik $T$ für den empirischen Korrelationskoeffizient $r$ herleiten, welche $t(n-2)$ verteilt ist, also die der $t$-Verteilung, die wir aus Mittelwertsunterschieden bereits kennen, folgt (*diese Formel gilt nur für die Pearson Produkt-Momentkorrelation*):
+
+\begin{align*}
+T=\frac{r\sqrt{n-2}}{\sqrt{1-r^2}}\sim t(n-2)
+\end{align*}
+
+Liegt $T$ weit entfernt von der 0, so spricht dies gegen die $H_0$-Hypothese. Der zugehörige $t$ und $p$ Wert aus der `cor.test` Funktion werden genau mit dieser Formel, bzw. mit `pt` (für den zugehörigen $p$-Wert zu einem bestimmten $t$-Wert), bestimmt.
+
 ```{r, purl=FALSE}
-# Partial
+# Infos aus cor.test
+cortest <- cor.test(Schulleistungen$reading, Schulleistungen$math)
+# correlation r
+r_cortest <- cortest$estimate
+# t-Wert
+t_cortest <- cortest$statistic
+# p-Wert
+p_cortest <- cortest$p.value
+
+# zu Fuß:
+r <- cor(Schulleistungen$reading, Schulleistungen$math)
+n <- nrow(Schulleistungen) # Anzahl Personen
+t <- r*sqrt(n-2)/sqrt(1-r^2)
+p <- 2*pt(q = abs(t), df = n-2, lower.tail = F) # ungerichtet (deswegen *2)
+
+# Vergleiche
+# t
+t_cortest
+t
+# p
+p_cortest
+p
 ```
+
+Super, die Formeln stimmen also. Widmen wir uns nun den Regressionsresiduen.
+
+### Eigenschaften der Regressionsresiduen
+
+Wir wollen *z* aus *x* und *y* herauspartialisieren. Wenn wir eine Regression rechen und bspw. *y* durch *z* "vorhersagen", dann schätzen wir ein Modell: $y=\beta_{y,0}+\beta_{y,1}z+\varepsilon_y$. Die Annahme an das Residuum lautet, dass es einen Mittelwert von 0 hat (auch Erwartungswert: $\mathbb{E}[\varepsilon_y]=0$) und dass es mit dem Prädiktor unkorreliert ist: $\mathbb{C}ov[z,\varepsilon_y]=0$. Wenn die Kovarianz mit *z* Null ist, so ist auch die Korrelation mit *z* Null. Gleichzeitig ist $\varepsilon_y$ aber hoch mit *y* korreliert. Es gilt $\mathbb{C}ov[y,\varepsilon_y]>0$. Damit haben wir quasi eine neue Variable $\varepsilon_y$ gefunden, die sehr viel mit *y* gemein hat, aber nichts mehr mit *z*. Somit ist $\varepsilon_y$ also der Anteil von *y* der nichts mehr mit *z* zu tun hat. Hängt dieser noch mit dem ebenso bereinigten Anteil von *x*, $\varepsilon_x$; resultierend aus $x=\beta_{x,0}+\beta_{x,1}z+\varepsilon_x$, zusammen, dann bedeutet dies also, dass es Anteile von *x* und *y* gibt, die mit einander linear Zusammenhang, wobei diese Beziehung jedoch nicht durch *z* erklärbar ist. Hier ein empirisches Beispiel:
+
+```{r, purl=FALSE}
+# Regression 
+reg_reading_IQ <- lm(reading ~ IQ, data = Schulleistungen) # x ~ z
+reg_math_IQ <- lm(math ~ IQ, data = Schulleistungen) # y ~ z 
+
+# Residuen in Objekt ablegen (Residuen x)
+res_reading_IQ <- residuals(reg_reading_IQ) # eps_x
+
+# Residuen in Objekt ablegen (Residuen y)
+res_math_IQ <- residuals(reg_math_IQ) # eps_y
+```
+
+Prüfen wir doch mal ein paar Eigenschaften des Residuums:
+
+```{r, purl=FALSE}
+# Mittelwert 0
+mean(res_reading_IQ) # mean(eps_x)
+round(mean(res_reading_IQ), 14) # mean(eps_x) gerundet auf 14 Nachkommastellen
+# passt!
+
+# Korrelation/Kovarianze mit dem Prädiktor z
+cov(Schulleistungen$IQ, res_reading_IQ) # 0
+cor(Schulleistungen$IQ, res_reading_IQ) # 0
+round(cor(Schulleistungen$IQ, res_reading_IQ), 16) # 0 gerundet auf 16 Nachkommastellen
+# passt!
+```
+
+Wir sehen also, dass das Residuum einen Mittelwert von 0 hat und unkorreliert vom Prädiktor ist. Nun interessiert uns aber, wie stark dieses Residuum noch mit der abhängigen Variable (*x* oder *y*) zusammenhängt:
+
+```{r, purl=FALSE}
+cor(Schulleistungen$reading, res_reading_IQ)
+```
+
+Die Korrelation fällt sehr hoch aus: $r_{\varepsilon_y,y}=$ `r round(cor(Schulleistungen$reading, res_reading_IQ), 3)`. Das ist doch super! Das heißt nämlich, dass $\varepsilon_y$ sehr viel Information von *y* enthält, gleichzeitig aber nichts mehr mit *z* gemein hat!
+
+### Woher kommt die Formel der Partialkorrelation
+
+Die Partialkorrelation hatten wir in diesem Beitrag über die Residuen einer Regression pro Variable definiert. Im vorherigen Abschnitt hatten wir die Eigenschaften dieser Residuen näher beleuchtet. Die Partialkorrelation war jetzt nichts weiter als die Korrelation der Residuen $\varepsilon_x$ mit $\varepsilon_y$ also dem Anteil von *x* und *y*, der nicht mit *z* korreliert war. Die Partialkorrelation lautet:
+
+```{r, purl=FALSE}
+# Partialkorrelation
+partial_cor <- cor(res_math_IQ, res_reading_IQ)
+partial_cor
+```
+
+Wir kennen aber auch die Formel für die Partialkorrelation:
+
+$$r_{xy.z}=\frac{r_{xy}-r_{xz}r_{yz}}{\sqrt{1-r_{xz}^2}\sqrt{1-r_{yz}^2}}$$
+
+Wenn wir die Korrelationen in Objekten abspeichern, so lässt sich diese Formel sehr leicht umsetzen:
+
+```{r, purl=FALSE}
+# Partialkorrelation via Formel
+r_xy <- cor(Schulleistungen$math, Schulleistungen$reading)
+r_xz <- cor(Schulleistungen$math, Schulleistungen$IQ)
+r_yz <- cor(Schulleistungen$reading, Schulleistungen$IQ)
+
+r_xy.z <- (r_xy - r_xz*r_yz)/(sqrt(1-r_xz^2)*sqrt(1-r_yz^2))
+r_xy.z
+```
+
+Offensichtlich kommen beide Befehle zum gleichen Ergebnis. 
+Interessierten sei gesagt, dass die Formel für `r_xy.z` das Gleiche ist wie: 
+
+`r_xy.z <- (r_xy - r_xz*r_yz)/sqrt(1-r_xz^2)/sqrt(1-r_yz^2)`
+
+mit dem Vorteil, dass man die Klammer im Nenner nicht vergessen kann.
+
+Wir wollen uns nun der Frage widmen, wie diese Formel entsteht. Dazu müssen wir eine kleine Vorbereitung treffen: wir müssen den `Schulleistungen` Datensatz standardisieren. Danach ist der Mittelwert und die Varianz jeder Variable 0 (Mittelwert) und 1 (Varianz). Dies geht sehr leicht mit dem `scale` Befehl. Anschließend müssen wir alle Ananlysen nochmals wiederholen, aber keine Sorge, die Partialkorrelation bleibt identisch:
+
+```{r, purl=FALSE}
+# Schulleistungen standardisieren:
+Schulleistungen_std <- data.frame(scale(Schulleistungen))
+# Regression 
+reg_reading_IQ <- lm(reading ~ IQ, data = Schulleistungen_std) # x ~ z
+reg_math_IQ <- lm(math ~ IQ, data = Schulleistungen_std) # y ~ z 
+
+# Residuen in Objekt ablegen (Residuen x)
+res_reading_IQ <- residuals(reg_reading_IQ) # eps_x
+
+# Residuen in Objekt ablegen (Residuen y)
+res_math_IQ <- residuals(reg_math_IQ) # eps_y
+
+# Partialkorrelation
+partial_cor <- cor(res_math_IQ, res_reading_IQ)
+partial_cor
+
+# Partialkorrelation via Formel
+r_xy <- cor(Schulleistungen_std$math, Schulleistungen_std$reading)
+r_xz <- cor(Schulleistungen_std$math, Schulleistungen_std$IQ)
+r_yz <- cor(Schulleistungen_std$reading, Schulleistungen_std$IQ)
+
+r_xy.z <- (r_xy - r_xz*r_yz)/(sqrt(1-r_xz^2)*sqrt(1-r_yz^2))
+r_xy.z
+```
+
+Sie sehen, alles bleibt identisch! Der Hauptunterschied ist nur, einige Korrelationen jetzt einfach Kovarianzen sind, da die Varianzen der Variablen = 1 sind:
+
+```{r, purl=FALSE}
+cor(Schulleistungen_std$math, Schulleistungen_std$reading)
+cov(Schulleistungen_std$math, Schulleistungen_std$reading)
+```
+
+Wir wissen, dass die Korrelation gerade die Kovarianz geteilt durch das Produkt der Standardabweichungen ist. Das bedeutet, dass in der Formel gelten muss:
+
+\begin{align*}
+\mathbb{C}ov[\varepsilon_x, \varepsilon_y] &= r_{xy} - r_{xz}r_{yz}\\
+\mathbb{V}ar[\varepsilon_x] &= 1-r_{xz}^2\\
+\mathbb{V}ar[\varepsilon_y] &= 1-r_{yz}^2
+\end{align*}
+
+Die Wurzel aus den letzten beiden Ausdrücken ergibt dann die Standardabweichung (von $\varepsilon_x$ und $\varepsilon_y$). Prüfen wir das doch mal:
+
+```{r}
+# Cov[eps_x, eps_y]
+cov(res_math_IQ, res_reading_IQ)
+r_xy - r_xz*r_yz
+# -> identisch!
+
+# Var[eps_x]
+var(res_math_IQ)
+1-r_xz^2
+# -> identisch!
+
+# Var[eps_y]
+var(res_reading_IQ)
+1-r_yz^2
+# -> identisch!
+```
+
+Daraus können wir nun ableiten, dass die Partialkorrelationsformel sich einfach aus der Korrelation der Residuen $\varepsilon_x$ und $\varepsilon_y$ ableitet. Wir fanden es spannend dies einmal ausführlich nieder zu schreiben und wir hoffen, dass es eventuell beim Verständnis dieser doch etwas trockenen Materie geholfen hat. Weiterer Fun-Fact: $1-r_{xz}^2$ ist gerade der Anteil an Varianz von *x*, der nicht durch *z* erklärt werden kann - genau diesen haben wir auch für die Partialkorrelation benötigt. Das Gleiche gilt für $1-r_{yz}^2$ - nur eben für *y*.
+
+### Inferenzstatistik der Partialkorrelation
+
+Nun kommen wir endlich zur Inferenzstatistik der Partialkorrelation. 
+Um eine Partialkorrelation auf Signifikanz zu prüfen, untersuchen wir die Nullhypothese, dass die Partialkorrelation $\rho_{xy.z}$ in der Population tatsächlich 0 ist: $H_0:\rho_{xy.z}=0$. Unter dieser Nullhypothese lässt sich eine Teststatistik $T$ für die empirischn Partialkorrelationskoeffizient $r_{xy.z}$ herleiten, welche $t(n-k-2)$ verteilt ist, wobei $k$ die Anzahl an Prädiktoren sind, die herauspartialisiert wurden (es wäre also auch vektorwertiges *z* zulässig!). $T$ folgt also wieder der $t$-Verteilung (*diese Formel gilt nur Partialkorrelationen, die für die Pearson Produkt-Momentkorrelation bestimmt sind*):
+
+\begin{align*}
+T=\frac{r_{xy.z}\sqrt{n-k-2}}{\sqrt{1-r_{xy.z}^2}}\sim t(n-k-2)
+\end{align*}
+
+Liegt $T$ weit entfernt von der 0, so spricht dies gegen die $H_0$-Hypothese. Der zugehörige $t$ und $p$ Wert aus dem `ppcor` Paket werden genau mit dieser Formel, bzw. mit `pt` (für den zugehörigen $p$-Wert zu einem bestimmten $t$-Wert), bestimmt. Weil es so viel Freude bereitet diese Inhalte tiefer zu verstehen, prüfen wir auch dies noch einmal:
+
+
+```{r, purl=FALSE}
+# Infos aus pcor.test
+pcortest <- pcor.test(Schulleistungen$reading, Schulleistungen$math, Schulleistungen$IQ)
+# correlation r
+r_pcortest <- pcortest$estimate
+# t-Wert
+t_pcortest <- pcortest$statistic
+# p-Wert
+p_pcortest <- pcortest$p.value
+
+# zu Fuß:
+n <- nrow(Schulleistungen) # Anzahl Personen
+t <- r_xy.z*sqrt(n-1-2)/sqrt(1-r_xy.z^2)
+p <- 2*pt(q = abs(t), df = n-1-2, lower.tail = F) # ungerichtet (deswegen *2)
+
+# Vergleiche
+# t
+t_pcortest
+t
+# p
+p_pcortest
+p
+```
+
+Super, auch diesmal stimmen die Formeln. Wir sehen also, dass die `cor.test` Funktion gar nicht zum richtigen Ergebnis kommen *kann*, wenn wir ihr die Residuen übergeben. Das liegt daran, dass die `cor.test` Funktion davon ausgeht, dass ganz normale Variablen korreliert werden sollen. Residuen sind aber dahingehend besonders, dass sie bereits verrechnet wurden. Wir haben ja bereits Regressionen mit *z* vorgenommen, um die entsprechenden Anteile von *z* herauszurechnen. Damit haben wir bereits Informationen über die Daten benutzt. Nämlich diese, die die Korrelationen mit *x* und *y* mit *z* betreffen. Diese genutzen Informationen müssen eingepreist werden, was durch das Anpassen der Freiheitsgrade in der $t$-Verteilung geschieht (wir nutzen hier `df = n-1-2` und nicht `df=n-2`). Im Laufe Ihres Studiums  wird dieser Sachverhalt immer wieder aufgegriffen und auch noch näher erklärt. An dieser Stelle reicht es uns zu wissen, dass wir bei der Partialkorrelation andere $df$ verwenden müssen.
+
+
 </details>
 
 

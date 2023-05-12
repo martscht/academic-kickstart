@@ -1,6 +1,6 @@
 # ---- Partial- & Semipartialkorrelation ----
 #Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/03_partial.R, von der PandaR-Website der Goethe Universität Frankfurt.
-#Die Autoren dieses Skripts sind Marvin Schröder, Luisa Grützmacher & Kai J. Nehler. Skriptkompilierung von Kevin Pommeranz.
+#Die Autoren dieses Skripts sind Marvin Schröder, Luisa Grützmacher, Kai J. Nehler & Julien P. Irmer. Skriptkompilierung von Kevin Pommeranz.
 
 #Daten abrufen
 load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
@@ -41,7 +41,6 @@ cor(res_reading_IQ, res_math_IQ)
 library(ppcor)
 
 # Partialkorrelation mit Funktion
-
 pcor.test(x=Schulleistungen$reading, y=Schulleistungen$math, z=Schulleistungen$IQ)
 
 # Semipartialkorrelation durch Nutzung des Residuums
@@ -51,3 +50,34 @@ cor(Schulleistungen$reading, res_math_IQ)
 # Semipartialkorrelation mit Funktion
 spcor.test(x=Schulleistungen$reading, y=Schulleistungen$math, z=Schulleistungen$IQ)
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+# Cov[eps_x, eps_y]
+cov(res_math_IQ, res_reading_IQ)
+r_xy - r_xz*r_yz
+# -> identisch!
+
+# Var[eps_x]
+var(res_math_IQ)
+1-r_xz^2
+# -> identisch!
+
+# Var[eps_y]
+var(res_reading_IQ)
+1-r_yz^2
+# -> identisch!
