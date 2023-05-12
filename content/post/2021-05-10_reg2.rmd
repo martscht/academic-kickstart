@@ -1,11 +1,9 @@
 ---
 title: "Regressionsanalyse II"
-
 date: '2021-04-28'
 slug: reg2
 categories:
      - BSc7
-     
 tags:
 - Regression
 - Zusammenhangsanalyse
@@ -13,7 +11,7 @@ tags:
 - Modelloptimierung
 subtitle: 'Modelloptimierung'
 summary: ''
-authors: [irmer, hartig, schueller]
+authors: [irmer, hartig, schueller, nehler]
 lastmod: '2022-05-17 12:00:12 CEST'
 featured: no
 header:
@@ -22,17 +20,19 @@ header:
 projects: []
 ---
 
+<div>
+
 ```{r setup, include=FALSE, purl=FALSE}
 options(knitr.duplicate.label = "allow") #Muss gesetzt werden, Setup-Chunk blockiert sonst Durchführung da er zeitweise doppelt existiert
 options(knitr.purl.inline = FALSE) #Inline-Code wird hiermit entweder mit ins Skript übernommen (TRUE) oder ausgelassen (FALSE)
-knitr::purl("2021-05-10_reg2.Rmd", documentation = 0) #Legt fest das Purl nur die Chunkinhalte(0) in ein R-Skript umwandelt!; NAME DES RMD MUSS EINGESTELLT WERDEN!
+knitr::purl("2021-05-10_reg2.rmd", documentation = 0) #Legt fest das Purl nur die Chunkinhalte(0) in ein R-Skript umwandelt!; NAME DES RMD MUSS EINGESTELLT WERDEN!
 file.rename("2021-05-10_reg2.R","PsyBSc7_R_Files/05_reg2.R") #NAME DER R-DATEI MUSS ANGEPASST WERDEN AN RMD-NAMEN!UNTERORDNER SOLLTE MIT KURS ÜBEREINSTIMMEN! (Siehe Ordner in /post)
 ```
 
 ```{r Info, purl=TRUE, echo=FALSE}
 # ---- Regressionsanalyse II ----
 #Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/05_reg2.R, von der PandaR-Website der Goethe Universität Frankfurt.
-#Die Autoren dieses Skripts sind Julien P. Irmer, Johannes Hartig & Johanna Schüller. Skriptkompilierung von Kevin Pommeranz.
+#Die Autoren dieses Skripts sind Julien P. Irmer, Johannes Hartig, Johanna Schüller & Kai J. Nehler. Skriptkompilierung von Kevin Pommeranz.
 ```
 
 ## Modelloptimierung
@@ -137,7 +137,7 @@ F.diff # F-Wert der Differenz in R^2
 p.diff # zugehöriger p-Wert  
 ```
 
-Außerdem sei an dieser Stelle nochmals erwähnt, dass das ganze Vorgehen auch mit Hilfe der Semipartialkorrelation erfolgen kann. Das Varianzinkrement `R2.u - R2.c` des IQs über Leseleistung und Geschlecht hinaus ist ja nichts anderes als die quadrierte Semipartialkorrelation zwischen Matheleistung und IQ wobei Leseleistung und Geschlecht herauspartialisiert wurden:
+Außerdem sei an dieser Stelle nochmals erwähnt, dass das ganze Vorgehen auch mit Hilfe der Semipartialkorrelation erfolgen kann. Das Varianzinkrement `R2.u - R2.c` des IQs über Leseleistung und Geschlecht hinaus ist ja nichts anderes als die quadrierte Semipartialkorrelation zwischen Matheleistung und IQ wobei Leseleistung und Geschlecht herauspartialisiert wurden. 
 
 ```{r semipartial_comparison, echo=-1}
 # Darstellung, das Rechnung auch mit Semipartialisierung umsetzbar ist (Quadrierte Korrelation zwischen Mathe und IQ, Leseleistung und Geschlecht rauspartialisiert)
@@ -145,11 +145,10 @@ Außerdem sei an dieser Stelle nochmals erwähnt, dass das ganze Vorgehen auch m
 R2.u - R2.c # Inkrement
 library(ppcor)
 sp <- spcor.test(x = Schulleistungen$math, y = Schulleistungen$IQ, z = Schulleistungen[, c("reading", "female")])
-sp
 sp$estimate^2 # ebenfalls Inkrement!
 ```
 
-Wir stellen keinen Unterschied im Wert selbst fest. Die $p$-Werte unterscheiden sich allerdings, da sie auf unterschiedlichen Berechnungsmethoden beruhen und daher auch unterschiedliche Annahmen haben. In den allermeisten Fällen sollten sie aber zur selben Signifikanzentscheidung führen. Nutzen Sie für die Übungen bitte, falls nicht anders verlangt, die $p$-Werte aus dem $F$-Test (`anova`).
+Wir stellen keinen Unterschied im Wert selbst fest. Beachtet aber, dass die inferenzstatistische Testung mit dem Modellvergleich nicht die Semipartialkorrelation nutzt. Für Interessierte: Vertiefende Infos zu dieser Situation werden wir im [Anhang](#Appendix) bereitstellen. Falls die Testung des Inkrements / Dekrements in einer Übung verlangt wird, nutzen Sie die $p$-Werte aus dem $F$-Test (`anova`).
 
 ### Testen eines Dekrements
 
@@ -289,13 +288,36 @@ extractAIC(model) # erstes Argument ist die Anzahl der Parameter (p)
 
 Die `AIC`-Funktion gibt den "vollständigen" AIC an, während `extractAIC` eine korrigierte Version heranzieht, aus der sämtlichen irrelevanten Konstanten entfernt wurden. Da der AIC immer nur für Vergleiche auf dem selben Datensatz herangezogen werden sollte, können Konstanten in der Berechnung getrost ignoriert werden, da sie nicht vom betrachteten Modell abhängen. Dazu ein Gedankenexperiment: Für zwei Zahlen $a$ und $b$ (welche bspw. zwei AICs repräsentieren können) gilt: $a>b \Longrightarrow a + c > b + c$ für eine dritte Zahl $c$. Sie sehen also, dass Konstanten, die überall "draufaddiert" werden, den Modellvergleich nicht beeinflussen. 
 
-Um jetzt den Unterschied genau zu erkennen, müssen wir zunächst die **Loglikelihood** (den Logarithmus der Likelihood) unseres Modells bestimmen. Dies geht über den Kurs an dieser Stelle hinaus. Wer sich allerdings für die Überführung des `extractAIC` zum AIC sowie die Berechnung beider interessiert, kann gerne im [Appendix A](#AppendixA) vorbeischauen.
+Um jetzt den Unterschied genau zu erkennen, müssen wir zunächst die **Loglikelihood** (den Logarithmus der Likelihood) unseres Modells bestimmen. Dies geht über den Kurs an dieser Stelle hinaus. Wer sich allerdings für die Überführung des `extractAIC` zum AIC sowie die Berechnung beider interessiert, kann gerne im [Appendix B](#AppendixB) vorbeischauen.
 
 
 
 ***
 
-## Appendix A
+## Appendix A {#AppendixA .anchorhead}
+
+<details><summary>**Inferenzstatistik der Semipartialkorrelation und der Modellvergleich**</summary>
+
+Wir arbeiten weiterhin mit dem Datensatz `Schulleistungen` und gehen davon aus, dass wir bereits `reading` und `female` zur Vorhersage von `math` nutzen. nun soll zusätzlich noch `IQ` aufgenommen werden. Den Modelltest erlangen wir über das eingeschränkte und uneingeschränkte Modell mit der Funktion `anova()`.
+
+```{r, purl = FALSE}
+m.c <- lm(math ~ reading + female, data = Schulleistungen)      # constrained
+m.u <- lm(math ~ reading + female + IQ, data = Schulleistungen) # unconstrained
+anova(m.c, m.u)
+```
+
+Die Semipartialkorrelation wird auch wie im Tutorial mit `spcor.test()` berechnet. 
+
+```{r, purl = FALSE}
+sp <- spcor.test(x = Schulleistungen$math, y = Schulleistungen$IQ, z = Schulleistungen[, c("reading", "female")])
+sp$estimate^2    # Quadrat der Semipartialkorrelation
+sp$p             # p-Wert der Semipartialkorrelation
+``` 
+Weiterhin sehen wir, dass das Inkrement und die quadrierte Semipartialkorrelation derselbe Wert sind. Die $p$-Werte hingegen unterscheiden sich. Dies kommt daher, dass der Modelltest eigentlich die Partialkorrelation testet. Einschlägige Literatur begründet das damit, dass für diese der Standardfehler weniger komplex zu bestimmt wäre. Weiterhin sind sich die Nullhypothesen auch ähnlich, wodurch in den allermeisten Fällen der Modelltest und die Prüfung der Semipartialkorrelation zur selben Signifikanzentscheidung führen.
+
+</details> 
+
+## Appendix B {#AppendixB .anchorhead}
 
 <details><summary> **Bestimmen von AIC und Vergleich zwischen `AIC` und `extractAIC`** </summary>
 
@@ -368,6 +390,8 @@ Der Unterschied in den bestimmten AICs ist identisch. Somit sehen wir, dass die 
 
 ***
 
+
 ## R-Skript
 Den gesamten `R`-Code, der in dieser Sitzung genutzt wird, können Sie [`r fontawesome::fa("download")` hier herunterladen](/post/PsyBSc7_R_Files/05_reg2.R).
 
+</div>

@@ -1,6 +1,6 @@
 # ---- Regressionsanalyse II ----
 #Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/05_reg2.R, von der PandaR-Website der Goethe Universität Frankfurt.
-#Die Autoren dieses Skripts sind Julien P. Irmer, Johannes Hartig & Johanna Schüller. Skriptkompilierung von Kevin Pommeranz.
+#Die Autoren dieses Skripts sind Julien P. Irmer, Johannes Hartig, Johanna Schüller & Kai J. Nehler. Skriptkompilierung von Kevin Pommeranz.
 
 # Datensatz laden
 load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
@@ -36,7 +36,6 @@ p.diff # zugehöriger p-Wert
 R2.u - R2.c # Inkrement
 library(ppcor)
 sp <- spcor.test(x = Schulleistungen$math, y = Schulleistungen$IQ, z = Schulleistungen[, c("reading", "female")])
-sp
 sp$estimate^2 # ebenfalls Inkrement!
 
 #### Testen des Dekrements ----
