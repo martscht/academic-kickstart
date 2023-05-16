@@ -5,7 +5,7 @@
 # Datensatz laden
 load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
 
-##### Testen des Inkrements ----
+##### Aufstellen der Modelle ----
 
 m.c <- lm(math ~ reading + female, data = Schulleistungen)      # constrained
 m.u <- lm(math ~ reading + female + IQ, data = Schulleistungen) # unconstrained
@@ -47,12 +47,18 @@ summary(m.u)$r.squared - summary(m.c)$r.squared
 # Modellvergleich mit der anova-Funktion
 anova(m.c, m.u)
 
-#### Iterative Modelloptimierung ----
-# Optimierung des Modells nach AIC, Sparsamkeitsprinzip
+# Modelloptimierung über lm mit Package "olsrr"
+# install.packages("olsrr")
+library(olsrr)
 
+#### Iterative Modelloptimierung ----
 # Modell mit allen Prädiktoren
 m <- lm(math ~ reading + female + IQ, data = Schulleistungen)
-# Optimierung
+
+# Anwendung der iterativen Modellbildung
+ols_step_both_p(m, pent = .05, prem = .10, details = TRUE)
+
+# Optimierung des Modells nach AIC
 summary(step(m, direction = "both"))
 
 # Output der summary, Wert von AIC für Alle
@@ -74,11 +80,6 @@ out[grep(pattern = begin, out):(grep(pattern = end, out)-1)] |> paste(collapse =
 # Optimierung mit BIC
 summary(step(m, direction = "both", k=log(nrow(Schulleistungen))))
 # Da BIC strenger in der Sparsamkeit ist, wird auch Geschlecht entfernt
-
-# Modelloptimierung über lm mit Package "olsrr"
-# install.packages("olsrr")
-library(olsrr)
-ols_step_both_p(m, pent = .05, prem = .10, details = TRUE)
 
 # Vergleich des AIC in step und ols_step_both_p, liegt an Unterschied der AIC-Funktionen, bei denen step Konstanten entfernt
 model <- lm(math ~ reading + female, data = Schulleistungen)
