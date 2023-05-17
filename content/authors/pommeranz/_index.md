@@ -1,7 +1,7 @@
 ---
 # Display name
 name: Kevin Pommeranz
-
+weight: 55
 # Username (this should match the folder name)
 authors:
 - pommeranz
