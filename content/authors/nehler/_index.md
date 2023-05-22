@@ -21,7 +21,7 @@ organizations:
 bio:
 interests:
 - Missing Values
-- Netzwerkanalyse
+- Network analysis
 - Coding
 education:
 # Social/Academic Networking
