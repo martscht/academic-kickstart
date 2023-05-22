@@ -1,6 +1,6 @@
 ---
 # Display name
-name: Robin Mehler
+title: Robin Mehler
 weight: 70
 # Username (this should match the folder name)
 authors:

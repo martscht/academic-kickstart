@@ -1,6 +1,6 @@
 ---
 # Display name
-name: Yannick Cezanne
+title: Yannick Cezanne
 
 # Username (this should match the folder name)
 authors:

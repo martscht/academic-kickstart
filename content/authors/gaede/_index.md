@@ -1,6 +1,6 @@
 ---
 # Display name
-name: Jana Gäde
+title: Jana Gäde
 weight: 80
 # Username (this should match the folder name)
 authors:

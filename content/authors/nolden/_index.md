@@ -1,6 +1,6 @@
 ---
 # Display name
-name: Sophie Nolden
+title: Sophie Nolden
 
 # Username (this should match the folder name)
 authors:

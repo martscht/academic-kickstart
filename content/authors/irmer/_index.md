@@ -1,6 +1,6 @@
 ---
 # Display name
-name: Julien P. Irmer
+title: Julien P. Irmer
 weight: 20
 # Username (this should match the folder name)
 authors:

@@ -1,6 +1,6 @@
 ---
 # Display name
-name: Arieja Farugie
+title: Arieja Farugie
 # Username (this should match the folder name)
 authors:
 - farugie

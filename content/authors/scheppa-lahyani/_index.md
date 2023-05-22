@@ -1,6 +1,6 @@
 ---
 # Display name
-name: Miriam Scheppa-Lahyani
+title: Miriam Scheppa-Lahyani
 
 # Username (this should match the folder name)
 authors:

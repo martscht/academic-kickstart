@@ -1,6 +1,6 @@
 ---
 # Display name
-name: Hasti Rouchi
+title: Hasti Rouchi
 weight: 40
 # Username (this should match the folder name)
 authors:

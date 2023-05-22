@@ -1,6 +1,6 @@
 ---
 # Display name
-name: Julia Beitner
+title: Julia Beitner
 # weight: 
 # Username (this should match the folder name)
 authors:
