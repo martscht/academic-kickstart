@@ -1,6 +1,6 @@
 # ---- Regressionsanalyse III ----
 #Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/06_reg3.R, von der PandaR-Website der Goethe Universität Frankfurt.
-#Die Autoren dieses Skripts sind Julien P. Irmer, Johannes Hartig. Skriptkompilierung von Kevin Pommeranz.
+#Die Autoren dieses Skripts sind Julien P. Irmer, Johannes Hartig und Kai J. Nehler. Skriptkompilierung von Kevin Pommeranz.
 
 #### Vorbereitung ----
 # Datensatz laden
@@ -9,10 +9,10 @@ load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
 library(car)
 library(MASS)
 library(ggplot2)
-library(lm.beta)
 
 
-#### Beta-Koeffizienten ----
+
+#### Modell aufstellen ----
 # Leseleistung durch Geschlecht und IQ vorhersagen, von Interesse sind hier die Beta-Gewichte des Modells
 
 mod <- lm(reading ~ female + IQ, data = Schulleistungen)
@@ -21,7 +21,7 @@ summary(mod)
 
 
 # Berechnung standardisierter Koeffizienten
-
+library(lm.beta)
 summary(lm.beta(mod))
 
 ## Grafische Prüfung der partiellen Linearität

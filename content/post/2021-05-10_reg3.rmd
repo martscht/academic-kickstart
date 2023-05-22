@@ -13,8 +13,8 @@ tags:
 
 subtitle: 'Voraussetzungsprüfung'
 summary: ''
-authors: [irmer, hartig]
-lastmod: '2023-05-03 12:00:12 CEST'
+authors: [irmer, hartig, nehler]
+lastmod: '2023-05-22 12:00:12 CEST'
 featured: no
 header:
      image: "/header/PsyBSc7_Reg3.jpg"
@@ -32,18 +32,22 @@ file.rename("2021-05-10_reg3.R","PsyBSc7_R_Files/06_reg3.R") #NAME DER R-DATEI M
 ```{r Info, purl=TRUE, echo=FALSE}
 # ---- Regressionsanalyse III ----
 #Dieses Skript stammt von https://pandar.netlify.app/post/PsyBSc7_R_Files/06_reg3.R, von der PandaR-Website der Goethe Universität Frankfurt.
-#Die Autoren dieses Skripts sind Julien P. Irmer, Johannes Hartig. Skriptkompilierung von Kevin Pommeranz.
+#Die Autoren dieses Skripts sind Julien P. Irmer, Johannes Hartig und Kai J. Nehler. Skriptkompilierung von Kevin Pommeranz.
 ```
  
 ## Übersicht und Vorbereitung
 
- Weitere Themen sind aus dem Bereich der *Regressionsdiagnostik*, d.h. der Prüfung, ob Voraussetzungen der Analyse erfüllt sind; einige dieser Themen kennen Sie ggf. bereits, aber eine Wiederholung schadet nie:
+In den letzten Sitzungen haben wir gesehen, wie wir ein Modell für eine Multiple Regression in `R` aufstellen und verschiedene Modelle gegeneinander testen können. Besonders bei der Nutzung von Inferenzstatistik wissen wir aber auch, dass genutzte statistische Verfahren häufig Voraussetzungen an die Daten mitbringen. Das Thema der heutigen Sitzung ist daher die Überprüfung von Voraussetzungen im Rahmen der *Regressionsdiagnostik*. Einige der aufgeführten Punkte könnten noch aus der einfachen linearen Regression bekannt sein, aber wir betrachten sie auch im Übertrag auf den hier vorliegenden multivariaten Fall.
 
+* [Korrekte Spezifikation des Modells](#Theoretisch)
+* [Messfehlerfreiheit der unabhängigen Variablen](#Theoretisch)
+* [Unabhängigkeit der Residuen](#Theoretisch)
 * [Linearität](#Linearität) 
 * [Homoskedastizität](#Homoskedastizität) 
 * [Normalverteilung der Residuen](#Normalverteilung) 
 * [Multikollinearität](#Multikollinearität)
 * [Identifikation von Ausreißern und einflussreichen Datenpunkten](#Ausreißer)
+
 
 ### Übungs-Datensatz 
 
@@ -58,17 +62,17 @@ load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
 library(car)
 library(MASS)
 library(ggplot2)
-library(lm.beta)
+
 
 ```
 
-## Standardisierte Regressionsgewichte {#Betas}
+## Modell aufstellen
 
-Wir wollen in einem ersten Schritt die Leseleistung durch das Geschlecht und die Intelligenz vorhersagen. Das Modell wird unter dem Namen `mod` gespeichert und wir sehen uns die Ergebnisse in der Zusammenfassung an. 
+Wir wollen in einem ersten Schritt das Modell betrachten, um das es heute bei der Testung der Voraussetzungen gehen soll. Dabei soll Leseleistung durch das Geschlecht und die Intelligenz vorhergesagt werden. Das Modell wird unter dem Namen `mod` gespeichert und wir sehen uns die Ergebnisse mit Hilfe von `summary()` an. 
 
 
 ```{r, echo=c(-1,-2)}
-#### Beta-Koeffizienten ----
+#### Modell aufstellen ----
 # Leseleistung durch Geschlecht und IQ vorhersagen, von Interesse sind hier die Beta-Gewichte des Modells
 
 mod <- lm(reading ~ female + IQ, data = Schulleistungen)
@@ -77,6 +81,7 @@ summary(mod)
 
 ```{r include=FALSE, purl = FALSE}
 # für spätere Verwendung
+library(lm.beta) # brauchen wir hier auch schon, wird später aber auch nochmal mit include ausgeführt
 stdsum <- summary(lm.beta(mod))
 ```
 
@@ -86,19 +91,19 @@ für $i=1,\dots,100=:n$.
 
 Den Koeffizienten entnehmen wir, dass die Prädiktoren `female` und `IQ` signifikante Anteile am Kriterium erklären (*Mit einer Irrtumswahrscheinlichkeit von 5% ist der Regressionkoeffizent und damit die lineare Beziehung zwischen dem jeweiligen Prädiktor (z.B. IQ) und der Leseleistung in der Population nicht 0*). Insgesamt werden `r round(stdsum$r.squared*100, 2)`% der Variation der Leseleistung durch die beiden Prädiktoren erklärt.
 
-Die Regressionskoeffizienten $b_j$ beziehen sich auf die Maßeinheiten der Variablen im Datensatz (um wie viele Einheiten nimmt $y$ zu, wenn $x_j$ um eine Einheit zunimmt). Oft sind diese *unstandardisierten Regressionskoeffizienten* nicht ganz leicht zu interpretieren, und Regressionsgewichte verschiedener Prädiktoren sind nicht vergleichbar. So lässt sich nicht einfach sagen, dass das Geschlecht einen stärkeren Einfluss auf die Leseleistung hätte als Intelligenz, nur weil das Regressionsgewicht für Geschlecht ($b_1=$ `r round(stdsum$coefficients[2,1],1)`) größer ist als das für Intelligenz ($b_2=$ `r round(stdsum$coefficients[3,1],1)`). Aus diesem Grund werden oft *standardisierte Regressionskoeffizienten* berechnet und berichtet. Diese können wir mithilfe der Funktion `lm.beta` ermitteln. *lm* steht hier für lineares Modell und *beta* für die standardisierten Koeffizienten. 
-
-Anmerkung: In der Literatur werden oft auch unstandardisierte Regressionkoeffizienten als $\beta$s bezeichnet, sodass darauf stehts zu achten ist - siehe bspw. [Appendix A](#AppendixA)).
+Die Regressionskoeffizienten $b_j$ beziehen sich auf die Maßeinheiten der Variablen im Datensatz (um wie viele Einheiten nimmt $y$ zu, wenn $x_j$ um eine Einheit zunimmt). Wie wir bereits gelernt haben, sind diese *unstandardisierten Regressionskoeffizienten* nicht ganz leicht zu interpretieren, und Regressionsgewichte verschiedener Prädiktoren sind nicht vergleichbar. So lässt sich nicht einfach sagen, dass das Geschlecht einen stärkeren Einfluss auf die Leseleistung hätte als Intelligenz, nur weil das Regressionsgewicht für Geschlecht ($b_1=$ `r round(stdsum$coefficients[2,1],1)`) größer ist als das für Intelligenz ($b_2=$ `r round(stdsum$coefficients[3,1],1)`). Aus diesem Grund werden oft *standardisierte Regressionskoeffizienten* berechnet und berichtet. Diese können wir mithilfe der Funktion `lm.beta()` aus dem Paket `lm.beta` ermitteln, welches wir bereits installiert haben und nur noch aktivieren müssen. *lm* steht hier für lineares Modell und *beta* für die standardisierten Koeffizienten. 
 
 ```{r, echo=-1}
 # Berechnung standardisierter Koeffizienten
-
+library(lm.beta)
 summary(lm.beta(mod))
 ```
 
-An der standardisierten Lösung fällt auf, dass das Interzept $\beta_0=0$ ist. Dies liegt daran, dass beim Standardisieren die Mittelwerte aller Variablen auf $0$ und die Standardabweichungen auf $1$ gesetzt werden. So auch beim Kriterium, der Leseleistung. Damit beträgt der Mittelwert des Kriteriums und der Mittelwert aller Prädiktoren jeweils $0$. Das Interzept gibt an, welchen Wert das Kriterium hat, wenn alle Prädiktoren den Wert $0$ aufweisen. Somit muss das Interzept hier genau $0$ betragen. 
+Anmerkung: In der Literatur werden oft auch unstandardisierte Regressionkoeffizienten als $\beta$s bezeichnet, sodass darauf stets zu achten ist - siehe bspw. [Appendix A](#AppendixA)).
 
-Die standardisierten Regressionsgewichte geben an, *um wieviele Standardabweichungen* sich $y$ verändert, wenn sich $x$ *um eine Standardabweichung* verändert. 
+An der standardisierten Lösung fällt auf, dass das Interzept $\beta_0$ als `NA` anezeigt wird. Dies liegt daran, dass beim Standardisieren die Mittelwerte aller Variablen auf $0$ und die Standardabweichungen auf $1$ gesetzt werden. So auch beim Kriterium, der Leseleistung. Damit beträgt der Mittelwert des Kriteriums und der Mittelwert aller Prädiktoren jeweils $0$. Das Interzept gibt an, welchen Wert das Kriterium hat, wenn alle Prädiktoren den Wert $0$ aufweisen. Somit muss das Interzept hier genau $0$ betragen - also in der Regressionsgleichung nicht vorhanden sein. Weil jeder geschätzte Parameter der Regressionsgleichung einen Freiheitsgrad **kostet**, wird der Parameter besser einfach nicht mitgeschätzt, also als `NA` angegeben.
+
+Die standardisierten Regressionsgewichte für die Prädiktoren geben an, *um wieviele Standardabweichungen* sich $y$ verändert, wenn sich $x$ *um eine Standardabweichung* verändert. 
 Der standardisierte Koeffizient des `IQ` ist  hierbei deutlich größer ($\hat{\beta}_2=$ `r round(stdsum$coefficients[3,2], 2)`) als der vom Geschlecht ($\hat{\beta}_1=$ `r round(stdsum$coefficients[2,2], 2)`). Hierdurch wird sichtbar, dass der `IQ` mehr Variation am Kriterium Leseleistung erklärt. Diese Information ist den unstandardisierten Koeffizienten nicht zu entnehmen (das unstandardierte Regressionsgewicht für Geschlecht ist ja sogar größer als das für Intelligenz, s.o.). Der Unterschied zwischen den unstandardisierten und standardisierten Koeffizienten kommt im Beispiel dadurch zustande, dass der Prädiktor `IQ` eine wesentlich größere Streuung ($\sigma_{IQ}^2$=`r round(var(Schulleistungen$IQ), 2)`) aufweist als die dummykodierte Variable `female` ($\sigma_{female}^2$=`r round(var(Schulleistungen$female), 2)`). Für den Fall eines intervallskalierten Prädiktors wie `IQ` ist der standardisierte Koeffizient auch einfacher zu interpretieren, da man die Skala Verteilung der Variablen nicht berücksichtigen muss: Wenn sich `IQ` um eine Standardabweichung ändert, ändert sich die Leseleistung um `r round(stdsum$coefficients[3,2], 2)` Standardabweichungen. Für dummykodierte Variablen wie Geschlecht ist diese Interpretation nicht so anschaulich, da hier "eine Einheit in $x$" schon aussagekräftig ist - sie entspricht nämlich dem Unterschied zwischen den mit null und eins kodierten Gruppen. Der unstandardisierte Koeffizient $b_1=$ `r round(stdsum$coefficients[2,1],1)` lässt sich als Unterschied zwischen Jungen und Mädchen in Maßeinheiten der Lesefähigkeit interpretieren. "Eine Standardabweichung im Geschlecht" ist hingegen weniger anschaulich. Daher ist es hilfreich, beide Angaben (unstandardisierte und standardisierte Regressionsgewichte) zu kennen.
 
 ## Linearität {#Linearität}
@@ -112,7 +117,7 @@ Eine grafische Prüfung der partiellen Linearität zwischen den einzelnen Prädi
 avPlots(model = mod, pch = 16, lwd = 4)
 ```
 
-Mit Hilfe der Argumente `pch=16` und `lwd=4` werden die Darstellung der Punkte (ausgefüllt anstatt leer) sowie die Dicke der Linie (vierfache Dicke) manipuliert. Den Achsenbeschriftungen ist zu entnehmen, dass auf der y-Achse jeweils *reading | others* dargestellt ist. Die vertikale Linie *|* steht hierbei für den mathematischen Ausdruck *gegeben*. *Others* steht hierbei für alle weiteren (anderen) Prädiktoren im Modell. Dies bedeutet, dass es sich hierbei um die Residuen aus der Regression von *reading* auf alle anderen Prädiktoren handelt. Bei den unabhängigen Variablen (UV, *female*, *IQ*) steht *UV | others* also jeweils für die jeweilige UV gegeben der anderen UVs im Modell. Somit beschreiben die beiden Plots jeweils die Beziehungen, die die UVs über die anderen UVs im Modell hinaus mit dem Kriterium (AV, abhängige Variable) haben. Wir sehen, dass die Prüfung der Linearität für die dummykodierte Variable Geschlecht wenig sinnvoll ist. Für die intervallskalierte Variable `IQ` ist die Prüfung sinnvoll - hier zeigt die Grafik, dass die lineare Funktion der Verteilung der Daten gut gerecht wird.
+Mit Hilfe der Argumente `pch=16` und `lwd=4` werden die Darstellung der Punkte (ausgefüllt anstatt leer) sowie die Dicke der Linie (vierfache Dicke) manipuliert. Den Achsenbeschriftungen ist zu entnehmen, dass auf der y-Achse jeweils *reading* | *others* dargestellt ist. Die vertikale Linie | steht hierbei für den mathematischen Ausdruck *gegeben*. *Others* steht hierbei für alle weiteren (anderen) Prädiktoren im Modell. Dies bedeutet, dass es sich hierbei um die Residuen aus der Regression von *reading* auf alle anderen Prädiktoren handelt. Bei den unabhängigen Variablen (*UV*, also `female` und `IQ`) steht *UV* | *others* also jeweils für die jeweilige UV gegeben der anderen UVs im Modell. Somit beschreiben die beiden Plots jeweils die Beziehungen, die die UVs über die anderen UVs im Modell hinaus mit dem Kriterium (AV, abhängige Variable) haben. Wir sehen, dass die Prüfung der Linearität für die dummykodierte Variable Geschlecht wenig sinnvoll ist. Für die intervallskalierte Variable `IQ` ist die Prüfung sinnvoll - hier zeigt die Grafik, dass die lineare Funktion der Verteilung der Daten gut gerecht wird.
 
 ## Verteilung der Residuen
 
