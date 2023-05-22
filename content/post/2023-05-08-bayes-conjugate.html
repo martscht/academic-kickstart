@@ -1,0 +1,76 @@
+---
+title: 'Konjugierte Prior'
+date: '2023-05-08'
+lastmod: '2023-05-08'
+slug: bayes-conjugate
+categories:
+  - extras
+tags:
+  - Bayes
+  - Verteilungen
+subtitle: 'Wie man Bayes betreibt, wenn man _wirklich_ Ahnung hat'
+summary: ''
+authors: [schultze]
+featured: no
+header: 
+  image: "/header/bayes_conjugate.jpg"
+  caption: "[Courtesy of pexels](https://www.pexels.com/photo/seasoning-powders-2632292/)"
+projects: []
+---
+
+
+
+<p>Im <a href="/post/bayes-intro">ersten Beitrag</a> hatten wir uns mal angeguckt, wie Bayes im Allgemeinen funktioniert. Auch, wenn das Ganze an einem Beispiel orientiert war, war das ganze Vorgehen dabei eher hands-off. Das ändern wir jetzt: in diesem Beitrag gucken wir uns an, wie man Bayesianische Analysen betreiben kann, wenn man sich ein bisschen mit Verteilungen auskennt. Keine Sorge, über die grundlegenden Konzepte von Verteilungen hinaus, setzt dieser Beitrag nichts voraus - er soll eher dazu dienen, ein bisschen besser zu verstehen, wie, warum und wozu man Bayesianische Schätzung so einsetzt. Wer die Grundkonzepte von Verteilungen nochmal auffrischen möchten, kann z.B. <a href="/post/verteilungen">diesen Beitrag</a> mal querlesen (oder auch ganz).</p>
+<div id="datenbeispiel" class="section level2">
+<h2>Datenbeispiel</h2>
+<p>Wir knüpfen wieder beim gleichen Beispiel an, wie im letzten Beitrag. Es geht darum, dass Sie ein neues Ausgangskonzept für Ihre Patient:innen in einer Suchtklinik entwickelt haben. Dieses Konzept haben Sie nun ein paar Wochen getestet und dabei eine erstaunliche Erfolgsquote von 70% verbuchen können. Leider haben Sie das Ganze aber bisher nur mit <span class="math inline">\(n = 10\)</span> Personen ausprobieren können. Die Daten dazu:</p>
+<pre class="r"><code># Beobachtungen
+obs &lt;- c(0, 1, 1, 0, 1, 1, 1, 0, 1, 1)
+
+# N
+length(obs)</code></pre>
+<pre><code>## [1] 10</code></pre>
+<pre class="r"><code># Erfolgsquote
+mean(obs)</code></pre>
+<pre><code>## [1] 0.7</code></pre>
+<p>Wie wir <a href="/post/bayes-intro/#frequentistische-ansatze">schon gesehen haben</a>, brachten uns die klassischen Analyseanstäze hier keine statistisch bedeutsamen Ergebnisse und demzufolge auch nur wenig Erkenntnisgewinn.</p>
+</div>
+<div id="die-binomialverteilung" class="section level2">
+<h2>Die Binomialverteilung</h2>
+<p>Wenn wir in der Psychologie mit Variablen arbeiten, die nur eine von zwei Ausprägungen annehmen kann, notieren wir sie idealerweise als <em>Dummy-Variable</em>. Für diese Variablen nutzen wir die 0, um die Zugehörigkeit zu einer Gruppe zu notieren (z.B. Personen, bei denen keine depressive Störung vorliegt) und die 1, zum die Zugehörigkeit zur anderen Gruppe festzuhalten (z.B. Personen, die an einer Depression leiden). Dabei gehen wir davon aus, dass eine Person einer und nur einer der beiden Gruppen angehört. In unserem Fall sind die beiden Gruppen Patient:innen die im Ausgang rückfällig geworden sind (<code>obs = 0</code>) und Patient:innen, die nicht rückfällig geworden sind (<code>obs = 1</code>).</p>
+<p>Bei jeder Untersuchung versuchen wir dann möglichst voneinander unabhängige Beobachtungen als Stichprobe zu gewinnen. Bei vielen klassischen Tests ist die Unabhängigkeit der Beobachtungen eine Voraussetzung, um adäquate Inferenzstatistik betreiben zu können. Wenn wir eine Dummy-Variable mehrfach in unabhängigen Beobachtungen festhalten, folgt die Anzahl der Beobachtungen der Kategorie 1 der Binomialverteilung. In unserem Fall lässt sich die Verteilung der Anzahl der “Erfolge” (Personen, die im Ausgang nicht rückfällig werden) in einer Stichprobe so beschreiben:</p>
+<p><span class="math display">\[
+  P(X = x | n, \pi) = {n \choose x} \cdot \pi^x \cdot (1 - \pi)^{n-x}
+\]</span>
+Dabei ist <span class="math inline">\(x\)</span> die Anzahl der von uns beobachteten Erfolge, <span class="math inline">\(n\)</span> die Anzahl der Beobachtungen, die wir insgesamt durchgeführt haben und <span class="math inline">\(\pi\)</span> die Grundrate in der Population. Eine super detaillierte Darstellung der Binomialverteilung haben wir z.B. in <a href="/post/verteilungen/#binomialverteilung">diesem Beitrag</a> aufgeschrieben. Wie wir schon im letzten Bayes-Beitrag besprochen haben, können wir diese Formel einfach nutzen, um die <em>Likelihood</em> zu bestimmen:</p>
+<p><span class="math display">\[
+    L(P = \pi | N = n, X = x) = {n \choose x} \cdot \pi^x \cdot (1 - \pi)^{n-x}
+\]</span></p>
+<p>In unserem Fall war <span class="math inline">\(n\)</span> <code>length(obs)</code> also 10. Die Anzahl der Erfolge (einer der vielen Vorteile davon, mit 0 und 1 zu arbeiten und nicht z.B. mit 1 und 2, wenn man zwei Gruppen kodiert) lässt sich einfach über</p>
+<pre class="r"><code>sum(obs)</code></pre>
+<pre><code>## [1] 7</code></pre>
+<p>ermitteln. Welches <span class="math inline">\(\pi\)</span> die höchste Likelihood hat, hatten wir auch <a href="/post/bayes-intro/#likelihood">bereits ausprobiert</a>. Dazu können wir zum Beispiel einfach alle möglichen Werte für <span class="math inline">\(\pi\)</span> in die Gleichung einsetzen:</p>
+<pre class="r"><code>pi &lt;- c(.2, .5, .7, .9)
+L &lt;- choose(10, 7) * pi^7 * (1 - pi)^(10 - 7)
+d &lt;- data.frame(pi, L)
+d</code></pre>
+<pre><code>##    pi           L
+## 1 0.2 0.000786432
+## 2 0.5 0.117187500
+## 3 0.7 0.266827932
+## 4 0.9 0.057395628</code></pre>
+<p>Statt immer die ganze Gleichung aufschreiben zu müssen, können wir natürlich auch die in <code>R</code> integrierte Verteilungsfunktionalität nutzen. Dazu gibt es ein <a href="/post/verteilungen/#allgemeines-muster">allgemeines Muster</a>, nach dem Verteilungsfunktionen aufgebaut sind. Für die Binomialverteilun können wir also <code>dbinom</code> benutzen, um uns die <em>Dichtefunktion</em> ausgeben zu lassen:</p>
+<pre class="r"><code>dbinom(7, 10, .2)</code></pre>
+<pre><code>## [1] 0.000786432</code></pre>
+<p>Um das Ganze in einer hübschen Abbildung darzustellen, statt eine Tabelle für alle Werte aufstellen zu müssen, hatten wir auch schon hiermit gearbeitet:</p>
+<pre class="r"><code>likeli_plot &lt;- ggplot(d, aes(x = pi, y = L)) + 
+  xlim(0, 1) +
+  geom_function(fun = dbinom, args = list(x = 7, size = 10)) +
+  labs(x = expression(pi), y = &#39;Likelihood&#39;)
+likeli_plot</code></pre>
+<p><img src="/post/2023-05-08-bayes-conjugate_files/figure-html/unnamed-chunk-6-1.png" width="672" /></p>
+</div>
+<div id="ein-geeigneter-prior-für-wahrscheinlichkeiten" class="section level2">
+<h2>Ein geeigneter Prior für Wahrscheinlichkeiten</h2>
+<p>Wie wir im <a href="/post/bayes-intro">Bayes-Intro</a> besprochen haben.</p>
+</div>
