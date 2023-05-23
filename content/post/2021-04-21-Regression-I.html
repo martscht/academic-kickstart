@@ -258,8 +258,8 @@ head(y_hat)</code></pre>
 </div>
 <div id="berechnung-der-standardisierten-regressionsgewichte" class="section level3">
 <h3>Berechnung der standardisierten Regressionsgewichte</h3>
-<p>Bisher wurden nur die <em>unstandardisierten Regressionsgewichte</em> berechnet. Diese haben den Vorteil leichter interpretierbar zu sein. So wird das unstandardisierte Regressionsgewicht folgendermaßen interpretiert: wenn sich die unabhängige Variable um eine Einheit verändert, verändert sich die abhängige Variable um den unstandardisierten Koeffizienten. Der Nachteil dieser unstandardisierten Regressionsgewichte ist jedoch, dass die Regressionsgewichte nicht zwischen verschiedenen Prädiktoren vergleichbar sind. Demzufolge kann anhand der Größe der Regressionsgewichte nicht gesagt werden, welcher Regressionskoeffizient, d.h. welcher Prädiktor, eine stärkere Erklärungskraft hat.</p>
-<p>Daher werden die Regressionsgewichte häufig standardisiert. Durch die Standardisierung sind die Regressionsgewichte nicht mehr von der ursprünglichen Skala abhängig und haben daher den Vorteil, dass sie miteinander verglichen werden können. Allerdings sind die <em>standardisierten Regressionsgewichte</em> nicht mehr so leicht zu interpretieren. Die Interpretation der standardisierten Regressionsgewichte lautet: wenn sich die unabhängige Variable um eine Standardabweichung erhöht (und unter Kontrolle weiterer unabhängiger Variablen), so beträgt die erwartete Veränderung in der abhängigen Variable <span class="math inline">\(\beta\)</span> Standardabweichungen (das standardisierte Interzept ist Null).</p>
+<p>Bisher wurden nur die <em>unstandardisierten Regressionsgewichte</em> berechnet. Diese haben den Vorteil, dass die Interpretation bei bekannten Skalen anschaulicher ausfällt. So wird das unstandardisierte Regressionsgewicht folgendermaßen interpretiert: wenn sich die unabhängige Variable um eine Einheit (bspw. der IQ um einen Punkt) verändert, verändert sich die abhängige Variable (bspw. die Note um 0.1) um den unstandardisierten Koeffizienten. Besonders bei dichotomen Prädiktoren ist die Bedeutsamkeit der unstandardisierten Regressionsgewichte viel leichter. Der Nachteil dieser unstandardisierten Regressionsgewichte ist jedoch, dass die Regressionsgewichte verschiedener Prädiktoren innerhalb eines Modells nicht vergleichbar sind. Demzufolge kann anhand der Größe der Regressionsgewichte nicht gesagt werden, welcher Regressionskoeffizient, d.h. welcher Prädiktor, eine stärkere Erklärungskraft hat.</p>
+<p>Daher werden die Regressionsgewichte häufig standardisiert. Durch die Standardisierung sind die Regressionsgewichte nicht mehr von der ursprünglichen Skala abhängig und haben daher den Vorteil, dass sie miteinander verglichen werden können. Die Interpretation der <em>standardisierten Regressionsgewichte</em> lautet folgendermaßen: wenn sich die unabhängige Variable um eine Standardabweichung erhöht (und unter Kontrolle weiterer unabhängiger Variablen), so beträgt die erwartete Veränderung in der abhängigen Variable <span class="math inline">\(\beta\)</span> Standardabweichungen.</p>
 <p>Die standardisierten Regressionsgewichte können bestimmt werden, indem zunächst alle Variablen standardisiert werden. Dafür haben wir bereits im letzten Semester den Befehl <code>scale</code> kennen gelernt. Wir wenden ihn auf die Werte der abhängigen Variable <code>y</code> und die der Prädiktoren <code>X</code> an.</p>
 <pre class="r"><code>#Berechnung der standardisierten Regressionsgewichte
 y_s &lt;- scale(y) # Standardisierung y
@@ -272,16 +272,15 @@ head(X_s)</code></pre>
 ## [4,]      NaN  0.3332090  0.87488817
 ## [5,]      NaN  1.0174054  1.14228148
 ## [6,]      NaN -1.7595886  0.50833564</code></pre>
-<p>Bei der Ansicht des standardisierten Objektes <code>X_s</code> sehen wir, dass alle Werte in der ersten Spalte nun <code>NaN</code> sind. Dies liegt daran, dass in dieser Spalte ja keine Streuung vorhanden ist und die Standardisierung somit nicht funktioniert. Für die Berechnung der Regressionsgewichte im standardisierten Fall sollten auch hier wieder 1en stehen, weshalb wir alle Werte in der Spalte mit 1 ersetzen müssen.</p>
-<pre class="r"><code>X_s[,1] &lt;- 1    # Einsenvektor wieder auffüllen</code></pre>
+<p>Bei der Ansicht des standardisierten Objektes <code>X_s</code> sehen wir, dass alle Werte in der ersten Spalte nun <code>NaN</code> sind. Dies liegt daran, dass in dieser Spalte ja keine Streuung vorhanden ist und die Standardisierung somit nicht funktioniert. Wir sollten uns allerdings überlegen, ob wir den Achsenabschnitt überhaupt brauchen. Wir haben im ersten Semester gelernt, dass die Regressionsgrade immer durch den Punkt (Mittelwert unabhänige Variable / Mittelwert abhängige Variable geht). Im standardisierten Fall bedeutet dies, dass der Punkt (0/0) auf der Grade liegen musste und damit der Achsenabschnitt (an Stelle x = 0) auf jeden Fall 0 sein musste. Diese Überlegung geht auch in der multiplen Regression, wo die Regressionsebene im standardisierten Fallnun also durch den Punkt (0/0/0) geht. Wir können daher den ehemaligen Einsenvektor ignorieren und entfernen die erste Spalte aus unserem Objekt <code>X_s</code>.</p>
+<pre class="r"><code>X_s &lt;-  X_s[,-1]     # erste Spalte entfernen   </code></pre>
 <p>Die bereits im unstandardisierten Fall zur Bestimmung der Regressionsgewichte könnten nun wieder einzeln durchgeführt werden. Allerdings kann man diese natürlich auch in einer Zeile Code durchführen, was hier demonstriert wird.</p>
 <pre class="r"><code>b_hat_s &lt;- solve(t(X_s)%*% X_s) %*% t(X_s)%*%y_s #Regressionsgewichte aus den standardisierten Variablen
 round(b_hat_s, 3)</code></pre>
-<pre><code>##            [,1]
-## constant  0.000
-## reading  -0.033
-## IQ        0.716</code></pre>
-<p>Wir sehen im Ergebnis, dass die Regressionskonstante 0 ist. Die lineare Regression geht stets durch den Mittelwert aller Variablen. Durch die Standardisierung ist dieser für jede Variable 0, wodurch der Punkt (0/0/0) durchlaufen werden muss. Weiterhin erkennen wir, dass der Einfluss des IQs der Lesefähigkeit deskriptiv überlegen ist.</p>
+<pre><code>##           [,1]
+## reading -0.033
+## IQ       0.716</code></pre>
+<p>Die Operation gibt uns für beide Prädiktoren jeweils ein Steigungsgewicht zurück. Wir erkennen, dass der Einfluss des IQs der Lesefähigkeit deskriptiv überlegen ist. Die genaue Interpretation greifen wir später nochmal auf.</p>
 </div>
 <div id="berechnung-des-globalen-signifikanztest" class="section level3">
 <h3>Berechnung des globalen Signifikanztest</h3>
@@ -326,8 +325,7 @@ corx1y^2 </code></pre>
 <p><span class="math inline">\(R^2 = r^2_{yx_1} + r^2_{y(x_2.x_1)} + r^2_{y(x_3.x_2x_1)}\)</span></p>
 <p>Wie man in der Gleichung sieht, kann man diese Logik natürtlich auch auf mehr als einen Prädiktor erweitern. Die schon vorhanden Prädiktoren werden dabei stets aus dem neu aufgenommenen herauspartialisiert. In unserem Beispiel ist das nicht notwendig, da wir insgesamt nur zwei Prädiktoren haben. Wir müssen nun also eine Semipartialkorrelation bestimmen, wofür wir das Paket <code>ppcor</code> kennen gelernt haben. Darin gibt es die Funktion <code>spcor.test</code>. Als Argument benötigen wir hier in <code>y</code> die Werte, aus denen herauspartialisiert werden sollen. Hier müssen wir also unserer neuen Prädiktor <span class="math inline">\(x_2\)</span> allgemeine Intelligenz eintragen, der in der dritten Spalte der Matrix <code>X</code> zu finden ist. Im Argument <code>z</code> werden die Variable eingetragen, die herauspartialisert wird - also die Lesefähigkeit. Für das Kriterium Mathematikfähigkeit bleibt also nur noch das Argument <code>x</code>.</p>
 <pre class="r"><code>library(ppcor)</code></pre>
-<pre><code>## Warning: Paket &#39;ppcor&#39; wurde unter R Version 4.2.3 erstellt</code></pre>
-<pre><code>## Lade nötiges Paket: MASS</code></pre>
+<pre><code>## Loading required package: MASS</code></pre>
 <pre class="r"><code>spcor.test(x = y, y = X[,3], z = X[,2])</code></pre>
 <pre><code>##    estimate      p.value statistic   n gp  Method
 ## 1 0.5892674 1.396055e-10  7.183236 100  1 pearson</code></pre>
@@ -425,12 +423,12 @@ reg &lt;- lm(math ~ reading + IQ, data = Schulleistungen)</code></pre>
 </div>
 <div id="standardisierte-regression" class="section level3">
 <h3>Standardisierte Regression</h3>
-<p>Zur Durchführung der standardisierten Regression könnten wir natürlich händisch alle Variablen mit <code>scale</code> standardisieren und dann in <code>lm</code> übergeben. Es gibt aber auch eine bereits geschriebene Funktion <code>lm.beta</code> aus dem gleichnamigen Paket <code>lm.beta</code>, die für uns eine zusätzliche Anzeige der standardisierten Regressionsgewichte bereit hält.. Das Paket haben wir im normalen Ablauf der Tutorials noch nicht insatlliert, weshalb wir hier nochmal darauf verweisen.</p>
+<p>Zur Durchführung der standardisierten Regression mit Hilfe von Funktionen in <code>R</code> könnten wir natürlich händisch alle Variablen mit <code>scale()</code> standardisieren und dann in <code>lm()</code> übergeben. Dieses Vorgehen würde aber den Achsenabschnitt mitschätzen, was wir nicht brauchen Es gibt eine bereits geschriebene Funktion <code>lm.beta()</code> aus dem gleichnamigen Paket <code>lm.beta</code>, die für uns eine zusätzliche Anzeige der standardisierten Regressionsgewichte bereit hält. Das Paket haben wir im normalen Ablauf der Tutorials noch nicht installiert, weshalb wir hier nochmal darauf verweisen. Aus diesem Grund werden oft <em>standardisierte Regressionskoeffizienten</em> berechnet und berichtet.</p>
 <pre class="r"><code>install.packages(&quot;lm.beta&quot;) #Paket installieren (wenn nötig)</code></pre>
 <p>Nach der (ggf. nötigen) Installation müssen wir das Paket für die Bearbeitung laden.</p>
 <pre class="r"><code>library(lm.beta)</code></pre>
-<pre><code>## Warning: Paket &#39;lm.beta&#39; wurde unter R Version 4.2.3 erstellt</code></pre>
-<p>Die Funktion <code>lm.beta</code> muss auf ein Ergebnis der normalen <code>lm</code>-Funktion angewendet werden. Wir haben dieses Ergebnis im Objekt <code>reg</code> hinterlegt. Anschließend wollen wir uns für die Interpreation wieder das <code>summary</code> ausgeben lassen. Natürlich kann man diese Schritte auch mit der Pipe lösen, was als Kommentar noch aufgeführt ist.</p>
+<p><em>lm</em> steht hier für lineares Modell und <em>beta</em> für die standardisierten Koeffizienten. Anmerkung: In der Literatur werden oft auch unstandardisierte Regressionkoeffizienten als <span class="math inline">\(\beta\)</span>s bezeichnet, sodass darauf stets zu achten ist, was gemeint ist.</p>
+<p>Die Funktion <code>lm.beta()</code> muss auf ein Ergebnis der normalen <code>lm</code>-Funktion angewendet werden. Wir haben dieses Ergebnis im Objekt <code>reg</code> hinterlegt. Anschließend wollen wir uns für die Interpretation wieder das <code>summary()</code> ausgeben lassen. Natürlich kann man diese Schritte auch mit der Pipe lösen, was als Kommentar noch aufgeführt ist.</p>
 <pre class="r"><code># Ergebnisausgabe einschließlich standardisierter Koeffizienten mit lm.beta
 reg_s &lt;- lm.beta(reg)
 summary(reg_s)         # reg |&gt; lm.beta() |&gt; summary()</code></pre>
@@ -453,15 +451,15 @@ summary(reg_s)         # reg |&gt; lm.beta() |&gt; summary()</code></pre>
 ## Residual standard error: 84.48 on 97 degrees of freedom
 ## Multiple R-squared:  0.4873,	Adjusted R-squared:  0.4768 
 ## F-statistic:  46.1 on 2 and 97 DF,  p-value: 8.447e-15</code></pre>
-<p>Wir sehen, dass die ursprüngliche Ausgabe um die Spalte <code>standardized</code> erweitert wurde. Ansonsten ändert sich an der Ausgabe nichts, weshalb wir uns im folgenden Abschnitt der Interpreation auf diese Spalte konzentrieren.</p>
+<p>Wir sehen, dass die ursprüngliche Ausgabe um die Spalte <code>standardized</code> erweitert wurde. An der standardisierten Lösung fällt auf, dass das Interzept <span class="math inline">\(\beta_0\)</span> als <code>NA</code> angezeigt wird. Dies liegt wie bereits besprochen daran, dass beim Standardisieren die Mittelwerte aller Variablen (Prädiktoren und Kriterium) auf <span class="math inline">\(0\)</span> und die Standardabweichungen auf <span class="math inline">\(1\)</span> gesetzt werden. Somit muss das Interzept hier genau <span class="math inline">\(0\)</span> betragen. Weil jeder geschätzte Parameter der Regressionsgleichung einen Freiheitsgrad <strong>kostet</strong>, wird der Parameter besser einfach nicht mitgeschätzt, also als <code>NA</code> angegeben.</p>
 <div id="ergebnisinterpretation-standardisierte-regression" class="section level4">
 <h4>Ergebnisinterpretation standardisierte Regression</h4>
 <ul>
 <li>Standardisierte Regressionsgewichte
 <ul>
 <li>Standardisiertes Regressionsgewicht <span class="math inline">\(\beta_0\)</span>: Der Achsenabschnitt ist null, da die Ebene durch den Punkt der Mittelwerte aller Variablen geht (0/0/0).</li>
-<li>Standardisiertes Regressionsgewicht <span class="math inline">\(\beta_1\)</span>: Unter Kontrolle (Konstanthaltung) des IQ beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr in Lesekompetenz -0.03 Standardabweichungen.</li>
-<li>Standardisiertes Regressionsgewicht <span class="math inline">\(\beta_2\)</span>: Unter Kontrolle (Konstanthaltung) der Lesekompetenz beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr im IQ 0.72 Standardabweichungen.</li>
+<li>Standardisiertes Regressionsgewicht <span class="math inline">\(\beta_1\)</span>: Unter Kontrolle (Konstanthaltung) des IQ beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr in Lesekompetenz 0.72 Standardabweichungen.</li>
+<li>Standardisiertes Regressionsgewicht <span class="math inline">\(\beta_2\)</span>: Unter Kontrolle (Konstanthaltung) der Lesekompetenz beträgt die erwartete Veränderung in der Mathematikleistung bei einer Standardabweichung mehr im IQ NA Standardabweichungen.</li>
 </ul></li>
 </ul>
 <p>Verweis zu letzter Sitzung: In solch einer multiplen Regression können Suppressoreffekte gut aufgedeckt werden. Diese zeigen sich dann, wenn die <span class="math inline">\(\beta\)</span>-Gewichte in der multiplen Regression dem Betrag nach größer sind, als deren korrespondierende <span class="math inline">\(\beta\)</span>-Gewichte in einer einfachen Regression. Dies ist in unserem Beispiel jedoch nicht der Fall.</p>
@@ -471,7 +469,7 @@ summary(reg_s)         # reg |&gt; lm.beta() |&gt; summary()</code></pre>
 </div>
 <div id="r-skript" class="section level2">
 <h2>R-Skript</h2>
-<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/PsyBSc7_R_Files/04_reg1.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zM432 456c-13.3 0-24-10.7-24-24s10.7-24 24-24s24 10.7 24 24s-10.7 24-24 24z"/></svg> hier herunterladen</a>.</p>
+<p>Den gesamten <code>R</code>-Code, der in dieser Sitzung genutzt wird, können Sie <a href="/post/PsyBSc7_R_Files/04_reg1.R"><svg aria-hidden="true" role="img" viewBox="0 0 512 512" style="height:1em;width:1em;vertical-align:-0.125em;margin-left:auto;margin-right:auto;font-size:inherit;fill:currentColor;overflow:visible;position:relative;"><path d="M288 32c0-17.7-14.3-32-32-32s-32 14.3-32 32V274.7l-73.4-73.4c-12.5-12.5-32.8-12.5-45.3 0s-12.5 32.8 0 45.3l128 128c12.5 12.5 32.8 12.5 45.3 0l128-128c12.5-12.5 12.5-32.8 0-45.3s-32.8-12.5-45.3 0L288 274.7V32zM64 352c-35.3 0-64 28.7-64 64v32c0 35.3 28.7 64 64 64H448c35.3 0 64-28.7 64-64V416c0-35.3-28.7-64-64-64H346.5l-45.3 45.3c-25 25-65.5 25-90.5 0L165.5 352H64zm368 56a24 24 0 1 1 0 48 24 24 0 1 1 0-48z"/></svg> hier herunterladen</a>.</p>
 <hr />
 </div>
 <div id="appendix" class="section level2">

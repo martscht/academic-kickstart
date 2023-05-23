@@ -52,11 +52,12 @@ y_s <- scale(y) # Standardisierung y
 X_s <- scale(X) # Standardisierung X
 head(X_s)
 
-X_s[,1] <- 1    # Einsenvektor wieder auffüllen
+X_s <-  X_s[,-1]     # erste Spalte entfernen   
 
 #Kombination der Einzelschritte zur Bestimmung der Regressionsgewichte
 b_hat_s <- solve(t(X_s)%*% X_s) %*% t(X_s)%*%y_s #Regressionsgewichte aus den standardisierten Variablen
 round(b_hat_s, 3)
+
 
 Q_t <- sum((y - mean(y))^2)          # Totale Quadratsumme
 Q_t

@@ -26,27 +26,26 @@ projects: []
 
 <div id="übersicht-und-vorbereitung" class="section level2">
 <h2>Übersicht und Vorbereitung</h2>
-<p>In den letzten Sitzungen haben wir gesehen, wie wir ein Modell für eine Multiple Regression in <code>R</code> aufstellen und verschiedene Modelle gegeneinander testen können. Besonders bei der Nutzung von Inferenzstatistik wissen wir aber auch, dass genutzte statistische Verfahren häufig Voraussetzungen an die Daten mitbringen. Das Thema der heutigen Sitzung ist daher die Überprüfung von Voraussetzungen im Rahmen der <em>Regressionsdiagnostik</em>. Einige der aufgeführten Punkte könnten noch aus der einfachen linearen Regression bekannt sein, aber wir betrachten sie auch im Übertrag auf den hier vorliegenden multivariaten Fall.</p>
+<p>In den letzten Sitzungen haben wir gesehen, wie wir ein Modell für eine Multiple Regression in <code>R</code> aufstellen und verschiedene Modelle gegeneinander testen können. Besonders bei der Nutzung von Inferenzstatistik wissen wir aber auch, dass genutzte statistische Verfahren häufig Voraussetzungen an die Daten mitbringen. Das Thema der heutigen Sitzung ist daher die Überprüfung von Voraussetzungen im Rahmen der <em>Regressionsdiagnostik</em>. Einige der aufgeführten Punkte könnten noch aus der einfachen linearen Regression bekannt sein, aber wir betrachten sie auch im Übertrag auf den hier vorliegenden multivariaten Fall. Im speziellen werden wir uns in dem Tutorial mit folgenden Aspekten beschäftigen:</p>
 <ul>
-<li><a href="#Theoretisch">Korrekte Spezifikation des Modells</a></li>
-<li><a href="#Theoretisch">Messfehlerfreiheit der unabhängigen Variablen</a></li>
-<li><a href="#Theoretisch">Unabhängigkeit der Residuen</a></li>
-<li><a href="#Linearität">Linearität</a></li>
+<li><a href="#Linearität">Korrekte Spezifikation des Modells - bspw. Linearität</a></li>
 <li><a href="#Homoskedastizität">Homoskedastizität</a></li>
 <li><a href="#Normalverteilung">Normalverteilung der Residuen</a></li>
 <li><a href="#Multikollinearität">Multikollinearität</a></li>
 <li><a href="#Ausreißer">Identifikation von Ausreißern und einflussreichen Datenpunkten</a></li>
 </ul>
+<p>Über diese Aspekte hinaus, gibt es noch zwei Voraussetzungen, die wir nur kurz beschreiben und nicht mit <code>R</code> in diesem Tutorial analysieren werden.</p>
+<ul>
+<li><a href="#Vorschub">Messfehlerfreiheit der unabhängigen Variablen</a></li>
+<li><a href="#Vorschub">Unabhängigkeit der Residuen</a></li>
+</ul>
+<p>Anmerkung: Im Sinne der einer sehr präzisen Benennung handelt es sich bei der Multikollinearität und der Identifikation von Ausreißern / einflussreichen Datenpunkten nicht um Voraussetzungen sondern problematische Datensituationen, die aber ähnliche Auswirkungen auf die Analysen haben können.</p>
 <div id="übungs-datensatz" class="section level3">
 <h3>Übungs-Datensatz</h3>
 <p>Diese Sitzung basiert auf dem gleichen Datensatz, der auch in der Sitzung zu Regression I und II verwendet wurde. Nochmal zur Erinnerung: Eine Stichprobe von 100 Schülerinnen und Schülern hat einen Lese- und einen Mathematiktest bearbeitet, und zusätzlich dazu einen allgemeinen Intelligenztest absolviert. Im Datensatz enthalten ist zudem das Geschlecht (Variable: <code>female</code>, 0 = m, 1 = w). Die abhängige Variable ist die Matheleistung, die durch die anderen Variablen im Datensatz vorhergesagt werden soll.</p>
 <p>Den Datensatz und die benötigten Pakete laden Sie wie folgt:</p>
 <pre class="r"><code># Datensatz laden
-load(url(&quot;https://pandar.netlify.app/post/Schulleistungen.rda&quot;))
-# Laden der Pakete
-library(car)
-library(MASS)
-library(ggplot2)</code></pre>
+load(url(&quot;https://pandar.netlify.app/post/Schulleistungen.rda&quot;))</code></pre>
 </div>
 </div>
 <div id="modell-aufstellen" class="section level2">
@@ -77,7 +76,7 @@ summary(mod)</code></pre>
 <span class="math display">\[\text{reading}_i=b_0+b_1\text{female}_i+b_2\text{IQ}_i+\varepsilon_i,\]</span>
 für <span class="math inline">\(i=1,\dots,100=:n\)</span>.</p>
 <p>Den Koeffizienten entnehmen wir, dass die Prädiktoren <code>female</code> und <code>IQ</code> signifikante Anteile am Kriterium erklären (<em>Mit einer Irrtumswahrscheinlichkeit von 5% ist der Regressionkoeffizent und damit die lineare Beziehung zwischen dem jeweiligen Prädiktor (z.B. IQ) und der Leseleistung in der Population nicht 0</em>). Insgesamt werden 35.55% der Variation der Leseleistung durch die beiden Prädiktoren erklärt.</p>
-<p>Die Regressionskoeffizienten <span class="math inline">\(b_j\)</span> beziehen sich auf die Maßeinheiten der Variablen im Datensatz (um wie viele Einheiten nimmt <span class="math inline">\(y\)</span> zu, wenn <span class="math inline">\(x_j\)</span> um eine Einheit zunimmt). Wie wir bereits gelernt haben, sind diese <em>unstandardisierten Regressionskoeffizienten</em> nicht ganz leicht zu interpretieren, und Regressionsgewichte verschiedener Prädiktoren sind nicht vergleichbar. So lässt sich nicht einfach sagen, dass das Geschlecht einen stärkeren Einfluss auf die Leseleistung hätte als Intelligenz, nur weil das Regressionsgewicht für Geschlecht (<span class="math inline">\(b_1=\)</span> 38.5) größer ist als das für Intelligenz (<span class="math inline">\(b_2=\)</span> 3.9). Aus diesem Grund werden oft <em>standardisierte Regressionskoeffizienten</em> berechnet und berichtet. Diese können wir mithilfe der Funktion <code>lm.beta()</code> aus dem Paket <code>lm.beta</code> ermitteln, welches wir bereits installiert haben und nur noch aktivieren müssen. <em>lm</em> steht hier für lineares Modell und <em>beta</em> für die standardisierten Koeffizienten.</p>
+<p>Die Regressionskoeffizienten <span class="math inline">\(b_j\)</span> beziehen sich auf die Maßeinheiten der Variablen im Datensatz (um wie viele Einheiten nimmt <span class="math inline">\(y\)</span> zu, wenn <span class="math inline">\(x_j\)</span> um eine Einheit zunimmt). Wie wir bereits gelernt haben, sind diese <em>unstandardisierten Regressionskoeffizienten</em> verschiedener Prädiktoren nicht vergleichbar. So lässt sich nicht einfach sagen, dass das Geschlecht einen stärkeren Einfluss auf die Leseleistung hätte als Intelligenz, nur weil das Regressionsgewicht für Geschlecht (<span class="math inline">\(b_1=\)</span> 38.5) größer ist als das für Intelligenz (<span class="math inline">\(b_2=\)</span> 3.9). Aus diesem Grund werden oft <em>standardisierte Regressionskoeffizienten</em> berechnet und berichtet. Diese können wir mithilfe der Funktion <code>lm.beta()</code> aus dem Paket <code>lm.beta</code> ermitteln, welches wir bereits installiert haben und nur noch aktivieren müssen.</p>
 <pre class="r"><code>library(lm.beta)
 summary(lm.beta(mod))</code></pre>
 <pre><code>## 
@@ -99,14 +98,19 @@ summary(lm.beta(mod))</code></pre>
 ## Residual standard error: 86.34 on 97 degrees of freedom
 ## Multiple R-squared:  0.3555,	Adjusted R-squared:  0.3422 
 ## F-statistic: 26.75 on 2 and 97 DF,  p-value: 5.594e-10</code></pre>
-<p>Anmerkung: In der Literatur werden oft auch unstandardisierte Regressionkoeffizienten als <span class="math inline">\(\beta\)</span>s bezeichnet, sodass darauf stets zu achten ist - siehe bspw. <a href="#AppendixA">Appendix A</a>).</p>
-<p>An der standardisierten Lösung fällt auf, dass das Interzept <span class="math inline">\(\beta_0\)</span> als <code>NA</code> anezeigt wird. Dies liegt daran, dass beim Standardisieren die Mittelwerte aller Variablen auf <span class="math inline">\(0\)</span> und die Standardabweichungen auf <span class="math inline">\(1\)</span> gesetzt werden. So auch beim Kriterium, der Leseleistung. Damit beträgt der Mittelwert des Kriteriums und der Mittelwert aller Prädiktoren jeweils <span class="math inline">\(0\)</span>. Das Interzept gibt an, welchen Wert das Kriterium hat, wenn alle Prädiktoren den Wert <span class="math inline">\(0\)</span> aufweisen. Somit muss das Interzept hier genau <span class="math inline">\(0\)</span> betragen - also in der Regressionsgleichung nicht vorhanden sein. Weil jeder geschätzte Parameter der Regressionsgleichung einen Freiheitsgrad <strong>kostet</strong>, wird der Parameter besser einfach nicht mitgeschätzt, also als <code>NA</code> angegeben.</p>
 <p>Die standardisierten Regressionsgewichte für die Prädiktoren geben an, <em>um wieviele Standardabweichungen</em> sich <span class="math inline">\(y\)</span> verändert, wenn sich <span class="math inline">\(x\)</span> <em>um eine Standardabweichung</em> verändert.
 Der standardisierte Koeffizient des <code>IQ</code> ist hierbei deutlich größer (<span class="math inline">\(\hat{\beta}_2=\)</span> 0.58) als der vom Geschlecht (<span class="math inline">\(\hat{\beta}_1=\)</span> 0.18). Hierdurch wird sichtbar, dass der <code>IQ</code> mehr Variation am Kriterium Leseleistung erklärt. Diese Information ist den unstandardisierten Koeffizienten nicht zu entnehmen (das unstandardierte Regressionsgewicht für Geschlecht ist ja sogar größer als das für Intelligenz, s.o.). Der Unterschied zwischen den unstandardisierten und standardisierten Koeffizienten kommt im Beispiel dadurch zustande, dass der Prädiktor <code>IQ</code> eine wesentlich größere Streuung (<span class="math inline">\(\sigma_{IQ}^2\)</span>=248.11) aufweist als die dummykodierte Variable <code>female</code> (<span class="math inline">\(\sigma_{female}^2\)</span>=0.25). Für den Fall eines intervallskalierten Prädiktors wie <code>IQ</code> ist der standardisierte Koeffizient auch einfacher zu interpretieren, da man die Skala Verteilung der Variablen nicht berücksichtigen muss: Wenn sich <code>IQ</code> um eine Standardabweichung ändert, ändert sich die Leseleistung um 0.58 Standardabweichungen. Für dummykodierte Variablen wie Geschlecht ist diese Interpretation nicht so anschaulich, da hier “eine Einheit in <span class="math inline">\(x\)</span>” schon aussagekräftig ist - sie entspricht nämlich dem Unterschied zwischen den mit null und eins kodierten Gruppen. Der unstandardisierte Koeffizient <span class="math inline">\(b_1=\)</span> 38.5 lässt sich als Unterschied zwischen Jungen und Mädchen in Maßeinheiten der Lesefähigkeit interpretieren. “Eine Standardabweichung im Geschlecht” ist hingegen weniger anschaulich. Daher ist es hilfreich, beide Angaben (unstandardisierte und standardisierte Regressionsgewichte) zu kennen.</p>
 </div>
+<div id="Vorschub" class="section level2">
+<h2>Messfehlerfreiheit der unabhängigen Variablen und Unabhängigkeit der Residuen</h2>
+<p>Die beiden Voraussetzungen werden wir im Tutorial wie schon beschrieben nicht genauer analysieren, sondern hier nur zum Start die Bedeutung und Auswirkung kurz zusammenfassen. Messfehlerfreiheit der unabhängigen Variable umfasst, dass die Ausprägung der Variablen ohne Fehler gemessen werden können. Messfehler können zur Unterschätzung oder Überschätzung der Regressionsgewichte führen. Eine vielleicht aus der Diagnostik bekannte Größe, die den Grad an Messfehlerabhängigkeit bestimmen kann, ist die Reliabilität. Messinstrumente mit hoher Reliabilität sind demnach zu bevorzugen und resultieren in weniger Fehlern. Bei der Unabhängigkeit der Residuen geht es darum, dass die Residuen untereinander voneinander unabhängig sind. Verletzt wird dies bspw. bei Klumpenstichproben (Schüler:innen aus 4 verschiedenen Klassen werden erhoben - jede Klasse bildet einen Klumpen). Hier wird davon ausgegangen, dass sich Personen innerhalb eines Klumpens ähnlicher sind und damit die Fehler dieser Personen voneinander abhängen. Dies führt typischerweise zu einer Unterschätzung der Standardfehler und damit einem niedrigeren Irrtumsniveau, als wir eigentlich festgelegt haben. Ein anderes Beispiel wäre serielle Abhängigkeit, die bei Messwiederholungen auftreten kann.</p>
+</div>
 <div id="Linearität" class="section level2">
-<h2>Linearität</h2>
-<p>Eine grafische Prüfung der partiellen Linearität zwischen den einzelnen Prädiktorvariablen und dem Kriterium kann durch <em>partielle Regressionsplots</em> (engl. <em>Partialplots</em>) erfolgen. Dafür sagen wir in einem Zwischenschritt einen einzelnen Prädiktor durch alle anderen Prädiktoren im Modell vorher und speichern die Residuen, die sich aus dieser Regression ergeben. Diese kennzeichnen den eigenständigen Anteil, den ein Prädiktor nicht mit den anderen Prädiktoren gemein hat. Dann werden die Residuen aus dieser Vorhersage gegen die Residuen des Kriteriums bei Vorhersage durch alle Prädiktor bis auf den betrachteten Prädiktor dargestellt. Bspw. im Block <code>reading | others</code> vs. <code>IQ | others</code> ist die lineare Beziehung zwischen der Leseleistung, wobei alle Varianzanteile der “anderen Prädiktoren” bereits herausgezogen wurden (à la Partial-/Semipartialkorrelation). Hier gibt es nur noch das Geschlecht im Modell, wodurch ersichtlich wird, dass hier die Leseleistung unter Kontrolle des Geschlechts abgebildet wird gegen die Intelligenz unter Kontrolle des Geschlecht. Mit “unter Kontrolle” meinen wir hier “gegeben die jeweiligen Prädiktoren”. Das ist im Grunde eine sehr komplizierte Ausdrucksweise, um tatsächlich einfach die Residuen einer Regression zu meinen. Wir tragen also die Residuen der Regression der Leseleistung durch das Geschlecht vs. die Residuen der Intelligenz gegeben das Geschlecht ab. Diese Grafiken können Hinweise auf systematische nicht-lineare Zusammenhänge geben, die in der Modellspezifikation nicht berücksichtigt wurden. Die zugehörige <code>R</code>-Funktion des <code>car</code> Pakets heißt <code>avPlots</code> und braucht als Argument lediglich das Regressionsmodell <code>mod</code>.</p>
+<h2>Korrekte Spezifikation des Modells - bspw. Linearität</h2>
+<p>In die korrekte Spezifikation des Modells fällt, dass keine als Prädiktor relevanten Variablen aus der Population ausgelassen werden und auch keine Variablen eingeschlossen werden, die nicht zur Erklärung beitragen. Ein Aspekt davon ist, dass der Zusammenhang zwischen den Prädiktoren und dem Kriterium auch so sein soll, wie von uns in der Regressionsgleichung postuliert. Bisher nutzen wir nur lineare Zusammenhänge, weshalb eine Voraussetzung hier sein sollte, dass in der Population auch wirklich ein linearer Zusammenhang zwischen den Prädiktoren und dem Kriterium besteht.</p>
+<p>Eine grafische Prüfung der partiellen Linearität zwischen den einzelnen Prädiktorvariablen und dem Kriterium kann durch <em>partielle Regressionsplots</em> (engl. <em>Partialplots</em>) erfolgen. Dafür sagen wir in einem Zwischenschritt einen einzelnen Prädiktor durch alle anderen Prädiktoren im Modell vorher und speichern die Residuen, die sich aus dieser Regression ergeben. Diese kennzeichnen den eigenständigen Anteil, den ein Prädiktor nicht mit den anderen Prädiktoren gemein hat. Dann werden die Residuen aus dieser Vorhersage gegen die Residuen des Kriteriums bei Vorhersage durch alle Prädiktor bis auf den betrachteten Prädiktor dargestellt. Bspw. im Block <code>reading | others</code> vs. <code>IQ | others</code> ist die lineare Beziehung zwischen der Leseleistung, wobei alle Varianzanteile der “anderen Prädiktoren” bereits herausgezogen wurden (à la Partial-/Semipartialkorrelation). Hier gibt es nur noch das Geschlecht im Modell, wodurch ersichtlich wird, dass hier die Leseleistung unter Kontrolle des Geschlechts abgebildet wird gegen die Intelligenz unter Kontrolle des Geschlecht. Mit “unter Kontrolle” meinen wir hier “gegeben die jeweiligen Prädiktoren”. Das ist im Grunde eine sehr komplizierte Ausdrucksweise, um tatsächlich einfach die Residuen einer Regression zu meinen. Wir tragen also die Residuen der Regression der Leseleistung durch das Geschlecht vs. die Residuen der Intelligenz gegeben das Geschlecht ab. Diese Grafiken können Hinweise auf systematische nicht-lineare Zusammenhänge geben, die in der Modellspezifikation nicht berücksichtigt wurden. Die zugehörige <code>R</code>-Funktion des <code>car</code> Pakets, das wir bereits installiert haben, heißt <code>avPlots()</code> und braucht als Argument lediglich das Regressionsmodell <code>mod</code>.</p>
+<pre class="r"><code>library(car) # Paket mit einigen Funktionen zur Regressionsdiagnostik</code></pre>
+<pre><code>## Loading required package: carData</code></pre>
 <pre class="r"><code># partielle Regressionsplots
 avPlots(model = mod, pch = 16, lwd = 4)</code></pre>
 <p><img src="/post/2021-05-10_reg3_files/figure-html/unnamed-chunk-5-1.png" width="672" /></p>
@@ -136,7 +140,8 @@ ncvTest(mod)</code></pre>
 <h3>Normalverteilung</h3>
 <p>Voraussetzung für die Signifikanztests im Kontext der linearen Regression ist die Normalverteilung der Residuen (nicht, wie oft irrtürmlich angenommen wird, der in die Analyse einbezogenen Variablen). Diese Annahme wird i.d.R. grafisch geprüft. Hierfür bietet sich zum einen ein Histogramm der Residuen an, zum anderen ein <em>Q-Q-Diagramm</em> (oder “Quantile-Quantile-Plot”). Zusätzlich zur grafischen Darstellung erlaubt z.B. der Shapiro-Wilk-Test auf Normalität (<code>shapiro.test</code>) einen Signifkanztest der Nullhypothese, dass die Residuen normalverteilt sind. Auch der Kolmogorov-Smirnov (<code>ks.test</code>) Test, welcher eine deskriptive mit einer theoretischen Verteilung vergleicht, wäre denkbar.</p>
 <p>Wir beginnen mit der Vorbereitung der Daten. Wir wollen die studentisierten Residuen grafisch mit dem <code>R</code>-Paket <code>ggplot2</code>darstellen. Studentisierte Residuen sind wie standardisierten Residuen, bei denen zusätzlich eine Gewichtung der geschätzten Standardabweichung an der Stelle <span class="math inline">\(x_j\)</span> mit einfließt, was eine präziseren Schätzung der normierten Residuen zur Folge hat. Normiert bedeutet hier, dass der Mittelwert der studentisierten Residuen <em>0</em> beträgt und die Varianz <em>1</em> ist (somit lassen sich solche Plots immer gleich interpretieren). Für mehr Informationen zu standardisierten und studentisierten Residuen schaue doch im <a href="#AppendixB">Appendix B</a> vorbei. Der Befehl <code>studres</code> aus dem <code>MASS</code> Paket speichert die Residuen aus einem <code>lm</code> Objekt, also aus dem definierten Modell <code>mod</code>, und studentisiert diese. Speichern Sie die Residuen aus <code>mod</code> als <code>res</code> ab und erzeugen Sie daraus einen <code>data.frame</code>, den Sie unter dem Namen <code>df_res</code> speichern. Diesen wollen wir später in den Grafiken mit <code>ggplot2</code> verwenden.</p>
-<pre class="r"><code>res &lt;- studres(mod)       # Studentisierte Residuen als Objekt speichern
+<pre class="r"><code>library(MASS)
+res &lt;- studres(mod)       # Studentisierte Residuen als Objekt speichern
 df_res &lt;- data.frame(res) # als Data.Frame für ggplot
 head(df_res)              # Kurzer Blick in den Datensatz</code></pre>
 <pre><code>##           res
@@ -150,24 +155,19 @@ head(df_res)              # Kurzer Blick in den Datensatz</code></pre>
 <pre class="r"><code>library(ggplot2)
 # Histogramm der Residuen mit Normalverteilungs-Kurve
 ggplot(data = df_res, aes(x = res)) + 
-     geom_histogram(aes(y =..density..),
+     geom_histogram(aes(y = after_stat(density)),
                     bins = 20,                    # Wie viele Balken sollen gezeichnet werden?
                     colour = &quot;blue&quot;,              # Welche Farbe sollen die Linien der Balken haben?
                     fill = &quot;skyblue&quot;) +           # Wie sollen die Balken gefüllt sein?
      stat_function(fun = dnorm, args = list(mean = mean(res), sd = sd(res)), col = &quot;darkblue&quot;) + # Füge die Normalverteilungsdiche &quot;dnorm&quot; hinzu und nutze den empirischen Mittelwert und die empirische Standardabweichung &quot;args = list(mean = mean(res), sd = sd(res))&quot;, wähle dunkelblau als Linienfarbe
      labs(title = &quot;Histogramm der Residuen mit Normalverteilungsdichte&quot;, x = &quot;Residuen&quot;) # Füge eigenen Titel und Achsenbeschriftung hinzu</code></pre>
-<pre><code>## Warning: The dot-dot notation (`..density..`) was deprecated in ggplot2 3.4.0.
-## ℹ Please use `after_stat(density)` instead.
-## This warning is displayed once every 8 hours.
-## Call `lifecycle::last_lifecycle_warnings()` to see where this warning was
-## generated.</code></pre>
 <p><img src="/post/2021-05-10_reg3_files/figure-html/unnamed-chunk-9-1.png" width="672" /></p>
-<pre class="r"><code># Grafisch: Q-Q-Diagramm mit der car Funktion qqPlot
+<pre class="r"><code># Grafisch: Q-Q-Diagramm mit der Funktion qqPlot aus dem Paket car
 qqPlot(mod, pch = 16, distribution = &quot;norm&quot;) </code></pre>
 <p><img src="/post/2021-05-10_reg3_files/figure-html/unnamed-chunk-9-2.png" width="672" /></p>
 <pre><code>## [1]  6 33</code></pre>
-<p>Die in der Konsole von der Funktion <code>qqplot</code> ausgegebenen Werte geben die Zeilen im Datensatz an, welche Ausreißer darstellen, diese sind auch in der Grafik beschriftet.</p>
-<p>Zusätzlich zur grafischen Darstellung können wir die Hypothese auf Normalverteilung mit dem Shapiro-Wilk-Test und dem Kolmogorov-Smirnov-Test prüfen:</p>
+<p>Die in der Konsole von der Funktion <code>qqplot()</code> ausgegebenen Werte geben die Zeilen im Datensatz an, welche Ausreißer darstellen, diese sind auch in der Grafik beschriftet.</p>
+<p>Zusätzlich zur grafischen Darstellung können wir die Hypothese auf Normalverteilung der Residuen natürlich auch inferenzstatistisch prüfen - mit dem Shapiro-Wilk-Test oder dem Kolmogorov-Smirnov-Test prüfen. Dieses Vorgehen kann als problemtisch angesehen werden, da wir im Endeffekt auf die H0 (Verteilung der Residuen weicht nicht von Normalverteilung ab) testen wollen, was wir aber nicht können. Wir haben für unsere Überprüfung demnach keine Irrtumswahrscheinlichkeit (das wäre <span class="math inline">\(beta\)</span>), sondern verwerfen die Normalverteilung nur bei einer extremen Verletzung (gefundene Verteilung ist seltener als 5<span class="math inline">\(%\)</span> unter der Annahme, dass eigentlich Normalverteilung vorliegt). Die Durchführung der Inferenzstatistik ist daher als vorsichtige Ergänzung anzusehen.</p>
 <pre class="r"><code># Test auf Abweichung von der Normalverteilung mit dem Shapiro-Test
 shapiro.test(res)</code></pre>
 <pre><code>## 
@@ -224,7 +224,7 @@ df_h &lt;- data.frame(h)       # als Data.Frame für ggplot
 
 # Erzeugung der Grafik
 ggplot(data = df_h, aes(x = h)) +
-  geom_histogram(aes(y =..density..),  bins = 15, fill=&quot;skyblue&quot;, colour = &quot;blue&quot;) +
+  geom_histogram(aes(y =after_stat(density)),  bins = 15, fill=&quot;skyblue&quot;, colour = &quot;blue&quot;) +
   geom_vline(xintercept = 4/n, col = &quot;red&quot;) # Cut-off bei 4/n</code></pre>
 <p><img src="/post/2021-05-10_reg3_files/figure-html/unnamed-chunk-13-1.png" width="672" /></p>
 <p><em>Cook’s Distanz</em> <span class="math inline">\(CD_i\)</span> gibt eine Schätzung, wie stark sich die Regressionsgewichte verändern, wenn eine Person <span class="math inline">\(i\)</span> aus dem Datensatz entfernt wird. Fälle, deren Elimination zu einer deutlichen Veränderung der Ergebnisse führen würden, sollten kritisch geprüft werden. Als einfache Daumenregel gilt, dass <span class="math inline">\(CD_i&gt;1\)</span> auf einen einflussreichen Datenpunkt hinweist. Cook’s Distanz kann mit der Funktion <code>cooks.distance</code> ermittelt werden.</p>
@@ -234,7 +234,7 @@ df_CD &lt;- data.frame(CD) # als Data.Frame für ggplot
 
 # Erzeugung der Grafik
 ggplot(data = df_CD, aes(x = CD)) +
-  geom_histogram(aes(y =..density..),  bins = 15, fill=&quot;skyblue&quot;, colour = &quot;blue&quot;) +
+  geom_histogram(aes(y =after_stat(density)),  bins = 15, fill=&quot;skyblue&quot;, colour = &quot;blue&quot;) +
   geom_vline(xintercept = 1, col = &quot;red&quot;) # Cut-Off bei 1</code></pre>
 <p><img src="/post/2021-05-10_reg3_files/figure-html/unnamed-chunk-14-1.png" width="672" /></p>
 <p>Die Funktion <code>influencePlot</code> des <code>car</code>-Paktes erzeugt ein “Blasendiagramm” zur simultanen grafischen Darstellung von Hebelwerten (auf der x-Achse), studentisierten Residuen (auf der y-Achse) und Cooks Distanz (als Größe der Blasen). Vertikale Bezugslinien markieren das Doppelte und Dreifache des durchschnittlichen Hebelwertes, horizontale Bezugslinien die Werte -2, 0 und 2 auf der Skala der studentisierten Residuen. Fälle, die nach einem der drei Kriterien als Ausreißer identifiziert werden, werden im Streudiagramm durch ihre Zeilennummer gekennzeichnet. Diese Zeilennummern können verwendet werden, um sich die Daten der auffälligen Fälle anzeigen zu lassen. Sie werden durch <code>InfPlot</code> ausgegeben werden. Auf diese kann durch <code>as.numeric(row.names(InfPlot))</code> zugegriffen werden.</p>

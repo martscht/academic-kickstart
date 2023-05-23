@@ -22,7 +22,7 @@ projects: []
 ```{r setup, include=FALSE, purl=FALSE}
 options(knitr.duplicate.label = "allow") #Muss gesetzt werden, Setup-Chunk blockiert sonst Durchführung da er zeitweise doppelt existiert
 options(knitr.purl.inline = FALSE) #Inline-Code wird hiermit entweder mit ins Skript übernommen (TRUE) oder ausgelassen (FALSE)
-knitr::purl("2021-04-21-Regression-I.Rmd", documentation = 0) #Legt fest das Purl nur die Chunkinhalte(0) in ein R-Skript umwandelt!; NAME DES RMD MUSS EINGESTELLT WERDEN!
+knitr::purl("2021-04-21-Regression-I.rmd", documentation = 0) #Legt fest das Purl nur die Chunkinhalte(0) in ein R-Skript umwandelt!; NAME DES RMD MUSS EINGESTELLT WERDEN!
 file.rename("2021-04-21-Regression-I.R","PsyBSc7_R_Files/04_reg1.R") #NAME DER R-DATEI MUSS ANGEPASST WERDEN AN RMD-NAMEN!UNTERORDNER SOLLTE MIT KURS ÜBEREINSTIMMEN! (Siehe Ordner in /post)
 ```
 
@@ -254,9 +254,9 @@ head(y_hat)
 
 ### Berechnung der standardisierten Regressionsgewichte 
 
-Bisher wurden  nur die *unstandardisierten Regressionsgewichte* berechnet. Diese haben den Vorteil leichter interpretierbar zu sein. So wird das unstandardisierte Regressionsgewicht folgendermaßen interpretiert: wenn sich die unabhängige Variable um eine Einheit verändert, verändert sich die abhängige Variable um den unstandardisierten Koeffizienten. Der Nachteil dieser unstandardisierten Regressionsgewichte ist jedoch, dass die Regressionsgewichte nicht zwischen verschiedenen Prädiktoren vergleichbar sind. Demzufolge kann anhand der Größe der Regressionsgewichte nicht gesagt werden, welcher Regressionskoeffizient, d.h. welcher Prädiktor, eine stärkere Erklärungskraft hat.
+Bisher wurden  nur die *unstandardisierten Regressionsgewichte* berechnet. Diese haben den Vorteil, dass die Interpretation bei bekannten Skalen anschaulicher ausfällt. So wird das unstandardisierte Regressionsgewicht folgendermaßen interpretiert: wenn sich die unabhängige Variable um eine Einheit (bspw. der IQ um einen Punkt) verändert, verändert sich die abhängige Variable (bspw. die Note um 0.1) um den unstandardisierten Koeffizienten. Besonders bei dichotomen Prädiktoren ist die Bedeutsamkeit der unstandardisierten Regressionsgewichte viel leichter. Der Nachteil dieser unstandardisierten Regressionsgewichte ist jedoch, dass die Regressionsgewichte verschiedener Prädiktoren innerhalb eines Modells nicht vergleichbar sind. Demzufolge kann anhand der Größe der Regressionsgewichte nicht gesagt werden, welcher Regressionskoeffizient, d.h. welcher Prädiktor, eine stärkere Erklärungskraft hat.
 
-Daher werden die Regressionsgewichte häufig standardisiert. Durch die Standardisierung sind die Regressionsgewichte nicht mehr von der ursprünglichen Skala abhängig und haben daher den Vorteil, dass sie miteinander verglichen werden können. Allerdings sind die *standardisierten Regressionsgewichte* nicht mehr so leicht zu interpretieren. Die Interpretation der standardisierten Regressionsgewichte lautet: wenn sich die unabhängige Variable um eine Standardabweichung erhöht (und unter Kontrolle weiterer unabhängiger Variablen), so beträgt die erwartete Veränderung in der abhängigen Variable $\beta$ Standardabweichungen (das standardisierte Interzept ist Null).
+Daher werden die Regressionsgewichte häufig standardisiert. Durch die Standardisierung sind die Regressionsgewichte nicht mehr von der ursprünglichen Skala abhängig und haben daher den Vorteil, dass sie miteinander verglichen werden können. Die Interpretation der *standardisierten Regressionsgewichte* lautet folgendermaßen: wenn sich die unabhängige Variable um eine Standardabweichung erhöht (und unter Kontrolle weiterer unabhängiger Variablen), so beträgt die erwartete Veränderung in der abhängigen Variable $\beta$ Standardabweichungen.
 
 Die standardisierten Regressionsgewichte können bestimmt werden, indem zunächst alle Variablen standardisiert werden. Dafür haben wir bereits im letzten Semester den Befehl `scale` kennen gelernt. Wir wenden ihn auf die Werte der abhängigen Variable `y` und die der Prädiktoren `X` an. 
 
@@ -267,10 +267,10 @@ X_s <- scale(X) # Standardisierung X
 head(X_s)
 ```
 
-Bei der Ansicht des standardisierten Objektes `X_s` sehen wir, dass alle Werte in der ersten Spalte nun `NaN` sind. Dies liegt daran, dass in dieser Spalte ja keine Streuung vorhanden ist und die Standardisierung somit nicht funktioniert. Für die Berechnung der Regressionsgewichte im standardisierten Fall sollten auch hier wieder 1en stehen, weshalb wir alle Werte in der Spalte mit 1 ersetzen müssen.
+Bei der Ansicht des standardisierten Objektes `X_s` sehen wir, dass alle Werte in der ersten Spalte nun `NaN` sind. Dies liegt daran, dass in dieser Spalte ja keine Streuung vorhanden ist und die Standardisierung somit nicht funktioniert. Wir sollten uns allerdings überlegen, ob wir den Achsenabschnitt überhaupt brauchen. Wir haben im ersten Semester gelernt, dass die Regressionsgrade immer durch den Punkt (Mittelwert unabhänige Variable / Mittelwert abhängige Variable geht). Im standardisierten Fall bedeutet dies, dass der Punkt (0/0) auf der Grade liegen musste und damit der Achsenabschnitt (an Stelle x = 0) auf jeden Fall 0 sein musste. Diese Überlegung geht auch in der multiplen Regression, wo die Regressionsebene im standardisierten Fallnun also durch den Punkt (0/0/0) geht. Wir können daher den ehemaligen Einsenvektor ignorieren und entfernen die erste Spalte aus unserem Objekt `X_s`.
 
 ```{r}
-X_s[,1] <- 1    # Einsenvektor wieder auffüllen
+X_s <-  X_s[,-1]     # erste Spalte entfernen   
 ```
 
 Die bereits im unstandardisierten Fall zur Bestimmung der Regressionsgewichte könnten nun wieder einzeln durchgeführt werden. Allerdings kann man diese natürlich auch in einer Zeile Code durchführen, was hier demonstriert wird. 
@@ -279,9 +279,10 @@ Die bereits im unstandardisierten Fall zur Bestimmung der Regressionsgewichte k�
 #Kombination der Einzelschritte zur Bestimmung der Regressionsgewichte
 b_hat_s <- solve(t(X_s)%*% X_s) %*% t(X_s)%*%y_s #Regressionsgewichte aus den standardisierten Variablen
 round(b_hat_s, 3)
+
 ```
 
-Wir sehen im Ergebnis, dass die Regressionskonstante 0 ist. Die lineare Regression geht stets durch den Mittelwert aller Variablen. Durch die Standardisierung ist dieser für jede Variable 0, wodurch der Punkt (0/0/0) durchlaufen werden muss. Weiterhin erkennen wir, dass der Einfluss des IQs der Lesefähigkeit deskriptiv überlegen ist. 
+Die Operation gibt uns für beide Prädiktoren jeweils ein Steigungsgewicht zurück. Wir erkennen, dass der Einfluss des IQs der Lesefähigkeit deskriptiv überlegen ist. Die genaue Interpretation greifen wir später nochmal auf.
 
 ### Berechnung des globalen Signifikanztest
 
@@ -477,7 +478,7 @@ Die Übereinstimmung mit den händisch berechneten Regressionsgewichten wird ber
 
 ### Standardisierte Regression
 
-Zur Durchführung der standardisierten Regression könnten wir natürlich händisch alle Variablen mit `scale` standardisieren und dann in `lm` übergeben. Es gibt aber auch eine bereits geschriebene Funktion `lm.beta` aus dem gleichnamigen Paket `lm.beta`, die für uns eine zusätzliche Anzeige der standardisierten Regressionsgewichte bereit hält.. Das Paket haben wir im normalen Ablauf der Tutorials noch nicht insatlliert, weshalb wir hier nochmal darauf verweisen.
+Zur Durchführung der standardisierten Regression mit Hilfe von Funktionen in `R` könnten wir natürlich händisch alle Variablen mit `scale()` standardisieren und dann in `lm()` übergeben. Dieses Vorgehen würde aber den Achsenabschnitt mitschätzen, was wir nicht brauchen Es gibt eine bereits geschriebene Funktion `lm.beta()` aus dem gleichnamigen Paket `lm.beta`, die für uns eine zusätzliche Anzeige der standardisierten Regressionsgewichte bereit hält. Das Paket haben wir im normalen Ablauf der Tutorials noch nicht installiert, weshalb wir hier nochmal darauf verweisen.  Aus diesem Grund werden oft *standardisierte Regressionskoeffizienten* berechnet und berichtet.  
 
 ```{r, eval = F, echo=-1}
 #Paket für Anzeige der standardisiserten Regressionsgewichte - installieren wenn noch nicht vorhanden, dafür auskommentieren!
@@ -491,7 +492,9 @@ Nach der (ggf. nötigen) Installation müssen wir das Paket für die Bearbeitung
 library(lm.beta)
 ```
 
-Die Funktion `lm.beta` muss auf ein Ergebnis der normalen `lm`-Funktion angewendet werden. Wir haben dieses Ergebnis im Objekt `reg` hinterlegt. Anschließend wollen wir uns für die Interpreation wieder das `summary` ausgeben lassen. Natürlich kann man diese Schritte auch mit der Pipe lösen, was als Kommentar noch aufgeführt ist. 
+*lm* steht hier für lineares Modell und *beta* für die standardisierten Koeffizienten. Anmerkung: In der Literatur werden oft auch unstandardisierte Regressionkoeffizienten als $\beta$s bezeichnet, sodass darauf stets zu achten ist, was gemeint ist.
+
+Die Funktion `lm.beta()` muss auf ein Ergebnis der normalen `lm`-Funktion angewendet werden. Wir haben dieses Ergebnis im Objekt `reg` hinterlegt. Anschließend wollen wir uns für die Interpretation wieder das `summary()` ausgeben lassen. Natürlich kann man diese Schritte auch mit der Pipe lösen, was als Kommentar noch aufgeführt ist. 
 
 ```{r}
 # Ergebnisausgabe einschließlich standardisierter Koeffizienten mit lm.beta
@@ -499,7 +502,7 @@ reg_s <- lm.beta(reg)
 summary(reg_s)         # reg |> lm.beta() |> summary()
 ```
 
-Wir sehen, dass die ursprüngliche Ausgabe um die Spalte `standardized` erweitert wurde. Ansonsten ändert sich an der Ausgabe nichts, weshalb wir uns im folgenden Abschnitt der Interpreation auf diese Spalte konzentrieren.
+Wir sehen, dass die ursprüngliche Ausgabe um die Spalte `standardized` erweitert wurde. An der standardisierten Lösung fällt auf, dass das Interzept $\beta_0$ als `NA` angezeigt wird. Dies liegt wie bereits besprochen daran, dass beim Standardisieren die Mittelwerte aller Variablen (Prädiktoren und Kriterium) auf $0$ und die Standardabweichungen auf $1$ gesetzt werden. Somit muss das Interzept hier genau $0$ betragen. Weil jeder geschätzte Parameter der Regressionsgleichung einen Freiheitsgrad **kostet**, wird der Parameter besser einfach nicht mitgeschätzt, also als `NA` angegeben.
 
 #### Ergebnisinterpretation standardisierte Regression
 

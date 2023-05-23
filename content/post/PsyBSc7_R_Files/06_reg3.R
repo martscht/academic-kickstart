@@ -5,12 +5,6 @@
 #### Vorbereitung ----
 # Datensatz laden
 load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
-# Laden der Pakete
-library(car)
-library(MASS)
-library(ggplot2)
-
-
 
 #### Modell aufstellen ----
 # Leseleistung durch Geschlecht und IQ vorhersagen, von Interesse sind hier die Beta-Gewichte des Modells
@@ -26,6 +20,8 @@ summary(lm.beta(mod))
 
 ## Grafische Prüfung der partiellen Linearität
 
+library(car) # Paket mit einigen Funktionen zur Regressionsdiagnostik
+
 # partielle Regressionsplots
 avPlots(model = mod, pch = 16, lwd = 4)
 
@@ -39,7 +35,7 @@ ncvTest(mod)
 
 ## Prüfung der Normalverteilung (Grafisch)
 # Daten für ggplot extrahieren
-
+library(MASS)
 res <- studres(mod)       # Studentisierte Residuen als Objekt speichern
 df_res <- data.frame(res) # als Data.Frame für ggplot
 head(df_res)              # Kurzer Blick in den Datensatz
@@ -48,14 +44,14 @@ head(df_res)              # Kurzer Blick in den Datensatz
 library(ggplot2)
 # Histogramm der Residuen mit Normalverteilungs-Kurve
 ggplot(data = df_res, aes(x = res)) + 
-     geom_histogram(aes(y =..density..),
+     geom_histogram(aes(y = after_stat(density)),
                     bins = 20,                    # Wie viele Balken sollen gezeichnet werden?
                     colour = "blue",              # Welche Farbe sollen die Linien der Balken haben?
                     fill = "skyblue") +           # Wie sollen die Balken gefüllt sein?
      stat_function(fun = dnorm, args = list(mean = mean(res), sd = sd(res)), col = "darkblue") + # Füge die Normalverteilungsdiche "dnorm" hinzu und nutze den empirischen Mittelwert und die empirische Standardabweichung "args = list(mean = mean(res), sd = sd(res))", wähle dunkelblau als Linienfarbe
      labs(title = "Histogramm der Residuen mit Normalverteilungsdichte", x = "Residuen") # Füge eigenen Titel und Achsenbeschriftung hinzu
 
-# Grafisch: Q-Q-Diagramm mit der car Funktion qqPlot
+# Grafisch: Q-Q-Diagramm mit der Funktion qqPlot aus dem Paket car
 qqPlot(mod, pch = 16, distribution = "norm") 
   
 
@@ -86,7 +82,7 @@ df_h <- data.frame(h)       # als Data.Frame für ggplot
 
 # Erzeugung der Grafik
 ggplot(data = df_h, aes(x = h)) +
-  geom_histogram(aes(y =..density..),  bins = 15, fill="skyblue", colour = "blue") +
+  geom_histogram(aes(y =after_stat(density)),  bins = 15, fill="skyblue", colour = "blue") +
   geom_vline(xintercept = 4/n, col = "red") # Cut-off bei 4/n
 
 # Cooks Distanz gibt an, wie stark sich Regressionsgewichte ändern, wenn eine Person i aus dem Datensatz entfernt wird
@@ -97,7 +93,7 @@ df_CD <- data.frame(CD) # als Data.Frame für ggplot
 
 # Erzeugung der Grafik
 ggplot(data = df_CD, aes(x = CD)) +
-  geom_histogram(aes(y =..density..),  bins = 15, fill="skyblue", colour = "blue") +
+  geom_histogram(aes(y =after_stat(density)),  bins = 15, fill="skyblue", colour = "blue") +
   geom_vline(xintercept = 1, col = "red") # Cut-Off bei 1
 
 # Blasendiagramm, das simultan Hebelwerte, studentisierte Residuen und Cooks Distanz darstellt

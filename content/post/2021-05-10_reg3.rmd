@@ -37,17 +37,20 @@ file.rename("2021-05-10_reg3.R","PsyBSc7_R_Files/06_reg3.R") #NAME DER R-DATEI M
  
 ## Übersicht und Vorbereitung
 
-In den letzten Sitzungen haben wir gesehen, wie wir ein Modell für eine Multiple Regression in `R` aufstellen und verschiedene Modelle gegeneinander testen können. Besonders bei der Nutzung von Inferenzstatistik wissen wir aber auch, dass genutzte statistische Verfahren häufig Voraussetzungen an die Daten mitbringen. Das Thema der heutigen Sitzung ist daher die Überprüfung von Voraussetzungen im Rahmen der *Regressionsdiagnostik*. Einige der aufgeführten Punkte könnten noch aus der einfachen linearen Regression bekannt sein, aber wir betrachten sie auch im Übertrag auf den hier vorliegenden multivariaten Fall.
+In den letzten Sitzungen haben wir gesehen, wie wir ein Modell für eine Multiple Regression in `R` aufstellen und verschiedene Modelle gegeneinander testen können. Besonders bei der Nutzung von Inferenzstatistik wissen wir aber auch, dass genutzte statistische Verfahren häufig Voraussetzungen an die Daten mitbringen. Das Thema der heutigen Sitzung ist daher die Überprüfung von Voraussetzungen im Rahmen der *Regressionsdiagnostik*. Einige der aufgeführten Punkte könnten noch aus der einfachen linearen Regression bekannt sein, aber wir betrachten sie auch im Übertrag auf den hier vorliegenden multivariaten Fall. Im speziellen werden wir uns in dem Tutorial mit folgenden Aspekten beschäftigen:
 
-* [Korrekte Spezifikation des Modells](#Theoretisch)
-* [Messfehlerfreiheit der unabhängigen Variablen](#Theoretisch)
-* [Unabhängigkeit der Residuen](#Theoretisch)
-* [Linearität](#Linearität) 
+* [Korrekte Spezifikation des Modells - bspw. Linearität](#Linearität)
 * [Homoskedastizität](#Homoskedastizität) 
 * [Normalverteilung der Residuen](#Normalverteilung) 
 * [Multikollinearität](#Multikollinearität)
 * [Identifikation von Ausreißern und einflussreichen Datenpunkten](#Ausreißer)
 
+Über diese Aspekte hinaus, gibt es noch zwei Voraussetzungen, die wir nur kurz beschreiben und nicht mit `R` in diesem Tutorial analysieren werden.
+
+* [Messfehlerfreiheit der unabhängigen Variablen](#Vorschub)
+* [Unabhängigkeit der Residuen](#Vorschub)
+
+Anmerkung: Im Sinne der einer sehr präzisen Benennung handelt es sich bei der Multikollinearität und der Identifikation von Ausreißern / einflussreichen Datenpunkten nicht um Voraussetzungen sondern problematische Datensituationen, die aber ähnliche Auswirkungen auf die Analysen haben können.
 
 ### Übungs-Datensatz 
 
@@ -58,12 +61,6 @@ Den Datensatz und die benötigten Pakete laden Sie  wie folgt:
 #### Vorbereitung ----
 # Datensatz laden
 load(url("https://pandar.netlify.app/post/Schulleistungen.rda"))
-# Laden der Pakete
-library(car)
-library(MASS)
-library(ggplot2)
-
-
 ```
 
 ## Modell aufstellen
@@ -91,7 +88,7 @@ für $i=1,\dots,100=:n$.
 
 Den Koeffizienten entnehmen wir, dass die Prädiktoren `female` und `IQ` signifikante Anteile am Kriterium erklären (*Mit einer Irrtumswahrscheinlichkeit von 5% ist der Regressionkoeffizent und damit die lineare Beziehung zwischen dem jeweiligen Prädiktor (z.B. IQ) und der Leseleistung in der Population nicht 0*). Insgesamt werden `r round(stdsum$r.squared*100, 2)`% der Variation der Leseleistung durch die beiden Prädiktoren erklärt.
 
-Die Regressionskoeffizienten $b_j$ beziehen sich auf die Maßeinheiten der Variablen im Datensatz (um wie viele Einheiten nimmt $y$ zu, wenn $x_j$ um eine Einheit zunimmt). Wie wir bereits gelernt haben, sind diese *unstandardisierten Regressionskoeffizienten* nicht ganz leicht zu interpretieren, und Regressionsgewichte verschiedener Prädiktoren sind nicht vergleichbar. So lässt sich nicht einfach sagen, dass das Geschlecht einen stärkeren Einfluss auf die Leseleistung hätte als Intelligenz, nur weil das Regressionsgewicht für Geschlecht ($b_1=$ `r round(stdsum$coefficients[2,1],1)`) größer ist als das für Intelligenz ($b_2=$ `r round(stdsum$coefficients[3,1],1)`). Aus diesem Grund werden oft *standardisierte Regressionskoeffizienten* berechnet und berichtet. Diese können wir mithilfe der Funktion `lm.beta()` aus dem Paket `lm.beta` ermitteln, welches wir bereits installiert haben und nur noch aktivieren müssen. *lm* steht hier für lineares Modell und *beta* für die standardisierten Koeffizienten. 
+Die Regressionskoeffizienten $b_j$ beziehen sich auf die Maßeinheiten der Variablen im Datensatz (um wie viele Einheiten nimmt $y$ zu, wenn $x_j$ um eine Einheit zunimmt). Wie wir bereits gelernt haben, sind diese *unstandardisierten Regressionskoeffizienten* verschiedener Prädiktoren nicht vergleichbar. So lässt sich nicht einfach sagen, dass das Geschlecht einen stärkeren Einfluss auf die Leseleistung hätte als Intelligenz, nur weil das Regressionsgewicht für Geschlecht ($b_1=$ `r round(stdsum$coefficients[2,1],1)`) größer ist als das für Intelligenz ($b_2=$ `r round(stdsum$coefficients[3,1],1)`). Aus diesem Grund werden oft *standardisierte Regressionskoeffizienten* berechnet und berichtet. Diese können wir mithilfe der Funktion `lm.beta()` aus dem Paket `lm.beta` ermitteln, welches wir bereits installiert haben und nur noch aktivieren müssen.
 
 ```{r, echo=-1}
 # Berechnung standardisierter Koeffizienten
@@ -99,19 +96,23 @@ library(lm.beta)
 summary(lm.beta(mod))
 ```
 
-Anmerkung: In der Literatur werden oft auch unstandardisierte Regressionkoeffizienten als $\beta$s bezeichnet, sodass darauf stets zu achten ist - siehe bspw. [Appendix A](#AppendixA)).
-
-An der standardisierten Lösung fällt auf, dass das Interzept $\beta_0$ als `NA` anezeigt wird. Dies liegt daran, dass beim Standardisieren die Mittelwerte aller Variablen auf $0$ und die Standardabweichungen auf $1$ gesetzt werden. So auch beim Kriterium, der Leseleistung. Damit beträgt der Mittelwert des Kriteriums und der Mittelwert aller Prädiktoren jeweils $0$. Das Interzept gibt an, welchen Wert das Kriterium hat, wenn alle Prädiktoren den Wert $0$ aufweisen. Somit muss das Interzept hier genau $0$ betragen - also in der Regressionsgleichung nicht vorhanden sein. Weil jeder geschätzte Parameter der Regressionsgleichung einen Freiheitsgrad **kostet**, wird der Parameter besser einfach nicht mitgeschätzt, also als `NA` angegeben.
-
 Die standardisierten Regressionsgewichte für die Prädiktoren geben an, *um wieviele Standardabweichungen* sich $y$ verändert, wenn sich $x$ *um eine Standardabweichung* verändert. 
 Der standardisierte Koeffizient des `IQ` ist  hierbei deutlich größer ($\hat{\beta}_2=$ `r round(stdsum$coefficients[3,2], 2)`) als der vom Geschlecht ($\hat{\beta}_1=$ `r round(stdsum$coefficients[2,2], 2)`). Hierdurch wird sichtbar, dass der `IQ` mehr Variation am Kriterium Leseleistung erklärt. Diese Information ist den unstandardisierten Koeffizienten nicht zu entnehmen (das unstandardierte Regressionsgewicht für Geschlecht ist ja sogar größer als das für Intelligenz, s.o.). Der Unterschied zwischen den unstandardisierten und standardisierten Koeffizienten kommt im Beispiel dadurch zustande, dass der Prädiktor `IQ` eine wesentlich größere Streuung ($\sigma_{IQ}^2$=`r round(var(Schulleistungen$IQ), 2)`) aufweist als die dummykodierte Variable `female` ($\sigma_{female}^2$=`r round(var(Schulleistungen$female), 2)`). Für den Fall eines intervallskalierten Prädiktors wie `IQ` ist der standardisierte Koeffizient auch einfacher zu interpretieren, da man die Skala Verteilung der Variablen nicht berücksichtigen muss: Wenn sich `IQ` um eine Standardabweichung ändert, ändert sich die Leseleistung um `r round(stdsum$coefficients[3,2], 2)` Standardabweichungen. Für dummykodierte Variablen wie Geschlecht ist diese Interpretation nicht so anschaulich, da hier "eine Einheit in $x$" schon aussagekräftig ist - sie entspricht nämlich dem Unterschied zwischen den mit null und eins kodierten Gruppen. Der unstandardisierte Koeffizient $b_1=$ `r round(stdsum$coefficients[2,1],1)` lässt sich als Unterschied zwischen Jungen und Mädchen in Maßeinheiten der Lesefähigkeit interpretieren. "Eine Standardabweichung im Geschlecht" ist hingegen weniger anschaulich. Daher ist es hilfreich, beide Angaben (unstandardisierte und standardisierte Regressionsgewichte) zu kennen.
 
-## Linearität {#Linearität}
+## Messfehlerfreiheit der unabhängigen Variablen und Unabhängigkeit der Residuen {#Vorschub}
 
-Eine grafische Prüfung der partiellen Linearität zwischen den einzelnen Prädiktorvariablen und dem Kriterium kann durch *partielle Regressionsplots* (engl. *Partialplots*) erfolgen. Dafür sagen wir in einem Zwischenschritt einen einzelnen Prädiktor durch alle anderen Prädiktoren im Modell vorher und speichern die Residuen, die sich aus dieser Regression ergeben. Diese kennzeichnen den eigenständigen Anteil, den ein Prädiktor nicht mit den anderen Prädiktoren gemein hat. Dann werden die Residuen aus dieser Vorhersage gegen die Residuen des Kriteriums bei Vorhersage durch alle Prädiktor bis auf den betrachteten Prädiktor dargestellt. Bspw. im Block `reading | others` vs. `IQ | others` ist die lineare Beziehung zwischen der Leseleistung, wobei alle Varianzanteile der "anderen Prädiktoren" bereits herausgezogen wurden (à la Partial-/Semipartialkorrelation). Hier gibt es nur noch das Geschlecht im Modell, wodurch ersichtlich wird, dass hier die Leseleistung unter Kontrolle des Geschlechts abgebildet wird gegen die Intelligenz unter Kontrolle des Geschlecht. Mit "unter Kontrolle" meinen wir hier "gegeben die jeweiligen Prädiktoren". Das ist im Grunde eine sehr komplizierte Ausdrucksweise, um tatsächlich einfach die Residuen einer Regression zu meinen. Wir tragen also die Residuen der Regression der Leseleistung durch das Geschlecht vs. die Residuen der Intelligenz gegeben das Geschlecht ab. Diese Grafiken können Hinweise auf systematische nicht-lineare Zusammenhänge geben, die in der Modellspezifikation nicht berücksichtigt wurden. Die zugehörige `R`-Funktion des `car` Pakets heißt `avPlots` und braucht als Argument lediglich das Regressionsmodell `mod`. 
+Die beiden Voraussetzungen werden wir im Tutorial wie schon beschrieben nicht genauer analysieren, sondern hier nur zum Start die Bedeutung und Auswirkung kurz zusammenfassen. Messfehlerfreiheit der unabhängigen Variable umfasst, dass die Ausprägung der Variablen ohne Fehler gemessen werden können. Messfehler können zur Unterschätzung oder Überschätzung der Regressionsgewichte führen. Eine vielleicht aus der Diagnostik bekannte Größe, die den Grad an Messfehlerabhängigkeit bestimmen kann, ist die Reliabilität. Messinstrumente mit hoher Reliabilität sind demnach zu bevorzugen und resultieren in weniger Fehlern. Bei der Unabhängigkeit der Residuen geht es darum, dass die Residuen untereinander voneinander unabhängig sind. Verletzt wird dies bspw. bei Klumpenstichproben (Schüler:innen aus 4 verschiedenen Klassen werden erhoben - jede Klasse bildet einen Klumpen). Hier wird davon ausgegangen, dass sich Personen innerhalb eines Klumpens ähnlicher sind und damit die Fehler dieser Personen voneinander abhängen. Dies führt typischerweise zu einer Unterschätzung der Standardfehler und damit einem niedrigeren Irrtumsniveau, als wir eigentlich festgelegt haben. Ein anderes Beispiel wäre serielle Abhängigkeit, die bei Messwiederholungen auftreten kann.
+
+## Korrekte Spezifikation des Modells - bspw. Linearität {#Linearität}
+
+In die korrekte Spezifikation des Modells fällt, dass keine als Prädiktor relevanten Variablen aus der Population ausgelassen werden und auch keine Variablen eingeschlossen werden, die nicht zur Erklärung beitragen. Ein Aspekt davon ist, dass der Zusammenhang zwischen den Prädiktoren und dem Kriterium auch so sein soll, wie von uns in der Regressionsgleichung postuliert. Bisher nutzen wir nur lineare Zusammenhänge, weshalb eine Voraussetzung hier sein sollte, dass in der Population auch wirklich ein linearer Zusammenhang zwischen den Prädiktoren und dem Kriterium besteht.
+
+Eine grafische Prüfung der partiellen Linearität zwischen den einzelnen Prädiktorvariablen und dem Kriterium kann durch *partielle Regressionsplots* (engl. *Partialplots*) erfolgen. Dafür sagen wir in einem Zwischenschritt einen einzelnen Prädiktor durch alle anderen Prädiktoren im Modell vorher und speichern die Residuen, die sich aus dieser Regression ergeben. Diese kennzeichnen den eigenständigen Anteil, den ein Prädiktor nicht mit den anderen Prädiktoren gemein hat. Dann werden die Residuen aus dieser Vorhersage gegen die Residuen des Kriteriums bei Vorhersage durch alle Prädiktor bis auf den betrachteten Prädiktor dargestellt. Bspw. im Block `reading | others` vs. `IQ | others` ist die lineare Beziehung zwischen der Leseleistung, wobei alle Varianzanteile der "anderen Prädiktoren" bereits herausgezogen wurden (à la Partial-/Semipartialkorrelation). Hier gibt es nur noch das Geschlecht im Modell, wodurch ersichtlich wird, dass hier die Leseleistung unter Kontrolle des Geschlechts abgebildet wird gegen die Intelligenz unter Kontrolle des Geschlecht. Mit "unter Kontrolle" meinen wir hier "gegeben die jeweiligen Prädiktoren". Das ist im Grunde eine sehr komplizierte Ausdrucksweise, um tatsächlich einfach die Residuen einer Regression zu meinen. Wir tragen also die Residuen der Regression der Leseleistung durch das Geschlecht vs. die Residuen der Intelligenz gegeben das Geschlecht ab. Diese Grafiken können Hinweise auf systematische nicht-lineare Zusammenhänge geben, die in der Modellspezifikation nicht berücksichtigt wurden. Die zugehörige `R`-Funktion des `car` Pakets, das wir bereits installiert haben, heißt `avPlots()` und braucht als Argument lediglich das Regressionsmodell `mod`. 
 
 ```{r, echo=-1}
 ## Grafische Prüfung der partiellen Linearität
+
+library(car) # Paket mit einigen Funktionen zur Regressionsdiagnostik
 
 # partielle Regressionsplots
 avPlots(model = mod, pch = 16, lwd = 4)
@@ -151,7 +152,7 @@ Wir beginnen mit der Vorbereitung der Daten. Wir wollen die studentisierten Resi
 ```{r, echo=c(-1,-2)}
 ## Prüfung der Normalverteilung (Grafisch)
 # Daten für ggplot extrahieren
-
+library(MASS)
 res <- studres(mod)       # Studentisierte Residuen als Objekt speichern
 df_res <- data.frame(res) # als Data.Frame für ggplot
 head(df_res)              # Kurzer Blick in den Datensatz
@@ -164,21 +165,21 @@ Im Folgenden erzeugen wir ein Histogramm und ein Q-Q-Diagramm aus dem Datensatz 
 library(ggplot2)
 # Histogramm der Residuen mit Normalverteilungs-Kurve
 ggplot(data = df_res, aes(x = res)) + 
-     geom_histogram(aes(y =..density..),
+     geom_histogram(aes(y = after_stat(density)),
                     bins = 20,                    # Wie viele Balken sollen gezeichnet werden?
                     colour = "blue",              # Welche Farbe sollen die Linien der Balken haben?
                     fill = "skyblue") +           # Wie sollen die Balken gefüllt sein?
      stat_function(fun = dnorm, args = list(mean = mean(res), sd = sd(res)), col = "darkblue") + # Füge die Normalverteilungsdiche "dnorm" hinzu und nutze den empirischen Mittelwert und die empirische Standardabweichung "args = list(mean = mean(res), sd = sd(res))", wähle dunkelblau als Linienfarbe
      labs(title = "Histogramm der Residuen mit Normalverteilungsdichte", x = "Residuen") # Füge eigenen Titel und Achsenbeschriftung hinzu
 
-# Grafisch: Q-Q-Diagramm mit der car Funktion qqPlot
+# Grafisch: Q-Q-Diagramm mit der Funktion qqPlot aus dem Paket car
 qqPlot(mod, pch = 16, distribution = "norm") 
   
 ```
 
-Die in der Konsole von der Funktion `qqplot` ausgegebenen Werte geben die Zeilen im Datensatz an, welche Ausreißer darstellen, diese sind auch in der Grafik beschriftet.
+Die in der Konsole von der Funktion `qqplot()` ausgegebenen Werte geben die Zeilen im Datensatz an, welche Ausreißer darstellen, diese sind auch in der Grafik beschriftet.
 
-Zusätzlich zur grafischen Darstellung können wir die Hypothese auf Normalverteilung mit dem Shapiro-Wilk-Test und dem Kolmogorov-Smirnov-Test prüfen:
+Zusätzlich zur grafischen Darstellung können wir die Hypothese auf Normalverteilung der Residuen natürlich auch inferenzstatistisch prüfen - mit dem Shapiro-Wilk-Test oder dem Kolmogorov-Smirnov-Test prüfen. Dieses Vorgehen kann als problemtisch angesehen werden, da wir im Endeffekt auf die H0 (Verteilung der Residuen weicht nicht von Normalverteilung ab) testen wollen, was wir aber nicht können. Wir haben für unsere Überprüfung demnach keine Irrtumswahrscheinlichkeit (das wäre $beta$), sondern verwerfen die Normalverteilung nur bei einer extremen Verletzung (gefundene Verteilung ist seltener als 5$%$ unter der Annahme, dass eigentlich Normalverteilung vorliegt). Die Durchführung der Inferenzstatistik ist daher als vorsichtige Ergänzung anzusehen.
 
 ```{r, echo=-1}
 ## Prüfung der Normalverteilung (Test)
@@ -240,7 +241,7 @@ df_h <- data.frame(h)       # als Data.Frame für ggplot
 
 # Erzeugung der Grafik
 ggplot(data = df_h, aes(x = h)) +
-  geom_histogram(aes(y =..density..),  bins = 15, fill="skyblue", colour = "blue") +
+  geom_histogram(aes(y =after_stat(density)),  bins = 15, fill="skyblue", colour = "blue") +
   geom_vline(xintercept = 4/n, col = "red") # Cut-off bei 4/n
 ```
 
@@ -255,7 +256,7 @@ df_CD <- data.frame(CD) # als Data.Frame für ggplot
 
 # Erzeugung der Grafik
 ggplot(data = df_CD, aes(x = CD)) +
-  geom_histogram(aes(y =..density..),  bins = 15, fill="skyblue", colour = "blue") +
+  geom_histogram(aes(y =after_stat(density)),  bins = 15, fill="skyblue", colour = "blue") +
   geom_vline(xintercept = 1, col = "red") # Cut-Off bei 1
 ```
 
