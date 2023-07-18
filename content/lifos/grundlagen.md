@@ -74,6 +74,7 @@ In diesem Abschnitt befindet sich alles wichtige, um das erste eigene Projekt an
 | --- | --- | --- | --- | --- |
 | 1 | Was ist LIFOS? |[DE](/post/lifos-orientierung) | [EN](/post/lifos-orientierung-eng)|
 | 2 | Das passende Template finden| [DE](/post/lifos-templates) | [EN](/post/lifos-templates-eng)|
-| 3 | Das eigene Projekt|  [DE](/post/lifos-eigenesProjekt) | [EN](/post/lifos-eigenesProjekt-eng)|
-| 4 | Informationen für Betreuende| [DE](/post/under-construction) | [EN](/post/under-construction)| 
+| 3 | Das eigene Projekt|  [DE](/post/lifos-eigenesprojekt) | [EN](/post/lifos-eigenesprojekt-eng)|
+| 4 | Datenschutz|  [DE](/post/lifos-datenschutz) | [EN](/post/under-construction)|
+| 5 | Informationen für Betreuende| [DE](/post/under-construction) | [EN](/post/under-construction)| 
 |  |  |    
